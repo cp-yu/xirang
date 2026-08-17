@@ -25,19 +25,13 @@ Web SHALL 在 Change-derived View 的 Element Details 中，将每个存在差�
 
 ### Requirement: 呈现语义差异视觉表达
 
-Xirang Diff Overlay SHALL 在 Presentation Mode 为 `complete-with-diff` 或 `diff-only` 时，以 outline 颜色、diff badge 与 dim 透明度标记可见节点与边的 ADDED、MODIFIED、REMOVED operation；`complete-with-diff` projection 使用 change-only 或 candidate-only target sources 并叠加差异标记，`diff-only` projection 使用 formal+change 或 formal+candidate union sources 并仅投影 changed elements 与必要上下文；该视觉表达逻辑 SHALL 统一适用于活动 Change 与 Candidate，不因 Change Selection 为 `candidate` reserved identifier 而差异化。单字符 diff badge glyph 为 `+`（U+002B PLUS SIGN）、`~`（U+007E TILDE）、`−`（U+2212 MINUS SIGN），分别表示 ADDED、MODIFIED、REMOVED。
+Xirang Diff Overlay SHALL 在活动 Change 的 Presentation Mode 为 `complete-with-diff` 或 `diff-only`、以及 Candidate 的 Presentation Mode 为 `diff-only` 时，以 outline 颜色、diff badge 与 dim 透明度标记可见节点与边的 ADDED、MODIFIED、REMOVED operation。活动 Change 的 `complete-with-diff` projection SHALL 使用 change-only target sources 并叠加差异标记；`diff-only` projection SHALL 使用 formal+change 或 formal+candidate union sources 并仅投影 changed elements 与必要上下文。Candidate 的 `complete` Mode SHALL NOT 激活该 overlay。单字符 diff badge glyph 为 `+`（U+002B PLUS SIGN）、`~`（U+007E TILDE）、`−`（U+2212 MINUS SIGN），分别表示 ADDED、MODIFIED、REMOVED。
 
 #### Scenario: Change complete-with-diff
 
 - **WHEN** 用户选择活动 Change 且 Mode 为 `complete-with-diff`
 - **THEN** Browser 呈现 Change target projection
 - **AND** 可见节点与边以 outline 与 badge 标记其 operation
-
-#### Scenario: Candidate complete-with-diff
-
-- **WHEN** 用户选择 `change=candidate&mode=complete-with-diff`
-- **THEN** Browser 呈现 Candidate target projection
-- **AND** 可见节点与边的差异标记逻辑与 Change 完全一致
 
 #### Scenario: Change diff-only
 
@@ -50,6 +44,11 @@ Xirang Diff Overlay SHALL 在 Presentation Mode 为 `complete-with-diff` 或 `di
 - **WHEN** 用户选择 `change=candidate&mode=diff-only`
 - **THEN** Browser 仅投影 Candidate changed elements 与必要上下文
 - **AND** 差异标记与 Change diff-only 一致
+
+#### Scenario: Candidate complete 不叠加 overlay
+
+- **WHEN** 用户选择 `change=candidate` 且 Mode 为 `complete`
+- **THEN** Browser 不叠加 outline、badge 或 dim 差异标记
 
 ### Requirement: 折叠呈现 Metamodel 差异条目
 

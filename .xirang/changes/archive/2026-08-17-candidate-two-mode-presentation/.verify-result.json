@@ -29,7 +29,7 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "1ac93846dcfc8d8a27af6619a9b0fcb5a90f202759326748e130d7fae7ab9d71",
+    "evidenceFingerprint": "dff3b9552144697e8c60a7d1ce70a52e589aa01da2cae720674be85872ded16a",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
@@ -65,15 +65,15 @@
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
-        "hash": "a0257ccb69dfe378de79d5827a94a8528142348d26445b22f794362e538e155f"
+        "hash": "97e250cedd44b429b00e076aac473c35d23c05b11d438100dd440758cf2f265b"
       },
       {
         "path": ".xirang/model/elements/web.md",
-        "hash": "b8789c683f80d2d7b29adbb184c8d30c8132ac06036e86475dd7b82e69df52ff"
+        "hash": "659328890c18cf394e4940635343327f85056b568b2bff604d416f5b42a9311b"
       },
       {
         "path": ".xirang/model/elements/xirang-diff-overlay.md",
-        "hash": "889edc071c4721435d75233c6591ea0d949be0065d8caa5829a8cbca005e8351"
+        "hash": "958b0174252ff15fad9f84a483d5759583b0462862a82e82015b3e5248f999db"
       },
       {
         "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
@@ -123,8 +123,14 @@
     "gitDiffSummary": "Validated baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430 and reviewed git diff base...HEAD (16 paths) plus current worktree status (four expected correction-related modifications; no staged files). Final implementation normalizes viewSelection/changeSelection before focusable identity calculation, preserves legal Model View focus/expanded identities while pruning illegal ones, clamps Candidate complete-with-diff to complete, and leaves the projection handler source-selection algorithm unchanged. Independently passed SPA focused tests 29/29, Candidate E2E 10/10, active Change/Model View E2E 15/15, SPA typecheck, xirang validate (7 MODIFIED, 0 issues), and git diff --check."
   },
   "optimization": {
-    "status": "PENDING_VERIFICATION",
-    "attempts": [],
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-17T08:23:39.433Z",
+        "type": "optimization",
+        "status": "NO_OPTIMIZATION_NEEDED"
+      }
+    ],
     "baseline": {
       "timestamp": "2026-08-17T08:05:53.525Z",
       "result": "PASS",
@@ -249,6 +255,10 @@
         "gitHeadCommit": "d11975a710009030d87bd0b0853f8aae9692970a",
         "gitDiffSummary": "Validated baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430 and reviewed git diff base...HEAD (16 paths) plus current worktree status (four expected correction-related modifications; no staged files). Final implementation normalizes viewSelection/changeSelection before focusable identity calculation, preserves legal Model View focus/expanded identities while pruning illegal ones, clamps Candidate complete-with-diff to complete, and leaves the projection handler source-selection algorithm unchanged. Independently passed SPA focused tests 29/29, Candidate E2E 10/10, active Change/Model View E2E 15/15, SPA typecheck, xirang validate (7 MODIFIED, 0 issues), and git diff --check."
       }
-    }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
   }
 }
