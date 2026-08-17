@@ -13,6 +13,7 @@ import {
   reconcileSemanticBrowserState,
   reduceSemanticBrowserState,
   type SemanticBrowserManifest,
+  type SemanticBrowserState,
 } from './SemanticBrowserController'
 
 const manifest: SemanticBrowserManifest = {
@@ -181,6 +182,24 @@ describe('SemanticBrowserController state machine', () => {
       presentationMode: 'complete',
     })
     expect([...next.expanded]).toEqual([])
+  })
+
+  it('preserves model-valid focus and expanded identities when the selected authored view disappears', () => {
+    const staleState: SemanticBrowserState = {
+      viewSelection: 'api',
+      changeSelection: null,
+      presentationMode: 'complete',
+      focus: 'root.db',
+      expanded: new Set(['root.api', 'root.db', 'ghost']),
+    }
+    const next = reconcileSemanticBrowserState({
+      ...staleState,
+      expanded: new Set(staleState.expanded),
+    }, { ...manifest, authoredViews: {} })
+
+    expect(next.viewSelection).toBe('model')
+    expect(next.focus).toBe('root.db')
+    expect([...next.expanded]).toEqual(['root.api', 'root.db'])
   })
 
   it('uses complete without a change and complete-with-diff when a change is selected', () => {

@@ -151,7 +151,8 @@ function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManife
   const changeSelection = state.changeSelection && validChanges(manifest).has(state.changeSelection)
     ? state.changeSelection
     : null
-  const allowed = focusableIdentities(state, manifest)
+  const normalizedState = { ...state, viewSelection, changeSelection }
+  const allowed = focusableIdentities(normalizedState, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
   const presentationMode = normalizeMode(changeSelection, state.presentationMode)

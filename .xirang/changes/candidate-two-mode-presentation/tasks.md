@@ -59,4 +59,14 @@
   - Verifies: `elements/web.md` / Requirement "呈现 Candidate 目标与差异" / Scenario "浏览 Candidate 目标模型"
   - Evidence: 在 Edera 运行 `xirang view`，打开 Candidate 后 Mode 为 `complete` 且控件只有 `complete` 与 `diff-only`
   - Result: `evidence/edera-candidate-view.json` 记录目标快照、执行方式与浏览器观测值
-  - Expect: 默认呈现完整 Candidate 目标，无差异 overlay
+
+## Required Corrections
+
+### [code_fix] 修复 Authored View 移除后的导航状态回退
+
+Manifest 刷新移除当前 Authored View 时，`clampState` 必须使用归一化后的 `viewSelection` 与 `changeSelection` 计算 focus/expanded 允许集，保留 Model View 中仍合法的身份并清理 Model View 外身份。
+
+- [x] C1 补充 View Selection reconciliation 回归测试并修复 `clampState`
+  - Preserves: `.xirang/model/elements/web.md` / Requirement "协调 View Selection 运行时状态" / Scenario "切换到仍包含当前 focus 的 Authored View"
+  - Command: `cd likec4 && CI=true pnpm --filter @likec4/spa test SemanticBrowserController`
+  - Expect: 当前 Authored View 消失后回退 Model View，Model 中仍合法的 focus 与 expanded identities 保留，非法 identity 被清理

@@ -1,14 +1,13 @@
 {
-  "timestamp": "2026-08-17T06:50:13.252Z",
+  "timestamp": "2026-08-17T08:05:53.525Z",
   "result": "PASS",
   "issues": [],
-  "tasksFileHash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478",
+  "tasksFileHash": "37304d4c8f352e664ec36e75050e9783718e4d113d0461cc0451b15a25c8ab9e",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
       ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
       ".xirang/changes/candidate-two-mode-presentation/.verify-result.json",
-      ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
       ".xirang/changes/candidate-two-mode-presentation/design.md",
       ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
       ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
@@ -16,12 +15,9 @@
       ".xirang/changes/candidate-two-mode-presentation/evidence/edera-candidate-view.json",
       ".xirang/changes/candidate-two-mode-presentation/proposal.md",
       ".xirang/changes/candidate-two-mode-presentation/tasks.md",
-      ".xirang/model/elements/interaction-surfaces.md",
-      ".xirang/model/elements/project.root.md",
       ".xirang/model/elements/semantic-browser.md",
       ".xirang/model/elements/web.md",
       ".xirang/model/elements/xirang-diff-overlay.md",
-      ".xirang/model/metamodel/element.md",
       "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
       "likec4/packages/likec4-spa/src/searchParams.spec.ts",
       "likec4/packages/likec4-spa/src/searchParams.ts",
@@ -33,15 +29,11 @@
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "da617851f379441e8b7004f0c4f157068179db9c2c51f28aed59f8e16a292a06",
+    "evidenceFingerprint": "1ac93846dcfc8d8a27af6619a9b0fcb5a90f202759326748e130d7fae7ab9d71",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
         "hash": "231e27c3c9571aee72ec0339197db5aef3c5b60c4005138a2fff20ec72f9049f"
-      },
-      {
-        "path": ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
-        "hash": "8a7fb49419df5aa8ba9bf912cf373cb57f2defdd6ba7bca350ad799a4dcc9e86"
       },
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/design.md",
@@ -69,15 +61,7 @@
       },
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/tasks.md",
-        "hash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478"
-      },
-      {
-        "path": ".xirang/model/elements/interaction-surfaces.md",
-        "hash": "f2409800de1a7a4084c0dfb195a0caf07b4c88f4f008c6ba95aa95c41396857b"
-      },
-      {
-        "path": ".xirang/model/elements/project.root.md",
-        "hash": "731ff9f2454566d04f63e0dea57e74b8b1e82a776f8cf8ea0b2146fde66bc922"
+        "hash": "37304d4c8f352e664ec36e75050e9783718e4d113d0461cc0451b15a25c8ab9e"
       },
       {
         "path": ".xirang/model/elements/semantic-browser.md",
@@ -90,10 +74,6 @@
       {
         "path": ".xirang/model/elements/xirang-diff-overlay.md",
         "hash": "889edc071c4721435d75233c6591ea0d949be0065d8caa5829a8cbca005e8351"
-      },
-      {
-        "path": ".xirang/model/metamodel/element.md",
-        "hash": "64c0b98dc85aee272b8e96af9c7de1740b49ef64f5ebbfa1fc73e1b3449e7cb0"
       },
       {
         "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
@@ -109,11 +89,11 @@
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
-        "hash": "63bae904a8aff9c1188e2618aa085ac70d6803bc7bceea8b601787011d12999e"
+        "hash": "463b3da22fc4ecf97e26de1da68950e1a172c5b2667523343bdbec2594f3ee54"
       },
       {
         "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-        "hash": "a4c8ea56452cae694b7977f9bfbc8f4f089744d9caba647082bb221a18b5b29b"
+        "hash": "cd6e2e7eca2d9df5124647027311002920b30e21fa72eff4d2721ef9e5cae65d"
       },
       {
         "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
@@ -139,45 +119,22 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/candidate-two-mode-presentation/.verify-result.json"
     ],
-    "gitHeadCommit": "219c82dfacb63cc036ba1766aa956c24c2277e9f",
-    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430, and reviewed the clean 16-file committed scope through HEAD 8d25445cec86d5e849553c7fd09ec4624eb5af55 using git diff <baseCommit>...HEAD --name-only and git status --short. All changed files are explicitly attributed by Task 1 or are change artifacts. Final code makes Candidate default to complete, clamps complete-with-diff to complete before projection, exposes only complete and diff-only, omits mode from the Candidate landing URL, preserves diff-only removed ghosts, and leaves the projection handler and active-Change complete-with-diff behavior intact. Focused unit tests passed 27/27, Candidate e2e passed 10/10, active-Change model-view e2e passed 15/15, SPA typecheck passed, strict change validation passed, Semantic Model validation passed, and OpenSpec remained clean after testing. The committed C8 attestation resolves both cited commits and its independently recomputed 149-file Edera Candidate aggregate SHA-256 matches 039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6. Residual risk: C8 is accepted attested browser evidence rather than a browser replay performed during this review; the uncommitted Edera Candidate content is pinned by the matching aggregate hash.",
-    "timestamp": "2026-08-17T07:23:06.158Z"
+    "gitHeadCommit": "d11975a710009030d87bd0b0853f8aae9692970a",
+    "gitDiffSummary": "Validated baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430 and reviewed git diff base...HEAD (16 paths) plus current worktree status (four expected correction-related modifications; no staged files). Final implementation normalizes viewSelection/changeSelection before focusable identity calculation, preserves legal Model View focus/expanded identities while pruning illegal ones, clamps Candidate complete-with-diff to complete, and leaves the projection handler source-selection algorithm unchanged. Independently passed SPA focused tests 29/29, Candidate E2E 10/10, active Change/Model View E2E 15/15, SPA typecheck, xirang validate (7 MODIFIED, 0 issues), and git diff --check."
   },
   "optimization": {
     "status": "PENDING_VERIFICATION",
-    "attempts": [
-      {
-        "timestamp": "2026-08-17T06:57:59.201Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-17T07:09:08.127Z",
-        "type": "verification",
-        "result": "FAIL_NEEDS_CORRECTIONS"
-      },
-      {
-        "timestamp": "2026-08-17T07:12:49.334Z",
-        "type": "optimization",
-        "status": "OPTIMIZATION_PROPOSED"
-      },
-      {
-        "timestamp": "2026-08-17T07:23:06.140Z",
-        "type": "verification",
-        "result": "PASS"
-      }
-    ],
+    "attempts": [],
     "baseline": {
-      "timestamp": "2026-08-17T06:50:13.252Z",
+      "timestamp": "2026-08-17T08:05:53.525Z",
       "result": "PASS",
       "issues": [],
-      "tasksFileHash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478",
+      "tasksFileHash": "37304d4c8f352e664ec36e75050e9783718e4d113d0461cc0451b15a25c8ab9e",
       "verificationContext": {
         "contractVersion": "1.0",
         "evidenceFiles": [
           ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
           ".xirang/changes/candidate-two-mode-presentation/.verify-result.json",
-          ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
           ".xirang/changes/candidate-two-mode-presentation/design.md",
           ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
           ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
@@ -185,12 +142,9 @@
           ".xirang/changes/candidate-two-mode-presentation/evidence/edera-candidate-view.json",
           ".xirang/changes/candidate-two-mode-presentation/proposal.md",
           ".xirang/changes/candidate-two-mode-presentation/tasks.md",
-          ".xirang/model/elements/interaction-surfaces.md",
-          ".xirang/model/elements/project.root.md",
           ".xirang/model/elements/semantic-browser.md",
           ".xirang/model/elements/web.md",
           ".xirang/model/elements/xirang-diff-overlay.md",
-          ".xirang/model/metamodel/element.md",
           "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
           "likec4/packages/likec4-spa/src/searchParams.spec.ts",
           "likec4/packages/likec4-spa/src/searchParams.ts",
@@ -202,15 +156,11 @@
           "test/e2e/semantic-browser-candidate-views.spec.ts",
           "test/e2e/semantic-browser-model-view.spec.ts"
         ],
-        "evidenceFingerprint": "b77030035fe5cdae4b300a87944626cfe5cc619d1ff245b6dbbee0d2887caaac",
+        "evidenceFingerprint": "1ac93846dcfc8d8a27af6619a9b0fcb5a90f202759326748e130d7fae7ab9d71",
         "evidenceFingerprintEntries": [
           {
             "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
-            "hash": "cae0c83044e1c3abc4476ca4002f1fd92b14da09791da476d3a7b6bda91f3736"
-          },
-          {
-            "path": ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
-            "hash": "8a7fb49419df5aa8ba9bf912cf373cb57f2defdd6ba7bca350ad799a4dcc9e86"
+            "hash": "231e27c3c9571aee72ec0339197db5aef3c5b60c4005138a2fff20ec72f9049f"
           },
           {
             "path": ".xirang/changes/candidate-two-mode-presentation/design.md",
@@ -238,15 +188,7 @@
           },
           {
             "path": ".xirang/changes/candidate-two-mode-presentation/tasks.md",
-            "hash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478"
-          },
-          {
-            "path": ".xirang/model/elements/interaction-surfaces.md",
-            "hash": "f2409800de1a7a4084c0dfb195a0caf07b4c88f4f008c6ba95aa95c41396857b"
-          },
-          {
-            "path": ".xirang/model/elements/project.root.md",
-            "hash": "731ff9f2454566d04f63e0dea57e74b8b1e82a776f8cf8ea0b2146fde66bc922"
+            "hash": "37304d4c8f352e664ec36e75050e9783718e4d113d0461cc0451b15a25c8ab9e"
           },
           {
             "path": ".xirang/model/elements/semantic-browser.md",
@@ -259,10 +201,6 @@
           {
             "path": ".xirang/model/elements/xirang-diff-overlay.md",
             "hash": "889edc071c4721435d75233c6591ea0d949be0065d8caa5829a8cbca005e8351"
-          },
-          {
-            "path": ".xirang/model/metamodel/element.md",
-            "hash": "64c0b98dc85aee272b8e96af9c7de1740b49ef64f5ebbfa1fc73e1b3449e7cb0"
           },
           {
             "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
@@ -278,11 +216,11 @@
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
-            "hash": "624e87760f3dcdab59603c44e5e4cdcb272236e5490ce973c1e88f51012421e0"
+            "hash": "463b3da22fc4ecf97e26de1da68950e1a172c5b2667523343bdbec2594f3ee54"
           },
           {
             "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
-            "hash": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
+            "hash": "cd6e2e7eca2d9df5124647027311002920b30e21fa72eff4d2721ef9e5cae65d"
           },
           {
             "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
@@ -308,158 +246,9 @@
         "skippedEvidenceFiles": [
           ".xirang/changes/candidate-two-mode-presentation/.verify-result.json"
         ],
-        "gitHeadCommit": "8d25445cec86d5e849553c7fd09ec4624eb5af55",
-        "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430, and reviewed the clean 16-file committed scope through HEAD 8d25445cec86d5e849553c7fd09ec4624eb5af55 using git diff <baseCommit>...HEAD --name-only and git status --short. All changed files are explicitly attributed by Task 1 or are change artifacts. Final code makes Candidate default to complete, clamps complete-with-diff to complete before projection, exposes only complete and diff-only, omits mode from the Candidate landing URL, preserves diff-only removed ghosts, and leaves the projection handler and active-Change complete-with-diff behavior intact. Focused unit tests passed 27/27, Candidate e2e passed 10/10, active-Change model-view e2e passed 15/15, SPA typecheck passed, strict change validation passed, Semantic Model validation passed, and OpenSpec remained clean after testing. The committed C8 attestation resolves both cited commits and its independently recomputed 149-file Edera Candidate aggregate SHA-256 matches 039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6. Residual risk: C8 is accepted attested browser evidence rather than a browser replay performed during this review; the uncommitted Edera Candidate content is pinned by the matching aggregate hash."
+        "gitHeadCommit": "d11975a710009030d87bd0b0853f8aae9692970a",
+        "gitDiffSummary": "Validated baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430 and reviewed git diff base...HEAD (16 paths) plus current worktree status (four expected correction-related modifications; no staged files). Final implementation normalizes viewSelection/changeSelection before focusable identity calculation, preserves legal Model View focus/expanded identities while pruning illegal ones, clamps Candidate complete-with-diff to complete, and leaves the projection handler source-selection algorithm unchanged. Independently passed SPA focused tests 29/29, Candidate E2E 10/10, active Change/Model View E2E 15/15, SPA typecheck, xirang validate (7 MODIFIED, 0 issues), and git diff --check."
       }
-    },
-    "findings": [
-      {
-        "status": "verified",
-        "location": {
-          "files": [
-            "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx"
-          ],
-          "symbols": [
-            "defaultMode",
-            "clampState",
-            "createSemanticBrowserState",
-            "canonicalSearchKey"
-          ]
-        },
-        "opportunity": "Presentation Mode normalization is encoded independently in default selection, controller clamping, initial URL decoding, and canonical URL-key generation. The Candidate-specific complete-with-diff-to-complete rule is duplicated in clampState and canonicalSearchKey, while absent-mode handling is split between defaultMode and callers.",
-        "impact": "A single pure normalization function removes duplicated conditional policy and makes state clamping and URL canonicalization structurally unable to drift, simplifying the synchronization code that guards against repeated navigation and projection requests.",
-        "evidence": [
-          "The current SemanticBrowserController.tsx SHA-256 is e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391, matching the finding's pre-optimization target hash.",
-          "defaultMode maps null and candidate selections to complete while mapping active Changes to complete-with-diff.",
-          "clampState separately checks null selection and the candidate plus complete-with-diff combination before selecting complete.",
-          "canonicalSearchKey repeats the same null and Candidate clamp and then separately compares against defaultMode.",
-          "createSemanticBrowserState validates the requested mode, supplies defaultMode when absent, and relies on clampState for the Candidate exception.",
-          "The canonicalSearchKey comment explicitly requires the URL-apply and URL-commit representations never to drift, but their mode policy currently remains distributed across multiple branches.",
-          "The failed verification states that the attempted implementation was statically consistent and all executed unit, typecheck, Candidate e2e, and active-Change e2e checks passed; rejection was specifically for incomplete preservation coverage."
-        ],
-        "recommendation": "Introduce one private pure mode-normalization helper accepting a Change Selection and an optional requested mode. Use it from clampState, createSemanticBrowserState, and canonicalSearchKey while retaining the existing runtime whitelist for SemanticBrowserUrlState.mode. Keep defaultMode as the helper's default policy or fold it into the helper if that produces the clearer local API.",
-        "keyDesign": "Normalize through one decision table: no selection always yields complete; Candidate yields complete for an absent, complete, or complete-with-diff request and preserves diff-only; an active Change defaults to complete-with-diff and preserves every explicit valid mode. URL encoding then omits a normalized mode exactly when it equals the selection-specific default.",
-        "preservationConstraints": [
-          "Preserve Candidate's exposed modes as complete and diff-only only.",
-          "Preserve deterministic clamping of old change=candidate&mode=complete-with-diff bookmarks to complete before projection.",
-          "Preserve no-selection locking to complete for absent, complete, complete-with-diff, and diff-only requested modes.",
-          "Preserve all three explicit modes and the complete-with-diff default for ordinary active Changes.",
-          "Preserve omission of default modes from canonical URLs: complete for Candidate and complete-with-diff for active Changes.",
-          "Preserve explicit mode emission for non-default legal modes, including Candidate diff-only and active-Change complete or diff-only.",
-          "Preserve the current runtime rejection or fallback behavior for values outside SemanticBrowserMode when createSemanticBrowserState is called from untyped input.",
-          "Do not change public state, URL, action, projection-request, or manifest types.",
-          "Do not change control option ordering, navigation history behavior, projection request timing, or projection-handler behavior.",
-          "Do not modify the projection handler; its continued acceptance of Candidate complete-with-diff is an intentional service-layer compatibility boundary."
-        ],
-        "implementationOutline": [
-          "First add a table-driven unit suite covering no selection, Candidate, and an active Change against absent, complete, complete-with-diff, and diff-only requests.",
-          "For every applicable row, exercise createSemanticBrowserState, reduceSemanticBrowserState through mode.select, encodeSemanticBrowserUrl, and projectionRequestForSemanticBrowser.",
-          "Define a private normalizeMode(change, requestedMode) function adjacent to the mode types and default policy.",
-          "Retain the explicit valid-mode check in createSemanticBrowserState, then pass the validated optional value to normalizeMode.",
-          "Replace clampState's inline Candidate and null conditional with normalizeMode.",
-          "Replace canonicalSearchKey's inline normalization branch with normalizeMode and compare the result to the selection-specific default when deciding URL omission.",
-          "Keep the Candidate and active-Change option lists unchanged."
-        ],
-        "validation": [
-          "The table must include no selection with absent, complete, complete-with-diff, and diff-only, proving all normalize to complete through both state creation and reduceSemanticBrowserState.",
-          "The table must include Candidate with absent, complete, complete-with-diff, and diff-only, proving complete-with-diff clamps to complete and diff-only remains explicit.",
-          "The table must include an active Change with absent, complete, complete-with-diff, and diff-only, proving the absent default and all explicit modes remain unchanged.",
-          "Assert encodeSemanticBrowserUrl omits Candidate complete and active-Change complete-with-diff while retaining Candidate diff-only and active-Change complete or diff-only.",
-          "Assert projectionRequestForSemanticBrowser never emits Candidate complete-with-diff from any controller entry path.",
-          "Retain the existing Candidate old-bookmark test proving complete-with-diff clamps to complete and is omitted from the canonical URL.",
-          "Run cd likec4 && CI=true pnpm --filter @likec4/spa test SemanticBrowserController searchParams.",
-          "Run the SPA typecheck and the Candidate and active-Change presentation-mode end-to-end suites to detect URL synchronization or projection regressions."
-        ],
-        "impactLevel": "low",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "This remains the only statically supported behavior-preserving simplification in the changed implementation. The first attempt established implementation consistency but omitted required attestation cases; completing those tests first directly addresses the recorded failure. Other possible allocation or repeated-scan changes depend on manifest size or interaction workload and do not pass the admission gate without profiling.",
-        "id": "OPT-20260817T065759198Z-01",
-        "targetFileHashes": {
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
-        },
-        "failureCount": 1
-      }
-    ],
-    "history": [
-      {
-        "sequence": 1,
-        "action": "add",
-        "reason": "Optimizer added finding",
-        "timestamp": "2026-08-17T06:57:59.198Z",
-        "findingId": "OPT-20260817T065759198Z-01"
-      },
-      {
-        "sequence": 2,
-        "action": "select",
-        "reason": "This is the only statically supported, behavior-preserving simplification in the changed implementation with a concrete maintenance benefit. Allocation and repeated-scan opportunities depend on model size or interaction workload and therefore do not pass the admission gate without profiling.",
-        "timestamp": "2026-08-17T06:57:59.201Z",
-        "findingId": "OPT-20260817T065759198Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
-        }
-      },
-      {
-        "sequence": 3,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-17T06:58:05.280Z",
-        "findingId": "OPT-20260817T065759198Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
-        }
-      },
-      {
-        "sequence": 4,
-        "action": "failed",
-        "reason": "Speculative reviewer rejected the optimization",
-        "timestamp": "2026-08-17T07:09:08.130Z",
-        "findingId": "OPT-20260817T065759198Z-01",
-        "evidence": [
-          "Required preservation coverage is incomplete: the table omits no-selection with explicit complete and complete-with-diff, and it does not exercise reduceSemanticBrowserState across the decision matrix. The implementation is statically consistent and unit tests (28/28), typecheck, Candidate e2e (10/10), and active-Change e2e (15/15) pass, but the finding's specified attestation matrix is not fully implemented."
-        ]
-      },
-      {
-        "sequence": 5,
-        "action": "retain",
-        "reason": "The current file hash still matches the pre-optimization baseline, and the duplicated mode-normalization policy remains in defaultMode, clampState, createSemanticBrowserState, and canonicalSearchKey. The previous implementation was reported statically consistent and passed 28 unit tests, SPA typecheck, 10 Candidate e2e tests, and 15 active-Change e2e tests; it failed only because its required attestation matrix omitted no-selection with explicit complete and complete-with-diff and did not exercise reduceSemanticBrowserState across the matrix. With failureCount 1 below optimization.optRetries 2, one retry remains worthwhile. Start with the complete table-driven tests, including every reducer combination, before reapplying the helper. Residual risk: this is the final permitted retry for this direction, so incomplete matrix coverage will exhaust and reject it.",
-        "timestamp": "2026-08-17T07:12:49.332Z",
-        "findingId": "OPT-20260817T065759198Z-01"
-      },
-      {
-        "sequence": 6,
-        "action": "select",
-        "reason": "This remains the only statically supported behavior-preserving simplification in the changed implementation. The first attempt established implementation consistency but omitted required attestation cases; completing those tests first directly addresses the recorded failure. Other possible allocation or repeated-scan changes depend on manifest size or interaction workload and do not pass the admission gate without profiling.",
-        "timestamp": "2026-08-17T07:12:49.334Z",
-        "findingId": "OPT-20260817T065759198Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
-        }
-      },
-      {
-        "sequence": 7,
-        "action": "implemented",
-        "reason": "Master began implementation after freshness check",
-        "timestamp": "2026-08-17T07:12:57.813Z",
-        "findingId": "OPT-20260817T065759198Z-01",
-        "hashes": {
-          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
-        }
-      },
-      {
-        "sequence": 8,
-        "action": "verified",
-        "reason": "Fresh reviewer verified preservation constraints",
-        "timestamp": "2026-08-17T07:23:06.140Z",
-        "findingId": "OPT-20260817T065759198Z-01"
-      }
-    ],
-    "reconciliationSignature": "71ceee4e1894c4f7fb04a7b4c62d7bd5851fa419622658bbc7ab00c5e723d25f",
-    "unchangedReconciliations": 1,
-    "failedDirections": [
-      "OPT-20260817T065759198Z-01: Normalize through one decision table: no selection always yields complete; Candidate yields complete for an absent, complete, or complete-with-diff request and preserves diff-only; an active Change defaults to complete-with-diff and preserves every explicit valid mode. URL encoding then omits a normalized mode exactly when it equals the selection-specific default. — Speculative reviewer rejected the optimization"
-    ]
+    }
   }
 }
