@@ -1,21 +1,8 @@
 {
-  "timestamp": "2026-08-17T06:31:07.373Z",
-  "result": "FAIL_NEEDS_CORRECTIONS",
-  "issues": [
-    {
-      "severity": "CRITICAL",
-      "message": "Candidate complete-with-diff test-selection residue remains in both Playwright project filters after the corresponding e2e test was deleted.",
-      "requirement": "三维正交组合呈现状态 / 选择 Candidate 后切换 Mode",
-      "task": "C6 验证 Candidate complete-with-diff 测试与入口已删除",
-      "recommendation": "Add playwright.config.ts to Task 1 Files, remove the dead \"reviews candidate changes in complete-with-diff mode\" alternatives from the desktop and mobile grep filters, then rerun C6 and both Candidate e2e projects.",
-      "evidenceCitations": [
-        ".xirang/changes/candidate-two-mode-presentation/tasks.md:47-50",
-        "playwright.config.ts:20-25",
-        "test/e2e/semantic-browser-candidate-views.spec.ts:55-55"
-      ]
-    }
-  ],
-  "tasksFileHash": "2993358203dc23d358c9f6a8f3115b0a2169be4c9275491997613c418aa3f94d",
+  "timestamp": "2026-08-17T06:50:13.252Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -40,11 +27,13 @@
       "likec4/packages/likec4-spa/src/searchParams.ts",
       "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
       "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
       "playwright.config.ts",
       "test/e2e/semantic-browser-candidate-views.spec.ts",
       "test/e2e/semantic-browser-model-view.spec.ts"
     ],
-    "evidenceFingerprint": "02b5b1183726a3fbd298571b94d5ccf5b3ebec40fdcd9c26b98a140db6d0d04f",
+    "evidenceFingerprint": "b77030035fe5cdae4b300a87944626cfe5cc619d1ff245b6dbbee0d2887caaac",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
@@ -80,7 +69,7 @@
       },
       {
         "path": ".xirang/changes/candidate-two-mode-presentation/tasks.md",
-        "hash": "2993358203dc23d358c9f6a8f3115b0a2169be4c9275491997613c418aa3f94d"
+        "hash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478"
       },
       {
         "path": ".xirang/model/elements/interaction-surfaces.md",
@@ -127,8 +116,16 @@
         "hash": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
       },
       {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+        "hash": "cb225e73f58a6dd0555dd19ed782fb479c7e5557118832c0571158b1d89d4602"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+        "hash": "d605afbd0223f4efc86304c0fa9f553438152fd2bb195d76ea6aeb8eb90a9923"
+      },
+      {
         "path": "playwright.config.ts",
-        "hash": "25a2ebe2ef3766a0e159514c6ac3af5af5c73a141f2154d0836d7473ba221174"
+        "hash": "ebaa22fe7b81f1adc0c3c45f120bb1c500191265ea51f22759679d735930ee60"
       },
       {
         "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
@@ -142,7 +139,156 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/candidate-two-mode-presentation/.verify-result.json"
     ],
-    "gitHeadCommit": "5451f140f0f8b7a83a9da35293deb3c28be13a01",
-    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430, and reviewed the 15-file committed scope through HEAD 5451f140f0f8b7a83a9da35293deb3c28be13a01; git status was clean and all changed files were attributed. Focused unit tests passed 27/27, Candidate e2e passed 10/10, active-Change model-view e2e passed 15/15, SPA typecheck passed, strict change validation passed, and Semantic Model validation passed. C8 evidence is committed, its OpenSpec implementation commit and Edera target commit resolve, and the independently computed 149-file Edera Candidate aggregate SHA-256 matches 039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6. Residual risk: C8 is an attested browser observation rather than a replay performed during this review, and the Edera Candidate content is pinned by aggregate hash outside the cited Edera commit."
+    "gitHeadCommit": "8d25445cec86d5e849553c7fd09ec4624eb5af55",
+    "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430, and reviewed the clean 16-file committed scope through HEAD 8d25445cec86d5e849553c7fd09ec4624eb5af55 using git diff <baseCommit>...HEAD --name-only and git status --short. All changed files are explicitly attributed by Task 1 or are change artifacts. Final code makes Candidate default to complete, clamps complete-with-diff to complete before projection, exposes only complete and diff-only, omits mode from the Candidate landing URL, preserves diff-only removed ghosts, and leaves the projection handler and active-Change complete-with-diff behavior intact. Focused unit tests passed 27/27, Candidate e2e passed 10/10, active-Change model-view e2e passed 15/15, SPA typecheck passed, strict change validation passed, Semantic Model validation passed, and OpenSpec remained clean after testing. The committed C8 attestation resolves both cited commits and its independently recomputed 149-file Edera Candidate aggregate SHA-256 matches 039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6. Residual risk: C8 is accepted attested browser evidence rather than a browser replay performed during this review; the uncommitted Edera Candidate content is pinned by the matching aggregate hash."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-17T06:50:13.252Z",
+      "result": "PASS",
+      "issues": [],
+      "tasksFileHash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
+          ".xirang/changes/candidate-two-mode-presentation/.verify-result.json",
+          ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
+          ".xirang/changes/candidate-two-mode-presentation/design.md",
+          ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
+          ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
+          ".xirang/changes/candidate-two-mode-presentation/elements/xirang-diff-overlay.md",
+          ".xirang/changes/candidate-two-mode-presentation/evidence/edera-candidate-view.json",
+          ".xirang/changes/candidate-two-mode-presentation/proposal.md",
+          ".xirang/changes/candidate-two-mode-presentation/tasks.md",
+          ".xirang/model/elements/interaction-surfaces.md",
+          ".xirang/model/elements/project.root.md",
+          ".xirang/model/elements/semantic-browser.md",
+          ".xirang/model/elements/web.md",
+          ".xirang/model/elements/xirang-diff-overlay.md",
+          ".xirang/model/metamodel/element.md",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+          "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+          "likec4/packages/likec4-spa/src/searchParams.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+          "playwright.config.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts"
+        ],
+        "evidenceFingerprint": "b77030035fe5cdae4b300a87944626cfe5cc619d1ff245b6dbbee0d2887caaac",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/.apply-isolation.json",
+            "hash": "cae0c83044e1c3abc4476ca4002f1fd92b14da09791da476d3a7b6bda91f3736"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/.xirang.yaml",
+            "hash": "8a7fb49419df5aa8ba9bf912cf373cb57f2defdd6ba7bca350ad799a4dcc9e86"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/design.md",
+            "hash": "f9866094de4ef20836ff19f6429f40ac70d0f291966fb14a076cb0ef8859213d"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/elements/semantic-browser.md",
+            "hash": "7a2839ed9b06ddf7bf0078eef77c6cabc09d7032d8091a3e44a962702a3cbb07"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/elements/web.md",
+            "hash": "10ac4961a04a60a0fd745dae2a9378c5052f454df89ee8cd5cf8fbe76b8148b1"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/elements/xirang-diff-overlay.md",
+            "hash": "153824eceba902b28360c1d2f8b0661c01f456e473d10ed567e91366832b358f"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/evidence/edera-candidate-view.json",
+            "hash": "c3bc194bb5d48ae4ebd13fdd05ea54ea9928592cf7f47db5fcbb71187b5800b4"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/proposal.md",
+            "hash": "6faf59a091249849044e8b46c35f6e922aa3804839178bc0826de22af6878c5a"
+          },
+          {
+            "path": ".xirang/changes/candidate-two-mode-presentation/tasks.md",
+            "hash": "866fa6499d25dc44bcac03e32523c880ac621b5141f4d51aeab7ee9a4b3f6478"
+          },
+          {
+            "path": ".xirang/model/elements/interaction-surfaces.md",
+            "hash": "f2409800de1a7a4084c0dfb195a0caf07b4c88f4f008c6ba95aa95c41396857b"
+          },
+          {
+            "path": ".xirang/model/elements/project.root.md",
+            "hash": "731ff9f2454566d04f63e0dea57e74b8b1e82a776f8cf8ea0b2146fde66bc922"
+          },
+          {
+            "path": ".xirang/model/elements/semantic-browser.md",
+            "hash": "a0257ccb69dfe378de79d5827a94a8528142348d26445b22f794362e538e155f"
+          },
+          {
+            "path": ".xirang/model/elements/web.md",
+            "hash": "b8789c683f80d2d7b29adbb184c8d30c8132ac06036e86475dd7b82e69df52ff"
+          },
+          {
+            "path": ".xirang/model/elements/xirang-diff-overlay.md",
+            "hash": "889edc071c4721435d75233c6591ea0d949be0065d8caa5829a8cbca005e8351"
+          },
+          {
+            "path": ".xirang/model/metamodel/element.md",
+            "hash": "64c0b98dc85aee272b8e96af9c7de1740b49ef64f5ebbfa1fc73e1b3449e7cb0"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "1b009c34f5b5e82fa09b302139f1779e00469b3e1e7c44fa28080e7c10f9f06d"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.spec.ts",
+            "hash": "db71375216589ea4838462795c4b78718854efc61bdbce875dfc92fbeed57a8b"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+            "hash": "801be52a7ce8267dd0f682f916c76a32be6f5a4d1d9bd08ff6aeca48842a95d2"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts",
+            "hash": "624e87760f3dcdab59603c44e5e4cdcb272236e5490ce973c1e88f51012421e0"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+            "hash": "e3bd4d443201a2365274cac5ba439a9c97d9ad26ce0e4d8cbd48338c9c51a391"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.spec.ts",
+            "hash": "cb225e73f58a6dd0555dd19ed782fb479c7e5557118832c0571158b1d89d4602"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+            "hash": "d605afbd0223f4efc86304c0fa9f553438152fd2bb195d76ea6aeb8eb90a9923"
+          },
+          {
+            "path": "playwright.config.ts",
+            "hash": "ebaa22fe7b81f1adc0c3c45f120bb1c500191265ea51f22759679d735930ee60"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "39512e75043e13027237562b0596c67994ac825727dae74f0c7016e7847a7328"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "9db46065761ee07ce9282322f49734c512faac45a81339ea9f5dab4c0cd2479f"
+          }
+        ],
+        "skippedEvidenceFiles": [
+          ".xirang/changes/candidate-two-mode-presentation/.verify-result.json"
+        ],
+        "gitHeadCommit": "8d25445cec86d5e849553c7fd09ec4624eb5af55",
+        "gitDiffSummary": "Validated projectRoot and changeDir, resolved immutable baseCommit 3393791d6c9d4f95a6f60078cac11f7c8107d430, and reviewed the clean 16-file committed scope through HEAD 8d25445cec86d5e849553c7fd09ec4624eb5af55 using git diff <baseCommit>...HEAD --name-only and git status --short. All changed files are explicitly attributed by Task 1 or are change artifacts. Final code makes Candidate default to complete, clamps complete-with-diff to complete before projection, exposes only complete and diff-only, omits mode from the Candidate landing URL, preserves diff-only removed ghosts, and leaves the projection handler and active-Change complete-with-diff behavior intact. Focused unit tests passed 27/27, Candidate e2e passed 10/10, active-Change model-view e2e passed 15/15, SPA typecheck passed, strict change validation passed, Semantic Model validation passed, and OpenSpec remained clean after testing. The committed C8 attestation resolves both cited commits and its independently recomputed 149-file Edera Candidate aggregate SHA-256 matches 039f2a20d4596c259f5ef9403e0ed4862123811b31da9cf7e48e2d3406ac8ab6. Residual risk: C8 is accepted attested browser evidence rather than a browser replay performed during this review; the uncommitted Edera Candidate content is pinned by the matching aggregate hash."
+      }
+    }
   }
 }
