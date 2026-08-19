@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../../src/core/shared/subagent-generation.js';
-import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
+import { TEST_QUALITY_GUIDANCE, XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer subagent template', () => {
@@ -20,6 +20,16 @@ describe('reviewer subagent template', () => {
     expect(prompt).not.toContain('Xirang code-map refs');
     expect(prompt).not.toContain('Ponytail');
     expect(prompt).not.toContain('Superpowers');
+    expect(prompt).toContain(TEST_QUALITY_GUIDANCE);
+  });
+
+  it('judges coverage by observable behavior evidence rather than one test per Scenario', () => {
+    const prompt = getReviewerSubagentTemplate().prompt;
+
+    expect(prompt).toContain('observable behavior');
+    expect(prompt).toContain('one-time evidence');
+    expect(prompt).not.toContain('Scenario coverage gaps are not downgrade candidates');
+    expect(prompt).toContain('weak assertion');
   });
 
   it('declares read-only permission intent in the source model and renderers', () => {

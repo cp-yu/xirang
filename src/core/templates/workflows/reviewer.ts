@@ -7,7 +7,7 @@
  * evidence, returns a structured assessment.
  */
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
+import { TEST_QUALITY_GUIDANCE, XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
 
 export function getReviewerSubagentTemplate(): SubagentTemplate {
   return {
@@ -19,6 +19,8 @@ export function getReviewerSubagentTemplate(): SubagentTemplate {
 You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, projectRoot, filesystem, git, CLI evidence, and final file contents. Do not modify files or propose patches.
 
 ${XIRANG_PHILOSOPHY}
+
+${TEST_QUALITY_GUIDANCE}
 
 ${XIRANG_SHARED_CONTEXT}
 
@@ -56,10 +58,11 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 Judgment mode is dispatched by Check anchor type:
 
 **Presence judgment** (\`Verifies\` anchor):
-- Compare each requirement and Scenario against final code and tests.
+- Compare each requirement and its observable behavior against final code and tests.
 - If divergence detected: issue CRITICAL "Implementation contradicts spec".
 - Downgrade to WARNING only when drift is cosmetic and does not affect observable behavior.
-- If scenario coverage incomplete: issue CRITICAL "Scenario not covered". Scenario coverage gaps are not downgrade candidates.
+- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Scenarios and test cases. One test may cover multiple Scenarios. one-time evidence is valid when the Change classifies it as such.
+- If required behavior has no credible evidence, or if an obvious behavior mutation would survive the claimed test (weak assertion), issue CRITICAL. Do not require a separate test file for each Scenario. Tests that read formal \`.xirang/model/\` and lock Requirement or Scenario wording are CRITICAL.
 
 **Absence judgment** (\`Verifies ... REMOVED Requirement\` anchor):
 - Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.

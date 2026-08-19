@@ -31,6 +31,8 @@ rules:
   tasks:
     - Add Windows CI verification as a task when changes involve file paths
     - Include cross-platform testing considerations
+    - For generated workflow prompts, preserve exact-text tests only for protocol tokens, fail-closed gates, prohibited operations, and explicitly retired tokens
+    - Do not add persistent tests for explanatory prose, Markdown heading order, or example wording
   design:
     - Document any platform-specific behavior or limitations
     - Prefer Node.js path module over string manipulation for paths

@@ -6,6 +6,7 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
+  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
@@ -140,6 +141,8 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
 
 ${XIRANG_PHILOSOPHY}
 
+${TEST_QUALITY_GUIDANCE}
+
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
 ## Flow Outline
@@ -156,9 +159,9 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 - Before implementation, run \`xirang arch impact <identity> --depth 2 --json\` to discover affected identities and relationships, then run \`xirang arch query <selected-identities...> --contract --json\` for the explicit Elements whose Contracts and Declarations are needed; read the returned Element Contracts and current code.
 - Process unfinished \`## Required Corrections\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Each task is one TDD loop. Finish every Check in the current task before starting the next; never execute tasks in parallel. Completing one ordinary task MUST NOT trigger Phase 1, Phase 2, or a workflow handoff. Only after every pending task and Required Correction is complete may Apply enter a change-level Phase 1 review; any subsequent Review or Seal corrections modify the Change state and require another change-level Review after recovery completes.
-- Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal.
-- Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators.
-- Run the declared or equivalent targeted command and confirm the expected RED before implementation; make the minimal fix, then rerun the same check for GREEN.
+- Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal. If the behavior is hard to test, improve the interface first.
+- Inspect existing tests first and honor a declared Test action (reuse, modify, add, delete, or one-time). Do not default to add when modify is declared. Write or update a targeted test first. Exercise public behavior; mock only injected system boundaries, never internal collaborators. Split tests only when failure reasons are independent.
+- Run the declared or equivalent targeted command and confirm the expected RED because the target behavior is missing; do not manufacture RED with syntax errors, wrong paths, or broken fixtures. Make the minimal fix, then rerun the same check for GREEN. If flipping a key comparison or deleting a required state update would still pass, strengthen the assertion.
 - Non-runtime text/artifact Checks do not require an artificial RED; run their declared command or inspect \`Evidence:\` and \`Expect:\` for final proof.
 - Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Add no abstraction, dependency, or file unless required.
 - Update Check and Required Corrections checkboxes only after their evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.

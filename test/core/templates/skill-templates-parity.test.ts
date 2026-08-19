@@ -17,21 +17,21 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: '3fcb02d15545045a60a1ade107f0a1b7f6f978b742bdc7dada88ef32e8e91078',
-  getApplyChangeSkillTemplate: '3e33f0619244e904f0396d24fbcb40a338de09d39c3355bb5ea56abb79bc76fe',
+  getExploreSkillTemplate: '16e8f23081a40af3084c89681f2764728e7876b4ce6a1e4b7fff1ff2d4ba07a2',
+  getApplyChangeSkillTemplate: 'c181e86d385b11d477acd1915d59ca6a1db763b5d2ecfdff54b1fcf79dcf9e49',
   getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
-  getXirangProposeSkillTemplate: '88b0a97a6a1dded0f9d50ddad6778e06479f26e7fd77719372340d8bd7e81770',
+  getXirangProposeSkillTemplate: '97481e8e8ee0f94ffc9ce2e8d2a2d345ad40aea3ec51543cea040e33e1949725',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
-  getBuildSkillTemplate: '132ee6486c1919a51c2913333d0ca6c95481fe8e723f79d6cd46c5994bb9e9e2',
-  getSnackSkillTemplate: 'ed914df6502b02eb4556aadfa49e4aa4b4a4bf255883378d125fe3bf781f8ab6',
+  getBuildSkillTemplate: '3fd108167442e23998a7ee419cf73c8f79727dca9904cc6aca78ded3dee2565a',
+  getSnackSkillTemplate: '6d7d153c0a2915147576f370ab91e97176fa0f20d2a3ea6c754d355a5619d1f5',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': 'c7b9398d5c56d2c019a84afe86d6d8aace24806d535f2379c1e153fbfbb7596a',
-  'xirang-apply-change': '0ee8d0f719c9b91eb7accf660b180e7cb8054f2bbfcb540a5c7895dd3f8e4d53',
+  'xirang-explore': 'b40d6543fb9eab38c73457e75951df73030bbd328c48e256a3119d13d5bb60b9',
+  'xirang-apply-change': '3f804f81ee1eb270decbcba04dd9a04d100c089717ce00c1ebee77aac3c9e895',
   'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
-  'xirang-propose': '28f983222750c03dff01a128044ff0addf5624abe65b19ef3684279dab165088',
-  'xirang-snack': 'f46f3ff0a7b5318108ffd1aa1e16192f5bb457c280908f7f503d0256d165fbec',
+  'xirang-propose': 'b5633486ebf6b2e2db1da049ccafa65384b4d900ed9a4b2d7b20dd2811311536',
+  'xirang-snack': 'a9c6e3975f2efcbbbe969a6a445e951a1025369d50aef6fd8f745e7802420b9d',
 };
 
 function stableStringify(value: unknown): string {

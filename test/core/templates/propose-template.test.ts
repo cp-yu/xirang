@@ -4,6 +4,7 @@ import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
@@ -146,7 +147,11 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('Evidence:');
       expect(body).toContain('Expect:');
       expect(body).toContain('Do NOT invent semantic lint rules beyond the current templates');
-      expect(body).toContain('Do NOT judge whether a check is semantically sufficient');
+      expect(body).toContain(TEST_QUALITY_GUIDANCE);
+      expect(body).not.toContain('Do NOT judge whether a check is semantically sufficient');
+      expect(body).toContain('Apply Test Quality Guidance when compiling verification work');
+      expect(body).toContain('Do not create Checks solely to match Scenario count');
+      expect(body).toContain('Test action: reuse, modify, add, delete, or one-time');
     }
   });
 

@@ -12,10 +12,11 @@ describe('reviewer correctness escalation contract', () => {
     );
   });
 
-  it('escalates incomplete scenario coverage without a downgrade path', () => {
+  it('escalates missing behavior evidence and weak assertions', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('issue CRITICAL "Scenario not covered"');
-    expect(instructions).toContain('Scenario coverage gaps are not downgrade candidates');
+    expect(instructions).not.toContain('Scenario coverage gaps are not downgrade candidates');
+    expect(instructions).toContain('no credible evidence');
+    expect(instructions).toContain('weak assertion');
   });
 });

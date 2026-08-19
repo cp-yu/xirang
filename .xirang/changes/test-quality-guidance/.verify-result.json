@@ -1,0 +1,434 @@
+{
+  "timestamp": "2026-08-19T14:00:57.653Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Explore Testing Strategy rewrite dropped authoritative-suite / explicit Test Maintenance listing still required by the modified explore-brainstorming scenarios",
+      "requirement": "分段设计呈现",
+      "task": "Task 1: 接入共享测试品质并改四阶段提示词",
+      "recommendation": "In explore checklist and supperpowers-style reference, keep behavior-based planning but restore Design Summary Test Maintenance listing: reuse/modify/delete/add/one-time plus authoritative suite when multiple suites exist",
+      "evidenceCitations": [
+        ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md:48-55",
+        ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md:66-69",
+        "src/core/templates/workflows/explore.ts:124",
+        "src/core/templates/workflows/explore.ts:132",
+        ".xirang/references/xirang-explore-supperpowers-style.md:83"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Propose ready-for-apply self-check still only reconciles task boundaries, not Check 1:1 splits or fake-protection tests",
+      "requirement": "Propose 按 TDD 闭环划分 Tasks",
+      "task": "Task 1: 接入共享测试品质并改四阶段提示词",
+      "recommendation": "Keep compile-time Check-value guidance, and extend the ready-for-apply bullet to reconcile Scenario 1:1 Check splits and low-value persistent tests",
+      "evidenceCitations": [
+        ".xirang/changes/test-quality-guidance/elements/propose-workflow.md:16-18",
+        ".xirang/changes/test-quality-guidance/elements/propose-workflow.md:46-49",
+        "src/core/templates/workflows/propose.ts:85-86"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Out-of-scope reviewer-strictness simulator still uses CRITICAL \"Scenario not covered\" as a local heuristic",
+      "requirement": "三个验证维度",
+      "task": null,
+      "recommendation": "When next touching reviewer tests, retarget that simulator to missing behavior evidence or weak assertions instead of 1:1 Scenario coverage",
+      "evidenceCitations": [
+        "test/integration/reviewer-strictness.test.ts:27-32",
+        "test/integration/reviewer-strictness.test.ts:59-66"
+      ]
+    }
+  ],
+  "tasksFileHash": "7fc0cfd90c9dac666f0d60ddcda5bb2e96b89da1796ff34711b23e3d6f7960e5",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".pi/skills/xirang-build/SKILL.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/test-quality-guidance/.apply-isolation.json",
+      ".xirang/changes/test-quality-guidance/design.md",
+      ".xirang/changes/test-quality-guidance/elements/apply-workflow.md",
+      ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md",
+      ".xirang/changes/test-quality-guidance/elements/propose-workflow.md",
+      ".xirang/changes/test-quality-guidance/elements/reviewer-protocol.md",
+      ".xirang/changes/test-quality-guidance/elements/tasks-document.md",
+      ".xirang/changes/test-quality-guidance/elements/tdd-checkpoints.md",
+      ".xirang/changes/test-quality-guidance/elements/workflow-templates.md",
+      ".xirang/changes/test-quality-guidance/proposal.md",
+      ".xirang/changes/test-quality-guidance/tasks.md",
+      ".xirang/config.yaml",
+      ".xirang/references/xirang-explore-supperpowers-style.md",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/reviewer.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/reviewer-template.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/integration/reviewer-strictness.test.ts",
+      "test/skills/reviewer-correctness-escalation.test.ts"
+    ],
+    "evidenceFingerprint": "39fd69a50e8847e642686f6f4c0fa5c29d3eabb0c64967489d0ce7f6fb36e0c3",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "52e63aa79f25e0404c19a90d5306b3baec7bb71af2ae8516b0b7afdf43e06e1c"
+      },
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "4309150a85514e38bf08eb4daf59e04fa289b3dbcf6a17e1a4e8960afd220235"
+      },
+      {
+        "path": ".pi/skills/xirang-build/SKILL.md",
+        "hash": "43fb1e20e52ccc99f00453023283525d760d1ccef1d4af777529465803ace970"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "b12544ead66de319d4c7c521a8e1e0da13c6d4233b69c8ef2957215a22c0acd3"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "366c04dc967f11393ecca06ecada53505bb7424f1314786703a853710dbd7e50"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "60c4a1b9330dc97c34a71fccf3c176695c998394bb77c46a992d76430efc038c"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/.apply-isolation.json",
+        "hash": "6e22ed1ee8ba9b882cfaf7077244e16b78322cb3551ba09231f5a89088f4bd2d"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/design.md",
+        "hash": "bae90090ed84671e0f55c15630592fd04e9642512f464edfe2d0e76bb125851a"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/apply-workflow.md",
+        "hash": "95796ddfd371da4e4a8eac9ce417a0a0d5b202ca918451eb9ab78887e000dca1"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md",
+        "hash": "f03264da46e4ed16026e7912f935deb1b1977a7d9b7f61d7eb8b4b5655f17e5f"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/propose-workflow.md",
+        "hash": "3bba70e6d2ae8beaa369268ded1d14716cecef4540f8352d39a27d6759fbd9f2"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/reviewer-protocol.md",
+        "hash": "6140f3807d27f2c714814f816be111002870d4cb04efe7ff419f984babab430a"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/tasks-document.md",
+        "hash": "b116dccca95f967c0dd3d550550ce0a0fdd254d321b03fd473014809b9c18ee5"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/tdd-checkpoints.md",
+        "hash": "2a9916cd5922ffaa5fa7abb29c2eb9a0d67f9cb9dc0c9c3c61b800a96b6d6123"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/elements/workflow-templates.md",
+        "hash": "e4b6bd20d25f9e4332bc4a1881acb4383fc96b96f31a21e0066abb98018b51b1"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/proposal.md",
+        "hash": "1cdcded7006d21d4b2a976e67b545bfdf437dda04c73e1721b1b221899266fe0"
+      },
+      {
+        "path": ".xirang/changes/test-quality-guidance/tasks.md",
+        "hash": "7fc0cfd90c9dac666f0d60ddcda5bb2e96b89da1796ff34711b23e3d6f7960e5"
+      },
+      {
+        "path": ".xirang/config.yaml",
+        "hash": "15bd41c63c3785a0adb6be22e00b2b48e4bf4aca9bda74d20528c69b6f4720c6"
+      },
+      {
+        "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+        "hash": "95d9dcb3c254109588e83828fa98ace7352c609b5fd1bb2fb2400d9fdbe0f636"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "8be676105de2483ef4352fb8b1e881c422cdd3decf6f1cb6942776253b75b63c"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "8fe7d8dd14d1efbf3f4c1264ab54227e4da20a1489b123ee9ad8d507c1fa4e9f"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "8778060b2ac438ab520a979f74f33ed30b4a856922a59cceca85d7278912938f"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "bd8610ed89831ca7170329ec5c300318a2b49ff1b7f07d4764928f0c5b2527b7"
+      },
+      {
+        "path": "src/core/templates/workflows/reviewer.ts",
+        "hash": "f6215421483bc1b4093bc7e51c06c81fe9174afb6a93c920fa3b6ad29ce8b14d"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "3c503ff5a44570215f7ca851e21717049d3c97a454fcd6b496ee1731e2db3701"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "f7ffb5f8e660dbf816e0e642cd6b136a73abc3fd24df4e8242d20d19b73e5c91"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "d0471af2e7eed3605c504223146ead4fc4fb0755e5a07573d9830ac049a6e617"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "f64c8e7d6f1d0828fb4f17daf4c26944f609ade27e778ba35e41194b113fc14d"
+      },
+      {
+        "path": "test/core/templates/reviewer-template.test.ts",
+        "hash": "e01d098b2bc53e6a380163f0815ae3c82376c611fc4d422b00e677749d5808ae"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "51834822c30e0e79a54354e29f1edadcd146c191557ceaf630bdbe87e4009224"
+      },
+      {
+        "path": "test/integration/reviewer-strictness.test.ts",
+        "hash": "18468bfe0502533c8ab497e6bf156519d36d642d1cffd15247f3046b8c8e344d"
+      },
+      {
+        "path": "test/skills/reviewer-correctness-escalation.test.ts",
+        "hash": "5002d97a2c9fe973936cf494ff3ce0ce95819013246e01d75580669052181a5b"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "757665b839134bcd537e583ccac2435277a09dba",
+    "gitDiffSummary": "baseCommit 757665b839134bcd537e583ccac2435277a09dba resolves and equals HEAD, so git diff <baseCommit>...HEAD --name-only is empty. Scope is git status --short (31 paths): fragment + explore/propose/apply/reviewer templates, config.yaml, explore reference, generated .pi skills/agent, corresponding tests, and change artifacts. No unaccounted paths. metamodel/relationships/views partitions are absent; elements/ carries the semantic delta. .verify-result.json is absent."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-19T14:00:57.653Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Explore Testing Strategy rewrite dropped authoritative-suite / explicit Test Maintenance listing still required by the modified explore-brainstorming scenarios",
+          "requirement": "分段设计呈现",
+          "task": "Task 1: 接入共享测试品质并改四阶段提示词",
+          "recommendation": "In explore checklist and supperpowers-style reference, keep behavior-based planning but restore Design Summary Test Maintenance listing: reuse/modify/delete/add/one-time plus authoritative suite when multiple suites exist",
+          "evidenceCitations": [
+            ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md:48-55",
+            ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md:66-69",
+            "src/core/templates/workflows/explore.ts:124",
+            "src/core/templates/workflows/explore.ts:132",
+            ".xirang/references/xirang-explore-supperpowers-style.md:83"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Propose ready-for-apply self-check still only reconciles task boundaries, not Check 1:1 splits or fake-protection tests",
+          "requirement": "Propose 按 TDD 闭环划分 Tasks",
+          "task": "Task 1: 接入共享测试品质并改四阶段提示词",
+          "recommendation": "Keep compile-time Check-value guidance, and extend the ready-for-apply bullet to reconcile Scenario 1:1 Check splits and low-value persistent tests",
+          "evidenceCitations": [
+            ".xirang/changes/test-quality-guidance/elements/propose-workflow.md:16-18",
+            ".xirang/changes/test-quality-guidance/elements/propose-workflow.md:46-49",
+            "src/core/templates/workflows/propose.ts:85-86"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Out-of-scope reviewer-strictness simulator still uses CRITICAL \"Scenario not covered\" as a local heuristic",
+          "requirement": "三个验证维度",
+          "task": null,
+          "recommendation": "When next touching reviewer tests, retarget that simulator to missing behavior evidence or weak assertions instead of 1:1 Scenario coverage",
+          "evidenceCitations": [
+            "test/integration/reviewer-strictness.test.ts:27-32",
+            "test/integration/reviewer-strictness.test.ts:59-66"
+          ]
+        }
+      ],
+      "tasksFileHash": "7fc0cfd90c9dac666f0d60ddcda5bb2e96b89da1796ff34711b23e3d6f7960e5",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/agents/xirang-reviewer.md",
+          ".pi/skills/xirang-apply-change/SKILL.md",
+          ".pi/skills/xirang-build/SKILL.md",
+          ".pi/skills/xirang-explore/SKILL.md",
+          ".pi/skills/xirang-propose/SKILL.md",
+          ".pi/skills/xirang-snack/SKILL.md",
+          ".xirang/changes/test-quality-guidance/.apply-isolation.json",
+          ".xirang/changes/test-quality-guidance/design.md",
+          ".xirang/changes/test-quality-guidance/elements/apply-workflow.md",
+          ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md",
+          ".xirang/changes/test-quality-guidance/elements/propose-workflow.md",
+          ".xirang/changes/test-quality-guidance/elements/reviewer-protocol.md",
+          ".xirang/changes/test-quality-guidance/elements/tasks-document.md",
+          ".xirang/changes/test-quality-guidance/elements/tdd-checkpoints.md",
+          ".xirang/changes/test-quality-guidance/elements/workflow-templates.md",
+          ".xirang/changes/test-quality-guidance/proposal.md",
+          ".xirang/changes/test-quality-guidance/tasks.md",
+          ".xirang/config.yaml",
+          ".xirang/references/xirang-explore-supperpowers-style.md",
+          "src/core/templates/fragments/xirang-fragments.ts",
+          "src/core/templates/workflows/apply-change.ts",
+          "src/core/templates/workflows/explore.ts",
+          "src/core/templates/workflows/propose.ts",
+          "src/core/templates/workflows/reviewer.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/explore-template.test.ts",
+          "test/core/templates/fragments/xirang-fragments.test.ts",
+          "test/core/templates/propose-template.test.ts",
+          "test/core/templates/reviewer-template.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts",
+          "test/integration/reviewer-strictness.test.ts",
+          "test/skills/reviewer-correctness-escalation.test.ts"
+        ],
+        "evidenceFingerprint": "39fd69a50e8847e642686f6f4c0fa5c29d3eabb0c64967489d0ce7f6fb36e0c3",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/agents/xirang-reviewer.md",
+            "hash": "52e63aa79f25e0404c19a90d5306b3baec7bb71af2ae8516b0b7afdf43e06e1c"
+          },
+          {
+            "path": ".pi/skills/xirang-apply-change/SKILL.md",
+            "hash": "4309150a85514e38bf08eb4daf59e04fa289b3dbcf6a17e1a4e8960afd220235"
+          },
+          {
+            "path": ".pi/skills/xirang-build/SKILL.md",
+            "hash": "43fb1e20e52ccc99f00453023283525d760d1ccef1d4af777529465803ace970"
+          },
+          {
+            "path": ".pi/skills/xirang-explore/SKILL.md",
+            "hash": "b12544ead66de319d4c7c521a8e1e0da13c6d4233b69c8ef2957215a22c0acd3"
+          },
+          {
+            "path": ".pi/skills/xirang-propose/SKILL.md",
+            "hash": "366c04dc967f11393ecca06ecada53505bb7424f1314786703a853710dbd7e50"
+          },
+          {
+            "path": ".pi/skills/xirang-snack/SKILL.md",
+            "hash": "60c4a1b9330dc97c34a71fccf3c176695c998394bb77c46a992d76430efc038c"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/.apply-isolation.json",
+            "hash": "6e22ed1ee8ba9b882cfaf7077244e16b78322cb3551ba09231f5a89088f4bd2d"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/design.md",
+            "hash": "bae90090ed84671e0f55c15630592fd04e9642512f464edfe2d0e76bb125851a"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/apply-workflow.md",
+            "hash": "95796ddfd371da4e4a8eac9ce417a0a0d5b202ca918451eb9ab78887e000dca1"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/explore-brainstorming.md",
+            "hash": "f03264da46e4ed16026e7912f935deb1b1977a7d9b7f61d7eb8b4b5655f17e5f"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/propose-workflow.md",
+            "hash": "3bba70e6d2ae8beaa369268ded1d14716cecef4540f8352d39a27d6759fbd9f2"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/reviewer-protocol.md",
+            "hash": "6140f3807d27f2c714814f816be111002870d4cb04efe7ff419f984babab430a"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/tasks-document.md",
+            "hash": "b116dccca95f967c0dd3d550550ce0a0fdd254d321b03fd473014809b9c18ee5"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/tdd-checkpoints.md",
+            "hash": "2a9916cd5922ffaa5fa7abb29c2eb9a0d67f9cb9dc0c9c3c61b800a96b6d6123"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/elements/workflow-templates.md",
+            "hash": "e4b6bd20d25f9e4332bc4a1881acb4383fc96b96f31a21e0066abb98018b51b1"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/proposal.md",
+            "hash": "1cdcded7006d21d4b2a976e67b545bfdf437dda04c73e1721b1b221899266fe0"
+          },
+          {
+            "path": ".xirang/changes/test-quality-guidance/tasks.md",
+            "hash": "7fc0cfd90c9dac666f0d60ddcda5bb2e96b89da1796ff34711b23e3d6f7960e5"
+          },
+          {
+            "path": ".xirang/config.yaml",
+            "hash": "15bd41c63c3785a0adb6be22e00b2b48e4bf4aca9bda74d20528c69b6f4720c6"
+          },
+          {
+            "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+            "hash": "95d9dcb3c254109588e83828fa98ace7352c609b5fd1bb2fb2400d9fdbe0f636"
+          },
+          {
+            "path": "src/core/templates/fragments/xirang-fragments.ts",
+            "hash": "8be676105de2483ef4352fb8b1e881c422cdd3decf6f1cb6942776253b75b63c"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "8fe7d8dd14d1efbf3f4c1264ab54227e4da20a1489b123ee9ad8d507c1fa4e9f"
+          },
+          {
+            "path": "src/core/templates/workflows/explore.ts",
+            "hash": "8778060b2ac438ab520a979f74f33ed30b4a856922a59cceca85d7278912938f"
+          },
+          {
+            "path": "src/core/templates/workflows/propose.ts",
+            "hash": "bd8610ed89831ca7170329ec5c300318a2b49ff1b7f07d4764928f0c5b2527b7"
+          },
+          {
+            "path": "src/core/templates/workflows/reviewer.ts",
+            "hash": "f6215421483bc1b4093bc7e51c06c81fe9174afb6a93c920fa3b6ad29ce8b14d"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "3c503ff5a44570215f7ca851e21717049d3c97a454fcd6b496ee1731e2db3701"
+          },
+          {
+            "path": "test/core/templates/explore-template.test.ts",
+            "hash": "f7ffb5f8e660dbf816e0e642cd6b136a73abc3fd24df4e8242d20d19b73e5c91"
+          },
+          {
+            "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+            "hash": "d0471af2e7eed3605c504223146ead4fc4fb0755e5a07573d9830ac049a6e617"
+          },
+          {
+            "path": "test/core/templates/propose-template.test.ts",
+            "hash": "f64c8e7d6f1d0828fb4f17daf4c26944f609ade27e778ba35e41194b113fc14d"
+          },
+          {
+            "path": "test/core/templates/reviewer-template.test.ts",
+            "hash": "e01d098b2bc53e6a380163f0815ae3c82376c611fc4d422b00e677749d5808ae"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "51834822c30e0e79a54354e29f1edadcd146c191557ceaf630bdbe87e4009224"
+          },
+          {
+            "path": "test/integration/reviewer-strictness.test.ts",
+            "hash": "18468bfe0502533c8ab497e6bf156519d36d642d1cffd15247f3046b8c8e344d"
+          },
+          {
+            "path": "test/skills/reviewer-correctness-escalation.test.ts",
+            "hash": "5002d97a2c9fe973936cf494ff3ce0ce95819013246e01d75580669052181a5b"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "757665b839134bcd537e583ccac2435277a09dba",
+        "gitDiffSummary": "baseCommit 757665b839134bcd537e583ccac2435277a09dba resolves and equals HEAD, so git diff <baseCommit>...HEAD --name-only is empty. Scope is git status --short (31 paths): fragment + explore/propose/apply/reviewer templates, config.yaml, explore reference, generated .pi skills/agent, corresponding tests, and change artifacts. No unaccounted paths. metamodel/relationships/views partitions are absent; elements/ carries the semantic delta. .verify-result.json is absent."
+      }
+    }
+  }
+}

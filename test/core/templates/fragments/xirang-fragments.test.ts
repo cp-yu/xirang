@@ -6,6 +6,7 @@ import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  TEST_QUALITY_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
   VERIFY_CLI_JSON_SCHEMA_REFERENCE,
@@ -162,6 +163,24 @@ describe('Element Contract semantics fragment', () => {
   it('stays separate from storage notation', () => {
     expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('frontmatter fields');
     expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('Default file naming');
+  });
+
+  it('requires Scenarios to describe observable behavior rather than generated layout', () => {
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('可观察行为');
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('文档排版');
+    expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('## Workflow Stage');
+  });
+});
+
+describe('test quality guidance fragment', () => {
+  it('exports one shared 3+1 quality bar without project lock-word rules', () => {
+    expect(TEST_QUALITY_GUIDANCE).toContain('Repeatable in isolation');
+    expect(TEST_QUALITY_GUIDANCE).toContain('Coupled to behavior, decoupled from structure');
+    expect(TEST_QUALITY_GUIDANCE).toContain('One clear failure reason');
+    expect(TEST_QUALITY_GUIDANCE).toContain('Design for testability');
+    expect(TEST_QUALITY_GUIDANCE).not.toContain('fail-closed');
+    expect(TEST_QUALITY_GUIDANCE).not.toContain('capabilityId');
+    expect(TEST_QUALITY_GUIDANCE).not.toContain('Markdown heading');
   });
 });
 

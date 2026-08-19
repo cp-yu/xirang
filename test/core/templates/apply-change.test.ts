@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
@@ -93,6 +94,16 @@ describe('apply change workflow template', () => {
     expect(preparation).toContain('xirang-apply-step-2-current-branch.md');
     expect(preparation).toContain('MUST NOT read the other two');
     expect(preparation).toContain('Do not read the selected reference during Preparation');
+  });
+
+  it('applies shared test quality before writing or splitting tests', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain(TEST_QUALITY_GUIDANCE);
+    expect(instructions).toContain('inspect existing tests');
+    expect(instructions).toContain('target behavior is missing');
+    expect(instructions).not.toContain('公共方法数量少于 5');
+    expect(instructions).not.toContain('每个方法参数少于 4');
   });
 
   it('carries no Pre-flight step in the apply workflow', () => {

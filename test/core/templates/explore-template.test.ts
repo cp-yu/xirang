@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -172,8 +173,11 @@ describe('explore template semantic impact', () => {
   });
 
   it('classifies testing items into persistent tests vs one-time verification', () => {
+    expect(template).toContain(TEST_QUALITY_GUIDANCE);
     expect(template).toContain('persistent or one-time verification');
     expect(template).toContain('no persistent test file');
+    expect(template).toContain('reuse, modify, add, delete');
+    expect(template).not.toContain('fail-closed');
   });
 
   it('emits a One-time Verification subsection in the Design Summary', () => {

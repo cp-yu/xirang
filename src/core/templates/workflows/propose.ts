@@ -7,6 +7,7 @@ import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
@@ -18,6 +19,8 @@ export function getXirangProposeSkillTemplate(): SkillTemplate {
     instructions: `Propose a new change or update an existing change, generating all artifacts needed for implementation.
 
 ${XIRANG_PHILOSOPHY}
+
+${TEST_QUALITY_GUIDANCE}
 
 ${XIRANG_SHARED_CONTEXT}
 
@@ -79,7 +82,7 @@ ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
    - Validate the Expected Semantic Model with \`xirang arch validate --change "<name>" --json\` and fix all errors before continuing.
 9. Check compilation scaffolding before semantic-source validation.
    - Run \`xirang instructions proposal --change "<name>" --json\` and \`xirang instructions design --change "<name>" --json\`; compare each file with its current resolved definition and template.
-   - Run \`xirang instructions tasks --change "<name>" --json\`. Support Actions and coarse \`### Task N:\`, Goal, Files, Requirements, Checks, Covers:, Verifies:, change-local \`Verifies:\` Element unit paths, Requirement/Scenario references, Command:, Evidence:, and Expect:. Do NOT invent semantic lint rules beyond the current templates. Do NOT judge whether a check is semantically sufficient. 任务结构校验由步骤 10 的 combined validation 以确定性操作承担。
+   - Run \`xirang instructions tasks --change "<name>" --json\`. Support Actions and coarse \`### Task N:\`, Goal, Files, Requirements, Checks, Covers:, Verifies:, change-local \`Verifies:\` Element unit paths, Requirement/Scenario references, Command:, Evidence:, and Expect:. Do NOT invent semantic lint rules beyond the current templates. Apply Test Quality Guidance when compiling verification work. A Check is an evidence unit, not necessarily one test case. Group Scenarios that represent one observable behavior and failure reason into one Check. Do not create Checks solely to match Scenario count. Prefer modifying an existing test over adding a parallel test for the same behavior. Each Check SHALL declare Test action: reuse, modify, add, delete, or one-time. Route non-persistent evidence to one-time Checks without a test file. 任务结构校验由步骤 10 的 combined validation 以确定性操作承担。
    - Before ready-for-apply, review all coarse task boundaries as independently implementable and verifiable end-to-end loops. Production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST remain in one task. Split only when each task reaches its own GREEN independently, or when it depends only on an earlier task that is already GREEN; a task's RED/GREEN cycle MUST NOT depend on a later task. Do not split tasks by component, module, directory, file type, or Requirement count; when cross-task dependencies violate independent verification, reconcile task boundaries before declaring the Change ready for Apply.
 10. 执行收尾一致性验证门禁：先执行计划一致性复核，再执行确定性校验作为收尾门禁。
     - 先执行计划一致性复核：对照 change-local Contracts、\`design.md\` 与 Semantic Delta 复核 \`tasks.md\` 的语义矛盾；发现矛盾时自行修正制品，仅当矛盾反映与用户意图或已确认决策不对齐时，一次性呈现全部发现并等待用户裁决。

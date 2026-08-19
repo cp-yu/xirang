@@ -16,6 +16,18 @@ You are the clean-context Phase 1 reviewer. Use only changeName, changeDir, proj
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
+**Test Quality Guidance**
+
+Persistent tests protect observable behavior and provide fast, trustworthy feedback.
+
+1. Repeatable in isolation. A test creates and cleans up its own state, does not depend on execution order, shared mutable state, or external mutable sources, and is fast enough for its intended feedback loop.
+2. Coupled to behavior, decoupled from structure. A plausible behavioral mutation, such as changing a boundary comparison or deleting a required state update, must make the test fail. Refactoring, implementation replacement, prose changes, formatting changes, or semantic model prose changes must not fail the test when behavior is preserved.
+3. One clear failure reason. A failing test identifies one broken behavior. Do not split one behavior merely to mirror multiple specification sentences, and do not combine unrelated behaviors in one test.
+
+Design for testability: when behavior is difficult to test because of hidden global state, mixed responsibilities, or inaccessible results, improve the interface before writing the test. Do not compensate with internal mocks or implementation-coupled assertions.
+
+Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Scenarios when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
+
 **Xirang Semantic Model Context**
 - Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
@@ -66,10 +78,11 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 Judgment mode is dispatched by Check anchor type:
 
 **Presence judgment** (`Verifies` anchor):
-- Compare each requirement and Scenario against final code and tests.
+- Compare each requirement and its observable behavior against final code and tests.
 - If divergence detected: issue CRITICAL "Implementation contradicts spec".
 - Downgrade to WARNING only when drift is cosmetic and does not affect observable behavior.
-- If scenario coverage incomplete: issue CRITICAL "Scenario not covered". Scenario coverage gaps are not downgrade candidates.
+- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Scenarios and test cases. One test may cover multiple Scenarios. one-time evidence is valid when the Change classifies it as such.
+- If required behavior has no credible evidence, or if an obvious behavior mutation would survive the claimed test (weak assertion), issue CRITICAL. Do not require a separate test file for each Scenario. Tests that read formal `.xirang/model/` and lock Requirement or Scenario wording are CRITICAL.
 
 **Absence judgment** (`Verifies ... REMOVED Requirement` anchor):
 - Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by `identity`, never by path.
