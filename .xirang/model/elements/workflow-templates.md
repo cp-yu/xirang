@@ -160,7 +160,7 @@ Apply skill SHALL 指导 Agent 通过 outline 理解 Target Semantic Model 的�
 
 ### Requirement: 统一加载协议与优雅降级
 
-Core workflows SHALL 使用同一无状态 Semantic Model loading protocol：`arch outline` 返回完整 Element hierarchy、Relationships 与 Metamodel，并按项目配置局部加载 Element Definitions；`arch impact` 返回影响 identities 与结构路径；batch `arch query` 返回显式 identities 的完整 Declarations 与可选 Contracts。`arch snapshot` SHALL 保留为完整导出工具，不作为默认 Agent onboarding command。Semantic Model 缺失或不完整时，只读 workflow MAY 使用部分 context 继续并声明不可用；需要编译或写入语义的 workflow MUST NOT 将缺失 source 当作空且完整的模型。
+Core workflows SHALL 使用同一无状态 Semantic Model loading protocol：`arch outline` 返回完整 Element hierarchy、Relationships 与 Metamodel，并按项目配置局部加载 Element Definitions；`arch impact` 返回影响 identities 与结构路径；batch `arch query` 返回显式 identities 的完整 Declarations 与可选 Contracts。`arch snapshot` SHALL 保留为完整导出工具，不作为默认 Agent onboarding command。Semantic Model 缺失或不完整时，只读 workflow MAY 使用部分 context 继续并声明不可用；需要编译或写入语义的 workflow MUST NOT 将缺失 source 当作空且完整的模型。Explore、Propose、Apply 与 Reviewer SHALL 复用同一测试品质片段；Build、Propose 与 Snack SHALL 复用含 Scenario 行为纪律的同一 Element Contract 语义片段。
 
 #### Scenario: Model 不存在
 
@@ -197,6 +197,13 @@ Core workflows SHALL 使用同一无状态 Semantic Model loading protocol：`ar
 - **WHEN** 检查 generated workflow templates
 - **THEN** relevant surfaces SHALL 复用同一 exported constant
 - **AND** SHALL 使用一致 canonical terminology 与认知恢复规则
+
+#### Scenario: 测试品质片段被四阶段复用
+
+- **WHEN** 生成 Explore、Propose、Apply 或 Reviewer workflow 模板
+- **THEN** 输出 SHALL 包含同一测试品质片段
+- **AND** 该片段 SHALL 定义可重复隔离、锁行为不锁结构、单一失败原因与难测先改设计
+- **AND** SHALL NOT 把项目特定锁词规则写入该通用片段
 
 ### Requirement: Agent 认知缺口 SHALL 触发确定性语义重载
 

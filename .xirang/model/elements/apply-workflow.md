@@ -32,22 +32,22 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理工作流状
 
 ### Requirement: Apply Phase 0 SHALL 由 Master agent 直接执行
 
-`xirang-apply-change` workflow SHALL 要求 Master agent 在 Phase 0 通过严格 TDD 执行 `tasks.md` 中的 pending Checks。Workflow SHALL NOT 生成或读取 `.apply-steps`，也 SHALL NOT 委托 implementer subagent 执行编码。
+`xirang-apply-change` workflow SHALL 要求 Master agent 在 Phase 0 通过严格 TDD 执行 `tasks.md` 中的 pending Checks。对行为或代码 Check，Master SHALL 先检查已有测试并决定 modify、add 或 delete，再进入 RED → 最小实现 → GREEN；RED 必须来自目标行为缺失。Workflow SHALL NOT 生成或读取 `.apply-steps`，也 SHALL NOT 委托 implementer subagent 执行编码。
 
 #### Scenario: Master agent 串行执行任务
 
 - **WHEN** `xirang instructions apply --change "<name>" --json` 返回多个 pending tasks
 - **THEN** Apply workflow SHALL 指示 Master agent 串行执行 task
 - **AND** Master agent SHALL 完成当前 task 的全部 Checks 后再进入下一 task
-- **AND** Master agent SHALL NOT 并行处理多个 tasks
+- **AND** Master agent SHALL NOT 并行处理多个 task
 
 #### Scenario: Master agent 严格 TDD 实现 pending Check
 
 - **WHEN** `xirang instructions apply --change "<name>" --json` 返回待实现工作
-- **THEN** Apply workflow SHALL 指示 Master agent 对每个行为或代码 Check 先新增或更新 targeted test
-- **AND** Master agent SHALL 在实现前运行声明的 Check 命令并确认预期失败
-- **AND** Master agent SHALL 只实现该 Check 所需的最小改动
-- **AND** Master agent SHALL 重跑同一命令并确认通过后，才更新 checkbox
+- **THEN** Apply workflow SHALL 指示 Master agent 对每个行为或代码 Check 先检查已有测试，再修改、新增或删除 targeted test
+- **AND** Master agent SHALL 在实现前运行声明的 Check 命令并确认因目标行为缺失而失败
+- **AND** Master agent SHALL 做最小实现后再次运行同一 Check 确认通过
+- **AND** Master agent SHALL NOT 用语法错误、错误路径或损坏 fixture 制造 RED
 
 #### Scenario: 非运行时文本制品不伪造 RED failure
 
@@ -79,7 +79,7 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理工作流状
 - **WHEN** Phase 0 implementation 与 Required Corrections 全部完成
 - **THEN** Apply workflow SHALL 在 Phase 1 继续启动 `xirang-reviewer`
 - **AND** optimization 启用时 SHALL 在 Phase 2 继续启动 `xirang-optimizer`
-- **AND** Master agent SHALL NOT 替代 reviewer 或 optimizer 的判断
+- **AND** Master agent SHALL NOT 替代 reviewer 或 optimizer 的判定
 
 #### Scenario: apply workflow 不 dispatch implementer
 

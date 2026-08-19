@@ -81,6 +81,13 @@
   - Command: `xirang validate --change "test-quality-guidance" --json`
   - Expect: 校验无 error；`.xirang/config.yaml` `rules.tasks` 含本仓库锁词适配且未写进通用片段
 
+### [code_fix] 补齐 Explore Test Maintenance 与 Propose ready-for-apply 自检
+
+- [x] Explore Testing Strategy 恢复 authoritative suite 与 Test Maintenance 列表；Propose ready-for-apply 交叉检查 Check 价值
+  - Verifies: `elements/explore-brainstorming.md` / Requirement "分段设计呈现" / Scenario "Test Maintenance 子节格式"
+  - Command: `pnpm exec vitest run test/core/templates/explore-template.test.ts test/core/templates/propose-template.test.ts`
+  - Expect: Explore 指引列出 reuse/modify/delete/add/one-time 及 authoritative suite；Propose ready-for-apply 会调和 Scenario 1:1 Check 与假防护测试
+
 ## Required Corrections
 
 ### [artifact_fix] 将 reviewer-correctness-escalation 测试纳入 Task 1
