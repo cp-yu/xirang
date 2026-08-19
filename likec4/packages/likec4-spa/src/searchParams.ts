@@ -25,10 +25,10 @@ export const searchParamsSchema = z.object({
   /** Xirang View Selection identity. */
   view: z.string()
     .nonempty()
-    .default('model')
-    .catch('model'),
-  /** Optional active Change identity. */
-  change: z.string()
+    .default('full-model')
+    .catch('full-model'),
+  /** Xirang Model Selection: absent is the baseline Semantic Model. */
+  model: z.string()
     .nonempty()
     .optional()
     .catch(undefined),
@@ -37,7 +37,7 @@ export const searchParamsSchema = z.object({
     .nonempty()
     .optional()
     .catch(undefined),
-  /** Xirang diff display mode; absent means complete with no Change or Candidate, and complete-with-diff for an active Change. */
+  /** Xirang diff display mode; absent means the default mode of the selected Model. */
   mode: z.enum(['complete', 'complete-with-diff', 'diff-only'])
     .optional()
     .catch(undefined),

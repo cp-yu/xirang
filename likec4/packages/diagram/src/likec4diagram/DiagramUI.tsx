@@ -336,7 +336,7 @@ function XirangArchitectureOverlay() {
   }, [actorRef, selected.id])
 
   useEffect(() => {
-    if (selected.id === 'model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
+    if (selected.id === 'full-model' && !currentView.hash.includes(':xirang:')) modelView.current = currentView
   }, [currentView])
 
   useEffect(() => {

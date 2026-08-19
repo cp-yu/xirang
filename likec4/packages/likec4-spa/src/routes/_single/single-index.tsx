@@ -92,9 +92,9 @@ function RouteComponent() {
               source={candidate}
               onOpen={() => void navigate({
                 to: '/view/$viewId/',
-                params: { viewId: 'model' },
+                params: { viewId: 'full-model' },
                 search: previous => {
-                  const next = { ...previous, view: 'model', change: 'candidate' }
+                  const next = { ...previous, view: 'full-model', model: 'candidate' }
                   delete next.mode
                   return next
                 },
@@ -113,8 +113,8 @@ function RouteComponent() {
                 source={c}
                 onOpen={() => void navigate({
                   to: '/view/$viewId/',
-                  params: { viewId: 'model' },
-                  search: previous => ({ ...previous, view: 'model', change: c.change, mode: 'diff-only' }),
+                  params: { viewId: 'full-model' },
+                  search: previous => ({ ...previous, view: 'full-model', model: `change:${c.change}`, mode: 'diff-only' }),
                 })}
               />
             ))}
@@ -213,7 +213,7 @@ function SourceCard({
       className="group"
       withBorder
       component="a"
-      href={`/view/model/`}
+      href={`/view/full-model/`}
       onClick={e => {
         e.preventDefault()
         onOpen()

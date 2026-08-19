@@ -16,12 +16,21 @@ import {
   type SemanticBrowserState,
 } from './SemanticBrowserController'
 
+const changeArchitecture = {
+  elements: [
+    { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: '', summary: '', description: '' } },
+    { declaration: { identity: 'root.api', kind: 'component', parent: 'root', title: 'API', definition: '', summary: '', description: '' } },
+    { declaration: { identity: 'root.db', kind: 'component', parent: 'root', title: 'DB', definition: '', summary: '', description: '' } },
+  ],
+  relationships: [],
+}
+
 const manifest: SemanticBrowserManifest = {
-  version: 4,
+  version: 5,
   modelFingerprint: 'model-fp',
   model: {
-    id: 'model',
-    label: 'Model View',
+    id: 'full-model',
+    label: 'Full Model',
     source: 'semantic-model',
     valid: true,
     diagnostics: [],
@@ -37,10 +46,23 @@ const manifest: SemanticBrowserManifest = {
   authoredViews: {
     api: { title: 'API', selection: ['root', 'root.api'], roots: ['root'], virtualRoot: false },
   },
-  changes: { auth: { label: 'auth', change: 'auth', valid: true, diagnostics: [] } },
+  changes: {
+    auth: {
+      label: 'auth', change: 'auth', valid: true, diagnostics: [],
+      architecture: changeArchitecture,
+      authoredViews: {
+        api: { title: 'API', selection: ['root', 'root.api'], roots: ['root'], virtualRoot: false },
+        stale: { title: 'Stale', selection: [], roots: [], virtualRoot: false },
+      },
+    },
+  },
   candidate: {
-    id: 'candidate', label: 'Candidate View', source: 'candidate', valid: true, diagnostics: [],
-    architecture: { elements: [], relationships: [] },
+    id: 'candidate', label: 'Candidate', source: 'candidate', valid: true, diagnostics: [],
+    architecture: changeArchitecture,
+    authoredViews: {
+      api: { title: 'API', selection: ['root', 'root.api'], roots: ['root'], virtualRoot: false },
+      stale: { title: 'Stale', selection: [], roots: [], virtualRoot: false },
+    },
     diff: { summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 }, entries: [] },
   },
 }
@@ -48,7 +70,7 @@ const manifest: SemanticBrowserManifest = {
 describe('SemanticBrowserController state machine', () => {
   // SSR renders without matchMedia, so useMediaQuery is false and only the mobile
   // variant mounts; both variants share the same select structure and logic.
-  it('renders View, Change and Mode controls in fixed order and disables diff modes without a change', () => {
+  it('renders Model, View and Mode controls in fixed order and disables diff modes on baseline', () => {
     const html = renderToStaticMarkup(createElement(
       MantineProvider,
       null,
@@ -58,99 +80,99 @@ describe('SemanticBrowserController state machine', () => {
         createElement(SemanticBrowserMobileControls),
       ),
     ))
-    expect(html.indexOf('View Selection')).toBeLessThan(html.indexOf('Change Selection'))
-    expect(html.indexOf('Change Selection')).toBeLessThan(html.indexOf('Presentation Mode'))
+    expect(html.indexOf('Model Selection')).toBeLessThan(html.indexOf('View Selection'))
+    expect(html.indexOf('View Selection')).toBeLessThan(html.indexOf('Presentation Mode'))
     expect(html).toContain('<option value="complete-with-diff" disabled="">')
     expect(html).toContain('<option value="diff-only" disabled="">')
   })
 
-  it('keeps Candidate as a Change Selection option with complete and diff-only', () => {
-    const candidate = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'diff-only' })
-    expect(candidate).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'diff-only' })
+  it('offers Candidate as a Model value with three-state modes', () => {
     const html = renderToStaticMarkup(createElement(
       MantineProvider,
       null,
       createElement(
         SemanticBrowserControllerProvider,
-        { manifest, initialUrl: { change: 'candidate' } },
+        { manifest, initialUrl: { model: 'candidate' } },
         createElement(SemanticBrowserMobileControls),
       ),
     ))
     expect(html).toContain('data-xirang-controller')
-    expect(html).toMatch(/<option value="candidate"[^>]*>Candidate View<\/option>/)
+    expect(html).toMatch(/<option value="candidate"[^>]*selected="">Candidate<\/option>/)
     expect(html).toContain('<option value="complete" selected="">')
-    expect(html).not.toContain('value="complete-with-diff"')
+    expect(html).toContain('value="complete-with-diff"')
+    // Empty-resolution views are not selectable in the current model.
+    expect(html).not.toContain('value="stale"')
   })
 
-  it('首页 Candidate 入口生成 change=candidate URL 状态', () => {
-    const state = createSemanticBrowserState(manifest, { change: 'candidate' })
-    expect(state).toMatchObject({ viewSelection: 'model', changeSelection: 'candidate', presentationMode: 'complete' })
-    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
+  it('首页 Candidate 入口生成 model=candidate URL 状态', () => {
+    const state = createSemanticBrowserState(manifest, { model: 'candidate' })
+    expect(state).toMatchObject({ viewSelection: 'full-model', modelSelection: 'candidate', presentationMode: 'complete' })
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ model: 'candidate' })
     expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({
-      viewId: 'model',
-      change: 'candidate',
+      viewId: 'full-model',
+      model: 'candidate',
       mode: 'complete',
     })
   })
 
-  it('selects Candidate and unlocks complete and diff-only', () => {
+  it('selects Candidate and keeps three-state modes with complete default', () => {
     const initial = createSemanticBrowserState(manifest)
-    const selected = reduceSemanticBrowserState(initial, { type: 'change.select', change: 'candidate' }, manifest)
-    expect(selected.changeSelection).toBe('candidate')
+    const selected = reduceSemanticBrowserState(initial, { type: 'model.select', model: 'candidate' }, manifest)
+    expect(selected.modelSelection).toBe('candidate')
     expect(selected.presentationMode).toBe('complete')
     expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete' }, manifest).presentationMode).toBe('complete')
+    expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete-with-diff' }, manifest).presentationMode).toBe('complete-with-diff')
     expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'diff-only' }, manifest).presentationMode).toBe('diff-only')
-    expect(reduceSemanticBrowserState(selected, { type: 'mode.select', mode: 'complete-with-diff' }, manifest).presentationMode).toBe('complete')
   })
 
-  it('clamps change=candidate&mode=complete-with-diff to complete', () => {
-    const state = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'complete-with-diff' })
-    expect(state.presentationMode).toBe('complete')
-    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
+  it('accepts candidate complete-with-diff instead of clamping it', () => {
+    const state = createSemanticBrowserState(manifest, { model: 'candidate', mode: 'complete-with-diff' })
+    expect(state.presentationMode).toBe('complete-with-diff')
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ model: 'candidate', mode: 'complete-with-diff' })
     expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({
-      change: 'candidate',
-      mode: 'complete',
+      model: 'candidate',
+      mode: 'complete-with-diff',
     })
   })
 
-  it('encodes URL state for change=candidate', () => {
-    const state = createSemanticBrowserState(manifest, { change: 'candidate' })
-    expect(encodeSemanticBrowserUrl(state)).toEqual({ change: 'candidate' })
-    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({ change: 'candidate', mode: 'complete' })
+  it('encodes URL state for model=candidate', () => {
+    const state = createSemanticBrowserState(manifest, { model: 'candidate' })
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ model: 'candidate' })
+    expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toMatchObject({ model: 'candidate', mode: 'complete' })
     const diffOnly = reduceSemanticBrowserState(state, { type: 'mode.select', mode: 'diff-only' }, manifest)
-    expect(encodeSemanticBrowserUrl(diffOnly)).toEqual({ change: 'candidate', mode: 'diff-only' })
+    expect(encodeSemanticBrowserUrl(diffOnly)).toEqual({ model: 'candidate', mode: 'diff-only' })
   })
 
   it('normalizes every presentation mode through state creation and the reducer', () => {
     const cases: Array<{
-      change: string | null
+      model: 'semantic-model' | 'candidate' | 'change:auth'
       requestedMode?: 'complete' | 'complete-with-diff' | 'diff-only'
       expectedMode: 'complete' | 'complete-with-diff' | 'diff-only'
       expectedUrl: Record<string, string>
     }> = [
-      { change: null, expectedMode: 'complete', expectedUrl: {} },
-      { change: null, requestedMode: 'complete', expectedMode: 'complete', expectedUrl: {} },
-      { change: null, requestedMode: 'complete-with-diff', expectedMode: 'complete', expectedUrl: {} },
-      { change: null, requestedMode: 'diff-only', expectedMode: 'complete', expectedUrl: {} },
-      { change: 'candidate', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
-      { change: 'candidate', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
-      { change: 'candidate', requestedMode: 'complete-with-diff', expectedMode: 'complete', expectedUrl: { change: 'candidate' } },
-      { change: 'candidate', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { change: 'candidate', mode: 'diff-only' } },
-      { change: 'auth', expectedMode: 'complete-with-diff', expectedUrl: { change: 'auth' } },
-      { change: 'auth', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { change: 'auth', mode: 'complete' } },
-      { change: 'auth', requestedMode: 'complete-with-diff', expectedMode: 'complete-with-diff', expectedUrl: { change: 'auth' } },
-      { change: 'auth', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { change: 'auth', mode: 'diff-only' } },
+      { model: 'semantic-model', expectedMode: 'complete', expectedUrl: {} },
+      { model: 'semantic-model', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: {} },
+      { model: 'semantic-model', requestedMode: 'complete-with-diff', expectedMode: 'complete', expectedUrl: {} },
+      { model: 'semantic-model', requestedMode: 'diff-only', expectedMode: 'complete', expectedUrl: {} },
+      { model: 'candidate', expectedMode: 'complete', expectedUrl: { model: 'candidate' } },
+      { model: 'candidate', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { model: 'candidate' } },
+      { model: 'candidate', requestedMode: 'complete-with-diff', expectedMode: 'complete-with-diff', expectedUrl: { model: 'candidate', mode: 'complete-with-diff' } },
+      { model: 'candidate', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { model: 'candidate', mode: 'diff-only' } },
+      { model: 'change:auth', expectedMode: 'complete-with-diff', expectedUrl: { model: 'change:auth' } },
+      { model: 'change:auth', requestedMode: 'complete', expectedMode: 'complete', expectedUrl: { model: 'change:auth', mode: 'complete' } },
+      { model: 'change:auth', requestedMode: 'complete-with-diff', expectedMode: 'complete-with-diff', expectedUrl: { model: 'change:auth' } },
+      { model: 'change:auth', requestedMode: 'diff-only', expectedMode: 'diff-only', expectedUrl: { model: 'change:auth', mode: 'diff-only' } },
     ]
 
-    for (const { change, requestedMode, expectedMode, expectedUrl } of cases) {
+    for (const { model, requestedMode, expectedMode, expectedUrl } of cases) {
       const url = {
-        ...(change === null ? {} : { change }),
+        ...(model === 'semantic-model' ? {} : { model }),
         ...(requestedMode === undefined ? {} : { mode: requestedMode }),
       }
       const created = createSemanticBrowserState(manifest, url)
       const selected = reduceSemanticBrowserState(
         createSemanticBrowserState(manifest),
-        { type: 'change.select', change },
+        { type: 'model.select', model },
         manifest,
       )
       const reduced = requestedMode === undefined
@@ -165,20 +187,20 @@ describe('SemanticBrowserController state machine', () => {
     }
   })
 
-  it('ignores change=candidate without an active Candidate', () => {
+  it('ignores model=candidate without an active Candidate', () => {
     const { candidate: _candidate, ...noCandidate } = manifest
-    const state = createSemanticBrowserState(noCandidate, { change: 'candidate' })
-    expect(state.changeSelection).toBeNull()
+    const state = createSemanticBrowserState(noCandidate, { model: 'candidate' })
+    expect(state.modelSelection).toBe('semantic-model')
     expect(state.presentationMode).toBe('complete')
   })
 
   it('converges after the Candidate is promoted and the manifest drops it', () => {
-    const selected = createSemanticBrowserState(manifest, { change: 'candidate', mode: 'diff-only' }, { expanded: ['root.api'] })
+    const selected = createSemanticBrowserState(manifest, { model: 'candidate', mode: 'diff-only' }, { expanded: ['root.api'] })
     const { candidate: _candidate, ...noCandidate } = manifest
     const next = reconcileSemanticBrowserState(selected, noCandidate)
     expect(next).toMatchObject({
-      viewSelection: 'model',
-      changeSelection: null,
+      viewSelection: 'full-model',
+      modelSelection: 'semantic-model',
       presentationMode: 'complete',
     })
     expect([...next.expanded]).toEqual([])
@@ -187,7 +209,7 @@ describe('SemanticBrowserController state machine', () => {
   it('preserves model-valid focus and expanded identities when the selected authored view disappears', () => {
     const staleState: SemanticBrowserState = {
       viewSelection: 'api',
-      changeSelection: null,
+      modelSelection: 'semantic-model',
       presentationMode: 'complete',
       focus: 'root.db',
       expanded: new Set(['root.api', 'root.db', 'ghost']),
@@ -197,32 +219,32 @@ describe('SemanticBrowserController state machine', () => {
       expanded: new Set(staleState.expanded),
     }, { ...manifest, authoredViews: {} })
 
-    expect(next.viewSelection).toBe('model')
+    expect(next.viewSelection).toBe('full-model')
     expect(next.focus).toBe('root.db')
     expect([...next.expanded]).toEqual(['root.api', 'root.db'])
   })
 
-  it('uses complete without a change and complete-with-diff when a change is selected', () => {
+  it('uses complete on baseline and complete-with-diff for a change model', () => {
     const initial = createSemanticBrowserState(manifest)
     expect(initial.presentationMode).toBe('complete')
-    const withChange = reduceSemanticBrowserState(initial, { type: 'change.select', change: 'auth' }, manifest)
-    expect(withChange.changeSelection).toBe('auth')
+    const withChange = reduceSemanticBrowserState(initial, { type: 'model.select', model: 'change:auth' }, manifest)
+    expect(withChange.modelSelection).toBe('change:auth')
     expect(withChange.presentationMode).toBe('complete-with-diff')
-    const cleared = reduceSemanticBrowserState(withChange, { type: 'change.select', change: null }, manifest)
+    const cleared = reduceSemanticBrowserState(withChange, { type: 'model.select', model: 'semantic-model' }, manifest)
     expect(cleared.presentationMode).toBe('complete')
   })
 
   it('clears an archived Change and its diff expansion when the manifest refreshes', () => {
     const state = createSemanticBrowserState(
       manifest,
-      { change: 'auth', mode: 'diff-only', focus: 'root.api' },
+      { model: 'change:auth', mode: 'diff-only', focus: 'root.api' },
       { expanded: ['root.api', 'root.db'] },
     );
     const nextManifest: SemanticBrowserManifest = { ...manifest, changes: {} };
     const next = reconcileSemanticBrowserState(state, nextManifest);
 
     expect(next).toMatchObject({
-      changeSelection: null,
+      modelSelection: 'semantic-model',
       presentationMode: 'complete',
       focus: 'root.api',
     });
@@ -230,18 +252,27 @@ describe('SemanticBrowserController state machine', () => {
   });
 
   it('keeps the three dimensions independent', () => {
-    const initial = createSemanticBrowserState(manifest, { change: 'auth', focus: 'root.api' })
+    const initial = createSemanticBrowserState(manifest, { model: 'change:auth', focus: 'root.api' })
     const next = reduceSemanticBrowserState(initial, { type: 'mode.select', mode: 'diff-only' }, manifest)
-    expect(next.viewSelection).toBe('model')
-    expect(next.changeSelection).toBe('auth')
+    expect(next.viewSelection).toBe('full-model')
+    expect(next.modelSelection).toBe('change:auth')
     expect(next.focus).toBe('root.api')
     expect(next.presentationMode).toBe('diff-only')
   })
 
-  it('disables diff modes when no change is selected', () => {
+  it('disables diff modes on the baseline model', () => {
     const initial = createSemanticBrowserState(manifest)
     const next = reduceSemanticBrowserState(initial, { type: 'mode.select', mode: 'diff-only' }, manifest)
     expect(next.presentationMode).toBe('complete')
+  })
+
+  it('falls back to full-model when the view is not resolvable in the current model', () => {
+    const nextManifest: SemanticBrowserManifest = {
+      ...manifest,
+      changes: { auth: { ...manifest.changes['auth']!, authoredViews: {} } },
+    }
+    const state = createSemanticBrowserState(nextManifest, { model: 'change:auth', view: 'api' })
+    expect(state.viewSelection).toBe('full-model')
   })
 
   it('preserves legal focus and prunes focus and expanded identities outside a new view', () => {
@@ -253,18 +284,18 @@ describe('SemanticBrowserController state machine', () => {
     expect(fallback.focus).toBeNull()
   })
 
-  it('encodes only view, change, mode and focus, while expanded stays in history state', () => {
-    const state = createSemanticBrowserState(manifest, { view: 'api', change: 'auth', mode: 'diff-only', focus: 'root.api' }, { expanded: ['root.api'] })
-    expect(encodeSemanticBrowserUrl(state)).toEqual({ view: 'api', change: 'auth', mode: 'diff-only', focus: 'root.api' })
+  it('encodes only view, model, mode and focus, while expanded stays in history state', () => {
+    const state = createSemanticBrowserState(manifest, { view: 'api', model: 'change:auth', mode: 'diff-only', focus: 'root.api' }, { expanded: ['root.api'] })
+    expect(encodeSemanticBrowserUrl(state)).toEqual({ view: 'api', model: 'change:auth', mode: 'diff-only', focus: 'root.api' })
     expect(historyStateForSemanticBrowser(state)).toEqual({ expanded: ['root.api'] })
     expect(JSON.stringify(encodeSemanticBrowserUrl(state))).not.toContain('expanded')
   })
 
   it('builds a deterministic projection request with the expected fingerprint', () => {
-    const state = createSemanticBrowserState(manifest, { change: 'auth' }, { expanded: ['root.db', 'root.api'] })
+    const state = createSemanticBrowserState(manifest, { model: 'change:auth' }, { expanded: ['root.db', 'root.api'] })
     expect(projectionRequestForSemanticBrowser(state, manifest.modelFingerprint)).toEqual({
-      viewId: 'model',
-      change: 'auth',
+      viewId: 'full-model',
+      model: 'change:auth',
       mode: 'complete-with-diff',
       focus: null,
       expanded: ['root.api', 'root.db'],
@@ -274,7 +305,7 @@ describe('SemanticBrowserController state machine', () => {
 })
 
 describe('mirrorActorFocus', () => {
-  const modelState = createSemanticBrowserState(manifest, { view: 'model' })
+  const modelState = createSemanticBrowserState(manifest, { view: 'full-model' })
   const authoredState = createSemanticBrowserState(manifest, { view: 'api' })
 
   it('mirrors an actor focus that is inside the view', () => {
@@ -292,7 +323,7 @@ describe('mirrorActorFocus', () => {
     expect(mirrorActorFocus(focused, manifest, 'root', 'root')).toBe('clear')
   })
 
-  it('leaves the model-view actor at its default null focus untouched', () => {
+  it('leaves the full-model actor at its default null focus untouched', () => {
     expect(mirrorActorFocus(modelState, manifest, null, 'root')).toBeNull()
     expect(mirrorActorFocus(modelState, manifest, 'root', 'root')).toBeNull()
   })

@@ -80,20 +80,20 @@
 
 #### Checks
 
-- [ ] C6 model 轴状态机
+- [x] C6 model 轴状态机
   - Verifies: `elements/semantic-browser.md` / Requirement "三维正交组合呈现状态" / Scenario "选择 Candidate 后切换 Mode"
   - Command: `cd likec4/packages/likec4-spa && npx vitest run src/xirang/SemanticBrowserController.spec.ts`
   - Expect: model 轴 clamp、按值默认 Mode、baseline 锁定、`model=` round-trip 用例全绿
-- [ ] C7 空解析 View 过滤与收敛
+- [x] C7 空解析 View 过滤与收敛
   - Verifies: `elements/semantic-browser.md` / Requirement "三维正交组合呈现状态" / Scenario "空解析 View 不可选"
   - Verifies: `elements/semantic-browser.md` / Requirement "所选 Model 消失时收敛状态" / Scenario "Candidate 被 promote 后收敛"
   - Command: `cd likec4/packages/likec4-spa && npx vitest run src/xirang/SemanticBrowserController.spec.ts`
   - Expect: 下拉过滤与 Model 消失收敛用例全绿
-- [ ] C8 URL schema 与前端 source 轴
+- [x] C8 URL schema 与前端 source 轴
   - Verifies: `elements/web.md` / Requirement "URL 编码导航状态并响应浏览器前进后退" / Scenario "控件变化"
   - Command: `cd likec4/packages/likec4-spa && npx vitest run src/searchParams.spec.ts && cd ../diagram && npx vitest run --no-isolate src/xirang/ContractLoaderContext.spec.tsx`
   - Expect: `model=` 编解码与 selected source 按 model 计算的用例全绿
-- [ ] C9 diagram typecheck
+- [x] C9 diagram typecheck
   - Verifies: `elements/web.md` / Requirement "支持分层语义浏览" / Scenario "下钻 Full Model 或 Authored View"
   - Command: `cd likec4 && pnpm --filter @likec4/diagram typecheck`
   - Expect: 类型检查通过

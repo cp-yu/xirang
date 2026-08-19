@@ -86,7 +86,7 @@ describe('parseProjectionRequest', () => {
 })
 
 describe('computeProjectionKey', () => {
-  const base = { viewId: 'full-model', model: 'semantic-model', mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+  const base = { viewId: 'full-model', model: 'semantic-model' as const, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
 
   it('is deterministic for the same request', () => {
     expect(computeProjectionKey(base)).toBe(computeProjectionKey(base))
@@ -142,7 +142,7 @@ describe('assertFingerprintFresh', () => {
 describe('handleProjection', () => {
   const validRequest = {
     viewId: 'full-model',
-    model: 'semantic-model',
+    model: 'semantic-model' as const,
     mode: 'complete' as const,
     focus: null,
     expanded: [],
@@ -180,7 +180,7 @@ describe('handleProjection', () => {
   it('loads a Change target through its root-lowered LikeC4 sources', async () => {
     const diagrams = vi.fn(async () => [fakeView('full-model')])
     const loadSources = vi.fn(async () => ({ diagrams }))
-    const request = { ...validRequest, model: 'change:next' }
+    const request = { ...validRequest, model: 'change:next' as const }
     const result = await handleProjection(request, {
       readManifest: async () => JSON.stringify({
         version: 5,
@@ -805,7 +805,7 @@ describe('official LikeC4 pipeline integration', () => {
       cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
       projectId: 'xirang',
     })
-    const request = { viewId: 'full-model' as const, model: 'semantic-model', mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+    const request = { viewId: 'full-model' as const, model: 'semantic-model' as const, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
     const [model, authored] = await Promise.all([
       handleProjection(request, makeContext()),
       handleProjection({ ...request, viewId: 'equivalent' }, makeContext()),
