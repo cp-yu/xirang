@@ -4,60 +4,48 @@ identity: semantic-browser
 kind: element
 parent: web
 title: Semantic Browser
-definition: Semantic Browser 是 Web 中面向用户的三维正交浏览编排层，将 View Selection、Change Selection 与 Presentation Mode 作为独立维度组合，形成统一的运行时呈现状态。View Selection 从 Model View 与 Authored Views 中选择当前视角；Change Selection 从活动 Changes 与唯一 active Candidate（若存在）中选择叠加内容，或选择 None；Presentation Mode 在选中活动 Change 时提供 complete、complete-with-diff 与 diff-only 并默认为 complete-with-diff，在选中 Candidate 时仅提供 complete 与 diff-only 并默认为 complete，无 Change 与 Candidate 时锁定为 complete。Semantic Browser 不承载规范性语义，不持久化呈现状态，不负责投影计算与差异视觉表达。
+definition: Semantic Browser 是 Web 中面向用户的三维正交浏览编排层，将 Model Selection、View Selection 与 Presentation Mode 作为独立维度组合，形成统一的运行时呈现状态。Model Selection 选择当前被浏览的 Model 实例：当前 Semantic Model（baseline）、唯一 active Candidate（若存在）或某一活动 Change 的 Expected Semantic Model；三者作为 Model 值在编排上同构，Candidate 与 Change 不是独立的编排维度。View Selection 从 Full Model 与 Authored Views 中选择当前视角，View Definition 对被浏览 Model 实例解析。Presentation Mode 在 Model 为 baseline 时锁定 complete，其余 Model 提供 complete、complete-with-diff 与 diff-only 三态，差异语义统一为相对当前 Semantic Model baseline。Semantic Browser 不承载规范性语义，不持久化呈现状态，不负责投影计算与差异视觉表达。
 ---
 
 ## Requirements
 
 ### Requirement: 三维正交组合呈现状态
 
-Semantic Browser SHALL 以 View Selection、Change Selection 与 Presentation Mode 三个独立维度组合形成统一的运行时呈现状态。View Selection SHALL 从 Model View 与 Authored Views 中选择当前视角；Change Selection SHALL 从活动 Changes 与唯一 active Candidate（若存在）中选择叠加内容，或选择 None，并 SHALL 以 reserved identifier `candidate` 表示 Candidate 选项；Presentation Mode SHALL 在选中活动 Change 时提供 `complete`、`complete-with-diff` 与 `diff-only` 三态并默认 `complete-with-diff`，在选中 Candidate 时仅提供 `complete` 与 `diff-only` 并默认 `complete`，无 Change 与 Candidate 时 SHALL 锁定为 `complete`。当 Change Selection 为 `candidate` 且 Presentation Mode 为 `complete-with-diff` 时，Semantic Browser SHALL 将该 Mode 收敛为 `complete`。
-
-#### Scenario: 选择 Change 后切换 Mode
-
-- **WHEN** 用户在 Change Selection 选中一个活动 Change
-- **THEN** Presentation Mode 控件解锁并默认为 `complete-with-diff`
-- **AND** 用户可在三态之间切换
+Semantic Browser SHALL 以 Model Selection、View Selection 与 Presentation Mode 三个独立维度组合形成统一的运行时呈现状态。Model Selection SHALL 从当前 Semantic Model（baseline）、唯一 active Candidate（若存在）与活动 Changes 的 Expected Semantic Model 中选择被浏览的 Model 实例；baseline SHALL 以 URL 省略编码，Candidate 与 Change SHALL 分别以 `model=candidate` 与 `model=change:<identity>` 编码，SHALL NOT 形成 Change 独立编排维度。View Selection SHALL 从 Full Model 与 Authored Views 中选择当前视角，且 SHALL 只提供对当前 Model 实例解析非空的 Views。Presentation Mode SHALL 在 Model 为 baseline 时锁定为 `complete`，其余 Model SHALL 提供 `complete`、`complete-with-diff` 与 `diff-only` 三态，默认值按 Model 值区分：Candidate 为 `complete`，活动 Change 为 `complete-with-diff`；差异语义 SHALL 统一为相对 baseline Semantic Model。
 
 #### Scenario: 选择 Candidate 后切换 Mode
 
-- **WHEN** 用户在 Change Selection 选中 Candidate（`change=candidate`）
+- **WHEN** 用户在 Model Selection 选中 active Candidate
 - **THEN** Presentation Mode 控件解锁并默认为 `complete`
-- **AND** 用户可在 `complete` 与 `diff-only` 之间切换
-- **AND** 控件不提供 `complete-with-diff`
+- **AND** 用户可在 `complete`、`complete-with-diff` 与 `diff-only` 三态之间切换
 
-#### Scenario: 非法 Candidate Mode 收敛
+#### Scenario: 选择 Change 后切换 Mode
 
-- **WHEN** 当前 Change Selection 为 `candidate` 且 Presentation Mode 为 `complete-with-diff`
-- **THEN** Semantic Browser 将 Presentation Mode 收敛为 `complete`
-- **AND** 不请求 `change=candidate&mode=complete-with-diff` 的 projection
+- **WHEN** 用户在 Model Selection 选中一个活动 Change 的 Expected Semantic Model
+- **THEN** Presentation Mode 控件解锁并默认为 `complete-with-diff`
+- **AND** 用户可在三态之间切换
 
-#### Scenario: 无 Change 时 Mode 锁定
+#### Scenario: baseline 时 Mode 锁定
 
-- **WHEN** Change Selection 为 None
-- **THEN** Presentation Mode 锁定为 `complete`，不提供 Mode 切换控件
+- **WHEN** Model Selection 为 baseline Semantic Model
+- **THEN** Presentation Mode 锁定为 `complete`，不提供 Mode 切换选项
 
-### Requirement: Candidate 作为 Change Selection 特殊选项
+#### Scenario: 空解析 View 不可选
 
-active Candidate 存在时，Semantic Browser SHALL 在 Change Selection 中提供唯一 `candidate` 选项；该选项以 reserved identifier `candidate` 路由到 `manifest.candidate` source，而非 `manifest.changes` 中的普通 Change；Candidate 选中时 SHALL NOT 提供 Change 与 Candidate 的同时选择。首页 Candidate 入口 SHALL 以 `change=candidate` 打开，并省略 mode，使 Presentation Mode 为默认 `complete`。
+- **WHEN** 某 Authored View 对当前 Model 实例解析结果为空
+- **THEN** View Selection 不提供该 View
 
-#### Scenario: 首页 Candidate 入口
+### Requirement: 所选 Model 消失时收敛状态
 
-- **WHEN** active Candidate 存在且用户点击首页 Candidate 入口卡片
-- **THEN** Browser 以 `change=candidate` 状态打开 Semantic Browser，URL 不含 `mode`
-- **AND** Change Selection 显示 Candidate 为当前选项
-- **AND** Presentation Mode 为 `complete`
-
-#### Scenario: Candidate 不存在时不显示
-
-- **WHEN** manifest 中不含 `candidate` 字段
-- **THEN** Change Selection 中不出现 Candidate 选项
-
-### Requirement: Candidate 生命周期变化时收敛状态
-
-当 active Candidate 被 promote 或移除时，Semantic Browser SHALL 在收到不含 `candidate` 字段的 manifest 后清空 Candidate Selection、将 Presentation Mode 回到 `complete`，并清除来自 Candidate projection 的 expanded set；旧 Candidate 的 diff 状态与投影 SHALL NOT 残留。
+当当前选中的 Model 值消失（Candidate 被 promote 或移除、活动 Change 被归档或移除）时，Semantic Browser SHALL 在收到不含该 Model 值的 manifest 后回退 baseline、将 Presentation Mode 回到 `complete`，并清除来自该 Model projection 的 expanded set 与失效 focus；旧 Model 的 diff 状态与投影 SHALL NOT 残留。
 
 #### Scenario: Candidate 被 promote 后收敛
 
-- **WHEN** 用户 promote Candidate 后 manifest 刷新且不含 `candidate` 字段
-- **THEN** Change Selection 恢复为 None，Presentation Mode 回到 `complete`
+- **WHEN** 用户 promote Candidate 后 manifest 刷新且不含 `candidate` source
+- **THEN** Model Selection 回退 baseline，Presentation Mode 回到 `complete`
+
+#### Scenario: 查看中的 Change 被归档
+
+- **WHEN** 用户正在浏览一个活动 Change 且该 Change 被移到 `changes/archive/`
+- **THEN** Model Selection 回退 baseline，Presentation Mode 回到 `complete`
+- **AND** 不残留该 Change 的 diff overlay 或就地展开状态

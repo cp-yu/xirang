@@ -110,7 +110,7 @@
       "test/e2e/semantic-browser-model-view.spec.ts",
       "test/e2e/semantic-browser-navigation-history.spec.ts"
     ],
-    "evidenceFingerprint": "11bf9f632aad5f4b5636f8c304f6c669b86ce8c3cbed7cf081c98d832264eb70",
+    "evidenceFingerprint": "42bf9e9ba8ad80ebfd522e7ed5eb2122bd48d7cf506f3cae0ba9a563a0411152",
     "evidenceFingerprintEntries": [
       {
         "path": ".xirang/changes/model-view-mode-orchestration/design.md",
@@ -182,7 +182,7 @@
       },
       {
         "path": ".xirang/model/elements/authored-views.md",
-        "hash": "6bfc066a28883e828c5490c14aec35d22c06219235cd2fde724767bf3f5eb8fe"
+        "hash": "bee5667a7ea0ec5c6e3062c0eff11e807b49af1e15cdb9df7a0a682f278696de"
       },
       {
         "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
