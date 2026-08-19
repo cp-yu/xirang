@@ -7,7 +7,11 @@
 **Files**:
 - Modify: `src/core/view.ts`
 - Modify: `src/core/model/validator.ts`
+- Modify: `src/core/likec4/generator.ts`
+- Modify: `likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts`
 - Test: `test/core/view.test.ts`
+- Test: `test/core/likec4/generator.test.ts`
+- Test: `test/core/likec4/generator-validate.test.ts`
 
 **Requirements**:
 - `ViewRuntimeSnapshot.version` 升为 5；model source `id` 改为 `'full-model'`，label `'Full Model'`；candidate label `'Candidate'`。
@@ -68,7 +72,12 @@
 - Modify: `likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx`
 - Modify: `likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx`
 - Modify: `likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx`
+- Modify: `likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx`
+- Modify: `likec4/packages/diagram/src/xirang/export-state.ts`
+- Modify: `likec4/packages/likec4-spa/src/routes/__root.tsx`
 - Test: `likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.spec.ts`
+- Test: `likec4/packages/likec4-spa/src/xirang/HttpProjectionLoader.spec.ts`
+- Test: `likec4/packages/diagram/src/xirang/export-state.spec.ts`
 - Test: `likec4/packages/likec4-spa/src/searchParams.spec.ts`
 - Test: `likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx`
 
