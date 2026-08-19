@@ -211,6 +211,56 @@ function manifestToSources(m: XirangRuntimeManifest): XirangViewSource[] {
   ]
 }
 
+export function isKnownViewId(manifest: XirangRuntimeManifest, id: string): boolean {
+  if (id === 'full-model' || id === manifest.model.id || id in manifest.authoredViews) return true
+  if (manifest.candidate?.authoredViews && id in manifest.candidate.authoredViews) return true
+  return Object.values(manifest.changes).some(change => change.authoredViews && id in change.authoredViews)
+}
+
+export function resolveSelectedViewSource(args: {
+  sources: readonly XirangViewSource[]
+  selectedId: string
+  manifest: XirangRuntimeManifest | null
+  browserProjection: {
+    viewId: string
+    model: string
+    showDiff: boolean
+    projectionKey: string
+    view: DiagramView
+  } | null
+}): XirangViewSource {
+  const { sources, selectedId, manifest, browserProjection } = args
+  const base = sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource
+  if (!browserProjection || browserProjection.viewId !== selectedId) return base
+  const selectedSource = browserProjection.model === 'candidate'
+    ? manifest?.candidate
+    : browserProjection.model.startsWith('change:')
+      ? manifest?.changes[browserProjection.model.slice('change:'.length)]
+      : undefined
+  const change = selectedSource && !browserProjection.showDiff
+    ? (({ diff: _diff, ...rest }) => rest)(selectedSource)
+    : selectedSource
+  const viewMeta = selectedId === 'full-model'
+    ? undefined
+    : (selectedSource?.authoredViews ?? manifest?.authoredViews)?.[selectedId]
+  return {
+    ...(change ?? base),
+    id: selectedId,
+    label: viewMeta?.title ?? base.label,
+    ...(viewMeta
+      ? {
+          selection: viewMeta.selection,
+          roots: viewMeta.roots,
+          virtualRoot: viewMeta.virtualRoot,
+        }
+      : {}),
+    source: browserProjection.model !== 'semantic-model' ? 'change-derived-view' : base.source,
+    ...(browserProjection.model !== 'semantic-model' ? { change: browserProjection.model } : {}),
+    projection: browserProjection.view,
+    projectionKey: browserProjection.projectionKey,
+  }
+}
+
 const XirangViewSourceContext = createContext<XirangViewSourceContextValue>({
   sources: [modelViewSource],
   changes: [],
@@ -262,7 +312,7 @@ export function XirangContractLoaderProvider({
         const next = manifestToSources(manifest)
         setManifest(manifest)
         setSources(next)
-        setSelectedId(current => next.some(source => source.id === current) ? current : 'full-model')
+        setSelectedId(current => isKnownViewId(manifest, current) ? current : 'full-model')
       }).catch(() => undefined)
     }
     load()
@@ -287,27 +337,12 @@ export function XirangContractLoaderProvider({
   }, [])
 
   const value = useMemo<XirangViewSourceContextValue>(() => {
-    const base = sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource
-    let selected = base
-    if (browserProjection && browserProjection.viewId === base.id) {
-      const selectedSource = browserProjection.model === 'candidate'
-        ? manifest?.candidate
-        : browserProjection.model.startsWith('change:')
-          ? manifest?.changes[browserProjection.model.slice('change:'.length)]
-          : undefined
-      const change = selectedSource && !browserProjection.showDiff
-        ? (({ diff: _diff, ...rest }) => rest)(selectedSource)
-        : selectedSource
-      selected = {
-        ...(change ?? base),
-        id: base.id,
-        label: base.label,
-        source: browserProjection.model !== 'semantic-model' ? 'change-derived-view' : base.source,
-        ...(browserProjection.model !== 'semantic-model' ? { change: browserProjection.model } : {}),
-        projection: browserProjection.view,
-        projectionKey: browserProjection.projectionKey,
-      }
-    }
+    const selected = resolveSelectedViewSource({
+      sources,
+      selectedId,
+      manifest,
+      browserProjection,
+    })
     return {
       sources,
       changes: manifest ? Object.values(manifest.changes) : [],

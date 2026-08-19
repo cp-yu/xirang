@@ -1,6 +1,12 @@
+import type { DiagramView } from '@likec4/core/types'
 import { describe, expect, it } from 'vitest'
 import type { XirangChangeSource, XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
-import { resolveEffectiveMode, xirangViewSourceRevision } from './ContractLoaderContext'
+import {
+  isKnownViewId,
+  resolveEffectiveMode,
+  resolveSelectedViewSource,
+  xirangViewSourceRevision,
+} from './ContractLoaderContext'
 
 const modelSource: XirangViewSource = {
   id: 'full-model',
@@ -185,5 +191,69 @@ describe('falls back after candidate focus disappears', () => {
     }
     const newRevision = xirangViewSourceRevision(newCandidate)
     expect(newRevision).not.toBe(oldRevision)
+  })
+})
+
+const candidateOnlyProjection = { id: 'feedback-loop' } as DiagramView
+
+const candidateWithAuthoredView: XirangViewSource = {
+  ...candidateSource,
+  authoredViews: {
+    'feedback-loop': {
+      title: 'Feedback Loop',
+      selection: ['feedback-model'],
+      roots: ['feedback-model'],
+      virtualRoot: false,
+    },
+  },
+}
+
+const manifestWithCandidateView: XirangRuntimeManifest = {
+  ...v4ManifestWithCandidate,
+  candidate: candidateWithAuthoredView,
+}
+
+describe('applies projection for instance-local views', () => {
+  it('attaches a candidate-only authored view projection even when that view is not in formal sources', () => {
+    const selected = resolveSelectedViewSource({
+      sources: [modelSource],
+      selectedId: 'feedback-loop',
+      manifest: manifestWithCandidateView,
+      browserProjection: {
+        viewId: 'feedback-loop',
+        model: 'candidate',
+        showDiff: false,
+        projectionKey: 'k',
+        view: candidateOnlyProjection,
+      },
+    })
+    expect(selected.id).toBe('feedback-loop')
+    expect(selected.label).toBe('Feedback Loop')
+    expect(selected.projection).toBe(candidateOnlyProjection)
+  })
+
+  it('does not attach a stale projection when selectedId has moved on', () => {
+    const selected = resolveSelectedViewSource({
+      sources: [modelSource],
+      selectedId: 'feedback-loop',
+      manifest: manifestWithCandidateView,
+      browserProjection: {
+        viewId: 'full-model',
+        model: 'candidate',
+        showDiff: false,
+        projectionKey: 'k',
+        view: { id: 'full-model' } as DiagramView,
+      },
+    })
+    expect(selected.projection).toBeUndefined()
+    expect(selected.id).toBe('full-model')
+  })
+})
+
+describe('keeps instance-local view ids across manifest refresh', () => {
+  it('accepts a candidate-only authored view id', () => {
+    expect(isKnownViewId(manifestWithCandidateView, 'feedback-loop')).toBe(true)
+    expect(isKnownViewId(v4ManifestWithCandidate, 'feedback-loop')).toBe(false)
+    expect(isKnownViewId(manifestWithCandidateView, 'full-model')).toBe(true)
   })
 })
