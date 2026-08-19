@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "relax-apply-orchestration-constraints",
+  "originalBranch": "main",
+  "baseCommit": "7b20b13ed99f8811833614197cc7c80df41f69df"
+}

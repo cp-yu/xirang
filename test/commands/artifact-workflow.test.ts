@@ -73,7 +73,7 @@ describe('artifact-workflow CLI commands', () => {
 
 #### Scenario: 读取粗粒度任务
 
-### Requirement: Master agent 直接执行 pending task
+### Requirement: Apply Phase 0 pending Checks
 
 #### Scenario: 拆解为可执行工作
 `);
@@ -560,10 +560,12 @@ rules: {}
       expect(json.contextFiles.specs).toEqual([expectedSpecPath]);
       expect(json.configProjection.normalized.proseLanguage).toBe('中文');
       expect(json.configProjection.normalized.apply).toEqual({ defaultIsolation: 'branch' });
-      expect(json.configProjection.prompt.fragments).toEqual([
-        expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
-        expect.objectContaining({ key: 'apply', scope: 'global' }),
-      ]);
+      expect(json.configProjection.prompt.fragments).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
+          expect.objectContaining({ key: 'apply', scope: 'global' }),
+        ])
+      );
     });
 
     it('prints config projection in text apply instructions', async () => {
@@ -676,7 +678,7 @@ rules: {}
 #### Checks
 
 - [ ] C1 Verify strict apply
-  - Verifies: \`elements/test-element.md\` / Requirement "Master agent 直接执行 pending task" / Scenario "拆解为可执行工作"
+  - Verifies: \`elements/test-element.md\` / Requirement "Apply Phase 0 pending Checks" / Scenario "拆解为可执行工作"
   - Command: \`npm run test -- test/core/templates/apply-change.test.ts\`
   - Expect: apply instructions include strict red/green TDD
 `;

@@ -1,4 +1,5 @@
 ---
+operation: MODIFIED
 entity: element-declaration
 identity: apply-workflow
 kind: element
@@ -7,28 +8,7 @@ title: Apply Workflow
 definition: Apply Workflow 定义 `xirang-apply-change` 如何处理 Apply 的任务执行状态、task-level TDD 与 Verify 阶段门禁。它包含 pending Checks 的证据处理、`needs_verify` 与 `needs_seal` 状态分支，以及全部任务完成后的 clean-context 验证入口；它不定义 Phase 0 的执行主体、任务编排方式或临时实现材料。
 ---
 
-## Requirements
-
-### Requirement: Apply 模板 SHALL 处理中间验证状态
-
-`xirang-apply-change` 技能模板 SHALL 对 `needs_verify` 和 `needs_seal` 状态提供正确分支，无缝进入对应验证阶段。
-
-#### Scenario: needs_verify 状态进入 Phase 1
-
-- **WHEN** `instructions apply --json` 返回 `state: 'needs_verify'`
-- **THEN** 模板 SHALL 指示 Agent 进入 Phase 1 验证流程并启动 reviewer subagent
-- **AND** SHALL NOT 中断流程或要求用户手动触发 verify
-
-#### Scenario: needs_seal 状态进入 Phase 2/3
-
-- **WHEN** `instructions apply --json` 返回 `state: 'needs_seal'`
-- **THEN** 模板 SHALL 指示 Agent 进入 Phase 2/3 流程
-- **AND** SHALL NOT 中断流程或要求用户手动触发
-
-#### Scenario: Dashboard 分类标签不声称完成
-
-- **WHEN** Dashboard 展示 task 全部完成的 change
-- **THEN** 分类标签 SHALL 显示为 "Tasks Done" 而非 "Completed Changes"
+## ADDED Requirements
 
 ### Requirement: Apply Phase 0 SHALL 执行 pending Checks
 
@@ -55,17 +35,32 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理 Apply 的�
 - **THEN** Apply SHALL 默认将其归类为行为或代码 Check
 - **AND** 只有 Check 明确证明编辑内容不存在运行时或生成 surface consumer 时，才 SHALL 按非运行时文本处理
 
-### Requirement: Apply 完成时输出 archive 指引
+## REMOVED Requirements
 
-Apply 阶段在所有 task 完成且 seal 通过后，SHALL 显式输出下一步操作指引，引导用户进入归档。
+### Requirement: Apply Phase 0 SHALL 由 Master agent 直接执行
 
-#### Scenario: seal 通过后输出 call-to-action
+## MODIFIED Requirements
 
-- **WHEN** Phase 3 seal 返回 valid
-- **THEN** apply SHALL 在汇总输出末尾显式给出 archive-ready call-to-action
-- **AND** call-to-action SHALL 引用 archive workflow 的工具适配 invocation
-- **AND** SHALL NOT 仅报告 sealed 状态而省略操作指引
-- **AND** SHALL NOT 在 workflow 模板 source text 中硬编码特定工具的 archive 调用语法
+### Requirement: Apply 模板 SHALL 处理中间验证状态
+
+`xirang-apply-change` 技能模板 SHALL 对 `needs_verify` 和 `needs_seal` 状态提供正确分支，无缝进入对应验证阶段。
+
+#### Scenario: needs_verify 状态进入 Phase 1
+
+- **WHEN** `instructions apply --json` 返回 `state: 'needs_verify'`
+- **THEN** 模板 SHALL 指示 Agent 进入 Phase 1 验证流程并启动 reviewer subagent
+- **AND** SHALL NOT 中断流程或要求用户手动触发 verify
+
+#### Scenario: needs_seal 状态进入 Phase 2/3
+
+- **WHEN** `instructions apply --json` 返回 `state: 'needs_seal'`
+- **THEN** 模板 SHALL 指示 Agent 进入 Phase 2/3 流程
+- **AND** SHALL NOT 中断流程或要求用户手动触发
+
+#### Scenario: Dashboard 分类标签不声称完成
+
+- **WHEN** Dashboard 展示 task 全部完成的 change
+- **THEN** 分类标签 SHALL 显示为 "Tasks Done" 而非 "Completed Changes"
 
 ### Requirement: Apply 完成全部 Tasks 后统一进入 Change 级 Review
 

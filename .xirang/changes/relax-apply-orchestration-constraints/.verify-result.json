@@ -1,0 +1,304 @@
+{
+  "timestamp": "2026-08-19T17:16:57.391Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Tracked Pi apply skill still contains retired Master-serial orchestration constraints after the canonical template was neutralized.",
+      "requirement": "Apply Phase 0 SHALL 由 Master agent 直接执行",
+      "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C4",
+      "recommendation": "Regenerate `.pi/skills/xirang-apply-change/SKILL.md` from `getApplyChangeSkillTemplate()` via the existing skill-generation/`xirang update` pipeline, or record that checked-in tool skills may lag until install/update.",
+      "evidenceCitations": [
+        ".pi/skills/xirang-apply-change/SKILL.md:40-40",
+        ".pi/skills/xirang-apply-change/SKILL.md:49-49",
+        "src/core/templates/workflows/apply-change.ts:152-152",
+        ".xirang/changes/relax-apply-orchestration-constraints/design.md:32-34"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Implementation Discipline no longer tells Apply to process Required Corrections before pending tasks, while the live Contract still requires that priority.",
+      "requirement": "Checks 是任务进度源",
+      "task": "Task 1: 解除 Apply Phase 0 的固定编排约束",
+      "recommendation": "Restore an explicit Required Corrections-first instruction in Implementation Discipline, or update the `Required Corrections 优先` scenario if priority was intentionally relaxed.",
+      "evidenceCitations": [
+        "src/core/templates/workflows/apply-change.ts:161-161",
+        ".xirang/model/elements/task-decomposition.md:53-57",
+        "src/core/templates/workflows/apply-change.ts:24-24"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "An unrelated config-projection assertion was weakened from exact fragment equality to arrayContaining without a corresponding production change.",
+      "requirement": "Apply Phase 0 SHALL 执行 pending Checks",
+      "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C1",
+      "recommendation": "Restore exact `fragments` equality unless extra fragments are now part of the intended CLI contract.",
+      "evidenceCitations": [
+        "test/commands/artifact-workflow.test.ts:560-565"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Canonical Implementation Discipline still prescribes the deletion/stdlib/native/deps/expression ladder after the Contract stopped requiring that method priority.",
+      "requirement": "Apply Phase 0 SHALL 依据 task-level TDD 处理 pending task",
+      "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C3",
+      "recommendation": "Drop or rephrase the ladder if Decision 1 was meant to remove method-priority guidance from the Agent surface, not only from the Contract.",
+      "evidenceCitations": [
+        "src/core/templates/workflows/apply-change.ts:167-167",
+        "test/core/templates/apply-change.test.ts:166-166",
+        ".xirang/changes/relax-apply-orchestration-constraints/design.md:21-23"
+      ]
+    }
+  ],
+  "tasksFileHash": "0c64bbc6bacaefc064125b4edb04fd2226379a1c661518955e8504dcaa0fb519",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".xirang/changes/relax-apply-orchestration-constraints/.apply-isolation.json",
+      ".xirang/changes/relax-apply-orchestration-constraints/design.md",
+      ".xirang/changes/relax-apply-orchestration-constraints/elements/apply-workflow.md",
+      ".xirang/changes/relax-apply-orchestration-constraints/elements/task-decomposition.md",
+      ".xirang/changes/relax-apply-orchestration-constraints/proposal.md",
+      ".xirang/changes/relax-apply-orchestration-constraints/tasks.md",
+      ".xirang/model/elements/apply-workflow.md",
+      ".xirang/model/elements/apply.md",
+      ".xirang/model/elements/task-decomposition.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      "schemas/semantic-model/schema.yaml",
+      "src/core/templates/workflows/apply-change.ts",
+      "test/commands/artifact-workflow.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/semantic-model-consistency.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts"
+    ],
+    "evidenceFingerprint": "1efa45f7ca70f72c6e626646edab9565a576ac54f2f0bd930164ff6c9abfb33e",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "4309150a85514e38bf08eb4daf59e04fa289b3dbcf6a17e1a4e8960afd220235"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/.apply-isolation.json",
+        "hash": "ab1d3184e01818942f6daf9aedc072334548724903c8ac0e684cc548ece57980"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/design.md",
+        "hash": "02cf74ec42d022eb36cc0bb5992bd7df955cb00ffa1e6d1ca1acf42296ea9c91"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/elements/apply-workflow.md",
+        "hash": "227180ed054c119eb647755a0d3f0fa068b269cb6fdd85c8115d1b3105e869c6"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/elements/task-decomposition.md",
+        "hash": "17665b39f63d6d1820d44f8ffbfae972b02026805913cafaf9aa676c4e5a005d"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/proposal.md",
+        "hash": "ec27e9d2b9b45df000f4dfe1a5fe3ae7e1e4a0c7a689f500a9127ee22a2fe36f"
+      },
+      {
+        "path": ".xirang/changes/relax-apply-orchestration-constraints/tasks.md",
+        "hash": "0c64bbc6bacaefc064125b4edb04fd2226379a1c661518955e8504dcaa0fb519"
+      },
+      {
+        "path": ".xirang/model/elements/apply-workflow.md",
+        "hash": "0976dd49507bc6f9b489fe190baeb2f5706ab8f9db54f5745be69453fc6bc3e7"
+      },
+      {
+        "path": ".xirang/model/elements/apply.md",
+        "hash": "7e56bff3db8e86bc1fdf767a36fa70de8188a0ae7c16780dd6c71b152165f3f9"
+      },
+      {
+        "path": ".xirang/model/elements/task-decomposition.md",
+        "hash": "6fc9ab33c07bf9514a570e67b57c08451acb41544661588168be4be89967d5f2"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+      },
+      {
+        "path": "schemas/semantic-model/schema.yaml",
+        "hash": "9d56d0d64ff1f88579d4c30d0da5f080198d1ec301ace31c938c3c5de6187505"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "f9bbb3fcec07ad773a93ae3ded9772a43143bab32226807885343a485ec822fd"
+      },
+      {
+        "path": "test/commands/artifact-workflow.test.ts",
+        "hash": "3673402fc800c2c78700e6f591d02c4bb985b6b05ea385d897d1549789a1399d"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "795e454d01ebc18b305368db2c25b55a63a7fef5deab56959e5de66ae9aca026"
+      },
+      {
+        "path": "test/core/templates/semantic-model-consistency.test.ts",
+        "hash": "12e3165988b14e65b0558bb7d60fd3f5fc0333f0a03915f2f3baa2524ea88c5f"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "58d9f95f8dd819bf98c202619c1cf271e0ef209c85acf962ee78b66c48da95f5"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "7b20b13ed99f8811833614197cc7c80df41f69df",
+    "gitDiffSummary": "Validated location inputs and baseCommit 7b20b13ed99f8811833614197cc7c80df41f69df on branch relax-apply-orchestration-constraints. `git diff 7b20b13...HEAD --name-only` was empty because HEAD equals baseCommit; union scope came from `git status --short`: staged change artifacts plus unstaged model/template/test edits. Declared C4 rg over listed active files returned no matches. `pnpm exec vitest run` on apply-change, artifact-workflow, skill-templates-parity, and semantic-model-consistency: 91 passed. `pnpm exec tsc --noEmit` passed. `xirang arch query apply-workflow task-decomposition apply --contract --json` confirmed live Element/Contract alignment with the delta."
+  },
+  "optimization": {
+    "status": "PENDING_VERIFICATION",
+    "attempts": [],
+    "baseline": {
+      "timestamp": "2026-08-19T17:16:57.391Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Tracked Pi apply skill still contains retired Master-serial orchestration constraints after the canonical template was neutralized.",
+          "requirement": "Apply Phase 0 SHALL 由 Master agent 直接执行",
+          "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C4",
+          "recommendation": "Regenerate `.pi/skills/xirang-apply-change/SKILL.md` from `getApplyChangeSkillTemplate()` via the existing skill-generation/`xirang update` pipeline, or record that checked-in tool skills may lag until install/update.",
+          "evidenceCitations": [
+            ".pi/skills/xirang-apply-change/SKILL.md:40-40",
+            ".pi/skills/xirang-apply-change/SKILL.md:49-49",
+            "src/core/templates/workflows/apply-change.ts:152-152",
+            ".xirang/changes/relax-apply-orchestration-constraints/design.md:32-34"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Implementation Discipline no longer tells Apply to process Required Corrections before pending tasks, while the live Contract still requires that priority.",
+          "requirement": "Checks 是任务进度源",
+          "task": "Task 1: 解除 Apply Phase 0 的固定编排约束",
+          "recommendation": "Restore an explicit Required Corrections-first instruction in Implementation Discipline, or update the `Required Corrections 优先` scenario if priority was intentionally relaxed.",
+          "evidenceCitations": [
+            "src/core/templates/workflows/apply-change.ts:161-161",
+            ".xirang/model/elements/task-decomposition.md:53-57",
+            "src/core/templates/workflows/apply-change.ts:24-24"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "An unrelated config-projection assertion was weakened from exact fragment equality to arrayContaining without a corresponding production change.",
+          "requirement": "Apply Phase 0 SHALL 执行 pending Checks",
+          "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C1",
+          "recommendation": "Restore exact `fragments` equality unless extra fragments are now part of the intended CLI contract.",
+          "evidenceCitations": [
+            "test/commands/artifact-workflow.test.ts:560-565"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Canonical Implementation Discipline still prescribes the deletion/stdlib/native/deps/expression ladder after the Contract stopped requiring that method priority.",
+          "requirement": "Apply Phase 0 SHALL 依据 task-level TDD 处理 pending task",
+          "task": "Task 1: 解除 Apply Phase 0 的固定编排约束 / C3",
+          "recommendation": "Drop or rephrase the ladder if Decision 1 was meant to remove method-priority guidance from the Agent surface, not only from the Contract.",
+          "evidenceCitations": [
+            "src/core/templates/workflows/apply-change.ts:167-167",
+            "test/core/templates/apply-change.test.ts:166-166",
+            ".xirang/changes/relax-apply-orchestration-constraints/design.md:21-23"
+          ]
+        }
+      ],
+      "tasksFileHash": "0c64bbc6bacaefc064125b4edb04fd2226379a1c661518955e8504dcaa0fb519",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".pi/skills/xirang-apply-change/SKILL.md",
+          ".xirang/changes/relax-apply-orchestration-constraints/.apply-isolation.json",
+          ".xirang/changes/relax-apply-orchestration-constraints/design.md",
+          ".xirang/changes/relax-apply-orchestration-constraints/elements/apply-workflow.md",
+          ".xirang/changes/relax-apply-orchestration-constraints/elements/task-decomposition.md",
+          ".xirang/changes/relax-apply-orchestration-constraints/proposal.md",
+          ".xirang/changes/relax-apply-orchestration-constraints/tasks.md",
+          ".xirang/model/elements/apply-workflow.md",
+          ".xirang/model/elements/apply.md",
+          ".xirang/model/elements/task-decomposition.md",
+          ".xirang/references/xirang-apply-step-1-preparation.md",
+          "schemas/semantic-model/schema.yaml",
+          "src/core/templates/workflows/apply-change.ts",
+          "test/commands/artifact-workflow.test.ts",
+          "test/core/templates/apply-change.test.ts",
+          "test/core/templates/semantic-model-consistency.test.ts",
+          "test/core/templates/skill-templates-parity.test.ts"
+        ],
+        "evidenceFingerprint": "1efa45f7ca70f72c6e626646edab9565a576ac54f2f0bd930164ff6c9abfb33e",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".pi/skills/xirang-apply-change/SKILL.md",
+            "hash": "4309150a85514e38bf08eb4daf59e04fa289b3dbcf6a17e1a4e8960afd220235"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/.apply-isolation.json",
+            "hash": "ab1d3184e01818942f6daf9aedc072334548724903c8ac0e684cc548ece57980"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/design.md",
+            "hash": "02cf74ec42d022eb36cc0bb5992bd7df955cb00ffa1e6d1ca1acf42296ea9c91"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/elements/apply-workflow.md",
+            "hash": "227180ed054c119eb647755a0d3f0fa068b269cb6fdd85c8115d1b3105e869c6"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/elements/task-decomposition.md",
+            "hash": "17665b39f63d6d1820d44f8ffbfae972b02026805913cafaf9aa676c4e5a005d"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/proposal.md",
+            "hash": "ec27e9d2b9b45df000f4dfe1a5fe3ae7e1e4a0c7a689f500a9127ee22a2fe36f"
+          },
+          {
+            "path": ".xirang/changes/relax-apply-orchestration-constraints/tasks.md",
+            "hash": "0c64bbc6bacaefc064125b4edb04fd2226379a1c661518955e8504dcaa0fb519"
+          },
+          {
+            "path": ".xirang/model/elements/apply-workflow.md",
+            "hash": "0976dd49507bc6f9b489fe190baeb2f5706ab8f9db54f5745be69453fc6bc3e7"
+          },
+          {
+            "path": ".xirang/model/elements/apply.md",
+            "hash": "7e56bff3db8e86bc1fdf767a36fa70de8188a0ae7c16780dd6c71b152165f3f9"
+          },
+          {
+            "path": ".xirang/model/elements/task-decomposition.md",
+            "hash": "6fc9ab33c07bf9514a570e67b57c08451acb41544661588168be4be89967d5f2"
+          },
+          {
+            "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+            "hash": "f37c8a891c1ba55f76b8b1dfc6c7e204e7c478bed7a34d4eac6bc7be50948e63"
+          },
+          {
+            "path": "schemas/semantic-model/schema.yaml",
+            "hash": "9d56d0d64ff1f88579d4c30d0da5f080198d1ec301ace31c938c3c5de6187505"
+          },
+          {
+            "path": "src/core/templates/workflows/apply-change.ts",
+            "hash": "f9bbb3fcec07ad773a93ae3ded9772a43143bab32226807885343a485ec822fd"
+          },
+          {
+            "path": "test/commands/artifact-workflow.test.ts",
+            "hash": "3673402fc800c2c78700e6f591d02c4bb985b6b05ea385d897d1549789a1399d"
+          },
+          {
+            "path": "test/core/templates/apply-change.test.ts",
+            "hash": "795e454d01ebc18b305368db2c25b55a63a7fef5deab56959e5de66ae9aca026"
+          },
+          {
+            "path": "test/core/templates/semantic-model-consistency.test.ts",
+            "hash": "12e3165988b14e65b0558bb7d60fd3f5fc0333f0a03915f2f3baa2524ea88c5f"
+          },
+          {
+            "path": "test/core/templates/skill-templates-parity.test.ts",
+            "hash": "58d9f95f8dd819bf98c202619c1cf271e0ef209c85acf962ee78b66c48da95f5"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "7b20b13ed99f8811833614197cc7c80df41f69df",
+        "gitDiffSummary": "Validated location inputs and baseCommit 7b20b13ed99f8811833614197cc7c80df41f69df on branch relax-apply-orchestration-constraints. `git diff 7b20b13...HEAD --name-only` was empty because HEAD equals baseCommit; union scope came from `git status --short`: staged change artifacts plus unstaged model/template/test edits. Declared C4 rg over listed active files returned no matches. `pnpm exec vitest run` on apply-change, artifact-workflow, skill-templates-parity, and semantic-model-consistency: 91 passed. `pnpm exec tsc --noEmit` passed. `xirang arch query apply-workflow task-decomposition apply --contract --json` confirmed live Element/Contract alignment with the delta."
+      }
+    }
+  }
+}

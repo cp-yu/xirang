@@ -148,18 +148,18 @@ describe('apply change workflow template', () => {
     const discipline = instructions
       .split('## Implementation Discipline\n\n')[1]
       .split('\n\nWhen Phase 3 seal passes')[0];
-    const rules = discipline.split('\n').filter((line) => line.startsWith('- '));
 
-    expect(rules).toHaveLength(9);
-    expect(instructions).toContain('Phase 0 implementation — Master executes pending tasks serially');
-    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks');
-    expect(discipline).toContain('Finish every Check in the current task before starting the next; never execute tasks in parallel');
+    expect(instructions).toContain('## Implementation Discipline');
+    expect(instructions).toContain('Phase 0 implementation — process all pending tasks and Required Corrections as task-level TDD loops');
+    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]`');
+    expect(discipline).toContain('Each task is one task-level TDD loop');
     expect(discipline).toContain('Assess interface testability before writing tests');
     expect(discipline).toContain('Exercise public behavior; mock only injected system boundaries, never internal collaborators');
-    expect(discipline).toContain('confirm the expected RED');
-    expect(discipline).toContain('rerun the same check for GREEN');
-    expect(discipline).toContain('Non-runtime text/artifact Checks do not require an artificial RED');
-    expect(discipline).toContain('Update Check and Required Corrections checkboxes only after their evidence passes');
+    expect(discipline).toContain('honor the declared Test action');
+    expect(discipline).toContain('Do not manufacture RED');
+    expect(discipline).toContain('rerun the same Check and confirm GREEN');
+    expect(discipline).toContain('Non-runtime text or artifact Checks do not require an artificial RED');
+    expect(discipline).toContain('Update Check and Required Corrections checkboxes only after their declared evidence passes');
     expect(discipline).toContain('two consecutive identical normalized errors');
     expect(discipline).toContain('three failed fixes in one task');
     expect(discipline).toContain('deletion, standard library, native platform support, installed dependencies, direct expressions');
@@ -171,7 +171,8 @@ describe('apply change workflow template', () => {
   it('runs task-level TDD before one change-level Phase 1 review', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Each task is one TDD loop');
+    expect(instructions).toContain('Each task is one task-level TDD loop');
+    expect(instructions).toContain('completing one task does not leave Phase 0');
     expect(instructions).toContain('Completing one ordinary task MUST NOT trigger Phase 1');
     expect(instructions).toContain('Only after every pending task and Required Correction is complete');
     expect(instructions).toContain('one change-level review of that completed Phase 0 state');

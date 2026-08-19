@@ -1,4 +1,5 @@
 ---
+operation: MODIFIED
 entity: element-declaration
 identity: task-decomposition
 kind: element
@@ -7,7 +8,7 @@ title: Task Decomposition
 definition: Task Decomposition 定义 Apply Phase 0 如何依据 `tasks.md` 中已形成的 task-level TDD 闭环执行实现工作、收集证据、更新进度并处理失败恢复。它不定义执行主体、任务调度方式或具体实现方法。
 ---
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Apply Phase 0 SHALL 依据 task-level TDD 处理 pending task
 
@@ -36,6 +37,12 @@ Apply Phase 0 SHALL 读取 `tasks.md` 中的 pending task，并按每个 task �
 - **WHEN** Preparation 已选择 branch、worktree 或 current-branch 方法
 - **THEN** Apply SHALL 只读取所选方法的 Step 2 reference
 - **AND** MUST NOT 读取另外两个互斥方法 reference
+
+## REMOVED Requirements
+
+### Requirement: Master agent 直接执行 pending task
+
+## MODIFIED Requirements
 
 ### Requirement: Checks 是任务进度源
 
