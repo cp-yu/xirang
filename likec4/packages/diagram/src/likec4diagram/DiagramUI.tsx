@@ -395,7 +395,7 @@ function XirangArchitectureOverlay() {
     if (enableStaticView) return
     setXirangExportSnapshot({
       view: selected.id,
-      change: selected.change ?? null,
+      model: selected.change ?? 'semantic-model',
       mode: effectiveMode,
       focus: focusIdentity,
       expanded: [...expandedNodes].sort(),
@@ -435,7 +435,7 @@ function XirangArchitectureOverlay() {
   const changeDetails = !enableStaticView && (selected.change || selected.diff || selected.changePlan) && (
     <Stack className={changeDetailsPanel} p="xs" gap={4}>
       <Group gap="xs">
-        <Text size="xs" fw={600}>Change · {selected.label}</Text>
+        <Text size="xs" fw={600}>Model · {selected.change ?? selected.label}</Text>
         <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
       </Group>
       <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} −{overlay.counts.REMOVED}</Text>

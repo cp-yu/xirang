@@ -10,7 +10,7 @@ import {
 function snapshot(overrides: Partial<XirangExportSnapshot> = {}): XirangExportSnapshot {
   return {
     view: 'model',
-    change: null,
+    model: 'semantic-model',
     mode: 'full' as XirangViewMode,
     focus: null,
     expanded: [],
@@ -41,7 +41,7 @@ describe('export snapshot storage round-trip', () => {
     const storage = mockStorage()
     writeXirangExportSnapshotToStorage(snapshot({
       view: 'model',
-      change: 'browser-change',
+      model: 'change:browser-change',
       mode: 'diff' as XirangViewMode,
       focus: 'capability.added-parent',
       expanded: ['capability.added-child'],
@@ -49,7 +49,7 @@ describe('export snapshot storage round-trip', () => {
     expect(storage.getItem(XIRANG_EXPORT_SNAPSHOT_KEY)).toContain('capability.added-parent')
     expect(readXirangExportSnapshotFromStorage(storage)).toEqual(snapshot({
       view: 'model',
-      change: 'browser-change',
+      model: 'change:browser-change',
       mode: 'diff' as XirangViewMode,
       focus: 'capability.added-parent',
       expanded: ['capability.added-child'],

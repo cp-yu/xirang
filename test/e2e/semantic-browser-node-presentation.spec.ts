@@ -11,7 +11,7 @@ async function expectNodePresentation(
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 })
 
@@ -22,8 +22,8 @@ test('applies kind presentation in model view', async ({ page }) => {
 })
 
 test('keeps operation color above kind color in diff', async ({ page }) => {
-  await page.getByLabel('Change Selection').selectOption('browser-change')
-  await expect(page).toHaveURL(/change=browser-change/)
+  await page.getByLabel('Model Selection').selectOption('change:browser-change')
+  await expect(page).toHaveURL(/model=change(?:%3A|:)browser-change/)
 
   const added = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
   await expect(added).toBeVisible({ timeout: 10_000 })

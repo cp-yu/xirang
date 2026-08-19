@@ -37,7 +37,7 @@
 
 6. **收敛语义统一到 `semantic-browser`。** web 的"活动 Change 生命周期变化时收敛状态"与 semantic-browser 的"Candidate 生命周期变化时收敛状态"合并为"所选 Model 消失时收敛状态"（编排状态归 Semantic Browser 所有）；web 侧原 Requirement REMOVED。
 
-7. **`test-change-derived-view` 的 Delta 目标随批改指 `full-model-view`。** 该活动 change 是浏览器 diff 渲染的测试数据，其 `elements/model-view.md` 与 relationship target 引用 `model-view`，与本次 REMOVED 冲突；在其自身 scope 内更新目标 identity，避免 Sync 后基线断链。
+7. **`test-change-derived-view` 的 Delta 目标随批改指稳定存在的 `authored-views`。** 该活动 change 是浏览器 diff 渲染的测试数据，其 Delta MODIFIES `model-view` 且 relationship target 与 test-entity parent 引用已被前序变更移除的 `derived-views`，本已 stale；与本次 REMOVED `model-view` 冲突。改指 `full-model-view` 在本次 Sync 前无法通过校验（identity 尚不存在），故改指在两个时间线都稳定的 `authored-views`（仅 MODIFIED definition 文本，测试目的不变），parent 修正为 `view-composition`。
 
 ## Risks / Trade-offs
 

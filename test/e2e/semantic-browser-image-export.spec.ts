@@ -40,11 +40,11 @@ async function exportPngAndCapturePopup(page: Page): Promise<{
 
 
 test('exports the current focus and expand-in-place state', async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   // Focus into perspective.browser, then expand capability.drill in place.
-  await page.goto('/view/model/?focus=perspective.browser')
+  await page.goto('/view/full-model/?focus=perspective.browser')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
   const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
   await expect(perspective).toBeVisible()
@@ -61,8 +61,8 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
   // the actual export tab must render the on-screen node set (WYSIWYG).
   const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
-    view: 'model',
-    change: null,
+    view: 'full-model',
+    model: 'semantic-model',
     mode: 'full',
     focus: 'perspective.browser',
   })
@@ -71,47 +71,47 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
 })
 
 test('exports a change source in diff mode', async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
-  await page.getByLabel('Change Selection').selectOption('browser-change')
+  await page.getByLabel('Model Selection').selectOption('change:browser-change')
   await page.getByLabel('Presentation Mode').selectOption('diff-only')
   await expect(page.locator('[data-xirang-architecture-mode]')).toHaveAttribute('data-xirang-architecture-mode', 'diff')
 
   const { snapshot, popupNodes } = await exportPngAndCapturePopup(page)
   expect(snapshot).toMatchObject({
-    view: 'model',
-    change: 'browser-change',
+    view: 'full-model',
+    model: 'change:browser-change',
     mode: 'diff',
   })
   expect(popupNodes).toContain('capability.added-parent')
 })
 
 test('exports without a snapshot', async ({ page }) => {
-  await page.goto('/export/model/?download=false')
+  await page.goto('/export/full-model/?download=false')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   await expect.poll(async () => (await visibleNodeIds(page)).length, { timeout: 10_000 }).toBeGreaterThan(0)
   await expect(page.locator('[data-testid="export-page"]')).toBeVisible()
 })
 
 test('exports the complete model structure for file formats', async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   // Focus and expand in place, then verify file-format exports stay global (declared scope).
-  await page.goto('/view/model/?focus=perspective.browser')
+  await page.goto('/view/full-model/?focus=perspective.browser')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
   await page.locator('.react-flow__node[data-xirang-identity="capability.drill"]').click({ modifiers: ['Control'] })
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
 
   // dot exports the complete compiled model view, independent of focus/expansion.
-  await page.goto('/view/model/dot')
+  await page.goto('/view/full-model/dot')
   const dotSource = page.locator('pre').first()
   await expect(dotSource).toContainText('root.browser.drill.leaf', { timeout: 20_000 })
   await expect(dotSource).toContainText('root.long')
 
   // The hierarchy tree still shows the complete model hierarchy.
-  await page.goto('/view/model/tree')
+  await page.goto('/view/full-model/tree')
   const treeBody = page.locator('body')
   await expect(treeBody).toContainText('Leaf Capability', { timeout: 20_000 })
   await expect(treeBody).toContainText('Long Contract')

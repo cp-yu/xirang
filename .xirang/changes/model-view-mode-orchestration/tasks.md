@@ -107,7 +107,7 @@
 - Modify: `test/e2e/semantic-browser-model-view.spec.ts`
 - Modify: `test/e2e/semantic-browser-navigation-history.spec.ts`
 - Modify: `test/e2e/browser-view-tree-export.spec.ts`
-- Modify: `.xirang/changes/test-change-derived-view/elements/model-view.md`（重命名为 `full-model-view.md`）
+- Modify: `.xirang/changes/test-change-derived-view/elements/model-view.md`（重命名为 `authored-views.md`，目标改为稳定存在的 `authored-views`）
 - Modify: `.xirang/changes/test-change-derived-view/relationships/test-references.yaml`
 - Modify: `.xirang/changes/test-change-derived-view/design.md`
 - Modify: `.xirang/changes/test-change-derived-view/proposal.md`
@@ -115,26 +115,26 @@
 
 **Requirements**:
 - e2e 深链与断言全面换 `?model=`；新增 Candidate `complete-with-diff`（target + overlay）用例；删除 `change=candidate`、两态收敛、`view=model` 旧断言。
-- `test-change-derived-view` 全部制品中 `model-view` 引用改为 `full-model-view`（elements 单元重命名 + relationship target + proposal/design 措辞）。
+- `test-change-derived-view` 全部制品中 `model-view` 引用改为 `authored-views`（elements 单元重命名 + relationship target + test-entity parent 修正 + proposal/design 措辞）。
 - 按 skill 顺序重建 bundle（先 `@likec4/spa` 后 `xirang-likec4`）后运行 Playwright。
 
 #### Checks
 
-- [ ] C10 Candidate 三态浏览器验证
+- [x] C10 Candidate 三态浏览器验证
   - Verifies: `elements/xirang-diff-overlay.md` / Requirement "呈现语义差异视觉表达" / Scenario "Candidate complete-with-diff"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-candidate-views.spec.ts --project=desktop --project=mobile`
   - Expect: `model=candidate` 默认 `complete`、`complete-with-diff` 叠加差异标记、`diff-only` 保留 removed ghosts 全绿
-- [ ] C11 model 轴浏览与导航
+- [x] C11 model 轴浏览与导航
   - Verifies: `elements/web.md` / Requirement "提供三维独立控制" / Scenario "三维独立切换"
   - Command: `pnpm exec playwright test test/e2e/semantic-browser-model-view.spec.ts test/e2e/semantic-browser-navigation-history.spec.ts --project=desktop --project=mobile`
   - Expect: 三控件独立切换、URL 深链恢复、breadcrumb/focus 行为全绿
-- [ ] C12 测试数据 change 迁移完整
+- [x] C12 测试数据 change 迁移完整
   - Verifies: `elements/full-model-view.md` / Requirement "提供唯一默认 Full Model" / Scenario "打开项目模型"
-  - Command: `grep -rn "model-view" .xirang/changes/test-change-derived-view/ | grep -v "full-model-view" || echo "clean"`
-  - Expect: `clean`（无旧 `model-view` 残留引用，迁移后目标 identity 为 `full-model-view`）
+  - Command: `grep -rn "model-view" .xirang/changes/test-change-derived-view/ || echo "clean"`
+  - Expect: `clean`（无旧 `model-view` 残留引用，迁移后目标 identity 为 `authored-views`）
   - Command: `pnpm xirang validate --change test-change-derived-view --json`
   - Expect: PASS
-- [ ] C13 全链路一次性验证（One-time Verification）
+- [x] C13 全链路一次性验证（One-time Verification）
   - Verifies: `elements/web.md` / Requirement "呈现 Model 目标与差异" / Scenario "Complete with diff 模式"
   - Command: `cd likec4 && pnpm --filter @likec4/spa build && pnpm --filter xirang-likec4 build`
   - Command: `pnpm exec playwright test test/e2e/ --project=desktop --project=mobile`

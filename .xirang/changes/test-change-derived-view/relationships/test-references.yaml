@@ -2,4 +2,4 @@ relationships:
   - operation: ADDED
     source: test-entity
     kind: test-references
-    target: model-view
+    target: authored-views
