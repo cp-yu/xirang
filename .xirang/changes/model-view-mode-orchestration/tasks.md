@@ -44,15 +44,15 @@
 
 #### Checks
 
-- [ ] C3 model 路由与三态一致
+- [x] C3 model 路由与三态一致
   - Verifies: `elements/xirang-projection-service.md` / Requirement "服务端计算 Runtime Projection" / Scenario "model 路由"
   - Command: `cd likec4/packages/vite-plugin && npx vitest run src/xirang/xirang-projection-handler.spec.ts`
   - Expect: 三分支路由、三态 Mode 逻辑一致、reserved candidate 路由不存在（grep 无 `change === 'candidate'`）的断言全绿
-- [ ] C4 实例级 view 边界
+- [x] C4 实例级 view 边界
   - Verifies: `elements/authored-views.md` / Requirement "对被浏览 Model 实例解析" / Scenario "实例外 identity 自然丢弃"
   - Command: `cd likec4/packages/vite-plugin && npx vitest run src/xirang/xirang-projection-handler.spec.ts`
   - Expect: authored view 对 candidate/change source 使用实例级边界（`'*'` 扩集、实例外 identity 不进 predicates）的用例通过
-- [ ] C5 Contract 按 model 轴路由
+- [x] C5 Contract 按 model 轴路由
   - Verifies: `elements/xirang-contract-delivery.md` / Requirement "通过 Contract 接口加载 Element Contract" / Scenario "加载 Candidate Contract"
   - Command: `cd likec4/packages/vite-plugin && npx vitest run src/xirang/xirang-contract-handler.spec.ts`
   - Expect: `source=candidate` / `source=change:<name>` 路由用例全绿，`source=change:candidate` reserved 编码无残留

@@ -14,7 +14,7 @@ const FINGERPRINT = 'abc123def456'
 
 function makeManifest(fingerprint = FINGERPRINT) {
   return JSON.stringify({
-    version: 4,
+    version: 5,
     modelFingerprint: fingerprint,
     model: { contracts: {} },
     authoredViews: {},
@@ -29,7 +29,8 @@ function fakeView(id: string): LayoutedView {
 describe('parseProjectionRequest', () => {
   it('accepts a valid request body', () => {
     const result = parseProjectionRequest({
-      viewId: 'model',
+      viewId: 'full-model',
+      model: 'semantic-model',
       mode: 'complete',
       focus: null,
       expanded: ['domain-a'],
@@ -37,9 +38,27 @@ describe('parseProjectionRequest', () => {
     })
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.request.viewId).toBe('model')
+    expect(result.request.viewId).toBe('full-model')
+    expect(result.request.model).toBe('semantic-model')
     expect(result.request.mode).toBe('complete')
     expect(result.request.expanded).toEqual(['domain-a'])
+  })
+
+  it('accepts candidate and change model selections', () => {
+    for (const model of ['candidate', 'change:next'] as const) {
+      const result = parseProjectionRequest({ viewId: 'full-model', model, mode: 'complete', expectedFingerprint: FINGERPRINT })
+      expect(result.ok, model).toBe(true)
+      if (result.ok) expect(result.request.model).toBe(model)
+    }
+  })
+
+  it('rejects a missing or invalid model', () => {
+    for (const model of [undefined, 'bogus', 'change:']) {
+      const result = parseProjectionRequest({ viewId: 'full-model', ...(model ? { model } : {}), mode: 'complete', expectedFingerprint: FINGERPRINT })
+      expect(result.ok, String(model)).toBe(false)
+      if (result.ok) return
+      expect(result.message).toContain('model')
+    }
   })
 
   it('rejects a non-object body', () => {
@@ -52,14 +71,14 @@ describe('parseProjectionRequest', () => {
   })
 
   it('rejects an invalid mode', () => {
-    const result = parseProjectionRequest({ viewId: 'model', mode: 'invalid', expectedFingerprint: FINGERPRINT })
+    const result = parseProjectionRequest({ viewId: 'full-model', model: 'semantic-model', mode: 'invalid', expectedFingerprint: FINGERPRINT })
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.message).toContain('mode')
   })
 
   it('rejects a missing fingerprint', () => {
-    const result = parseProjectionRequest({ viewId: 'model', mode: 'complete' })
+    const result = parseProjectionRequest({ viewId: 'full-model', model: 'semantic-model', mode: 'complete' })
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.message).toContain('expectedFingerprint')
@@ -67,7 +86,7 @@ describe('parseProjectionRequest', () => {
 })
 
 describe('computeProjectionKey', () => {
-  const base = { viewId: 'model', change: null, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+  const base = { viewId: 'full-model', model: 'semantic-model', mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
 
   it('is deterministic for the same request', () => {
     expect(computeProjectionKey(base)).toBe(computeProjectionKey(base))
@@ -93,19 +112,19 @@ describe('computeProjectionKey', () => {
 
 describe('assertFingerprintFresh', () => {
   it('passes when fingerprints match', () => {
-    const manifest = JSON.parse(makeManifest()) as { version: 4; modelFingerprint: string; model: {}; authoredViews: {}; changes: {} }
+    const manifest = JSON.parse(makeManifest()) as { version: 5; modelFingerprint: string; model: {}; authoredViews: {}; changes: {} }
     expect(() => assertFingerprintFresh(
-      { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      { viewId: 'full-model', model: 'semantic-model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
       manifest,
     )).not.toThrow()
   })
 
   it('throws XirangContractError(409) on mismatch with structured diagnostic', () => {
-    const manifest = JSON.parse(makeManifest('new-fp')) as { version: 4; modelFingerprint: string; model: {}; authoredViews: {}; changes: {} }
+    const manifest = JSON.parse(makeManifest('new-fp')) as { version: 5; modelFingerprint: string; model: {}; authoredViews: {}; changes: {} }
     let caught: unknown
     try {
       assertFingerprintFresh(
-        { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: 'old-fp' },
+        { viewId: 'full-model', model: 'semantic-model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: 'old-fp' },
         manifest,
       )
     } catch (err) {
@@ -122,8 +141,8 @@ describe('assertFingerprintFresh', () => {
 
 describe('handleProjection', () => {
   const validRequest = {
-    viewId: 'model',
-    change: null,
+    viewId: 'full-model',
+    model: 'semantic-model',
     mode: 'complete' as const,
     focus: null,
     expanded: [],
@@ -133,7 +152,7 @@ describe('handleProjection', () => {
   function makeContext(overrides: { views?: { diagrams: () => Promise<LayoutedView[]> } } = {}) {
     return {
       readManifest: async () => makeManifest(),
-      views: overrides.views ?? { diagrams: async (_projectId?: string) => [fakeView('model')] },
+      views: overrides.views ?? { diagrams: async (_projectId?: string) => [fakeView('full-model')] },
       cache: new ProjectionCache<ReturnType<typeof handleProjection> extends Promise<infer T> ? T : never>(50),
       projectId: 'xirang',
     }
@@ -142,7 +161,7 @@ describe('handleProjection', () => {
   it('returns a projection with a stable key and the layouted view', async () => {
     const result = await handleProjection(validRequest, makeContext())
     expect(result.projectionKey).toBeTruthy()
-    expect(result.view.id).toBe('model')
+    expect(result.view.id).toBe('full-model')
     expect(result.diagnostics).toEqual([])
   })
 
@@ -159,12 +178,12 @@ describe('handleProjection', () => {
   })
 
   it('loads a Change target through its root-lowered LikeC4 sources', async () => {
-    const diagrams = vi.fn(async () => [fakeView('model')])
+    const diagrams = vi.fn(async () => [fakeView('full-model')])
     const loadSources = vi.fn(async () => ({ diagrams }))
-    const request = { ...validRequest, change: 'next' }
+    const request = { ...validRequest, model: 'change:next' }
     const result = await handleProjection(request, {
       readManifest: async () => JSON.stringify({
-        version: 4,
+        version: 5,
         modelFingerprint: FINGERPRINT,
         model: { contracts: {} },
         authoredViews: {},
@@ -176,17 +195,17 @@ describe('handleProjection', () => {
       projectId: 'xirang',
     })
 
-    expect(result.view.id).toBe('model')
+    expect(result.view.id).toBe('full-model')
     expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'model {}' }, expect.any(String))
     expect(diagrams).toHaveBeenCalledWith('xirang')
   })
 
   it('loads the target source for complete and complete-with-diff and the union for diff-only', async () => {
-    const diagrams = vi.fn(async () => [fakeView('model')])
+    const diagrams = vi.fn(async () => [fakeView('full-model')])
     const loadSources = vi.fn(async () => ({ diagrams }))
-    await handleProjection({ ...validRequest, change: 'next', mode: 'complete-with-diff' }, {
+    await handleProjection({ ...validRequest, model: 'change:next', mode: 'complete-with-diff' }, {
       readManifest: async () => JSON.stringify({
-        version: 4,
+        version: 5,
         modelFingerprint: FINGERPRINT,
         model: { contracts: {} },
         authoredViews: {},
@@ -209,11 +228,11 @@ describe('handleProjection', () => {
   })
 
   it('loads the before-after union source for diff-only Change mode', async () => {
-    const diagrams = vi.fn(async () => [fakeView('model')])
+    const diagrams = vi.fn(async () => [fakeView('full-model')])
     const loadSources = vi.fn(async () => ({ diagrams }))
-    await handleProjection({ ...validRequest, change: 'next', mode: 'diff-only' }, {
+    await handleProjection({ ...validRequest, model: 'change:next', mode: 'diff-only' }, {
       readManifest: async () => JSON.stringify({
-        version: 4,
+        version: 5,
         modelFingerprint: FINGERPRINT,
         model: { contracts: {} },
         authoredViews: {},
@@ -242,7 +261,7 @@ describe('handleProjection', () => {
       viewsService: { adhocView },
     }))
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: { contracts: {} },
       authoredViews: {},
@@ -268,7 +287,7 @@ describe('handleProjection', () => {
         },
       },
     }
-    const make = (mode: ProjectionRequest['mode']) => handleProjection({ ...validRequest, change: 'next', mode }, {
+    const make = (mode: ProjectionRequest['mode']) => handleProjection({ ...validRequest, model: 'change:next', mode }, {
       readManifest: async () => JSON.stringify(manifest),
       views: { diagrams: async () => [] },
       loadSources,
@@ -293,7 +312,7 @@ describe('handleProjection', () => {
   it('uses the same root projection for Model and equivalent Authored selections', async () => {
     const adhocView = vi.fn(async (_predicates: any[], _projectId?: string) => fakeView('adhoc'))
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -327,7 +346,7 @@ describe('handleProjection', () => {
   it('expands in place inside an Authored view through expanded children selectors', async () => {
     const adhocView = vi.fn(async (_predicates: any[], _projectId?: string) => fakeView('adhoc'))
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -363,12 +382,12 @@ describe('handleProjection', () => {
 
   it('carries every relation from an aggregated official edge as stable Xirang triples', async () => {
     const view = {
-      ...fakeView('model'),
+      ...fakeView('full-model'),
       edges: [{ id: 'edge', source: 'root_a', target: 'root_b', relations: ['rel-1', 'rel-2'] }],
     } as unknown as LayoutedView
     const context = makeContext()
     context.readManifest = async () => JSON.stringify({
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -397,7 +416,7 @@ describe('handleProjection', () => {
   })
 
   it('returns a cached response without re-calling the views service on repeat', async () => {
-    const diagrams = vi.fn<() => Promise<LayoutedView[]>>().mockResolvedValue([fakeView('model')])
+    const diagrams = vi.fn<() => Promise<LayoutedView[]>>().mockResolvedValue([fakeView('full-model')])
     const ctx = makeContext({ views: { diagrams } })
 
     await handleProjection(validRequest, ctx)
@@ -407,7 +426,7 @@ describe('handleProjection', () => {
   })
 
   it('throws 404 when the requested view is not in the computed model', async () => {
-    const ctx = makeContext({ views: { diagrams: async () => [fakeView('model')] } })
+    const ctx = makeContext({ views: { diagrams: async () => [fakeView('full-model')] } })
     await expect(handleProjection(
       { ...validRequest, viewId: 'nonexistent' },
       ctx,
@@ -416,13 +435,13 @@ describe('handleProjection', () => {
 
   it('delegates to the views service for each unique request', async () => {
     const diagrams = vi.fn<() => Promise<LayoutedView[]>>()
-      .mockResolvedValue([fakeView('model'), fakeView('overview')])
+      .mockResolvedValue([fakeView('full-model'), fakeView('overview')])
     const ctx = makeContext({ views: { diagrams } })
 
-    const modelResult = await handleProjection({ ...validRequest, viewId: 'model' }, ctx)
+    const modelResult = await handleProjection({ ...validRequest, viewId: 'full-model' }, ctx)
     const overviewResult = await handleProjection({ ...validRequest, viewId: 'overview' }, ctx)
 
-    expect(modelResult.view.id).toBe('model')
+    expect(modelResult.view.id).toBe('full-model')
     expect(overviewResult.view.id).toBe('overview')
     // Both were computed (different keys), but only two calls
     expect(diagrams).toHaveBeenCalledTimes(2)
@@ -431,8 +450,8 @@ describe('handleProjection', () => {
 
 describe('handleProjection Candidate sources', () => {
   const baseRequest = {
-    viewId: 'model' as const,
-    change: 'candidate' as const,
+    viewId: 'full-model' as const,
+    model: 'candidate' as const,
     mode: 'complete' as const,
     focus: null,
     expanded: [],
@@ -451,9 +470,9 @@ describe('handleProjection Candidate sources', () => {
   const paths = { root: 'root', a: 'root.a', 'a.child': 'root.a.child', b: 'root.b', c: 'root.c' }
 
   function makeCandidateContext(diff?: { entries: unknown[] }) {
-    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('full-model'))
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: { contracts: {} },
       authoredViews: {},
@@ -485,12 +504,87 @@ describe('handleProjection Candidate sources', () => {
     return (predicates[0]?.include ?? []).map(item => `${item.ref.model}${item.selector ? `:${item.selector}` : ''}`)
   }
 
-  it('routes change=candidate to manifest.candidate target sources in complete mode', async () => {
-    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('model')) } }))
+  it('routes model=candidate to manifest.candidate target sources in complete mode', async () => {
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('full-model')) } }))
     const context = makeCandidateContext()
     context.loadSources = loadSources
     await handleProjection(baseRequest, context)
     expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'target' }, 'candidate-fp')
+  })
+
+  it('routes model=candidate to the candidate source, never to a change named candidate', async () => {
+    const adhocView = vi.fn(async () => fakeView('full-model'))
+    const manifest = {
+      version: 5,
+      modelFingerprint: FINGERPRINT,
+      model: { contracts: {} },
+      authoredViews: {},
+      changes: {
+        candidate: {
+          sourceFingerprint: 'decoy-fp',
+          architecture: { elements: [{ declaration: { identity: 'decoy', parent: null } }] },
+          likec4Sources: { 'model.c4': 'decoy' },
+          likec4ElementPaths: { decoy: 'decoy' },
+        },
+      },
+      candidate: {
+        sourceFingerprint: 'real-fp',
+        architecture: { elements: [
+          { declaration: { identity: 'root', parent: null } },
+          { declaration: { identity: 'real', parent: 'root' } },
+        ] },
+        likec4Sources: { 'model.c4': 'real' },
+        likec4ElementPaths: { root: 'root', real: 'root.real' },
+      },
+    }
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
+    await handleProjection(baseRequest, {
+      readManifest: async () => JSON.stringify(manifest),
+      views: { diagrams: async () => [] },
+      loadSources,
+      cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+      projectId: 'xirang',
+    })
+    expect(loadSources).toHaveBeenCalledWith({ 'model.c4': 'real' }, 'real-fp')
+    expect(includeRefs(adhocView)).toEqual(['root.real'])
+  })
+
+  it('resolves an authored view boundary from the change source, not the formal manifest', async () => {
+    const adhocView = vi.fn(async () => fakeView('adhoc'))
+    const manifest = {
+      version: 5,
+      modelFingerprint: FINGERPRINT,
+      model: { contracts: {} },
+      authoredViews: {
+        scoped: { title: 'Formal Scoped', selection: ['root', 'formal-only'], roots: ['root'], virtualRoot: false },
+      },
+      changes: {
+        next: {
+          sourceFingerprint: 'after-fingerprint',
+          architecture: { elements: [
+            { declaration: { identity: 'root', parent: null } },
+            { declaration: { identity: 'target-only', parent: 'root' } },
+          ] },
+          likec4Sources: { 'model.c4': 'after' },
+          likec4ElementPaths: { root: 'root', 'target-only': 'root.target_only' },
+          authoredViews: {
+            scoped: { title: 'Target Scoped', selection: ['root', 'target-only'], roots: ['root'], virtualRoot: false },
+          },
+        },
+      },
+    }
+    await handleProjection(
+      { viewId: 'scoped', model: 'change:next', mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      {
+        readManifest: async () => JSON.stringify(manifest),
+        views: { diagrams: async () => [] },
+        loadSources: async () => ({ diagrams: async () => [], viewsService: { adhocView } }),
+        cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
+        projectId: 'xirang',
+      },
+    )
+    // The include set comes from the change target's own resolution: root children in scope.
+    expect(includeRefs(adhocView)).toEqual(['root.target_only'])
   })
 
   it('projects the Candidate root children as the collapsed baseline', async () => {
@@ -500,7 +594,7 @@ describe('handleProjection Candidate sources', () => {
   })
 
   it('keeps candidate-only target sources in complete-with-diff mode', async () => {
-    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('model')) } }))
+    const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView: vi.fn(async () => fakeView('full-model')) } }))
     const context = makeCandidateContext({
       entries: [{ kind: 'element-declaration', identity: 'a.child' }],
     })
@@ -522,7 +616,7 @@ describe('handleProjection Candidate sources', () => {
   })
 
   it('uses the union sources and diff-driven includes for Candidate diff-only', async () => {
-    const adhocView = vi.fn(async () => fakeView('model'))
+    const adhocView = vi.fn(async () => fakeView('full-model'))
     const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
     const context = makeCandidateContext({
       entries: [
@@ -567,11 +661,11 @@ describe('handleProjection Candidate sources', () => {
   })
 
   it('loads the before-after union sources for Candidate removed ghosts in diff-only', async () => {
-    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const adhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('full-model'))
     const loadSources = vi.fn(async () => ({ diagrams: async () => [], viewsService: { adhocView } }))
     const context = {
       readManifest: async () => JSON.stringify({
-        version: 4,
+        version: 5,
         modelFingerprint: FINGERPRINT,
         model: { contracts: {} },
         authoredViews: {},
@@ -611,13 +705,13 @@ describe('handleProjection Candidate sources', () => {
     const unionAdhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => {
       throw new Error('Error during layout: adhoc')
     })
-    const targetAdhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('model'))
+    const targetAdhocView = vi.fn(async (_predicates: unknown[], _projectId?: string) => fakeView('full-model'))
     const loadSources = vi.fn()
       .mockResolvedValueOnce({ diagrams: async () => [], viewsService: { adhocView: unionAdhocView } })
       .mockResolvedValueOnce({ diagrams: async () => [], viewsService: { adhocView: targetAdhocView } })
     const context = {
       readManifest: async () => JSON.stringify({
-        version: 4,
+        version: 5,
         modelFingerprint: FINGERPRINT,
         model: { contracts: {} },
         authoredViews: {},
@@ -644,7 +738,7 @@ describe('handleProjection Candidate sources', () => {
     }
     const result = await handleProjection({ ...baseRequest, mode: 'diff-only' }, context)
 
-    expect(result.view.id).toBe('model')
+    expect(result.view.id).toBe('full-model')
     expect(loadSources).toHaveBeenCalledTimes(2)
     expect(unionAdhocView).toHaveBeenCalledTimes(1)
     expect(targetAdhocView).toHaveBeenCalledTimes(1)
@@ -653,10 +747,10 @@ describe('handleProjection Candidate sources', () => {
     expect(new Set(include)).toEqual(new Set(['root', 'root.a', 'root.a.child']))
   })
 
-  it('throws 404 when change=candidate is requested without an active Candidate', async () => {
+  it('throws 404 when model=candidate is requested without an active Candidate', async () => {
     const context = makeCandidateContext()
     context.readManifest = async () => JSON.stringify({
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: { contracts: {} },
       authoredViews: {},
@@ -686,7 +780,7 @@ describe('official LikeC4 pipeline integration', () => {
       'views.c4': 'views {\n  view model { include * }\n  view equivalent { include * }\n}\n',
     }
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -711,7 +805,7 @@ describe('official LikeC4 pipeline integration', () => {
       cache: new ProjectionCache<Awaited<ReturnType<typeof handleProjection>>>(50),
       projectId: 'xirang',
     })
-    const request = { viewId: 'model' as const, change: null, mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
+    const request = { viewId: 'full-model' as const, model: 'semantic-model', mode: 'complete' as const, focus: null, expanded: [], expectedFingerprint: FINGERPRINT }
     const [model, authored] = await Promise.all([
       handleProjection(request, makeContext()),
       handleProjection({ ...request, viewId: 'equivalent' }, makeContext()),
@@ -772,10 +866,10 @@ describe('official LikeC4 pipeline integration', () => {
         '',
       ].join('\n'),
       'relations.c4': 'model {}\n',
-      'views.c4': 'views {\n  view model { include * }\n}\n',
+      'views.c4': 'views {\n  view full-model { include * }\n}\n',
     }
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -799,7 +893,7 @@ describe('official LikeC4 pipeline integration', () => {
       projectId: 'xirang',
     }
     const result = await handleProjection(
-      { viewId: 'multi', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      { viewId: 'multi', model: 'semantic-model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
       context,
     )
 
@@ -831,10 +925,10 @@ describe('official LikeC4 pipeline integration', () => {
         '',
       ].join('\n'),
       'relations.c4': "model {\n  a -[invokes]-> b 'invokes'\n}\n",
-      'views.c4': 'views {\n  view model { include * }\n}\n',
+      'views.c4': 'views {\n  view full-model { include * }\n}\n',
     }
     const manifest = {
-      version: 4,
+      version: 5,
       modelFingerprint: FINGERPRINT,
       model: {
         sourceFingerprint: FINGERPRINT,
@@ -856,7 +950,7 @@ describe('official LikeC4 pipeline integration', () => {
       projectId: 'xirang',
     }
     const result = await handleProjection(
-      { viewId: 'model', change: null, mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
+      { viewId: 'full-model', model: 'semantic-model', mode: 'complete', focus: null, expanded: [], expectedFingerprint: FINGERPRINT },
       context,
     )
 

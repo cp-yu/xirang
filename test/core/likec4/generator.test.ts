@@ -51,7 +51,7 @@ describe('generateLikeC4 specification.c4', () => {
     };
     const files = generateLikeC4(model);
     expect(files.get('specification.c4')).toBe('specification {\n  element _views\n  relationship _include\n}\n');
-    expect(files.get('views.c4')).toBe('views {\n  view model {\n  }\n  view arch_title {\n    include *\n  }\n}\n');
+    expect(files.get('views.c4')).toBe('views {\n  view full-model {\n  }\n  view arch_title {\n    include *\n  }\n}\n');
   });
 
   it('disables LikeC4 implicit views in the generated project', () => {
@@ -203,7 +203,7 @@ describe('generateLikeC4 views.c4', () => {
   it('emits views in identity byte order with optional properties omitted when absent', () => {
     expect(generateLikeC4(model).get('views.c4')).toBe([
       'views {',
-      '  view model {',
+      '  view full-model {',
       '    include root.architecture',
       '    include root.cli',
       '    include root',
@@ -228,7 +228,7 @@ describe('generateLikeC4 views.c4', () => {
   it('always emits the default model view', () => {
     expect(generateLikeC4(emptySemanticModel()).get('views.c4')).toBe([
       'views {',
-      '  view model {',
+      '  view full-model {',
       '  }',
       '}',
       '',

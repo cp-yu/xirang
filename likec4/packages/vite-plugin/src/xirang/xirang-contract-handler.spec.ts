@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { assertXirangManifest, assertXirangProject, parseXirangContractSource, readXirangContract, XirangContractError } from './xirang-contract-handler'
 
 const manifest = {
-  version: 4 as const,
+  version: 5 as const,
   modelFingerprint: 'f0',
   model: { contracts: { 'core.api': '# API\n', 'core.other': '# Other\n' } },
   authoredViews: {},
@@ -26,7 +26,7 @@ describe('Xirang Contract handler', () => {
   it('returns null for an Element without a Contract instead of failing', () => {
     expect(readXirangContract(manifest, { type: 'change', name: 'auth' }, 'core.other')).toBeNull()
     expect(readXirangContract(
-      { version: 4, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} },
+      { version: 5, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} },
       null,
       'core.api',
     )).toBeNull()
@@ -101,13 +101,13 @@ describe('parseXirangContractSource', () => {
 })
 
 describe('assertXirangManifest', () => {
-  const valid = { version: 4, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} }
+  const valid = { version: 5, modelFingerprint: 'f0', model: {}, authoredViews: {}, changes: {} }
 
-  it('accepts a version 4 partitioned manifest', () => {
+  it('accepts a version 5 partitioned manifest', () => {
     expect(() => assertXirangManifest(valid)).not.toThrow()
   })
 
-  it.each([2, 3])('rejects an older manifest version %i instead of migrating it', version => {
+  it.each([2, 3, 4])('rejects an older manifest version %i instead of migrating it', version => {
     expect(() => assertXirangManifest({ ...valid, version }))
       .toThrow(expect.objectContaining({ statusCode: 500 }))
   })
@@ -126,7 +126,7 @@ describe('assertXirangManifest', () => {
 
 describe('readXirangContract with source parameter', () => {
   const manifestWithCandidate = {
-    version: 4 as const,
+    version: 5 as const,
     modelFingerprint: 'f0',
     authoredViews: {},
     model: { contracts: { 'elem-1': '# Model contract' } },
@@ -149,9 +149,9 @@ describe('readXirangContract with source parameter', () => {
     expect(result).toEqual({ element: 'elem-2', md: '# New contract' })
   })
 
-  it('returns candidate contract when source is { type: "change", name: "candidate" }', () => {
-    const result = readXirangContract(manifestWithCandidate, { type: 'change', name: 'candidate' }, 'elem-2')
-    expect(result).toEqual({ element: 'elem-2', md: '# New contract' })
+  it('does not route change-named candidate to the candidate source', () => {
+    expect(() => readXirangContract(manifestWithCandidate, { type: 'change', name: 'candidate' }, 'elem-2'))
+      .toThrow(XirangContractError)
   })
 
   it('returns change contract when source is { type: "change", name }', () => {
@@ -161,7 +161,7 @@ describe('readXirangContract with source parameter', () => {
 
   it('throws 404 when candidate source not found', () => {
     const manifestWithoutCandidate = {
-      version: 4 as const,
+      version: 5 as const,
       modelFingerprint: 'f0',
       model: { contracts: {} },
       authoredViews: {},
