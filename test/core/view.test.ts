@@ -136,8 +136,9 @@ describe('ViewCommand', () => {
     await new ViewCommand(launch).execute(tempDir);
 
     const semanticModel = manifest!.model;
-    expect(manifest!.version).toBe(4);
-    expect(semanticModel.id).toBe('model');
+    expect(manifest!.version).toBe(5);
+    expect(semanticModel.id).toBe('full-model');
+    expect(semanticModel.label).toBe('Full Model');
     expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
     expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
     expect(semanticModel.contracts!['alpha.id']).toContain('identity: alpha.id');
@@ -344,7 +345,7 @@ describe('ViewCommand', () => {
 
     expect(snapshot.candidate).toBeDefined();
     expect(snapshot.candidate!.id).toBe('candidate');
-    expect(snapshot.candidate!.label).toBe('Candidate View');
+    expect(snapshot.candidate!.label).toBe('Candidate');
     expect(snapshot.candidate!.valid).toBe(true);
     expect(snapshot.candidate!.architecture).toBeDefined();
     expect(snapshot.candidate!.architecture!.elements.map(e => e.declaration.identity)).toContain('beta.id');
@@ -441,7 +442,7 @@ describe('ViewCommand', () => {
   });
 });
 
-describe('Manifest version 4', () => {
+describe('Manifest version 5', () => {
   let tempDir: string;
 
   beforeEach(async () => {
@@ -452,7 +453,7 @@ describe('Manifest version 4', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('emits a version 4 manifest with one unified candidate source', async () => {
+  it('emits a version 5 manifest with one unified candidate source', async () => {
     await writeProjectModel(tempDir, minimalModel());
     const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
     await fs.mkdir(candidateRoot, { recursive: true });
@@ -470,7 +471,7 @@ describe('Manifest version 4', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(4);
+    expect(snapshot.version).toBe(5);
     expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeDefined();
     expect('candidateDiff' in snapshot).toBe(false);
@@ -486,7 +487,7 @@ describe('Manifest version 4', () => {
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     
-    expect(snapshot.version).toBe(4);
+    expect(snapshot.version).toBe(5);
     expect(snapshot.model).toBeDefined();
     expect(snapshot.candidate).toBeUndefined();
     expect(snapshot.changes).toBeDefined();
@@ -609,6 +610,72 @@ describe('watcherRefreshForPath', () => {
   it('refreshes only the Candidate for candidate events', () => {
     expect(watcherRefreshForPath('candidate')).toEqual({ all: false, candidate: true });
     expect(watcherRefreshForPath('candidate/elements/foo.md')).toEqual({ all: false, candidate: true });
+  });
+});
+
+describe('Model-axis manifest sources', () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-view-model-axis-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('resolves change authoredViews against the change target model', async () => {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition' },
+      ],
+      views: [
+        { identity: 'everything', include: '"*"' },
+        { identity: 'scoped', include: '[alpha.id]' },
+      ],
+    }));
+    await writeChangeDelta(tempDir, 'a-change', {
+      'elements/beta.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: beta\nkind: capability\nparent: root\ntitle: Beta\ndefinition: Beta definition\n---\n',
+    });
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+    const change = snapshot.changes['a-change']!;
+    expect(change.valid).toBe(true);
+
+    // The change target adds beta, so its full-model selection expands beyond the formal one.
+    expect(change.authoredViews!['everything']!.selection).toEqual(['alpha.id', 'beta', 'root']);
+    expect(change.authoredViews!['scoped']!.selection).toEqual(['alpha.id']);
+    // The top-level formal resolution stays bound to the formal instance.
+    expect(snapshot.authoredViews['everything']!.selection).toEqual(['alpha.id', 'root']);
+  });
+
+  it('resolves candidate authoredViews against the candidate target model', async () => {
+    await writeProjectModel(tempDir, minimalModel({
+      elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition' }],
+      views: [{ identity: 'everything', include: '"*"' }],
+    }));
+    const candidateRoot = path.join(tempDir, '.xirang', 'candidate');
+    await fs.mkdir(candidateRoot, { recursive: true });
+    await fs.writeFile(
+      path.join(candidateRoot, 'candidate.yaml'),
+      'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n',
+      'utf8',
+    );
+    await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
+    await writeModel(candidateRoot, minimalModel({
+      elements: [
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition' },
+        { identity: 'beta', parent: 'root', title: 'Beta', definition: 'Beta definition' },
+      ],
+      views: [{ identity: 'everything', include: '"*"' }],
+    }));
+
+    const snapshot = await buildViewRuntimeSnapshot(tempDir);
+
+    expect(snapshot.candidate!.label).toBe('Candidate');
+    expect(snapshot.candidate!.authoredViews!['everything']!.selection)
+      .toEqual(['alpha.id', 'beta', 'root']);
+    expect(snapshot.authoredViews['everything']!.selection).toEqual(['alpha.id', 'root']);
   });
 });
 

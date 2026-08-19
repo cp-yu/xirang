@@ -75,8 +75,8 @@ function runtimeLikeC4(
   return { [sourcesKey]: sources, [pathsKey]: paths };
 }
 export interface ViewRuntimeSemanticModel {
-  id: 'model';
-  label: 'Model View';
+  id: 'full-model';
+  label: 'Full Model';
   source: 'semantic-model';
   valid: true;
   sourceFingerprint: string;
@@ -109,11 +109,13 @@ export interface ViewRuntimeChangeDerivedView {
   diagnostics: ChangeDiagnostic[];
   /** Change plan files (design.md, proposal.md, tasks.md — keys are file basenames). */
   changePlan?: Record<string, string>;
+  /** Authored Views resolved against this Change's Expected Semantic Model. */
+  authoredViews?: Record<string, ViewRuntimeAuthoredView>;
 }
 
 export interface ViewRuntimeCandidateSource {
   id: 'candidate';
-  label: 'Candidate View';
+  label: 'Candidate';
   source: 'candidate';
   valid: boolean;
   semanticModelFingerprint?: string;
@@ -130,6 +132,8 @@ export interface ViewRuntimeCandidateSource {
   diffLikec4Sources?: Record<string, string>;
   diffLikec4ElementPaths?: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
+  /** Authored Views resolved against the Candidate target model instance. */
+  authoredViews?: Record<string, ViewRuntimeAuthoredView>;
 }
 
 /** A View Selection entry: its display label plus the resolved selection boundary. */
@@ -138,7 +142,7 @@ export interface ViewRuntimeAuthoredView extends ResolvedViewSelection {
 }
 
 export interface ViewRuntimeSnapshot {
-  version: 4;
+  version: 5;
   modelFingerprint: string;
   model: ViewRuntimeSemanticModel;
   authoredViews: Record<string, ViewRuntimeAuthoredView>;
@@ -203,8 +207,8 @@ async function buildSemanticModelSource(formal: ParsedModel): Promise<ViewRuntim
   const { model } = formal;
   const fingerprints = partitionFingerprints(model);
   return {
-    id: 'model',
-    label: 'Model View',
+    id: 'full-model',
+    label: 'Full Model',
     source: 'semantic-model',
     valid: true,
     sourceFingerprint: hashString(JSON.stringify(fingerprints)),
@@ -235,6 +239,18 @@ function unionSemanticModels(before: SemanticModel, after: SemanticModel): Seman
 }
 
 
+/** Authored Views of one model instance resolved against that same instance. */
+function sourceAuthoredViews(target: SemanticModel): Record<string, ViewRuntimeAuthoredView> {
+  const views: Record<string, ViewRuntimeAuthoredView> = {};
+  for (const view of target.views) {
+    views[view.identity] = {
+      title: view.title ?? view.identity,
+      ...resolveViewSelection(view, target),
+    };
+  }
+  return views;
+}
+
 /**
  * Target + before-after union runtime derivation shared by Change-derived and Candidate sources,
  * so the manifest alignment contract holds by construction. `includeRuntime` carries each
@@ -251,6 +267,7 @@ function runtimeProjectionFor(
   contracts?: Record<string, string>;
   likec4Sources?: Record<string, string>;
   likec4ElementPaths?: Record<string, string>;
+  authoredViews?: Record<string, ViewRuntimeAuthoredView>;
   diffSourceFingerprint?: string;
   diffArchitecture?: BrowserSemanticModel;
   diffLikec4Sources?: Record<string, string>;
@@ -262,6 +279,7 @@ function runtimeProjectionFor(
     ...(target ? { architecture: projectBrowserArchitecture(target) } : {}),
     ...(target && includeRuntime ? { contracts: projectContracts(target) } : {}),
     ...(target && includeRuntime ? runtimeLikeC4(target) : {}),
+    ...(target ? { authoredViews: sourceAuthoredViews(target) } : {}),
     ...(unionModel && includeRuntime ? { diffSourceFingerprint: hashString(JSON.stringify(partitionFingerprints(unionModel))) } : {}),
     ...(unionModel && includeRuntime ? { diffArchitecture: projectBrowserArchitecture(unionModel) } : {}),
     ...(unionModel && includeRuntime ? runtimeLikeC4(unionModel, 'diffLikec4Sources', 'diffLikec4ElementPaths') : {}),
@@ -304,6 +322,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
         ? { diffLikec4Sources: runtime.diffLikec4Sources, diffLikec4ElementPaths: runtime.diffLikec4ElementPaths }
         : {}),
       ...(runtime.contracts ? { contracts: runtime.contracts } : {}),
+      ...(runtime.authoredViews ? { authoredViews: runtime.authoredViews } : {}),
       diagnostics: compiled.diagnostics,
       ...(Object.keys(changePlan).length > 0 ? { changePlan } : {}),
     };
@@ -353,7 +372,7 @@ async function buildCandidateSources(
 
     return {
       id: 'candidate',
-      label: 'Candidate View',
+      label: 'Candidate',
       source: 'candidate',
       valid: result.valid,
       ...(result.comparison.baseline === 'formal' ? { semanticModelFingerprint: result.comparison.formalFingerprint } : {}),
@@ -370,12 +389,13 @@ async function buildCandidateSources(
       ...(runtime.likec4Sources && runtime.likec4ElementPaths
         ? { likec4Sources: runtime.likec4Sources, likec4ElementPaths: runtime.likec4ElementPaths }
         : {}),
+      ...(runtime.authoredViews ? { authoredViews: runtime.authoredViews } : {}),
       diagnostics: result.diagnostics,
     };
   } catch (error) {
     return {
       id: 'candidate',
-      label: 'Candidate View',
+      label: 'Candidate',
       source: 'candidate',
       valid: false,
       diagnostics: [{
@@ -422,17 +442,10 @@ export async function buildViewRuntimeSnapshot(
 
   // The Browser server consumes the resolved selection directly, so closure, exclude precedence
   // and virtual-root detection stay in one place instead of being re-derived per consumer.
-  const { model } = formal;
-  const authoredViews: Record<string, ViewRuntimeAuthoredView> = {};
-  for (const view of model.views) {
-    authoredViews[view.identity] = {
-      title: view.title ?? view.identity,
-      ...resolveViewSelection(view, model),
-    };
-  }
+  const authoredViews = sourceAuthoredViews(formal.model);
 
   return {
-    version: 4,
+    version: 5,
     modelFingerprint: semanticModel.sourceFingerprint,
     model: semanticModel,
     authoredViews,

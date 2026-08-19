@@ -25,10 +25,10 @@ function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): 
   }
 
   for (const view of model.views) {
-    if (view.identity === 'model') {
+    if (view.identity === 'full-model') {
       diagnostics.push(error(
         'RESERVED_VIEW_IDENTITY',
-        'Authored View identity model is reserved for the default Model View',
+        'Authored View identity full-model is reserved for the default Full Model',
         view.identity,
       ));
     }
