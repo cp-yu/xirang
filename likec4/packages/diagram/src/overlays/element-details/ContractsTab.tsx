@@ -124,11 +124,8 @@ export function ContractsTab({
   const [state, setState] = useState<ContractLoadState>({ status: 'idle' })
   const controller = useMemo(() => new XirangContractLoadController(setState), [])
   const revision = xirangViewSourceRevision(runtime.selected)
-  const selectedSource = runtime.selected.source === 'semantic-model'
-    ? undefined
-    : runtime.selected.change
-      ? `change:${runtime.selected.change}`
-      : undefined
+  // `selected.change` carries the source-encoded model value (`candidate` or `change:<name>`).
+  const selectedSource = runtime.selected.source === 'semantic-model' ? undefined : runtime.selected.change
   const displayState = state.status === 'idle'
       || (state.project === project && state.element === element)
     ? state

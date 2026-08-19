@@ -58,12 +58,12 @@ describe('validateSemanticModel', () => {
     expect(codes(model())).not.toContain('DUPLICATE_KIND_IDENTITY');
   });
 
-  it('reserves model for the default Model View', () => {
-    expect(validateSemanticModel(model({ views: [{ identity: 'model', include: '*' }] })))
+  it('reserves full-model for the default Full Model', () => {
+    expect(validateSemanticModel(model({ views: [{ identity: 'full-model', include: '*' }] })))
       .toContainEqual(expect.objectContaining({
         level: 'ERROR',
         code: 'RESERVED_VIEW_IDENTITY',
-        identity: 'model',
+        identity: 'full-model',
       }));
   });
 

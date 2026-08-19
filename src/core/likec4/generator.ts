@@ -120,7 +120,7 @@ function renderRelations(model: SemanticModel, names: LocalNames, kinds: Map<str
 }
 
 function renderViews(model: SemanticModel, names: LocalNames, views: Map<string, string>): string {
-  const lines: string[] = ['  view model {'];
+  const lines: string[] = ['  view full-model {'];
   for (const element of [...model.elements].sort((left, right) =>
     compareUtf8Bytes(left.declaration.identity, right.declaration.identity))) {
     lines.push(`    include ${names.pathOf(element.declaration.identity)}`);

@@ -11,22 +11,22 @@ definition: Xirang Contract Delivery 是 Web 对 LikeC4 的 Contract 投递改�
 
 ### Requirement: 通过 Contract 接口加载 Element Contract
 
-Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=change:<change-name>` 或 `source=candidate` 选择来源；`source=change:candidate` SHALL 路由到 `manifest.candidate.contracts`，Candidate 的 Contract diff 与 diagnostics 呈现逻辑与活动 Change 一致。
+Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpoint `/__xirang/contract`，按统一 source reference 加载 Semantic Model、active Candidate 或活动 Change target 中的 Element Contract；请求 MAY 使用 `source=candidate` 或 `source=change:<change-name>` 选择来源，分别路由到 `manifest.candidate.contracts` 与 `manifest.changes[<change-name>].contracts`；SHALL NOT 存在 `source=change:candidate` reserved 编码；Candidate 的 Contract diff 与 diagnostics 呈现逻辑与活动 Change 一致。
 
 #### Scenario: 加载 Semantic Model Contract
 
-- **WHEN** 用户在 Model View 中打开一个 Element 的 Contract tab
+- **WHEN** 用户在 Full Model 中打开一个 Element 的 Contract tab
 - **THEN** Browser 不提供 `source` 参数并返回 Semantic Model 中的 `XirangContractContent`
 
 #### Scenario: 加载活动 Change Contract
 
-- **WHEN** 用户在 Change-derived View 中打开一个 Element Contract
+- **WHEN** 用户在 Model Selection 为活动 Change 时打开一个 Element Contract
 - **THEN** loader 携带 `source=change:<change-name>` 并呈现目标模型中的 Contract、diff 与 diagnostics
 
 #### Scenario: 加载 Candidate Contract
 
-- **WHEN** 用户在 Candidate Selection 中打开一个 Element Contract
-- **THEN** loader 携带 `source=change:candidate` 并呈现 active Candidate target 中的 Contract、diff 与 diagnostics
+- **WHEN** 用户在 Model Selection 为 Candidate 时打开一个 Element Contract
+- **THEN** loader 携带 `source=candidate` 并呈现 active Candidate target 中的 Contract、diff 与 diagnostics
 
 #### Scenario: Contract 不存在
 
@@ -40,7 +40,7 @@ Web SHALL 通过 Xirang-specific Contract loader、provider、tab 与 HTTP endpo
 
 #### Scenario: 新请求替代旧请求
 
-- **WHEN** 用户在前一个 Contract request 完成前切换 Element、Model View、Candidate 或 Change Selection
+- **WHEN** 用户在前一个 Contract request 完成前切换 Element 或 Model Selection
 - **THEN** Browser 取消或忽略旧请求，且旧结果不得覆盖当前 Contract state
 
 #### Scenario: 使用 Contract selectors

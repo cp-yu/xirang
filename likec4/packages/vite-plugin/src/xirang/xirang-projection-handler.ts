@@ -3,9 +3,11 @@ import type { LayoutedView } from '@likec4/core/types'
 import { XirangContractError, assertXirangManifest, type XirangRuntimeManifestSnapshot } from './xirang-contract-handler'
 import { ProjectionCache } from './projection-cache'
 
+export type ProjectionModelSelection = 'semantic-model' | 'candidate' | `change:${string}`
+
 export interface ProjectionRequest {
-  viewId: 'model' | string
-  change: string | null
+  viewId: 'full-model' | string
+  model: ProjectionModelSelection
   mode: 'complete' | 'complete-with-diff' | 'diff-only'
   focus: string | null
   expanded: string[]
@@ -22,7 +24,7 @@ export interface ProjectionResponse {
 export function computeProjectionKey(request: ProjectionRequest): string {
   const payload = JSON.stringify({
     viewId: request.viewId,
-    change: request.change,
+    model: request.model,
     mode: request.mode,
     focus: request.focus ?? null,
     expanded: [...request.expanded].sort(),
@@ -41,15 +43,16 @@ export function parseProjectionRequest(raw: unknown): ParseProjectionResult {
   }
   const body = raw as Record<string, unknown>
   const viewId = body['viewId']
-  const change = body['change']
+  const model = body['model']
   const mode = body['mode']
   const expectedFingerprint = body['expectedFingerprint']
 
   if (typeof viewId !== 'string' || viewId === '') {
     return { ok: false, statusCode: 400, message: 'Missing or invalid viewId' }
   }
-  if (change !== undefined && change !== null && (typeof change !== 'string' || change === '')) {
-    return { ok: false, statusCode: 400, message: 'change must be a non-empty string or null' }
+  if (model !== 'semantic-model' && model !== 'candidate'
+    && !(typeof model === 'string' && model.startsWith('change:') && model.length > 'change:'.length)) {
+    return { ok: false, statusCode: 400, message: 'model must be semantic-model, candidate, or change:<identity>' }
   }
   if (mode !== 'complete' && mode !== 'complete-with-diff' && mode !== 'diff-only') {
     return { ok: false, statusCode: 400, message: 'mode must be complete, complete-with-diff, or diff-only' }
@@ -63,7 +66,7 @@ export function parseProjectionRequest(raw: unknown): ParseProjectionResult {
     ? (body['expanded'] as string[])
     : []
 
-  return { ok: true, request: { viewId, change: typeof change === 'string' ? change : null, mode, focus, expanded, expectedFingerprint } }
+  return { ok: true, request: { viewId, model: model as ProjectionModelSelection, mode, focus, expanded, expectedFingerprint } }
 }
 
 /** Validates fingerprint against the manifest; throws `XirangContractError(409)` on mismatch. */
@@ -238,20 +241,25 @@ export async function handleProjection(
   ])
   context.cache.retainFingerprints(activeFingerprints)
 
-  // `candidate` is a reserved Change Selection identity routed to `manifest.candidate`,
-  // never to a Change with the same name.
-  const source = request.change === 'candidate'
+  // The `model` dimension routes the browsed instance: candidate goes to
+  // `manifest.candidate`, change:<identity> to `manifest.changes[<identity>]`, never a
+  // reserved-name alias.
+  const source = request.model === 'candidate'
     ? manifestRaw.candidate
-    : request.change
-      ? manifestRaw.changes[request.change]
+    : request.model.startsWith('change:')
+      ? manifestRaw.changes[request.model.slice('change:'.length)]
       : manifestRaw.model
   if (!source) {
-    throw new XirangContractError(404, request.change ? `Change ${request.change} not found` : `View ${request.viewId} not found`)
+    throw new XirangContractError(404, request.model === 'candidate'
+      ? 'Candidate not found'
+      : request.model.startsWith('change:')
+        ? `Change ${request.model.slice('change:'.length)} not found`
+        : `View ${request.viewId} not found`)
   }
 
   // complete and complete-with-diff render the target sources with the diff overlay on top;
   // only diff-only switches to the before-after union sources for removed ghosts.
-  const projectionSource = request.change && request.mode === 'diff-only' && source.diffLikec4Sources
+  const projectionSource = request.model !== 'semantic-model' && request.mode === 'diff-only' && source.diffLikec4Sources
     ? {
         ...source,
         sourceFingerprint: source.diffSourceFingerprint ?? source.sourceFingerprint,
@@ -271,7 +279,11 @@ export async function handleProjection(
   const likec4 = projectionSource.likec4Sources && context.loadSources
     ? await context.loadSources(projectionSource.likec4Sources, projectionSource.sourceFingerprint ?? manifestRaw.modelFingerprint)
     : null
-  const authoredView = request.viewId === 'model' ? undefined : manifestRaw.authoredViews[request.viewId]
+  const authoredView = request.viewId === 'full-model'
+    ? undefined
+    : (request.model === 'semantic-model'
+      ? manifestRaw.authoredViews
+      : (source.authoredViews ?? {}))[request.viewId]
   const authoredSelection = authoredView?.selection
   const architecture = projectionSource.architecture
   const paths = projectionSource.likec4ElementPaths ?? {}
@@ -317,7 +329,7 @@ export async function handleProjection(
       includeExpressions.push({ ref: { model: paths[expanded] ?? expanded }, selector: 'children' })
     }
   }
-  if (request.mode === 'diff-only' && source.diff && request.change) {
+  if (request.mode === 'diff-only' && source.diff && request.model !== 'semantic-model') {
     // Change-derived diff-only: diff-driven visible set (changed + ancestors + endpoints).
     const elementsByIdentity = new Map((architecture?.elements ?? []).map(element => [element.declaration.identity, element]))
     const boundary = new Set<string>()
@@ -349,7 +361,7 @@ export async function handleProjection(
       // The before-after union can exceed Graphviz routing capacity on large Candidates;
       // retry the diff-driven visible set against the candidate-only target sources.
       // Removed ghosts are dropped in this deterministic fallback.
-      if (request.change !== 'candidate' || request.mode !== 'diff-only' || !source.likec4Sources || !context.loadSources) throw error
+      if (request.model !== 'candidate' || request.mode !== 'diff-only' || !source.likec4Sources || !context.loadSources) throw error
       const targetLikec4 = await context.loadSources(source.likec4Sources, source.sourceFingerprint ?? manifestRaw.modelFingerprint)
       const targetPaths = source.likec4ElementPaths ?? {}
       const targetBoundary = new Set((source.architecture?.elements ?? []).map(element => element.declaration.identity))

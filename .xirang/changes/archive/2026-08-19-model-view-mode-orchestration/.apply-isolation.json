@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "model-view-mode-orchestration",
+  "originalBranch": "main",
+  "baseCommit": "02c634683d51c8c5c8056ec4ce240f6ffa7c4dd0",
+  "phase2BaselineCommit": "1637bf532e7fc7b5aede41c82a046f9470652090"
+}

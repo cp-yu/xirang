@@ -3,8 +3,8 @@ import type { XirangChangeSource, XirangRuntimeManifest, XirangViewSource } from
 import { resolveEffectiveMode, xirangViewSourceRevision } from './ContractLoaderContext'
 
 const modelSource: XirangViewSource = {
-  id: 'model',
-  label: 'Model View',
+  id: 'full-model',
+  label: 'Full Model',
   source: 'semantic-model',
   valid: true,
   sourceFingerprint: 'model-fp',
@@ -83,7 +83,7 @@ const changeSource: XirangChangeSource = {
 }
 
 const v4ManifestWithCandidate: XirangRuntimeManifest = {
-  version: 4,
+  version: 5,
   modelFingerprint: 'model-fp',
   model: modelSource,
   authoredViews: {},
@@ -94,7 +94,7 @@ const v4ManifestWithCandidate: XirangRuntimeManifest = {
 }
 
 const v4ManifestWithoutCandidate: XirangRuntimeManifest = {
-  version: 4,
+  version: 5,
   modelFingerprint: 'model-fp',
   model: modelSource,
   authoredViews: {},
@@ -108,7 +108,7 @@ describe('keeps change input separate from view source identities', () => {
     const { model, candidate, changes } = v4ManifestWithCandidate
     const sources = [model]
 
-    expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(sources.map(source => source.id)).toEqual(['full-model'])
     expect(candidate?.id).toBe('candidate')
     expect(changes['auth-change']).not.toHaveProperty('id')
     expect(changes['auth-change']).not.toHaveProperty('source')
@@ -120,7 +120,7 @@ describe('hides candidate sources when candidate is absent', () => {
     const { model, candidate, changes } = v4ManifestWithoutCandidate
     const sources = [model]
 
-    expect(sources.map(source => source.id)).toEqual(['model'])
+    expect(sources.map(source => source.id)).toEqual(['full-model'])
     expect(candidate).toBeUndefined()
     expect(Object.keys(changes)).toEqual(['auth-change'])
   })

@@ -8,7 +8,7 @@
 - Element Kind `test-component`（contract: required）
 - Element `test-entity`（kind: `test-component`, parent: `derived-views`），带一个简单 Requirement
 - Relationship Kind `test-references`
-- Relationship `test-entity` `test-references` `model-view`
+- Relationship `test-entity` `test-references` `authored-views`
 
 不涉及任何代码修改。
 
@@ -40,7 +40,7 @@
 
 #### Modified Elements
 
-- `model-view`: 修改 Declaration definition 文本，验证 MODIFIED 在 Change-derived View 中的差异呈现
+- `authored-views`: 修改 Declaration definition 文本，验证 MODIFIED 在 Change-derived View 中的差异呈现
 
 #### Removed Elements
 
@@ -48,7 +48,7 @@
 
 #### Architecture Relations
 
-- ADDED: `test-entity` `test-references` `model-view`
+- ADDED: `test-entity` `test-references` `authored-views`
 - REMOVED: `cli` `supports-presentation` `text-presentation`
 
 ## Impact

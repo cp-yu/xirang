@@ -94,6 +94,8 @@ export interface XirangViewSource {
   selection?: string[]
   roots?: string[]
   virtualRoot?: boolean
+  /** Authored Views resolved against this source's own target model instance. */
+  authoredViews?: Record<string, { title: string; selection: string[]; roots: string[]; virtualRoot: boolean }>
   diff?: {
     summary: { total: number } & Record<XirangDiffOperation, number>
     entries: XirangDiffEntry[]
@@ -134,7 +136,7 @@ export interface XirangChangeSource extends Omit<XirangViewSource, 'id' | 'sourc
 }
 
 export interface XirangRuntimeManifest {
-  version: 4
+  version: 5
   modelFingerprint: string
   model: XirangViewSource
   authoredViews: Record<string, XirangAuthoredViewDescriptor>
@@ -164,7 +166,7 @@ export interface XirangViewSourceContextValue {
   setMode(mode: XirangViewMode): void
   applyBrowserProjection(selection: {
     viewId: string
-    change: string | null
+    model: string
     mode: XirangViewMode
     showDiff: boolean
     projectionKey: string
@@ -187,8 +189,8 @@ export function resolveEffectiveMode(
 }
 
 const modelViewSource: XirangViewSource = {
-  id: 'model',
-  label: 'Model View',
+  id: 'full-model',
+  label: 'Full Model',
   source: 'semantic-model',
   valid: true,
   diagnostics: [],
@@ -238,11 +240,11 @@ export function XirangContractLoaderProvider({
   const initialSources = initialRuntime ? manifestToSources(initialRuntime) : [modelViewSource]
   const [manifest, setManifest] = useState<XirangRuntimeManifest | null>(initialRuntime)
   const [sources, setSources] = useState<readonly XirangViewSource[]>(initialSources)
-  const [selectedId, setSelectedId] = useState('model')
+  const [selectedId, setSelectedId] = useState('full-model')
   const [mode, setMode] = useState<XirangViewMode>('full')
   const [browserProjection, setBrowserProjection] = useState<{
     viewId: string
-    change: string | null
+    model: string
     showDiff: boolean
     projectionKey: string
     view: DiagramView
@@ -260,7 +262,7 @@ export function XirangContractLoaderProvider({
         const next = manifestToSources(manifest)
         setManifest(manifest)
         setSources(next)
-        setSelectedId(current => next.some(source => source.id === current) ? current : 'model')
+        setSelectedId(current => next.some(source => source.id === current) ? current : 'full-model')
       }).catch(() => undefined)
     }
     load()
@@ -273,7 +275,7 @@ export function XirangContractLoaderProvider({
 
   const applyBrowserProjection = useCallback((selection: {
     viewId: string
-    change: string | null
+    model: string
     mode: XirangViewMode
     showDiff: boolean
     projectionKey: string
@@ -288,10 +290,10 @@ export function XirangContractLoaderProvider({
     const base = sources.find(source => source.id === selectedId) ?? sources[0] ?? modelViewSource
     let selected = base
     if (browserProjection && browserProjection.viewId === base.id) {
-      const selectedSource = browserProjection.change === 'candidate'
+      const selectedSource = browserProjection.model === 'candidate'
         ? manifest?.candidate
-        : browserProjection.change
-          ? manifest?.changes[browserProjection.change]
+        : browserProjection.model.startsWith('change:')
+          ? manifest?.changes[browserProjection.model.slice('change:'.length)]
           : undefined
       const change = selectedSource && !browserProjection.showDiff
         ? (({ diff: _diff, ...rest }) => rest)(selectedSource)
@@ -300,8 +302,8 @@ export function XirangContractLoaderProvider({
         ...(change ?? base),
         id: base.id,
         label: base.label,
-        source: browserProjection.change ? 'change-derived-view' : base.source,
-        ...(browserProjection.change ? { change: browserProjection.change } : {}),
+        source: browserProjection.model !== 'semantic-model' ? 'change-derived-view' : base.source,
+        ...(browserProjection.model !== 'semantic-model' ? { change: browserProjection.model } : {}),
         projection: browserProjection.view,
         projectionKey: browserProjection.projectionKey,
       }

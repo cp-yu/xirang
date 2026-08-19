@@ -8,23 +8,24 @@ const nodeInViewport = `(node) => {
 
 async function openCandidate(page: Page): Promise<void> {
   await page.goto('/')
-  await page.getByText('Candidate View', { exact: true }).click()
-  await expect(page).toHaveURL(/change=candidate/)
+  // The section header and the card title share the label; the card is the link.
+  await page.getByRole('link', { name: /^Candidate Valid/ }).click()
+  await expect(page).toHaveURL(/model=candidate/)
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout:20_000 })
 })
 
 test('browses the complete candidate model through the collapsed baseline', async ({ page }) => {
   await openCandidate(page)
-  // Candidate is a Change Selection with two presentation modes.
+  // Candidate is a Model value with three presentation modes.
   await expect(page.locator('[data-xirang-controller]')).toBeVisible()
-  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Model Selection')).toHaveValue('candidate')
   await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete')
-  await expect(page.getByLabel('Presentation Mode').locator('option')).toHaveText(['Complete', 'Diff only'])
+  await expect(page.getByLabel('Presentation Mode').locator('option')).toHaveText(['Complete', 'Complete with diff', 'Diff only'])
   const nodes = page.locator('.react-flow__node:visible')
   await expect(nodes).not.toHaveCount(0)
 
@@ -45,7 +46,7 @@ test('browses the complete candidate model through the collapsed baseline', asyn
 
   // Drill-down inside the same Candidate selection reveals the nested level.
   await browser.dblclick()
-  await expect(page).toHaveURL(/change=candidate/)
+  await expect(page).toHaveURL(/model=candidate/)
   await expect(page).toHaveURL(/focus=perspective\.browser/)
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible()
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')).toBeVisible()
@@ -97,23 +98,23 @@ test('reviews candidate changes in diff-only mode with removed ghosts', async ({
   await page.screenshot({ path: test.info().outputPath('candidate-review-diff-only.png'), fullPage: true })
 })
 
-test('shows the candidate card on the landing page and opens the two-state default URL', async ({ page }) => {
+test('shows the candidate card on the landing page and opens the default URL', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('Candidate View', { exact: true })).toBeVisible({ timeout: 20_000 })
-  await page.getByText('Candidate View', { exact: true }).click()
+  await expect(page.getByRole('link', { name: /^Candidate Valid/ })).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('link', { name: /^Candidate Valid/ }).click()
 
-  await expect(page).toHaveURL(/change=candidate/)
+  await expect(page).toHaveURL(/model=candidate/)
   await expect(page).not.toHaveURL(/mode=/)
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Model Selection')).toHaveValue('candidate')
   await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete')
 })
 
-test('deep links change=candidate and round-trips the presentation mode', async ({ page }) => {
-  // Canonical default-state URL: mode omitted means complete.
-  await page.goto('/view/model/?change=candidate')
+test('deep links model=candidate and round-trips the presentation mode', async ({ page }) => {
+  // Canonical default-state URL: mode omitted means the candidate default complete.
+  await page.goto('/view/full-model/?model=candidate')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByLabel('Change Selection')).toHaveValue('candidate')
+  await expect(page.getByLabel('Model Selection')).toHaveValue('candidate')
   await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete')
 
   // A mode change is written back to the URL.
@@ -125,11 +126,20 @@ test('deep links change=candidate and round-trips the presentation mode', async 
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   await expect(page.getByLabel('Presentation Mode')).toHaveValue('diff-only')
 
-  // Old complete-with-diff bookmarks clamp to complete without sending that mode to projection.
-  await page.goto('/view/model/?change=candidate&mode=complete-with-diff')
+  // Candidate complete-with-diff renders the target projection with diff markers on top.
+  await page.goto('/view/full-model/?model=candidate&mode=complete-with-diff')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete')
-  await expect(page.locator('[data-xirang-node-diff]')).toHaveCount(0)
+  await expect(page.getByLabel('Presentation Mode')).toHaveValue('complete-with-diff')
+  // The collapsed baseline keeps root children visible; the MODIFIED `single` carries its mark.
+  const modifiedMark = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(modifiedMark).toBeVisible()
+  await expect(modifiedMark).toHaveAttribute('data-xirang-operation', 'MODIFIED')
+  // Drilling into the changed subtree reveals the ADDED candidate capability with its mark.
+  const browser = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
+  await browser.dblclick()
+  const addedMark = page.locator('.react-flow__node[data-xirang-identity="capability.new-in-candidate"]')
+  await expect(addedMark).toBeVisible()
+  await expect(addedMark).toHaveAttribute('data-xirang-operation', 'ADDED')
 })
 
 test('opens an active change from the landing page', async ({ page }) => {
@@ -137,7 +147,7 @@ test('opens an active change from the landing page', async ({ page }) => {
   await expect(page.getByText('Active Changes')).toBeVisible({ timeout: 20_000 })
   await page.getByText('browser-change', { exact: true }).click()
 
-  await expect(page).toHaveURL(/change=browser-change/)
+  await expect(page).toHaveURL(/model=change(?:%3A|:)browser-change/)
   await expect(page).toHaveURL(/mode=diff-only/)
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   const removed = page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')
@@ -154,7 +164,7 @@ test('opens an active change from the landing page', async ({ page }) => {
 
   // Change inspection panel is hidden below the sm breakpoint (mobile).
   if ((page.viewportSize()?.width ?? 0) >= 768) {
-    await expect(page.getByText(/Change · Model View/)).toBeVisible()
+    await expect(page.getByText(/Model · change:browser-change/)).toBeVisible()
   }
 
   // The quick-entry projection auto-fits: every node sits inside the viewport.

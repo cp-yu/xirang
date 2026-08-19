@@ -7,7 +7,7 @@ export const XIRANG_EXPORT_SNAPSHOT_KEY = 'xirang:export-snapshot'
 /** The interactive view state the image export reproduces; expanded is an ordered array. */
 export interface XirangExportSnapshot {
   view: string
-  change: string | null
+  model: string
   mode: XirangViewMode
   focus: string | null
   expanded: string[]
@@ -41,7 +41,7 @@ export function readXirangExportSnapshotFromStorage(storage?: Storage): XirangEx
     if (!Array.isArray(parsed.expanded)) return null
     return {
       view: parsed.view,
-      change: typeof parsed.change === 'string' ? parsed.change : null,
+      model: typeof parsed.model === 'string' ? parsed.model : 'semantic-model',
       mode: parsed.mode,
       focus: typeof parsed.focus === 'string' ? parsed.focus : null,
       expanded: parsed.expanded.filter((entry): entry is string => typeof entry === 'string'),

@@ -1,4 +1,5 @@
 ---
+operation: MODIFIED
 entity: element-declaration
 identity: semantic-browser
 kind: element
@@ -7,7 +8,7 @@ title: Semantic Browser
 definition: Semantic Browser 是 Web 中面向用户的三维正交浏览编排层，将 Model Selection、View Selection 与 Presentation Mode 作为独立维度组合，形成统一的运行时呈现状态。Model Selection 选择当前被浏览的 Model 实例：当前 Semantic Model（baseline）、唯一 active Candidate（若存在）或某一活动 Change 的 Expected Semantic Model；三者作为 Model 值在编排上同构，Candidate 与 Change 不是独立的编排维度。View Selection 从 Full Model 与 Authored Views 中选择当前视角，View Definition 对被浏览 Model 实例解析。Presentation Mode 在 Model 为 baseline 时锁定 complete，其余 Model 提供 complete、complete-with-diff 与 diff-only 三态，差异语义统一为相对当前 Semantic Model baseline。Semantic Browser 不承载规范性语义，不持久化呈现状态，不负责投影计算与差异视觉表达。
 ---
 
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: 三维正交组合呈现状态
 
@@ -34,6 +35,14 @@ Semantic Browser SHALL 以 Model Selection、View Selection 与 Presentation Mod
 
 - **WHEN** 某 Authored View 对当前 Model 实例解析结果为空
 - **THEN** View Selection 不提供该 View
+
+## REMOVED Requirements
+
+### Requirement: Candidate 作为 Change Selection 特殊选项
+
+### Requirement: Candidate 生命周期变化时收敛状态
+
+## ADDED Requirements
 
 ### Requirement: 所选 Model 消失时收敛状态
 

@@ -515,8 +515,8 @@ export function ElementDetailsCard({
                     </ActionIcon>
                   </Tooltip>
                 </IfEnabled>
-                {viewId !== ('model' as ViewId) && !isProjectionElement && (
-                  <Tooltip label="Open in Model View">
+                {viewId !== ('full-model' as ViewId) && !isProjectionElement && (
+                  <Tooltip label="Open in Full Model">
                     <ActionIcon
                       data-xirang-open-in-model-view
                       size="lg"
@@ -524,9 +524,9 @@ export function ElementDetailsCard({
                       radius="sm"
                       onClick={e => {
                         e.stopPropagation()
-                        runtime.select('model')
+                        runtime.select('full-model')
                         diagram.navigateTo(
-                          'model' as scalar.ViewId,
+                          'full-model' as scalar.ViewId,
                           fromNode ?? undefined,
                           undefined,
                           stableElementId,

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 test('exports a hierarchy tree in text, markdown and json', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.goto('/view/model/tree')
+  await page.goto('/view/full-model/tree')
 
   const formatControl = page.locator('[aria-label="Tree format"]')
   const code = page.locator('pre').first()

@@ -1,0 +1,566 @@
+{
+  "timestamp": "2026-08-19T07:21:44.747Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Duplicated code introduced by this change: interface ProjectionRequestDescriptor declared twice identically in SemanticBrowserController.tsx:48-56 and 57-65; TypeScript interface merging masks it",
+      "requirement": "Task 3",
+      "task": "Task 3",
+      "recommendation": "Delete one of the two identical declarations (cosmetic drift, no observable behavior impact)",
+      "evidenceCitations": [
+        "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:48-65"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Misleading stale test name: HttpContractLoader.spec.ts:113 'loads candidate contract with source=change:candidate' asserts pass-through of the removed reserved encoding as an arbitrary change name; server 404s it (xirang-contract-handler.spec.ts 'does not route change-named candidate to the candidate source')",
+      "requirement": "xirang-contract-delivery — SHALL NOT 存在 source=change:candidate reserved 编码",
+      "task": "Task 2",
+      "recommendation": "Rename the test to reflect pass-through of an arbitrary change name or assert forwarding only",
+      "evidenceCitations": [
+        "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts:113-124"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Old-naming fixture residue in out-of-scope specs: ElementDetailsCard.spec.tsx:190 label 'Model View'; xirang-diff-overlay.spec.ts:59 and ContractLoaderContext.spec.tsx:32 label 'Candidate View' — cosmetic fixture strings, no production-label assertions",
+      "requirement": "labels 'Model View'→'Full Model'、'Candidate View'→'Candidate'",
+      "task": null,
+      "recommendation": "Optionally align fixture labels/ids with the new naming",
+      "evidenceCitations": [
+        "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx:190",
+        "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts:59",
+        "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx:32"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Unaccounted mechanical change: playwright.config.ts grep patterns renamed ('browses Model View'→'browses Full Model', 'deep links change=candidate'→'deep links model=candidate') — test-infra selection only, not in any task Files entry",
+      "requirement": null,
+      "task": "Task 4",
+      "recommendation": "Add playwright.config.ts to Task 4 Files for traceability",
+      "evidenceCitations": [
+        "playwright.config.ts:20",
+        "playwright.config.ts:28"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Attribution gap: .xirang/changes/test-change-derived-view/elements/test-entity.md modified (parent derived-views→view-composition, described in Task 4 Requirements text) but absent from Task 4 Files list",
+      "requirement": "Task 4 — test-entity parent 修正",
+      "task": "Task 4",
+      "recommendation": "Append test-entity.md to Task 4 Files (change is spec-described and validate passes)",
+      "evidenceCitations": [
+        ".xirang/changes/test-change-derived-view/elements/test-entity.md:6"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Comment drift: src/core/likec4/generator.ts:7 still references 'Model View' in the defaultLandscapeView comment",
+      "requirement": null,
+      "task": null,
+      "recommendation": "Update comment wording to Full Model",
+      "evidenceCitations": [
+        "src/core/likec4/generator.ts:7"
+      ]
+    }
+  ],
+  "tasksFileHash": "c1dbcf7b8e921f6d8a58922923bf8106f456a791a2e03c12a911ad78c2aab2e5",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/model-view-mode-orchestration/design.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/authored-views.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/full-model-view.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/model-view.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/semantic-browser.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/view-composition.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/web.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/xirang-contract-delivery.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/xirang-diff-overlay.md",
+      ".xirang/changes/model-view-mode-orchestration/elements/xirang-projection-service.md",
+      ".xirang/changes/model-view-mode-orchestration/proposal.md",
+      ".xirang/changes/model-view-mode-orchestration/tasks.md",
+      ".xirang/changes/test-change-derived-view/design.md",
+      ".xirang/changes/test-change-derived-view/elements/authored-views.md",
+      ".xirang/changes/test-change-derived-view/elements/test-entity.md",
+      ".xirang/changes/test-change-derived-view/proposal.md",
+      ".xirang/changes/test-change-derived-view/relationships/test-references.yaml",
+      ".xirang/model/elements/authored-views.md",
+      "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+      "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+      "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+      "likec4/packages/diagram/src/xirang/export-state.ts",
+      "likec4/packages/likec4-spa/src/routes/__root.tsx",
+      "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+      "likec4/packages/likec4-spa/src/searchParams.ts",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+      "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+      "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+      "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+      "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+      "src/core/likec4/generator.ts",
+      "src/core/model/validator.ts",
+      "src/core/view.ts",
+      "test/core/model/validator.test.ts",
+      "test/core/view.test.ts",
+      "test/e2e/browser-view-tree-export.spec.ts",
+      "test/e2e/semantic-browser-candidate-views.spec.ts",
+      "test/e2e/semantic-browser-model-view.spec.ts",
+      "test/e2e/semantic-browser-navigation-history.spec.ts"
+    ],
+    "evidenceFingerprint": "42bf9e9ba8ad80ebfd522e7ed5eb2122bd48d7cf506f3cae0ba9a563a0411152",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/design.md",
+        "hash": "148415149740043e9c774a658530e018bb3ab80494215c12979492a52b1705d1"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/authored-views.md",
+        "hash": "0baa0d3e0a9f88d39188ecbc6ae97e81ae84c07a9e91d7f302e067ad815603fc"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/full-model-view.md",
+        "hash": "e71f8af7616a3bcbda3a62c11a71f0040d3946e52f43da5f462d9ca891b804f2"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/model-view.md",
+        "hash": "3c5fa29157d0fcc7c3b98fd26868a4f26966cdc4ce902b637f359fe7805f123a"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/semantic-browser.md",
+        "hash": "767d5600209f82b1c87fb8dfd283c79299150e2f844769a0982d26df89e29778"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/view-composition.md",
+        "hash": "c01364d5ff80d41e6e5f516f27a69b5cca963207de3c3bca817e772da84191b6"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/web.md",
+        "hash": "e4710aeb1307baa8a2383e4cbede3561c550e1fef994a5e768383ebfbc834077"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-contract-delivery.md",
+        "hash": "7087d63674cab3b8a6bb82db75fb09c63d5be7d9cac17f04b4725c49eda1ecf2"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-diff-overlay.md",
+        "hash": "e16e1bfaa0b3945ebb15f39c05b72abc8cc4d49f7f9135610ad32d95ef413023"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-projection-service.md",
+        "hash": "16ed07f035fa7c54cc593c3aafcda8e2e631a58d0346f5585b3776506747c486"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/proposal.md",
+        "hash": "41dd0d623007f7c68de54aa462a5ea9e1cfc28902e79f32570ca06f1946a189b"
+      },
+      {
+        "path": ".xirang/changes/model-view-mode-orchestration/tasks.md",
+        "hash": "c1dbcf7b8e921f6d8a58922923bf8106f456a791a2e03c12a911ad78c2aab2e5"
+      },
+      {
+        "path": ".xirang/changes/test-change-derived-view/design.md",
+        "hash": "029f0ce4e64df3e6b8e35ef7b2695b5adf333186b1908ca3abdc0d012c84e51c"
+      },
+      {
+        "path": ".xirang/changes/test-change-derived-view/elements/authored-views.md",
+        "hash": "e2b951116c006c0f1c8463ded0d1e9a64c9ec3a7678529ecd62551769c64ce0f"
+      },
+      {
+        "path": ".xirang/changes/test-change-derived-view/elements/test-entity.md",
+        "hash": "c2aebf7074ab3709570166fb17a8ea296ebe81edaf63f78d85ca865426c7ae63"
+      },
+      {
+        "path": ".xirang/changes/test-change-derived-view/proposal.md",
+        "hash": "4be651549787f5963235a1177176e5639e80d2c4957364413678d66b08de9f9b"
+      },
+      {
+        "path": ".xirang/changes/test-change-derived-view/relationships/test-references.yaml",
+        "hash": "a50b7857a61fdaa22c65f2c98666854606556e7a64b522d203d0175a0369e566"
+      },
+      {
+        "path": ".xirang/model/elements/authored-views.md",
+        "hash": "bee5667a7ea0ec5c6e3062c0eff11e807b49af1e15cdb9df7a0a682f278696de"
+      },
+      {
+        "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+        "hash": "b1db343f46ddfe6ac48c70a410be18f9b6a4582ddd0afdedc585f313d9bbdc27"
+      },
+      {
+        "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+        "hash": "58a78442c87edd32b398093b09697ed355f688335f0565f2cdd93fea639c598a"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+        "hash": "f80f9e5b77ca34553ea09150f9260a37d8338926ca50552b1ecd9e0462f8ddb3"
+      },
+      {
+        "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+        "hash": "d347664ca5ffebacc31612101be88efbf534edf8d85705cfd76b64c3bcee0afd"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+        "hash": "0a8d0673c0274e49e1c8b0bc149f539df3c5e21aea0dbd1c3f423f6e8e52ec12"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+        "hash": "002f2164b69f61026f4f032e72d0bb46b0860d7e46ec7a73351fd942ad031eb2"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+        "hash": "0db1e4d6f0674c5015e3b057785615e4d167d3def9a6753ce6c710c6e5d0f060"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+        "hash": "65897188868fdd756d02b5a0ce6d0acf86071c134987dd3998c00f3d3c8a83d4"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+        "hash": "60ebe84b956b2bcb68be6889fcdb5894a32b29506b655a0aa149256c77b270c0"
+      },
+      {
+        "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+        "hash": "645076b750c9b2a68b54ed56ac8b967df1b3eed0c66ef4ecd31b5438b92f8ba4"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+        "hash": "7f7ade83efb6e3de20d60a10239dee8c65ee8befb3207d663e0ded40a180bd8f"
+      },
+      {
+        "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+        "hash": "7e2c5cf54addb09d6dc010cd1efe4aed448e221cdbe2904bc2e117fb7f8417be"
+      },
+      {
+        "path": "src/core/likec4/generator.ts",
+        "hash": "9be23f4ba752ed2d1b3cf0e04ad8172014395b819f02a3ceb0c5cafc4a276626"
+      },
+      {
+        "path": "src/core/model/validator.ts",
+        "hash": "28095cc548fd97a382d67b2e479f6000c172294c6d04460293545b632ab39eb8"
+      },
+      {
+        "path": "src/core/view.ts",
+        "hash": "d6e6a88843920b06b752341ab4ca28092860165b16e7aae492cb84ce4fc08f06"
+      },
+      {
+        "path": "test/core/model/validator.test.ts",
+        "hash": "e8ac260f265849c79eb06762b4af0374eac52bbf0871598e25060c4683be9ea8"
+      },
+      {
+        "path": "test/core/view.test.ts",
+        "hash": "4903c2a500e6c23455577b5022b5b925aa5eabbdf945484be69f96610bda250e"
+      },
+      {
+        "path": "test/e2e/browser-view-tree-export.spec.ts",
+        "hash": "48884d5368f8b4521fa8bbcd2d00c0bc071c31a94ef49e43a86a0eadaf45798e"
+      },
+      {
+        "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+        "hash": "59d0a4c74132539c181b16980996ed573c6811fd73f82eb542c7985b5fad7053"
+      },
+      {
+        "path": "test/e2e/semantic-browser-model-view.spec.ts",
+        "hash": "1b16cf195afa22e051fc7126f0f3f386e7b9481e67849f47e52f4ec4f119b87d"
+      },
+      {
+        "path": "test/e2e/semantic-browser-navigation-history.spec.ts",
+        "hash": "56e1e1855e16a13e52ab5ea3d0abbf6c92a29b40759172bb2b941cee3469ba67"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "f285f1a1fb08c574a536fb1151d0a843c945e608",
+    "gitDiffSummary": "git diff 02c634683d51c8c5c8056ec4ce240f6ffa7c4dd0...HEAD --name-only (56 files, 5 commits incl. correction commit f285f1a1f) ∪ git status --short (clean tree); all diff files attributed or spot-checked; branch model-view-mode-orchestration; baseCommit resolves"
+  },
+  "optimization": {
+    "status": "NOT_NEEDED",
+    "attempts": [
+      {
+        "timestamp": "2026-08-19T07:40:57.245Z",
+        "type": "optimization",
+        "status": "OPTIMIZATION_PROPOSED"
+      }
+    ],
+    "baseline": {
+      "timestamp": "2026-08-19T07:21:44.747Z",
+      "result": "PASS_WITH_WARNINGS",
+      "issues": [
+        {
+          "severity": "WARNING",
+          "message": "Duplicated code introduced by this change: interface ProjectionRequestDescriptor declared twice identically in SemanticBrowserController.tsx:48-56 and 57-65; TypeScript interface merging masks it",
+          "requirement": "Task 3",
+          "task": "Task 3",
+          "recommendation": "Delete one of the two identical declarations (cosmetic drift, no observable behavior impact)",
+          "evidenceCitations": [
+            "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx:48-65"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Misleading stale test name: HttpContractLoader.spec.ts:113 'loads candidate contract with source=change:candidate' asserts pass-through of the removed reserved encoding as an arbitrary change name; server 404s it (xirang-contract-handler.spec.ts 'does not route change-named candidate to the candidate source')",
+          "requirement": "xirang-contract-delivery — SHALL NOT 存在 source=change:candidate reserved 编码",
+          "task": "Task 2",
+          "recommendation": "Rename the test to reflect pass-through of an arbitrary change name or assert forwarding only",
+          "evidenceCitations": [
+            "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts:113-124"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Old-naming fixture residue in out-of-scope specs: ElementDetailsCard.spec.tsx:190 label 'Model View'; xirang-diff-overlay.spec.ts:59 and ContractLoaderContext.spec.tsx:32 label 'Candidate View' — cosmetic fixture strings, no production-label assertions",
+          "requirement": "labels 'Model View'→'Full Model'、'Candidate View'→'Candidate'",
+          "task": null,
+          "recommendation": "Optionally align fixture labels/ids with the new naming",
+          "evidenceCitations": [
+            "likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.spec.tsx:190",
+            "likec4/packages/diagram/src/xirang/xirang-diff-overlay.spec.ts:59",
+            "likec4/packages/diagram/src/xirang/ContractLoaderContext.spec.tsx:32"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Unaccounted mechanical change: playwright.config.ts grep patterns renamed ('browses Model View'→'browses Full Model', 'deep links change=candidate'→'deep links model=candidate') — test-infra selection only, not in any task Files entry",
+          "requirement": null,
+          "task": "Task 4",
+          "recommendation": "Add playwright.config.ts to Task 4 Files for traceability",
+          "evidenceCitations": [
+            "playwright.config.ts:20",
+            "playwright.config.ts:28"
+          ]
+        },
+        {
+          "severity": "WARNING",
+          "message": "Attribution gap: .xirang/changes/test-change-derived-view/elements/test-entity.md modified (parent derived-views→view-composition, described in Task 4 Requirements text) but absent from Task 4 Files list",
+          "requirement": "Task 4 — test-entity parent 修正",
+          "task": "Task 4",
+          "recommendation": "Append test-entity.md to Task 4 Files (change is spec-described and validate passes)",
+          "evidenceCitations": [
+            ".xirang/changes/test-change-derived-view/elements/test-entity.md:6"
+          ]
+        },
+        {
+          "severity": "SUGGESTION",
+          "message": "Comment drift: src/core/likec4/generator.ts:7 still references 'Model View' in the defaultLandscapeView comment",
+          "requirement": null,
+          "task": null,
+          "recommendation": "Update comment wording to Full Model",
+          "evidenceCitations": [
+            "src/core/likec4/generator.ts:7"
+          ]
+        }
+      ],
+      "tasksFileHash": "c1dbcf7b8e921f6d8a58922923bf8106f456a791a2e03c12a911ad78c2aab2e5",
+      "verificationContext": {
+        "contractVersion": "1.0",
+        "evidenceFiles": [
+          ".xirang/changes/model-view-mode-orchestration/design.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/authored-views.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/full-model-view.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/model-view.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/semantic-browser.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/view-composition.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/web.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/xirang-contract-delivery.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/xirang-diff-overlay.md",
+          ".xirang/changes/model-view-mode-orchestration/elements/xirang-projection-service.md",
+          ".xirang/changes/model-view-mode-orchestration/proposal.md",
+          ".xirang/changes/model-view-mode-orchestration/tasks.md",
+          ".xirang/changes/test-change-derived-view/design.md",
+          ".xirang/changes/test-change-derived-view/elements/authored-views.md",
+          ".xirang/changes/test-change-derived-view/elements/test-entity.md",
+          ".xirang/changes/test-change-derived-view/proposal.md",
+          ".xirang/changes/test-change-derived-view/relationships/test-references.yaml",
+          ".xirang/model/elements/authored-views.md",
+          "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+          "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+          "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+          "likec4/packages/diagram/src/xirang/export-state.ts",
+          "likec4/packages/likec4-spa/src/routes/__root.tsx",
+          "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+          "likec4/packages/likec4-spa/src/searchParams.ts",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+          "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+          "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+          "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+          "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+          "src/core/likec4/generator.ts",
+          "src/core/model/validator.ts",
+          "src/core/view.ts",
+          "test/core/model/validator.test.ts",
+          "test/core/view.test.ts",
+          "test/e2e/browser-view-tree-export.spec.ts",
+          "test/e2e/semantic-browser-candidate-views.spec.ts",
+          "test/e2e/semantic-browser-model-view.spec.ts",
+          "test/e2e/semantic-browser-navigation-history.spec.ts"
+        ],
+        "evidenceFingerprint": "11bf9f632aad5f4b5636f8c304f6c669b86ce8c3cbed7cf081c98d832264eb70",
+        "evidenceFingerprintEntries": [
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/design.md",
+            "hash": "148415149740043e9c774a658530e018bb3ab80494215c12979492a52b1705d1"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/authored-views.md",
+            "hash": "0baa0d3e0a9f88d39188ecbc6ae97e81ae84c07a9e91d7f302e067ad815603fc"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/full-model-view.md",
+            "hash": "e71f8af7616a3bcbda3a62c11a71f0040d3946e52f43da5f462d9ca891b804f2"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/model-view.md",
+            "hash": "3c5fa29157d0fcc7c3b98fd26868a4f26966cdc4ce902b637f359fe7805f123a"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/semantic-browser.md",
+            "hash": "767d5600209f82b1c87fb8dfd283c79299150e2f844769a0982d26df89e29778"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/view-composition.md",
+            "hash": "c01364d5ff80d41e6e5f516f27a69b5cca963207de3c3bca817e772da84191b6"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/web.md",
+            "hash": "e4710aeb1307baa8a2383e4cbede3561c550e1fef994a5e768383ebfbc834077"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-contract-delivery.md",
+            "hash": "7087d63674cab3b8a6bb82db75fb09c63d5be7d9cac17f04b4725c49eda1ecf2"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-diff-overlay.md",
+            "hash": "e16e1bfaa0b3945ebb15f39c05b72abc8cc4d49f7f9135610ad32d95ef413023"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/elements/xirang-projection-service.md",
+            "hash": "16ed07f035fa7c54cc593c3aafcda8e2e631a58d0346f5585b3776506747c486"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/proposal.md",
+            "hash": "41dd0d623007f7c68de54aa462a5ea9e1cfc28902e79f32570ca06f1946a189b"
+          },
+          {
+            "path": ".xirang/changes/model-view-mode-orchestration/tasks.md",
+            "hash": "c1dbcf7b8e921f6d8a58922923bf8106f456a791a2e03c12a911ad78c2aab2e5"
+          },
+          {
+            "path": ".xirang/changes/test-change-derived-view/design.md",
+            "hash": "029f0ce4e64df3e6b8e35ef7b2695b5adf333186b1908ca3abdc0d012c84e51c"
+          },
+          {
+            "path": ".xirang/changes/test-change-derived-view/elements/authored-views.md",
+            "hash": "e2b951116c006c0f1c8463ded0d1e9a64c9ec3a7678529ecd62551769c64ce0f"
+          },
+          {
+            "path": ".xirang/changes/test-change-derived-view/elements/test-entity.md",
+            "hash": "c2aebf7074ab3709570166fb17a8ea296ebe81edaf63f78d85ca865426c7ae63"
+          },
+          {
+            "path": ".xirang/changes/test-change-derived-view/proposal.md",
+            "hash": "4be651549787f5963235a1177176e5639e80d2c4957364413678d66b08de9f9b"
+          },
+          {
+            "path": ".xirang/changes/test-change-derived-view/relationships/test-references.yaml",
+            "hash": "a50b7857a61fdaa22c65f2c98666854606556e7a64b522d203d0175a0369e566"
+          },
+          {
+            "path": ".xirang/model/elements/authored-views.md",
+            "hash": "6bfc066a28883e828c5490c14aec35d22c06219235cd2fde724767bf3f5eb8fe"
+          },
+          {
+            "path": "likec4/packages/diagram/src/likec4diagram/DiagramUI.tsx",
+            "hash": "b1db343f46ddfe6ac48c70a410be18f9b6a4582ddd0afdedc585f313d9bbdc27"
+          },
+          {
+            "path": "likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx",
+            "hash": "58a78442c87edd32b398093b09697ed355f688335f0565f2cdd93fea639c598a"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx",
+            "hash": "f80f9e5b77ca34553ea09150f9260a37d8338926ca50552b1ecd9e0462f8ddb3"
+          },
+          {
+            "path": "likec4/packages/diagram/src/xirang/export-state.ts",
+            "hash": "d347664ca5ffebacc31612101be88efbf534edf8d85705cfd76b64c3bcee0afd"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/__root.tsx",
+            "hash": "0a8d0673c0274e49e1c8b0bc149f539df3c5e21aea0dbd1c3f423f6e8e52ec12"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/routes/_single/single-index.tsx",
+            "hash": "002f2164b69f61026f4f032e72d0bb46b0860d7e46ec7a73351fd942ad031eb2"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/searchParams.ts",
+            "hash": "0db1e4d6f0674c5015e3b057785615e4d167d3def9a6753ce6c710c6e5d0f060"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts",
+            "hash": "65897188868fdd756d02b5a0ce6d0acf86071c134987dd3998c00f3d3c8a83d4"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts",
+            "hash": "60ebe84b956b2bcb68be6889fcdb5894a32b29506b655a0aa149256c77b270c0"
+          },
+          {
+            "path": "likec4/packages/likec4-spa/src/xirang/SemanticBrowserController.tsx",
+            "hash": "645076b750c9b2a68b54ed56ac8b967df1b3eed0c66ef4ecd31b5438b92f8ba4"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-contract-handler.ts",
+            "hash": "7f7ade83efb6e3de20d60a10239dee8c65ee8befb3207d663e0ded40a180bd8f"
+          },
+          {
+            "path": "likec4/packages/vite-plugin/src/xirang/xirang-projection-handler.ts",
+            "hash": "7e2c5cf54addb09d6dc010cd1efe4aed448e221cdbe2904bc2e117fb7f8417be"
+          },
+          {
+            "path": "src/core/likec4/generator.ts",
+            "hash": "9be23f4ba752ed2d1b3cf0e04ad8172014395b819f02a3ceb0c5cafc4a276626"
+          },
+          {
+            "path": "src/core/model/validator.ts",
+            "hash": "28095cc548fd97a382d67b2e479f6000c172294c6d04460293545b632ab39eb8"
+          },
+          {
+            "path": "src/core/view.ts",
+            "hash": "d6e6a88843920b06b752341ab4ca28092860165b16e7aae492cb84ce4fc08f06"
+          },
+          {
+            "path": "test/core/model/validator.test.ts",
+            "hash": "e8ac260f265849c79eb06762b4af0374eac52bbf0871598e25060c4683be9ea8"
+          },
+          {
+            "path": "test/core/view.test.ts",
+            "hash": "4903c2a500e6c23455577b5022b5b925aa5eabbdf945484be69f96610bda250e"
+          },
+          {
+            "path": "test/e2e/browser-view-tree-export.spec.ts",
+            "hash": "48884d5368f8b4521fa8bbcd2d00c0bc071c31a94ef49e43a86a0eadaf45798e"
+          },
+          {
+            "path": "test/e2e/semantic-browser-candidate-views.spec.ts",
+            "hash": "59d0a4c74132539c181b16980996ed573c6811fd73f82eb542c7985b5fad7053"
+          },
+          {
+            "path": "test/e2e/semantic-browser-model-view.spec.ts",
+            "hash": "1b16cf195afa22e051fc7126f0f3f386e7b9481e67849f47e52f4ec4f119b87d"
+          },
+          {
+            "path": "test/e2e/semantic-browser-navigation-history.spec.ts",
+            "hash": "56e1e1855e16a13e52ab5ea3d0abbf6c92a29b40759172bb2b941cee3469ba67"
+          }
+        ],
+        "skippedEvidenceFiles": [],
+        "gitHeadCommit": "f285f1a1fb08c574a536fb1151d0a843c945e608",
+        "gitDiffSummary": "git diff 02c634683d51c8c5c8056ec4ce240f6ffa7c4dd0...HEAD --name-only (56 files, 5 commits incl. correction commit f285f1a1f) ∪ git status --short (clean tree); all diff files attributed or spot-checked; branch model-view-mode-orchestration; baseCommit resolves"
+      }
+    },
+    "findings": [],
+    "history": [],
+    "reconciliationSignature": "3037e3d5757f14f5c077efe0340397440d545608cace323dccce312c5a0b93e6",
+    "unchangedReconciliations": 0
+  }
+}

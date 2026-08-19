@@ -14,6 +14,7 @@ export interface XirangContractSourceSnapshot {
   likec4ElementPaths?: Record<string, string>
   diffLikec4Sources?: Record<string, string>
   diffLikec4ElementPaths?: Record<string, string>
+  authoredViews?: Record<string, XirangAuthoredViewSnapshot>
 }
 
 /**
@@ -30,7 +31,7 @@ export interface XirangAuthoredViewSnapshot {
 }
 
 export interface XirangRuntimeManifestSnapshot {
-  version: 4
+  version: 5
   modelFingerprint: string
   model: XirangContractSourceSnapshot
   authoredViews: Record<string, XirangAuthoredViewSnapshot>
@@ -41,12 +42,12 @@ export interface XirangRuntimeManifestSnapshot {
 /** The runtime manifest is versioned; older snapshots are rejected, never downgraded. */
 export function assertXirangManifest(payload: unknown): asserts payload is XirangRuntimeManifestSnapshot {
   if (!payload || typeof payload !== 'object'
-    || (payload as { version?: unknown }).version !== 4
+    || (payload as { version?: unknown }).version !== 5
     || !(payload as { model?: unknown }).model
     || typeof (payload as { authoredViews?: unknown }).authoredViews !== 'object'
     || typeof (payload as { changes?: unknown }).changes !== 'object'
     || typeof (payload as { modelFingerprint?: unknown }).modelFingerprint !== 'string') {
-    throw new XirangContractError(500, 'Invalid runtime manifest: expected version 4 with model, authoredViews, changes, and modelFingerprint')
+    throw new XirangContractError(500, 'Invalid runtime manifest: expected version 5 with model, authoredViews, changes, and modelFingerprint')
   }
 }
 
@@ -122,10 +123,9 @@ export function readXirangContract(
       throw new XirangContractError(404, 'Candidate not found')
     }
   } else if (source.type === 'change') {
-    // `candidate` is a reserved Change Selection identity routed to `manifest.candidate`.
-    contractSource = source.name === 'candidate' ? manifest.candidate : manifest.changes[source.name]
+    contractSource = manifest.changes[source.name]
     if (!contractSource) {
-      throw new XirangContractError(404, source.name === 'candidate' ? 'Candidate not found' : 'Change not found')
+      throw new XirangContractError(404, 'Change not found')
     }
   }
   

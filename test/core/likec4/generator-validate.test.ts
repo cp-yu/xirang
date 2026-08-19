@@ -75,7 +75,7 @@ describe('generateLikeC4 artifacts', () => {
       };
 
       expect(generated.projectId).toBe('xirang');
-      expect(Object.keys(generated.views)).toEqual(expect.arrayContaining(['model', 'index', 'arch_detail', '_title']));
+      expect(Object.keys(generated.views)).toEqual(expect.arrayContaining(['full-model', 'index', 'arch_detail', '_title']));
       expect(Object.keys(generated.views).some(identity => identity.startsWith('__'))).toBe(false);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
@@ -95,7 +95,7 @@ describe('generateLikeC4 artifacts', () => {
       const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as { views: Record<string, unknown> };
 
       // LikeC4 must not inject its own `index` Landscape view next to the Model View.
-      expect(Object.keys(generated.views)).toEqual(['model']);
+      expect(Object.keys(generated.views)).toEqual(['full-model']);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
       await fs.rm(outfile, { force: true });
@@ -133,8 +133,8 @@ describe('generateLikeC4 artifacts', () => {
       const generated = JSON.parse(await fs.readFile(outfile, 'utf8')) as {
         views: Record<string, { edges: Array<{ relations?: string[] }> }>;
       };
-      expect(generated.views['model']?.edges).toHaveLength(1);
-      expect(generated.views['model']?.edges[0]?.relations).toHaveLength(parallelCount);
+      expect(generated.views['full-model']?.edges).toHaveLength(1);
+      expect(generated.views['full-model']?.edges[0]?.relations).toHaveLength(parallelCount);
     } finally {
       await fs.rm(dir, { recursive: true, force: true });
       await fs.rm(outfile, { force: true });
@@ -193,10 +193,10 @@ describe('project Semantic Model view layout', () => {
         }>;
       };
       expect(afterJson.projectId).toBe('xirang');
-      const computedView = beforeJson.views['model'];
+      const computedView = beforeJson.views['full-model'];
       expect(computedView, 'project Semantic Model must have a model view').toBeDefined();
       expect(computedView.nodes.length).toBeGreaterThan(0);
-      const modelView = afterJson.views['model'];
+      const modelView = afterJson.views['full-model'];
       expect(modelView, 'project Semantic Model must have a layouted model view').toBeDefined();
       // Graphviz may drop edges it cannot route; identity alignment proves completeness
       expect(modelView.nodes.map(node => node.id).sort()).toEqual(computedView.nodes.map(node => node.id).sort());

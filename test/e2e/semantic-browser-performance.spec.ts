@@ -35,7 +35,7 @@ async function frameLatency(page: Page): Promise<number> {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   await page.waitForTimeout(1_000)
 })
@@ -44,7 +44,7 @@ test('a deep link settles to a bounded projection request count', async ({ page 
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
 
-  await page.goto('/view/model/?focus=capability.drill')
+  await page.goto('/view/full-model/?focus=capability.drill')
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')).toBeVisible({ timeout: 20_000 })
   await page.waitForTimeout(REQUEST_SETTLE_MS)
 

@@ -14,13 +14,13 @@ type XirangChangeSource = Omit<XirangViewSource, 'id' | 'source'> & { change: st
 
 const projectionLoader = new HttpProjectionLoader<DiagramView>()
 
-export type SemanticBrowserViewSelection = 'model' | string
-export type SemanticBrowserChangeSelection = string | null
+export type SemanticBrowserViewSelection = 'full-model' | string
+export type SemanticBrowserModelSelection = 'semantic-model' | 'candidate' | `change:${string}`
 export type SemanticBrowserMode = 'complete' | 'complete-with-diff' | 'diff-only'
 
 export interface SemanticBrowserState {
+  modelSelection: SemanticBrowserModelSelection
   viewSelection: SemanticBrowserViewSelection
-  changeSelection: SemanticBrowserChangeSelection
   presentationMode: SemanticBrowserMode
   focus: string | null
   expanded: ReadonlySet<string>
@@ -28,7 +28,7 @@ export interface SemanticBrowserState {
 
 export interface SemanticBrowserUrlState {
   view?: string
-  change?: string
+  model?: string
   mode?: SemanticBrowserMode
   focus?: string
 }
@@ -39,7 +39,7 @@ export interface SemanticBrowserHistoryState {
 
 export type SemanticBrowserAction =
   | { type: 'view.select'; view: string }
-  | { type: 'change.select'; change: string | null }
+  | { type: 'model.select'; model: SemanticBrowserModelSelection }
   | { type: 'mode.select'; mode: SemanticBrowserMode }
   | { type: 'focus.select'; focus: string | null }
   | { type: 'expanded.set'; expanded: Iterable<string> }
@@ -47,7 +47,16 @@ export type SemanticBrowserAction =
 
 export interface ProjectionRequestDescriptor {
   viewId: string
-  change: string | null
+  model: SemanticBrowserModelSelection
+  mode: SemanticBrowserMode
+  focus: string | null
+  expanded: string[]
+  expectedFingerprint: string
+}
+
+export interface ProjectionRequestDescriptor {
+  viewId: string
+  model: SemanticBrowserModelSelection
   mode: SemanticBrowserMode
   focus: string | null
   expanded: string[]
@@ -63,14 +72,14 @@ export interface SemanticBrowserControllerValue {
   state: SemanticBrowserState
   dispatch(action: SemanticBrowserAction): void
   selectView(view: string): void
-  selectChange(change: string | null): void
+  selectModel(model: SemanticBrowserModelSelection): void
   selectMode(mode: SemanticBrowserMode): void
   selectFocus(focus: string | null): void
   setExpanded(expanded: Iterable<string>): void
 }
 
 export interface SemanticBrowserManifest {
-  version: 4
+  version: 5
   modelFingerprint: string
   model: XirangViewSource
   authoredViews: Record<string, { title: string; selection: string[]; roots: string[]; virtualRoot: boolean }>
@@ -78,49 +87,61 @@ export interface SemanticBrowserManifest {
   candidate?: XirangViewSource
 }
 
-function sourceForView(manifest: SemanticBrowserManifest, view: string): string[] {
-  if (view === 'model') return identities(manifest.model)
-  return manifest.authoredViews[view]?.selection ?? []
+function modelViewKey(model: SemanticBrowserModelSelection): string | null {
+  return model.startsWith('change:') ? model.slice('change:'.length) : null
 }
 
-function identities(source: XirangViewSource): string[] {
-  return (source.architecture?.elements ?? []).map(element => element.declaration.identity)
+function sourceForModel(manifest: SemanticBrowserManifest, model: SemanticBrowserModelSelection): XirangChangeSource | XirangViewSource | undefined {
+  if (model === 'semantic-model') return manifest.model
+  if (model === 'candidate') return manifest.candidate
+  return manifest.changes[modelViewKey(model)!]
 }
 
-function validViews(manifest: SemanticBrowserManifest): Set<string> {
-  return new Set(['model', ...Object.keys(manifest.authoredViews)])
+/** Authored Views resolved against the browsed model instance; empty selections are unselectable. */
+function sourceViewsFor(manifest: SemanticBrowserManifest, model: SemanticBrowserModelSelection) {
+  const views = model === 'semantic-model'
+    ? manifest.authoredViews
+    : (sourceForModel(manifest, model) as { authoredViews?: SemanticBrowserManifest['authoredViews'] } | undefined)?.authoredViews ?? {}
+  return Object.fromEntries(Object.entries(views).filter(([, view]) => view.selection.length > 0))
 }
 
-function validChanges(manifest: SemanticBrowserManifest): Set<string> {
+function sourceForView(
+  manifest: SemanticBrowserManifest,
+  model: SemanticBrowserModelSelection,
+  view: string,
+): string[] {
+  if (view === 'full-model') {
+    return (sourceForModel(manifest, model)?.architecture?.elements ?? []).map(element => element.declaration.identity)
+  }
+  return sourceViewsFor(manifest, model)[view]?.selection ?? []
+}
+
+function validViews(manifest: SemanticBrowserManifest, model: SemanticBrowserModelSelection): Set<string> {
+  return new Set(['full-model', ...Object.keys(sourceViewsFor(manifest, model))])
+}
+
+function validModels(manifest: SemanticBrowserManifest): Set<SemanticBrowserModelSelection> {
   return new Set([
-    ...Object.keys(manifest.changes),
-    ...(manifest.candidate ? ['candidate'] : []),
+    'semantic-model',
+    ...(manifest.candidate ? ['candidate' as const] : []),
+    ...Object.keys(manifest.changes).map(change => `change:${change}` as const),
   ])
 }
 
-function changeSourceFor(manifest: SemanticBrowserManifest, change: string): XirangChangeSource | XirangViewSource | undefined {
-  return change === 'candidate' ? manifest.candidate : manifest.changes[change]
+function defaultMode(model: SemanticBrowserModelSelection): SemanticBrowserMode {
+  return model === 'semantic-model' || model === 'candidate' ? 'complete' : 'complete-with-diff'
 }
 
-function defaultMode(change: string | null): SemanticBrowserMode {
-  return change === null || change === 'candidate' ? 'complete' : 'complete-with-diff'
-}
-
-function normalizeMode(change: string | null, requestedMode?: SemanticBrowserMode): SemanticBrowserMode {
-  const mode = requestedMode ?? defaultMode(change)
-  return change === null || (change === 'candidate' && mode === 'complete-with-diff') ? 'complete' : mode
+function normalizeMode(model: SemanticBrowserModelSelection, requestedMode?: SemanticBrowserMode): SemanticBrowserMode {
+  return model === 'semantic-model' ? 'complete' : (requestedMode ?? defaultMode(model))
 }
 
 /** Identities the actor may focus in a view; shared by clamping and the actor→controller mirror. */
 function focusableIdentities(
-  state: Pick<SemanticBrowserState, 'viewSelection' | 'changeSelection'>,
+  state: Pick<SemanticBrowserState, 'modelSelection' | 'viewSelection'>,
   manifest: SemanticBrowserManifest,
 ): Set<string> {
-  const changeSource = state.changeSelection ? changeSourceFor(manifest, state.changeSelection) : undefined
-  return new Set([
-    ...sourceForView(manifest, state.viewSelection),
-    ...(changeSource?.architecture?.elements ?? []).map(element => element.declaration.identity),
-  ])
+  return new Set(sourceForView(manifest, state.modelSelection, state.viewSelection))
 }
 
 /**
@@ -147,24 +168,22 @@ export function mirrorActorFocus(
 }
 
 function clampState(state: SemanticBrowserState, manifest: SemanticBrowserManifest): SemanticBrowserState {
-  const viewSelection = validViews(manifest).has(state.viewSelection) ? state.viewSelection : 'model'
-  const changeSelection = state.changeSelection && validChanges(manifest).has(state.changeSelection)
-    ? state.changeSelection
-    : null
-  const normalizedState = { ...state, viewSelection, changeSelection }
+  const modelSelection = validModels(manifest).has(state.modelSelection) ? state.modelSelection : 'semantic-model'
+  const viewSelection = validViews(manifest, modelSelection).has(state.viewSelection) ? state.viewSelection : 'full-model'
+  const normalizedState = { ...state, modelSelection, viewSelection }
   const allowed = focusableIdentities(normalizedState, manifest)
   const focus = state.focus && allowed.has(state.focus) ? state.focus : null
   const expanded = new Set([...state.expanded].filter(identity => allowed.has(identity)))
-  const presentationMode = normalizeMode(changeSelection, state.presentationMode)
-  return { viewSelection, changeSelection, presentationMode, focus, expanded }
+  const presentationMode = normalizeMode(modelSelection, state.presentationMode)
+  return { modelSelection, viewSelection, presentationMode, focus, expanded }
 }
 
 export function reconcileSemanticBrowserState(
   state: SemanticBrowserState,
   manifest: SemanticBrowserManifest,
 ): SemanticBrowserState {
-  const changeRemoved = state.changeSelection !== null && !validChanges(manifest).has(state.changeSelection)
-  return clampState(changeRemoved ? { ...state, expanded: new Set() } : state, manifest)
+  const modelRemoved = state.modelSelection !== 'semantic-model' && !validModels(manifest).has(state.modelSelection)
+  return clampState(modelRemoved ? { ...state, expanded: new Set() } : state, manifest)
 }
 
 export function createSemanticBrowserState(
@@ -172,14 +191,17 @@ export function createSemanticBrowserState(
   url: SemanticBrowserUrlState = {},
   history: SemanticBrowserHistoryState = { expanded: [] },
 ): SemanticBrowserState {
-  const change = url.change && validChanges(manifest).has(url.change) ? url.change : null
+  const requestedModel = url.model === 'candidate' || (url.model?.startsWith('change:') && url.model.length > 'change:'.length)
+    ? url.model as SemanticBrowserModelSelection
+    : 'semantic-model'
+  const modelSelection = validModels(manifest).has(requestedModel) ? requestedModel : 'semantic-model'
   const requestedMode = url.mode === 'diff-only' || url.mode === 'complete-with-diff' || url.mode === 'complete'
     ? url.mode
     : undefined
-  const mode = normalizeMode(change, requestedMode)
+  const mode = normalizeMode(modelSelection, requestedMode)
   return clampState({
-    viewSelection: url.view && validViews(manifest).has(url.view) ? url.view : 'model',
-    changeSelection: change,
+    modelSelection,
+    viewSelection: url.view && validViews(manifest, modelSelection).has(url.view) ? url.view : 'full-model',
     presentationMode: mode,
     focus: url.focus ?? null,
     expanded: new Set(history.expanded),
@@ -194,16 +216,16 @@ export function reduceSemanticBrowserState(
   switch (action.type) {
     case 'view.select':
       return clampState({ ...state, viewSelection: action.view }, manifest)
-    case 'change.select':
+    case 'model.select':
       return clampState({
         ...state,
-        changeSelection: action.change,
-        presentationMode: defaultMode(action.change),
+        modelSelection: action.model,
+        presentationMode: defaultMode(action.model),
       }, manifest)
     case 'mode.select':
       return clampState({
         ...state,
-        presentationMode: state.changeSelection === null ? 'complete' : action.mode,
+        presentationMode: state.modelSelection === 'semantic-model' ? 'complete' : action.mode,
       }, manifest)
     case 'focus.select':
       return clampState({ ...state, focus: action.focus }, manifest)
@@ -220,9 +242,9 @@ export function reduceSemanticBrowserState(
 
 export function encodeSemanticBrowserUrl(state: SemanticBrowserState): SemanticBrowserUrlState {
   return {
-    ...(state.viewSelection !== 'model' ? { view: state.viewSelection } : {}),
-    ...(state.changeSelection ? { change: state.changeSelection } : {}),
-    ...(state.changeSelection && state.presentationMode !== defaultMode(state.changeSelection)
+    ...(state.viewSelection !== 'full-model' ? { view: state.viewSelection } : {}),
+    ...(state.modelSelection !== 'semantic-model' ? { model: state.modelSelection } : {}),
+    ...(state.modelSelection !== 'semantic-model' && state.presentationMode !== defaultMode(state.modelSelection)
       ? { mode: state.presentationMode }
       : {}),
     ...(state.focus ? { focus: state.focus } : {}),
@@ -239,7 +261,7 @@ export function projectionRequestForSemanticBrowser(
 ): ProjectionRequestDescriptor {
   return {
     viewId: state.viewSelection,
-    change: state.changeSelection,
+    model: state.modelSelection,
     mode: state.presentationMode,
     focus: state.focus,
     expanded: [...state.expanded].sort(),
@@ -271,7 +293,7 @@ export function SemanticBrowserControllerProvider({
     state,
     dispatch,
     selectView: view => dispatch({ type: 'view.select', view }),
-    selectChange: change => dispatch({ type: 'change.select', change }),
+    selectModel: model => dispatch({ type: 'model.select', model }),
     selectMode: mode => dispatch({ type: 'mode.select', mode }),
     selectFocus: focus => dispatch({ type: 'focus.select', focus }),
     setExpanded: expanded => dispatch({ type: 'expanded.set', expanded }),
@@ -312,13 +334,15 @@ export function SemanticBrowserRuntimeProvider({
 }
 
 /** Canonical URL-state key shared by the URL-apply and URL-commit effects; they must never drift. */
-function canonicalSearchKey(search: Pick<SearchParams, 'view' | 'change' | 'mode' | 'focus'>): string {
-  const change = search.change ?? null
-  const normalizedMode = normalizeMode(change, search.mode)
+function canonicalSearchKey(search: Pick<SearchParams, 'view' | 'model' | 'mode' | 'focus'>): string {
+  const model = (search.model === 'candidate' || search.model?.startsWith('change:')
+    ? search.model
+    : 'semantic-model') as SemanticBrowserModelSelection
+  const normalizedMode = normalizeMode(model, search.mode)
   return JSON.stringify({
-    view: search.view === 'model' ? undefined : search.view,
-    change: search.change,
-    mode: normalizedMode === defaultMode(change) ? undefined : normalizedMode,
+    view: search.view === 'full-model' ? undefined : search.view,
+    model: search.model,
+    mode: normalizedMode === defaultMode(model) ? undefined : normalizedMode,
     focus: search.focus,
   })
 }
@@ -352,7 +376,7 @@ export function SemanticBrowserRouteSync() {
         if (abort.signal.aborted) return
         runtime.applyBrowserProjection({
           viewId: controller.state.viewSelection,
-          change: controller.state.changeSelection,
+          model: controller.state.modelSelection,
           mode: controller.state.presentationMode === 'diff-only' ? 'diff' : 'full',
           showDiff: controller.state.presentationMode !== 'complete',
           projectionKey: result.projectionKey,
@@ -384,10 +408,15 @@ export function SemanticBrowserRouteSync() {
     if (current === lastCommitted.current) return
     applyingUrl.current = true
     controller.dispatch({ type: 'view.select', view: search.view })
-    controller.dispatch({ type: 'change.select', change: search.change ?? null })
-    controller.dispatch({ type: 'mode.select', mode: search.mode ?? defaultMode(search.change ?? null) })
+    controller.dispatch({
+      type: 'model.select',
+      model: search.model === 'candidate' || search.model?.startsWith('change:')
+        ? search.model as SemanticBrowserModelSelection
+        : 'semantic-model',
+    })
+    controller.dispatch({ type: 'mode.select', mode: search.mode ?? defaultMode('semantic-model') })
     controller.dispatch({ type: 'focus.select', focus: search.focus ?? null })
-  }, [controller, search.change, search.focus, search.mode, search.view])
+  }, [controller, search.model, search.focus, search.mode, search.view])
 
   useEffect(() => {
     if (!controller || !initializedUrl.current) return
@@ -410,13 +439,13 @@ export function SemanticBrowserRouteSync() {
       viewTransition: false,
       search: previous => {
         const nextSearch = { ...previous, ...next }
-        for (const key of ['view', 'change', 'mode', 'focus'] as const) {
+        for (const key of ['view', 'model', 'mode', 'focus'] as const) {
           if (!(key in next)) delete nextSearch[key]
         }
         return nextSearch
       },
     })
-  }, [controller, navigate, search.change, search.focus, search.mode, search.view, controller?.state])
+  }, [controller, navigate, search.model, search.focus, search.mode, search.view, controller?.state])
 
   const architectureRoot = runtime.selected.roots?.[0]
     ?? runtime.selected.architecture?.elements.find(element => element.declaration.parent === null)?.declaration.identity
@@ -495,28 +524,38 @@ const semanticBrowserControlsChip = css({
 function SemanticBrowserControlsSelects() {
   const controller = useContext(SemanticBrowserControllerContext)
   if (!controller) return null
-  const { manifest, state, selectView, selectChange, selectMode } = controller
+  const { manifest, state, selectView, selectModel, selectMode } = controller
   const viewOptions = [
-    { value: 'model', label: 'Model View' },
-    ...Object.entries(manifest.authoredViews).map(([id, view]) => ({ value: id, label: view.title })),
+    { value: 'full-model', label: manifest.model.label ?? 'Full Model' },
+    ...Object.entries(sourceViewsFor(manifest, state.modelSelection))
+      .map(([id, view]) => ({ value: id, label: view.title })),
   ]
-  const changeOptions = [
-    { value: '', label: 'No Change' },
-    ...(manifest.candidate ? [{ value: 'candidate', label: manifest.candidate.label }] : []),
-    ...Object.entries(manifest.changes).map(([id, change]) => ({ value: id, label: change.label })),
+  const modelOptions = [
+    { value: 'semantic-model', label: 'Semantic Model' },
+    ...(manifest.candidate ? [{ value: 'candidate', label: manifest.candidate.label ?? 'Candidate' }] : []),
+    ...Object.entries(manifest.changes).map(([id, change]) => ({ value: `change:${id}`, label: change.label })),
   ]
-  const modeOptions = state.changeSelection === 'candidate'
+  const modeOptions = state.modelSelection === 'semantic-model'
     ? [
         { value: 'complete', label: 'Complete' },
-        { value: 'diff-only', label: 'Diff only' },
+        { value: 'complete-with-diff', label: 'Complete with diff', disabled: true },
+        { value: 'diff-only', label: 'Diff only', disabled: true },
       ]
     : [
         { value: 'complete', label: 'Complete' },
-        { value: 'complete-with-diff', label: 'Complete with diff', disabled: state.changeSelection === null },
-        { value: 'diff-only', label: 'Diff only', disabled: state.changeSelection === null },
+        { value: 'complete-with-diff', label: 'Complete with diff' },
+        { value: 'diff-only', label: 'Diff only' },
       ]
   return (
     <>
+      <NativeSelect
+        aria-label="Model Selection"
+        label="Model"
+        size="xs"
+        value={state.modelSelection}
+        data={modelOptions}
+        onChange={event => selectModel(event.currentTarget.value as SemanticBrowserModelSelection)}
+      />
       <NativeSelect
         aria-label="View Selection"
         label="View"
@@ -524,14 +563,6 @@ function SemanticBrowserControlsSelects() {
         value={state.viewSelection}
         data={viewOptions}
         onChange={event => selectView(event.currentTarget.value)}
-      />
-      <NativeSelect
-        aria-label="Change Selection"
-        label="Change"
-        size="xs"
-        value={state.changeSelection ?? ''}
-        data={changeOptions}
-        onChange={event => selectChange(event.currentTarget.value || null)}
       />
       <NativeSelect
         aria-label="Presentation Mode"

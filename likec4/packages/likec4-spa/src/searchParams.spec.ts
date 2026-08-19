@@ -11,23 +11,23 @@ describe('resolveForceColorScheme', () => {
 })
 
 describe('Xirang navigation params', () => {
-  it('defaults view to model and leaves mode, change and focus absent', () => {
+  it('defaults view to full-model and leaves mode, model and focus absent', () => {
     const parsed = searchParamsSchema.parse({})
-    expect(parsed.view).toBe('model')
-    expect(parsed.change).toBeUndefined()
+    expect(parsed.view).toBe('full-model')
+    expect(parsed.model).toBeUndefined()
     expect(parsed.mode).toBeUndefined()
     expect(parsed.focus).toBeUndefined()
   })
 
-  it('parses explicit view, change, focus and mode values', () => {
+  it('parses explicit view, model, focus and mode values', () => {
     const parsed = searchParamsSchema.parse({
       view: 'overview',
-      change: 'browser-change',
+      model: 'change:browser-change',
       focus: 'capability.drill',
       mode: 'diff-only',
     })
     expect(parsed.view).toBe('overview')
-    expect(parsed.change).toBe('browser-change')
+    expect(parsed.model).toBe('change:browser-change')
     expect(parsed.focus).toBe('capability.drill')
     expect(parsed.mode).toBe('diff-only')
   })

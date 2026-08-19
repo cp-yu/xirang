@@ -21,7 +21,7 @@ async function expectVisibleNodesDoNotOverlap(page: Page): Promise<void> {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/view/model/')
+  await page.goto('/view/full-model/')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 })
 
@@ -36,7 +36,7 @@ async function waitForViewportSettled(page: Page): Promise<void> {
   }, { timeout: 10_000 }).toBe(true)
 }
 
-test('browses Model View through nested focus and history', async ({ page }) => {
+test('browses Full Model through nested focus and history', async ({ page }) => {
   const perspective = page.locator('.react-flow__node[data-xirang-identity="perspective.browser"]')
   await expect(perspective).toBeVisible()
   await expect(page.locator('body')).not.toContainText('untitled')
@@ -61,10 +61,10 @@ test('browses Model View through nested focus and history', async ({ page }) => 
   await perspective.dblclick()
   const branch = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
   await expect(branch).toBeVisible()
-  await expect(page).toHaveURL(/\/view\/model\//)
+  await expect(page).toHaveURL(/\/view\/full-model\//)
   await expect(page).toHaveURL(/focus=perspective\.browser/)
 
-  await page.goto('/view/model/?focus=capability.drill')
+  await page.goto('/view/full-model/?focus=capability.drill')
   await expect(page).toHaveURL(/focus=capability\.drill/)
   const leaf = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')
   await expect(leaf).toBeVisible()
@@ -77,7 +77,7 @@ test('browses Model View through nested focus and history', async ({ page }) => 
 })
 
 test('handles ADDED projection interactions and split diffs', async ({ page }) => {
-  await page.getByLabel('Change Selection').selectOption('browser-change')
+  await page.getByLabel('Model Selection').selectOption('change:browser-change')
 
   const manifest = await page.request.get('/__xirang/changes')
   expect(manifest.ok()).toBe(true)
@@ -117,7 +117,7 @@ test('handles ADDED projection interactions and split diffs', async ({ page }) =
 })
 
 test('opens ADDED element details by single click with semantic identity', async ({ page }) => {
-  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete-with-diff')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   const parent = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
@@ -148,7 +148,7 @@ test('opens ADDED element details by single click with semantic identity', async
   await expect(contracts).not.toContainText('Missing project or element')
 
   // complete 模式（无 diff overlay）同样以语义 identity 渲染声明内容。
-  await page.goto('/view/model/?change=browser-change&mode=complete')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
   await expect(parent).toBeVisible()
   await parent.click({ position: { x: 20, y: 20 } })
@@ -164,7 +164,7 @@ test('refreshes the model through HMR and keeps an equivalent Authored layout', 
   await expect(page).toHaveURL(/view=model-equivalent/)
   await expect(page.locator('.react-flow__node:visible')).not.toHaveCount(0)
   await page.screenshot({ path: test.info().outputPath('model-equivalent-authored.png'), fullPage: true })
-  await page.getByLabel('View Selection').selectOption('model')
+  await page.getByLabel('View Selection').selectOption('full-model')
   const manifestBefore = await page.request.get('/__xirang/changes').then(response => response.json()) as { modelFingerprint: string }
   const elementFile = path.join(process.cwd(), 'test/fixtures/contract-browser/.xirang/model/elements/none.md')
   const original = await fs.readFile(elementFile, 'utf8')
@@ -187,7 +187,7 @@ test('refreshes the model through HMR and keeps an equivalent Authored layout', 
 })
 
 test('renders each Change presentation mode with distinct membership and overlays', async ({ page }) => {
-  await page.getByLabel('Change Selection').selectOption('browser-change')
+  await page.getByLabel('Model Selection').selectOption('change:browser-change')
   const parent = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"]')
   await expect(parent).toBeVisible()
   await expect(parent).toHaveAttribute('data-xirang-operation', 'ADDED')
@@ -196,7 +196,7 @@ test('renders each Change presentation mode with distinct membership and overlay
   await expect(parent).toBeVisible()
   await expect(parent).not.toHaveAttribute('data-xirang-operation')
 
-  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete-with-diff&focus=capability.drill')
   const removed = page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')
   // complete-with-diff renders the Change target sources: REMOVED elements stay out of the layout.
   await expect(removed).toHaveCount(0)
@@ -246,7 +246,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   })
 
   // Root focus: ADDED compound node with dotted outline.
-  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete-with-diff')
 
   // Auto-fit may animate the viewport; wait until the transform settles before measuring.
   await waitForViewportSettled(page)
@@ -273,7 +273,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect((await addedBadge.boundingBox())?.x).toBeGreaterThanOrEqual((await added.boundingBox())?.x ?? 0)
 
   // Drill focus: unchanged assistant node + edge, MODIFIED leaf, REMOVED peer.
-  await page.goto('/view/model/?change=browser-change&mode=complete-with-diff&focus=capability.drill')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete-with-diff&focus=capability.drill')
   await waitForViewportSettled(page)
 
   const unchangedLeaf = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"] .likec4-element-node')
@@ -304,7 +304,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"]')).toHaveCount(0)
   await expect(page.locator('[data-xirang-edge-diff][aria-label="Relationship REMOVED"]')).toHaveCount(0)
 
-  await page.goto('/view/model/?change=browser-change&mode=diff-only&focus=capability.drill')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=diff-only&focus=capability.drill')
   await waitForViewportSettled(page)
 
   const peer = page.locator('.react-flow__node[data-xirang-identity="capability.peer"] .likec4-element-node')
@@ -324,7 +324,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
 
   // Complete mode (no diff overlay) keeps leaf nodes at full opacity — the LikeC4 default
   // style opacity must not leak into the rendered element.
-  await page.goto('/view/model/?change=browser-change&mode=complete')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=complete')
   const plainLeaf = page.locator('.react-flow__node[data-xirang-identity="single"] .likec4-element-node')
   await expect(plainLeaf).toBeVisible()
   expect((await nodeStyle(plainLeaf)).opacity).toBeGreaterThan(0.9)
@@ -353,7 +353,7 @@ test('expands in place with ctrl+click and collapses with Shift+0', async ({ pag
 })
 
 test('fits the diagram after switching', async ({ page }) => {
-  await page.goto('/view/model/?change=browser-change&mode=diff-only')
+  await page.goto('/view/full-model/?model=change:browser-change&mode=diff-only')
   await expect(page.locator('.react-flow__pane')).toBeVisible({ timeout: 20_000 })
 
   const nodeCount = () => page.locator('.react-flow__node').count()
@@ -394,10 +394,10 @@ test('fits the diagram after switching', async ({ page }) => {
   await expect.poll(async () =>
     await allNodesWithinViewport() && await viewportTransform(page) !== beforeMode, { timeout: 10_000 }).toBe(true)
 
-  // Change switch re-fits the new content.
+  // Model switch re-fits the new content.
   const beforeChangeTransform = await viewportTransform(page)
   const beforeChangeCount = await nodeCount()
-  await page.getByLabel('Change Selection').selectOption('')
+  await page.getByLabel('Model Selection').selectOption('semantic-model')
   await expect.poll(async () =>
     await allNodesWithinViewport()
       && (await viewportTransform(page) !== beforeChangeTransform || await nodeCount() !== beforeChangeCount),
@@ -405,7 +405,7 @@ test('fits the diagram after switching', async ({ page }) => {
   // Let the previous re-fit animation settle before the next switch measurement.
   await waitForViewportSettled(page)
 
-  // View switch re-fits the new content. `model-equivalent` is layout-equivalent to Model,
+  // View switch re-fits the new content. `model-equivalent` is layout-equivalent to Full Model,
   // so an unchanged transform is acceptable as long as the switch itself is applied.
   const beforeView = await viewportTransform(page)
   await page.getByLabel('View Selection').selectOption('model-equivalent')

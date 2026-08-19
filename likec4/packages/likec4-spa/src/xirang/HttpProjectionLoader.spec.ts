@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { HttpProjectionLoader, XirangProjectionError } from './HttpProjectionLoader'
 
 const request = {
-  viewId: 'model',
-  change: 'auth',
+  viewId: 'full-model',
+  model: 'change:auth' as const,
   mode: 'complete-with-diff' as const,
   focus: null,
   expanded: ['root.api'],

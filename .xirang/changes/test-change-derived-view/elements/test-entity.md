@@ -3,9 +3,9 @@ operation: ADDED
 entity: element-declaration
 identity: test-entity
 kind: test-component
-parent: derived-views
+parent: view-composition
 title: "Test Entity"
-definition: 用于验证 Change-derived View 渲染的测试 Element。它独立建模以提供一个可观察的语义 Delta 实体，供 Change-derived View 呈现 ADDED 差异。它包含一个简单 Requirement 与一个 Scenario，不包含任何真实项目功能，与 siblings 无关。
+definition: 用于验证 Change-derived View 渲染的测试 Element。它独立建模以提供一个可观察的语义 Delta 实体，供 Change-derived View 呈现 ADDED 差异。它包含一个简单 Requirement 与一个 Scenario，不包含任何真实项目功能，与 view-composition 的其他 children 无关。
 ---
 
 ## ADDED Requirements

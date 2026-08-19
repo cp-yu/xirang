@@ -36,7 +36,7 @@ export class HttpContractLoader implements XirangContractLoader {
       throw new Error(typeof errorPayload.error === 'string' ? errorPayload.error : `Unable to load active changes (${response.status})`)
     }
     if (!payload || typeof payload !== 'object'
-      || (payload as { version?: unknown }).version !== 4
+      || (payload as { version?: unknown }).version !== 5
       || !('model' in payload) || !('authoredViews' in payload) || !('changes' in payload)) {
       throw new Error('Invalid active change response')
     }
