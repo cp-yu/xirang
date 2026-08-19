@@ -177,6 +177,7 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('persistent or one-time verification');
     expect(template).toContain('no persistent test file');
     expect(template).toContain('reuse, modify, add, delete');
+    expect(template).toContain('authoritative suite');
     expect(template).not.toContain('fail-closed');
   });
 

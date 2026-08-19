@@ -162,10 +162,12 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('Production code, configuration, generated surfaces, and tests');
     expect(body).toContain('MUST remain in one task');
     expect(body).toContain('each task reaches its own GREEN independently');
+    expect(body).toContain('cross-check Goals, Files, Requirements, and Checks');
+    expect(body).toContain('persistent tests only lock wording');
     expect(body).toContain('depends only on an earlier task that is already GREEN');
     expect(body).toMatch(/a task's RED\/GREEN cycle MUST NOT depend on a later task/i);
-    expect(body).toContain('Do not split tasks by component, module, directory, file type, or Requirement count');
-    expect(body).toContain('reconcile task boundaries before declaring the Change ready for Apply');
+    expect(body).toContain('Do not split tasks by component, module, directory, file type, Requirement count, or Scenario count');
+    expect(body).toContain('reconcile those Checks and task boundaries before declaring the Change ready for Apply');
   });
 
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {

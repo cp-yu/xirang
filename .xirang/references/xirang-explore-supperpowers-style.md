@@ -80,7 +80,7 @@ Advance the design by section; do not dump a complete solution all at once. Comm
 
 Confirm only the applicable design sections. Complex changes usually need all six; narrow changes may omit sections that have no decision to make, but still require problem, impact scope, approach, and verification confirmation. Wait for user confirmation at the end of each section. When the user requests changes, revise only the current section and reconfirm before continuing.
 
-**Testing Strategy**: Apply Test Quality Guidance before classifying work. Identify the observable behavior at risk, inspect existing coverage, then choose reuse, modify, add, delete, or one-time verification. Do not plan one persistent test per Scenario. Classify remaining items as persistent (test suite) or one-time verification (no persistent test file). When one-time items exist, add a `One-time Verification` subsection.
+**Testing Strategy**: Apply Test Quality Guidance before classifying work. Identify the observable behavior at risk, inspect existing coverage, then choose reuse, modify, add, delete, or one-time verification. Do not plan one persistent test per Scenario. Classify remaining items as persistent (test suite) or one-time verification (no persistent test file). When architecture or API change affects existing tests, list reuse/modify/delete/add/one-time items with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a `One-time Verification` subsection.
 
 ## Design Summary self-review
 
