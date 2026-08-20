@@ -151,8 +151,8 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain('## Implementation Discipline');
     expect(instructions).toContain('Phase 0 implementation — process all pending tasks and Required Corrections as task-level TDD loops');
-    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]`');
-    expect(discipline).toContain('Each task is one task-level TDD loop');
+    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks');
+    expect(discipline).toContain('Each task is one TDD loop');
     expect(discipline).toContain('Assess interface testability before writing tests');
     expect(discipline).toContain('Exercise public behavior; mock only injected system boundaries, never internal collaborators');
     expect(discipline).toContain('honor the declared Test action');
@@ -171,7 +171,7 @@ describe('apply change workflow template', () => {
   it('runs task-level TDD before one change-level Phase 1 review', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Each task is one task-level TDD loop');
+    expect(instructions).toContain('Each task is one TDD loop');
     expect(instructions).toContain('completing one task does not leave Phase 0');
     expect(instructions).toContain('Completing one ordinary task MUST NOT trigger Phase 1');
     expect(instructions).toContain('Only after every pending task and Required Correction is complete');
