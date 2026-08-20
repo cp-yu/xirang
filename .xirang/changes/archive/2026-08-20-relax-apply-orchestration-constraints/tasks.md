@@ -43,3 +43,12 @@
   - Verifies: `elements/apply-workflow.md` / Requirement "Apply 模板 SHALL 处理中间验证状态" / Scenario "needs_verify 状态进入 Phase 1" / Scenario "needs_seal 状态进入 Phase 2/3" / Scenario "Dashboard 分类标签不声称完成"
   - Command: `pnpm exec vitest run test/core/templates/skill-templates-parity.test.ts test/core/templates/semantic-model-consistency.test.ts && pnpm exec tsc --noEmit`
   - Expect: Canonical template projections remain consistent, shared Semantic Model guidance remains valid, and TypeScript type checking passes.
+
+## Required Corrections
+
+### [code_fix] Restore Required Corrections-first instruction
+
+- [x] Restore Implementation Discipline to process unfinished Required Corrections before pending tasks, without restoring serial/Master/subagent constraints
+  - Verifies: `elements/task-decomposition.md` / Requirement "Checks 是任务进度源" / Scenario "Required Corrections 优先"
+  - Command: `pnpm exec vitest run test/core/templates/apply-change.test.ts`
+  - Expect: Implementation Discipline still keeps task-level TDD and the Change-level Review barrier, and tells Apply to process unfinished Required Corrections before pending tasks.
