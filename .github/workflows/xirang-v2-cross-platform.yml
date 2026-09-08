@@ -56,6 +56,10 @@ jobs:
       - name: Build vendored LikeC4 runtime
         run: pnpm --dir likec4 build
 
+      - name: Install Google Chrome
+        if: runner.os == 'macOS'
+        run: brew install --cask google-chrome
+
       - name: Install Chromium dependencies
         if: runner.os == 'Linux'
         run: pnpm exec playwright install --with-deps chromium
