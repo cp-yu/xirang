@@ -20,8 +20,10 @@ describe.runIf(Boolean(outputPath))('arch impact locale process fixture', () => 
         elements: [
           { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' },
           { identity: 'cap.focus', parent: 'project.root', title: 'Focus', definition: 'Impact focus' },
-          { identity: 'cap.I', parent: 'project.root', title: 'Upper', definition: 'Upper branch' },
-          { identity: 'cap.i', parent: 'project.root', title: 'Lower', definition: 'Lower branch' },
+          // File names must not differ only by case: case-insensitive filesystems
+          // (macOS, Windows) would collapse them into one unit.
+          { identity: 'cap.I', fileName: 'cap-upper-i', parent: 'project.root', title: 'Upper', definition: 'Upper branch' },
+          { identity: 'cap.i', fileName: 'cap-lower-i', parent: 'project.root', title: 'Lower', definition: 'Lower branch' },
           { identity: 'cap.target', parent: 'project.root', title: 'Target', definition: 'Shared target' },
         ],
         relationships: [

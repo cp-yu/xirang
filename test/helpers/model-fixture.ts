@@ -9,6 +9,8 @@ export interface ElementFixture {
   title?: string;
   definition?: string;
   requirements?: string;
+  /** Override the unit filename when identities would collide on case-insensitive filesystems. */
+  fileName?: string;
 }
 
 export interface ElementKindFixture {
@@ -68,7 +70,7 @@ export async function writeModel(root: string, fixture: ModelFixture): Promise<v
     );
   }
   for (const element of fixture.elements ?? []) {
-    await fs.writeFile(path.join(root, 'elements', `${element.identity}.md`), elementUnit(element), 'utf8');
+    await fs.writeFile(path.join(root, 'elements', `${element.fileName ?? element.identity}.md`), elementUnit(element), 'utf8');
   }
   const byKind = new Map<string, string[]>();
   for (const relationship of fixture.relationships ?? []) {
