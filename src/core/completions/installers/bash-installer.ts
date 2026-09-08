@@ -100,7 +100,8 @@ export class BashInstaller {
    * @returns Configuration content
    */
   private generateBashrcConfig(completionsDir: string): string {
-    const completionFile = path.join(completionsDir, 'xirang');
+    // bash expects POSIX separators even when homeDir comes from Windows.
+    const completionFile = path.join(completionsDir, 'xirang').replace(/\\/g, '/');
     return [
       '# Xirang shell completions configuration',
       `if [ -f "${completionFile}" ]; then`,

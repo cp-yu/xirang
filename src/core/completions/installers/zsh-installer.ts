@@ -104,9 +104,11 @@ export class ZshInstaller {
    * @returns Configuration content
    */
   private generateZshrcConfig(completionsDir: string): string {
+    // zsh expects POSIX separators even when homeDir comes from Windows.
+    const posixDir = completionsDir.replace(/\\/g, '/');
     return [
       '# Xirang shell completions configuration',
-      `fpath=("${completionsDir}" $fpath)`,
+      `fpath=("${posixDir}" $fpath)`,
       'autoload -Uz compinit',
       'compinit',
     ].join('\n');

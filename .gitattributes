@@ -1,0 +1,16 @@
+# Normalize all text files to LF on every platform so content assertions
+# and generated artifacts behave identically across OSes.
+* text=auto eol=lf
+
+# Explicit binaries (git text=auto usually detects these; listed for safety).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.wasm binary

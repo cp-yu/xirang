@@ -10,8 +10,11 @@ import {
 
 describe('framing paths', () => {
   it('constructs a direct-child managed path', () => {
-    expect(managedFramingPath('/repo', 'definition-first', '20260729T120000Z-a1b2c3d4')).toBe(
-      path.join('/repo', '.xirang', 'changes', '.explore-definition-first-20260729T120000Z-a1b2c3d4.md'),
+    // Resolve the fixture root so Windows maps '/' to the current drive the
+    // same way the implementation does.
+    const repo = path.resolve('/repo');
+    expect(managedFramingPath(repo, 'definition-first', '20260729T120000Z-a1b2c3d4')).toBe(
+      path.join(repo, '.xirang', 'changes', '.explore-definition-first-20260729T120000Z-a1b2c3d4.md'),
     );
   });
 

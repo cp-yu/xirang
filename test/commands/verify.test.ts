@@ -5,7 +5,6 @@ import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
 import * as freshness from '../../src/core/verify/freshness.js';
-import { FileSystemUtils } from '../../src/utils/file-system.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 const execFileAsync = promisify(execFile);
@@ -112,10 +111,13 @@ describe('xirang verify command', () => {
 
     expect(result.exitCode, result.stdout).toBe(0);
     expect(hashFiles).toHaveBeenCalledTimes(1);
-    // The CLI canonicalizes the workspace root (realpathSync.native) before
-    // hashing; expect the canonical form so macOS symlinks and Windows short
-    // paths align.
-    expect(hashFiles).toHaveBeenCalledWith(['src/b.ts', 'src/a.ts'], FileSystemUtils.canonicalizeExistingPath(tempDir));
+    // The CLI hashes against process.cwd() after chdir: Unix getcwd resolves
+    // symlinks (/var -> /private/var), Windows preserves the path as given
+    // (RUNNER~1 short names stay).
+    const expectedRoot = process.platform === 'win32'
+      ? tempDir
+      : (await fs.realpath(tempDir));
+    expect(hashFiles).toHaveBeenCalledWith(['src/b.ts', 'src/a.ts'], expectedRoot);
     expect(JSON.parse(result.stdout).result.optimization.findings[0].targetFileHashes)
       .toEqual({ 'src/b.ts': expect.any(String) });
   });

@@ -36,10 +36,16 @@ async function writeDeepModel(root) {
     ...identities.slice(1).reverse().map((identity, index) => elementUnit(identity, 'capability', identities[depth - index - 2])),
     elementUnit(identities[0], 'project', null),
   ];
-  await Promise.all(elements.map((content, index) => {
-    const identity = index < depth - 1 ? identities[depth - index - 1] : identities[0];
-    return fs.writeFile(path.join(modelRoot, 'elements', `${identity}.md`), content, 'utf8');
-  }));
+  // Write in bounded batches: 20k concurrent open handles exhaust the fd
+  // limit on macOS and Windows (Linux tolerates it).
+  const BATCH = 256;
+  for (let start = 0; start < elements.length; start += BATCH) {
+    await Promise.all(elements.slice(start, start + BATCH).map((content, offset) => {
+      const index = start + offset;
+      const identity = index < depth - 1 ? identities[depth - index - 1] : identities[0];
+      return fs.writeFile(path.join(modelRoot, 'elements', `${identity}.md`), content, 'utf8');
+    }));
+  }
 }
 
 async function writeLeafModel(root) {
