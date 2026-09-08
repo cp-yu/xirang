@@ -102,7 +102,7 @@ describe('architecture outline', () => {
 
   afterEach(async () => {
     await fs.rm(root, { recursive: true, force: true });
-  });
+  }, 180_000); // deep tests create 20k files; removal exceeds 30s on Windows/macOS
 
   it('projects the complete hierarchy, relationships, and metamodel without Views or Contracts', async () => {
     const result = await outlineArchitecture(root);
