@@ -51,7 +51,7 @@ test('exports the current focus and expand-in-place state', async ({ page }) => 
 
   const drill = page.locator('.react-flow__node[data-xirang-identity="capability.drill"]')
   await expect(drill).toBeVisible()
-  await drill.click({ modifiers: ['Control'] })
+  await drill.click({ modifiers: ['ControlOrMeta'] })
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
   await expect.poll(async () => visibleNodeIds(page), { timeout: 10_000 })
     .toEqual(['capability.assistant', 'capability.drill', 'capability.leaf', 'capability.peer', 'perspective.browser'])
@@ -101,7 +101,7 @@ test('exports the complete model structure for file formats', async ({ page }) =
   // Focus and expand in place, then verify file-format exports stay global (declared scope).
   await page.goto('/view/full-model/?focus=perspective.browser')
   await expect(page).toHaveURL(/focus=perspective\.browser/)
-  await page.locator('.react-flow__node[data-xirang-identity="capability.drill"]').click({ modifiers: ['Control'] })
+  await page.locator('.react-flow__node[data-xirang-identity="capability.drill"]').click({ modifiers: ['ControlOrMeta'] })
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.leaf"]')).toBeVisible()
 
   // dot exports the complete compiled model view, independent of focus/expansion.

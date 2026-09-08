@@ -227,7 +227,8 @@ export function LikeC4DiagramXYFlow({
         if (e.detail >= 2) {
           return
         }
-        diagram.send({ type: 'xyflow.nodeClick', node, ctrlKey: e.ctrlKey })
+        // Ctrl (Win/Linux) or Cmd (macOS, where Ctrl+click is the system right-click).
+        diagram.send({ type: 'xyflow.nodeClick', node, ctrlKey: e.ctrlKey || e.metaKey })
         onNodeClick?.(diagram.findDiagramNode(node.id as NodeId)!, e)
       })}
       onNodeDoubleClick={useCallbackRef((e, node) => {
