@@ -6,7 +6,7 @@ import { artifactOutputExists, resolveArtifactOutputs } from '../../../src/core/
 import { resolveSchema } from '../../../src/core/artifact-graph/resolver.js';
 
 function canonical(targetPath: string): string {
-  return fs.realpathSync(targetPath);
+  return fs.realpathSync.native(targetPath);
 }
 
 describe('artifact-graph/outputs', () => {
@@ -25,7 +25,7 @@ describe('artifact-graph/outputs', () => {
     const filePath = path.join(tempDir, 'proposal.md');
     fs.writeFileSync(filePath, 'content');
 
-    expect(resolveArtifactOutputs(tempDir, 'proposal.md')).toEqual([fs.realpathSync(filePath)]);
+    expect(resolveArtifactOutputs(tempDir, 'proposal.md')).toEqual([fs.realpathSync.native(filePath)]);
     expect(artifactOutputExists(tempDir, 'proposal.md')).toBe(true);
   });
 
@@ -43,7 +43,7 @@ describe('artifact-graph/outputs', () => {
     fs.mkdirSync(nestedDir, { recursive: true });
     fs.writeFileSync(filePath, 'content');
 
-    expect(resolveArtifactOutputs(tempDir, 'specs/*/spec.md')).toEqual([fs.realpathSync(filePath)]);
+    expect(resolveArtifactOutputs(tempDir, 'specs/*/spec.md')).toEqual([fs.realpathSync.native(filePath)]);
     expect(artifactOutputExists(tempDir, 'specs/*/spec.md')).toBe(true);
   });
 
@@ -55,7 +55,7 @@ describe('artifact-graph/outputs', () => {
     fs.writeFileSync(matching, 'content');
     fs.writeFileSync(nonMatching, 'content');
 
-    expect(resolveArtifactOutputs(tempDir, 'specs/foo*.md')).toEqual([fs.realpathSync(matching)]);
+    expect(resolveArtifactOutputs(tempDir, 'specs/foo*.md')).toEqual([fs.realpathSync.native(matching)]);
   });
 
   it('supports question-mark glob patterns', () => {
@@ -65,7 +65,7 @@ describe('artifact-graph/outputs', () => {
     fs.writeFileSync(matching, 'content');
     fs.writeFileSync(path.join(specsDir, 'a10.md'), 'content');
 
-    expect(resolveArtifactOutputs(tempDir, 'specs/a?.md')).toEqual([fs.realpathSync(matching)]);
+    expect(resolveArtifactOutputs(tempDir, 'specs/a?.md')).toEqual([fs.realpathSync.native(matching)]);
   });
 
   it('supports character class glob patterns', () => {
@@ -78,8 +78,8 @@ describe('artifact-graph/outputs', () => {
     fs.writeFileSync(path.join(specsDir, 'c.md'), 'content');
 
     expect(resolveArtifactOutputs(tempDir, 'specs/[ab].md')).toEqual([
-      fs.realpathSync(aPath),
-      fs.realpathSync(bPath),
+      fs.realpathSync.native(aPath),
+      fs.realpathSync.native(bPath),
     ]);
   });
 
@@ -97,10 +97,10 @@ describe('artifact-graph/outputs', () => {
     fs.symlinkSync(realChangeDir, aliasChangeDir, process.platform === 'win32' ? 'junction' : 'dir');
 
     expect(resolveArtifactOutputs(aliasChangeDir, 'proposal.md')).toEqual([
-      fs.realpathSync(proposalPath),
+      fs.realpathSync.native(proposalPath),
     ]);
     expect(resolveArtifactOutputs(aliasChangeDir, 'specs/*/spec.md')).toEqual([
-      fs.realpathSync(specPath),
+      fs.realpathSync.native(specPath),
     ]);
   });
 

@@ -198,12 +198,15 @@ architecture:
   it.each(['depths', 'formatters'])('handles deep hierarchy %s without call-stack recursion', async mode => {
     const fixture = path.join(process.cwd(), 'test', 'fixtures', 'arch-outline-deep-process.fixture.mjs');
 
+    // A 20k-deep chain overflows a 512KB stack only if outline work recurses
+    // per depth level; the headroom above --stack-size=128 absorbs V8 frame
+    // size variance on macOS arm64 and Windows. 90s covers slow Windows fs.
     await expect(execFileAsync(process.execPath, [
-      '--stack-size=128',
+      '--stack-size=512',
       fixture,
       mode,
-    ], { cwd: process.cwd() })).resolves.toMatchObject({ stderr: '' });
-  });
+    ], { cwd: process.cwd(), timeout: 90_000 })).resolves.toMatchObject({ stderr: '' });
+  }, 120_000);
 
   it('is deterministic and does not create project state', async () => {
     const before = (await fs.readdir(root, { recursive: true })).sort();

@@ -40,7 +40,11 @@ if (!existsSync('likec4/node_modules')) {
 } else {
   console.log('\nRebuilding LikeC4...');
   try {
-    execFileSync('pnpm', ['--dir', 'likec4', 'build'], { stdio: 'inherit' });
+    // pnpm is a .cmd shim on Windows; execFileSync needs a shell to resolve it.
+    execFileSync('pnpm', ['--dir', 'likec4', 'build'], {
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    });
     console.log('\n✅ LikeC4 rebuilt successfully!');
   } catch (error) {
     console.error('\n❌ LikeC4 rebuild failed!');

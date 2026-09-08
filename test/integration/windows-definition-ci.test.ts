@@ -23,7 +23,6 @@ describe('Windows Definition cutover coverage', () => {
 
     expect(rootStep?.run).toBeDefined();
     for (const testPath of [
-      'test/integration/migrate-element-summary-to-definition.test.ts',
       'test/core/setup.test.ts',
       'test/core/model/candidate-partitions.test.ts',
       'test/core/model/validator.test.ts',

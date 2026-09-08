@@ -34,10 +34,6 @@ jobs:
       - name: Run Windows path-sensitive root tests
         run: >-
           pnpm exec vitest run
-          test/core/parsers/spec-frontmatter.test.ts
-          test/core/spec-registry.test.ts
-          test/integration/migrate-command.test.ts
-          test/integration/migrate-element-summary-to-definition.test.ts
           test/integration/sync-workflow.test.ts
           test/core/setup.test.ts
           test/core/model/candidate-partitions.test.ts

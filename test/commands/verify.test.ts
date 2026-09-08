@@ -5,6 +5,7 @@ import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
 import * as freshness from '../../src/core/verify/freshness.js';
+import { FileSystemUtils } from '../../src/utils/file-system.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 const execFileAsync = promisify(execFile);
@@ -111,7 +112,10 @@ describe('xirang verify command', () => {
 
     expect(result.exitCode, result.stdout).toBe(0);
     expect(hashFiles).toHaveBeenCalledTimes(1);
-    expect(hashFiles).toHaveBeenCalledWith(['src/b.ts', 'src/a.ts'], tempDir);
+    // The CLI canonicalizes the workspace root (realpathSync.native) before
+    // hashing; expect the canonical form so macOS symlinks and Windows short
+    // paths align.
+    expect(hashFiles).toHaveBeenCalledWith(['src/b.ts', 'src/a.ts'], FileSystemUtils.canonicalizeExistingPath(tempDir));
     expect(JSON.parse(result.stdout).result.optimization.findings[0].targetFileHashes)
       .toEqual({ 'src/b.ts': expect.any(String) });
   });
@@ -140,8 +144,8 @@ describe('xirang verify command', () => {
     })], { cwd: tempDir });
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('src/z-missing.ts');
-    expect(result.stderr).not.toContain('src/a-missing.ts');
+    expect(result.stderr).toContain(path.join('src', 'z-missing.ts'));
+    expect(result.stderr).not.toContain(path.join('src', 'a-missing.ts'));
   });
 
   it('selects the highest-priority actionable finding regardless of insertion order', async () => {
