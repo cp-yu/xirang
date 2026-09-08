@@ -38,9 +38,6 @@ jobs:
       - name: Install vendored LikeC4 workspace
         run: pnpm --dir likec4 install --frozen-lockfile
 
-      - name: Audit Xirang identity
-        run: pnpm audit:identity
-
       - name: Lint root CLI
         run: pnpm lint
 

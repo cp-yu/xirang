@@ -71,7 +71,7 @@ describe('xirang optimizer skill content', () => {
     expect(instructions).toContain('build');
     expect(instructions).toContain('.git');
     expect(instructions).toContain('xirang arch query');
-    expect(instructions).toContain('If relations are missing');
+    expect(instructions).toContain('If relationships are missing');
   });
 
   it('keeps codex and claude optimizer skill self-read sections equivalent', () => {

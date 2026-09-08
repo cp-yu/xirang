@@ -652,6 +652,11 @@ rules:
         expect(instructions.configProjection.prompt.fragments).toEqual([
           expect.objectContaining({ key: 'context', scope: 'global' }),
           expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Rule 1'] }),
+          expect.objectContaining({
+            key: 'architecture',
+            scope: 'global',
+            lines: ['architecture.outline.elementDefinitionDepth: 2'],
+          }),
         ]);
         expect(instructions.template).toContain('## Why');
         // Template should not contain context or rules
@@ -705,7 +710,14 @@ rules:
 
         expect(instructions.context).toBeUndefined();
         expect(instructions.rules).toBeUndefined();
-        expect(instructions.configProjection.prompt.fragments).toEqual([]);
+        // Functional defaults always project the unconditional architecture rule.
+        expect(instructions.configProjection.prompt.fragments).toEqual([
+          expect.objectContaining({
+            key: 'architecture',
+            scope: 'global',
+            lines: ['architecture.outline.elementDefinitionDepth: 2'],
+          }),
+        ]);
         expect(instructions.template).toContain('## Why');
       });
 
