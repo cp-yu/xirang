@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.0.1"
+  generatedBy: "0.1.0"
 ---
 
 Enter explore mode: investigate, clarify, compare, and help the user think before implementation.

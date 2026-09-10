@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI with candidate commands."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.0.1"
+  generatedBy: "0.1.0"
 ---
 
 Build the project Xirang Semantic Model from user-authorized intent and evidence.

@@ -828,7 +828,10 @@ Legacy content without generatedBy
     });
 
     it('should detect update needed when version differs', async () => {
-      // Set up a configured tool with old version
+      // Set up a configured tool with a stamp that differs from the current version.
+      // Derive the stale stamp from the real version so this test survives version bumps.
+      const { version } = await import('../../package.json');
+      const staleVersion = `${version}-stale`;
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), {
         recursive: true,
@@ -838,7 +841,7 @@ Legacy content without generatedBy
         `---
 name: xirang-explore
 metadata:
-  generatedBy: "0.1.0"
+  generatedBy: "${staleVersion}"
 ---
 
 Old version content
@@ -851,7 +854,7 @@ Old version content
 
       // Should show version transition
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('0.1.0')
+        expect.stringContaining(`(${staleVersion} → ${version})`)
       );
 
       consoleSpy.mockRestore();
@@ -1017,11 +1020,13 @@ metadata:
       await initCommand.execute(testDir);
 
       // Make Claude stale to force a version update.
+      // Derive the stale stamp from the real version so this test survives version bumps.
+      const { version } = await import('../../package.json');
       const claudeSkillFile = path.join(testDir, '.claude', 'skills', 'xirang-propose', 'SKILL.md');
       const claudeContent = await fs.readFile(claudeSkillFile, 'utf-8');
       await fs.writeFile(
         claudeSkillFile,
-        claudeContent.replace(/generatedBy:\s*["'][^"']+["']/, 'generatedBy: "0.1.0"')
+        claudeContent.replace(/generatedBy:\s*["'][^"']+["']/, `generatedBy: "${version}-stale"`)
       );
 
       const consoleSpy = vi.spyOn(console, 'log');
