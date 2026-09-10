@@ -309,7 +309,7 @@ export function validateDirectionPayload(
   addUnknownFieldDiagnostics(value, DIRECTION_UPDATE_FIELDS, diagnostics, path);
   if (!isDirectionId(value.id)) {
     diagnostics.push(
-      diagnostic(`${path}.id`, `an echoed ${DIRECTION_ID_PREFIX}… identifier`, describe(value.id), 'Use the ID role="echoed" from a previous response.')
+      diagnostic(`${path}.id`, `an echoed ${DIRECTION_ID_PREFIX}… identifier`, describe(value.id), 'Use the ID this CLI echoed in a previous response.')
     );
   }
   if (!DIRECTION_REVOCATION_VALUES.includes(value.status as DirectionStatus)) {

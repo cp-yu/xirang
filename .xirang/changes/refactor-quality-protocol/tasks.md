@@ -428,3 +428,8 @@
   - Verifies: `elements/optimization-execution.md` / Requirement "Checkpoint 与回滚" / Scenario "创建 baseline checkpoint"
   - Command: `rg -n "phase2BaselineCommit" src docs .xirang/references`
   - Expect: 改名 `optimizationBaselineCommit`（delta、模板、投影、design 迁移说明同步），无匹配
+
+- [x] [code_fix] R4-C3：新增的"诊断不含标记"守卫无效——`id: 'OPT-handmade'` 会被 `isDirectionId` 接受，`directions[0].id` 诊断从未产生，重新引入 `role="echoed"` 也能通过
+  - Verifies: `elements/quality-cli-gate.md` / Requirement "统一输出与诊断结构" / Scenario "字段非法时给出可操作诊断"
+  - Command: `pnpm exec vitest run test/core/quality/validators.test.ts`
+  - Expect: 守卫改用会被 `isDirectionId` 拒绝的 id，断言 `directions[0].id` 诊断存在且 fix/expected 不含 `role=`；把旧文案临时改回时该用例必须失败

@@ -141,9 +141,9 @@ export class ArchiveCommand {
       return;
     }
 
-    // Pipeline: verify → sync → validation → task → move
+    // Pipeline: quality → sync → validation → task → move
     // Each gate returns false when user cancels (not an error)
-    if (!(await this.runVerifyGate(changeDir, targetPath, changeName, options))) return;
+    if (!(await this.runQualityGate(changeDir, targetPath, changeName, options))) return;
     if (!(await this.runSyncGate(targetPath, changeName, options))) return;
     if (!(await this.runValidationGate(changeDir, options))) return;
     if (!(await this.runTaskGate(changesDir, changeName, options))) return;
@@ -166,7 +166,7 @@ export class ArchiveCommand {
     this.printGitHandoff();
   }
 
-  private async runVerifyGate(
+  private async runQualityGate(
     changeDir: string,
     targetPath: string,
     changeName: string,

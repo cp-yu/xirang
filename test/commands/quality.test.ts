@@ -620,18 +620,41 @@ describe('xirang quality command', () => {
   });
 
   it('documents the finalize summary in every actionable diagnostic', async () => {
+    const assertSummaryGuidance = (result: { exitCode: number | null; stdout: string }): void => {
+      expect(result.exitCode, result.stdout).toBe(1);
+      for (const diagnostic of JSON.parse(result.stdout).diagnostics) {
+        if (diagnostic.fix.includes('stopReason')) {
+          expect(diagnostic.fix, diagnostic.fix).toContain('summary');
+        }
+      }
+    };
+
     const disabled = await (async () => {
       await writeConfig({ enabled: false });
       await review();
       return optimize({ directions: [direction()] });
     })();
+    assertSummaryGuidance(disabled);
 
-    expect(disabled.exitCode, disabled.stdout).toBe(1);
-    for (const diagnostic of JSON.parse(disabled.stdout).diagnostics) {
-      if (diagnostic.fix.includes('stopReason')) {
-        expect(diagnostic.fix).toContain('summary');
-      }
-    }
+    const limited = await (async () => {
+      await writeConfig({ directionLimit: 1, directionRetries: 2 });
+      await review();
+      const first = await assignDirection();
+      await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
+      await review();
+      return optimize({
+        directions: [direction({ opportunity: 'Beyond the limit' })],
+        attempt: { directionId: first, status: 'verified' },
+      });
+    })();
+    assertSummaryGuidance(limited);
+
+    const notReady = await (async () => {
+      await writeConfig({ directionLimit: 3, directionRetries: 2 });
+      await review();
+      return runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
+    })();
+    assertSummaryGuidance(notReady);
   });
 
   it('rejects further optimization rounds after an unsafe abort', async () => {

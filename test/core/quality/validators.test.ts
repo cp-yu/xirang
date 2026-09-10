@@ -147,6 +147,18 @@ describe('quality validators', () => {
     ]);
   });
 
+  it('writes diagnostics without markup', () => {
+    const result = validateOptimizeInput({ directions: [{ id: 'handmade' }] });
+
+    expect(result.ok).toBe(false);
+    const idDiagnostic = result.diagnostics.find((item) => item.path === 'directions[0].id');
+    expect(idDiagnostic).toBeDefined();
+    for (const diagnostic of result.diagnostics) {
+      expect(diagnostic.fix, diagnostic.fix).not.toContain('role=');
+      expect(diagnostic.expected, diagnostic.expected).not.toContain('role=');
+    }
+  });
+
   it('checks direction status transitions', () => {
     expect(validateDirectionTransition('pending', 'selected')).toBeUndefined();
     expect(validateDirectionTransition('failed', 'rejected')).toBeUndefined();
