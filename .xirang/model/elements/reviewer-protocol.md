@@ -11,7 +11,7 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 ### Requirement: Reviewer 角色与硬约束
 
-`xirang-reviewer` skill SHALL 将 subagent 定义为 Phase 1 验证审查者，拥有所有 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：不引用或依赖任何实现对话历史；自主读取文件并基于读取内容做判断；为每个判断引用具体文件路径和行范围；在判定严重性级别前执行完整的 6 步验证循环；不修改任何文件；通过 Bash 只执行测试命令和 git 只读命令。
+`xirang-reviewer` skill SHALL 将 subagent 定义为 quality Review 的审查者，拥有所有 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：不引用或依赖任何实现对话历史；自主读取文件并基于读取内容做判断；为每个判断引用具体文件路径和行范围；在判定严重性级别前执行完整的 6 步验证循环；不修改任何文件；通过 Bash 只执行测试命令和 git 只读命令。
 
 #### Scenario: Subagent invoke reviewer skill
 
@@ -29,7 +29,7 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 ### Requirement: Reviewer 输入合约
 
-`xirang-reviewer` skill SHALL 定义顶层 agent MUST 传入的轻量定位信息：changeName、changeDir 与 projectRoot。Reviewer SHALL 自主完成 changeArtifacts、scopeFiles、finalFileContents、priorVerifyResult 与语义上下文的信息获取；Reviewer MUST NOT 把 `git diff` 的内容级输出作为判断证据；缺失定位信息时 fail closed。
+`xirang-reviewer` skill SHALL 定义顶层 agent MUST 传入的轻量定位信息：changeName、changeDir 与 projectRoot。Reviewer SHALL 自主完成 changeArtifacts、scopeFiles、finalFileContents、priorQualityRecord 与语义上下文的信息获取；Reviewer MUST NOT 把 `git diff` 的内容级输出作为判断证据；缺失定位信息时 fail closed。
 
 #### Scenario: 所有定位信息完整传入
 
@@ -55,16 +55,16 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 - **THEN** reviewer SHALL 返回包含 CRITICAL issue 的 `FAIL_NEEDS_CORRECTIONS`
 - **AND** SHALL NOT 以可移动 branch ref 猜测证据基线
 
-#### Scenario: 首次 verify 无 prior result
+#### Scenario: 首次 Review 无 prior record
 
-- **WHEN** `changeDir/.verify-result.json` 不存在
+- **WHEN** `changeDir/.quality-state.json` 不存在
 - **THEN** reviewer SHALL 通过 `git diff <baseCommit>...HEAD --name-only`、`git status --short` 与 change artifacts 关键词推断候选实现文件
 - **AND** SHALL Read 推断出的候选文件最终内容
-- **AND** SHALL 将 priorVerifyResult 视为 null 继续验证
+- **AND** SHALL 将 priorQualityRecord 视为 null 继续验证
 
-#### Scenario: 利用 verify-result 作为导航 manifest
+#### Scenario: 利用 quality 记录作为导航 manifest
 
-- **WHEN** `.verify-result.json` 存在且包含 `verificationContext.evidenceFiles`
+- **WHEN** `.quality-state.json` 存在且包含 `evidenceFiles`
 - **THEN** reviewer SHALL Read evidenceFiles 列表中的每个文件最终内容作为候选
 - **AND** SHALL 结合 `git diff` 与 `git status` 补充列表中未覆盖的文件
 

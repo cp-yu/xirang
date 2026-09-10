@@ -29,7 +29,7 @@ PromptProjection 和 RuntimeProjection SHALL 向消费 workflow surface 暴露 n
 
 #### Scenario: Projection contract 应用于所有 workflow surfaces
 
-- **WHEN** propose、apply、sync、archive、verify workflow 创建 artifacts
+- **WHEN** propose、apply、sync、archive、quality workflow 创建 artifacts
 - **THEN** 生成的 instructions 消费共享的 prompt projection contract
 - **AND** contract 保留 canonical tokens（SHALL、MUST、section headers、requirement headers、scenario headers、BDD keywords、IDs、schema keys、paths、commands）
 
@@ -389,7 +389,7 @@ Config Projection SHALL 向结构形成 workflow 暴露经过项目配置加载�
 
 #### Scenario: 非结构 workflow 不消费拆分指导
 
-- **WHEN** Apply、Archive、Verify、Reviewer 或 Optimizer surface 构建 projection
+- **WHEN** Apply、Archive、Quality、Reviewer 或 Optimizer surface 构建 projection
 - **THEN** 这些 surface SHALL NOT 获得要求其重新形成 Semantic Model hierarchy 的 guidance
 
 #### Scenario: 非法配置不产生隐式 projection

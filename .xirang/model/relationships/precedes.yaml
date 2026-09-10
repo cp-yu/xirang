@@ -22,4 +22,4 @@ relationships:
     target: optimization
   - source: snack
     kind: precedes
-    target: verify
+    target: quality

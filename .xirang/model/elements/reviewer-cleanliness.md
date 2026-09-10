@@ -40,15 +40,20 @@ Reviewer SHALL 在 Coherence 维度之后增加 Cleanliness 维度，用于检�
 - **WHEN** 检测到本次变更引入了逻辑不可达的代码路径
 - **THEN** reviewer SHALL 判定为 WARNING（而非 CRITICAL）
 - **AND** recommendation SHALL 询问这是否为故意的防御性代码
+
 #### Scenario: 检测半迁移状态
+
 - **WHEN** tasks.md 中有已勾选的迁移任务
 - **AND** git diff 显示同时引入了新 API 和保留了旧 API 的调用
 - **THEN** reviewer SHALL 判定为 CRITICAL "Incomplete migration: <old-pattern> and <new-pattern> coexist"
 - **AND** recommendation SHALL 建议完成迁移或拆分为分阶段任务
+
 #### Scenario: 未来工作 TODO 降级为 SUGGESTION
+
 - **WHEN** TODO 注释显式引用未来工作或独立 issue（如 "TODO(GH-123): add caching"）
 - **THEN** reviewer SHALL 判定为 SUGGESTION（而非 CRITICAL）
 - **AND** summary SHALL 标记为 "Future work marker"
+
 ### Requirement: 工具无关的检测策略
 
 Reviewer SHALL 采用工具无关的检测策略声明，agent 根据项目类型自主选择适配方法。Prompt SHALL 提供可选方法库而非强制协议，并优先选择轻量级方法（grep + Read）而非重型工具。
@@ -75,32 +80,42 @@ Reviewer 输出的 summary 对象 SHALL 在 coherence 字段之后增加 cleanli
 - **WHEN** 变更无 tasks.md 或 tasks.md 为空
 - **THEN** summary.cleanliness.checked SHALL 为 false
 - **AND** 各计数器字段 SHALL 省略
+
 #### Scenario: summary 包含 cleanliness 字段
+
 - **WHEN** reviewer 输出 summary 对象
 - **THEN** SHALL 在 coherence 之后包含 cleanliness 对象
 - **AND** cleanliness.checked SHALL 为 true（如果执行了检查）
 - **AND** 各计数器字段 SHALL 反映检测到的问题数量
+
 #### Scenario: 规格外改动计入计数器
+
 - **WHEN** reviewer 检测到 2 个规格外改动（无论严重级别）
 - **THEN** summary.cleanliness.unaccountedChangesFound SHALL 为 2
+
 ### Requirement: Cleanliness 与 Optimizer 的职责边界
 
-Reviewer Phase 1 SHALL 判断本次 change 声称的工作是否完整、正确和清洁；optimizer Phase 2 SHALL 只判断已经正确的实现是否存在有实际收益、静态可证明且行为保持的改进。本次变更引入的遗留物 SHALL 由 reviewer 报告并阻塞 Phase 2；optimizer 发现正确性冲突时 SHALL 返回 `blockingObservations`。
+Review SHALL 判断本次 change 声称的工作是否完整、正确和清洁；Optimization SHALL 只判断已经正确的实现是否存在有实际收益、静态可证明且行为保持的改进。本次变更引入的遗留物 SHALL 由 reviewer 报告并阻塞 Optimization；optimizer 发现正确性冲突时 SHALL 返回阻塞观察。
 
 #### Scenario: 本次变更遗留物由 reviewer 阻塞
+
 - **WHEN** 本次 diff 的重构任务保留了应删除的旧 API
 - **THEN** reviewer SHALL 报告 completeness/cleanliness issue
 - **AND** optimizer SHALL NOT 将其作为非阻塞优化建议
 
 #### Scenario: optimizer 发现 spec 冲突
+
 - **WHEN** optimizer 读取代码时发现实现违反 requirement
-- **THEN** SHALL 返回 blockingObservations
-- **AND** 系统 SHALL 路由回 Phase 1 Required Corrections
+- **THEN** SHALL 返回阻塞观察
+- **AND** 系统 SHALL 路由回 Required Corrections
+
 #### Scenario: 正确实现中的算法机会由 optimizer 判断
-- **WHEN** Phase 1 已通过
+
+- **WHEN** 当前代码已通过 Review
 - **AND** 当前实现正确但存在静态可证明的复杂度改进
-- **THEN** optimizer MAY 生成 finding
-- **AND** reviewer SHALL 在实现后验证 preservation constraints
+- **THEN** optimizer MAY 生成方向
+- **AND** reviewer SHALL 在该轮实现后验证 preservation constraints
+
 ### Requirement: 规格外改动检测
 
 Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 task 的规格外改动。归因宇宙 SHALL 由各 task Files 声明的条目、各 Check Command 涉及的测试与证据文件、change 制品自身的并集构成（显式列表查找，不使用模式匹配推断）。
@@ -130,7 +145,9 @@ Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 tas
 - **WHEN** 归因宇宙的条目与 git diff 文件路径做匹配
 - **THEN** 实现 SHALL 将两侧路径规范化为 POSIX 相对路径后比较
 - **AND** Windows 反斜杠路径 SHALL 在规范化后正确归因
+
 #### Scenario: 判定不确定时升级
+
 - **WHEN** 某个归因宇宙之外的文件无法确定是否包含行为改动
 - **THEN** reviewer SHALL 判定为 CRITICAL（维持 strict 姿态）
 - **AND** SHALL 引用该文件路径与不确定原因

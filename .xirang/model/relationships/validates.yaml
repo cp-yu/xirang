@@ -1,16 +1,16 @@
 relationships:
-  - source: deterministic-operations
-    kind: validates
-    target: semantic-model
-  - source: deterministic-operations
-    kind: validates
-    target: semantic-delta
-  - source: review
-    kind: validates
-    target: change-implementation
-  - source: verify
-    kind: validates
-    target: change-implementation
   - source: delivery-validation
     kind: validates
     target: framework-identity
+  - source: deterministic-operations
+    kind: validates
+    target: semantic-delta
+  - source: deterministic-operations
+    kind: validates
+    target: semantic-model
+  - source: quality
+    kind: validates
+    target: change-implementation
+  - source: review
+    kind: validates
+    target: change-implementation

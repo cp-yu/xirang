@@ -433,3 +433,8 @@
   - Verifies: `elements/quality-cli-gate.md` / Requirement "统一输出与诊断结构" / Scenario "字段非法时给出可操作诊断"
   - Command: `pnpm exec vitest run test/core/quality/validators.test.ts`
   - Expect: 守卫改用会被 `isDirectionId` 拒绝的 id，断言 `directions[0].id` 诊断存在且 fix/expected 不含 `role=`；把旧文案临时改回时该用例必须失败
+
+- [x] [code_fix] SELF-1：`DIRECTION_LIMIT_REACHED` 失败输出缺 `allowedNextOperations`（契约要求入口/状态类失败同时给出 `code`、`diagnostics` 与 `allowedNextOperations`），而 fix 文本已指示收口，两个字段互相矛盾
+  - Verifies: `elements/quality-cli-gate.md` / Requirement "统一输出与诊断结构" / Scenario "入口条件不满足时给出后续操作"
+  - Command: `pnpm exec vitest run test/commands/quality.test.ts`
+  - Expect: 该失败以 `allowedNextOperations: ["optimize"]` 返回（收口仍是一次 optimize 调用），并有用例断言

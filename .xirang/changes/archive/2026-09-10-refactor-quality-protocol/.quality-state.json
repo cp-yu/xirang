@@ -1,12 +1,48 @@
 {
-  "kind": "review",
-  "timestamp": "2026-09-10T15:41:55.739Z",
-  "result": "PASS",
-  "issues": [],
-  "tasksFileHash": "2360fcf09c46b5380dae325b1dfd80cb6020b4d76b3f14fa1267e65069ee4370",
+  "kind": "optimize",
+  "timestamp": "2026-09-10T15:50:01.345Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Vestigial validation call is a no-op: rejectManagedFields(input.attempt, [], 'attempt') can never emit a diagnostic; unknown keys inside `attempt` are silently accepted while top-level and direction payloads reject unknown keys. Acknowledged as pending direction OPT-20260910T152610695Z-03 and blocked by the configured directionLimit cap.",
+      "requirement": "统一输出与诊断结构",
+      "task": "Task 2",
+      "recommendation": "Delete the call or supply the actual managed-field list for `attempt`.",
+      "evidenceCitations": [
+        "src/core/quality/validators.ts:229-230"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Unreachable fallback in runQualityOptimize: `state.record ?? (await readQualitySnapshot(changeDir)) ?? undefined` cannot contribute a different ledger. Acknowledged as pending direction OPT-20260910T152610695Z-01.",
+      "requirement": "优化结果持久化",
+      "task": "Task 2",
+      "recommendation": "Assign `previous` directly from state.record and drop the fallback.",
+      "evidenceCitations": [
+        "src/commands/quality.ts:198"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Duplicate git HEAD probe: quality.ts getGitHead duplicates state.ts getCurrentGitHead. Acknowledged as pending direction OPT-20260910T152610695Z-02.",
+      "requirement": "Cleanliness",
+      "task": "Task 2",
+      "recommendation": "Export the state helper and reuse it, deleting the duplicate and its unused imports.",
+      "evidenceCitations": [
+        "src/commands/quality.ts:818-824",
+        "src/core/quality/state.ts:286-292"
+      ]
+    }
+  ],
+  "tasksFileHash": "aff66ca2e9ad416a6485318407604f86325f263f6b85416484a8103ded33d422",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
+      ".xirang/changes/refactor-quality-protocol/design.md",
+      ".xirang/changes/refactor-quality-protocol/elements/quality-cli-gate.md",
+      ".xirang/changes/refactor-quality-protocol/tasks.md",
+      "docs/cli.md",
       "src/cli/index.ts",
       "src/commands/quality.ts",
       "src/commands/sync.ts",
@@ -15,7 +51,6 @@
       "src/core/archive.ts",
       "src/core/change-sync.ts",
       "src/core/list.ts",
-      "src/core/quality/diagnostics.ts",
       "src/core/quality/log.ts",
       "src/core/quality/protocol.ts",
       "src/core/quality/state.ts",
@@ -37,15 +72,31 @@
       "test/core/quality/state.test.ts",
       "test/core/quality/validators.test.ts"
     ],
-    "evidenceFingerprint": "7be33057bffff5a5afe235b52f3c0e5545b43b67b54dfca458b43e1b98cc355f",
+    "evidenceFingerprint": "ad636821f11b6ef18347e53098a71174ea67af26cf082e8deb913e9aba7d919a",
     "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/design.md",
+        "hash": "3d5328268f76446b016510ece7e36a177fde6089d0bcbbea24b94afa28f22069"
+      },
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/elements/quality-cli-gate.md",
+        "hash": "3efdf9333a73f77ae1dc2cc319c215f6ca159265caf084dbdd2ca756818c95e3"
+      },
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/tasks.md",
+        "hash": "aff66ca2e9ad416a6485318407604f86325f263f6b85416484a8103ded33d422"
+      },
+      {
+        "path": "docs/cli.md",
+        "hash": "8c4064b0e41eccdf163c4eee4415eea4022ab22ca2d4cdbb840370cf71a87852"
+      },
       {
         "path": "src/cli/index.ts",
         "hash": "68fa842ed1e1473d340dd6525119380b45d8efb5c58549039ecbac6b7e4482bd"
       },
       {
         "path": "src/commands/quality.ts",
-        "hash": "88305e074f0da61fe1d96b74b4bcdbb36bdc6fe6d5a984f4090a0386e467c05f"
+        "hash": "2fd80984b0e36a3a91968d2215ff1cdd31428fd8da2f5120828d17000b63d55c"
       },
       {
         "path": "src/commands/sync.ts",
@@ -70,10 +121,6 @@
       {
         "path": "src/core/list.ts",
         "hash": "57c438d43d0bd1bfd741440a352f094bd3fb1388a3a7446675f13a62e5b8e8e7"
-      },
-      {
-        "path": "src/core/quality/diagnostics.ts",
-        "hash": "d98a409f484448bd02e9d10848c00c8f8b09a2a1302e17f75a0feb1f55729356"
       },
       {
         "path": "src/core/quality/log.ts",
@@ -125,7 +172,7 @@
       },
       {
         "path": "test/commands/quality.test.ts",
-        "hash": "2001131ffedfbf7837c2574ba247a8ddf41dccfee9f6cddafa9405b7782007e6"
+        "hash": "a192bc5243e58404e23780fc8e2614941080a939c9c886ff711035c64eb4858c"
       },
       {
         "path": "test/commands/sync.test.ts",
@@ -157,9 +204,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "4a9f40289e9fd916c37515aafa2f50f509fe08b6",
-    "gitDiffSummary": "Optimization round 3: direction OPT-20260910T151455332Z-03 (clear the three residual review suggestions) plus the recorded R4-C3 correction that made the markup guard non-vacuous. Focused 6 files / 115 tests; full suite 160 files / 2249 tests; tsc clean; retired-vocabulary sweeps empty.",
-    "timestamp": "2026-09-10T15:41:55.739Z"
+    "gitHeadCommit": "a13a913b5348406aff169ed54346dc941e22e066",
+    "gitDiffSummary": "Final change-level review: 133-path change scope; pnpm test 160 files / 2249 tests passed; tsc clean; lint clean; arch validate 0/0; validate --change valid (198 entries); retired-token sweeps empty; SELF-1 correction (allowedNextOperations on DIRECTION_LIMIT_REACHED) verified in scope.",
+    "timestamp": "2026-09-10T15:49:55.161Z"
   },
   "optimization": {
     "directions": [
@@ -477,9 +524,17 @@
         "selected": "OPT-20260910T151455332Z-03",
         "outcome": "verified",
         "reason": "Round 2 verified; continue with the remaining pending direction."
+      },
+      {
+        "round": 5,
+        "timestamp": "2026-09-10T15:50:01.345Z",
+        "directions": [],
+        "outcome": "none",
+        "reason": "optimization.directionLimit (3) reached with three verified directions; three low-impact cleanups stay pending in the ledger for a future change."
       }
     ],
     "directionsUsed": 3,
-    "selected": "OPT-20260910T151455332Z-03"
+    "stopReason": "DIRECTION_LIMIT_REACHED",
+    "terminal": "IMPROVED"
   }
 }
