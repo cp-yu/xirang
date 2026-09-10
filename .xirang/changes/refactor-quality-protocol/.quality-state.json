@@ -1,6 +1,6 @@
 {
   "kind": "review",
-  "timestamp": "2026-09-10T15:18:38.366Z",
+  "timestamp": "2026-09-10T15:30:19.738Z",
   "result": "PASS",
   "issues": [],
   "tasksFileHash": "be7b35d6296fd06de0e18658cf511a597d7053b0b117107756a6879338ad0c6c",
@@ -37,7 +37,7 @@
       "test/core/quality/state.test.ts",
       "test/core/quality/validators.test.ts"
     ],
-    "evidenceFingerprint": "86cabf0a7df69dbeb6e2707482751617629c12d73e38c7af6b048078086e6386",
+    "evidenceFingerprint": "51ebbfca975d1b6bf1fd540f76d5b5a631206ebe70470061f48b1bf2ca553118",
     "evidenceFingerprintEntries": [
       {
         "path": "src/cli/index.ts",
@@ -89,11 +89,11 @@
       },
       {
         "path": "src/core/quality/types.ts",
-        "hash": "f59aac4f889af667ffc8cbf1c4e45cd9474a1de358cc89ee320a2c1bbb8ceae1"
+        "hash": "b467221b0a48a3bf0c6fdf2d79594f734f7f5850d805e96e0412286b464159ab"
       },
       {
         "path": "src/core/quality/validators.ts",
-        "hash": "eda38085515e2bf515e1e51863ae5fbe005464bb623ed1884d82f269ec1d1311"
+        "hash": "724651bc20ad803c13015531788abc5e322fdb8fe002146e166d2011aa10dcee"
       },
       {
         "path": "src/core/templates/fragments/xirang-fragments.ts",
@@ -153,13 +153,13 @@
       },
       {
         "path": "test/core/quality/validators.test.ts",
-        "hash": "bd4e8f9d63e3a169e13f473215b84543ef7747a0e7451c0721daff105494e235"
+        "hash": "417c9055e2a4fe4f989eb27d53b84f793fbe36d13618f85a33b2cf84cf7c45fd"
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "1a0da3ecab99c9653ad18f80d13b42d85f8922ad",
-    "gitDiffSummary": "Round 1 of the optimization loop: direction OPT-20260910T151455332Z-01 (persist optimizer revocation evidence). Round scope 6 files; focused suites 5 files / 83 tests passed; pnpm test 160 files / 2247 tests passed; tsc clean; no contract/design/tasks/config edits.",
-    "timestamp": "2026-09-10T15:18:38.366Z"
+    "gitHeadCommit": "7f51fa6bad59ab588fd2d5cea87bffd50f3ff2c4",
+    "gitDiffSummary": "Optimization round 2: direction OPT-20260910T151455332Z-02 (delete the dead OptimizationLedger.baselineCommit declaration and its managed-field entry). Round scope 5 paths; focused 5 files / 84 tests passed; full suite 160 files / 2248 tests passed; tsc clean; rg baselineCommit src empty.",
+    "timestamp": "2026-09-10T15:30:19.738Z"
   },
   "optimization": {
     "directions": [
@@ -208,7 +208,7 @@
         "dependencies": [],
         "priorityReason": "The only recorded finding that loses contract-required data; additive fix provable from the validated call flow.",
         "id": "OPT-20260910T151455332Z-01",
-        "status": "implemented",
+        "status": "verified",
         "failureCount": 0
       },
       {
@@ -254,7 +254,7 @@
         "dependencies": [],
         "priorityReason": "Closes the dead rename residue but has no runtime effect.",
         "id": "OPT-20260910T151455332Z-02",
-        "status": "pending",
+        "status": "implemented",
         "failureCount": 0
       },
       {
@@ -304,6 +304,137 @@
         "id": "OPT-20260910T151455332Z-03",
         "status": "pending",
         "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/commands/quality.ts"
+          ],
+          "symbols": [
+            "runQualityOptimize"
+          ]
+        },
+        "opportunity": "The optimize round resolves its previous ledger through `state.record ?? (await readQualitySnapshot(changeDir)) ?? undefined`, but the fallback can never contribute a value: checkQualityState returns no record only when the snapshot is missing, which is exactly the case where readQualitySnapshot returns null.",
+        "impact": "Removes a dead data source and the duplicate snapshot read on the absent-snapshot path.",
+        "evidence": [
+          "src/commands/quality.ts:198 — the fallback expression",
+          "src/core/quality/state.ts:104-111 — the only no-record path is the missing-snapshot branch",
+          "src/core/quality/state.ts:114-162 — every snapshot-present path returns record",
+          "src/core/quality/log.ts:10-18 — readQualitySnapshot returns null exactly on ENOENT"
+        ],
+        "recommendation": "Assign previous directly from state.record and delete the readQualitySnapshot fallback in runQualityOptimize.",
+        "keyDesign": "`const previous = state.record;` — the clean path always has a record and the dirty path returns REVIEW_REQUIRED before any ledger use, so every emitted response and persisted record is unchanged; keep the readQualitySnapshot import for runQualitySeal.",
+        "preservationConstraints": [
+          "Every exit code, code value, diagnostic, allowedNextOperations, and persisted record stays byte-identical",
+          "The missing-snapshot path still fails with REVIEW_REQUIRED",
+          "runQualitySeal keeps reading the snapshot through readQualitySnapshot",
+          "No additional file reads, writes, or side effects are introduced"
+        ],
+        "implementationOutline": [
+          "Replace the fallback with state.record",
+          "Confirm no other branch depends on the fallback",
+          "Run the focused suites and tsc"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/commands/quality.test.ts test/core/quality/state.test.ts",
+          "pnpm exec tsc --noEmit"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Cleanest new finding: the fallback is unreachable by construction, so removal has zero behavior surface.",
+        "id": "OPT-20260910T152610695Z-01",
+        "status": "pending",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/commands/quality.ts",
+            "src/core/quality/state.ts"
+          ],
+          "symbols": [
+            "getGitHead",
+            "getCurrentGitHead"
+          ]
+        },
+        "opportunity": "Two private helpers with identical bodies run the same `git rev-parse HEAD` probe.",
+        "impact": "One implementation of the HEAD probe instead of two; quality.ts drops its local copy and the execFile/promisify imports that exist only for it.",
+        "evidence": [
+          "src/commands/quality.ts:817-824 — getGitHead",
+          "src/core/quality/state.ts:286-293 — getCurrentGitHead with the identical command, cwd, trim and fallback",
+          "src/commands/quality.ts:1,3,46,819 — execFile/promisify/execFileAsync are used only by the duplicate"
+        ],
+        "recommendation": "Export the existing state helper and reuse it from the quality command, deleting the duplicate and its unused imports.",
+        "keyDesign": "Export getCurrentGitHead from state.ts; import it in quality.ts for the review record's gitHeadCommit and delete getGitHead, execFileAsync and the child_process/util imports.",
+        "preservationConstraints": [
+          "Identical git invocation, cwd, stdout trimming, and undefined fallback",
+          "Every recorded gitHeadCommit value and status information block stays identical",
+          "No exit code, diagnostic, allowedNextOperations, or persisted record changes",
+          "state.ts keeps its existing execFile/promisify usage"
+        ],
+        "implementationOutline": [
+          "Export getCurrentGitHead from state.ts",
+          "Import it in quality.ts and delete the duplicate plus unused imports",
+          "Run the focused suites and tsc"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/commands/quality.test.ts test/core/quality/state.test.ts",
+          "pnpm exec tsc --noEmit"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Same duplication-removal class as the first direction but touches two modules and an exported symbol.",
+        "id": "OPT-20260910T152610695Z-02",
+        "status": "pending",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/core/quality/validators.ts"
+          ],
+          "symbols": [
+            "validateOptimizeInput",
+            "rejectManagedFields"
+          ]
+        },
+        "opportunity": "The attempt branch calls `rejectManagedFields(input.attempt, [], 'attempt')` with an empty managed-field list, so it always returns an empty array and the spread adds nothing.",
+        "impact": "Removes dead validation plumbing from the optimize input path and makes the attempt contract explicit.",
+        "evidence": [
+          "src/core/quality/validators.ts:229-230 — the no-op call and push",
+          "src/core/quality/validators.ts:519-533 — rejectManagedFields loops over an empty list and returns [] unconditionally",
+          "test/core/quality/validators.test.ts:101-106 pins managed-field rejection only at the top level"
+        ],
+        "recommendation": "Delete the empty-list rejectManagedFields call and its push in validateOptimizeInput.",
+        "keyDesign": "The attempt branch validates only directionId and status; top-level managed-field and unknown-field rejection stay unchanged.",
+        "preservationConstraints": [
+          "Accepted and rejected inputs, exit codes, and diagnostics stay identical",
+          "Top-level managed-field rejection and unknown-field rejection are unchanged",
+          "No direction payload, transition, selection, counting, or persistence behavior changes"
+        ],
+        "implementationOutline": [
+          "Delete the no-op attempt call and its diagnostics push",
+          "Run the validators and quality suites"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/quality/validators.test.ts test/commands/quality.test.ts",
+          "pnpm exec tsc --noEmit"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Smallest new finding — two provably dead lines in one validator branch.",
+        "id": "OPT-20260910T152610695Z-03",
+        "status": "pending",
+        "failureCount": 0
       }
     ],
     "histories": [
@@ -318,9 +449,29 @@
         "selected": "OPT-20260910T151455332Z-01",
         "outcome": "none",
         "reason": "3 directions reported: persist validated revocation evidence, delete the dead OptimizationLedger.baselineCommit declaration, and clear the three residual review suggestions."
+      },
+      {
+        "round": 2,
+        "timestamp": "2026-09-10T15:18:43.269Z",
+        "directions": [],
+        "selected": "OPT-20260910T151455332Z-02",
+        "outcome": "verified",
+        "reason": "Round 1 verified; continue with the remaining pending directions."
+      },
+      {
+        "round": 3,
+        "timestamp": "2026-09-10T15:26:10.695Z",
+        "directions": [
+          "OPT-20260910T152610695Z-01",
+          "OPT-20260910T152610695Z-02",
+          "OPT-20260910T152610695Z-03"
+        ],
+        "selected": "OPT-20260910T151455332Z-02",
+        "outcome": "none",
+        "reason": "Pending directions stay valid: the dead OptimizationLedger.baselineCommit declaration and the three residual review suggestions are all still present, so none is revoked; three new low-impact cleanups were added (dead snapshot fallback, duplicated git-HEAD probe, no-op managed-field rejection)."
       }
     ],
-    "directionsUsed": 1,
-    "selected": "OPT-20260910T151455332Z-01"
+    "directionsUsed": 2,
+    "selected": "OPT-20260910T151455332Z-02"
   }
 }

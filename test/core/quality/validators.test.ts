@@ -98,6 +98,13 @@ describe('quality validators', () => {
     expect(validateOptimizeInput({ directions: [], summary: 'round note' }).ok).toBe(true);
   });
 
+  it('rejects a payload that tries to set the ledger baseline commit', () => {
+    const result = validateOptimizeInput({ directions: [], baselineCommit: 'a'.repeat(40) });
+
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics.map((item) => item.path)).toContain('baselineCommit');
+  });
+
   it('rejects unknown keys and managed ledger fields in an optimize input', () => {
     expect(validateOptimizeInput({ directions: [], surprise: true }).diagnostics[0].path).toBe('surprise');
     expect(validateOptimizeInput({ directions: [], histories: [] }).diagnostics[0].path).toBe('histories');

@@ -102,7 +102,6 @@ export interface OptimizationLedger {
   attempt?: DirectionAttempt;
   stopReason?: OptimizationStopReason;
   terminal?: OptimizationTerminal;
-  baselineCommit?: string;
 }
 
 export interface EvidenceFingerprintEntry {

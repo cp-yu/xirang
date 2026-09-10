@@ -62,7 +62,7 @@ export const REVIEW_MANAGED_FIELDS = [
 
 export const OPTIMIZE_INPUT_FIELDS = ['directions', 'selected', 'attempt', 'stopReason', 'summary'] as const;
 
-export const LEDGER_MANAGED_FIELDS = ['histories', 'directionsUsed', 'terminal', 'baselineCommit'] as const;
+export const LEDGER_MANAGED_FIELDS = ['histories', 'directionsUsed', 'terminal'] as const;
 
 export const DIRECTION_UPDATE_FIELDS = ['id', 'status', 'reason', 'evidence'] as const;
 
