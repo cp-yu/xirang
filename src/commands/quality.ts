@@ -546,6 +546,7 @@ function applyRound(
       failure: {
         code: QUALITY_CODES.directionLimitReached,
         exitCode: 1,
+        allowedNextOperations: ['optimize'],
         diagnostics: [
           diagnostic(
             'directions',

@@ -483,7 +483,9 @@ describe('xirang quality command', () => {
     });
 
     expect(blocked.exitCode, blocked.stdout).toBe(1);
-    expect(JSON.parse(blocked.stdout).code).toBe('DIRECTION_LIMIT_REACHED');
+    const blockedPayload = JSON.parse(blocked.stdout);
+    expect(blockedPayload.code).toBe('DIRECTION_LIMIT_REACHED');
+    expect(blockedPayload.allowedNextOperations).toEqual(['optimize']);
 
     const finalized = await optimize({ directions: [], stopReason: 'DIRECTION_LIMIT_REACHED', summary: 'direction limit reached' });
     expect(finalized.exitCode, finalized.stdout).toBe(0);
