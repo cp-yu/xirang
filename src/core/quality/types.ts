@@ -73,6 +73,7 @@ export interface OptimizationDirection {
   priorityReason: string;
   failureCount: number;
   reason?: string;
+  revocationEvidence?: string[];
 }
 
 export interface DirectionAttempt {

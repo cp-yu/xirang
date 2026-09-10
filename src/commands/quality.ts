@@ -490,6 +490,9 @@ function applyRound(
     if (update.reason) {
       target.reason = update.reason;
     }
+    if (update.evidence) {
+      target.revocationEvidence = update.evidence;
+    }
   }
 
   const assignedDirectionIds = allocateDirectionIds(newPayloads.length);

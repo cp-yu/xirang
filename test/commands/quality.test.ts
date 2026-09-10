@@ -269,8 +269,13 @@ describe('xirang quality command', () => {
     expect(payload.selected).not.toBe(first);
     const selected = (await directions()).filter((item) => item.status === 'selected');
     expect(selected).toHaveLength(1);
-    expect((await directions()).find((item) => item.id === first)).toEqual(
-      expect.objectContaining({ status: 'deferred', reason: 'blocked by an unrelated migration' })
+    const stored = (await directions()).find((item) => item.id === first);
+    expect(stored).toEqual(
+      expect.objectContaining({
+        status: 'deferred',
+        reason: 'blocked by an unrelated migration',
+        revocationEvidence: ['migration PR pending'],
+      })
     );
   });
 
