@@ -283,7 +283,7 @@ async function gitHeadInformation(
   };
 }
 
-async function getCurrentGitHead(projectRoot: string): Promise<string | undefined> {
+export async function getCurrentGitHead(projectRoot: string): Promise<string | undefined> {
   try {
     const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: projectRoot });
     return stdout.trim() || undefined;

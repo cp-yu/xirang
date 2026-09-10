@@ -1,6 +1,4 @@
-import { execFile } from 'child_process';
 import path from 'path';
-import { promisify } from 'util';
 import type { Command } from 'commander';
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
@@ -12,6 +10,7 @@ import {
   checkQualityState,
   computeEvidenceFingerprint,
   computeTasksFileHash,
+  getCurrentGitHead,
   normalizeLedger,
 } from '../core/quality/state.js';
 import {
@@ -42,8 +41,6 @@ import type {
   QualityState,
 } from '../core/quality/types.js';
 import { validateChangeExists } from './workflow/shared.js';
-
-const execFileAsync = promisify(execFile);
 
 const QUALITY_CODES = {
   invalidInput: 'INVALID_INPUT',
@@ -169,7 +166,7 @@ async function runQualityReview(changeName: string, options: QualityCommandOptio
       evidenceFingerprint: fingerprint.hash,
       evidenceFingerprintEntries: fingerprint.entries,
       skippedEvidenceFiles: fingerprint.skippedFiles,
-      gitHeadCommit: await getGitHead(projectRoot),
+      gitHeadCommit: await getCurrentGitHead(projectRoot),
       ...(review.gitDiffSummary ? { gitDiffSummary: review.gitDiffSummary } : {}),
       timestamp,
     },
@@ -195,7 +192,7 @@ async function runQualityOptimize(changeName: string, options: QualityCommandOpt
   const changeDir = await resolveChangeDir(changeName, projectRoot);
   const state = await checkQualityState(changeDir, projectRoot);
   const limits = readDirectionLimits(projectRoot);
-  const previous = state.record ?? (await readQualitySnapshot(changeDir)) ?? undefined;
+  const previous = state.record;
 
   const input = await readInput(options.input);
   if (!input.ok) {
@@ -813,15 +810,6 @@ async function readStdinIfAvailable(): Promise<string> {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
   }
   return Buffer.concat(chunks).toString('utf-8').trim();
-}
-
-async function getGitHead(projectRoot: string): Promise<string | undefined> {
-  try {
-    const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: projectRoot });
-    return stdout.trim() || undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 async function runWithExitCode(handler: () => Promise<number>): Promise<void> {

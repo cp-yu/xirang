@@ -226,8 +226,6 @@ export function validateOptimizeInput(input: unknown): ValidationOutcome<Optimiz
     if (!isRecord(input.attempt)) {
       diagnostics.push(diagnostic('attempt', 'an object describing the previous round outcome', describe(input.attempt), 'Pass { directionId, status }.'));
     } else {
-      const attemptDiagnostics = rejectManagedFields(input.attempt, [], 'attempt');
-      diagnostics.push(...attemptDiagnostics);
       if (!isDirectionId(input.attempt.directionId)) {
         diagnostics.push(
           diagnostic('attempt.directionId', `the echoed ${DIRECTION_ID_PREFIX}… identifier that was implemented`, describe(input.attempt.directionId), 'Use the direction ID echoed when it was selected.')
