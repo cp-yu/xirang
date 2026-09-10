@@ -6,7 +6,7 @@ import type { CommandDefinition } from './types.js';
  * This map supplements Commander.js introspection with completion semantics
  * that cannot be derived from the command tree structure alone.
  *
- * Format: dot-notation path (e.g., 'validate', 'verify.phase1')
+ * Format: dot-notation path (e.g., 'validate', 'quality.review')
  */
 export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['positionalType']>> = {
   // Top-level commands
@@ -53,9 +53,9 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'arch.impact': 'element-id',
   'arch.plan-remove': 'element-id',
 
-  // verify subcommands
-  'verify.phase1': 'change-id',
-  'verify.phase2': 'change-id',
-  'verify.seal': 'change-id',
-  'verify.status': 'change-id',
+  // quality subcommands
+  'quality.review': 'change-id',
+  'quality.optimize': 'change-id',
+  'quality.seal': 'change-id',
+  'quality.status': 'change-id',
 } as const;

@@ -195,6 +195,9 @@ export function collectSharedReferenceFiles(
 const STALE_SHARED_REFERENCE_FILES = [
   'opsx-apply-phase2-optimization.md',
   'xirang-apply-phase2-optimization.md',
+  'xirang-apply-step-3-phase1-verification.md',
+  'xirang-apply-step-4-phase2-optimization.md',
+  'xirang-apply-step-5-phase3-seal.md',
   'xirang-relation-authoring.md',
 ] as const;
 

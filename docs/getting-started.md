@@ -12,7 +12,7 @@ Xirang helps you and your AI coding assistant agree on what to build before any 
 /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs a full verify gate before archive.
+Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs the full quality gate before archive.
 
 ## What Xirang Creates
 
@@ -222,8 +222,8 @@ During implementation, if you discover the design needs adjustment, update the a
 You: /xirang:archive
 
 AI:  Archiving add-dark-mode...
-     ✓ No fresh verify result found, running full verify
-     ✓ Full verify passed
+     ✓ No matching review record found, running the quality flow
+     ✓ Review passed and optimization finalized
      ✓ Synced Semantic Delta into .xirang/model/
      ✓ Moved to .xirang/changes/archive/2025-01-24-add-dark-mode/
      Done! Ready for the next feature.

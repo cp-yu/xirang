@@ -50,7 +50,7 @@ export interface CommandDefinition {
   flags: FlagDefinition[];
 
   /**
-   * Subcommands (e.g., "verify phase1")
+   * Subcommands (e.g., "quality review")
    */
   subcommands?: CommandDefinition[];
 

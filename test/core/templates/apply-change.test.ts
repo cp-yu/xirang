@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  QUALITY_CHECKPOINT_STATE_MACHINE,
+  QUALITY_CLI_JSON_SCHEMA_REFERENCE,
+  QUALITY_ERROR_RECOVERY_GUIDE,
+  QUALITY_SIMPLE_CHANGE_FAST_PATH,
+  QUALITY_STATE_MACHINE_DIAGRAM,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
@@ -22,6 +27,43 @@ describe('apply change workflow template', () => {
     for (const reference of references) {
       expect(reference.content.length).toBeGreaterThan(0);
     }
+  });
+
+  it('declares the coordinator role and delegates judgment to the subagents', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    const coordinator = instructions
+      .split('## Quality Coordinator\n\n')[1]
+      .split('\n\n## Implementation Discipline')[0];
+
+    expect(coordinator).toContain('You are the apply coordinator, not a judge');
+    for (const role of ['Coordinator (you)', '`xirang-reviewer` subagent', '`xirang-optimizer` subagent', 'CLI (`xirang quality`)']) {
+      expect(coordinator).toContain(role);
+    }
+    expect(coordinator).toContain(
+      'MUST NOT substitute your own completeness, correctness, or coherence judgments for the reviewer\'s'
+    );
+    expect(coordinator).toContain('only determine');
+    expect(coordinator).toContain('the subagents read candidate files, git evidence, and change artifacts themselves');
+    expect(coordinator).toContain('Wait for a complete subagent payload');
+    expect(coordinator).toContain('A subagent that is slow is not a failed subagent');
+  });
+
+  it('labels stage switches with mode labels and states the delegation waiting rules', () => {
+    const instructions = getApplyChangeSkillTemplate().instructions;
+    const review = applyReference('references/apply-step-3-review.md');
+    const optimization = applyReference('references/apply-step-4-optimization.md');
+
+    expect(instructions).toContain('[Mode: Delegate Review] Step 3: Review');
+    expect(instructions).toContain('[Mode: Checkpoint] Step 4: Optimization');
+    expect(review).toContain('[Mode: Delegate Review]');
+    expect(optimization).toContain('[Mode: Checkpoint]');
+    for (const reference of [review, optimization]) {
+      expect(reference).toMatch(/wait for the complete/i);
+      expect(reference).toContain('A slow subagent is not a failed subagent');
+      expect(reference).toContain('ask the user before terminating it');
+    }
+    expect(review).toContain('passing only the three locating strings');
+    expect(review).not.toContain('findings');
   });
 
   it('queries the Semantic Model by identity before implementation', () => {
@@ -67,9 +109,9 @@ describe('apply change workflow template', () => {
       'references/apply-step-2-branch-isolation.md',
       'references/apply-step-2-worktree-isolation.md',
       'references/apply-step-2-current-branch.md',
-      'references/apply-step-3-phase1-verification.md',
-      'references/apply-step-4-phase2-optimization.md',
-      'references/apply-step-5-phase3-seal.md',
+      'references/apply-step-3-review.md',
+      'references/apply-step-4-optimization.md',
+      'references/apply-step-5-seal.md',
       'references/apply-step-6-output.md',
     ]);
 
@@ -112,9 +154,9 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toMatch(/Pre-flight|preflight/);
     expect(instructions).toContain('Step 1: Preparation');
     expect(instructions).toContain('Step 2: Isolation router');
-    expect(instructions).toContain('Step 3: Phase 1 verification');
-    expect(instructions).toContain('Step 4: Phase 2 optimization');
-    expect(instructions).toContain('Step 5: Phase 3 seal');
+    expect(instructions).toContain('Step 3: Review');
+    expect(instructions).toContain('Step 4: Optimization');
+    expect(instructions).toContain('Step 5: Seal');
     expect(instructions).toContain('Step 6: Output');
   });
 
@@ -143,14 +185,14 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('/skills/xirang-optimizer/SKILL.md');
   });
 
-  it('keeps Phase 0 execution discipline directly in the apply skill', () => {
+  it('keeps implementation discipline directly in the apply skill', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     const discipline = instructions
       .split('## Implementation Discipline\n\n')[1]
-      .split('\n\nWhen Phase 3 seal passes')[0];
+      .split('\n\nWhen the seal passes')[0];
 
     expect(instructions).toContain('## Implementation Discipline');
-    expect(instructions).toContain('Phase 0 implementation — process all pending tasks and Required Corrections as task-level TDD loops');
+    expect(instructions).toContain('Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops');
     expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks');
     expect(discipline).toContain('Each task is one TDD loop');
     expect(discipline).toContain('Assess interface testability before writing tests');
@@ -168,30 +210,32 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('Pocock');
   });
 
-  it('runs task-level TDD before one change-level Phase 1 review', () => {
+  it('runs task-level TDD before one change-level Review', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
     expect(instructions).toContain('Each task is one TDD loop');
-    expect(instructions).toContain('completing one task does not leave Phase 0');
-    expect(instructions).toContain('Completing one ordinary task MUST NOT trigger Phase 1');
+    expect(instructions).toContain('completing one task does not leave the loop');
+    expect(instructions).toContain('Completing one ordinary task MUST NOT trigger a change-level Review');
     expect(instructions).toContain('Only after every pending task and Required Correction is complete');
-    expect(instructions).toContain('one change-level review of that completed Phase 0 state');
+    expect(instructions).toContain('one change-level review of that completed state');
     expect(instructions).toContain('require another change-level Review after recovery completes');
   });
 
-  it('keeps apply Phase 2 checkpoint commands in the Phase 2 reference', () => {
-    const reference = applyReference('references/apply-step-4-phase2-optimization.md');
+  it('keeps apply optimization checkpoint commands in the optimization reference', () => {
+    const reference = applyReference('references/apply-step-4-optimization.md');
 
     expect(reference).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
-    expect(reference).toContain('git commit -m "wip: opt-r${N} (${findingId}: ${description})"');
+    expect(reference).toContain('git commit -m "wip: opt-r${N} (${directionId}: ${description})"');
     expect(reference).toContain('git reset --hard HEAD');
     expect(reference).toContain('git clean -fd');
-    expect(reference).toContain('re-run optimizer reconciliation against current code');
-    expect(reference).not.toContain('If another retry remains, save the new successful state');
+    expect(reference).toContain('judge the remaining directions');
+    expect(reference).toContain('xirang quality optimize');
+    expect(reference).toContain('xirang quality seal');
     expect(reference).not.toContain('git stash push');
     expect(reference).not.toContain('git stash apply');
     expect(reference).not.toContain('git tag apply-opt-checkpoint');
-    expect(reference).not.toContain('--allow-empty');
+    expect(reference).not.toContain('verify phase1');
+    expect(reference).not.toContain('--type=');
   });
 
   it('defines native git isolation and keeps dirty-state routing out of method references', () => {
@@ -251,11 +295,11 @@ describe('apply change workflow template', () => {
     expect(isolationReferences).toContain('git status --short');
   });
 
-  it('applies critical Phase 1 writeback before recording the reviewer payload', () => {
-    const reference = applyReference('references/apply-step-3-phase1-verification.md');
+  it('applies critical review writeback before recording the reviewer payload', () => {
+    const reference = applyReference('references/apply-step-3-review.md');
     const validationIndex = reference.indexOf('Validate the reviewer payload');
     const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
-    const recordIndex = reference.indexOf('xirang verify phase1 "<change-name>"');
+    const recordIndex = reference.indexOf('xirang quality review "<change-name>"');
 
     expect(validationIndex).toBeGreaterThan(-1);
     expect(writebackIndex).toBeGreaterThan(validationIndex);
@@ -264,65 +308,91 @@ describe('apply change workflow template', () => {
   });
 
   it('preserves persistent failed-direction state across speculative rollback', () => {
-    const reference = applyReference('references/apply-step-4-phase2-optimization.md');
-    const verificationIndex = reference.indexOf('--type=verification');
+    const reference = applyReference('references/apply-step-4-optimization.md');
+    const verificationIndex = reference.indexOf('"status":"verified"');
     const snapshotIndex = reference.indexOf('repository-external temporary file');
     const rollbackIndex = reference.indexOf('git reset --hard HEAD');
-    const restoreIndex = reference.indexOf('atomically restore `.verify-result.json`');
+    const restoreIndex = reference.indexOf('restore all three files');
 
+    expect(verificationIndex).toBeGreaterThan(-1);
     expect(snapshotIndex).toBeGreaterThan(verificationIndex);
     expect(rollbackIndex).toBeGreaterThan(snapshotIndex);
     expect(restoreIndex).toBeGreaterThan(rollbackIndex);
     expect(reference).toContain('SHA-256');
-    expect(reference).toContain('failedDirections');
+    expect(reference).toContain('failed directions');
     expect(reference).toContain('`.apply-isolation.json`');
-    expect(reference).toContain('both persistent state files');
+    expect(reference).toContain('.quality-state.json');
+    expect(reference).toContain('.quality-log.jsonl');
     expect(reference).toContain('Stop if restoration or hash verification fails');
   });
 
-  it('orders finding reconciliation, freshness gate, master implementation, and reviewer verification', () => {
-    const content = applyReference('references/apply-step-4-phase2-optimization.md');
+  it('orders the optimizer round, CLI selection, implementation, and round review', () => {
+    const content = applyReference('references/apply-step-4-optimization.md');
 
-    const reconciliationIndex = content.indexOf('optimizer reconciliation envelope');
-    const freshnessIndex = content.indexOf('mode":"begin-implementation');
-    const implementationIndex = content.indexOf('Master implements only the selected finding with TDD');
-    const verificationIndex = content.indexOf('xirang verify phase2 "<change-name>" --type=verification');
-    const nextReconciliationIndex = content.indexOf('re-run optimizer reconciliation against current code');
+    const delegateIndex = content.indexOf('Delegate to a fresh `xirang-optimizer`');
+    const submitIndex = content.indexOf('xirang quality optimize "<change-name>"');
+    const implementationIndex = content.indexOf('Implement the selected direction with TDD');
+    const verificationIndex = content.indexOf('Delegate to a fresh `xirang-reviewer`');
+    const outcomeIndex = content.indexOf('Report the round outcome on the next optimization call');
 
-    expect(reconciliationIndex).toBeGreaterThan(-1);
-    expect(freshnessIndex).toBeGreaterThan(reconciliationIndex);
-    expect(implementationIndex).toBeGreaterThan(freshnessIndex);
+    expect(delegateIndex).toBeGreaterThan(-1);
+    expect(submitIndex).toBeGreaterThan(delegateIndex);
+    expect(implementationIndex).toBeGreaterThan(submitIndex);
     expect(verificationIndex).toBeGreaterThan(implementationIndex);
-    expect(nextReconciliationIndex).toBeGreaterThan(verificationIndex);
-    expect(content).toContain('Successful findings do not consume optRetries');
-    expect(content).toContain('masterChallenge');
+    expect(outcomeIndex).toBeGreaterThan(verificationIndex);
+    expect(content.indexOf('judge the remaining directions', outcomeIndex)).toBeGreaterThan(outcomeIndex);
+    expect(content).toContain('optimization.directionLimit');
+    expect(content).toContain('optimization.directionRetries');
+    expect(content).toContain('a successful round never consumes the failure budget');
     expect(content).toContain('preservationConstraints');
     expect(content).not.toContain('Search/Replace');
     expect(content).not.toContain('delete/stdlib/native/yagni/shrink');
   });
 
-  it('documents the Phase 0-3 apply + verify workflow through outline and step references', () => {
+  it('documents the apply quality workflow through outline and step references', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Phase 1 verification');
-    expect(instructions).toContain('Phase 2 optimization');
-    expect(instructions).toContain('Phase 3 seal');
+    expect(instructions).toContain('Step 3: Review');
+    expect(instructions).toContain('Step 4: Optimization');
+    expect(instructions).toContain('Step 5: Seal');
     expect(instructions).toContain('delegate to the clean-context `xirang-reviewer` agent');
     expect(instructions).toContain('delegate to the clean-context `xirang-optimizer` agent');
     expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
     expect(instructions).not.toContain('invoke the `xirang-optimizer` skill');
 
-    expect(applyReference('references/apply-step-3-phase1-verification.md')).toContain('xirang verify phase1 "<change-name>"');
-    expect(applyReference('references/apply-step-4-phase2-optimization.md')).toContain('xirang verify phase2');
-    expect(applyReference('references/apply-step-5-phase3-seal.md')).toContain('xirang verify seal "<change-name>"');
+    expect(applyReference('references/apply-step-3-review.md')).toContain('xirang quality review "<change-name>"');
+    expect(applyReference('references/apply-step-4-optimization.md')).toContain('xirang quality optimize');
+    expect(applyReference('references/apply-step-5-seal.md')).toContain('xirang quality seal "<change-name>"');
+  });
+
+  it('renders the shared quality fragments only through the shared constants', () => {
+    const reference = applyReference('references/apply-step-4-optimization.md');
+
+    expect(reference).toContain(QUALITY_STATE_MACHINE_DIAGRAM);
+    expect(reference).toContain(QUALITY_CHECKPOINT_STATE_MACHINE);
+    expect(reference).toContain(QUALITY_CLI_JSON_SCHEMA_REFERENCE);
+    expect(reference).toContain(QUALITY_ERROR_RECOVERY_GUIDE);
+    expect(reference).toContain(QUALITY_SIMPLE_CHANGE_FAST_PATH);
+  });
+
+  it('places the state diagram before the checkpoint table and the hard rules after it', () => {
+    const reference = applyReference('references/apply-step-4-optimization.md');
+
+    expect(reference.indexOf(QUALITY_STATE_MACHINE_DIAGRAM)).toBeLessThan(
+      reference.indexOf('| State | Trigger condition | Git operation |')
+    );
+    expect(reference.indexOf('| State | Trigger condition | Git operation |')).toBeLessThan(
+      reference.indexOf('**Hard rules**')
+    );
   });
 
   it('routes seal failure into Required Corrections and recovery in the seal reference', () => {
-    const reference = applyReference('references/apply-step-5-phase3-seal.md');
+    const reference = applyReference('references/apply-step-5-seal.md');
 
-    expect(reference).toContain('If seal fails, preserve diagnostics, convert them into Required Corrections context');
+    expect(reference).toContain('If seal fails, preserve');
+    expect(reference).toContain('convert them into Required Corrections context');
     expect(reference).toContain('map the corrections to the affected task');
-    expect(reference).toContain('return to Phase 0 recovery');
+    expect(reference).toContain('return to the implementation loop');
     expect(reference).toContain('Do not pause on the first seal failure');
   });
 

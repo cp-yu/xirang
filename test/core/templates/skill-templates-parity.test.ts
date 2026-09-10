@@ -18,7 +18,7 @@ import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
   getExploreSkillTemplate: 'b578164d19deb3ca232c6aa0c90382acc4e251ace6e6ce04e11774a11ef9c952',
-  getArchiveChangeSkillTemplate: '0bf75c0d29d9dc74b98d2ce524351cf73e45836b17fe42d17e07e853c1495101',
+  getArchiveChangeSkillTemplate: 'c4e58e869503a8890b15c1bcb61889bd9b748ebfb180541d1e3a2a9ed2645555',
   getXirangProposeSkillTemplate: '9532d409ced1d0b196fde587da73de4d04e01ff710655815c9948d7bb7824e1b',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
   getBuildSkillTemplate: '3fd108167442e23998a7ee419cf73c8f79727dca9904cc6aca78ded3dee2565a',
@@ -27,7 +27,7 @@ const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
   'xirang-explore': '7f761c6fcadbbc80e0181ce562f91049a85dfcb9e47e325d88fedd3ef23b2863',
-  'xirang-archive-change': 'aa5499bc9fd059a6bb58668ad14052b870722a44905405851c24fac3399ee0c8',
+  'xirang-archive-change': '274357df3d4ac4c75d9420dc7daf335ebdba6f5760aa92bf5a91d704f626499d',
   'xirang-propose': 'fca95eb4877e25ad03f123aef90c9ce0b0104080e07bbc5ae292bc63ab1f4bfd',
   'xirang-snack': 'a9c6e3975f2efcbbbe969a6a445e951a1025369d50aef6fd8f745e7802420b9d',
 };
@@ -97,21 +97,21 @@ describe('skill templates split parity', () => {
     expect(rendered).toContain('name: "xirang-apply-change"');
     expect(rendered).toContain('## Flow Outline');
     expect(rendered).toContain('## Implementation Discipline');
-    expect(rendered).toContain('Phase 0 implementation');
-    expect(rendered).toContain('Phase 1 verification');
-    expect(rendered).toContain('Phase 2 optimization');
-    expect(rendered).toContain('Phase 3 seal');
+    expect(rendered).toContain('Implementation loop');
+    expect(rendered).toContain('Step 3: Review');
+    expect(rendered).toContain('Step 4: Optimization');
+    expect(rendered).toContain('Step 5: Seal');
     expect(rendered).toContain('.xirang/references/xirang-apply-step-1-preparation.md');
-    expect(rendered).toContain('.xirang/references/xirang-apply-step-3-phase1-verification.md');
+    expect(rendered).toContain('.xirang/references/xirang-apply-step-3-review.md');
     expect(template.referenceFiles).toHaveLength(8);
     expect(template.referenceFiles?.map((file) => file.path)).toEqual([
       'references/apply-step-1-preparation.md',
       'references/apply-step-2-branch-isolation.md',
       'references/apply-step-2-worktree-isolation.md',
       'references/apply-step-2-current-branch.md',
-      'references/apply-step-3-phase1-verification.md',
-      'references/apply-step-4-phase2-optimization.md',
-      'references/apply-step-5-phase3-seal.md',
+      'references/apply-step-3-review.md',
+      'references/apply-step-4-optimization.md',
+      'references/apply-step-5-seal.md',
       'references/apply-step-6-output.md',
     ]);
   });

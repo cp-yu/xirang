@@ -27,7 +27,7 @@ Apply Phase 0 SHALL 读取 `tasks.md` 中的 pending task，并按每个 task �
 
 #### Scenario: 非隔离流程步骤指向 reference
 
-- **WHEN** Apply 执行到 Preparation、Phase 1/2/3 verification 或 Output
+- **WHEN** Apply 执行到 Preparation、Review、Optimization 或 seal 步骤
 - **THEN** Apply SHALL 读取对应的 `.xirang/references/xirang-apply-step-<N>-<name>.md`
 - **AND** skill body 中该步骤 SHALL 只提供一行描述和文件路径
 

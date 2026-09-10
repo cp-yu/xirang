@@ -15,7 +15,7 @@ import {
   type PreparedSyncManifestEntry,
   type SyncTransactionFileSystem,
 } from './model/transaction.js';
-import { refreshVerifyEvidenceAfterSync } from './verify/freshness.js';
+import { refreshQualityEvidenceAfterSync } from './quality/state.js';
 
 export type PartitionCounts = Record<Partition, number>;
 
@@ -142,7 +142,7 @@ export async function applyPreparedChangeSync(
   options: {
     silent?: boolean;
     filesystem?: Partial<SyncTransactionFileSystem>;
-    refreshEvidence?: typeof refreshVerifyEvidenceAfterSync;
+    refreshEvidence?: typeof refreshQualityEvidenceAfterSync;
   } = {},
 ): Promise<AppliedChangeSyncSummary> {
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
@@ -156,14 +156,14 @@ export async function applyPreparedChangeSync(
   }
 
   try {
-    await (options.refreshEvidence ?? refreshVerifyEvidenceAfterSync)(
+    await (options.refreshEvidence ?? refreshQualityEvidenceAfterSync)(
       prepared.state.changeDir,
       projectRoot,
       files,
     );
   } catch (error) {
     throw new Error(
-      `Semantic sync committed, but evidence refresh failed; run verify to refresh evidence: ${(error as Error).message}`,
+      `Semantic sync committed, but evidence refresh failed; run xirang quality review to refresh evidence: ${(error as Error).message}`,
       { cause: error },
     );
   }

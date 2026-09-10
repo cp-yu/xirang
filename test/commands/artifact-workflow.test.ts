@@ -3,8 +3,9 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
-import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/verify/freshness.js';
-import type { VerifyOptimization, VerifyResultStatus } from '../../src/core/verify/types.js';
+import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/quality/state.js';
+import type { OptimizationLedger, ReviewResultStatus } from '../../src/core/quality/types.js';
+import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
 import { validateTaskStructure } from '../../src/core/parsers/task-structure.js';
 
 describe('artifact-workflow CLI commands', () => {
@@ -98,7 +99,7 @@ describe('artifact-workflow CLI commands', () => {
           await walk(fullPath);
           continue;
         }
-        if (entry.name !== '.verify-result.json') {
+        if (entry.name !== QUALITY_STATE_FILE && entry.name !== QUALITY_LOG_FILE) {
           collected.push(fullPath);
         }
       }
@@ -108,11 +109,11 @@ describe('artifact-workflow CLI commands', () => {
     return collected.sort();
   }
 
-  async function writeVerifyResult(
+  async function writeQualityRecord(
     changeDir: string,
     options: {
-      result?: VerifyResultStatus;
-      optimization?: VerifyOptimization;
+      result?: ReviewResultStatus;
+      optimization?: Partial<OptimizationLedger>;
     } = {}
   ): Promise<void> {
     const evidenceFiles = (await collectChangeFiles(changeDir)).map((filePath) =>
@@ -121,25 +122,31 @@ describe('artifact-workflow CLI commands', () => {
     const fingerprint = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const tasksFileHash = await computeTasksFileHash(path.join(changeDir, 'tasks.md'));
 
+    const record = {
+      kind: 'review',
+      timestamp: '2026-05-19T00:00:00.000Z',
+      result: options.result ?? 'PASS',
+      issues: [],
+      tasksFileHash: tasksFileHash ?? '',
+      verificationContext: {
+        contractVersion: '1.0',
+        evidenceFiles,
+        evidenceFingerprint: fingerprint.hash,
+        evidenceFingerprintEntries: fingerprint.entries,
+      },
+      optimization: {
+        directions: [],
+        histories: [],
+        directionsUsed: 0,
+        ...(options.optimization ?? {}),
+      },
+    };
+
     await fs.writeFile(
-      path.join(changeDir, '.verify-result.json'),
-      JSON.stringify(
-        {
-          timestamp: '2026-05-19T00:00:00.000Z',
-          result: options.result ?? 'PASS',
-          issues: [],
-          tasksFileHash: tasksFileHash ?? '',
-          verificationContext: {
-            contractVersion: '1.0',
-            evidenceFiles,
-            evidenceFingerprint: fingerprint.hash,
-          },
-          optimization: options.optimization,
-        },
-        null,
-        2
-      )
+      path.join(changeDir, QUALITY_STATE_FILE),
+      `${JSON.stringify(record, null, 2)}\n`
     );
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`);
   }
 
   describe('status command', () => {
@@ -738,7 +745,7 @@ rules: {}
       expect(result.stdout).not.toContain('directly implement each pending task');
     });
 
-    it('shows needs_verify state when all tasks are complete but verify is missing', async () => {
+    it('shows needs_review state when all tasks are complete but no review is recorded', async () => {
       const changeDir = await createTestChange('done-apply', [
         'proposal',
         'design',
@@ -755,11 +762,11 @@ rules: {}
         cwd: tempDir,
       });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Verification Required');
-      expect(result.stdout).toContain('Phase 1 verification');
+      expect(result.stdout).toContain('Review Required');
+      expect(result.stdout).toContain('xirang quality review');
     });
 
-    it('outputs needs_verify state in JSON when all tasks are complete but verify is missing', async () => {
+    it('outputs needs_review state in JSON when all tasks are complete but no review is recorded', async () => {
       const changeDir = await createTestChange('done-apply-json', [
         'proposal',
         'design',
@@ -775,11 +782,11 @@ rules: {}
       expect(result.exitCode).toBe(0);
 
       const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_verify');
-      expect(json.instruction).toContain('Phase 1 verification');
+      expect(json.state).toBe('needs_review');
+      expect(json.instruction).toContain('xirang quality review');
     });
 
-    it('outputs needs_seal state in JSON when phase 2 is still pending', async () => {
+    it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {
       const changeDir = await createTestChange('needs-seal-apply', [
         'proposal',
         'design',
@@ -787,12 +794,7 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeVerifyResult(changeDir, {
-        optimization: {
-          status: 'PENDING_VERIFICATION',
-          attempts: [],
-        },
-      });
+      await writeQualityRecord(changeDir);
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'needs-seal-apply', '--json'],
@@ -801,11 +803,11 @@ rules: {}
       expect(result.exitCode).toBe(0);
 
       const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_seal');
-      expect(json.instruction).toContain('Phase 2 optimization and Phase 3 seal');
+      expect(json.state).toBe('needs_optimize');
+      expect(json.instruction).toContain('xirang quality optimize');
     });
 
-    it('outputs needs_verify state in JSON when optimization aborted unsafe', async () => {
+    it('outputs needs_optimize state in JSON when optimization aborted unsafe', async () => {
       const changeDir = await createTestChange('aborted-unsafe-apply', [
         'proposal',
         'design',
@@ -813,11 +815,8 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeVerifyResult(changeDir, {
-        optimization: {
-          status: 'ABORTED_UNSAFE',
-          attempts: [],
-        },
+      await writeQualityRecord(changeDir, {
+        optimization: { terminal: 'ABORTED_UNSAFE', stopReason: 'UNSAFE' },
       });
 
       const result = await runCLI(
@@ -827,11 +826,11 @@ rules: {}
       expect(result.exitCode).toBe(0);
 
       const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_verify');
-      expect(json.instruction).toContain('Phase 1 verification');
+      expect(json.state).toBe('needs_optimize');
+      expect(json.instruction).toContain('aborted as unsafe');
     });
 
-    it('outputs all_done state in JSON when verify is fresh and archive-compatible', async () => {
+    it('outputs all_done state in JSON when the quality record is clean and archive-compatible', async () => {
       const changeDir = await createTestChange('all-done-apply', [
         'proposal',
         'design',
@@ -839,12 +838,7 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeVerifyResult(changeDir, {
-        optimization: {
-          status: 'NOT_NEEDED',
-          attempts: [],
-        },
-      });
+      await writeQualityRecord(changeDir, { optimization: { terminal: 'NOT_NEEDED', stopReason: 'NO_ACTIONABLE' } });
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'all-done-apply', '--json'],
@@ -1111,7 +1105,7 @@ context: Updated context
 
   describe('tasks instructions content', () => {
     it('includes deletion and refactor conversion rules', async () => {
-      const changeDir = await createTestChange('delete-refactor-change', ['proposal', 'specs', 'design']);
+      await createTestChange('delete-refactor-change', ['proposal', 'specs', 'design']);
 
       const result = await runCLI(['instructions', 'tasks', '--change', 'delete-refactor-change', '--json'], {
         cwd: tempDir,
@@ -1130,7 +1124,7 @@ context: Updated context
     });
 
     it('describes non-runtime text fast path', async () => {
-      const changeDir = await createTestChange('text-change', ['proposal', 'specs', 'design']);
+      await createTestChange('text-change', ['proposal', 'specs', 'design']);
 
       const result = await runCLI(['instructions', 'tasks', '--change', 'text-change', '--json'], {
         cwd: tempDir,

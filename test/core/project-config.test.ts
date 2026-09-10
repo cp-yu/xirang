@@ -71,7 +71,8 @@ describe('project-config', () => {
         },
         optimization: {
           enabled: true,
-          optRetries: 2,
+          directionLimit: 3,
+          directionRetries: 2,
         },
         apply: {
           defaultIsolation: 'ask',
@@ -125,7 +126,8 @@ describe('project-config', () => {
         },
         optimization: {
           enabled: true,
-          optRetries: 2,
+          directionLimit: 3,
+          directionRetries: 2,
         },
         apply: {
           defaultIsolation: 'ask',
@@ -160,7 +162,8 @@ context: keep me
       expect(parsed.schema).toBe('custom-schema');
       expect(parsed.context).toBe('keep me');
       expect(parsed.optimization.enabled).toBe(false);
-      expect(parsed.optimization.optRetries).toBe(2);
+      expect(parsed.optimization.directionLimit).toBe(3);
+      expect(parsed.optimization.directionRetries).toBe(2);
       expect(parsed.git.merge.strategy).toBe('squash');
       expect(parsed.git.branch.deleteAfterArchive).toBe(false);
       expect(parsed.git).not.toHaveProperty('autoCommit');
@@ -192,7 +195,8 @@ git:
       });
       expect(parsed.optimization).toEqual({
         enabled: true,
-        optRetries: 2,
+        directionLimit: 3,
+        directionRetries: 2,
       });
       expect(parsed.apply).toEqual({
         defaultIsolation: 'ask',
@@ -311,7 +315,8 @@ decomposition:
 
       expect(config?.optimization).toEqual({
         enabled: true,
-        optRetries: 2,
+        directionLimit: 3,
+        directionRetries: 2,
       });
       expect(runtime.git).toEqual(gitConfig());
       expect(config).not.toHaveProperty('propose');
@@ -522,7 +527,8 @@ optimization:
           decomposition: { method: 'c4' },
           optimization: {
             enabled: false,
-            optRetries: 2,
+            directionLimit: 3,
+            directionRetries: 2,
           },
           git: gitConfig(),
         });
@@ -1256,7 +1262,8 @@ rules:
         context: '  Team context  ',
         optimization: {
           enabled: false,
-          optRetries: 2,
+          directionLimit: 3,
+          directionRetries: 2,
         },
         propose: {
           smartRouting: false,
@@ -1292,7 +1299,8 @@ rules:
         },
         optimization: {
           enabled: false,
-          optRetries: 2,
+          directionLimit: 3,
+          directionRetries: 2,
         },
         apply: {
           defaultIsolation: 'worktree',

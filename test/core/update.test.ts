@@ -116,7 +116,8 @@ describe('UpdateCommand', () => {
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
       expect(config.decomposition).toEqual({ method: 'c4' });
       expect(config.optimization.enabled).toBe(true);
-      expect(config.optimization.optRetries).toBe(2);
+      expect(config.optimization.directionLimit).toBe(3);
+      expect(config.optimization.directionRetries).toBe(2);
       expect(config.apply.defaultIsolation).toBe('ask');
       expect(config.git.merge.strategy).toBe('no-ff');
       expect(config.git.branch.deleteAfterArchive).toBe(false);
@@ -149,7 +150,8 @@ rules:
       expect(config.rules.proposal).toEqual(['keep this rule']);
       expect(config.decomposition).toEqual({ method: 'c4' });
       expect(config.optimization.enabled).toBe(true);
-      expect(config.optimization.optRetries).toBe(2);
+      expect(config.optimization.directionLimit).toBe(3);
+      expect(config.optimization.directionRetries).toBe(2);
       expect(config.apply.defaultIsolation).toBe('ask');
       expect(config.git.merge.strategy).toBe('no-ff');
       expect(config.git.branch.deleteAfterArchive).toBe(false);
@@ -171,6 +173,7 @@ decomposition:
   skill: project-modeling
 optimization:
   enabled: false
+  directionRetries: 1
 apply:
   defaultIsolation: worktree
 git:
@@ -188,7 +191,8 @@ git:
       expect(config.decomposition).toEqual({ skill: 'project-modeling' });
       expect(config.decomposition).not.toHaveProperty('method');
       expect(config.optimization.enabled).toBe(false);
-      expect(config.optimization.optRetries).toBe(2);
+      expect(config.optimization.directionLimit).toBe(3);
+      expect(config.optimization.directionRetries).toBe(1);
       expect(config.apply.defaultIsolation).toBe('worktree');
       expect(config.git.commitMessage.archive).toBe('docs/archive.md');
       expect(config.git.merge.strategy).toBe('squash');

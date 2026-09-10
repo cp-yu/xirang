@@ -124,18 +124,30 @@ describe('introspect', () => {
 
   it('嵌套子命令的 positionalType 注入', () => {
     const program = new Command();
-    const verifyCmd = program
-      .command('verify')
-      .description('Verification gates');
+    const arch = program.command('arch').description('Architecture operations');
 
-    verifyCmd
-      .command('phase1 [change-id]')
-      .description('Run phase 1');
+    arch.command('impact [element-ids...]').description('Project semantic impact');
 
     const result = introspectCommands(program);
 
     expect(result[0].subcommands).toHaveLength(1);
-    expect(result[0].subcommands?.[0].positionalType).toBe('change-id');
+    expect(result[0].subcommands?.[0].positionalType).toBe('element-id');
+  });
+
+  it('quality 命令通过反射可发现', async () => {
+    const { program } = await import('../../../src/cli/index.js');
+
+    const quality = introspectCommands(program).find((command) => command.name === 'quality');
+
+    expect(quality).toBeDefined();
+    expect(quality?.subcommands?.map((command) => command.name)).toEqual([
+      'review',
+      'optimize',
+      'status',
+      'seal',
+    ]);
+    expect(quality?.subcommands?.every((command) => command.positionalType === 'change-id')).toBe(true);
+    expect(quality?.subcommands?.every((command) => command.flags.length > 0)).toBe(true);
   });
 
   it('为 Architecture Search 与 Impact 注入 positionalType', () => {

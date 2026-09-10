@@ -230,7 +230,7 @@ describe('config-schema', () => {
     });
 
     it('should accept valid optimization config', () => {
-      const result = validateConfig({ optimization: { enabled: false, optRetries: 3 } });
+      const result = validateConfig({ optimization: { enabled: false, directionLimit: 5, directionRetries: 3 } });
       expect(result.success).toBe(true);
     });
 
@@ -349,7 +349,7 @@ describe('config-schema', () => {
 
     it('should provide default optimization config without retired propose policy', () => {
       const result = GlobalConfigSchema.parse({});
-      expect(result.optimization).toEqual({ enabled: true, optRetries: 2 });
+      expect(result.optimization).toEqual({ enabled: true, directionLimit: 3, directionRetries: 2 });
       expect(result).not.toHaveProperty('propose');
     });
 
@@ -391,7 +391,7 @@ describe('config-schema', () => {
     });
 
     it('should enable optimization without retired propose defaults', () => {
-      expect(DEFAULT_CONFIG.optimization).toEqual({ enabled: true, optRetries: 2 });
+      expect(DEFAULT_CONFIG.optimization).toEqual({ enabled: true, directionLimit: 3, directionRetries: 2 });
       expect(DEFAULT_CONFIG).not.toHaveProperty('propose');
     });
 
@@ -411,7 +411,8 @@ describe('config-schema', () => {
     it('allows optimization root key and enabled subkey', () => {
       expect(validateConfigKeyPath('optimization').valid).toBe(true);
       expect(validateConfigKeyPath('optimization.enabled').valid).toBe(true);
-      expect(validateConfigKeyPath('optimization.optRetries').valid).toBe(true);
+      expect(validateConfigKeyPath('optimization.directionLimit').valid).toBe(true);
+      expect(validateConfigKeyPath('optimization.directionRetries').valid).toBe(true);
     });
 
     it('rejects unknown nested optimization keys', () => {

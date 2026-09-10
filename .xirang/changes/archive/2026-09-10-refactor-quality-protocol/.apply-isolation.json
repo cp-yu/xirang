@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "refactor-quality-protocol",
+  "originalBranch": "main",
+  "baseCommit": "94a751858c8364601020b3f6bbd99f28aa21580d",
+  "optimizationBaselineCommit": "1a0da3ecab99c9653ad18f80d13b42d85f8922ad"
+}

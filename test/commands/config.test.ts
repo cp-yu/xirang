@@ -155,7 +155,8 @@ decomposition:
   skill: xirang-project-decomposition
 optimization:
   enabled: false
-  optRetries: 1
+  directionLimit: 2
+  directionRetries: 1
 propose:
   smartRouting: false
 apply:
@@ -192,7 +193,8 @@ rules:
       },
       optimization: {
         enabled: false,
-        optRetries: 1,
+        directionLimit: 2,
+        directionRetries: 1,
       },
       apply: {
         defaultIsolation: 'branch',
@@ -292,9 +294,10 @@ describe('config key validation', () => {
     expect(validateConfigKeyPath('optimization.enabled').valid).toBe(true);
   });
 
-  it('allows optimization.optRetries key', async () => {
+  it('allows optimization.directionLimit and optimization.directionRetries keys', async () => {
     const { validateConfigKeyPath } = await import('../../src/core/config-schema.js');
-    expect(validateConfigKeyPath('optimization.optRetries').valid).toBe(true);
+    expect(validateConfigKeyPath('optimization.directionLimit').valid).toBe(true);
+    expect(validateConfigKeyPath('optimization.directionRetries').valid).toBe(true);
   });
 
   it('rejects unsupported optimization nesting', async () => {

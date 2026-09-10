@@ -6,22 +6,24 @@
  */
 import type { SkillTemplate } from '../types.js';
 import {
+  QUALITY_CHECKPOINT_STATE_MACHINE,
+  QUALITY_CLI_JSON_SCHEMA_REFERENCE,
+  QUALITY_ERROR_RECOVERY_GUIDE,
+  QUALITY_SIMPLE_CHANGE_FAST_PATH,
+  QUALITY_STATE_MACHINE_DIAGRAM,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
-  VERIFY_CLI_JSON_SCHEMA_REFERENCE,
-  VERIFY_ERROR_RECOVERY_GUIDE,
-  VERIFY_STATE_MACHINE_DIAGRAM,
 } from '../fragments/xirang-fragments.js';
 
 const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
 1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`xirang list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`xirang status --change "<name>" --json\` and \`xirang instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_verify"\` by continuing at Phase 1 and \`state: "needs_seal"\` by continuing at Phase 2/3.
+2. Run \`xirang status --change "<name>" --json\` and \`xirang instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_review"\` by recording a Review and \`state: "needs_optimize"\` by continuing the optimization loop.
 3. Load the shared Xirang Semantic Model context before reading change artifacts.
 ${XIRANG_SHARED_CONTEXT}
-4. Read every context file listed by the CLI. Inspect \`changeDir/.verify-result.json\` and \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
+4. Read every context file listed by the CLI. Inspect \`changeDir/.quality-state.json\` (its \`issues\` carry the failing review context) and \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
 6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat \`.xirang/changes/<name>/\` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
 7. Record the selected method for Step 2. Do not read the selected reference during Preparation. At Step 2, read exactly one matching reference:
@@ -56,7 +58,7 @@ Use this reference only after Step 1 selects worktree isolation. Use native Git;
 5. Compare source and target file state and SHA-256 for every present transferred entry. Represent a deleted final state as \`sourceState: "deleted"\` and \`sourceHash: null\`; never invent a hash for absent bytes. In the worktree, rerun status, apply instructions, and the targeted validation named by the affected Checks. Stop on any mismatch or validation failure.
 6. Persist worktree \`changeDir/.apply-isolation.json\` with \`method: "worktree"\`, \`branchName\`, \`originalBranch\`, \`baseCommit\`, absolute \`worktreePath\`, absolute \`sourceRoot\`, and \`transferredFiles\` containing relative paths, source states, and source hashes.
 7. After all transfer checks pass, clean only transferred source-workspace state whose source state and hash have not changed: restore tracked modifications and deletions to source \`HEAD\`, and remove untracked files only when their hash still matches. Touch no path outside the changed file set. Stop cleanup if any source entry changed during transfer.
-8. Phase 0 through Phase 3 run only in the worktree. Add \`git status --short\` files to evidence scope alongside \`git diff <baseCommit>...HEAD --name-only\`.
+8. Every apply step runs only in the worktree. Add \`git status --short\` files to evidence scope alongside \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
 const APPLY_STEP_2_CURRENT_BRANCH_REFERENCE = `
@@ -70,67 +72,66 @@ Use this reference only after Step 1 selects current-branch isolation.
 4. Keep \`git status --short\` files in verification scope in addition to \`git diff <baseCommit>...HEAD --name-only\`.
 `.trim();
 
-const APPLY_STEP_3_PHASE1_VERIFICATION_REFERENCE = `
-# Apply Step 3: Phase 1 Verification
+const APPLY_STEP_3_REVIEW_REFERENCE = `
+# Apply Step 3: Review
 
-1. Delegate to the clean-context \`xirang-reviewer\` agent with \`context: "fresh"\` and the current changeName, absolute changeDir, and absolute projectRoot.
-2. Validate the reviewer payload against the Phase 1 input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
+1. [Mode: Delegate Review] Delegate to the clean-context \`xirang-reviewer\` agent with \`context: "fresh"\`, passing only the three locating strings: changeName, absolute changeDir, and absolute projectRoot. Do not pass file contents, change artifacts, or git evidence text; the reviewer owns read and bash capability and reads them itself.
+   Waiting rules: wait for the complete reviewer payload, and never validate a partial response. A slow subagent is not a failed subagent — keep waiting, and ask the user before terminating it.
+2. Validate the reviewer payload against the review input contract. Reject malformed or incomplete payloads rather than repairing them by inference.
 3. Apply only CRITICAL \`writeBackPlan\` entries to \`tasks.md\`; do not write back WARNING or SUGGESTION items.
-4. After writeback completes, persist the validated reviewer payload with \`xirang verify phase1 "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
-5. On FAIL_NEEDS_CORRECTIONS, return to Phase 0. On PASS or PASS_WITH_WARNINGS, continue to Phase 2.
+4. After writeback completes, persist the validated reviewer payload with \`xirang quality review "<change-name>" --input '<json>' --json\`. This ordering ensures the CLI records \`tasksFileHash\` from the final written tasks file.
+5. On FAIL_NEEDS_CORRECTIONS the state stays \`dirty\`: return to the implementation loop. On PASS or PASS_WITH_WARNINGS the state becomes \`clean\`; continue to Step 4.
 `.trim();
 
-const APPLY_STEP_4_PHASE2_OPTIMIZATION_REFERENCE = `
-# Apply Step 4: Phase 2 Optimization
+const APPLY_STEP_4_OPTIMIZATION_REFERENCE = `
+# Apply Step 4: Optimization
 
-Use git commits as checkpoints; never use stash or tags. Phase 0 and Phase 1 create no commits.
+${QUALITY_STATE_MACHINE_DIAGRAM}
 
-1. Skip only for \`--skip-optimization\` or \`optimization.enabled: false\`; record \`SKIPPED\`.
-2. Read \`optimization.optRetries\`; it limits failures of one finding direction. Successful findings do not consume optRetries.
-3. Establish the Phase 1 baseline. If the workspace contains this Apply's changes, save them as the first Apply commit:
+Use git commits as checkpoints; never use stash or tags. Ordinary implementation rounds create no commits. Each round follows the state machine above.
+
+1. Skip optimization only through \`optimization.enabled: false\` or an explicit user decline, then finalize with \`{"directions":[],"stopReason":"USER_DECLINED","summary":"<reason>"}\` (terminal \`SKIPPED\`).
+2. Read \`optimization.directionLimit\` (selected directions per run) and \`optimization.directionRetries\` (failures of one direction). A verified direction consumes neither budget, and a successful round never consumes the failure budget.
+3. Establish the baseline. If the workspace contains this Apply's changes, save them as the first Apply commit:
    \`\`\`bash
    git add -A
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
-   Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as \`phase2BaselineCommit\` in \`.apply-isolation.json\`.
-4. Delegate to fresh \`xirang-optimizer\` with changeName, absolute changeDir, and absolute projectRoot. Submit its strict optimizer reconciliation envelope:
+   Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as \`optimizationBaselineCommit\` in \`.apply-isolation.json\`.
+4. Delegate to a fresh \`xirang-optimizer\` with \`context: "fresh"\` and pass only the three locating strings plus the recorded review conclusion, the failed directions, and the optimization config; the optimizer owns read and bash capability and reads the base scope itself, so never pass file contents and never reuse an earlier conclusion. Wait for the complete round ledger before validating it: A slow subagent is not a failed subagent — keep waiting, and ask the user before terminating it. Submit the ledger:
    \`\`\`bash
-   xirang verify phase2 "<change-name>" --type=optimization --input '<json>' --json
+   xirang quality optimize "<change-name>" --input '<json>' --json
    \`\`\`
-5. If optimizer returns blockingObservations, return to Phase 1 Required Corrections. If no finding is selected, Phase 2 is terminal. Otherwise read selected finding evidence, keyDesign, preservationConstraints, validation, and priorityReason.
-6. If project evidence contradicts the finding or keyDesign, submit masterChallenge and re-run fresh optimizer reconciliation. Do not skip or reject it yourself.
-7. Before editing, enforce selected-target freshness:
-   \`\`\`bash
-   xirang verify phase2 "<change-name>" --type=optimization --input '{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"<finding-id>"}' --json
-   \`\`\`
-8. Master implements only the selected finding with TDD. Preserve the finding's constraints and record any non-substantive implementation differences.
-9. Delegate to fresh \`xirang-reviewer\` for speculative verification. It verifies specs and preservationConstraints, not optimization value. Persist its verdict first so failed history and \`failedDirections\` become durable:
-   \`\`\`bash
-   xirang verify phase2 "<change-name>" --type=verification --input '{"result":"PASS","findingId":"<finding-id>","issues":[]}' --json
-   \`\`\`
-10. On PASS, save the successful checkpoint, then re-run optimizer reconciliation against current code:
+   The CLI assigns every new direction ID, echoes the assigned IDs and \`selected\`, and rejects a selection that skips the highest priority eligible direction. Do not author IDs, counters, or selections.
+5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with \`{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}\`, then return to the implementation loop with Required Corrections. Otherwise implement only the direction the CLI selected.
+6. If project evidence contradicts the selected direction or its \`keyDesign\`, revoke it inside the round ledger with \`reason\` and \`evidence\`, then judge the remaining directions with a fresh optimizer. Do not skip or reject a direction silently.
+7. Implement the selected direction with TDD, preserving its \`preservationConstraints\`, and record any non-substantive implementation difference from \`keyDesign\`.
+8. Delegate to a fresh \`xirang-reviewer\` with \`context: "fresh"\` to verify the specs and the selected direction's \`preservationConstraints\`, not the optimization value. Record that verdict with the same \`xirang quality review\` call as Step 3; a passing review marks the direction \`implemented\` and refreshes the evidence fingerprint.
+9. Report the round outcome on the next optimization call with \`attempt\`: \`{"directionId":"<direction-id>","status":"verified"}\` after a passing review, or \`"failed"\` after a failing review. Report the verdict before rolling back so history and failure counts stay durable.
+10. On \`verified\`, save the successful checkpoint and judge the remaining directions:
     \`\`\`bash
     git add -A
-    git commit -m "wip: opt-r\${N} (\${findingId}: \${description})"
+    git commit -m "wip: opt-r\${N} (\${directionId}: \${description})"
     \`\`\`
-11. On FAIL, copy the updated \`.verify-result.json\` and \`.apply-isolation.json\` to repository-external temporary files and record each SHA-256. These are both persistent state files: the verify result preserves failed history and \`failedDirections\`, while isolation metadata preserves \`phase2BaselineCommit\`. Confirm the current workspace matches the selected isolation and \`HEAD\` is the latest successful checkpoint, then discard only speculative code with \`git reset --hard HEAD\` and \`git clean -fd\`. Copy each snapshot to a sibling temporary path, atomically restore \`.verify-result.json\` and \`.apply-isolation.json\`, and verify both hashes before re-running optimizer reconciliation. Stop if restoration or hash verification fails, or if speculative files remain. A direction reaching optRetries becomes rejected; other findings continue.
-12. Stop on no actionable findings, all remaining findings terminal/deferred, skip/disabled, or STALLED. Keep all \`wip: opt-*\` commits.
+11. On \`failed\`, copy \`.quality-state.json\`, \`.quality-log.jsonl\`, and \`.apply-isolation.json\` to repository-external temporary files and record each SHA-256. Confirm the workspace matches the selected isolation and that \`HEAD\` is the latest successful checkpoint, discard only speculative code with \`git reset --hard HEAD\` and \`git clean -fd\`, then restore all three files (\`git clean\` removes the untracked log) and verify each hash before the next round. Stop if restoration or hash verification fails, or if speculative files remain. A direction reaching \`optimization.directionRetries\` becomes \`rejected\`; other directions continue.
+12. Finalize the loop with \`{"directions":[],"stopReason":"...","summary":"<optimizer conclusion>"}\` when the optimizer finds no eligible direction (\`NO_ACTIONABLE\`), the direction limit blocks a new selection (\`DIRECTION_LIMIT_REACHED\`), the user declines (\`USER_DECLINED\`), or the workspace is unsafe (\`UNSAFE\`). Keep all \`wip: opt-*\` commits.
 
-${VERIFY_CLI_JSON_SCHEMA_REFERENCE}
-${VERIFY_ERROR_RECOVERY_GUIDE}
-${VERIFY_STATE_MACHINE_DIAGRAM}
+${QUALITY_CHECKPOINT_STATE_MACHINE}
+${QUALITY_CLI_JSON_SCHEMA_REFERENCE}
+${QUALITY_ERROR_RECOVERY_GUIDE}
+${QUALITY_SIMPLE_CHANGE_FAST_PATH}
 `.trim();
 
-const APPLY_STEP_5_PHASE3_SEAL_REFERENCE = `
-# Apply Step 5: Phase 3 Seal
+const APPLY_STEP_5_SEAL_REFERENCE = `
+# Apply Step 5: Seal
 
-Run \`xirang verify seal "<change-name>" --json\`. If seal fails, preserve diagnostics, convert them into Required Corrections context, map the corrections to the affected task, and return to Phase 0 recovery. Do not pause on the first seal failure.
+Run \`xirang quality seal "<change-name>" --json\`. If seal fails, preserve \`diagnostics\`, convert them into Required Corrections context, map the corrections to the affected task, and return to the implementation loop. Do not pause on the first seal failure.
 `.trim();
 
 const APPLY_STEP_6_OUTPUT_REFERENCE = `
 # Apply Step 6: Output
 
-Report schema, progress, current task, completed tasks this session, and final sealed/archive-ready status. Continue archive from the same Apply workspace. Apply MUST NOT switch branches and MUST NOT remove the worktree; the Archive workflow owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
+Report schema, progress, current task, completed tasks this session, and the final sealed/archive-ready status. Continue archive from the same Apply workspace. Apply MUST NOT switch branches and MUST NOT remove the worktree; the Archive workflow owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes, and preserve canonical artifact headings/tokens and configured document language projection.
 `.trim();
 
 export function getApplyChangeSkillTemplate(): SkillTemplate {
@@ -149,16 +150,30 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`.
 2. Step 2: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
-3. Phase 0 implementation — process all pending tasks and Required Corrections as task-level TDD loops until they are complete; completing one task does not leave Phase 0.
-4. Step 3: Phase 1 verification — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-3-phase1-verification.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed Phase 0 state. A failed Review or Seal may return corrections to Phase 0; after those corrections are complete, the modified Change state requires another change-level Review.
-5. Step 4: Phase 2 optimization — read \`.xirang/references/xirang-apply-step-4-phase2-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.
-6. Step 5: Phase 3 seal — read \`.xirang/references/xirang-apply-step-5-phase3-seal.md\`.
+3. Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops until they are complete; completing one task does not leave the loop.
+4. [Mode: Delegate Review] Step 3: Review — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-3-review.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed state. A failed Review or Seal may return corrections to the implementation loop; after those corrections are complete, the modified Change state requires another change-level Review.
+5. [Mode: Checkpoint] Step 4: Optimization — read \`.xirang/references/xirang-apply-step-4-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.
+6. Step 5: Seal — read \`.xirang/references/xirang-apply-step-5-seal.md\`.
 7. Step 6: Output — read \`.xirang/references/xirang-apply-step-6-output.md\`.
+
+## Quality Coordinator
+
+You are the apply coordinator, not a judge. Four roles stay separate:
+- Coordinator (you): locate \`changeDir\` and \`projectRoot\`, prepare the evidence paths, delegate, validate payloads, apply write-back, manage checkpoints, and persist results through the CLI.
+- \`xirang-reviewer\` subagent: judges completeness, correctness, coherence, and cleanliness from its own reading in a fresh context.
+- \`xirang-optimizer\` subagent: judges whether correct code is worth improving, and supplies key design plus preservation constraints, in a fresh context.
+- CLI (\`xirang quality\`): assigns direction IDs, enforces entry conditions and counters, persists records, and derives the terminal state.
+
+Rules:
+- You MUST NOT substitute your own completeness, correctness, or coherence judgments for the reviewer's.
+- For the quality steps you only determine \`changeDir\`, \`projectRoot\`, and the evidence paths to hand over; the subagents read candidate files, git evidence, and change artifacts themselves.
+- You MUST NOT read or inline the \`xirang-reviewer\` or \`xirang-optimizer\` agent artifacts; their role definitions and output contracts belong to those agents.
+- Wait for a complete subagent payload before validating it. A subagent that is slow is not a failed subagent: keep waiting, and ask the user before terminating one.
 
 ## Implementation Discipline
 
 - Before implementation, run \`xirang arch impact <identity> --depth 2 --json\` to discover affected identities and relationships, then run \`xirang arch query <selected-identities...> --contract --json\` for the explicit Elements whose Contracts and Declarations are needed; read the returned Element Contracts and current code.
-- Process unfinished \`## Required Corrections\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Each task is one TDD loop. A task is complete only after its applicable Checks have passed with the required evidence. Completing one ordinary task MUST NOT trigger Phase 1, Phase 2, or a workflow handoff. Only after every pending task and Required Correction is complete may Apply enter a change-level Phase 1 review; any subsequent Review or Seal corrections modify the Change state and require another change-level Review after recovery completes.
+- Process unfinished \`## Required Corrections\` \`[code_fix]\` and \`[artifact_fix]\` items before pending tasks. Each task is one TDD loop. A task is complete only after its applicable Checks have passed with the required evidence. Completing one ordinary task MUST NOT trigger a change-level Review, an optimization round, or a workflow handoff. Only after every pending task and Required Correction is complete may Apply enter a change-level Review; any subsequent Review or Seal corrections modify the Change state and require another change-level Review after recovery completes.
 - Assess interface testability before writing tests for each behavior/code Check: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal. If the behavior is hard to test, improve the interface first.
 - Inspect existing tests first and honor the declared Test action: \`reuse\`, \`modify\`, \`add\`, \`delete\`, or \`one-time\`. Do not default to \`add\` when another action is declared. Exercise public behavior; mock only injected system boundaries, never internal collaborators. Split tests only when failure reasons are independent.
 - For behavior/code Checks, run the declared or equivalent targeted command and confirm evidence that the target behavior is missing, incorrect, or otherwise requires the declared change before implementation. Make the minimal implementation, then rerun the same Check and confirm GREEN. Do not manufacture RED with syntax errors, wrong paths, broken fixtures, or unrelated failures.
@@ -169,7 +184,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 - Update Check and Required Corrections checkboxes only after their declared evidence passes. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
 - For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same Check. Pause after two consecutive identical normalized errors or three failed fixes in one task.
 
-When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. Run /xirang:archive <change-name> to complete the workflow.\``,
+When the seal passes, end with an explicit call-to-action: \`Archive ready. Run /xirang:archive <change-name> to complete the workflow.\``,
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },
@@ -178,9 +193,9 @@ When Phase 3 seal passes, end with an explicit call-to-action: \`Archive ready. 
       { path: 'references/apply-step-2-branch-isolation.md', content: APPLY_STEP_2_BRANCH_ISOLATION_REFERENCE },
       { path: 'references/apply-step-2-worktree-isolation.md', content: APPLY_STEP_2_WORKTREE_ISOLATION_REFERENCE },
       { path: 'references/apply-step-2-current-branch.md', content: APPLY_STEP_2_CURRENT_BRANCH_REFERENCE },
-      { path: 'references/apply-step-3-phase1-verification.md', content: APPLY_STEP_3_PHASE1_VERIFICATION_REFERENCE },
-      { path: 'references/apply-step-4-phase2-optimization.md', content: APPLY_STEP_4_PHASE2_OPTIMIZATION_REFERENCE },
-      { path: 'references/apply-step-5-phase3-seal.md', content: APPLY_STEP_5_PHASE3_SEAL_REFERENCE },
+      { path: 'references/apply-step-3-review.md', content: APPLY_STEP_3_REVIEW_REFERENCE },
+      { path: 'references/apply-step-4-optimization.md', content: APPLY_STEP_4_OPTIMIZATION_REFERENCE },
+      { path: 'references/apply-step-5-seal.md', content: APPLY_STEP_5_SEAL_REFERENCE },
       { path: 'references/apply-step-6-output.md', content: APPLY_STEP_6_OUTPUT_REFERENCE },
     ],
   };

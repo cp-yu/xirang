@@ -2,7 +2,7 @@
 
 Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
-2. Read changeDir/.verify-result.json, including Phase 1, findings, history, and failedDirections.
+2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed.
 3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and optimization config.
 4. Read `baseCommit` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
 5. Run `git diff <baseCommit>...HEAD --name-only` and `git status --short`; their union is the base scope and is used only for navigation.
@@ -13,4 +13,4 @@ Read context in this order:
 
 Expand direct imports, callers, and directed semantic relationships from `xirang arch impact <identity> --depth 1 --json`. Select only the identities needed to interpret each relationship, then run one batch `xirang arch query <selected-identities...> --contract --json`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relationships are missing, continue with imports and callers.
 
-Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.
+Expansion candidates MUST NOT be actionable direction targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.

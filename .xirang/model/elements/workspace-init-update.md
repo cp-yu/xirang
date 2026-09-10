@@ -74,7 +74,7 @@ Setup SHALL 对所有 workspace paths 使用 Node.js path APIs，并 SHALL 提�
 
 #### Scenario: 缺失嵌套默认值补齐
 
-- **WHEN** config 包含部分用户值且缺少 `optimization.optRetries` 等默认值
+- **WHEN** config 包含部分用户值且缺少 `optimization.directionLimit` 或 `optimization.directionRetries` 等默认值
 - **THEN** 命令保留用户值并补齐缺失默认值
 
 ### Requirement: 清理退役工作区

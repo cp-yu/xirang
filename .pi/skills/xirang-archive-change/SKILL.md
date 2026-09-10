@@ -30,19 +30,22 @@ Before archiving, run `xirang config project --json` and consume git policy from
 1. **Select change**
    If no clear change name is provided, run `xirang list --json`, show active changes with schema, and ask. Do not guess. Read `.apply-isolation.json` before running the archive CLI and retain its validated `method`, `branchName`, `originalBranch`, `worktreePath`, and `sourceRoot` values because the CLI moves the active change directory.
 
-2. **Unified Full Verify Gate**
-   Run `xirang verify status "<change-name>" --json`. Treat `freshness.status` as the sole signal for rerunning full verify: only `MISSING` or `STALE` enters Step 2.5. MUST NOT infer staleness from `checks`, `details`, or `information`. A `FRESH` result after seal MUST reuse Phase 1 even when Git HEAD information differs. For a fresh result, resolve incompatible optimization states separately: complete `PENDING_VERIFICATION` through the appropriate `xirang verify phase2` call, and hard-stop `ABORTED_UNSAFE` for manual recovery.
+2. **Unified Quality Gate**
+   Run `xirang quality status "<change-name>" --json`. Treat `state` as the sole signal for rerunning the quality flow: only `dirty` enters Step 2.5. MUST NOT infer the code state from `changedFiles`, `information`, or the recorded review alone. A `clean` state after seal MUST reuse the recorded review even when Git HEAD information differs. For a clean state, resolve the optimization state from `optimization.terminal`:
+   - not finalized yet and recorded directions are below `optimization.directionLimit`: continue the optimization loop instead of stopping; when the optimizer finds no eligible direction, finalize with `{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"<optimizer conclusion>"}` so the terminal becomes `NOT_NEEDED` or `IMPROVED`
+   - `ABORTED_UNSAFE`: hard-stop for manual recovery and offer no automatic path
 
-2.5. **Execute Full Verify**
+2.5. **Execute Full Quality**
 
-   When the verify result is missing or stale, execute the same verify contract as `/xirang:verify` using the `subagent-orchestrated` skeleton:
+   When the quality record is missing or stale, execute the same quality contract as the standalone apply workflow using the `subagent-orchestrated` skeleton:
    - Determine `changeName`, absolute `changeDir`, and absolute `projectRoot`
-   - Delegate to clean-context generated `xirang-reviewer` subagent with `context: "fresh"`; pass only `changeName`, `changeDir`, `projectRoot`, and the explicit evidence bundle required for canonical Phase 1
-   - Validate the reviewer payload, apply only deterministic `tasks.md` write-back in the main workspace, and persist the canonical Phase 1 payload
-   - Execute the verify workflow end-to-end; when Phase 2 is eligible, delegate to clean-context generated `xirang-optimizer` subagent with `context: "fresh"`, pass only `changeName`, `changeDir`, and `projectRoot`, validate its finding reconciliation envelope, and let the master implement only the selected finding with TDD
-   - In `P1_SPECULATIVE_FENCE`, delegate to clean-context generated `xirang-reviewer` subagent again with `context: "fresh"` to verify specs and the selected finding's preservationConstraints, not optimization value
+   - Delegate to the clean-context generated `xirang-reviewer` subagent with `context: "fresh"`; pass `changeName`, `changeDir`, `projectRoot`, and the explicit evidence bundle the review needs
+   - Validate the reviewer payload, apply only deterministic `tasks.md` write-back in the main workspace, and record it with `xirang quality review "<change-name>" --input '<json>' --json`
+   - When the recorded state is `clean`, delegate to the clean-context generated `xirang-optimizer` subagent with `context: "fresh"`, pass `changeName`, `changeDir`, `projectRoot`, the recorded review conclusion, the failed directions, and the optimization config, and submit its round ledger with `xirang quality optimize`
+   - Let the master implement only the direction the CLI selected, then delegate to the clean-context generated `xirang-reviewer` subagent again with `context: "fresh"` to verify the specs and the selected direction's `preservationConstraints`, not the optimization value
+   - Finalize the loop through `stopReason`; `SKIPPED` is valid only for `optimization.enabled: false` or an explicit user decline, and archive MUST NOT silently downgrade to a review-only run
    - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode
-   Continue through Phase 2 when eligible; `SKIPPED` is valid only for config/user skip. Persist fresh verify before archiving.
+   Finalize the optimization loop before archiving; `SKIPPED` is valid only for `optimization.enabled: false` or an explicit user decline. Record the fresh review before archiving.
 
 3. **Check artifact completion status**
    Run `xirang status --change "<name>" --json`. Warn and confirm before proceeding if any artifact is not `done`.
@@ -51,13 +54,13 @@ Before archiving, run `xirang config project --json` and consume git policy from
    Read `tasks.md`; warn and confirm before proceeding if incomplete checkboxes remain. Missing tasks are not a task-related blocker.
 
 5. **Assess delta sync state**
-   If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required. The archive CLI performs verify, sync, and move-to-archive; do not duplicate sync writes manually.
+   If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.
 
 6. **Run archive CLI**
-   Run `xirang archive "<change-name>"` after the verify gate is fresh. CLI only verifies, syncs, moves the change to archive, and prints the git handoff reminder. CLI MUST NOT create commits, merge branches, switch branches, delete branches, remove worktrees, or generate commit messages.
+   Run `xirang archive "<change-name>"` after the quality gate is clean and finalized. CLI only verifies, syncs, moves the change to archive, and prints the git handoff reminder. CLI MUST NOT create commits, merge branches, switch branches, delete branches, remove worktrees, or generate commit messages.
 
 7. **Git handoff**
-   Read the archive CLI output and the projected git policy from `xirang config project --json`. Summary fields include change name, schema, archive location, verify gate result, Semantic Model sync result, agent-owned git follow-up status, and merge strategy.
+   Read the archive CLI output and the projected git policy from `xirang config project --json`. Summary fields include change name, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, and merge strategy.
 
 8. **Agent git flow**
    The agent continues the post-archive git flow. First handle the implementation boundary before Xirang/docs archive artifacts. If uncommitted real project implementation changes remain, create a normal implementation commit that contains only those changes. Then always create a semantic boundary commit with `git commit --allow-empty`; this boundary commit may be intentionally empty when the effective implementation diff is already carried by retained `wip: opt-*` checkpoint commits. If `git.commitMessage.boundary` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-boundary-commit-message.md`. Use that template to build the boundary commit message and run `git commit -F -` for the boundary commit. If `git.commitMessage.archive` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-archive-commit-message.md`. Use that template before creating the Xirang/docs archive commit, add only archive/synced paths, and run `git commit -F -`. If a merge or squash commit message is needed, prepare it from the configured or built-in merge template. If `git.commitMessage.merge` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-merge-summary-message.md`.
@@ -65,7 +68,7 @@ Before archiving, run `xirang config project --json` and consume git policy from
    Apply the retained isolation metadata after archive commits are complete. Map the projected strategy to `git merge --no-ff`, `git merge --ff-only`, or `git merge --squash`. For `method: "branch"`, switch to `originalBranch`, then merge `branchName` with the projected strategy. For `method: "worktree"`, keep commits in `worktreePath`; before merging, verify that `sourceRoot` is on `originalBranch`, then run the projected merge from `sourceRoot` using `git -C <sourceRoot>`. The agent MUST NOT reset, clean, stash, or commit unrelated source-workspace changes. After a successful merge, require the Apply worktree to be clean, run `git worktree remove <worktreePath>` from `sourceRoot`, and only then delete `branchName` when `git.branch.deleteAfterArchive` is true and `git branch --merged` confirms it is merged. For `method: "none"`, do not switch, merge, remove a worktree, or delete the current branch. Stop and report the retained metadata/current state mismatch instead of guessing. Build paths with `path.join()`, `path.resolve()`, and `path.normalize()`.
 
 9. **Display summary**
-   Include change, schema, archive location, verify gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, verify reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
+   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy, cleanup responsibility, review reuse/reexecution, and warnings. Do not report that CLI created an archive commit, performed a merge, or deleted a feature branch.
 
 **Output On Success**
 
@@ -75,18 +78,18 @@ Before archiving, run `xirang config project --json` and consume git policy from
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** .xirang/changes/archive/YYYY-MM-DD-<name>/
-**Verify Gate:** Fresh PASS or PASS_WITH_WARNINGS result confirmed
+**Quality Gate:** clean PASS or PASS_WITH_WARNINGS review record confirmed
 **Semantic Model:** ✓ Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>
 
-Archive completed after satisfying the unified full verify gate.
+Archive completed after satisfying the unified quality gate.
 ```
 
 **Guardrails**
 - Always prompt for change selection if not provided
-- Prioritize the standard verify gate; only pass `--no-verify` to the archive CLI when the user explicitly requests it (the CLI provides its own confirmation prompt)
-- Show clearly whether verify was reused or re-executed
+- Prioritize the standard quality gate; only pass `--no-verify` to the archive CLI when the user explicitly requests it (the CLI provides its own confirmation prompt)
+- Show clearly whether the recorded review was reused or the quality flow was re-executed
 - In `core`, use `xirang sync "<change-name>"` rather than manual inline sync
 - If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, always run the shared sync assessment before moving the change directory

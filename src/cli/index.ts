@@ -17,7 +17,7 @@ import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
 import { registerSyncCommand } from '../commands/sync.js';
-import { registerVerifyCommand } from '../commands/verify.js';
+import { registerQualityCommand } from '../commands/quality.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
 import { registerFramingCommand } from '../commands/framing.js';
@@ -150,7 +150,7 @@ program
   });
 
 registerSyncCommand(program);
-registerVerifyCommand(program);
+registerQualityCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
 registerFramingCommand(program);
@@ -196,7 +196,7 @@ program
   .option('-y, --yes', 'Skip confirmation prompts')
   .option('--no-sync', 'Skip sync gate（pending delta 检查，需要显式授权）')
   .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .option('--no-verify', 'Skip unified full verify gate (requires explicit user authorization, not recommended)')
+  .option('--no-verify', 'Skip the quality gate (requires explicit user authorization, not recommended)')
   .action(async (changeName?: string, options?: { yes?: boolean; noSync?: boolean; sync?: boolean; noValidate?: boolean; validate?: boolean; noVerify?: boolean; verify?: boolean }) => {
     try {
       const archiveCommand = new ArchiveCommand();

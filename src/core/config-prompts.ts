@@ -66,17 +66,21 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   lines.push('');
 
   // Optimization section with comments
-  lines.push('# Verify Phase 2 optimization policy (optional)');
-  lines.push('# Set enabled: false to keep verify in Phase 1 conformance-only mode.');
+  lines.push('# Optimization policy (optional)');
+  lines.push('# Set enabled: false to record SKIPPED without running the optimization loop.');
   lines.push('# Example:');
   lines.push('#   optimization:');
   lines.push('#     enabled: true');
-  lines.push('#     optRetries: 2');
+  lines.push('#     directionLimit: 3');
+  lines.push('#     directionRetries: 2');
   if (materialized.optimization) {
     lines.push('optimization:');
     lines.push(`  enabled: ${materialized.optimization.enabled !== false}`);
-    if (materialized.optimization.optRetries !== undefined) {
-      lines.push(`  optRetries: ${materialized.optimization.optRetries}`);
+    if (materialized.optimization.directionLimit !== undefined) {
+      lines.push(`  directionLimit: ${materialized.optimization.directionLimit}`);
+    }
+    if (materialized.optimization.directionRetries !== undefined) {
+      lines.push(`  directionRetries: ${materialized.optimization.directionRetries}`);
     }
   }
   lines.push('');

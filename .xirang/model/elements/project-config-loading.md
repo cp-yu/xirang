@@ -333,8 +333,8 @@ definition: Project Config Loading 定义 `.xirang/config.yaml` 的发现、解�
 #### Scenario: Default materialization includes decomposition, optimization, apply, and git
 
 - **WHEN** project config defaults 被 materialize 用于磁盘输出
-- **THEN** materialized defaults SHALL 包含 `decomposition.method: c4`、`optimization.enabled: true`、`optimization.optRetries: 2`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
-- **AND** SHALL NOT 包含 `git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`
+- **THEN** materialized defaults SHALL 包含 `decomposition.method: c4`、`optimization.enabled: true`、`optimization.directionLimit: 3`、`optimization.directionRetries: 2`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
+- **AND** SHALL NOT 包含 `optimization.optRetries`、`git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`
 
 #### Scenario: Default materialization excludes non-functional optional fields
 

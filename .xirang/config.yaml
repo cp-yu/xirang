@@ -15,11 +15,12 @@ context: |
   - Tests must use path.join() for expected path values, not hardcoded strings
   - Consider case sensitivity differences in file systems
 
-# Verify Phase 2 optimization policy.
-# Set enabled: false to keep verify in Phase 1 conformance-only mode.
+# Optimization policy.
+# Set enabled: false to record SKIPPED without running the optimization loop.
 optimization:
   enabled: true
-  optRetries: 2
+  directionLimit: 3
+  directionRetries: 2
 
 rules:
   specs:

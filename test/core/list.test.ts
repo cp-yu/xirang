@@ -3,7 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ListCommand } from '../../src/core/list.js';
-import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/verify/freshness.js';
+import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/quality/state.js';
+import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 describe('ListCommand', () => {
@@ -51,35 +52,38 @@ describe('ListCommand', () => {
     return files.sort();
   }
 
-  async function writeFreshVerifyResult(changeDir: string): Promise<void> {
+  async function writeFreshQualityRecord(changeDir: string): Promise<void> {
     const evidenceFiles = (await collectChangeFiles(changeDir)).map((filePath) =>
       path.relative(tempDir, filePath).split(path.sep).join('/')
     );
     const fingerprint = await computeEvidenceFingerprint(evidenceFiles, tempDir);
     const tasksFileHash = await computeTasksFileHash(path.join(changeDir, 'tasks.md'));
+    const record = {
+      kind: 'review',
+      timestamp: '2026-05-19T00:00:00.000Z',
+      result: 'PASS',
+      issues: [],
+      tasksFileHash: tasksFileHash ?? '',
+      verificationContext: {
+        contractVersion: '1.0',
+        evidenceFiles,
+        evidenceFingerprint: fingerprint.hash,
+        evidenceFingerprintEntries: fingerprint.entries,
+      },
+      optimization: {
+        directions: [],
+        histories: [],
+        directionsUsed: 0,
+        terminal: 'NOT_NEEDED',
+        stopReason: 'NO_ACTIONABLE',
+      },
+    };
 
     await fs.writeFile(
-      path.join(changeDir, '.verify-result.json'),
-      JSON.stringify(
-        {
-          timestamp: '2026-05-19T00:00:00.000Z',
-          result: 'PASS',
-          issues: [],
-          tasksFileHash: tasksFileHash ?? '',
-          verificationContext: {
-            contractVersion: '1.0',
-            evidenceFiles,
-            evidenceFingerprint: fingerprint.hash,
-          },
-          optimization: {
-            status: 'NOT_NEEDED',
-            attempts: [],
-          },
-        },
-        null,
-        2
-      )
+      path.join(changeDir, QUALITY_STATE_FILE),
+      `${JSON.stringify(record, null, 2)}\n`
     );
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`);
   }
 
   describe('execute', () => {
@@ -254,20 +258,20 @@ Regular text that should be ignored
       expect(logOutput.some(line => line.includes('[tasks 1/2]'))).toBe(true);
     });
 
-    it('should include verifyStatus in JSON output', async () => {
+    it('should include qualityStatus in JSON output', async () => {
       const changesDir = path.join(tempDir, '.xirang', 'changes');
 
       const freshDir = path.join(changesDir, 'fresh-change');
       await fs.mkdir(freshDir, { recursive: true });
       await fs.writeFile(path.join(freshDir, 'proposal.md'), '## Why\nfresh\n\n## What Changes\n- ok');
       await fs.writeFile(path.join(freshDir, 'tasks.md'), '- [x] Task 1\n');
-      await writeFreshVerifyResult(freshDir);
+      await writeFreshQualityRecord(freshDir);
 
       const staleDir = path.join(changesDir, 'stale-change');
       await fs.mkdir(staleDir, { recursive: true });
       await fs.writeFile(path.join(staleDir, 'proposal.md'), '## Why\nstale\n\n## What Changes\n- ok');
       await fs.writeFile(path.join(staleDir, 'tasks.md'), '- [x] Task 1\n');
-      await writeFreshVerifyResult(staleDir);
+      await writeFreshQualityRecord(staleDir);
       await fs.writeFile(path.join(staleDir, 'proposal.md'), '## Why\nstale modified\n\n## What Changes\n- ok');
 
       const missingDir = path.join(changesDir, 'missing-change');
@@ -280,9 +284,9 @@ Regular text that should be ignored
 
       const output = JSON.parse(logOutput[0]);
       const changes = Object.fromEntries(output.changes.map((change: any) => [change.name, change]));
-      expect(changes['fresh-change'].verifyStatus).toBe('FRESH');
-      expect(changes['stale-change'].verifyStatus).toBe('STALE');
-      expect(changes['missing-change'].verifyStatus).toBe('MISSING');
+      expect(changes['fresh-change'].qualityStatus).toBe('clean');
+      expect(changes['stale-change'].qualityStatus).toBe('dirty');
+      expect(changes['missing-change'].qualityStatus).toBe('MISSING');
       expect(changes['fresh-change'].status).toBe('complete');
       expect(changes['missing-change'].status).toBe('in-progress');
     });

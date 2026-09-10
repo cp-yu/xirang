@@ -1,0 +1,9 @@
+relationships:
+  - operation: REMOVED
+    source: verify
+    kind: validates
+    target: change-implementation
+  - operation: ADDED
+    source: quality
+    kind: validates
+    target: change-implementation
