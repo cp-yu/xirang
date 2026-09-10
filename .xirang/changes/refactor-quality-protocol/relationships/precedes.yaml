@@ -1,0 +1,9 @@
+relationships:
+  - operation: REMOVED
+    source: snack
+    kind: precedes
+    target: verify
+  - operation: ADDED
+    source: snack
+    kind: precedes
+    target: quality

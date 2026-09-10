@@ -123,7 +123,8 @@ describe('SetupCommand', () => {
       expect(content).toContain('  method: c4');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
-      expect(content).toContain('  optRetries: 2');
+      expect(content).toContain('  directionLimit: 3');
+      expect(content).toContain('  directionRetries: 2');
       expect(content).toContain('apply:');
       expect(content).toContain('  defaultIsolation: ask  # ask / branch / worktree / none');
       expect(content).toContain('git:');

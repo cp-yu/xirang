@@ -10,7 +10,7 @@ import {
 import {
   createArchiveChangeSkillTemplateForExecutionModel,
 } from '../templates/workflows/archive-change.js';
-import { resolveVerifyExecutionModel } from '../templates/workflows/verify-execution-model.js';
+import { resolveQualityExecutionModel } from '../templates/workflows/quality-execution-model.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
@@ -36,7 +36,7 @@ export function getManagedSkillDirNames(): string[] {
 }
 
 const EXECUTION_MODEL_SKILL_TEMPLATES: Partial<
-  Record<WorkflowId, (executionModel: ReturnType<typeof resolveVerifyExecutionModel>) => SkillTemplate>
+  Record<WorkflowId, (executionModel: ReturnType<typeof resolveQualityExecutionModel>) => SkillTemplate>
 > = {
   archive: createArchiveChangeSkillTemplateForExecutionModel,
 };
@@ -57,7 +57,7 @@ function resolveSkillTemplate(
 ): SkillTemplate {
   const createTemplate = EXECUTION_MODEL_SKILL_TEMPLATES[workflowId];
   if (createTemplate) {
-    return createTemplate(resolveVerifyExecutionModel(toolId));
+    return createTemplate(resolveQualityExecutionModel(toolId));
   }
 
   return fallback();

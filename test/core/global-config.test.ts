@@ -114,7 +114,8 @@ describe('global-config', () => {
       expect(config.featureFlags).toEqual({});
       expect(config.apply).toHaveProperty('defaultIsolation');
       expect(config.optimization).toHaveProperty('enabled');
-      expect(config.optimization).toHaveProperty('optRetries');
+      expect(config.optimization).toHaveProperty('directionLimit');
+      expect(config.optimization).toHaveProperty('directionRetries');
     });
 
     it('should not create directory when reading non-existent config', () => {
@@ -161,7 +162,8 @@ describe('global-config', () => {
       expect(config.featureFlags).toEqual({});
       expect(config.apply).toHaveProperty('defaultIsolation');
       expect(config.optimization).toHaveProperty('enabled');
-      expect(config.optimization).toHaveProperty('optRetries');
+      expect(config.optimization).toHaveProperty('directionLimit');
+      expect(config.optimization).toHaveProperty('directionRetries');
     });
 
     it('should log warning for invalid JSON', () => {

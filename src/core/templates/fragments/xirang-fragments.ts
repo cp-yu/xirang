@@ -1,5 +1,13 @@
 /** Shared architecture instruction fragments for workflow templates. */
 
+import {
+  renderQualityCheckpointStateMachine,
+  renderQualityCliReference,
+  renderQualityErrorRecovery,
+  renderQualityFastPath,
+  renderQualityStateDiagram,
+} from '../../quality/protocol.js';
+
 /**
  * Fragment: Xirang philosophy
  * Used in: propose, explore, apply-change, archive-change, build, snack, reviewer, optimizer
@@ -152,71 +160,17 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 `.trim();
 
 /**
- * Fragment: Verify state machine diagram
- * Used in: apply-change
+ * Fragment: Quality protocol guidance
+ * Used in: apply-change, archive-change
+ *
+ * Every block is rendered by `src/core/quality/protocol.ts`, which also renders the
+ * `xirang quality` help, so the reference projection and the CLI help share one source.
  */
-export const VERIFY_STATE_MACHINE_DIAGRAM = `
-**Verify State Machine**:
-\`\`\`
-Phase 1 PASS / PASS_WITH_WARNINGS
-  |
-  v
-fresh optimizer reconciliation
-  |-- blockingObservations --> Phase 1 Required Corrections
-  |-- no actionable finding --> NOT_NEEDED or IMPROVED
-  |-- selected finding ------> freshness gate -> implemented
-                                      |
-                                      v
-                              fresh reviewer verification
-                                |-- PASS --> verified -> checkpoint -> reconcile
-                                |-- FAIL --> rollback -> failed/rejected -> reconcile
-  |-- unchanged reconciliation twice --> STALLED -> terminal
-  |-- skipped / disabled ------------> SKIPPED
-
-Archive accepts: SKIPPED | NOT_NEEDED | IMPROVED | DEGRADED
-Archive rejects: PENDING_VERIFICATION | ABORTED_UNSAFE
-\`\`\`
-`.trim();
-
-/**
- * Fragment: Verify CLI JSON schema reference
- * Used in: apply-change
- */
-export const VERIFY_CLI_JSON_SCHEMA_REFERENCE = `
-**Verify CLI JSON Schema Reference**:
-
-| CLI call | \`--input\` JSON |
-| --- | --- |
-| Phase 1 | \`{"result":"PASS","issues":[],"evidenceFiles":["..."]}\` |
-| Phase 2 reconcile | \`{"status":"OPTIMIZATION_PROPOSED","envelope":{"blockingObservations":[],"actions":[],"findings":[]}}\` |
-| Begin implementation | \`{"status":"OPTIMIZATION_PROPOSED","mode":"begin-implementation","findingId":"OPT-<timestamp>-01"}\` |
-| Skip | \`{"status":"SKIPPED"}\` |
-| Finding verification | \`{"result":"PASS","findingId":"OPT-<timestamp>-01","issues":[]}\` |
-`.trim();
-
-/**
- * Fragment: Verify error recovery guide
- * Used in: apply-change
- */
-export const VERIFY_ERROR_RECOVERY_GUIDE = `
-**Verify CLI Error Recovery Guide**:
-- Invalid JSON or envelope errors: fix the strict JSON structure and retry without editing persisted history
-- OPTIMIZER_REQUIRED: delegate to fresh optimizer and submit its reconciliation envelope
-- STALE_FINDING: do not edit; re-run optimizer reconciliation against current code
-- SELECTED_FINDING_REQUIRED: use the current selected finding ID
-- PENDING_VERIFICATION: complete reviewer verification or rollback before reconciliation
-`.trim();
-
-/**
- * Fragment: Fast path for simple changes
- * Used in: apply-change
- */
-export const VERIFY_SIMPLE_CHANGE_FAST_PATH = `
-**Simple Change Fast Path**:
-- Spawn fresh optimizer at least once unless optimization is skipped or disabled
-- Only a valid reconciliation envelope with no actionable findings may produce NOT_NEEDED
-- Master MUST NOT self-determine NOT_NEEDED, skip selected findings, or reject them without masterChallenge
-`.trim();
+export const QUALITY_STATE_MACHINE_DIAGRAM = renderQualityStateDiagram();
+export const QUALITY_CLI_JSON_SCHEMA_REFERENCE = renderQualityCliReference();
+export const QUALITY_ERROR_RECOVERY_GUIDE = renderQualityErrorRecovery();
+export const QUALITY_SIMPLE_CHANGE_FAST_PATH = renderQualityFastPath();
+export const QUALITY_CHECKPOINT_STATE_MACHINE = renderQualityCheckpointStateMachine();
 
 /**
  * Fragment: Apply proseLanguage only to natural-language prose

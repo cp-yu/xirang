@@ -2,7 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { compileChange, readFormalSemanticModel } from './change-compiler.js';
 import { XIRANG_DIR_NAME } from './config.js';
-import { checkFreshness } from './verify/freshness.js';
+import { checkQualityState } from './quality/state.js';
+import { readQualitySnapshot } from './quality/log.js';
 import { formatTaskStatus, getTaskProgressForChange } from '../utils/task-progress.js';
 
 interface ChangeInfo {
@@ -12,13 +13,23 @@ interface ChangeInfo {
   completedTasks: number;
   totalTasks: number;
   lastModified: Date;
-  verifyStatus?: 'MISSING' | 'STALE' | 'FRESH';
+  qualityStatus?: 'clean' | 'dirty' | 'MISSING';
 }
 
 interface ListOptions {
   sort?: 'recent' | 'name';
   json?: boolean;
   long?: boolean;
+}
+
+async function readQualityStatus(
+  changeDir: string,
+  projectRoot: string
+): Promise<NonNullable<ChangeInfo['qualityStatus']>> {
+  if (!(await readQualitySnapshot(changeDir))) {
+    return 'MISSING';
+  }
+  return (await checkQualityState(changeDir, projectRoot)).status;
 }
 
 async function getLastModified(dirPath: string): Promise<Date> {
@@ -84,7 +95,7 @@ export class ListCommand {
       const progress = await getTaskProgressForChange(changesDir, changeDir);
       const changePath = path.join(changesDir, changeDir);
       const lastModified = await getLastModified(changePath);
-      const verifyStatus = json ? (await checkFreshness(changePath, targetPath)).status : undefined;
+      const qualityStatus = json ? await readQualityStatus(changePath, targetPath) : undefined;
       let title = changeDir;
       let deltaCount = 0;
 
@@ -107,7 +118,7 @@ export class ListCommand {
         completedTasks: progress.completed,
         totalTasks: progress.total,
         lastModified,
-        verifyStatus,
+        qualityStatus,
       });
     }
 
@@ -128,7 +139,7 @@ export class ListCommand {
         status: change.totalTasks === 0
           ? 'no-tasks'
           : change.completedTasks === change.totalTasks ? 'complete' : 'in-progress',
-        verifyStatus: change.verifyStatus ?? 'MISSING',
+        qualityStatus: change.qualityStatus ?? 'MISSING',
       }));
       console.log(JSON.stringify({ changes: jsonOutput }, null, 2));
       return;

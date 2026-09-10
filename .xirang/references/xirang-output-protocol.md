@@ -1,37 +1,37 @@
 # Optimizer Output Protocol
 
-Return one strict JSON envelope and no surrounding prose:
+Return one strict JSON round ledger and no surrounding prose:
 
 ```json
 {
-  "blockingObservations": [],
-  "actions": [
+  "directions": [
     {
-      "action": "add",
-      "finding": {
-        "status": "pending",
-        "location": { "files": ["src/file.ts"], "symbols": ["symbol"] },
-        "opportunity": "specific current problem",
-        "impact": "concrete benefit",
-        "evidence": ["current-code evidence"],
-        "recommendation": "modification advice",
-        "keyDesign": "target structure, algorithm, or data flow",
-        "preservationConstraints": ["behavior that must remain"],
-        "implementationOutline": ["ordered implementation guidance"],
-        "validation": ["tests and claims they prove"],
-        "impactLevel": "high",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "why this ranks here"
-      }
+      "location": { "files": ["src/file.ts"], "symbols": ["symbol"] },
+      "opportunity": "specific current problem",
+      "impact": "concrete benefit",
+      "evidence": ["current-code evidence"],
+      "recommendation": "modification advice",
+      "keyDesign": "target structure, algorithm, or data flow",
+      "preservationConstraints": ["behavior that must remain"],
+      "implementationOutline": ["ordered implementation guidance"],
+      "validation": ["tests and claims they prove"],
+      "impactLevel": "high",
+      "confidence": "high",
+      "risk": "low",
+      "cost": "low",
+      "dependencies": [],
+      "priorityReason": "why this direction ranks here"
     }
   ],
-  "findings": []
+  "attempt": { "directionId": "OPT-…", "status": "verified", "summary": "round outcome" },
+  "stopReason": "NO_ACTIONABLE",
+  "summary": "one-line conclusion the master records when the loop stops"
 }
 ```
 
-Allowed levels are high, medium, low. Existing findings use retain, reprioritize, resolve, invalidate, reject, merge, or masterChallenge with their stable ID. New findings MUST omit id. To depend on another add in the same envelope, use { "actionIndex": 0 }; the CLI replaces it with a timestamp ID.
-
-Return every worthwhile finding, ordered by current priority. Do not emit executable patches, diffs, fixed taxonomies, or prose outside JSON. An empty actionable result still includes actions resolving every non-terminal finding. blockingObservations contain location, issue, and evidence.
+- `impactLevel`, `confidence`, `risk`, and `cost` accept high, medium, or low.
+- New directions MUST omit `id`; the CLI assigns and echoes every identifier. To depend on another direction of the same request, use `{ "actionIndex": 0 }`.
+- To update a direction the CLI already recorded, send `{ "id": "OPT-…", "status": "rejected|deferred", "reason": "...", "evidence": ["..."] }`.
+- `attempt` reports the previous round outcome for the direction the CLI selected; `stopReason` finalizes the loop and is required when you stop.
+- Always emit the top-level `summary` with your conclusion for this round; a round that stops the loop must carry it, and the master forwards it verbatim.
+- Do not emit executable patches, diffs, fixed taxonomies, or prose outside JSON.

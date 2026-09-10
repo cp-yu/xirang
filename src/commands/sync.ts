@@ -11,9 +11,9 @@ import {
 } from '../core/change-sync.js';
 import {
   checkArchiveCompatibility,
-  checkFreshness,
-  formatVerifyGateFailure,
-} from '../core/verify/freshness.js';
+  checkQualityState,
+  formatQualityGateFailure,
+} from '../core/quality/state.js';
 import { PARTITIONS } from '../core/model/types.js';
 import { validateChangeExists } from './workflow/shared.js';
 
@@ -53,13 +53,11 @@ export async function syncCommand(
   const skipVerify = options.verify === false || options.noVerify === true;
   if (!skipVerify) {
     const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', validatedChangeName);
-    const freshness = await checkFreshness(changeDir, projectRoot);
-    const compatibility = freshness.verifyResult
-      ? checkArchiveCompatibility(freshness.verifyResult)
-      : undefined;
-    if (freshness.status !== 'FRESH' || !compatibility?.compatible) {
+    const state = await checkQualityState(changeDir, projectRoot);
+    const compatibility = state.record ? checkArchiveCompatibility(state.record) : undefined;
+    if (state.status !== 'clean' || !compatibility?.compatible) {
       throw new Error(
-        formatVerifyGateFailure(freshness, compatibility, {
+        formatQualityGateFailure(state, compatibility, {
           changeName: validatedChangeName,
           command: 'sync',
         })
@@ -90,7 +88,7 @@ export function registerSyncCommand(program: Command): void {
     .command('sync [change-name]')
     .description('Sync a change into the Semantic Model without archiving')
     .option('--no-validate', 'Skip validation while preparing sync output')
-    .option('--no-verify', 'Skip verify gate before syncing')
+    .option('--no-verify', 'Skip the quality gate before syncing')
     .action(async (changeName?: string, options: SyncOptions = {}) => {
       try {
         await syncCommand(changeName, options);

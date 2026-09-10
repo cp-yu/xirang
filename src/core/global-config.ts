@@ -12,7 +12,8 @@ export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
   optimization?: {
     enabled?: boolean;
-    optRetries?: number;
+    directionLimit?: number;
+    directionRetries?: number;
   };
   apply?: {
     defaultIsolation?: 'ask' | 'branch' | 'worktree' | 'none';
@@ -23,7 +24,8 @@ const DEFAULT_CONFIG: GlobalConfig = {
   featureFlags: {},
   optimization: {
     enabled: true,
-    optRetries: 2,
+    directionLimit: 3,
+    directionRetries: 2,
   },
   apply: {
     defaultIsolation: 'ask',

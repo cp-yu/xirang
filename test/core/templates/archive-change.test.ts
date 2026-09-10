@@ -32,20 +32,31 @@ describe('archive change workflow template', () => {
     expect(instructions).not.toContain('formal LikeC4');
   });
 
-  it('routes archive verification only from freshness.status', () => {
+  it('routes archive verification only from the recorded quality state', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Treat `freshness.status` as the sole signal for rerunning full verify');
-    expect(instructions).toContain('MUST NOT infer staleness from `checks`, `details`, or `information`');
-    expect(instructions).toContain('A `FRESH` result after seal MUST reuse Phase 1 even when Git HEAD information differs');
+    expect(instructions).toContain('Treat `state` as the sole signal for rerunning the quality flow');
+    expect(instructions).toContain('MUST NOT infer the code state from `changedFiles`, `information`, or the recorded review alone');
+    expect(instructions).toContain('A `clean` state after seal MUST reuse the recorded review even when Git HEAD information differs');
   });
 
-  it('delegates verify work to internal agents', () => {
+  it('offers a concrete recovery path while the optimization loop is open', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('delegate to clean-context generated `xirang-reviewer` subagent');
-    expect(instructions).toContain('delegate to clean-context generated `xirang-optimizer` subagent');
+    expect(instructions).toContain('continue the optimization loop instead of stopping');
+    expect(instructions).toContain('"stopReason":"NO_ACTIONABLE"');
+    expect(instructions).toContain('hard-stop for manual recovery and offer no automatic path');
+    expect(instructions).toContain('xirang quality status');
+    expect(instructions).not.toContain('PENDING_VERIFICATION');
+  });
+
+  it('delegates quality work to internal agents', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('delegate to the clean-context generated `xirang-reviewer` subagent');
+    expect(instructions).toContain('delegate to the clean-context generated `xirang-optimizer` subagent');
     expect(instructions).toContain('MUST NOT inline a current-agent review skeleton');
+    expect(instructions).toContain('archive MUST NOT silently downgrade to a review-only run');
     expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
     expect(instructions).not.toContain('invoke `xirang-optimizer`');
     expect(instructions).not.toContain('/skills/xirang-reviewer/SKILL.md');

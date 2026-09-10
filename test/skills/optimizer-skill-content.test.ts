@@ -53,10 +53,10 @@ describe('xirang optimizer skill content', () => {
     expect(instructions).toContain('one hop');
   });
 
-  it('limits actionable findings to base scope files', () => {
+  it('limits actionable directions to base scope files', () => {
     const instructions = readReference('references/self-read-protocol.md');
 
-    expect(instructions).toContain('Expansion candidates MUST NOT be actionable finding targets');
+    expect(instructions).toContain('Expansion candidates MUST NOT be actionable direction targets');
     expect(instructions).toContain('base scope files only');
     expect(instructions).toContain('scope-outside opportunities as deferred');
   });
@@ -82,7 +82,7 @@ describe('xirang optimizer skill content', () => {
     expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(readReference('references/self-read-protocol.md')));
   });
 
-  it('documents open optimization signals and strict finding output', () => {
+  it('documents open optimization signals and strict round ledger output', () => {
     const instructions = [
       readReference('references/decision-rules.md'),
       readReference('references/output-protocol.md'),
@@ -97,9 +97,9 @@ describe('xirang optimizer skill content', () => {
     expect(instructions).toContain('actual benefit');
     expect(instructions).toContain('static evidence');
     expect(instructions).toContain('behavior preservation');
-    expect(instructions).toContain('"blockingObservations"');
-    expect(instructions).toContain('"actions"');
-    expect(instructions).toContain('"findings"');
+    expect(instructions).toContain('"directions"');
+    expect(instructions).toContain('"attempt"');
+    expect(instructions).toContain('"stopReason"');
     expect(instructions).toContain('"keyDesign"');
     expect(instructions).toContain('"preservationConstraints"');
     expect(instructions).toContain('"priorityReason"');

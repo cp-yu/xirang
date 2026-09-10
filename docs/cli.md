@@ -46,8 +46,9 @@ These commands support `--json` output for programmatic use by AI agents and scr
 | `xirang instructions` | Get next steps | `--json` for agent instructions |
 | `xirang templates` | Find template paths | `--json` for path resolution |
 | `xirang schemas` | List available schemas | `--json` for schema discovery |
+| `xirang quality` | Record review and optimization conclusions | `--json` for records, diagnostics, and allowed next operations |
 
-Xirang's verify gate now runs a two-phase contract by default and accepts `--skip-optimization` when you want a Phase 1 conformance-only pass. When Phase 2 runs, it keeps a `git stash` checkpoint so failed optimization attempts can restore the exact Phase 1 baseline. `/xirang:archive` reuses a fresh verify result when possible, but if it must re-run full verify, that rerun is required to honor the same Phase 2 contract whenever optimization is still eligible.
+Xirang's quality gate tracks one fact: whether the current code still matches a passing review record. `xirang quality review` records a conclusion and computes the evidence fingerprint, `xirang quality optimize` records one optimization round (or finalizes the loop with a `stopReason`), and `xirang quality seal` confirms the change is ready for archive. Checkpoints are git commits created by the apply workflow, so a failed optimization round restores the last successful commit instead of a stash. `/xirang:archive` reuses a clean, finalized record when possible; when it must re-run the quality flow, that rerun honors the same optimization eligibility rules.
 
 ---
 
@@ -353,9 +354,54 @@ Validation passed
 
 ## Lifecycle Commands
 
+### `xirang quality`
+
+Record the quality state of a change's code: one review conclusion per code state, one optimization round per direction decision, and the finalization that lets archive proceed.
+
+```
+xirang quality <review|optimize|status|seal> [change-name] [options]
+```
+
+**Arguments:**
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `change-name` | Yes | Change whose record is read or written |
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--input <json>` | Payload for `review` and `optimize`; falls back to stdin when omitted |
+| `--json` | Output the unified result envelope |
+
+**Examples:**
+
+```bash
+# Record a review conclusion for the current code state
+xirang quality review add-dark-mode --input '{"result":"PASS","issues":[],"evidenceFiles":["src/app.ts"]}' --json
+
+# Record one optimization round, or finalize the loop
+xirang quality optimize add-dark-mode --input '{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"no eligible direction"}' --json
+
+# Inspect the recorded state without writing anything
+xirang quality status add-dark-mode --json
+
+# Confirm the record is ready for archive
+xirang quality seal add-dark-mode --json
+```
+
+**What it does:**
+
+1. `review` accepts a conclusion only while the state is `dirty`, computes `tasksFileHash` and the evidence fingerprint, and writes `.xirang/changes/<name>/.quality-state.json` plus an append-only `.quality-log.jsonl`
+2. `optimize` accepts a round only while the state is `clean`, assigns direction IDs, selects the highest priority eligible direction, maintains the two-level counters, and derives the terminal state from `stopReason`
+3. `status` reports `state`, the recorded review, the direction ledger, and `allowedNextOperations`; it never writes
+4. `seal` verifies the record structure, the clean state, and the finalized optimization terminal, then prints a seal hash
+5. Successful calls exit 0, blocked entry conditions exit 1 with a stable `code`, and invalid payloads exit 2 with structured `diagnostics`
+
 ### `xirang archive`
 
-Archive a completed Change after verify, sync, validation, and task gates pass. Archive does not update the formal Semantic Model; run `xirang sync` first when the four-partition Semantic Delta has pending model changes.
+Archive a completed Change after the quality gate, sync, validation, and task gates pass. Archive does not update the formal Semantic Model; run `xirang sync` first when the four-partition Semantic Delta has pending model changes.
 
 ```
 xirang archive [change-name] [options]
@@ -374,7 +420,7 @@ xirang archive [change-name] [options]
 | `-y, --yes` | Skip confirmation prompts |
 | `--no-sync` | Bypass the pending delta sync gate with explicit authorization |
 | `--no-validate` | Skip validation (requires confirmation) |
-| `--no-verify` | Bypass the verify gate with explicit authorization |
+| `--no-verify` | Bypass the quality gate with explicit authorization |
 
 **Examples:**
 
@@ -394,7 +440,7 @@ xirang archive update-ci-config --no-sync --yes
 
 **What it does:**
 
-1. Requires a fresh, archive-compatible verify result unless `--no-verify` is explicitly authorized
+1. Requires a clean, finalized, archive-compatible quality record unless `--no-verify` is explicitly authorized
 2. Requires all four-partition Semantic Delta Entries to be synced unless `--no-sync` is explicitly authorized
 3. Validates the Change unless `--no-validate` is explicitly authorized
 4. Checks task completion and prompts when required

@@ -1,0 +1,135 @@
+{
+  "kind": "review",
+  "timestamp": "2026-09-10T15:06:09.892Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Optimizer revocation evidence is required and validated on input but discarded on persistence.",
+      "requirement": "方向状态集合 / Scenario 主动撤销必须带理由与证据",
+      "task": "Task 2",
+      "recommendation": "Persist the revocation evidence or narrow the requirement.",
+      "evidenceCitations": [
+        "src/commands/quality.ts:486-492"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "OptimizationLedger.baselineCommit is declared but never written or read by the CLI; rename residue.",
+      "requirement": "Checkpoint 与回滚 / Scenario 创建 baseline checkpoint",
+      "task": "Task 1",
+      "recommendation": "Remove the unused ledger field and its managed-field entry.",
+      "evidenceCitations": [
+        "src/core/quality/types.ts:104"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Residual retired vocabulary in archive internals: runVerifyGate and the pipeline comment.",
+      "requirement": "active 文档、help 与生成面示例与当前 CLI 保持一致",
+      "task": "Task 5",
+      "recommendation": "Rename the private method and comment to quality terminology.",
+      "evidenceCitations": [
+        "src/core/archive.ts:144-146"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "The finalize-summary assertion only covers OPTIMIZATION_DISABLED.",
+      "requirement": "统一输出与诊断结构",
+      "task": "Task 2",
+      "recommendation": "Extend the test to DIRECTION_LIMIT_REACHED and SEAL_NOT_READY.",
+      "evidenceCitations": [
+        "test/commands/quality.test.ts:617-629"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "One diagnostic fix string carries stray markup: 'Use the ID role=\"echoed\" from a previous response.'.",
+      "requirement": "统一输出与诊断结构",
+      "task": "Task 2",
+      "recommendation": "Reword without markup.",
+      "evidenceCitations": [
+        "src/core/quality/validators.ts:312"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Task 5 Check C3's literal command `node bin/xirang.js verify --help` prints top-level help and exits 0.",
+      "requirement": "旧命令族的错误恢复指引退出",
+      "task": "Task 5",
+      "recommendation": "Use `node bin/xirang.js verify` (no --help) or record the exit-1 evidence explicitly.",
+      "evidenceCitations": [
+        "test/core/workflow-surface.test.ts:75-80"
+      ]
+    }
+  ],
+  "tasksFileHash": "be7b35d6296fd06de0e18658cf511a597d7053b0b117107756a6879338ad0c6c",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/refactor-quality-protocol/design.md",
+      ".xirang/changes/refactor-quality-protocol/elements/quality-cli-gate.md",
+      ".xirang/changes/refactor-quality-protocol/tasks.md",
+      "docs/cli.md",
+      "src/commands/quality.ts",
+      "src/core/archive.ts",
+      "src/core/quality/protocol.ts",
+      "src/core/quality/state.ts",
+      "src/core/quality/validators.ts",
+      "test/commands/quality.test.ts",
+      "test/core/quality/state.test.ts"
+    ],
+    "evidenceFingerprint": "cb2f04f7c9f1eec50f26efe0418affb05340cdf21177765b61a48fc65191f911",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/design.md",
+        "hash": "3d5328268f76446b016510ece7e36a177fde6089d0bcbbea24b94afa28f22069"
+      },
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/elements/quality-cli-gate.md",
+        "hash": "3efdf9333a73f77ae1dc2cc319c215f6ca159265caf084dbdd2ca756818c95e3"
+      },
+      {
+        "path": ".xirang/changes/refactor-quality-protocol/tasks.md",
+        "hash": "be7b35d6296fd06de0e18658cf511a597d7053b0b117107756a6879338ad0c6c"
+      },
+      {
+        "path": "docs/cli.md",
+        "hash": "8c4064b0e41eccdf163c4eee4415eea4022ab22ca2d4cdbb840370cf71a87852"
+      },
+      {
+        "path": "src/commands/quality.ts",
+        "hash": "79df50cf7ec723ff6e7fcd4ca01c2c56ade33e6f12dd162819d65e8ad74b474c"
+      },
+      {
+        "path": "src/core/archive.ts",
+        "hash": "33c84da61f0aacd1d41c83db6afe1cb55808732c4cfa2750112f3d9f873d136e"
+      },
+      {
+        "path": "src/core/quality/protocol.ts",
+        "hash": "052678d4f6afddf95484eff7c82d58c5c4e115f85de5f070667b5ccdfa62b381"
+      },
+      {
+        "path": "src/core/quality/state.ts",
+        "hash": "03a55ab9e8577dda18ce62e0bec8ca7ce11769759c786b0c38a3eac36125faaf"
+      },
+      {
+        "path": "src/core/quality/validators.ts",
+        "hash": "eda38085515e2bf515e1e51863ae5fbe005464bb623ed1884d82f269ec1d1311"
+      },
+      {
+        "path": "test/commands/quality.test.ts",
+        "hash": "8a83d97d0f187ae386e5b3507c1e8851ef510483f388b3a8835a97e4e46fbc6b"
+      },
+      {
+        "path": "test/core/quality/state.test.ts",
+        "hash": "6b620f6a83024f346aa96b1daf96c62e85c6a66cc233540834038bbf842e4f59"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "94a751858c8364601020b3f6bbd99f28aa21580d",
+    "gitDiffSummary": "branch refactor-quality-protocol; baseCommit 94a751858c8364601020b3f6bbd99f28aa21580d; 125-path scope; full suite 160 files / 2247 tests green; arch validate 0/0; validate --change valid; 27 Checks and 23 Required Corrections complete.",
+    "timestamp": "2026-09-10T15:06:09.892Z"
+  }
+}

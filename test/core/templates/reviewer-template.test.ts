@@ -37,7 +37,7 @@ describe('reviewer subagent template', () => {
 
     expect(template.name).toBe('xirang-reviewer');
     expect(template).not.toHaveProperty('instructions');
-    expect(template.prompt).toContain('clean-context Phase 1 reviewer');
+    expect(template.prompt).toContain('clean-context reviewer');
     expect(template.tools).toEqual(expect.arrayContaining(['read', 'grep', 'find', 'bash']));
     expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
 

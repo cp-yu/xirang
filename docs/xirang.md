@@ -11,7 +11,7 @@ Xirang's managed workflow surface is skills-only.
 - `/xirang:build`
 - `/xirang:snack`
 
-`/xirang:archive` runs the full verify gate before archive and performs archive-time sync inline.
+`/xirang:archive` runs the full quality gate before archive and performs archive-time sync inline.
 
 ## Notes
 

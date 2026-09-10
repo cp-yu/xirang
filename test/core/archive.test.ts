@@ -7,11 +7,12 @@ import os from 'os';
 import { promisify } from 'util';
 import { runCLI } from '../helpers/run-cli.js';
 import {
-  checkFreshness,
+  checkQualityState,
   computeEvidenceFingerprint,
   computeTasksFileHash,
-} from '../../src/core/verify/freshness.js';
-import type { VerifyResult } from '../../src/core/verify/types.js';
+} from '../../src/core/quality/state.js';
+import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
+import type { QualityRecord } from '../../src/core/quality/types.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 const execFileAsync = promisify(execFile);
@@ -62,11 +63,12 @@ describe('ArchiveCommand', () => {
     return changeDir;
   }
 
-  async function writeFreshVerifyResult(changeDir: string): Promise<void> {
+  async function writeFreshQualityRecord(changeDir: string): Promise<void> {
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
     await fs.writeFile(path.join(tempDir, 'src', 'archive-evidence.ts'), 'export const ok = true;\n', 'utf-8');
-    const result: VerifyResult = {
+    const result: QualityRecord = {
+      kind: 'review',
       timestamp: new Date().toISOString(),
       result: 'PASS',
       issues: [],
@@ -76,9 +78,20 @@ describe('ArchiveCommand', () => {
         evidenceFiles: ['src/archive-evidence.ts'],
         evidenceFingerprint: (await computeEvidenceFingerprint(['src/archive-evidence.ts'], tempDir)).hash,
       },
-      optimization: { status: 'NOT_NEEDED', attempts: [] },
+      optimization: {
+        directions: [],
+        histories: [],
+        directionsUsed: 0,
+        terminal: 'NOT_NEEDED',
+        stopReason: 'NO_ACTIONABLE',
+      },
     };
-    await fs.writeFile(path.join(changeDir, '.verify-result.json'), JSON.stringify(result), 'utf-8');
+    await fs.writeFile(
+      path.join(changeDir, QUALITY_STATE_FILE),
+      `${JSON.stringify(result, null, 2)}\n`,
+      'utf-8'
+    );
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(result)}\n`, 'utf-8');
   }
 
   afterEach(async () => {
@@ -192,23 +205,53 @@ git:
       );
     });
 
-    it('should block archive when verify result is missing', async () => {
-      const changeName = 'missing-verify';
+    it('should block archive when the quality record is missing', async () => {
+      const changeName = 'missing-quality';
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', changeName), { recursive: true });
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'xirang verify phase1 missing-verify'
+        'xirang quality review missing-quality'
       );
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'xirang archive missing-verify --no-verify'
+        'xirang archive missing-quality --no-verify'
       );
     });
 
-    it('should archive when verify is fresh and no sync is required', async () => {
-      const changeName = 'fresh-verify';
+    it('should block archive while the optimization loop is not finalized', async () => {
+      const changeName = 'unfinalized-quality';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
+      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
+      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8'));
+      delete record.optimization.terminal;
+      delete record.optimization.stopReason;
+      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
+      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
+
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/NOT_FINALIZED/);
+    });
+
+    it('should block archive when optimization was aborted unsafe', async () => {
+      const changeName = 'aborted-quality';
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+      await writeFreshQualityRecord(changeDir);
+      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
+      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8'));
+      record.optimization.terminal = 'ABORTED_UNSAFE';
+      record.optimization.stopReason = 'UNSAFE';
+      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
+      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
+
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/ABORTED_UNSAFE/);
+    });
+
+    it('should archive when the quality record is clean and no sync is required', async () => {
+      const changeName = 'fresh-quality';
+      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
+      await fs.mkdir(changeDir, { recursive: true });
+      await writeFreshQualityRecord(changeDir);
 
       await archiveCommand.execute(changeName, { yes: true });
 
@@ -224,26 +267,25 @@ git:
       await execFileAsync('git', ['init'], { cwd: tempDir });
       await execFileAsync('git', ['config', 'user.name', 'Xirang Test'], { cwd: tempDir });
       await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
       await execFileAsync('git', ['add', '.'], { cwd: tempDir });
       await execFileAsync('git', ['commit', '-m', 'verified'], { cwd: tempDir });
 
-      const verifyResultPath = path.join(changeDir, '.verify-result.json');
-      const verifyResult = JSON.parse(await fs.readFile(verifyResultPath, 'utf-8')) as VerifyResult;
-      verifyResult.verificationContext.gitHeadCommit = (
+      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
+      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8')) as QualityRecord;
+      record.verificationContext.gitHeadCommit = (
         await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir })
       ).stdout.trim();
-      await fs.writeFile(verifyResultPath, JSON.stringify(verifyResult), 'utf-8');
-      const seal = await runCLI(['verify', 'seal', changeName, '--json'], { cwd: tempDir });
-      expect(seal.exitCode).toBe(0);
+      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
+      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
 
       await fs.writeFile(path.join(tempDir, 'checkpoint.txt'), 'phase 2 checkpoint\n', 'utf-8');
       await execFileAsync('git', ['add', 'checkpoint.txt'], { cwd: tempDir });
       await execFileAsync('git', ['commit', '-m', 'checkpoint'], { cwd: tempDir });
 
-      const freshness = await checkFreshness(changeDir, tempDir);
-      expect(freshness.status).toBe('FRESH');
-      expect(freshness.information.gitHeadCommit.matches).toBe(false);
+      const qualityState = await checkQualityState(changeDir, tempDir);
+      expect(qualityState.status).toBe('clean');
+      expect(qualityState.information.gitHeadCommit?.matches).toBe(false);
 
       await archiveCommand.execute(changeName, { yes: true });
 
@@ -255,7 +297,7 @@ git:
     it('should block archive when sync has pending Semantic Model writes', async () => {
       const changeName = 'pending-sync-gate';
       const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });
@@ -265,7 +307,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'elements/broken.md': '---\nentity: element-declaration\n---\n',
       });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/MISSING_IDENTITY/);
     });
@@ -273,7 +315,7 @@ git:
     it('should allow archive when the Semantic Delta is already synced', async () => {
       const changeName = 'already-synced-gate';
       const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
       await writeProjectModel(tempDir, minimalModel({
         elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', definition: 'Changed summary' }],
       }));
@@ -291,7 +333,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'elements/ghost.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
       });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       await archiveCommand.execute(changeName, { yes: true });
 
@@ -322,7 +364,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync bypass gate.\n---\n',
       });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true, noValidate: true });
 
@@ -336,7 +378,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync confirmation gate.\n---\n',
       });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       const { confirm } = await import('@inquirer/prompts');
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
@@ -352,7 +394,7 @@ git:
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'views/index.md': '---\noperation: ADDED\nentity: authored-view\nidentity: index\ninclude: "*"\n---\n',
       });
-      await writeFreshVerifyResult(changeDir);
+      await writeFreshQualityRecord(changeDir);
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
     });
@@ -514,7 +556,7 @@ git:
       await archiveCommand.execute(changeName, { noValidate: true, noVerify: true });
       
       // Verify archive was cancelled
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard verify gate.');
+      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
       
       // Verify change was not archived
       await expect(fs.access(changeDir)).resolves.not.toThrow();
@@ -576,7 +618,7 @@ git:
       await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
 
       // Verify archive was cancelled at the --no-verify warning
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard verify gate.');
+      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
     });
 
     it('normalizes Windows-style worktree paths before prompting', async () => {
@@ -604,7 +646,7 @@ git:
       await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
 
       // Verify archive was cancelled at the --no-verify warning
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard verify gate.');
+      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
     });
   });
 });

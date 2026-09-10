@@ -35,7 +35,7 @@ export interface ApplyInstructions {
     remaining: number;
   };
   tasks: TaskItem[];
-  state: 'blocked' | 'all_done' | 'ready' | 'needs_verify' | 'needs_seal';
+  state: 'blocked' | 'all_done' | 'ready' | 'needs_review' | 'needs_optimize';
   missingArtifacts?: string[];
   instruction: string;
 }

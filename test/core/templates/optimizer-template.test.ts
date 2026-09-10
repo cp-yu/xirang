@@ -4,7 +4,7 @@ import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-
 import { getOptimizerSubagentTemplate } from '../../../src/core/templates/workflows/optimizer.js';
 
 describe('optimizer subagent template', () => {
-  it('includes Xirang philosophy and finding-first optimization discipline', () => {
+  it('includes Xirang philosophy and direction-first optimization discipline', () => {
     const template = getOptimizerSubagentTemplate();
     const prompt = template.prompt;
 
@@ -15,8 +15,8 @@ describe('optimizer subagent template', () => {
     expect(prompt).toContain('xirang arch query <identities...> --contract --json');
     expect(prompt).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(prompt).toContain('Preserve observable behavior, Element Contracts');
-    expect(prompt).toContain('finding-first');
-    expect(prompt).toContain('strict JSON envelope');
+    expect(prompt).toContain('direction-first');
+    expect(prompt).toContain('strict JSON round ledger');
     expect(prompt).toContain('keyDesign');
     expect(prompt).toContain('preservationConstraints');
     expect(prompt).not.toContain('Search/Replace');
@@ -30,8 +30,13 @@ describe('optimizer subagent template', () => {
     expect(template.name).toBe('xirang-optimizer');
     expect(template).not.toHaveProperty('instructions');
     expect(template.prompt).toContain('MUST NOT modify files');
-    expect(template.prompt).toContain('failedDirections');
-    expect(template.prompt).toContain('reconcile every non-terminal finding');
+    expect(template.prompt).toContain('failed directions');
+    expect(template.prompt).toContain('direction ledger');
+    const outputProtocol = template.referenceFiles?.find(
+      (file) => file.path === 'references/output-protocol.md'
+    )?.content ?? '';
+    expect(outputProtocol).toContain('"summary"');
+    expect(outputProtocol).toContain('must carry it');
     expect(template.referenceFiles?.map((file) => file.path)).toEqual([
       'references/self-read-protocol.md',
       'references/decision-rules.md',

@@ -21,7 +21,7 @@ import {
   type TaskItem,
   type ApplyInstructions,
 } from './shared.js';
-import { checkArchiveCompatibility, checkFreshness } from '../../core/verify/freshness.js';
+import { checkArchiveCompatibility, checkQualityState } from '../../core/quality/state.js';
 import { readProjectConfig } from '../../core/project-config.js';
 import { buildConfigProjectionBundle } from '../../core/config-projection.js';
 
@@ -334,37 +334,30 @@ async function resolveCompletedApplyState(
   changeDir: string,
   projectRoot: string
 ): Promise<Pick<ApplyInstructions, 'state' | 'instruction'>> {
-  const freshness = await checkFreshness(changeDir, projectRoot);
+  const qualityState = await checkQualityState(changeDir, projectRoot);
 
-  if (freshness.status !== 'FRESH') {
+  if (qualityState.status !== 'clean' || !qualityState.record) {
     return {
-      state: 'needs_verify',
+      state: 'needs_review',
       instruction:
-        'All tasks are complete, but verify is missing or stale.\nRun Phase 1 verification before archiving this change.',
+        'All tasks are complete, but the current code has no matching passing review record.\nRun `xirang quality review` before archiving this change.',
     };
   }
 
-  const verifyResult = freshness.verifyResult;
-  if (!verifyResult || verifyResult.optimization?.status === 'ABORTED_UNSAFE') {
+  if (!checkArchiveCompatibility(qualityState.record).compatible) {
+    const aborted = qualityState.record.optimization?.terminal === 'ABORTED_UNSAFE';
     return {
-      state: 'needs_verify',
-      instruction:
-        'All tasks are complete, but verify is missing or stale.\nRun Phase 1 verification before archiving this change.',
-    };
-  }
-
-  if (!checkArchiveCompatibility(verifyResult).compatible) {
-    return {
-      state: 'needs_seal',
-      instruction:
-        'All tasks are complete and Phase 1 passed, but final verify work is still pending.\nRun Phase 2 optimization and Phase 3 seal before archiving this change.',
+      state: 'needs_optimize',
+      instruction: aborted
+        ? 'All tasks are complete and the code passed review, but optimization was aborted as unsafe.\nRestore the workspace to the recorded baseline before sealing this change.'
+        : 'All tasks are complete and the code passed review, but the optimization loop is not finalized.\nContinue `xirang quality optimize` and seal before archiving this change.',
     };
   }
 
   return {
     state: 'all_done',
     instruction:
-      'All tasks are complete and verify is fresh.\nThis change is ready to be archived.',
+      'All tasks are complete and quality is fresh.\nThis change is ready to be archived.',
   };
 }
 
@@ -517,13 +510,13 @@ export function printApplyInstructionsText(instructions: ApplyInstructions): voi
     console.log();
   }
 
-  if (state === 'needs_verify') {
-    console.log('### Verification Required');
+  if (state === 'needs_review') {
+    console.log('### Review Required');
     console.log();
   }
 
-  if (state === 'needs_seal') {
-    console.log('### Seal Required');
+  if (state === 'needs_optimize') {
+    console.log('### Optimization Required');
     console.log();
   }
 

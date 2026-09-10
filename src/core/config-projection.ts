@@ -17,7 +17,8 @@ export interface NormalizedProjectConfig {
   };
   optimization?: {
     enabled: boolean;
-    optRetries: number;
+    directionLimit: number;
+    directionRetries: number;
   };
   apply?: {
     defaultIsolation: 'ask' | 'branch' | 'worktree' | 'none';
@@ -142,7 +143,8 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     optimization: config.optimization
       ? {
           enabled: config.optimization.enabled !== false,
-          optRetries: config.optimization.optRetries ?? 2,
+          directionLimit: config.optimization.directionLimit ?? 3,
+          directionRetries: config.optimization.directionRetries ?? 2,
         }
       : undefined,
     apply: config.apply

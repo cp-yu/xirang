@@ -9,9 +9,9 @@ import {
 } from './change-sync.js';
 import {
   checkArchiveCompatibility,
-  checkFreshness,
-  formatVerifyGateFailure,
-} from './verify/freshness.js';
+  checkQualityState,
+  formatQualityGateFailure,
+} from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
 import { compileChange } from './change-compiler.js';
 
@@ -94,7 +94,7 @@ interface ArchiveOptions {
 
 export class ArchiveCommand {
   /**
-   * Archive a completed change. Enforces verify gate, sync gate, validation gate,
+   * Archive a completed change. Enforces quality gate, sync gate, validation gate,
    * and task gate before moving the change to archive. Does NOT write formal Specs
    * or LikeC4 architecture files; sync is handled by `xirang sync`.
    */
@@ -179,14 +179,14 @@ export class ArchiveCommand {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
           message: chalk.yellow(
-            '⚠️  WARNING: Skipping the full verify gate bypasses critical quality checks.\n' +
+            '⚠️  WARNING: Skipping the quality gate bypasses critical quality checks.\n' +
             '   This may archive unverified implementations with correctness, completeness, or coherence issues.\n' +
             '   Continue with --no-verify? (y/N)'
           ),
           default: false,
         });
         if (!proceed) {
-          console.log('Archive cancelled. Run without --no-verify to use the standard verify gate.');
+          console.log('Archive cancelled. Run without --no-verify to use the standard quality gate.');
           return false;
         }
       }
@@ -194,15 +194,13 @@ export class ArchiveCommand {
       return true;
     }
 
-    const freshness = await checkFreshness(changeDir, targetPath);
-    const compatibility = freshness.verifyResult
-      ? checkArchiveCompatibility(freshness.verifyResult)
-      : undefined;
+    const state = await checkQualityState(changeDir, targetPath);
+    const compatibility = state.record ? checkArchiveCompatibility(state.record) : undefined;
     const failures: string[] = [];
 
-    if (freshness.status !== 'FRESH' || !compatibility?.compatible) {
+    if (state.status !== 'clean' || !compatibility?.compatible) {
       failures.push(
-        formatVerifyGateFailure(freshness, compatibility, {
+        formatQualityGateFailure(state, compatibility, {
           changeName,
           command: 'archive',
         }),

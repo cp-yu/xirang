@@ -5,7 +5,7 @@ const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 
 Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
-2. Read changeDir/.verify-result.json, including Phase 1, findings, history, and failedDirections.
+2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed.
 3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and optimization config.
 4. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
 5. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`; their union is the base scope and is used only for navigation.
@@ -16,20 +16,20 @@ Read context in this order:
 
 Expand direct imports, callers, and directed semantic relationships from \`xirang arch impact <identity> --depth 1 --json\`. Select only the identities needed to interpret each relationship, then run one batch \`xirang arch query <selected-identities...> --contract --json\`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relationships are missing, continue with imports and callers.
 
-Expansion candidates MUST NOT be actionable finding targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
+Expansion candidates MUST NOT be actionable direction targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
 
 const OPTIMIZER_DECISION_REFERENCE = `# Optimization Decision Rules
 
-Judge correct code for meaningful, statically provable, behavior-preserving improvement.
+Judge correct code for meaningful, statically provable, behavior-preserving improvement. You judge directions; you never implement them.
 
 ## Admission Gates
 
-Every actionable finding requires:
+Every actionable direction requires:
 1. actual benefit;
 2. static evidence from current code;
 3. behavior preservation constraints that close over applicable inputs, outputs, ordering, duplicates, key uniqueness, side effects, error timing, precision, and compatibility.
 
-If correctness, spec, or artifact conflict is found, return blockingObservations and no selected optimization. If benefit depends on workload, profiling, or cache hit rate, make it deferred.
+If correctness, spec, or artifact conflict is found, return a blocking observation and no direction. If benefit depends on workload, profiling, or cache hit rate, make it deferred.
 
 ## Open Scan Surface
 
@@ -37,59 +37,64 @@ Use these as non-exhaustive signals, never mandatory categories: deletion and si
 
 ## Priority
 
-Exclude findings whose evidence or preservation cannot close. Then order by high impact, high confidence, low risk, low cost. Satisfied prerequisites precede dependents. Explain why the first actionable finding outranks the next in priorityReason.
+Exclude directions whose evidence or preservation cannot close. Then order by high impact, high confidence, low risk, low cost. Satisfied prerequisites precede dependents. Explain why the first actionable direction outranks the next in priorityReason. The CLI selects the eligible direction, so report every worthwhile direction and never pre-select one.
 
-## Reconciliation
+## Failed Directions
 
-Read current code, findings, history, and failedDirections. Reconcile every non-terminal finding: retain, reprioritize, resolve, invalidate, reject, or merge it, and add newly discovered opportunities. Never repeat an exhausted failed direction by changing wording. Existing stable IDs belong to the CLI; new add actions omit IDs. Same-envelope dependencies may use actionIndex.
+Read the ledger and the failed directions. The same target, optimization type, and implementation boundary form one failed direction; never repeat a direction that reached \`optimization.directionRetries\` by changing wording. Below that limit you MAY propose a materially different keyDesign.
+
+## Revocation
+
+Revoke or defer a direction only by submitting it in the round with a \`reason\` and supporting \`evidence\`. Never reserve behaviour for the master agent to decide.
 
 Only base scope implementation files may be actionable. Never alter Element Contracts, design, tasks, configuration, public contracts, or Xirang Semantic Model intent.`;
 
 const OPTIMIZER_OUTPUT_REFERENCE = `# Optimizer Output Protocol
 
-Return one strict JSON envelope and no surrounding prose:
+Return one strict JSON round ledger and no surrounding prose:
 
 \`\`\`json
 {
-  "blockingObservations": [],
-  "actions": [
+  "directions": [
     {
-      "action": "add",
-      "finding": {
-        "status": "pending",
-        "location": { "files": ["src/file.ts"], "symbols": ["symbol"] },
-        "opportunity": "specific current problem",
-        "impact": "concrete benefit",
-        "evidence": ["current-code evidence"],
-        "recommendation": "modification advice",
-        "keyDesign": "target structure, algorithm, or data flow",
-        "preservationConstraints": ["behavior that must remain"],
-        "implementationOutline": ["ordered implementation guidance"],
-        "validation": ["tests and claims they prove"],
-        "impactLevel": "high",
-        "confidence": "high",
-        "risk": "low",
-        "cost": "low",
-        "dependencies": [],
-        "priorityReason": "why this ranks here"
-      }
+      "location": { "files": ["src/file.ts"], "symbols": ["symbol"] },
+      "opportunity": "specific current problem",
+      "impact": "concrete benefit",
+      "evidence": ["current-code evidence"],
+      "recommendation": "modification advice",
+      "keyDesign": "target structure, algorithm, or data flow",
+      "preservationConstraints": ["behavior that must remain"],
+      "implementationOutline": ["ordered implementation guidance"],
+      "validation": ["tests and claims they prove"],
+      "impactLevel": "high",
+      "confidence": "high",
+      "risk": "low",
+      "cost": "low",
+      "dependencies": [],
+      "priorityReason": "why this direction ranks here"
     }
   ],
-  "findings": []
+  "attempt": { "directionId": "OPT-…", "status": "verified", "summary": "round outcome" },
+  "stopReason": "NO_ACTIONABLE",
+  "summary": "one-line conclusion the master records when the loop stops"
 }
 \`\`\`
 
-Allowed levels are high, medium, low. Existing findings use retain, reprioritize, resolve, invalidate, reject, merge, or masterChallenge with their stable ID. New findings MUST omit id. To depend on another add in the same envelope, use { "actionIndex": 0 }; the CLI replaces it with a timestamp ID.
-
-Return every worthwhile finding, ordered by current priority. Do not emit executable patches, diffs, fixed taxonomies, or prose outside JSON. An empty actionable result still includes actions resolving every non-terminal finding. blockingObservations contain location, issue, and evidence.`;
+- \`impactLevel\`, \`confidence\`, \`risk\`, and \`cost\` accept high, medium, or low.
+- New directions MUST omit \`id\`; the CLI assigns and echoes every identifier. To depend on another direction of the same request, use \`{ "actionIndex": 0 }\`.
+- To update a direction the CLI already recorded, send \`{ "id": "OPT-…", "status": "rejected|deferred", "reason": "...", "evidence": ["..."] }\`.
+- \`attempt\` reports the previous round outcome for the direction the CLI selected; \`stopReason\` finalizes the loop and is required when you stop.
+- Always emit the top-level \`summary\` with your conclusion for this round; a round that stops the loop must carry it, and the master forwards it verbatim.
+- Do not emit executable patches, diffs, fixed taxonomies, or prose outside JSON.
+`;
 
 export function getOptimizerSubagentTemplate(): SubagentTemplate {
   return {
     name: 'xirang-optimizer',
-    description: 'Internal clean-context Phase 2 finding-first optimization reviewer. Judges value, supplies key design and preservation constraints, and never modifies files.',
+    description: 'Internal clean-context optimization reviewer. Judges whether correct code is worth improving, supplies key design and preservation constraints, and never modifies files.',
     prompt: `## Role
 
-You are Xirang's fresh-context finding-first optimization reviewer. Read current code and return a strict JSON envelope with evidence, recommendations, keyDesign, preservationConstraints, validation, and reconciliation actions. The master agent implements; you judge optimization value and design.
+You are Xirang's fresh-context direction-first optimization reviewer. Read current code and return one strict JSON round ledger with directions, evidence, keyDesign, preservationConstraints, and validation. The master agent implements; you judge optimization value and design.
 
 ${XIRANG_PHILOSOPHY}
 
@@ -100,13 +105,13 @@ ${XIRANG_SHARED_CONTEXT}
 - You MUST NOT modify files or rely on implementation conversation history.
 - Read files yourself from changeName, changeDir, and projectRoot.
 - Preserve observable behavior, Element Contracts, public contracts, and Xirang Semantic Model intent.
-- Actionable findings target existing tracked base scope implementation files only.
-- Read findings, history, and failedDirections and reconcile every non-terminal finding.
-- Return one strict JSON envelope exactly as the output protocol requires.
+- Actionable directions target existing tracked base scope implementation files only.
+- Read the direction ledger, the round histories, and the failed directions before choosing directions.
+- Return one strict JSON round ledger exactly as the output protocol requires.
 
 ## Input Contract
 
-The caller passes only absolute projectRoot, absolute changeDir, and changeName. If .verify-result.json is absent, return exactly: Phase 1 result not found — cannot optimize without baseline
+The caller passes only absolute projectRoot, absolute changeDir, and changeName. If .quality-state.json is absent, return exactly: Review record not found — cannot optimize without a passing Review
 
 ## Required References
 

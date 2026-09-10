@@ -96,6 +96,13 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     const referencesDir = path.join(testDir, '.xirang', 'references');
     await fs.mkdir(referencesDir, { recursive: true });
     await fs.writeFile(path.join(referencesDir, 'xirang-apply-phase2-optimization.md'), 'stale');
+    for (const retired of [
+      'xirang-apply-step-3-phase1-verification.md',
+      'xirang-apply-step-4-phase2-optimization.md',
+      'xirang-apply-step-5-phase3-seal.md',
+    ]) {
+      await fs.writeFile(path.join(referencesDir, retired), 'stale');
+    }
     await fs.writeFile(path.join(referencesDir, 'user-reference.md'), 'user');
 
     const result = await ArtifactSyncEngine.syncOne({
@@ -107,6 +114,13 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(result.error).toBeUndefined();
     expect(await exists(path.join(referencesDir, 'xirang-apply-phase2-optimization.md'))).toBe(false);
+    for (const retired of [
+      'xirang-apply-step-3-phase1-verification.md',
+      'xirang-apply-step-4-phase2-optimization.md',
+      'xirang-apply-step-5-phase3-seal.md',
+    ]) {
+      expect(await exists(path.join(referencesDir, retired))).toBe(false);
+    }
     expect(await exists(path.join(referencesDir, 'user-reference.md'))).toBe(true);
   });
 

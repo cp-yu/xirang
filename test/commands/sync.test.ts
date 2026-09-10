@@ -5,8 +5,9 @@ import os from 'os';
 import {
   computeEvidenceFingerprint,
   computeTasksFileHash,
-} from '../../src/core/verify/freshness.js';
-import type { VerifyResult } from '../../src/core/verify/types.js';
+} from '../../src/core/quality/state.js';
+import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
+import type { QualityRecord } from '../../src/core/quality/types.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
@@ -54,11 +55,12 @@ describe('syncCommand', () => {
     return changeDir;
   }
 
-  async function writeFreshVerifyResult(changeDir: string): Promise<void> {
+  async function writeFreshQualityRecord(changeDir: string): Promise<void> {
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
     await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
     await fs.writeFile(path.join(tempDir, 'src', 'sync-evidence.ts'), 'export const ok = true;\n', 'utf-8');
-    const result: VerifyResult = {
+    const result: QualityRecord = {
+      kind: 'review',
       timestamp: new Date().toISOString(),
       result: 'PASS',
       issues: [],
@@ -68,9 +70,20 @@ describe('syncCommand', () => {
         evidenceFiles: ['src/sync-evidence.ts'],
         evidenceFingerprint: (await computeEvidenceFingerprint(['src/sync-evidence.ts'], tempDir)).hash,
       },
-      optimization: { status: 'NOT_NEEDED', attempts: [] },
+      optimization: {
+        directions: [],
+        histories: [],
+        directionsUsed: 0,
+        terminal: 'NOT_NEEDED',
+        stopReason: 'NO_ACTIONABLE',
+      },
     };
-    await fs.writeFile(path.join(changeDir, '.verify-result.json'), JSON.stringify(result), 'utf-8');
+    await fs.writeFile(
+      path.join(changeDir, QUALITY_STATE_FILE),
+      `${JSON.stringify(result, null, 2)}\n`,
+      'utf-8'
+    );
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(result)}\n`, 'utf-8');
   }
 
   function elementUnit(): string {
@@ -132,23 +145,38 @@ describe('syncCommand', () => {
     await expect(fs.access(path.join(tempDir, '.xirang', 'model', 'views', 'index.md'))).rejects.toThrow();
   });
 
-  it('blocks sync when the verify gate is missing', async () => {
+  it('blocks sync when the quality gate has no record', async () => {
     const syncCommand = await loadSyncCommand();
-    await createChange('verify-gate');
-    await writeChangeDelta(tempDir, 'verify-gate', { 'elements/auth.md': ADD_REQUIREMENT });
+    await createChange('quality-gate');
+    await writeChangeDelta(tempDir, 'quality-gate', { 'elements/auth.md': ADD_REQUIREMENT });
 
-    await expect(syncCommand('verify-gate', {})).rejects.toThrow(/verify/i);
+    await expect(syncCommand('quality-gate', {})).rejects.toThrow(/quality gate failed/i);
   });
 
-  it('allows sync when the verify gate is fresh', async () => {
+  it('blocks sync while the optimization loop is not finalized', async () => {
     const syncCommand = await loadSyncCommand();
-    const changeDir = await createChange('verify-fresh');
-    await writeFreshVerifyResult(changeDir);
-    await writeChangeDelta(tempDir, 'verify-fresh', { 'elements/auth.md': ADD_REQUIREMENT });
+    const changeDir = await createChange('quality-unfinalized');
+    await writeFreshQualityRecord(changeDir);
+    const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
+    const record = JSON.parse(await fs.readFile(recordPath, 'utf-8'));
+    delete record.optimization.terminal;
+    delete record.optimization.stopReason;
+    await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
+    await writeChangeDelta(tempDir, 'quality-unfinalized', { 'elements/auth.md': ADD_REQUIREMENT });
 
-    await syncCommand('verify-fresh', {});
+    await expect(syncCommand('quality-unfinalized', {})).rejects.toThrow(/NOT_FINALIZED/);
+  });
 
-    expect(console.log).toHaveBeenCalledWith("Sync complete for 'verify-fresh'.");
+  it('allows sync when the quality gate is clean and finalized', async () => {
+    const syncCommand = await loadSyncCommand();
+    const changeDir = await createChange('quality-clean');
+    await writeFreshQualityRecord(changeDir);
+    await writeChangeDelta(tempDir, 'quality-clean', { 'elements/auth.md': ADD_REQUIREMENT });
+
+    await syncCommand('quality-clean', {});
+
+    expect(console.log).toHaveBeenCalledWith("Sync complete for 'quality-clean'.");
   });
 
   it('supports interactive change selection when no name is provided', async () => {
@@ -187,8 +215,8 @@ describe('syncCommand', () => {
   it('prints No sync required when a change carries no Semantic Delta', async () => {
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('no-delta-change');
-    await writeFreshVerifyResult(changeDir);
-    const verifyPath = path.join(changeDir, '.verify-result.json');
+    await writeFreshQualityRecord(changeDir);
+    const verifyPath = path.join(changeDir, QUALITY_STATE_FILE);
     const before = await fs.readFile(verifyPath, 'utf-8');
 
     await syncCommand('no-delta-change', { noVerify: true });
@@ -238,7 +266,8 @@ describe('syncCommand', () => {
       `.xirang/changes/${changeName}/elements/auth.md`,
     ];
     const before = await computeEvidenceFingerprint(evidenceFiles, tempDir);
-    const verifyResult: VerifyResult = {
+    const qualityRecord: QualityRecord = {
+      kind: 'review',
       timestamp: new Date().toISOString(),
       result: 'PASS',
       issues: [],
@@ -249,13 +278,26 @@ describe('syncCommand', () => {
         evidenceFingerprint: before.hash,
         evidenceFingerprintEntries: before.entries,
       },
-      optimization: { status: 'NOT_NEEDED', attempts: [] },
+      optimization: {
+        directions: [],
+        histories: [],
+        directionsUsed: 0,
+        terminal: 'NOT_NEEDED',
+        stopReason: 'NO_ACTIONABLE',
+      },
     };
-    await fs.writeFile(path.join(changeDir, '.verify-result.json'), `${JSON.stringify(verifyResult, null, 2)}\n`, 'utf-8');
+    await fs.writeFile(
+      path.join(changeDir, QUALITY_STATE_FILE),
+      `${JSON.stringify(qualityRecord, null, 2)}\n`,
+      'utf-8'
+    );
+    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(qualityRecord)}\n`, 'utf-8');
 
     await syncCommand(changeName, { noVerify: true });
 
-    const refreshed = JSON.parse(await fs.readFile(path.join(changeDir, '.verify-result.json'), 'utf-8')) as VerifyResult;
+    const refreshed = JSON.parse(
+      await fs.readFile(path.join(changeDir, QUALITY_STATE_FILE), 'utf-8')
+    ) as QualityRecord;
     expect(refreshed.verificationContext.evidenceFingerprint).not.toBe(before.hash);
     const entry = (result: typeof before.entries, file: string) => result.find(item => item.path === file)?.hash;
     expect(entry(refreshed.verificationContext.evidenceFingerprintEntries!, '.xirang/model/elements/auth.md'))
@@ -264,24 +306,26 @@ describe('syncCommand', () => {
       .toBe(entry(before.entries, `.xirang/changes/${changeName}/elements/auth.md`));
   });
 
-  it('does not rewrite the verify result when sync outputs do not overlap evidence entries', async () => {
+  it('does not rewrite the quality record when sync outputs do not overlap evidence entries', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'disjoint-evidence';
     const changeDir = await createChange(changeName);
-    await writeFreshVerifyResult(changeDir);
-    const before = await fs.readFile(path.join(changeDir, '.verify-result.json'), 'utf-8');
+    await writeFreshQualityRecord(changeDir);
+    const before = await fs.readFile(path.join(changeDir, QUALITY_STATE_FILE), 'utf-8');
     await writeChangeDelta(tempDir, changeName, { 'elements/auth.md': ADD_REQUIREMENT });
 
     await syncCommand(changeName, { noVerify: true });
 
-    expect(await fs.readFile(path.join(changeDir, '.verify-result.json'), 'utf-8')).toBe(before);
+    expect(await fs.readFile(path.join(changeDir, QUALITY_STATE_FILE), 'utf-8')).toBe(before);
   });
 
-  it('does not fail when .verify-result.json is absent during sync', async () => {
+  it('does not fail when the quality record is absent during sync', async () => {
     const syncCommand = await loadSyncCommand();
-    await createChange('no-verify-result');
-    await writeChangeDelta(tempDir, 'no-verify-result', { 'elements/auth.md': ADD_REQUIREMENT });
+    await createChange('no-quality-record');
+    await writeChangeDelta(tempDir, 'no-quality-record', { 'elements/auth.md': ADD_REQUIREMENT });
 
-    await expect(syncCommand('no-verify-result', { noVerify: true })).resolves.toBeUndefined();
+    await expect(syncCommand('no-quality-record', { noVerify: true })).resolves.toBeUndefined();
+    await expect(fs.access(path.join(tempDir, '.xirang', 'changes', 'no-quality-record', QUALITY_STATE_FILE)))
+      .rejects.toThrow();
   });
 });

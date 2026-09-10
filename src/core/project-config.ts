@@ -23,7 +23,8 @@ export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   },
   optimization: {
     enabled: true,
-    optRetries: 2,
+    directionLimit: 3,
+    directionRetries: 2,
   },
   apply: {
     defaultIsolation: 'ask' as const,
@@ -122,16 +123,19 @@ export const ProjectConfigSchema = z.object({
     .optional()
     .describe('Agent semantic-model outline projection settings'),
 
-  // Optional: verify Phase 2 optimization policy
+  // Optional: optimization loop policy
   optimization: z
     .object({
       enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
-      optRetries: z.number().int().min(0).max(10).optional().default(
-        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.optRetries
+      directionLimit: z.number().int().min(1).max(50).optional().default(
+        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionLimit
+      ),
+      directionRetries: z.number().int().min(0).max(10).optional().default(
+        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionRetries
       ),
     })
     .optional()
-    .describe('Project-level Phase 2 optimization policy for verify workflows'),
+    .describe('Project-level optimization policy: how many directions may be selected and how often one direction may fail'),
 
   // Optional: apply-stage implementation policy
   apply: z
@@ -324,7 +328,8 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
     defaults.architecture.outline.elementDefinitionDepth
   ) || changed;
   changed = setMissingPath(document, ['optimization', 'enabled'], defaults.optimization.enabled) || changed;
-  changed = setMissingPath(document, ['optimization', 'optRetries'], defaults.optimization.optRetries) || changed;
+  changed = setMissingPath(document, ['optimization', 'directionLimit'], defaults.optimization.directionLimit) || changed;
+  changed = setMissingPath(document, ['optimization', 'directionRetries'], defaults.optimization.directionRetries) || changed;
   changed = setMissingPath(document, ['apply', 'defaultIsolation'], defaults.apply.defaultIsolation) || changed;
   changed = deletePath(document, ['git', 'autoCommit']) || changed;
   changed = deletePath(document, ['git', 'archive', 'commitMessage', 'convention']) || changed;
@@ -480,8 +485,11 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     if (raw.optimization !== undefined) {
       const optimizationField = z.object({
         enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
-        optRetries: z.number().int().min(0).max(10).optional().default(
-          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.optRetries
+        directionLimit: z.number().int().min(1).max(50).optional().default(
+          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionLimit
+        ),
+        directionRetries: z.number().int().min(0).max(10).optional().default(
+          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionRetries
         ),
       });
       const optimizationResult = optimizationField.safeParse(raw.optimization);
@@ -489,7 +497,9 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (optimizationResult.success) {
         config.optimization = optimizationResult.data;
       } else {
-        console.warn(`Invalid 'optimization' field in config (must be an object with boolean 'enabled' and optional integer 'optRetries')`);
+        console.warn(
+          `Invalid 'optimization' field in config (must be an object with boolean 'enabled' and optional integers 'directionLimit' and 'directionRetries')`
+        );
       }
     }
 
