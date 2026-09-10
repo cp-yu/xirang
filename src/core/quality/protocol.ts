@@ -24,6 +24,7 @@ const STATE_RULES = [
   'optimization.directionLimit caps selected directions; optimization.directionRetries caps failures of one direction; a verified direction consumes neither the failure budget nor another direction slot beyond its own selection',
   'the CLI assigns every direction ID and echoes it; agents never author IDs, counters, histories, or timestamps',
   'a failed direction below optimization.directionRetries returns to pending when the next round starts; a deferred direction stays parked until the optimizer revokes it, and a revoked direction never returns',
+  'a finalizing call carries the last round attempt when a round just finished: implemented means the round was reviewed but its outcome is not yet reported, so an unreported round never counts as a successful landing',
   'a review record must list at least one evidence path; a record whose evidence set is empty never counts as clean',
 ];
 
@@ -97,7 +98,7 @@ export function renderQualityCliReference(): string {
 | Review | \`${REVIEW_EXAMPLE}\` |
 | Optimization round | \`${OPTIMIZATION_ROUND_EXAMPLE}\` |
 | Revoke a direction | \`{"directions":[{"id":"${DIRECTION_ID_PREFIX}…","status":"rejected","reason":"...","evidence":["..."]}]}\` |
-| Finalize the loop | \`{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"optimizer conclusion"}\` |
+| Finalize the loop | \`{"directions":[],"attempt":{"directionId":"${DIRECTION_ID_PREFIX}…","status":"verified"},"stopReason":"NO_ACTIONABLE","summary":"optimizer conclusion"}\` |
 | Read the state | \`xirang quality status "<change-name>" --json\` (no \`--input\`) |
 
 - The review \`result\` is ${REVIEW_RESULT_VALUES.join(' | ')}; \`issues\` and \`evidenceFiles\` are required arrays.

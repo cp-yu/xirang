@@ -659,6 +659,64 @@ describe('xirang quality command', () => {
     assertSummaryGuidance(notReady);
   });
 
+  it('reports the last round outcome in the finalizing call', async () => {
+    await writeConfig({ directionLimit: 1, directionRetries: 2 });
+    await review();
+    const directionId = await assignDirection();
+    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
+    await review();
+
+    const finalized = await optimize({
+      directions: [],
+      attempt: { directionId, status: 'verified', summary: 'round review PASS' },
+      stopReason: 'DIRECTION_LIMIT_REACHED',
+      summary: 'direction limit reached after this round',
+    });
+
+    expect(finalized.exitCode, finalized.stdout).toBe(0);
+    const payload = JSON.parse(finalized.stdout);
+    expect(payload.ledger.terminal).toBe('IMPROVED');
+    expect(payload.directions).toEqual([
+      expect.objectContaining({ id: directionId, status: 'verified' }),
+    ]);
+    const record = await snapshot();
+    expect(record.optimization.directions[0]).toEqual(
+      expect.objectContaining({ status: 'verified', failureCount: 0 })
+    );
+    expect(record.optimization.histories.at(-1)).toEqual(
+      expect.objectContaining({
+        outcome: 'verified',
+        stopReason: 'DIRECTION_LIMIT_REACHED',
+        reason: 'direction limit reached after this round',
+      })
+    );
+  });
+
+  it('derives DEGRADED when the finalizing call omits the last round outcome', async () => {
+    await writeConfig({ directionLimit: 1, directionRetries: 2 });
+    await review();
+    const directionId = await assignDirection();
+    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
+    await review();
+
+    const finalized = await optimize({
+      directions: [],
+      stopReason: 'DIRECTION_LIMIT_REACHED',
+      summary: 'stopped without reporting the round',
+    });
+
+    expect(finalized.exitCode, finalized.stdout).toBe(0);
+    const payload = JSON.parse(finalized.stdout);
+    expect(payload.ledger.terminal).toBe('DEGRADED');
+    expect(payload.directions).toEqual([
+      expect.objectContaining({ id: directionId, status: 'implemented' }),
+    ]);
+    const record = await snapshot();
+    expect(record.optimization.histories.at(-1)).toEqual(
+      expect.objectContaining({ outcome: 'none', stopReason: 'DIRECTION_LIMIT_REACHED' })
+    );
+  });
+
   it('rejects further optimization rounds after an unsafe abort', async () => {
     await review();
     await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });

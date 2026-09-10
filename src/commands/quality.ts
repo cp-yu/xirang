@@ -590,6 +590,7 @@ function applyRound(
     directions: assignedDirectionIds,
     ...(selected ? { selected } : {}),
     outcome: round.attempt?.status ?? 'none',
+    ...(round.stopReason ? { stopReason: round.stopReason } : {}),
     ...(round.summary ?? round.attempt?.summary
       ? { reason: round.summary ?? round.attempt?.summary }
       : {}),

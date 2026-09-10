@@ -50,14 +50,16 @@ Use git commits as checkpoints; never use stash or tags. Ordinary implementation
 6. If project evidence contradicts the selected direction or its `keyDesign`, revoke it inside the round ledger with `reason` and `evidence`, then judge the remaining directions with a fresh optimizer. Do not skip or reject a direction silently.
 7. Implement the selected direction with TDD, preserving its `preservationConstraints`, and record any non-substantive implementation difference from `keyDesign`.
 8. Delegate to a fresh `xirang-reviewer` with `context: "fresh"` to verify the specs and the selected direction's `preservationConstraints`, not the optimization value. Record that verdict with the same `xirang quality review` call as Step 3; a passing review marks the direction `implemented` and refreshes the evidence fingerprint.
-9. Report the round outcome on the next optimization call with `attempt`: `{"directionId":"<direction-id>","status":"verified"}` after a passing review, or `"failed"` after a failing review. Report the verdict before rolling back so history and failure counts stay durable.
+9. Report the round outcome on the next optimization call with `attempt`: `{"directionId":"<direction-id>","status":"verified"}` after a passing review, or `"failed"` after a failing review. Report the verdict before rolling back so history and failure counts stay durable. A direction whose attempt is never reported stays `implemented`, which means "reviewed, outcome unknown" and is not a successful landing.
 10. On `verified`, save the successful checkpoint and judge the remaining directions:
     ```bash
     git add -A
     git commit -m "wip: opt-r${N} (${directionId}: ${description})"
     ```
 11. On `failed`, copy `.quality-state.json`, `.quality-log.jsonl`, and `.apply-isolation.json` to repository-external temporary files and record each SHA-256. Confirm the workspace matches the selected isolation and that `HEAD` is the latest successful checkpoint, discard only speculative code with `git reset --hard HEAD` and `git clean -fd`, then restore all three files (`git clean` removes the untracked log) and verify each hash before the next round. Stop if restoration or hash verification fails, or if speculative files remain. A direction reaching `optimization.directionRetries` becomes `rejected`; other directions continue.
-12. Finalize the loop with `{"directions":[],"stopReason":"...","summary":"<optimizer conclusion>"}` when the optimizer finds no eligible direction (`NO_ACTIONABLE`), the direction limit blocks a new selection (`DIRECTION_LIMIT_REACHED`), the user declines (`USER_DECLINED`), or the workspace is unsafe (`UNSAFE`). Keep all `wip: opt-*` commits.
+12. Finalize the loop with `{"directions":[],"attempt":{"directionId":"<direction-id>","status":"verified|failed"},"stopReason":"...","summary":"<optimizer conclusion>"}` when the optimizer finds no eligible direction (`NO_ACTIONABLE`), the direction limit blocks a new selection (`DIRECTION_LIMIT_REACHED`), the user declines (`USER_DECLINED`), or the workspace is unsafe (`UNSAFE`).
+    When the loop closes right after a round finished, the finalizing call MUST carry that round's `attempt` in the same payload: `implemented` cannot be distinguished from a round whose review failed, so an unreported round makes the terminal `DEGRADED` instead of `IMPROVED`. Finalize with only a `stopReason` when no round is awaiting a report.
+    Keep all `wip: opt-*` commits.
 
 [Mode: Checkpoint]
 
@@ -81,7 +83,7 @@ Use git commits as checkpoints; never use stash or tags. Ordinary implementation
 | Review | `{"result":"PASS","issues":[],"evidenceFiles":["src/..."]}` |
 | Optimization round | `{"directions":[{"location":{"files":["src/a.ts"]},"opportunity":"...","impact":"...","evidence":["..."],"recommendation":"...","keyDesign":"...","preservationConstraints":["..."],"implementationOutline":["..."],"validation":["..."],"impactLevel":"high","confidence":"high","risk":"low","cost":"low","dependencies":[],"priorityReason":"..."}],"attempt":{"directionId":"OPT-…","status":"verified"}}` |
 | Revoke a direction | `{"directions":[{"id":"OPT-…","status":"rejected","reason":"...","evidence":["..."]}]}` |
-| Finalize the loop | `{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"optimizer conclusion"}` |
+| Finalize the loop | `{"directions":[],"attempt":{"directionId":"OPT-…","status":"verified"},"stopReason":"NO_ACTIONABLE","summary":"optimizer conclusion"}` |
 | Read the state | `xirang quality status "<change-name>" --json` (no `--input`) |
 
 - The review `result` is PASS | PASS_WITH_WARNINGS | FAIL_NEEDS_CORRECTIONS; `issues` and `evidenceFiles` are required arrays.
