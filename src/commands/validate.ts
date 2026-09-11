@@ -394,7 +394,7 @@ async function validateElementContract(validator: Validator, identity: string): 
   if (!element) {
     return { valid: false, issues: [{ level: 'ERROR', path: 'file', message: `Element not found: ${identity}` }], summary: { errors: 1, warnings: 0, info: 0 } };
   }
-  return validator.validateElementContract(element, parsed.index.moduleOf(identity)?.path ?? `elements/${identity}.md`);
+  return validator.validateElementContract(element, parsed.index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`);
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {

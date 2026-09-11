@@ -90,6 +90,23 @@ describe('compileChange', () => {
     expect(result.diagnostics.every(item => item.path !== 'architecture-delta.c4')).toBe(true);
   });
 
+  it('locates element diagnostics at the element unit when a kind shares the identity', async () => {
+    await writeProjectModel(root, minimalModel({
+      elementKinds: [{ identity: 'implementation' }],
+      elements: [{ identity: 'implementation', kind: 'implementation', parent: 'root', title: 'Implementation', definition: 'Implementation axis' }],
+    }));
+    await writeChangeDelta(root, 'axis', {
+      'elements/implementation.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: null\ntitle: Implementation\ndefinition: Implementation axis\n---\n',
+    });
+
+    const result = await compileChange(root, 'axis');
+
+    expect(result.valid).toBe(false);
+    const missingParent = result.diagnostics.find(item => item.code === 'MISSING_PARENT');
+    expect(missingParent?.identity).toBe('implementation');
+    expect(missingParent?.path).toBe('elements/implementation.md');
+  });
+
   it('validates the Expected Semantic Model, not just the delta', async () => {
     await writeProjectModel(root, minimalModel({
       elementKinds: [{ identity: 'contracted', contract: 'required', parents: ['project'] }],

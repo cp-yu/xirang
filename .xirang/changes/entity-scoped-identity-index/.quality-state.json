@@ -1,0 +1,109 @@
+{
+  "kind": "review",
+  "timestamp": "2026-09-11T08:15:38.293Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "0e44785add655cec6a7f839c0c46ea0db0004cc2da1482ef2e0b7bb321875fa6",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/entity-scoped-identity-index/design.md",
+      ".xirang/changes/entity-scoped-identity-index/elements/change-sync.md",
+      ".xirang/changes/entity-scoped-identity-index/elements/semantic-model.md",
+      ".xirang/changes/entity-scoped-identity-index/tasks.md",
+      "src/commands/validate.ts",
+      "src/core/change-compiler.ts",
+      "src/core/change-sync.ts",
+      "src/core/model/delta.ts",
+      "src/core/model/index-map.ts",
+      "src/core/model/parser.ts",
+      "src/core/model/sync-writer.ts",
+      "src/core/model/types.ts",
+      "src/core/model/validator.ts",
+      "test/core/change-compiler.test.ts",
+      "test/core/model/index-map.test.ts",
+      "test/core/model/parser.test.ts",
+      "test/core/model/sync-writer.test.ts",
+      "test/core/model/validator.test.ts"
+    ],
+    "evidenceFingerprint": "331ceec353bf17d0b201d3df9dbadc06fc87418d6a5a116eeae47c96a8c8a790",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/entity-scoped-identity-index/design.md",
+        "hash": "9947c91a89bba5a6aa43582458a920b25550af2df721ed0ac26436c7d7b09c13"
+      },
+      {
+        "path": ".xirang/changes/entity-scoped-identity-index/elements/change-sync.md",
+        "hash": "8a5c73ea26a05a0ac944d33a39c3d9f7f4a4ef8176c2d5f0253f5082e15b45b0"
+      },
+      {
+        "path": ".xirang/changes/entity-scoped-identity-index/elements/semantic-model.md",
+        "hash": "92b75177f508e961037f1f864350737249643deb7cff407c823b939a8d93304a"
+      },
+      {
+        "path": ".xirang/changes/entity-scoped-identity-index/tasks.md",
+        "hash": "0e44785add655cec6a7f839c0c46ea0db0004cc2da1482ef2e0b7bb321875fa6"
+      },
+      {
+        "path": "src/commands/validate.ts",
+        "hash": "509efdd477457ff98b17f9f7a7fe28d2cc06ba782d7a0a34a7c2bf21f0fe4655"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "a6f6cd684572cec5803a9db2a60d21a5f6c717901d4883a1dfe48739d92bc4fa"
+      },
+      {
+        "path": "src/core/change-sync.ts",
+        "hash": "ba745622993c305caa43cfae7ebf61b0e5c37e533334675bb03d49b5357156eb"
+      },
+      {
+        "path": "src/core/model/delta.ts",
+        "hash": "32d402b21ec2f5a1e6c5f2049ae810fd1032e8ad6a5c9796ef09333b7fb0006f"
+      },
+      {
+        "path": "src/core/model/index-map.ts",
+        "hash": "0de7ee7b24b1c29e6eef00c2cf6a9773d820a49b605eeea4560ab9be5ae0cf37"
+      },
+      {
+        "path": "src/core/model/parser.ts",
+        "hash": "b88aec65f60570a424217ec9b15c36481cfd93236f6a1726f650fc6aa5f43f58"
+      },
+      {
+        "path": "src/core/model/sync-writer.ts",
+        "hash": "64659e3f9436f1df21f592ed57a7ccd507cf32e5b52e7472c55acf0e2fc929d7"
+      },
+      {
+        "path": "src/core/model/types.ts",
+        "hash": "4416471387e8518db144e95b5d10097e09cb1c22784087b2bf47fe39261f1ede"
+      },
+      {
+        "path": "src/core/model/validator.ts",
+        "hash": "059252c3829586a4e5d3a1b601d52327ab5aa4c1462c1beccc0291344a7c405d"
+      },
+      {
+        "path": "test/core/change-compiler.test.ts",
+        "hash": "21c76ddb26311634e01e077c519f8072e70a3ef2d1aada7b35fbe82c1c0f54a8"
+      },
+      {
+        "path": "test/core/model/index-map.test.ts",
+        "hash": "4f27cb55bd6f1ba00a7ba617fc9af9b258be21fa697a4364f3f60f4f539a0378"
+      },
+      {
+        "path": "test/core/model/parser.test.ts",
+        "hash": "754c42210a4b55a77633c814721a04a5dc5e71503e6eb086181355b21e46d740"
+      },
+      {
+        "path": "test/core/model/sync-writer.test.ts",
+        "hash": "d0c1084b1be8cabd06786a72e663dd8661fbdbabce0f7885ee76de6224c32e0c"
+      },
+      {
+        "path": "test/core/model/validator.test.ts",
+        "hash": "d6504eeb02dae930f1aeab42c6fbd684bdfc4960ef9664cfe9001ce7dcc0f7ee"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "4877e2d4089812e243a63d798c29d15a239a9d32",
+    "gitDiffSummary": "baseCommit 4877e2d4089812e243a63d798c29d15a239a9d32 resolves (branch entity-scoped-identity-index). git diff base...HEAD --name-only is empty (all work uncommitted); union scope = git status --short: 12 modified code/test files (src/core/model/{index-map,sync-writer,types,validator,delta}.ts, src/core/change-compiler.ts, src/commands/validate.ts, test/core/{change-compiler.test.ts, model/{index-map,parser,sync-writer,validator}.test.ts}) + 6 change artifacts under .xirang/changes/entity-scoped-identity-index/ (incl. untracked .apply-isolation.json). All 17 paths fall inside the attribution universe (Task 1/2 Files + change artifacts); 0 unaccounted changes. Evidence commands: xirang arch outline/query; pnpm exec vitest run (160 files, 2258/2258 pass); pnpm build (turbo, ok); pnpm lint (clean); independent npx tsc --noEmit (exit 0); xirang validate --change entity-scoped-identity-index (valid, 3 ADDED + 1 MODIFIED, 0 diagnostics).",
+    "timestamp": "2026-09-11T08:15:38.293Z"
+  }
+}

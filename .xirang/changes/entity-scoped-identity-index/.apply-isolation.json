@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "entity-scoped-identity-index",
+  "originalBranch": "main",
+  "baseCommit": "4877e2d4089812e243a63d798c29d15a239a9d32"
+}

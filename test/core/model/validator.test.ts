@@ -72,6 +72,12 @@ describe('validateSemanticModel', () => {
       .toContain('DUPLICATE_IDENTITY');
   });
 
+  it('accepts an element sharing its identity with an element kind', () => {
+    const clash = model({ elementKinds: [...model().elementKinds, { identity: 'cap.a', contract: 'optional', body: '' }] });
+    expect(codes(clash)).not.toContain('DUPLICATE_IDENTITY');
+    expect(codes(clash)).not.toContain('DUPLICATE_KIND_IDENTITY');
+  });
+
   it('requires exactly one Project Root', () => {
     expect(codes(model({ elements: [element('domain.a', 'domain', null)] })))
       .toEqual(expect.arrayContaining(['MISSING_PARENT', 'MISSING_PROJECT_ROOT']));
@@ -153,6 +159,7 @@ describe('validateSemanticModel', () => {
       path: '',
       message: 'Containment cycle detected: a → b → a',
       identity: 'a',
+      entity: 'element-declaration',
     });
   });
 

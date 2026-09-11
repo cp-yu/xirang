@@ -26,11 +26,27 @@ describe('createModelIndex', () => {
       [{ relationship: { source: 'a', kind: 'invokes', target: 'b' }, module: container }],
     );
 
-    expect(index.moduleOf('a')).toEqual(module);
-    expect(index.moduleOf('missing')).toBeUndefined();
+    expect(index.moduleOf('element-declaration', 'a')).toEqual(module);
+    expect(index.moduleOf('element-declaration', 'missing')).toBeUndefined();
     expect(index.moduleOfRelationship({ source: 'a', kind: 'invokes', target: 'b' })).toEqual(container);
     expect(index.moduleOfRelationship({ source: 'a', kind: 'uses', target: 'b' })).toBeUndefined();
     expect(index.organizationWarnings()).toEqual([]);
+  });
+
+  it('scopes module lookup by entity type', () => {
+    const elementModule = { partition: 'elements' as const, path: 'elements/a.md' };
+    const kindModule = { partition: 'metamodel' as const, path: 'metamodel/a.md' };
+    const index = createModelIndex(
+      [
+        { identity: 'a', declared: 'element-declaration', module: elementModule },
+        { identity: 'a', declared: 'element-kind', module: kindModule },
+      ],
+      [],
+    );
+
+    expect(index.moduleOf('element-declaration', 'a')).toEqual(elementModule);
+    expect(index.moduleOf('element-kind', 'a')).toEqual(kindModule);
+    expect(index.moduleOf('authored-view', 'a')).toBeUndefined();
   });
 
   it('reports entries whose partition does not match their entity type', () => {
@@ -49,7 +65,7 @@ describe('parsed model index', () => {
     for (const name of ['cap.reader.md', 'zzz.md', 'nested/deep/unit.markdown']) {
       const root = await createModelRoot({ [`elements/${name}`]: UNIT, 'relationships/x.yaml': CONTAINER });
       const parsed = await parseSemanticModel(root);
-      expect(parsed.index.moduleOf('cap.reader')).toEqual({ partition: 'elements', path: `elements/${name}` });
+      expect(parsed.index.moduleOf('element-declaration', 'cap.reader')).toEqual({ partition: 'elements', path: `elements/${name}` });
       expect(parsed.index.moduleOfRelationship({ source: 'cap.reader', kind: 'invokes', target: 'cap.writer' }))
         .toEqual({ partition: 'relationships', path: 'relationships/x.yaml' });
     }

@@ -14,8 +14,8 @@ export interface OrganizationWarning {
 }
 
 export interface ModelIndex {
-  /** entity identity → owning unit */
-  moduleOf(identity: string): SourceModule | undefined;
+  /** (entity type, identity) → owning unit; identity is scoped per entity type */
+  moduleOf(declared: EntityType, identity: string): SourceModule | undefined;
   /** Relationships are located by their triple */
   moduleOfRelationship(relationship: Relationship): SourceModule | undefined;
   /** Organization convention mismatch: entry entity type does not match its partition */
@@ -37,7 +37,7 @@ export function createModelIndex(
   entities: IndexedEntity[],
   relationships: IndexedRelationship[],
 ): ModelIndex {
-  const modules = new Map(entities.map(entry => [entry.identity, entry.module]));
+  const modules = new Map(entities.map(entry => [`${entry.declared}\u0000${entry.identity}`, entry.module]));
   const relationshipModules = new Map(
     relationships.map(entry => [relationshipIdentity(entry.relationship), entry.module]),
   );
@@ -51,7 +51,7 @@ export function createModelIndex(
     }));
 
   return {
-    moduleOf: identity => modules.get(identity),
+    moduleOf: (declared, identity) => modules.get(`${declared}\u0000${identity}`),
     moduleOfRelationship: relationship => relationshipModules.get(relationshipIdentity(relationship)),
     organizationWarnings: () => warnings,
   };
