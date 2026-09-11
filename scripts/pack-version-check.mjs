@@ -48,12 +48,13 @@ function npmPack() {
 function main() {
   const pkg = JSON.parse(readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'));
   const expected = pkg.version;
+  const pkgName = String(pkg.name);
 
   let work;
   let tgzPath;
 
   try {
-    log(`Packing @fission-ai/xirang@${expected}...`);
+    log(`Packing ${pkgName}@${expected}...`);
     const filename = npmPack();
     tgzPath = path.resolve(filename);
     log(`Created: ${tgzPath}`);
@@ -79,8 +80,13 @@ function main() {
     // Install the tarball
     run('npm', ['install', tgzPath, '--silent', '--no-audit', '--no-fund'], { cwd: work, env });
 
-    // Run the installed CLI via Node to avoid bin resolution/platform issues
-    const binRel = path.join('node_modules', '@fission-ai', 'xirang', 'bin', 'xirang.js');
+    // Run the installed CLI via Node to avoid bin resolution/platform issues.
+    // The install location derives from the package name so a rename cannot
+    // leave a stale hard-coded scope behind (scoped: @scope/name → node_modules/@scope/name).
+    const pkgDir = pkgName.startsWith('@')
+      ? path.join('node_modules', ...pkgName.split('/'))
+      : path.join('node_modules', pkgName);
+    const binRel = path.join(pkgDir, 'bin', 'xirang.js');
     const actual = run(process.execPath, [binRel, '--version'], { cwd: work }).trim();
 
     if (actual !== expected) {
