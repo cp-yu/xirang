@@ -53,6 +53,11 @@ describe('xirang quality command', () => {
     await execFileAsync('git', ['init'], { cwd: tempDir });
     await execFileAsync('git', ['config', 'user.name', 'Xirang Test'], { cwd: tempDir });
     await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
+    // The documented rollback protocol assumes a byte-identical restore, but CI
+    // runners set global core.autocrlf=true, which rewrites LF to CRLF on
+    // `git reset --hard` and would break evidence fingerprints. Pin the fixture
+    // repo so fingerprints stay comparable on every OS.
+    await execFileAsync('git', ['config', 'core.autocrlf', 'false'], { cwd: tempDir });
     await execFileAsync('git', ['add', '.'], { cwd: tempDir });
     await execFileAsync('git', ['commit', '-m', 'init'], { cwd: tempDir });
   });
