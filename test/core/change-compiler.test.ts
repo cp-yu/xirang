@@ -90,6 +90,25 @@ describe('compileChange', () => {
     expect(result.diagnostics.every(item => item.path !== 'architecture-delta.c4')).toBe(true);
   });
 
+  it('keeps entity-precise already-applied suppression across same-identity entries', async () => {
+    await fs.rm(path.join(root, '.xirang', 'model'), { recursive: true, force: true });
+    await writeProjectModel(root, minimalModel({
+      elementKinds: [{ identity: 'x' }],
+      elements: [{ identity: 'x', kind: 'x', parent: 'root', title: 'X', definition: 'Element X base.' }],
+    }));
+    await writeChangeDelta(root, 'sup', {
+      'elements/x.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: x\nkind: x\nparent: root\ntitle: X\ndefinition: Element X changed.\n---\n',
+      'metamodel/x.md': '---\noperation: MODIFIED\nentity: element-kind\nidentity: x\ncontract: optional\n---\n',
+    });
+
+    const result = await compileChange(root, 'sup', { allowAlreadyApplied: true });
+
+    expect(result.valid).toBe(false);
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'ADDED_IDENTITY_EXISTS', identity: 'x' }),
+    ]));
+  });
+
   it('locates element diagnostics at the element unit when a kind shares the identity', async () => {
     await writeProjectModel(root, minimalModel({
       elementKinds: [{ identity: 'implementation' }],

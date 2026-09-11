@@ -124,6 +124,7 @@ function suppressApplied(base: SemanticModel, delta: SemanticDelta, diagnostics:
   if (applied.size === 0) return diagnostics;
   return diagnostics.filter(item => {
     if (!/^(ADDED_IDENTITY_EXISTS|MODIFIED_IDENTITY_MISSING|REMOVED_IDENTITY_MISSING)$/.test(item.code)) return true;
+    if (item.entity !== undefined) return !applied.has(`${item.entity}\u0000${item.identity ?? ''}`);
     return ![...applied].some(key => key.endsWith(`\u0000${item.identity ?? ''}`));
   });
 }
