@@ -13,6 +13,7 @@ import {
 import {
   relationshipIdentity,
   type AuthoredView,
+  type DiagnosticEntity,
   type ElementDeclaration,
   type ElementKind,
   type EntityType,
@@ -55,8 +56,15 @@ export interface DeltaApplication {
 
 const OPERATIONS: readonly Operation[] = ['ADDED', 'MODIFIED', 'REMOVED'];
 
-function error(code: string, file: string, message: string, identity?: string): ModelDiagnostic {
-  return { level: 'ERROR', code, path: file, message, ...(identity ? { identity } : {}) };
+function error(code: string, file: string, message: string, identity?: string, entity?: DiagnosticEntity): ModelDiagnostic {
+  return {
+    level: 'ERROR',
+    code,
+    path: file,
+    message,
+    ...(identity ? { identity } : {}),
+    ...(entity ? { entity } : {}),
+  };
 }
 
 function readOperation(value: unknown): Operation | undefined {
@@ -178,7 +186,7 @@ function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]):
     const previous = seen.get(key);
     if (previous !== undefined) {
       diagnostics.push(error('CONFLICTING_OPERATIONS', '',
-        `Conflicting ${previous}/${entry.operation} operations on ${entry.entity} ${entry.identity}`, entry.identity));
+        `Conflicting ${previous}/${entry.operation} operations on ${entry.entity} ${entry.identity}`, entry.identity, entry.entity));
       continue;
     }
     seen.set(key, entry.operation);
@@ -237,19 +245,19 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
     const name = rest.join('#');
     const element = state.elements.get(host);
     if (!element) {
-      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Requirement host element does not exist: ${host}`, entry.identity));
+      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Requirement host element does not exist: ${host}`, entry.identity, 'requirement'));
       return;
     }
     const owned = ensureOwnedElement(state, host)!;
     const index = owned.requirements.findIndex(item => item.name === name);
     if (entry.operation === 'ADDED') {
       if (index >= 0) {
-        diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED requirement already exists: ${entry.identity}`, entry.identity));
+        diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED requirement already exists: ${entry.identity}`, entry.identity, 'requirement'));
         return;
       }
       owned.requirements.push(entry.target as Requirement);
     } else if (index < 0) {
-      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} requirement does not exist: ${entry.identity}`, entry.identity));
+      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} requirement does not exist: ${entry.identity}`, entry.identity, 'requirement'));
       return;
     } else if (entry.operation === 'REMOVED') {
       owned.requirements.splice(index, 1);
@@ -268,11 +276,11 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
   const exists = collection.has(entry.identity);
 
   if (entry.operation === 'ADDED' && exists) {
-    diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED ${entry.entity} already exists: ${entry.identity}`, entry.identity));
+    diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED ${entry.entity} already exists: ${entry.identity}`, entry.identity, entry.entity));
     return;
   }
   if (entry.operation !== 'ADDED' && !exists) {
-    diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} ${entry.entity} does not exist: ${entry.identity}`, entry.identity));
+    diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} ${entry.entity} does not exist: ${entry.identity}`, entry.identity, entry.entity));
     return;
   }
 

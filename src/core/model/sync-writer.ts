@@ -7,7 +7,7 @@ import {
   serializeRelationshipKindUnit,
   serializeViewUnit,
 } from './serializer.js';
-import type { Relationship, SemanticModel } from './types.js';
+import type { EntityType, Relationship, SemanticModel } from './types.js';
 
 function containerKind(relativePath: string): string {
   return relativePath.split('/').pop()!.replace(/\.[^.]*$/, '');
@@ -24,37 +24,48 @@ export async function writeMinimal(
 ): Promise<Map<string, Buffer>> {
   const current = await readModelTree(root);
   const files = new Map<string, Buffer>();
+  // Two different units must never claim one target path; overwrite would silently drop one of them.
+  const claimed = new Map<string, string>();
+  const claim = (path: string, owner: string): void => {
+    const previousOwner = claimed.get(path);
+    if (previousOwner !== undefined && previousOwner !== owner) {
+      throw new Error(`Sync target path collision: ${previousOwner} and ${owner} both resolve to ${path}`);
+    }
+    claimed.set(path, owner);
+  };
 
-  const emit = (identity: string, defaultPath: string, next: string, before: string | undefined): void => {
-    const module = previous.index.moduleOf(identity);
+  const emit = (declared: EntityType, identity: string, defaultPath: string, next: string, before: string | undefined): void => {
+    const module = previous.index.moduleOf(declared, identity);
     const original = module ? current.get(module.path) : undefined;
-    if (module && original && before === next) files.set(module.path, original);
-    else files.set(module?.path ?? defaultPath, Buffer.from(next, 'utf8'));
+    const target = module?.path ?? defaultPath;
+    claim(target, `${declared} ${identity}`);
+    if (module && original && before === next) files.set(target, original);
+    else files.set(target, Buffer.from(next, 'utf8'));
   };
 
   const previousElements = new Map(previous.model.elements.map(item => [item.declaration.identity, item]));
   for (const element of expected.elements) {
     const identity = element.declaration.identity;
     const before = previousElements.get(identity);
-    emit(identity, `elements/${identity}.md`, serializeElementUnit(element), before && serializeElementUnit(before));
+    emit('element-declaration', identity, `elements/${identity}.md`, serializeElementUnit(element), before && serializeElementUnit(before));
   }
 
   const previousElementKinds = new Map(previous.model.elementKinds.map(item => [item.identity, item]));
   for (const kind of expected.elementKinds) {
     const before = previousElementKinds.get(kind.identity);
-    emit(kind.identity, `metamodel/${kind.identity}.md`, serializeElementKindUnit(kind), before && serializeElementKindUnit(before));
+    emit('element-kind', kind.identity, `metamodel/${kind.identity}.md`, serializeElementKindUnit(kind), before && serializeElementKindUnit(before));
   }
 
   const previousRelationshipKinds = new Map(previous.model.relationshipKinds.map(item => [item.identity, item]));
   for (const kind of expected.relationshipKinds) {
     const before = previousRelationshipKinds.get(kind.identity);
-    emit(kind.identity, `metamodel/${kind.identity}.md`, serializeRelationshipKindUnit(kind), before && serializeRelationshipKindUnit(before));
+    emit('relationship-kind', kind.identity, `metamodel/${kind.identity}.md`, serializeRelationshipKindUnit(kind), before && serializeRelationshipKindUnit(before));
   }
 
   const previousViews = new Map(previous.model.views.map(item => [item.identity, item]));
   for (const view of expected.views) {
     const before = previousViews.get(view.identity);
-    emit(view.identity, `views/${view.identity}.md`, serializeViewUnit(view), before && serializeViewUnit(before));
+    emit('authored-view', view.identity, `views/${view.identity}.md`, serializeViewUnit(view), before && serializeViewUnit(before));
   }
 
   const containerOf = (relationship: Relationship): string =>
@@ -72,6 +83,7 @@ export async function writeMinimal(
     const before = previous.model.relationships.filter(item => containerOf(item) === file);
     const next = serializeRelationshipContainer(kind, items);
     const original = current.get(file);
+    claim(file, 'relationship container');
     if (original && serializeRelationshipContainer(kind, before) === next) files.set(file, original);
     else files.set(file, Buffer.from(next, 'utf8'));
   }

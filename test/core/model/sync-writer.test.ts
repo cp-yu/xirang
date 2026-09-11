@@ -153,6 +153,88 @@ describe('writeMinimal', () => {
     expect(reparsed.model.elements.find(item => item.declaration.identity === 'cap.a')!.requirements)
       .toEqual([{ name: 'New rule', body: 'SHALL hold.', scenarios: [] }]);
   });
+
+  it('materializes same-identity element and element-kind units side by side', async () => {
+    const root = await createModelRoot({
+      'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
+      'metamodel/implementation.md': '---\nentity: element-kind\nidentity: implementation\ncontract: optional\n---\n',
+      'elements/project.root.md': '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root project definition.\n---\n',
+      'elements/implementation.md': '---\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: project.root\ntitle: Implementation\ndefinition: Implementation axis definition.\n---\n',
+    });
+    const previous = await parseSemanticModel(root);
+    const applied = applySemanticDelta(previous.model, {
+      entries: [{
+        operation: 'MODIFIED',
+        entity: 'element-declaration',
+        identity: 'project.root',
+        target: { identity: 'project.root', kind: 'project', parent: null, title: 'Root renamed', definition: 'Root project definition.' },
+      }],
+    });
+    const before = await readModelTree(root);
+    const after = await writeMinimal(root, previous, applied.expected);
+
+    expect(after.has('elements/implementation.md')).toBe(true);
+    expect(after.has('metamodel/implementation.md')).toBe(true);
+    expect(changedPaths(before, after)).toEqual(['elements/project.root.md']);
+    const reparsed = parseSemanticModelFiles([...after].map(([key, value]) => [key, value.toString('utf8')] as const));
+    expect(reparsed.model.elements.map(item => item.declaration.identity)).toContain('implementation');
+    expect(reparsed.model.elementKinds.map(item => item.identity)).toContain('implementation');
+  });
+
+  it('materializes same-identity element and authored-view units side by side', async () => {
+    const root = await createModelRoot({
+      'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
+      'elements/project.root.md': '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root project definition.\n---\n',
+      'views/overview.md': '---\nentity: authored-view\nidentity: project.root\ninclude: "*"\n---\n',
+    });
+    const previous = await parseSemanticModel(root);
+    const applied = applySemanticDelta(previous.model, {
+      entries: [{
+        operation: 'MODIFIED',
+        entity: 'element-declaration',
+        identity: 'project.root',
+        target: { identity: 'project.root', kind: 'project', parent: null, title: 'Root renamed', definition: 'Root project definition.' },
+      }],
+    });
+    const before = await readModelTree(root);
+    const after = await writeMinimal(root, previous, applied.expected);
+
+    expect(after.has('elements/project.root.md')).toBe(true);
+    expect(after.get('views/overview.md')!.equals(before.get('views/overview.md')!)).toBe(true);
+    expect(changedPaths(before, after)).toEqual(['elements/project.root.md']);
+  });
+
+  it('fails when two units claim the same target path', async () => {
+    const root = await createModelRoot({
+      'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
+      'elements/project.root.md': '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root project definition.\n---\n',
+      // element-kind `x` 寄存在 element `x` 的默认目标路径
+      'elements/x.md': '---\nentity: element-kind\nidentity: x\ncontract: optional\n---\n',
+    });
+    const previous = await parseSemanticModel(root);
+    const applied = applySemanticDelta(previous.model, {
+      entries: [{
+        operation: 'ADDED',
+        entity: 'element-declaration',
+        identity: 'x',
+        target: { identity: 'x', kind: 'project', parent: 'project.root', title: 'X', definition: 'Element X definition.' },
+      }],
+    });
+    const before = await readModelTree(root);
+    const snapshot = (tree: Map<string, Buffer>) =>
+      [...tree].map(([file, bytes]) => [file, bytes.toString('utf8')]).sort((left, right) => left[0].localeCompare(right[0]));
+
+    const failure = await writeMinimal(root, previous, applied.expected).then(
+      () => null,
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toContain('elements/x.md');
+    expect((failure as Error).message).toContain('element-declaration x');
+    expect((failure as Error).message).toContain('element-kind x');
+    expect(snapshot(await readModelTree(root))).toEqual(snapshot(before));
+  });
 });
 
 describe('difference output', () => {

@@ -194,7 +194,20 @@ describe('parseSemanticModel', () => {
     const root = await createModelRoot({ 'elements/completely-unrelated-name.md': CAPABILITY });
     const parsed = await parseSemanticModel(root);
     expect(parsed.model.elements[0].declaration.identity).toBe('cap.reader');
-    expect(parsed.index.moduleOf('cap.reader')?.path).toBe('elements/completely-unrelated-name.md');
+    expect(parsed.index.moduleOf('element-declaration', 'cap.reader')?.path).toBe('elements/completely-unrelated-name.md');
+  });
+
+  it('accepts an element sharing its identity with an element kind', async () => {
+    const root = await createModelRoot({
+      'metamodel/project.md': '---\nentity: element-kind\nidentity: project\ncontract: optional\nroot: true\n---\n',
+      'metamodel/implementation.md': '---\nentity: element-kind\nidentity: implementation\ncontract: optional\n---\n',
+      'elements/project.root.md': '---\nentity: element-declaration\nidentity: project.root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root project definition.\n---\n',
+      'elements/implementation.md': '---\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: project.root\ntitle: Implementation\ndefinition: Implementation axis definition.\n---\n',
+    });
+    const parsed = await parseSemanticModel(root);
+    expect(parsed.diagnostics).toEqual([]);
+    expect(parsed.model.elements.map(item => item.declaration.identity)).toEqual(['implementation', 'project.root']);
+    expect(parsed.model.elementKinds.map(item => item.identity)).toEqual(['implementation', 'project']);
   });
 
   it('rejects a body on an authored view instead of dropping it', async () => {

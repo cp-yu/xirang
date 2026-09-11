@@ -8,6 +8,7 @@ import { getActiveChangeIds, getContractElementIds } from '../utils/item-discove
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
+import type { ParsedModel } from '../core/model/parser.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 import { validateTaskStructure } from '../core/parsers/task-structure.js';
 
@@ -213,8 +214,9 @@ export class ValidateCommand {
     validator: Validator,
     id: string,
     changeDir: string,
+    base?: ParsedModel,
   ): Promise<{ report: ValidationReport; compiled: CompiledChange }> {
-    const compiled = await compileChange(process.cwd(), id);
+    const compiled = await compileChange(process.cwd(), id, base === undefined ? {} : { base });
     const notationReport = await validator.validateChangeDeltaSpecs(changeDir);
     const compilerIssues = compiled.diagnostics.map(item => ({
       level: item.level,
@@ -284,13 +286,15 @@ export class ValidateCommand {
     const DEFAULT_CONCURRENCY = 6;
     const concurrency = normalizeConcurrency(opts.concurrency) ?? normalizeConcurrency(process.env.XIRANG_CONCURRENCY) ?? DEFAULT_CONCURRENCY;
     const validator = new Validator(opts.strict);
+    // One formal-model parse per bulk run; applySemanticDelta clones before mutating, so the snapshot stays read-only.
+    const sharedBase = changeIds.length + contractIds.length > 0 ? readFormalSemanticModel(process.cwd()) : undefined;
     const queue: Array<() => Promise<BulkItemResult>> = [];
 
     for (const id of changeIds) {
       queue.push(async () => {
         const start = Date.now();
         const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', id);
-        const { report } = await this.validateChangeWithPreview(validator, id, changeDir);
+        const { report } = await this.validateChangeWithPreview(validator, id, changeDir, await sharedBase);
         const durationMs = Date.now() - start;
         return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
       });
@@ -298,7 +302,7 @@ export class ValidateCommand {
     for (const id of contractIds) {
       queue.push(async () => {
         const start = Date.now();
-        const report = await validateElementContract(validator, id);
+        const report = await validateElementContract(validator, id, await sharedBase);
         const durationMs = Date.now() - start;
         return { id, type: 'contract' as const, valid: report.valid, issues: report.issues, durationMs };
       });
@@ -388,13 +392,13 @@ export class ValidateCommand {
 }
 
 /** Contracts are addressed by Element identity; their storage unit comes from the model index. */
-async function validateElementContract(validator: Validator, identity: string): Promise<ValidationReport> {
-  const parsed = await readFormalSemanticModel(process.cwd());
+async function validateElementContract(validator: Validator, identity: string, base?: ParsedModel): Promise<ValidationReport> {
+  const parsed = base ?? await readFormalSemanticModel(process.cwd());
   const element = parsed.model.elements.find(item => item.declaration.identity === identity);
   if (!element) {
     return { valid: false, issues: [{ level: 'ERROR', path: 'file', message: `Element not found: ${identity}` }], summary: { errors: 1, warnings: 0, info: 0 } };
   }
-  return validator.validateElementContract(element, parsed.index.moduleOf(identity)?.path ?? `elements/${identity}.md`);
+  return validator.validateElementContract(element, parsed.index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`);
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {

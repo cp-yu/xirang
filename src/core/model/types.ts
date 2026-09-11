@@ -135,7 +135,12 @@ export interface ModelDiagnostic {
   path: string;
   message: string;
   identity?: string;
+  /** Entity scope of `identity`; set where the generating context knows it, so storage lookups are entity-qualified. */
+  entity?: DiagnosticEntity;
 }
+
+/** Diagnostic identities resolve within their entity type; requirement entries resolve to their host Element. */
+export type DiagnosticEntity = EntityType | 'requirement' | 'relationship';
 
 export function emptySemanticModel(): SemanticModel {
   return { elementKinds: [], relationshipKinds: [], elements: [], relationships: [], views: [] };

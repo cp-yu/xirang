@@ -62,13 +62,22 @@ function unitPath(entry: DeltaEntry): string {
   return `${partition}/${hostIdentity(entry)}.md`;
 }
 
-/** Diagnostics carry identities; their storage location comes from the index, never a fixed prefix. */
+/** Diagnostics carry entity-qualified identities; their storage location comes from the index, never a fixed prefix. */
 function locate(index: ModelIndex, diagnostic: ModelDiagnostic, entries: DeltaEntry[]): string {
   if (diagnostic.path !== '') return diagnostic.path;
   if (!diagnostic.identity) return '';
   const identity = diagnostic.identity.includes('#') ? diagnostic.identity.split('#')[0] : diagnostic.identity;
-  const module = index.moduleOf(identity);
-  if (module) return module.path;
+  const entity = diagnostic.entity;
+  if (entity === 'relationship') {
+    const entry = entries.find(item => item.entity === 'relationship' && item.identity === diagnostic.identity);
+    return entry ? unitPath(entry) : '';
+  }
+  if (entity === 'requirement') {
+    return index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`;
+  }
+  if (entity) {
+    return index.moduleOf(entity, identity)?.path ?? `${DEFAULT_PARTITION[entity]}/${identity}.md`;
+  }
   const entry = entries.find(item => hostIdentity(item) === identity);
   return entry ? unitPath(entry) : '';
 }
@@ -115,6 +124,7 @@ function suppressApplied(base: SemanticModel, delta: SemanticDelta, diagnostics:
   if (applied.size === 0) return diagnostics;
   return diagnostics.filter(item => {
     if (!/^(ADDED_IDENTITY_EXISTS|MODIFIED_IDENTITY_MISSING|REMOVED_IDENTITY_MISSING)$/.test(item.code)) return true;
+    if (item.entity !== undefined) return !applied.has(`${item.entity}\u0000${item.identity ?? ''}`);
     return ![...applied].some(key => key.endsWith(`\u0000${item.identity ?? ''}`));
   });
 }
