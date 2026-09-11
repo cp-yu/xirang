@@ -234,7 +234,10 @@ describe('ViewCommand', () => {
         path.join(changesDir, 'archive', '2026-01-01-archive-me'),
       );
 
-      for (let attempt = 0; attempt < 50; attempt += 1) {
+      // The rebuild pipeline includes a LikeC4 recompile, which can exceed one second
+      // on slow CI filesystems (Windows); 500 x 20ms keeps the wait budget generous
+      // while fast hosts still exit on the first successful poll.
+      for (let attempt = 0; attempt < 500; attempt += 1) {
         if (!(await readManifest()).changes['archive-me']) return;
         await new Promise(resolve => setTimeout(resolve, 20));
       }
@@ -773,7 +776,10 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
 
       await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build V2\n', 'utf8');
 
-      for (let attempt = 0; attempt < 50; attempt += 1) {
+      // The rebuild pipeline includes a LikeC4 recompile, which can exceed one second
+      // on slow CI filesystems (Windows); 500 x 20ms keeps the wait budget generous
+      // while fast hosts still exit on the first successful poll.
+      for (let attempt = 0; attempt < 500; attempt += 1) {
         const after = await readManifest();
         if (after.candidate?.sourceFingerprint !== before.candidate?.sourceFingerprint) {
           // Candidate-only edits keep the formal-derived sources and artifacts untouched.
@@ -803,7 +809,10 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
       modifiedModel.elements![0]!.definition = 'Refreshed definition';
       await writeProjectModel(tempDir, modifiedModel);
 
-      for (let attempt = 0; attempt < 50; attempt += 1) {
+      // The rebuild pipeline includes a LikeC4 recompile, which can exceed one second
+      // on slow CI filesystems (Windows); 500 x 20ms keeps the wait budget generous
+      // while fast hosts still exit on the first successful poll.
+      for (let attempt = 0; attempt < 500; attempt += 1) {
         const after = await readManifest();
         if (after.model.sourceFingerprint !== before.model.sourceFingerprint) {
           const modelC4 = await fs.readFile(path.join(likec4CacheDir(tempDir), 'model.c4'), 'utf8');
