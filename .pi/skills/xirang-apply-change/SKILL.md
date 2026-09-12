@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.1.0"
+  generatedBy: "0.1.1"
 ---
 
 Implement tasks from an Xirang change.
