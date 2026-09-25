@@ -152,7 +152,7 @@ describe('xirang-build workflow', () => {
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --json');
-    expect(instructions).toContain('resolved from the normalized');
+    expect(instructions).toContain('Read the guidance file at that resolved path in full');
     expect(instructions).toContain('do not substitute another method');
     expect(instructions).toContain('stop hierarchy formation and ask the user once');
     expect(instructions).toContain('Modeling Decision Gate');

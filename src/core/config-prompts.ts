@@ -34,14 +34,9 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   lines.push('');
 
   // Hierarchy decomposition selection
-  lines.push('# Hierarchy decomposition selection (choose exactly one branch)');
+  lines.push('# Hierarchy decomposition guidance: a project-root relative path, or a bare name resolved under .xirang/references/');
   if (materialized.decomposition) {
-    lines.push('decomposition:');
-    if ('method' in materialized.decomposition) {
-      lines.push(`  method: ${materialized.decomposition.method}`);
-    } else {
-      lines.push(`  skill: ${materialized.decomposition.skill}`);
-    }
+    lines.push(`decomposition: ${materialized.decomposition}`);
   }
   lines.push('');
 

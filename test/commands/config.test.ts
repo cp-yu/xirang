@@ -151,8 +151,7 @@ describe('config project command', () => {
       `schema: semantic-model
 proseLanguage: 中文
 context: Project context
-decomposition:
-  skill: xirang-project-decomposition
+decomposition: xirang-project-decomposition
 optimization:
   enabled: false
   directionLimit: 2
@@ -183,9 +182,7 @@ rules:
       schema: 'semantic-model',
       proseLanguage: '中文',
       context: 'Project context',
-      decomposition: {
-        skill: 'xirang-project-decomposition',
-      },
+      decomposition: '.xirang/references/xirang-project-decomposition.md',
       architecture: {
         outline: {
           elementDefinitionDepth: 2,

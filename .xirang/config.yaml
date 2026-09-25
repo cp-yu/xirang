@@ -1,7 +1,6 @@
 schema: semantic-model
 
-decomposition:
-  skill: xirang-project-decomposition
+decomposition: .pi/skills/xirang-project-decomposition/SKILL.md
 
 context: |
   Tech stack: TypeScript, Node.js (≥22.22.3), ESM modules

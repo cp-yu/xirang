@@ -453,7 +453,7 @@ describe('默认语义精化路由', () => {
   it('结构形成入口指向统一默认指导', () => {
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
       expect(template.instructions).toContain('xirang config project --json');
-      expect(template.instructions).toContain('resolved from the normalized');
+      expect(template.instructions).toContain('Read the guidance file at that resolved path in full');
       expect(template.instructions).not.toContain('opaque method name');
     }
   });

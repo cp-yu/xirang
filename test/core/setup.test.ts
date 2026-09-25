@@ -119,8 +119,7 @@ describe('SetupCommand', () => {
       const content = await fs.readFile(configPath, 'utf-8');
       const parsed = parseYaml(content);
       expect(content).toContain('schema: semantic-model');
-      expect(content).toContain('decomposition:');
-      expect(content).toContain('  method: semantic-refinement');
+      expect(content).toContain('decomposition: xirang-semantic-refinement.md');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
       expect(content).toContain('  directionLimit: 3');
@@ -141,8 +140,7 @@ describe('SetupCommand', () => {
       expect(parsed.git.merge).not.toHaveProperty('commitMessage');
       expect(parsed.git.merge.strategy).toBe('no-ff');
       expect(parsed.git.branch.deleteAfterArchive).toBe(false);
-      expect(parsed.decomposition).toEqual({ method: 'semantic-refinement' });
-      expect(parsed.decomposition).not.toHaveProperty('skill');
+      expect(parsed.decomposition).toBe('xirang-semantic-refinement.md');
       expect(parsed).not.toHaveProperty('propose');
       expect(parsed.apply).toEqual({
         defaultIsolation: 'ask',
@@ -370,13 +368,12 @@ describe('SetupCommand', () => {
       );
     });
 
-    it('should preserve an existing decomposition skill without adding a method', async () => {
+    it('should preserve an existing decomposition value', async () => {
       const xirangDir = path.join(testDir, '.xirang');
       await fs.mkdir(xirangDir, { recursive: true });
       const configPath = path.join(xirangDir, 'config.yaml');
       const existingContent = `schema: semantic-model
-decomposition:
-  skill: project-modeling
+decomposition: project-modeling.md
 `;
       await fs.writeFile(configPath, existingContent);
 
@@ -385,7 +382,7 @@ decomposition:
 
       const content = await fs.readFile(configPath, 'utf-8');
       expect(content).toBe(existingContent);
-      expect(parseYaml(content).decomposition).toEqual({ skill: 'project-modeling' });
+      expect(parseYaml(content).decomposition).toBe('project-modeling.md');
     });
 
     it('should handle non-existent target directory', async () => {

@@ -30,8 +30,8 @@ export const XIRANG_PHILOSOPHY = `
 export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
 **Structural Decomposition Guidance**
 
-- Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` selection from its JSON output. Do not inspect or reinterpret the raw config.
-- Before forming an Element hierarchy, read the guidance file at the path resolved from the normalized \`decomposition\` value in full. Do not inspect or reinterpret the raw config, and do not substitute another method. When that file is missing or unreadable, stop hierarchy formation and ask the user once.
+- Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
+- Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
 `.trim();

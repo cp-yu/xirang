@@ -1,5 +1,6 @@
 import {
   PROJECT_CONFIG_FUNCTIONAL_DEFAULTS,
+  resolveDecompositionPath,
   type ProjectConfig,
 } from './project-config.js';
 
@@ -7,9 +8,7 @@ export interface NormalizedProjectConfig {
   schema?: string;
   proseLanguage?: string;
   context?: string;
-  decomposition?:
-    | { method: string }
-    | { skill: string };
+  decomposition?: string;
   architecture: {
     outline: {
       elementDefinitionDepth: number;
@@ -139,7 +138,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
     context: normalizeString(config.context),
-    decomposition: config.decomposition ? { ...config.decomposition } : undefined,
+    decomposition: config.decomposition ? resolveDecompositionPath(config.decomposition) : undefined,
     architecture,
     optimization: config.optimization
       ? {
@@ -285,13 +284,10 @@ const projectionRules: ProjectionRule[] = [
         return null;
       }
 
-      const [key, value] = 'method' in config.decomposition
-        ? ['method', config.decomposition.method]
-        : ['skill', config.decomposition.skill];
       return {
         key: 'decomposition',
         scope: 'global',
-        lines: [`decomposition.${key}: ${value}`],
+        lines: [`decomposition: ${config.decomposition}`],
       };
     },
     buildRuntime() {

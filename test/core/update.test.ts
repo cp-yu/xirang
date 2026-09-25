@@ -114,7 +114,7 @@ describe('UpdateCommand', () => {
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.decomposition).toEqual({ method: 'semantic-refinement' });
+      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.directionLimit).toBe(3);
       expect(config.optimization.directionRetries).toBe(2);
@@ -148,7 +148,7 @@ rules:
       expect(config.docLanguage).toBe('zh-CN');
       expect(config.context).toBe('keep me');
       expect(config.rules.proposal).toEqual(['keep this rule']);
-      expect(config.decomposition).toEqual({ method: 'semantic-refinement' });
+      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.directionLimit).toBe(3);
       expect(config.optimization.directionRetries).toBe(2);
@@ -169,8 +169,7 @@ rules:
       await fs.writeFile(
         configPath,
         `schema: custom-schema
-decomposition:
-  skill: project-modeling
+decomposition: project-modeling.md
 optimization:
   enabled: false
   directionRetries: 1
@@ -188,8 +187,7 @@ git:
 
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
       expect(config.schema).toBe('custom-schema');
-      expect(config.decomposition).toEqual({ skill: 'project-modeling' });
-      expect(config.decomposition).not.toHaveProperty('method');
+      expect(config.decomposition).toBe('project-modeling.md');
       expect(config.optimization.enabled).toBe(false);
       expect(config.optimization.directionLimit).toBe(3);
       expect(config.optimization.directionRetries).toBe(1);

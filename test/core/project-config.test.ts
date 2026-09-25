@@ -61,9 +61,7 @@ describe('project-config', () => {
 
       expect(defaults).toEqual({
         schema: 'semantic-model',
-        decomposition: {
-          method: 'semantic-refinement',
-        },
+        decomposition: 'xirang-semantic-refinement.md',
         architecture: {
           outline: {
             elementDefinitionDepth: 2,
@@ -117,9 +115,7 @@ describe('project-config', () => {
       });
       expect(parsed).toEqual({
         schema: 'semantic-model',
-        decomposition: {
-          method: 'semantic-refinement',
-        },
+        decomposition: 'xirang-semantic-refinement.md',
         architecture: {
           outline: {
             elementDefinitionDepth: 2,
@@ -252,27 +248,25 @@ architecture:
       expect(fs.existsSync(path.join(configDir, 'config.yaml'))).toBe(false);
       const parsed = parseYaml(fs.readFileSync(ymlPath, 'utf-8'));
       expect(parsed.architecture.outline.elementDefinitionDepth).toBe(4);
-      expect(parsed.decomposition).toEqual({ method: 'semantic-refinement' });
+      expect(parsed.decomposition).toBe('xirang-semantic-refinement.md');
       expect(parsed.git.merge.strategy).toBe('no-ff');
     });
 
-    it('should preserve an existing decomposition skill during missing-only migration', () => {
+    it('should preserve an existing decomposition value during missing-only migration', () => {
       const configDir = path.join(tempDir, '.xirang');
       fs.mkdirSync(configDir, { recursive: true });
       const configPath = path.join(configDir, 'config.yaml');
       fs.writeFileSync(
         configPath,
         `schema: semantic-model
-decomposition:
-  skill: project-modeling
+decomposition: project-modeling.md
 `
       );
 
       migrateProjectConfigDefaults(tempDir);
       const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
 
-      expect(parsed.decomposition).toEqual({ skill: 'project-modeling' });
-      expect(parsed.decomposition).not.toHaveProperty('method');
+      expect(parsed.decomposition).toBe('project-modeling.md');
     });
 
     it('should leave invalid yaml unchanged and report skipped migration', () => {
@@ -333,19 +327,21 @@ decomposition:
   describe('readProjectConfig', () => {
     describe('decomposition', () => {
       it.each([
-        ['method', 'c4', { method: 'c4' }],
-        ['skill', 'xirang-project-decomposition', { skill: 'xirang-project-decomposition' }],
-      ] as const)('loads an opaque %s selection', (key, value, expected) => {
+        'c4',
+        'xirang-semantic-refinement.md',
+        'xirang-project-decomposition',
+        '.pi/skills/foo/SKILL.md',
+      ])('loads a bare-name or path selection: %s', (value) => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
           path.join(configDir, 'config.yaml'),
-          `schema: semantic-model\ndecomposition:\n  ${key}: ${value}\n`
+          `schema: semantic-model\ndecomposition: ${value}\n`
         );
 
         const config = readProjectConfig(tempDir);
 
-        expect(config?.decomposition).toEqual(expected);
+        expect(config?.decomposition).toBe(value);
         expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
 
@@ -354,16 +350,16 @@ decomposition:
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: semantic-model\n');
 
-        expect(readProjectConfig(tempDir)?.decomposition).toEqual({ method: 'semantic-refinement' });
+        expect(readProjectConfig(tempDir)?.decomposition).toBe('xirang-semantic-refinement.md');
       });
 
       it.each([
-        ['both branches', '  method: c4\n  skill: custom'],
-        ['no branch', '{}'],
-        ['empty method', '  method: "  "'],
-        ['unknown key', '  method: c4\n  extra: true'],
-        ['raw string', 'c4'],
-      ])('warns and omits an invalid tagged union: %s', (_label, value) => {
+        ['non-string map', '  method: c4'],
+        ['empty string', '""'],
+        ['absolute path', '/abs/c4.md'],
+        ['parent traversal', '../escape.md'],
+        ['invalid bare name', 'bad name!'],
+      ])('warns and omits an invalid value: %s', (_label, value) => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
@@ -451,7 +447,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           proseLanguage: 'zh-CN',
           context: 'Tech stack: TypeScript, React\nAPI style: RESTful\n',
           git: gitConfig(),
@@ -507,7 +503,7 @@ docLanguage: zh-CN
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -528,7 +524,7 @@ optimization:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           optimization: {
             enabled: false,
             directionLimit: 3,
@@ -556,7 +552,7 @@ apply:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           apply: {
             defaultIsolation: 'worktree',
           },
@@ -588,7 +584,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig({
             strategy: 'squash',
             deleteAfterArchive: true,
@@ -611,7 +607,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -721,7 +717,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -747,7 +743,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -771,7 +767,7 @@ rules: ["not", "an", "object"]
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -795,7 +791,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -821,7 +817,7 @@ rules:
         // Should still parse schema and context despite null rules
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -849,7 +845,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -880,7 +876,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule', 'Another valid rule'],
@@ -910,7 +906,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
           rules: {
             specs: ['Valid rule'],
@@ -987,7 +983,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'semantic-refinement' },
+          decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
         });
         expect(config?.context).toBeUndefined();
@@ -1367,7 +1363,7 @@ rules:
       const trimEmptyRule = vi.fn(() => '');
       const config = {
         schema: 'semantic-model',
-        decomposition: { skill: 'project-decomposition' },
+        decomposition: 'project-decomposition',
         rules: {
           ' proposal ': [
             { trim: trimRule },
@@ -1504,19 +1500,19 @@ rules:
       ]);
     });
 
-    it('projects opaque decomposition selections only to structural workflows', () => {
-      const methodProjection = projectConfigForPrompt(
+    it('projects the resolved decomposition path to structural workflows', () => {
+      const bareNameProjection = projectConfigForPrompt(
         {
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: 'c4',
           rules: {},
         },
         { surface: 'build' }
       );
-      const skillProjection = projectConfigForPrompt(
+      const pathProjection = projectConfigForPrompt(
         {
           schema: 'semantic-model',
-          decomposition: { skill: 'xirang-project-decomposition' },
+          decomposition: '.pi/skills/foo/SKILL.md',
           rules: {},
         },
         { surface: 'explore' }
@@ -1524,7 +1520,7 @@ rules:
       const applyProjection = projectConfigForPrompt(
         {
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: 'c4',
           rules: {},
         },
         { surface: 'apply' }
@@ -1532,20 +1528,24 @@ rules:
 
       expect(normalizeProjectConfig({
         schema: 'semantic-model',
-        decomposition: { skill: 'xirang-project-decomposition' },
-      }).decomposition).toEqual({ skill: 'xirang-project-decomposition' });
-      expect(methodProjection.fragments).toContainEqual({
+        decomposition: 'c4',
+      }).decomposition).toBe('.xirang/references/c4.md');
+      expect(normalizeProjectConfig({
+        schema: 'semantic-model',
+        decomposition: '.pi/skills/foo/SKILL.md',
+      }).decomposition).toBe('.pi/skills/foo/SKILL.md');
+      expect(bareNameProjection.fragments).toContainEqual({
         key: 'decomposition',
         scope: 'global',
-        lines: ['decomposition.method: c4'],
+        lines: ['decomposition: .xirang/references/c4.md'],
       });
-      expect(skillProjection.fragments).toContainEqual({
+      expect(pathProjection.fragments).toContainEqual({
         key: 'decomposition',
         scope: 'global',
-        lines: ['decomposition.skill: xirang-project-decomposition'],
+        lines: ['decomposition: .pi/skills/foo/SKILL.md'],
       });
       expect(applyProjection.fragments.some((fragment) => fragment.key === 'decomposition')).toBe(false);
-      expect(methodProjection.compiledLines.join('\n')).not.toMatch(/container|component|\.pi\/skills/);
+      expect(bareNameProjection.compiledLines.join('\n')).not.toMatch(/container|component|\.pi\/skills/);
     });
 
     it('omits invalid or missing fields from runtime projection and marks proseLanguage as fingerprint-affecting', () => {

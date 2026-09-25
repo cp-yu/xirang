@@ -13,9 +13,7 @@ import { z } from 'zod';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
-  decomposition: {
-    method: 'semantic-refinement' as const,
-  },
+  decomposition: 'xirang-semantic-refinement.md' as const,
   architecture: {
     outline: {
       elementDefinitionDepth: 2,
@@ -48,10 +46,30 @@ export type ProjectConfigDefaultsMigrationResult =
   | { status: 'unchanged'; path: string }
   | { status: 'skipped'; path: string; reason: 'invalid-yaml' | 'non-object' };
 
-const decompositionField = z.union([
-  z.object({ method: z.string().trim().min(1) }).strict(),
-  z.object({ skill: z.string().trim().min(1) }).strict(),
-]);
+const decompositionBareNameField = z.string().regex(/^[A-Za-z0-9._-]+$/);
+const decompositionField = z.string().min(1).superRefine((value, ctx) => {
+  if (value.includes('/')) {
+    const normalized = path.posix.normalize(value);
+    if (
+      path.posix.isAbsolute(value) ||
+      path.win32.isAbsolute(value) ||
+      value.includes('\\') ||
+      normalized === '..' ||
+      normalized.startsWith('../')
+    ) {
+      ctx.addIssue({ code: 'custom', message: 'decomposition path must be project-root relative' });
+    }
+    return;
+  }
+  if (!decompositionBareNameField.safeParse(value).success) {
+    ctx.addIssue({ code: 'custom', message: 'decomposition bare name must match [A-Za-z0-9._-]+' });
+  }
+});
+
+export function resolveDecompositionPath(value: string): string {
+  if (value.includes('/')) return value;
+  return `.xirang/references/${value.endsWith('.md') ? value : `${value}.md`}`;
+}
 const gitMergeStrategyField = z.enum(['no-ff', 'ff-only', 'squash']);
 const gitDeleteAfterArchiveField = z.boolean();
 const gitCommitMessagePathField = z
@@ -100,7 +118,7 @@ export const ProjectConfigSchema = z.object({
   // Optional: hierarchy decomposition selection
   decomposition: decompositionField
     .optional()
-    .describe('Opaque decomposition method or logical custom skill name'),
+    .describe('Decomposition guidance file: a project-root relative path, or a bare name resolved under .xirang/references/'),
 
   // Optional: project context (injected into all artifact instructions)
   // Max size: 50KB (enforced during parsing)
@@ -206,9 +224,7 @@ type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
 
 function cloneFunctionalDefaults() {
   return {
-    decomposition: {
-      ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition,
-    },
+    decomposition: PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition,
     architecture: {
       outline: {
         ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline,
@@ -425,16 +441,16 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       }
     }
 
-    // Parse decomposition as a strict tagged union. Invalid explicit values fail closed.
+    // Parse decomposition as a single string. Invalid explicit values fail closed.
     if (raw.decomposition === undefined) {
-      config.decomposition = { ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition };
+      config.decomposition = PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition;
     } else {
       const decompositionResult = decompositionField.safeParse(raw.decomposition);
       if (decompositionResult.success) {
         config.decomposition = decompositionResult.data;
       } else {
         console.warn(
-          `Invalid 'decomposition' field in config (must contain exactly one non-empty method or skill)`
+          `Invalid 'decomposition' field in config (must be a project-root relative path or a bare name matching [A-Za-z0-9._-]+)`
         );
       }
     }

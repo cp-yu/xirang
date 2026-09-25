@@ -17,7 +17,7 @@ describe('generated internal agent semantic context', () => {
     }
   });
 
-  it('loads normalized decomposition in checked-in structural workflow skills', () => {
+  it('loads the resolved decomposition path in checked-in structural workflow skills', () => {
     for (const file of [
       '.pi/skills/xirang-build/SKILL.md',
       '.pi/skills/xirang-explore/SKILL.md',
@@ -26,7 +26,7 @@ describe('generated internal agent semantic context', () => {
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
       const configRead = content.indexOf('xirang config project --json');
-      const resolvedGuidance = content.indexOf('resolved from the normalized');
+      const resolvedGuidance = content.indexOf('Read the guidance file at that resolved path in full');
 
       expect(configRead, file).toBeGreaterThanOrEqual(0);
       expect(resolvedGuidance, file).toBeGreaterThan(configRead);
