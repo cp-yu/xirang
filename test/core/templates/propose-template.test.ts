@@ -21,13 +21,13 @@ describe('propose template post-validation flow', () => {
   it('runs the consistency gate as semantic review before deterministic validation', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 
-    expect(instructions).toContain('先执行计划一致性复核');
-    expect(instructions).toContain('自行修正制品');
-    expect(instructions).toContain('仅当矛盾反映与用户意图或已确认决策不对齐');
-    expect(instructions).toContain('一次性呈现全部发现并等待用户裁决');
+    expect(instructions).toContain('First review plan consistency');
+    expect(instructions).toContain('Fix the artifacts yourself when they contradict each other');
+    expect(instructions).toContain('when a contradiction reflects misalignment with user intent or a confirmed decision');
+    expect(instructions).toContain('present all findings at once and wait for the user to rule');
 
-    const reviewIndex = instructions.indexOf('先执行计划一致性复核');
-    const validateIndex = instructions.indexOf('`xirang validate --change "<name>" --json` 承担联合验证');
+    const reviewIndex = instructions.indexOf('First review plan consistency');
+    const validateIndex = instructions.indexOf('which owns combined validation, effective-diff review, and task structure validation');
     expect(reviewIndex).toBeGreaterThan(-1);
     expect(validateIndex).toBeGreaterThan(reviewIndex);
   });
@@ -107,9 +107,9 @@ describe('propose template post-validation flow', () => {
   it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
       expect(body.match(/xirang validate --change "<name>" --json/g)).toHaveLength(1);
-      expect(body).toContain('确定性校验或 scaffolding checks 的报错阻塞 ready-for-apply');
+      expect(body).toContain('Errors from deterministic validation or the scaffolding checks block ready-for-apply');
       expect(body).toContain('WARNING does not block');
-      expect(body).toContain('最多修复一轮、复检一次');
+      expect(body).toContain('Fix at most one round and recheck once');
       expect(body).toContain('Do NOT run `xirang sync`');
       expect(body).not.toContain('--artifacts specs');
       expect(body).not.toContain('--artifacts opsx-delta');
