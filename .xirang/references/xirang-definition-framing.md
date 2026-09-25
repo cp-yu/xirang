@@ -13,7 +13,7 @@ Definition Framing is a shared method for Build and Explore, not a required stru
 
 Retain the key confirmations that downstream generation must not change, including conditions, numbers, exceptions, timing, and structural fragments. User-requested material takes precedence over the Agent's importance filter. Ordinary discussion, alternatives, full rationale, and implementation/test plans are not automatically captured; when the user requests them, retain their informative nature instead of promoting them into obligations.
 
-For structural choices, apply the configured decomposition guidance from the calling workflow: causal definition → identity and boundaries → MECE along one dimension → breadth-first (BFS) confirmation of siblings before descent. Stop and ask when guidance is unavailable. Do not invent hierarchy work for behavior-only decisions or redo already confirmed structure.
+For structural choices, apply the decomposition guidance resolved from the normalized `decomposition` value: read the guidance file at that resolved path in full before forming or reorganizing structure. Stop and ask when the guidance is missing or unreadable. Do not invent hierarchy work for behavior-only decisions or redo already confirmed structure.
 
 Use a nonempty, versioned payload; this is not a Semantic Delta or a complete model. For example:
 
