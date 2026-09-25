@@ -122,7 +122,7 @@ Promotion SHALL 以 Candidate 的四个分区整体替换 `.xirang/model/`；Can
 
 ### Requirement: 隔离临时构建依据
 
-`build.md` 等临时 scaffolding SHALL NOT 成为提升后 Semantic Model 的组成。
+`build.md` 等临时 scaffolding SHALL NOT 成为提升后 Semantic Model 的组成。 已确认设计来源快照同样 SHALL 只进入 Build history，不提升为正式模型分区。
 
 #### Scenario: 提升 Candidate
 
@@ -131,7 +131,7 @@ Promotion SHALL 以 Candidate 的四个分区整体替换 `.xirang/model/`；Can
 
 ### Requirement: 先初始化再记录构建依据
 
-Semantic Model Build SHALL 在确定 Candidate baseline 并执行 `candidate init` 后，才将授权范围、权威顺序和当前要求写入 `.xirang/candidate/build.md`。
+Semantic Model Build SHALL 在确定 Candidate baseline 并执行 `candidate init` 后，才将授权范围、权威顺序和当前要求写入 `.xirang/candidate/build.md`。 独立的 CLI-managed 已确认设计记录 MAY 在 Candidate 初始化前建立，但不得提前写入尚不存在的 Candidate build.md；它不能绕过后续范围、依据与精确版本确认。
 
 #### Scenario: 开始新的 Build
 
@@ -314,7 +314,7 @@ Semantic Model Build 从 legacy 文档或正式模型恢复仍适用的行为时
 
 ### Requirement: 按项目配置形成 Candidate hierarchy
 
-Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierarchy 写入前消费 normalized `decomposition`。当选择 `method` 时，Agent SHALL 将该 opaque 方法名作为结构拆分方法而不要求 CLI 展开其知识；当选择 `skill` 时，Agent SHALL 调用该逻辑 skill。拆分指导只决定 Element abstraction/refinement 使用的分解坐标系，SHALL NOT 覆盖用户授权、证据权威、Element Contract 或 Relationship 语义。
+Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierarchy 写入前消费 normalized `decomposition`。当选择 `method` 时，Agent SHALL 对默认 semantic-refinement 读取框架随附的完整指导，对其他显式方法使用已明确理解的方法知识；CLI 配置解析仍不解释 opaque 方法名；当选择 `skill` 时，Agent SHALL 调用该逻辑 skill。拆分指导只决定 Element abstraction/refinement 使用的分解坐标系，SHALL NOT 覆盖用户授权、证据权威、Element Contract 或 Relationship 语义。
 
 #### Scenario: 使用 Agent 已知方法
 
@@ -345,3 +345,41 @@ Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierar
 - **WHEN** Candidate 进入 clean-context semantic review
 - **THEN** review 检查 hierarchy 是否一致应用已选择的拆分指导
 - **AND** 检查同一 sibling set 未混合不相容的职责、生命周期、部署或实现维度
+
+#### Scenario: 默认方法有可用指导
+
+- **WHEN** 有效配置选择框架默认 semantic-refinement
+- **THEN** Build 在形成 hierarchy 前读取已投影的共享指导，以领域语义、单维度、MECE 与 BFS 形成任意深度结构，不猜测未交付的方法内容。
+
+### Requirement: 复用确认记录形成 Candidate
+
+Semantic Model Build MAY 使用统一 Definition Framing 持续澄清与保存已确认设计，每次保存单独授权，实例与 Change 形成记录隔离。存在记录时 SHALL 重载、调和冲突并核对记录到 Candidate 的覆盖，条件、数值、例外、时序必须进入适当 Contract；说明材料进入构建依据或 provenance。无记录时不强制建立记录；本流程 SHALL 保持 Candidate review / digest / promotion，不增加 Design Summary 门禁。
+
+#### Scenario: 记录驱动完整 Candidate
+
+- **WHEN** Build 已有精简记录但还没有完整目标模型
+- **THEN** 保持确认条目不被擅自改写，补足完整 Candidate 并逐项核对规范内容的语义去向；记录中没有结构全量草稿不构成阻塞。
+
+#### Scenario: 无记录沿用 Build 门禁
+
+- **WHEN** Build 没有确认记录
+- **THEN** 继续原有授权、Candidate 编写、独立审查、用户 digest 确认与提升流程，不生成占位记录或 Design Summary。
+
+#### Scenario: 规范细节遗漏阻止确认
+
+- **WHEN** Candidate 遗漏记录中确认的例外或时序
+- **THEN** 补足宿主 Contract 后重新验证与审查，不能以格式校验通过或 build.md 留有说明替代规范覆盖。
+
+### Requirement: 交接记录后确认精确 Candidate
+
+Build SHALL 在来源覆盖复核与适用校验通过后经 framing consume 向 active Candidate 交接精确记录来源，再验证带来源的最终 Candidate 并执行既有独立审查与用户 digest 确认。源或目标变化使受影响覆盖与确认失效；来源快照 SHALL 进入 history 而不进入正式模型。
+
+#### Scenario: 确认最终带来源版本
+
+- **WHEN** 记录已交接至 Candidate
+- **THEN** 以含来源快照的最终 digest 执行审查与用户确认，不复用交接前 digest。
+
+#### Scenario: 来源交接失败
+
+- **WHEN** 记录版本漂移、快照冲突或 Candidate 校验失败
+- **THEN** 保留源与目标，不继续宣称 Build 可提升。

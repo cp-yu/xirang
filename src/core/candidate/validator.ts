@@ -1,6 +1,8 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { parseChangeStructuralDefinition } from '../framing/document.js';
+import { FRAMING_SOURCE_FILE } from '../framing/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from '../model/paths.js';
 import {
@@ -196,14 +198,14 @@ function validateLayout(files: CandidateSnapshotFile[], diagnostics: ChangeDiagn
 
   for (const file of files) {
     if (!file.path.includes('/')) {
-      if (!ROOT_FILES.has(file.path)) diagnostics.push(diagnostic('CANDIDATE_FILE_UNEXPECTED', file.path, 'Only candidate.yaml and build.md are allowed at Candidate root.'));
+      if (!ROOT_FILES.has(file.path) && file.path !== FRAMING_SOURCE_FILE) diagnostics.push(diagnostic('CANDIDATE_FILE_UNEXPECTED', file.path, 'Only candidate.yaml, build.md, and optional framing-source.md are allowed at Candidate root.'));
       continue;
     }
     if (isPartitionFile(file.path)) continue;
     diagnostics.push(diagnostic(
       'CANDIDATE_FILE_UNEXPECTED',
       file.path,
-      `Candidate source paths must be candidate.yaml, build.md, or one of: ${PARTITIONS.join('/, ')}/.`,
+      `Candidate source paths must be candidate.yaml, build.md, framing-source.md, or one of: ${PARTITIONS.join('/, ')}/.`,
     ));
   }
 }
@@ -269,7 +271,7 @@ function validateMetadata(files: CandidateSnapshotFile[], diagnostics: ChangeDia
 
 function digestEntries(files: CandidateSnapshotFile[]): CandidateDigestEntry[] {
   return files
-    .filter(file => file.path === 'build.md' || isPartitionFile(file.path))
+    .filter(file => file.path === 'build.md' || file.path === FRAMING_SOURCE_FILE || isPartitionFile(file.path))
     .map(file => ({ path: file.path, bytes: file.bytes }));
 }
 
@@ -309,6 +311,15 @@ export async function validateCandidateDirectory(
   validateLayout(files, diagnostics);
   validateText(files, diagnostics);
   validateMetadata(files, diagnostics);
+  const framingSource = files.find(file => file.path === FRAMING_SOURCE_FILE);
+  if (framingSource) {
+    try {
+      const document = parseChangeStructuralDefinition(framingSource.bytes.toString('utf8'));
+      if (document.payload.context !== 'build') throw new Error('Candidate provenance requires a Build-context record.');
+    } catch (error) {
+      diagnostics.push(diagnostic('CANDIDATE_FRAMING_SOURCE', FRAMING_SOURCE_FILE, (error as Error).message));
+    }
+  }
 
   const entries = digestEntries(files);
   const reviewDigest = computeCandidateDigest(entries);

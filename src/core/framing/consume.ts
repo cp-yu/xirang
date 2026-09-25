@@ -1,32 +1,17 @@
-import { constants as fsConstants, promises as fs } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileChangeDelta } from '../change-compiler.js';
-import { canonicalJson } from '../semantic-diff.js';
-import { readSemanticTree, semanticTreeFingerprint } from '../model/transaction.js';
-import { relationshipIdentity } from '../model/types.js';
+import { validateCandidate } from '../candidate/validator.js';
+import { Validator } from '../validation/validator.js';
+import { validateTaskStructure } from '../parsers/task-structure.js';
 import { validateChangeName } from '../../utils/change-utils.js';
 import { classifyBaselineDrift } from './baseline.js';
-import { projectRelativePosix } from './paths.js';
-import { normalizedCoverageTarget } from './target-normalize.js';
-import type {
-  ChangeStructuralDefinitionDocument,
-  RelevantSemanticModelBaseline,
-} from './types.js';
-import { validateStructuralDefinition } from './validator.js';
+import { FRAMING_SOURCE_FILE, projectRelativePosix } from './paths.js';
+import { readFramingSemanticContext } from './validator.js';
 import { showFraming } from './workspace.js';
-import type { DeltaEntry, Operation } from '../model/delta.js';
-
-export type FramingConsumeErrorCode =
-  | 'INVALID_CHANGE_NAME'
-  | 'INVALID_CHANGE_PATH'
-  | 'RELEVANT_DRIFT'
-  | 'STRUCTURAL_TARGET_INVALID'
-  | 'CHANGE_VALIDATION_FAILED'
-  | 'STRUCTURAL_COVERAGE_MISMATCH'
-  | 'PROVENANCE_CONFLICT';
 
 export class FramingConsumeError extends Error {
-  constructor(public readonly code: FramingConsumeErrorCode, message: string) {
+  constructor(public readonly code: string, message: string) {
     super(message);
     this.name = 'FramingConsumeError';
   }
@@ -34,93 +19,15 @@ export class FramingConsumeError extends Error {
 
 export interface FramingConsumeResult {
   explorationId: string;
-  changeName: string;
+  changeName?: string;
+  candidate?: true;
+  sourceVersion: string;
   path: string;
   recovered: boolean;
 }
 
-function fail(code: FramingConsumeErrorCode, message: string): never {
+function fail(code: string, message: string): never {
   throw new FramingConsumeError(code, message);
-}
-
-function baselineMaps(baseline: RelevantSemanticModelBaseline) {
-  return {
-    elementKinds: new Map(baseline.elementKinds.map(item => [item.identity, item])),
-    relationshipKinds: new Map(baseline.relationshipKinds.map(item => [item.identity, item])),
-    elements: new Map(baseline.elements.map(item => [item.identity, item])),
-    relationships: new Map(baseline.relationships.map(item => [relationshipIdentity(item), item])),
-  };
-}
-
-function expectedOperation(
-  entity: DeltaEntry['entity'],
-  exists: boolean,
-  removed: boolean,
-  baseline: unknown,
-  target: unknown,
-): Operation | undefined {
-  if (removed) return exists ? 'REMOVED' : undefined;
-  if (!exists) return 'ADDED';
-  return canonicalJson(normalizedCoverageTarget(entity, baseline)) === canonicalJson(normalizedCoverageTarget(entity, target))
-    ? undefined
-    : 'MODIFIED';
-}
-
-function matchingEntry(
-  entries: DeltaEntry[],
-  entity: DeltaEntry['entity'],
-  identity: string,
-  operation: Operation,
-  target: unknown,
-): boolean {
-  const expected = canonicalJson(normalizedCoverageTarget(entity, target));
-  return entries.some(entry => entry.entity === entity
-    && entry.identity === identity
-    && entry.operation === operation
-    && (operation === 'REMOVED' || canonicalJson(normalizedCoverageTarget(entity, entry.target)) === expected));
-}
-
-function coverageErrors(
-  document: ChangeStructuralDefinitionDocument,
-  entries: DeltaEntry[],
-): string[] {
-  const baseline = baselineMaps(document.baseline);
-  const errors: string[] = [];
-  const check = (
-    entity: DeltaEntry['entity'],
-    identity: string,
-    item: { operation?: 'REMOVED' },
-    saved: { exists: boolean; value?: unknown } | undefined,
-    target: unknown,
-  ): void => {
-    if (!saved) {
-      errors.push(`${entity} ${identity} is missing from the saved baseline`);
-      return;
-    }
-    const operation = expectedOperation(entity, saved.exists, item.operation === 'REMOVED', saved.value, target);
-    if (operation && !matchingEntry(entries, entity, identity, operation, target)) {
-      errors.push(`${entity} ${identity} requires ${operation}`);
-    }
-  };
-
-  for (const item of document.payload.elementKinds) {
-    check('element-kind', item.identity, item, baseline.elementKinds.get(item.identity), item);
-  }
-  for (const item of document.payload.relationshipKinds) {
-    check('relationship-kind', item.identity, item, baseline.relationshipKinds.get(item.identity), item);
-  }
-  for (const item of document.payload.elements) {
-    check('element-declaration', item.identity, item, baseline.elements.get(item.identity), item);
-  }
-  for (const item of document.payload.relationships) {
-    const identity = relationshipIdentity(item);
-    check('relationship', identity, item, baseline.relationships.get(identity), {
-      source: item.source,
-      kind: item.kind,
-      target: item.target,
-    });
-  }
-  return errors;
 }
 
 async function assertChangeDirectory(projectRoot: string, changeName: string): Promise<string> {
@@ -142,68 +49,109 @@ async function assertChangeDirectory(projectRoot: string, changeName: string): P
   return changeDir;
 }
 
-async function destinationState(destination: string, source: Buffer): Promise<'absent' | 'identical'> {
-  const stat = await fs.lstat(destination).catch((error: NodeJS.ErrnoException) => {
+type FramingTransferFileSystem = Pick<typeof fs, 'lstat' | 'readFile' | 'open' | 'rm'>;
+
+async function destinationState(destination: string, source: Buffer, pathError: string, filesystem: FramingTransferFileSystem): Promise<'absent' | 'identical'> {
+  const stat = await filesystem.lstat(destination).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return undefined;
     throw error;
   });
   if (!stat) return 'absent';
-  if (stat.isSymbolicLink() || !stat.isFile()) fail('INVALID_CHANGE_PATH', 'Frozen provenance path is not a regular file');
-  const existing = await fs.readFile(destination);
+  if (stat.isSymbolicLink() || !stat.isFile()) fail(pathError, 'Frozen provenance path is not a regular file');
+  const existing = await filesystem.readFile(destination);
   if (!existing.equals(source)) fail('PROVENANCE_CONFLICT', 'Frozen provenance differs from the current framing source');
   return 'identical';
 }
 
-export function verifyStructuralCoverage(
-  document: ChangeStructuralDefinitionDocument,
-  entries: DeltaEntry[],
-): string[] {
-  return coverageErrors(document, entries);
+async function validateChangeTarget(projectRoot: string, changeName: string): Promise<void> {
+  const changeDir = await assertChangeDirectory(projectRoot, changeName);
+  const compiled = await compileChangeDelta(projectRoot, changeName);
+  const notation = await new Validator().validateChangeDeltaSpecs(changeDir);
+  const tasks = await fs.readFile(path.join(changeDir, 'tasks.md'), 'utf8').catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return '';
+    throw error;
+  });
+  const taskErrors = tasks ? validateTaskStructure(tasks, { changeDir }).issues.filter(item => item.severity === 'error') : [];
+  const errors = [...compiled.compiled.diagnostics.filter(item => item.level === 'ERROR'), ...notation.issues.filter(item => item.level === 'ERROR'), ...taskErrors];
+  if (errors.length) fail('CHANGE_VALIDATION_FAILED', errors.map(item => item.message).join('; '));
+}
+
+export type FramingConsumeTarget = { change: string; candidate?: never } | { candidate: true; change?: never };
+
+async function assertCandidateDirectory(projectRoot: string): Promise<string> {
+  const root = path.resolve(projectRoot);
+  const candidate = path.join(root, '.xirang', 'candidate');
+  for (const directory of [root, path.join(root, '.xirang'), candidate]) {
+    const stat = await fs.lstat(directory).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return undefined;
+      throw error;
+    });
+    if (!stat || stat.isSymbolicLink() || !stat.isDirectory()) {
+      fail('INVALID_CANDIDATE_PATH', `Active Candidate ancestor is not a regular directory: ${directory}`);
+    }
+  }
+  return candidate;
 }
 
 export async function consumeFraming(
-  projectRoot: string,
-  explorationId: string,
-  changeName: string,
+  projectRoot: string, explorationId: string, target: FramingConsumeTarget, sourceVersion: string,
+  filesystem: FramingTransferFileSystem = fs,
 ): Promise<FramingConsumeResult> {
   const source = await showFraming(projectRoot, explorationId);
-  const changeDir = await assertChangeDirectory(projectRoot, changeName);
-  const compiled = await compileChangeDelta(projectRoot, changeName);
-  const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
-  const drift = classifyBaselineDrift(
-    source.document.metadata.semanticModelFingerprint,
-    currentFingerprint,
-    source.document.baseline,
-    compiled.base.model,
-    source.document.payload,
-  );
-  if (drift.status === 'relevant-drift') {
-    fail('RELEVANT_DRIFT', `Relevant Semantic Model context changed: ${drift.changed.join(', ')}`);
+  if (!sourceVersion || source.sourceVersion !== sourceVersion) fail('SOURCE_VERSION_MISMATCH', 'Reload the current source and repeat coverage review before consuming');
+  if (!target || !((typeof target.change === 'string' && target.candidate === undefined)
+    || (target.candidate === true && target.change === undefined))) {
+    fail('INVALID_CONSUME_TARGET', 'Select exactly one explicit target: named Change or active Candidate');
   }
-  const structural = validateStructuralDefinition(compiled.base.model, source.document.payload);
-  if (!structural.valid) {
-    fail('STRUCTURAL_TARGET_INVALID', structural.diagnostics.map(item => item.message).join('; '));
+  const isCandidate = target.candidate === true;
+  if (source.document.payload.context !== (isCandidate ? 'build' : 'change')) fail('CONTEXT_MISMATCH', 'Build and Change records use separate formation contexts');
+  const targetDirectory = () => isCandidate
+    ? assertCandidateDirectory(projectRoot)
+    : assertChangeDirectory(projectRoot, target.change!);
+  const validateTarget = async () => {
+    await targetDirectory();
+    if (isCandidate) {
+      const validation = await validateCandidate(projectRoot);
+      if (!validation.valid) fail('CANDIDATE_VALIDATION_FAILED', validation.diagnostics.filter(item => item.level === 'ERROR').map(item => item.message).join('; '));
+    } else {
+      await validateChangeTarget(projectRoot, target.change!);
+    }
+  };
+  const checkSource = async () => {
+    const current = await showFraming(projectRoot, explorationId);
+    if (current.sourceVersion !== sourceVersion) fail('SOURCE_VERSION_MISMATCH', 'Framing source changed during consumption');
+    const context = await readFramingSemanticContext(projectRoot, source.document.payload.context);
+    const drift = classifyBaselineDrift(source.document.metadata.semanticModelFingerprint, context.semanticModelFingerprint, source.document.baseline, context.model, source.document.payload);
+    if (drift.status === 'relevant-drift') fail('RELEVANT_DRIFT', `Related Semantic Model context changed: ${drift.changed.join(', ')}`);
+  };
+  await checkSource();
+  const directory = await targetDirectory();
+  const bytes = source.bytes;
+  const destination = path.join(directory, FRAMING_SOURCE_FILE);
+  const pathError = isCandidate ? 'INVALID_CANDIDATE_PATH' : 'INVALID_CHANGE_PATH';
+  const state = await destinationState(destination, bytes, pathError, filesystem);
+  await validateTarget();
+  await checkSource();
+  let created = false;
+  try {
+    if (state === 'absent') {
+      const file = await filesystem.open(destination, 'wx');
+      created = true;
+      try { await file.writeFile(bytes); } finally { await file.close(); }
+    }
+    await validateTarget();
+    await checkSource();
+    if (await destinationState(destination, bytes, pathError, filesystem) !== 'identical') {
+      fail('PROVENANCE_MISSING', 'Frozen provenance disappeared before source cleanup; retain the active record and retry');
+    }
+    await filesystem.rm(source.absolutePath);
+  } catch (error) {
+    if (created) await filesystem.rm(destination, { force: true });
+    throw error;
   }
-  if (!compiled.compiled.valid) {
-    fail('CHANGE_VALIDATION_FAILED', compiled.compiled.diagnostics.map(item => item.message).join('; '));
-  }
-  const coverage = coverageErrors(source.document, compiled.delta.entries);
-  if (coverage.length > 0) fail('STRUCTURAL_COVERAGE_MISMATCH', coverage.join('; '));
-
-  await assertChangeDirectory(projectRoot, changeName);
-  const sourceStat = await fs.lstat(source.absolutePath).catch(() => undefined);
-  if (!sourceStat || sourceStat.isSymbolicLink() || !sourceStat.isFile()) {
-    fail('INVALID_CHANGE_PATH', `Framing source is not a regular file: ${source.absolutePath}`);
-  }
-  const bytes = await fs.readFile(source.absolutePath);
-  const destination = path.join(changeDir, 'change-structural-definition.md');
-  const state = await destinationState(destination, bytes);
-  if (state === 'absent') await fs.copyFile(source.absolutePath, destination, fsConstants.COPYFILE_EXCL);
-  await fs.rm(source.absolutePath);
   return {
     explorationId,
-    changeName,
-    path: projectRelativePosix(projectRoot, destination),
-    recovered: state === 'identical',
+    ...(isCandidate ? { candidate: true as const } : { changeName: target.change }),
+    sourceVersion, path: projectRelativePosix(projectRoot, destination), recovered: state === 'identical',
   };
 }

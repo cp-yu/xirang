@@ -4,7 +4,7 @@ identity: propose-role
 kind: element
 parent: agent
 title: Propose Role
-definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它以已确认设计为依据形成 Change，并复用 Explore 已形成的 Design Summary；Explore 形成了 Change Structural Definition 时，它通过 CLI 将该定义纳入目标 Change，并把其中已确认的结构目标编译为相应的 Semantic Delta Entries。
+definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它复用已确认设计与有效 Design Summary，消费可用的已确认设计记录，编写完整 Semantic Delta 与 Change Plan，并编排语义覆盖复核、确定性校验及来源交接；它交付可进入实现的 Change，不修改项目实现、不更新正式模型，也不关闭 Change。
 ---
 
 ## Requirements
@@ -36,16 +36,16 @@ Propose Role SHALL NOT 修改项目实现，也 SHALL NOT 将 Delta 应用于 Se
 - **WHEN** Propose 到达出口
 - **THEN** 项目实现与正式模型保持未落实该 Change 的状态
 
-### Requirement: 编排结构定义消费
+### Requirement: 编排确认记录消费
 
-Explore 形成了 Change Structural Definition 时，Propose Role SHALL 在完整 Change 通过 validation 与 structural coverage 后调用 `xirang framing consume`，并仅在 provenance 冻结与源 lifecycle 成功时交付 Change Formation 结果；Explore 未形成 Change Structural Definition 时，SHALL 直接按既有 Propose 路径交付完整 Change。
+Propose Role SHALL 在完整 Change 通过来源到语义、语义到任务的覆盖复核与 validation 后调用 framing consume，核对版本、目标快照和来源生命周期成功才交付 Formation 结果。没有记录时直接按普通 Propose 路径交付，不执行空消费。
 
-#### Scenario: 带结构定义的完整 Change 已生成
+#### Scenario: 带记录交付 Change
 
-- **WHEN** validation 没有 ERROR 且 Change Structural Definition coverage 完整
-- **THEN** Agent 消费对应 exploration identity 并确认 frozen path
+- **WHEN** 覆盖复核和最终校验通过且来源版本未改变
+- **THEN** 向明确的目标 Change 消费记录，核对成功结果后交付。
 
-#### Scenario: Explore 未形成结构定义
+#### Scenario: 无记录交付 Change
 
-- **WHEN** 完整 Change 仅由 Semantic Model 与已确认设计形成
-- **THEN** Agent 不调用 framing consume
+- **WHEN** 完整 Change 仅由已确认设计与模型形成
+- **THEN** 不调用 framing consume，不为流程创建空记录。

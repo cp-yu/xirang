@@ -33,6 +33,6 @@ describe('Framing command registration', () => {
     expect(framing?.commands.find(command => command.name() === 'create')?.options.map(option => option.long))
       .toEqual(['--slug', '--from', '--json']);
     expect(framing?.commands.find(command => command.name() === 'consume')?.options.map(option => option.long))
-      .toEqual(['--change', '--json']);
+      .toEqual(['--change', '--candidate', '--source-version', '--json']);
   });
 });

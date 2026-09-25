@@ -5,6 +5,8 @@ import path from 'node:path';
 import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
+import { createFraming } from '../../src/core/framing/workspace.js';
+import { readFramingSemanticContext } from '../../src/core/framing/validator.js';
 import { promoteCandidate } from '../../src/core/candidate/promotion.js';
 
 describe('Candidate build history', () => {
@@ -25,12 +27,20 @@ describe('Candidate build history', () => {
 
   it('retains every successful build history entry', async () => {
     await initializeCandidate(root, { kind: 'current' });
+    const source = await createFraming(root, 'history-source', {
+      schemaVersion: 2, context: 'build', relatedIdentities: ['project.root'],
+      entries: [{ identity: 'intent', nature: 'normative', content: 'Preserve history without promoting provenance.' }],
+    }, await readFramingSemanticContext(root, 'build'));
+    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'framing-source.md'), source.bytes);
     const first = await validateCandidate(root);
-    await promoteCandidate(root, first.reviewDigest!, {
+    const promoted = await promoteCandidate(root, first.reviewDigest!, {
       now: () => new Date('2030-01-01T00:00:00.000Z'),
     });
 
+    expect(await fs.readFile(path.join(root, promoted.historyPath, 'framing-source.md'))).toEqual(source.bytes);
+    expect((await fs.readdir(path.join(root, '.xirang', 'model'))).sort()).toEqual(['elements', 'metamodel', 'relationships', 'views']);
     await initializeCandidate(root, { kind: 'current' });
+    await expect(fs.access(path.join(root, '.xirang', 'candidate', 'framing-source.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     const second = await validateCandidate(root);
     await promoteCandidate(root, second.reviewDigest!, {
       now: () => new Date('2030-01-01T00:00:01.000Z'),

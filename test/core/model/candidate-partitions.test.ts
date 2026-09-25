@@ -65,7 +65,7 @@ async function listPartitionFiles(root: string): Promise<string[]> {
 }
 
 describe('four-partition Candidate', () => {
-  it('seeds a clean Candidate with only the Project Root Kind', async () => {
+  it('seeds a clean Candidate with the shared default Kinds', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-candidate-clean-'));
     roots.push(root);
     await fs.mkdir(path.join(root, '.xirang'));
@@ -73,7 +73,7 @@ describe('four-partition Candidate', () => {
     await initializeCandidate(root, { kind: 'clean' });
 
     await expect(fs.readdir(path.join(root, '.xirang', 'candidate', 'metamodel')))
-      .resolves.toEqual(['project.md']);
+      .resolves.toEqual(['element.md', 'perspective.md', 'project.md']);
   });
 
   it('validates a Candidate that uses the model partitions', async () => {

@@ -7,6 +7,18 @@ import {
 import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/build.js';
 
 describe('xirang-build workflow', () => {
+  it('consumes the reviewed Build source before final validation, independent review, and exact-digest promotion', () => {
+    const instructions = getBuildSkillTemplate().instructions;
+    const consume = instructions.indexOf('xirang framing consume <explorationId> --candidate --source-version <sourceVersion> --json');
+    expect(consume).toBeGreaterThan(-1);
+    expect(instructions.indexOf('xirang candidate validate --json', consume)).toBeGreaterThan(consume);
+    expect(instructions.indexOf('generic read-only subagent with a clean context')).toBeGreaterThan(consume);
+    expect(instructions.indexOf('xirang candidate promote --digest')).toBeGreaterThan(consume);
+    expect(instructions).toContain('Do not reuse a pre-handoff digest');
+    expect(instructions).toContain('framing-source.md');
+    expect(instructions).toContain('Unresolved conflicts or missing normative detail block source handoff');
+  });
+
   it('keeps scope and starting-point decisions with the user', () => {
     const skill = getBuildSkillTemplate();
 

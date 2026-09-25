@@ -29,7 +29,9 @@ describe('Candidate initialization', () => {
     expect(result.active).toBe(true);
     expect(await exists(path.join(candidate, 'candidate.yaml'))).toBe(true);
     expect(await exists(path.join(candidate, 'build.md'))).toBe(true);
-    expect(await fs.readdir(path.join(candidate, 'metamodel'))).toEqual([
+    expect((await fs.readdir(path.join(candidate, 'metamodel'))).sort()).toEqual([
+      'element.md',
+      'perspective.md',
       'project.md',
     ]);
     expect(await fs.readdir(path.join(candidate, 'elements'))).toEqual(['project.root.md']);
@@ -67,10 +69,17 @@ describe('Candidate initialization', () => {
     await expect(initializeCandidate(root, { kind: 'clean' })).rejects.toThrow(/already exists/);
   });
 
-  it('rejects symlinks in a specified source', async () => {
+  it('rejects symlinks in a specified source', async (context) => {
     const source = path.join(root, 'baseline');
     await writeModel(source, minimalModel());
-    await fs.symlink(path.join(root, 'outside'), path.join(source, 'elements', 'linked.md'));
+    try {
+      await fs.symlink(path.join(root, 'outside'), path.join(source, 'elements', 'linked.md'));
+    } catch (error) {
+      if (process.platform !== 'win32' || (error as NodeJS.ErrnoException).code !== 'EPERM') throw error;
+      console.warn('Windows file symlink creation is unavailable (EPERM); rejection branch not exercised.');
+      context.skip();
+      return;
+    }
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
     expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);
@@ -82,7 +91,7 @@ describe('Candidate initialization', () => {
     const outside = path.join(root, 'outside-elements');
     await fs.mkdir(outside, { recursive: true });
     await fs.rm(path.join(source, 'elements'), { recursive: true, force: true });
-    await fs.symlink(outside, path.join(source, 'elements'));
+    await fs.symlink(outside, path.join(source, 'elements'), process.platform === 'win32' ? 'junction' : 'dir');
 
     await expect(initializeCandidate(root, { kind: 'path', path: source })).rejects.toThrow(/symlink/i);
     expect(await exists(path.join(root, '.xirang', 'candidate'))).toBe(false);

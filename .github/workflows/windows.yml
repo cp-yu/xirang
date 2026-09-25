@@ -1,0 +1,50 @@
+name: Candidate Views Windows
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-windows:
+    name: Candidate View runtime and Contract handler (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build root workspace
+        run: pnpm run build
+      - name: Run Candidate View runtime tests
+        run: >-
+          pnpm exec vitest run
+          test/core/view.test.ts
+      - name: Verify Windows framing paths and build gates
+        run: >-
+          pnpm exec vitest run
+          test/core/project-config.test.ts
+          test/core/setup.test.ts
+          test/core/update.test.ts
+          test/core/framing/paths.test.ts
+          test/core/framing/workspace.test.ts
+          test/core/framing/consume.test.ts
+          test/integration/framing-workflow.test.ts
+          test/commands/candidate-init.test.ts
+          test/commands/candidate-validate.test.ts
+          test/core/candidate-digest.test.ts
+          test/core/candidate-history.test.ts
+          test/commands/candidate-promote.test.ts
+      - name: Run Windows Candidate Contract handler tests
+        run: >-
+          pnpm --dir likec4 exec vitest run --no-isolate
+          packages/vite-plugin/src/xirang/xirang-contract-handler.spec.ts
+          packages/likec4-spa/src/xirang/HttpContractLoader.spec.ts

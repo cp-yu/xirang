@@ -7,6 +7,8 @@ import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { formatCandidateValidation } from '../../src/commands/candidate.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
 import { parseSemanticModel } from '../../src/core/model/parser.js';
+import { createFraming } from '../../src/core/framing/workspace.js';
+import { readFramingSemanticContext } from '../../src/core/framing/validator.js';
 import { semanticModelFingerprint } from '../../src/core/semantic-diff.js';
 
 async function readTree(root: string): Promise<Map<string, Buffer>> {
@@ -59,12 +61,40 @@ describe('Candidate validation', () => {
     expect(formatCandidateValidation(first)).toContain('Formal diff entries: 0');
     expect(first.inventory.partitions).toEqual({
       metamodel: [
+        'metamodel/element.md',
+        'metamodel/perspective.md',
         'metamodel/project.md',
       ],
       elements: ['elements/project.root.md'],
       relationships: [],
       views: [],
     });
+  });
+
+  it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
+    const record = await createFraming(root, 'source', {
+      schemaVersion: 2, context: 'build', relatedIdentities: ['project.root'],
+      entries: [{ identity: 'scope', nature: 'normative', content: 'Preserve the confirmed exception.' }],
+    }, await readFramingSemanticContext(root, 'build'));
+    const source = path.join(candidate, 'framing-source.md');
+    await fs.writeFile(source, record.bytes);
+    const tree = await readTree(root);
+    const first = await validateCandidate(root);
+    expect(first.valid).toBe(true);
+    expect(first.inventory.files).toContain('framing-source.md');
+    expect(first.diff?.summary.total).toBe(0);
+    expect((await validateCandidate(root)).reviewDigest).toBe(first.reviewDigest);
+    expect(await readTree(root)).toEqual(tree);
+    await fs.writeFile(source, record.bytes.toString('utf8').replace('confirmed exception', 'confirmed timing'));
+    const changed = await validateCandidate(root);
+    expect(changed.valid).toBe(true);
+    expect(changed.reviewDigest).not.toBe(first.reviewDigest);
+    await fs.writeFile(source, record.bytes.toString('utf8').replace('context: build', 'context: change'));
+    expect((await validateCandidate(root)).diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'CANDIDATE_FRAMING_SOURCE', path: 'framing-source.md' }),
+    ]));
+    await fs.writeFile(source, 'not a record\n');
+    expect((await validateCandidate(root)).valid).toBe(false);
   });
 
   it('reports unavailable comparison without invalidating the first Formal Candidate', async () => {

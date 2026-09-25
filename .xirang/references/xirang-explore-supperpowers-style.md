@@ -16,7 +16,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only `Design Summary`.
-- The original commit step is removed. Explore may persist only a user-confirmed Change Structural Definition through the Xirang-owned Definition Framing protocol; it does not directly write files.
+- The original commit step is removed. Explore may persist only a user-confirmed design record through the Xirang-owned Definition Framing protocol; it does not directly write files.
 - The original implementation-plan handoff maps to `xirang-propose` handoff.
 
 ## Conversation language
@@ -89,7 +89,8 @@ Before generating the `Design Summary`, self-review:
 - Are there placeholders, vague boundaries, or contradictory decisions?
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
-- Are file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
+- Has any current record passed the shared Definition Framing reload/conflict gate?
+- Are non-framing file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
 The `Design Summary` must stay in the conversation; do not create or update files. Content focuses on architecture, components, data flow, technology stack, testing strategy (with test maintenance when applicable), risks, and trade-offs.
 

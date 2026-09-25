@@ -13,16 +13,16 @@ export function validateExplorationId(identity: string): string {
   return identity;
 }
 
-export function framingChangesRoot(projectRoot: string): string {
-  return path.join(path.resolve(projectRoot), '.xirang', 'changes');
+export function framingRoot(projectRoot: string): string {
+  return path.join(path.resolve(projectRoot), '.xirang', 'framing');
 }
 
 export function managedFramingFilename(slug: string, explorationId: string): string {
-  return `.explore-${validateFramingSlug(slug)}-${validateExplorationId(explorationId)}.md`;
+  return `${validateFramingSlug(slug)}-${validateExplorationId(explorationId)}.md`;
 }
 
 export function managedFramingPath(projectRoot: string, slug: string, explorationId: string): string {
-  return path.join(framingChangesRoot(projectRoot), managedFramingFilename(slug, explorationId));
+  return path.join(framingRoot(projectRoot), managedFramingFilename(slug, explorationId));
 }
 
 export function assertContainedPath(
@@ -47,3 +47,5 @@ export function projectRelativePosix(
   assertContainedPath(projectRoot, target, pathApi);
   return pathApi.relative(pathApi.resolve(projectRoot), pathApi.resolve(target)).split(pathApi.sep).join('/');
 }
+
+export const FRAMING_SOURCE_FILE = 'framing-source.md';

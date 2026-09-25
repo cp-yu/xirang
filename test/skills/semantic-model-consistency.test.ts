@@ -26,7 +26,7 @@ describe('generated internal agent semantic context', () => {
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
       const configRead = content.indexOf('xirang config project --json');
-      const methodGuidance = content.indexOf('For `method`');
+      const methodGuidance = content.indexOf('.xirang/references/xirang-semantic-refinement.md');
 
       expect(configRead, file).toBeGreaterThanOrEqual(0);
       expect(methodGuidance, file).toBeGreaterThan(configRead);

@@ -105,7 +105,7 @@ describe('explore template semantic impact', () => {
     expect(ref?.content).toContain('Before context reads, create the todo checklist');
   });
 
-  it('permits only explicitly confirmed CLI-managed structural persistence', () => {
+  it('permits only explicitly confirmed CLI-managed record persistence', () => {
     expect(template).toContain('Forbidden');
     expect(template).toContain('directly create, edit, or delete project or Change artifacts');
     expect(template).toContain('explicit persistence confirmation');
@@ -125,17 +125,17 @@ describe('explore template semantic impact', () => {
     expect(template).not.toContain('Subagent Exception');
   });
 
-  it('uses a complete persisted structural definition during Design Exploration when available', () => {
-    expect(template).toContain('Definition Framing is optional and begins only when the user chooses it');
-    expect(template).toContain('xirang framing list --json');
-    expect(template).toContain('xirang framing show <explorationId> --json');
-    expect(template).toContain('xirang framing status <explorationId> --json');
-    expect(template).toContain('xirang framing validate <explorationId> --json');
-    expect(template).toContain('On every resume, run all three before Design Exploration continues');
-    expect(template).toContain('Use `show` for the complete current payload, `status` for baseline drift, and `validate` for current impacts');
-    expect(template).toContain('Contract and Authored View impacts');
-    expect(template).toContain('invalidate the affected structural confirmations and downstream design decisions');
-    expect(template).toContain('When no Change Structural Definition exists, continue from the Semantic Model and project evidence');
+  it('reloads optional current records and blocks conflicting or stale Summary handoff', () => {
+    for (const command of ['list --json', 'show <explorationId> --json', 'status <explorationId> --json', 'validate <explorationId> --json']) {
+      expect(template).toContain(`xirang framing ${command}`);
+    }
+    expect(template).toContain('before starting, resuming, or producing a Design Summary');
+    expect(template).toContain('Unresolved conflicts block Design Summary');
+    expect(template).toContain('invalidate affected Summary and coverage conclusions');
+    expect(template).toContain('Do not create an empty framing record');
+    expect(template).toContain('MUST carry `explorationId` and the checked `sourceVersion`');
+    expect(template).not.toContain('before structural discussion');
+    expect(template).not.toContain('Change Structural Definition');
   });
 
   it('applies decomposition guidance only when structural design is required', () => {

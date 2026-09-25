@@ -14,7 +14,7 @@ import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   decomposition: {
-    method: 'c4' as const,
+    method: 'semantic-refinement' as const,
   },
   architecture: {
     outline: {

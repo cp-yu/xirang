@@ -27,94 +27,54 @@ function model(): SemanticModel {
 }
 
 const payload: ChangeStructuralDefinitionPayload = {
-  elementKinds: [],
-  relationshipKinds: [],
-  elements: [{ identity: 'a', kind: 'capability', parent: 'domain', title: 'A2', definition: 'A changed.' }],
-  relationships: [{ source: 'a', kind: 'uses', target: 'b' }],
+  schemaVersion: 2, context: 'change', relatedIdentities: ['a'],
+  entries: [{ identity: 'limit', nature: 'normative', content: '最多 5 本，闭馆日顺延。' }],
 };
 
-describe('relevant Semantic Model baseline', () => {
-  it('captures targets, endpoints, ancestors, used Kinds and constraints but excludes Contracts and Views', () => {
+describe('关联上下文基准', () => {
+  it('记录显式关联、祖先、Kinds、关系和 Contract；不从自然语言猜依赖', () => {
     const baseline = captureRelevantBaseline(model(), payload);
-    expect(baseline.elements.map(item => item.identity)).toEqual(['a', 'b', 'domain', 'root']);
-    expect(baseline.elementKinds.map(item => item.identity)).toEqual(['capability', 'domain', 'project']);
-    expect(baseline.relationshipKinds.map(item => item.identity)).toEqual(['uses']);
-    expect(baseline.relationships).toEqual([{
-      source: 'a', kind: 'uses', target: 'b', exists: true,
-      value: { source: 'a', kind: 'uses', target: 'b' },
-    }]);
-    expect(JSON.stringify(baseline)).not.toContain('requirements');
-    expect(JSON.stringify(baseline)).not.toContain('overview');
+    expect(baseline.modelState).toBe('present');
+    expect(baseline.objects).toHaveProperty('element:a');
+    expect(baseline.objects).toHaveProperty('element:root');
+    expect(baseline.objects).toHaveProperty('element-kind:capability');
+    expect(baseline.objects['element:a']).toMatchObject({ requirements: [] });
+    expect(baseline.objects).not.toHaveProperty('element:other');
+    expect(captureRelevantBaseline(model(), { ...payload, relatedIdentities: [] }).objects).toEqual({});
   });
 
-  it('captures a relationship-only multi-level Kind constraint closure once in deterministic order', () => {
-    const current = model();
-    current.elementKinds.push(
-      { identity: 'top', contract: 'optional', children: ['middle'], body: '' },
-      { identity: 'middle', contract: 'optional', parents: ['top'], children: ['leaf'], body: '' },
-      { identity: 'leaf', contract: 'optional', parents: ['middle'], body: '' },
-    );
-    current.relationshipKinds.push({ identity: 'bridges', sourceKinds: ['leaf'], targetKinds: ['leaf'], body: '' });
-    const baseline = captureRelevantBaseline(current, {
-      elementKinds: [], relationshipKinds: [], elements: [],
-      relationships: [{ source: 'a', kind: 'bridges', target: 'b' }],
-    });
-    expect(baseline.elementKinds.map(item => item.identity)).toEqual([
-      'capability', 'domain', 'leaf', 'middle', 'project', 'top',
-    ]);
-    expect(new Set(baseline.elementKinds.map(item => item.identity)).size).toBe(baseline.elementKinds.length);
+  it('区分不存在的模型、对象与后续出现的模型', () => {
+    const absent = captureRelevantBaseline(null, { ...payload, context: 'build' });
+    expect(absent).toEqual({ modelState: 'absent', objects: {} });
+    expect(classifyBaselineDrift('old', 'new', absent, model(), payload).status).toBe('relevant-drift');
+    expect(captureRelevantBaseline(model(), { ...payload, relatedIdentities: ['new'] }).objects['identity:new']).toBeNull();
   });
 
-  it('records explicit absence for new targets', () => {
-    const baseline = captureRelevantBaseline(model(), {
-      ...payload,
-      elements: [{ identity: 'new', kind: 'capability', parent: 'domain', title: 'New', definition: 'New.' }],
-    });
-    expect(baseline.elements).toContainEqual({ identity: 'new', exists: false });
-  });
-
-  it('treats Kind constraint reordering as unrelated drift', () => {
-    const initial = model();
-    initial.elementKinds.find(item => item.identity === 'capability')!.parents = ['domain', 'project'];
-    initial.relationshipKinds[0].sourceKinds = ['capability', 'domain'];
-    initial.relationshipKinds[0].targetKinds = ['domain', 'capability'];
-    const baseline = captureRelevantBaseline(initial, payload);
-    const reordered = structuredClone(initial);
-    reordered.elementKinds.find(item => item.identity === 'capability')!.parents!.reverse();
-    reordered.relationshipKinds[0].sourceKinds!.reverse();
-    reordered.relationshipKinds[0].targetKinds!.reverse();
-    expect(classifyBaselineDrift('old', 'new', baseline, reordered, payload)).toMatchObject({
-      status: 'unrelated-drift', changed: [],
-    });
-  });
-
-  it('detects nodePresentation drift as relevant', () => {
-    const current = model();
-    const baseline = captureRelevantBaseline(current, payload);
-    const changed = structuredClone(current);
-    changed.elementKinds.find(item => item.identity === 'capability')!.nodePresentation = {
-      shape: 'component',
-      color: 'green',
-      border: 'dashed',
-    };
-    const result = classifyBaselineDrift('old', 'new', baseline, changed, payload);
-    expect(result.status).toBe('relevant-drift');
-    expect(result.changed).toContain('element-kind:capability');
-  });
-
-  it('classifies fresh, unrelated and relevant drift', () => {
+  it('无关变化不失效，关联 Contract、祖先、Kind 和关系变化均失效', () => {
     const initial = model();
     const baseline = captureRelevantBaseline(initial, payload);
     expect(classifyBaselineDrift('same', 'same', baseline, initial, payload).status).toBe('fresh');
-
-    const unrelated = model();
-    unrelated.elements.find(item => item.declaration.identity === 'other')!.declaration.definition = 'Unrelated change.';
+    const unrelated = structuredClone(initial);
+    unrelated.elements.find(item => item.declaration.identity === 'other')!.declaration.definition = '无关变化';
     expect(classifyBaselineDrift('old', 'new', baseline, unrelated, payload).status).toBe('unrelated-drift');
+    const mutations = [
+      (value: SemanticModel) => { value.elements.find(item => item.declaration.identity === 'a')!.requirements.push({ name: '上限', body: 'SHALL 最多借阅三本。', scenarios: [] }); },
+      (value: SemanticModel) => { value.elements.find(item => item.declaration.identity === 'domain')!.declaration.definition = '关联祖先变化'; },
+      (value: SemanticModel) => { value.elementKinds.find(item => item.identity === 'capability')!.nodePresentation = { shape: 'component' }; },
+      (value: SemanticModel) => { value.relationships = []; },
+    ];
+    for (const mutate of mutations) {
+      const changed = structuredClone(initial); mutate(changed);
+      expect(classifyBaselineDrift('old', 'new', baseline, changed, payload).status).toBe('relevant-drift');
+    }
+  });
 
-    const relevant = model();
-    relevant.elements.find(item => item.declaration.identity === 'domain')!.declaration.definition = 'Relevant ancestor change.';
-    const result = classifyBaselineDrift('old', 'new', baseline, relevant, payload);
-    expect(result.status).toBe('relevant-drift');
-    expect(result.changed).toContain('element:domain');
+  it('无序 Kind 约束重排不形成语义变化', () => {
+    const initial = model();
+    initial.elementKinds[2].parents = ['domain', 'project'];
+    const saved = captureRelevantBaseline(initial, payload);
+    const reordered = structuredClone(initial);
+    reordered.elementKinds[2].parents!.reverse();
+    expect(classifyBaselineDrift('old', 'new', saved, reordered, payload).status).toBe('unrelated-drift');
   });
 });

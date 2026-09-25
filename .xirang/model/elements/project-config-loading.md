@@ -333,7 +333,7 @@ definition: Project Config Loading 定义 `.xirang/config.yaml` 的发现、解�
 #### Scenario: Default materialization includes decomposition, optimization, apply, and git
 
 - **WHEN** project config defaults 被 materialize 用于磁盘输出
-- **THEN** materialized defaults SHALL 包含 `decomposition.method: c4`、`optimization.enabled: true`、`optimization.directionLimit: 3`、`optimization.directionRetries: 2`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
+- **THEN** materialized defaults SHALL 包含 `decomposition.method: semantic-refinement`、`optimization.enabled: true`、`optimization.directionLimit: 3`、`optimization.directionRetries: 2`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
 - **AND** SHALL NOT 包含 `optimization.optRetries`、`git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`
 
 #### Scenario: Default materialization excludes non-functional optional fields
@@ -392,13 +392,13 @@ Project config loader SHALL 将顶层 `propose` routing 节点视为退役配置
 #### Scenario: 字段缺失时使用默认方法
 
 - **WHEN** config 不包含 `decomposition`
-- **THEN** 有效项目配置使用 `{ method: "c4" }` 作为功能性默认值
+- **THEN** 有效项目配置使用 `{ method: "semantic-refinement" }` 作为功能性默认值
 
 #### Scenario: 非法 tagged union 不回退默认方法
 
 - **WHEN** `decomposition` 同时包含 `method` 与 `skill`、两个分支都缺失、包含未知子键或所选值 trim 后为空
 - **THEN** 加载器对该字段输出 warning 并从返回配置中省略 `decomposition`
-- **AND** SHALL NOT 将该非法字段回退为 `{ method: "c4" }`
+- **AND** SHALL NOT 将该非法字段回退为 `{ method: "semantic-refinement" }`
 - **AND** 其他有效配置字段继续返回
 
 #### Scenario: yaml 与 yml 使用相同结构拆分语义

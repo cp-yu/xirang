@@ -222,37 +222,19 @@ Deterministic Operations SHALL 对当前 Semantic Model、Candidate 或活动 Ch
 - **WHEN** 当前输入的 `element-declaration` 包含 `summary`
 - **THEN** 加载失败并指出应迁移为 `definition`
 
-### Requirement: 管理 Change Structural Definition Lifecycle
-
-Deterministic Operations SHALL 通过 `xirang framing create|list|show|status|validate|update|rename|consume|discard` 管理非空 Change Structural Definition 的完整 lifecycle，并以 exploration identity 而非路径寻址。
-
-#### Scenario: 首次持久化确认结构
-
-- **WHEN** create 接收合法 slug 与完整 payload
-- **THEN** CLI 生成 explorationId、捕获 baseline 并返回实际 managed path
-
-### Requirement: 返回结构校验与设计影响
-
-Framing validation SHALL 分别返回 structural validity、Semantic Model drift diagnostics 与 Contract、View 等 downstream impacts，SHALL NOT 代替 Agent 或用户作语义决策。
-
-#### Scenario: 新 Element 需要 Contract
-
-- **WHEN** 结构目标有效且其 Kind 要求 Contract
-- **THEN** validation 保持结构有效并在 impacts 中报告后续设计工作
-
 ### Requirement: 隔离受控文件路径
 
-Framing lifecycle SHALL 仅操作 canonical `.xirang/changes/` direct-child managed regular files，并通过合法名称、`lstat` 类型、symlink 拒绝、filename/frontmatter 一致性及 containment checks fail closed。
+Framing lifecycle SHALL 仅操作 canonical .xirang/framing/ 下按合法记录身份寻址的 managed regular files，使用 Node.js path APIs、containment、lstat、symlink 拒绝与 filename/frontmatter 一致性检查。目标快照 SHALL 仅写入显式 named Change 或 active Candidate 的受控位置。Windows、macOS 与 Linux SHALL 采用同一隔离语义。
 
 #### Scenario: Managed path 是 symlink
 
-- **WHEN** 任一 framing command 定位到 symlink 而非 regular file
-- **THEN** CLI 返回稳定路径错误且不跟随链接
+- **WHEN** 任一记录或交接目标路径是 symlink 或逃逸受控根目录
+- **THEN** CLI 返回稳定路径错误，不跟随链接也不写入目标
 
 #### Scenario: Windows 路径分隔符不同
 
 - **WHEN** framing 在 Windows project root 下构造 managed path
-- **THEN** CLI 使用 Node.js path API 保持 containment，并仅在 JSON presentation 中转换为 project-relative POSIX path
+- **THEN** CLI 使用 Node.js path API 保持 .xirang/framing/ 与明确消费目标的 containment，并仅在 JSON presentation 中转换为 project-relative POSIX path
 
 ### Requirement: 提供稳定 Framing JSON Contract
 
@@ -260,17 +242,8 @@ Framing lifecycle SHALL 仅操作 canonical `.xirang/changes/` direct-child mana
 
 #### Scenario: Validation 发现相关 Drift
 
-- **WHEN** command 成功读取对象但 relevant normalized context 已变化
+- **WHEN** command 成功读取对象但 关联上下文 已变化
 - **THEN** JSON status 为 invalid、exit code 为 1 且不输出 spinner、颜色或 stack trace
-
-### Requirement: 确定性消费结构来源
-
-Framing consume SHALL 在 Change validation、relevant drift 与四类 Delta coverage 通过后，将源字节冻结为 `change-structural-definition.md`，并以相同副本恢复或相异副本冲突规则完成幂等 copy-then-delete。
-
-#### Scenario: 上次消费在复制后中断
-
-- **WHEN** 隐藏源与 frozen copy 同时存在且字节相同
-- **THEN** CLI 重新校验后删除源而不覆盖副本
 
 ### Requirement: 通过 Show 与 List 呈现 Change 编译结果
 
@@ -334,3 +307,50 @@ Deterministic Operations SHALL 仅通过顶层 verb-first commands 提供 Change
 
 - **WHEN** 用户提供 `--specs`、`--type spec` 或 `xirang change ...`
 - **THEN** CLI 将其视为未注册 option、type 或 command，而不静默转发到新形式
+
+### Requirement: 管理统一确认记录生命周期
+
+xirang framing create|list|show|status|validate|update|rename|consume|discard SHALL 管理非空已确认设计记录，以 exploration identity 寻址，使用统一 versioned 格式和彼此独立的 Build / Change 形成实例；CLI SHALL NOT 决定哪些用户内容重要。旧结构记录 SHALL 明确诊断不受支持，不自动迁移、删除或建立兼容副本。
+
+#### Scenario: 创建并恢复记录
+
+- **WHEN** create 接收合法 slug、明确形成上下文和已获用户授权的非空条目
+- **THEN** 生成稳定 explorationId 并保存到受控位置，show 返回完整当前条目，list 与 status 可重新发现记录。
+
+#### Scenario: 空记录和旧格式不隐式转换
+
+- **WHEN** 输入为空或发现旧四分区结构记录
+- **THEN** 拒绝无意义空记录或报告不支持的旧格式，既有文件不被迁移或删除。
+
+### Requirement: 返回记录校验与上下文变化
+
+Framing validation SHALL 分别报告格式、稳定身份、显式上下文关联与版本变化的确定性诊断，不推断自然语言冲突或完备性。相关上下文变化 SHALL 阻止复用旧检查结论；意图判断由 Agent 完成并由用户裁决。合法初始 Build 可无 formal model，存在而损坏的模型必须报错。
+
+#### Scenario: 合法缺失与损坏分离
+
+- **WHEN** 首次 Build 没有正式模型，或已有模型损坏
+- **THEN** 前者可创建合法记录，后者失败并保持源与目标不变。
+
+#### Scenario: 格式合法不等于意图完整
+
+- **WHEN** 记录通过格式与身份检查但仍可能遗漏某个行为例外
+- **THEN** CLI 只报告确定性有效性，不输出已完成语义覆盖的结论。
+
+### Requirement: 确定性交接确认来源
+
+framing consume SHALL 显式选择 named Change 或 active Candidate，核对当前源版本及适用目标校验；Agent 必须先完成该版本记录到目标的覆盖复核，CLI SHALL NOT 用四类结构相等或字符串存在性代替该语义判断。CLI SHALL 先保存精确来源快照，再完成适用校验，最后删除活动来源；任何前置失败 SHALL 保留来源与原有目标。同字节快照允许重验后恢复，冲突快照必须停止。
+
+#### Scenario: 相同快照恢复交接
+
+- **WHEN** 上次交接在复制后中断且来源与目标快照字节相同
+- **THEN** 重验源版本及目标后完成清理，不覆盖来源快照。
+
+#### Scenario: 冲突或失败保留来源
+
+- **WHEN** 目标已有不同快照、版本变化或目标校验失败
+- **THEN** 返回错误，保留活动来源及既有目标，不声明交接完成。
+
+#### Scenario: 显式选择消费目标
+
+- **WHEN** 同一项目存在活动 Candidate 与多个 Changes
+- **THEN** 只向命令明确指定的合法目标交接，不从当前目录猜测目标。

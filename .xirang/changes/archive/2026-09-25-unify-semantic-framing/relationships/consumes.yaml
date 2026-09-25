@@ -1,0 +1,5 @@
+relationships:
+  - operation: ADDED
+    source: semantic-model-build
+    kind: consumes
+    target: change-structural-definition

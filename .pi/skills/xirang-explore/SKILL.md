@@ -42,7 +42,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 ## Required References
 
 - MUST read the project-root file `.xirang/references/xirang-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- MUST read `.xirang/references/xirang-definition-framing.md` before offering or resuming Definition Framing. It is the authoritative Xirang-owned protocol for the only persisted Explore artifact.
+- MUST read `.xirang/references/xirang-definition-framing.md` before starting, resuming, or producing a Design Summary when a record exists, and before offering any record write. It is the authoritative Xirang-owned protocol for the only persisted Explore artifact; re-read it after context loss or record changes.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Definition Framing protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
@@ -51,7 +51,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
-The main Explore agent remains read-only outside the managed Definition Framing exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang framing` may persist the confirmed structural intermediate.
+The main Explore agent remains read-only outside the managed Definition Framing exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang framing` may persist the confirmed design record.
 
 ## Required Context
 
@@ -85,7 +85,8 @@ The main Explore agent remains read-only outside the managed Definition Framing 
 **Structural Decomposition Guidance**
 
 - Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` selection from its JSON output. Do not inspect or reinterpret the raw config.
-- For `method`, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
+- 当 `method` 为 `semantic-refinement` 时，先完整读取 `.xirang/references/xirang-semantic-refinement.md`；指导缺失或无法读取时停止结构形成，不猜测默认内容。
+- For other explicit `method` selections, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
 - For `skill`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
@@ -109,13 +110,12 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
-Definition Framing is optional and begins only when the user chooses it. Recommend it when the structural scope is material or cannot be confirmed reliably inside the later design discussion; otherwise proceed directly to Design Exploration.
+Definition Framing is available throughout design, not a linear prerequisite. Follow the shared protocol for key confirmations and user-requested material; a direction confirmation still grants no write permission.
 
-- Run `xirang framing list --json` before structural discussion. When the conversation selects a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`. On every resume, run all three before Design Exploration continues. Use `show` for the complete current payload, `status` for baseline drift, and `validate` for current impacts.
-- When a Change Structural Definition exists, Design Exploration must use its complete current payload and reported Contract and Authored View impacts. Do not reconstruct it from a Design Summary or a prior message.
-- If a structural target changes, invalidate the affected structural confirmations and downstream design decisions, persist the explicitly confirmed complete replacement through the reference protocol, then reconfirm affected design sections.
-- When no Change Structural Definition exists, continue from the Semantic Model and project evidence. Do not create an empty framing record.
-- The Design Summary remains conversation-only. It may carry the `explorationId` for handoff, but it does not duplicate the structural payload.
+- Run `xirang framing list --json` and select a Change-context record when applicable. Before starting, resuming, or producing a Design Summary with a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`; read the complete payload and version.
+- Apply the shared conflict/reload gate. Unresolved conflicts block Design Summary. Record changes invalidate affected Summary and coverage conclusions; resolve, separately authorize any record edits, inspect diff, and reload before rechecking.
+- With no record, continue from the Semantic Model and project evidence using ordinary self-review. Do not create an empty framing record.
+- The Design Summary remains conversation-only. When record-backed, it MUST carry `explorationId` and the checked `sourceVersion` for Propose without duplicating the record. With no record, omit those fields.
 
 ## Simplicity Awareness
 
@@ -137,7 +137,7 @@ If todo is available, create this checklist before context reads and tick each s
 3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions.
 4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
 5. **Confirm the applicable design sections**. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Apply Test Quality Guidance, then choose reuse, modify, add, delete, or one-time verification. Classify testing items as persistent or one-time verification (no persistent test file). When existing tests are affected, list those actions with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a `One-time Verification` subsection.
-6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, recheck semantic impact context, and check for contradictions and vague boundaries. Produce the conversation-only `Design Summary`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+6. **Self-review and generate Design Summary**. Resolve or explicitly defer scope-affecting questions, recheck semantic impact context, and check for contradictions and vague boundaries. Apply the shared record reload/conflict gate when a record exists; unresolved conflicts cannot be deferred into a ready Summary. Produce the conversation-only `Design Summary`. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

@@ -17,19 +17,12 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getExploreSkillTemplate: 'b578164d19deb3ca232c6aa0c90382acc4e251ace6e6ce04e11774a11ef9c952',
   getArchiveChangeSkillTemplate: 'c4e58e869503a8890b15c1bcb61889bd9b748ebfb180541d1e3a2a9ed2645555',
-  getXirangProposeSkillTemplate: '9532d409ced1d0b196fde587da73de4d04e01ff710655815c9948d7bb7824e1b',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
-  getBuildSkillTemplate: '3fd108167442e23998a7ee419cf73c8f79727dca9904cc6aca78ded3dee2565a',
-  getSnackSkillTemplate: '6d7d153c0a2915147576f370ab91e97176fa0f20d2a3ea6c754d355a5619d1f5',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-explore': '7f761c6fcadbbc80e0181ce562f91049a85dfcb9e47e325d88fedd3ef23b2863',
   'xirang-archive-change': '274357df3d4ac4c75d9420dc7daf335ebdba6f5760aa92bf5a91d704f626499d',
-  'xirang-propose': 'fca95eb4877e25ad03f123aef90c9ce0b0104080e07bbc5ae292bc63ab1f4bfd',
-  'xirang-snack': 'a9c6e3975f2efcbbbe969a6a445e951a1025369d50aef6fd8f745e7802420b9d',
 };
 
 function stableStringify(value: unknown): string {
@@ -53,14 +46,10 @@ function hash(value: string): string {
 }
 
 describe('skill templates split parity', () => {
-  it('preserves all template function payloads exactly', () => {
+  it('preserves untouched template function payloads exactly', () => {
     const functionFactories: Record<string, () => unknown> = {
-      getExploreSkillTemplate,
       getArchiveChangeSkillTemplate,
-      getXirangProposeSkillTemplate,
       getFeedbackSkillTemplate,
-      getBuildSkillTemplate,
-      getSnackSkillTemplate,
     };
 
     const actualHashes = Object.fromEntries(
@@ -74,10 +63,7 @@ describe('skill templates split parity', () => {
     // Intentionally excludes getFeedbackSkillTemplate: skillFactories only models templates
     // deployed via generateSkillContent, while feedback is covered in function payload parity.
     const skillFactories: Array<[string, () => SkillTemplate]> = [
-      ['xirang-explore', getExploreSkillTemplate],
       ['xirang-archive-change', getArchiveChangeSkillTemplate],
-      ['xirang-propose', getXirangProposeSkillTemplate],
-      ['xirang-snack', getSnackSkillTemplate],
     ];
 
     const actualHashes = Object.fromEntries(
@@ -116,13 +102,17 @@ describe('skill templates split parity', () => {
     ]);
   });
 
-  it('keeps the tracked Pi snack skill equal to the transformed canonical template', () => {
+  it.each([
+    ['build', 'xirang-build', getBuildSkillTemplate],
+    ['explore', 'xirang-explore', getExploreSkillTemplate],
+    ['propose', 'xirang-propose', getXirangProposeSkillTemplate],
+    ['snack', 'xirang-snack', getSnackSkillTemplate],
+  ] as const)('keeps the tracked Pi %s skill equal to the transformed source', (workflowId, dirName, template) => {
     const version = JSON.parse(readFileSync(path.resolve('package.json'), 'utf-8')).version as string;
-    const rendered = generateSkillContent(getSnackSkillTemplate(), version, (instructions) =>
-      runTransforms(instructions, { toolId: 'pi', workflowId: 'snack', artifactType: 'skill' })
+    const rendered = generateSkillContent(template(), version, (instructions) =>
+      runTransforms(instructions, { toolId: 'pi', workflowId, artifactType: 'skill' })
     );
-
-    expect(readFileSync(path.resolve('.pi/skills/xirang-snack/SKILL.md'), 'utf-8')).toBe(rendered);
+    expect(readFileSync(path.resolve('.pi/skills', dirName, 'SKILL.md'), 'utf-8')).toBe(rendered);
   });
 
   it('renders every tracked workflow surface with canonical Semantic Model guidance', () => {

@@ -1,177 +1,58 @@
 import { describe, expect, it } from 'vitest';
-import {
-  FramingDocumentError,
-  parseChangeStructuralDefinition,
-  renderChangeStructuralDefinition,
-} from '../../../src/core/framing/document.js';
-import type { ChangeStructuralDefinitionDocument } from '../../../src/core/framing/types.js';
+import { normalizeFramingPayload, parseChangeStructuralDefinition, renderChangeStructuralDefinition } from '../../../src/core/framing/document.js';
+import type { ChangeStructuralDefinitionDocument, ChangeStructuralDefinitionPayload } from '../../../src/core/framing/types.js';
 
+const payload: ChangeStructuralDefinitionPayload = {
+  schemaVersion: 2, context: 'build', relatedIdentities: [],
+  entries: [
+    { identity: 'loan-limit', nature: 'normative', content: '最多借阅 5 本；闭馆日顺延。' },
+    { identity: 'rationale', nature: 'informative', content: '用户要求保留的方案说明。' },
+  ],
+};
 const document: ChangeStructuralDefinitionDocument = {
-  metadata: {
-    entity: 'change-structural-definition',
-    explorationId: '20260729T120000Z-a1b2c3d4',
-    slug: 'definition-first',
-    semanticModelFingerprint: 'f'.repeat(64),
-  },
-  payload: {
-    informativeHierarchyPreview: 'project.root\n  explore',
-    elementKinds: [
-      { identity: 'stage', contract: 'optional', parents: [], children: ['capability'], body: '第一行\n第二行' },
-    ],
-    relationshipKinds: [
-      { identity: 'guides', sourceKinds: ['stage'], targetKinds: [], presentation: { color: 'blue', line: 'dashed', head: 'normal' }, body: 'Guidance relation.' },
-    ],
-    elements: [
-      {
-        identity: 'definition-framing',
-        kind: 'stage',
-        parent: 'explore',
-        title: 'Definition Framing',
-        definition: '确认结构定义。\n\n保留完整目标。',
-      },
-    ],
-    relationships: [
-      { source: 'definition-framing', kind: 'guides', target: 'design-exploration' },
-    ],
-  },
-  baseline: {
-    elementKinds: [],
-    relationshipKinds: [],
-    elements: [],
-    relationships: [],
-  },
+  metadata: { entity: 'confirmed-design-record', explorationId: '20260729T120000Z-a1b2c3d4', slug: 'library', semanticModelFingerprint: 'f'.repeat(64) },
+  payload, baseline: { modelState: 'absent', objects: {} },
 };
 
-describe('Change Structural Definition document', () => {
-  it('round-trips all four structural target types and managed metadata', () => {
-    const rendered = renderChangeStructuralDefinition(document);
-    expect(rendered).toContain('entity: change-structural-definition');
-    expect(rendered).toContain('<!-- XIRANG:SEMANTIC_MODEL_BASELINE');
-    expect(parseChangeStructuralDefinition(rendered)).toEqual(document);
+describe('已确认设计记录', () => {
+  it('接收并往返局部确认，保留顺序、性质和完整内容', () => {
+    expect(normalizeFramingPayload(payload)).toEqual(payload);
+    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(document))).toEqual(document);
   });
 
-  it('preserves payload ordering and absent versus empty constraints', () => {
-    const input: ChangeStructuralDefinitionDocument = {
-      ...document,
-      payload: {
-        elementKinds: [
-          { identity: 'open', contract: 'required', body: '' },
-          { identity: 'closed', contract: 'optional', parents: [], children: [], body: '' },
-        ],
-        relationshipKinds: [
-          { identity: 'open-rel', body: '' },
-          { identity: 'closed-rel', sourceKinds: [], targetKinds: [], body: '' },
-        ],
-        elements: [
-          { identity: 'b', kind: 'open', parent: null, title: 'B', definition: 'B.' },
-          { identity: 'a', kind: 'open', parent: null, title: 'A', definition: 'A.' },
-        ],
-        relationships: [],
-      },
-    };
-
-    const parsed = parseChangeStructuralDefinition(renderChangeStructuralDefinition(input));
-    expect(parsed.payload).toEqual(input.payload);
-    expect('parents' in parsed.payload.elementKinds[0]).toBe(false);
-    expect(parsed.payload.elementKinds[1].parents).toEqual([]);
-    expect(parsed.payload.elements.map(item => item.identity)).toEqual(['b', 'a']);
+  it.each([
+    { ...payload, entries: [] },
+    { ...payload, context: 'unknown' },
+    { ...payload, entries: [{ identity: 'a', nature: 'normative', content: ' ' }] },
+    { ...payload, entries: [{ identity: '../a', nature: 'normative', content: '内容' }] },
+    { ...payload, entries: [payload.entries[0], payload.entries[0]] },
+    { ...payload, entries: [{ ...payload.entries[0], operation: 'REMOVED' }] },
+    { ...payload, relatedIdentities: ['root', 'root'] },
+    { ...payload, unknown: true },
+  ])('拒绝非法或空当前态 %#', value => {
+    expect(() => normalizeFramingPayload(value)).toThrow();
   });
 
-  it.each(['ADDED', 'MODIFIED'] as const)('rejects explicit %s operations', operation => {
-    const rendered = renderChangeStructuralDefinition(document).replace(
-      '  - identity: definition-framing',
-      `  - operation: ${operation}\n    identity: definition-framing`,
-    );
-    expect(() => parseChangeStructuralDefinition(rendered)).toThrowError(
-      expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_TARGET_OPERATION' }),
-    );
-  });
-
-  it('rejects unknown fields, invalid managed metadata, and corrupted baseline entries', () => {
-    const rendered = renderChangeStructuralDefinition(document);
-    expect(() => parseChangeStructuralDefinition(rendered.replace(
-      '  - identity: definition-framing\n',
-      '  - identity: definition-framing\n    unknown: discarded\n',
-    ))).toThrowError(expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_PAYLOAD' }));
-    expect(() => parseChangeStructuralDefinition(rendered.replace(
-      'slug: definition-first',
-      'slug: Not Valid',
-    ))).toThrowError(expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_METADATA' }));
-    expect(() => parseChangeStructuralDefinition(rendered.replace(
-      'explorationId: 20260729T120000Z-a1b2c3d4',
-      'explorationId: ../escape',
-    ))).toThrowError(expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_METADATA' }));
-
-    expect(() => parseChangeStructuralDefinition(rendered.replace(
-      '  - identity: definition-framing\n',
-      '  - identity: ../definition-framing\n',
-    ))).toThrowError(expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_PAYLOAD' }));
-
-    const corruptions: ChangeStructuralDefinitionDocument[] = [];
-    const missingValue = structuredClone(document);
-    missingValue.baseline.elements = [{ identity: 'definition-framing', exists: true }] as typeof missingValue.baseline.elements;
-    corruptions.push(missingValue);
-    const invalidAbsentIdentity = structuredClone(document);
-    invalidAbsentIdentity.baseline.elements = [{ identity: '../escape', exists: false }];
-    corruptions.push(invalidAbsentIdentity);
-    const mismatchedValue = structuredClone(document);
-    mismatchedValue.baseline.elements = [{
-      identity: 'definition-framing',
-      exists: true,
-      value: { ...document.payload.elements[0], identity: 'other' },
-    }];
-    corruptions.push(mismatchedValue);
-    for (const corrupted of corruptions) {
-      expect(() => renderChangeStructuralDefinition(corrupted)).toThrowError(
-        expect.objectContaining<Partial<FramingDocumentError>>({ code: 'INVALID_BASELINE' }),
-      );
+  it('明确拒绝旧结构格式和未知版本，不隐式转换', () => {
+    for (const value of [
+      { elementKinds: [], relationshipKinds: [], elements: [], relationships: [] },
+      { ...payload, schemaVersion: 1 },
+      { ...payload, schemaVersion: 3 },
+    ]) {
+      expect(() => normalizeFramingPayload(value)).toThrow(expect.objectContaining({ code: 'UNSUPPORTED_FRAMING_VERSION' }));
     }
+    expect(() => parseChangeStructuralDefinition('---\nentity: change-structural-definition\n---\nelements: []\n'))
+      .toThrow(expect.objectContaining({ code: 'UNSUPPORTED_FRAMING_VERSION' }));
   });
 
-  it('preserves nodePresentation in framing payload', () => {
-    const input: ChangeStructuralDefinitionDocument = {
-      ...document,
-      payload: {
-        ...document.payload,
-        elementKinds: [{
-          identity: 'perspective',
-          contract: 'optional',
-          nodePresentation: { shape: 'document', color: 'indigo', border: 'solid' },
-          body: 'Perspective kind.',
-        }],
-      },
-    };
-    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(input)).payload.elementKinds[0])
-      .toEqual(input.payload.elementKinds[0]);
-  });
-
-  it('accepts framing record without nodePresentation', () => {
-    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(document)).payload.elementKinds[0])
-      .not.toHaveProperty('nodePresentation');
-  });
-
-  it('accepts minimal REMOVED entries and rejects duplicate identities or triples', () => {
-    const removed: ChangeStructuralDefinitionDocument = {
-      ...document,
-      payload: {
-        elementKinds: [{ operation: 'REMOVED', identity: 'old-kind' }],
-        relationshipKinds: [{ operation: 'REMOVED', identity: 'old-relation' }],
-        elements: [{ operation: 'REMOVED', identity: 'old-element' }],
-        relationships: [{ operation: 'REMOVED', source: 'a', kind: 'uses', target: 'b' }],
-      },
-    };
-    expect(parseChangeStructuralDefinition(renderChangeStructuralDefinition(removed)).payload).toEqual(removed.payload);
-
-    const duplicate = structuredClone(document);
-    duplicate.payload.elements.push(structuredClone(duplicate.payload.elements[0]));
-    expect(() => renderChangeStructuralDefinition(duplicate)).toThrowError(
-      expect.objectContaining<Partial<FramingDocumentError>>({ code: 'DUPLICATE_TARGET' }),
-    );
-
-    const duplicateTriple = structuredClone(document);
-    duplicateTriple.payload.relationships.push(structuredClone(duplicateTriple.payload.relationships[0]));
-    expect(() => renderChangeStructuralDefinition(duplicateTriple)).toThrowError(
-      expect.objectContaining<Partial<FramingDocumentError>>({ code: 'DUPLICATE_TARGET' }),
-    );
+  it('拒绝损坏的身份、指纹、基准和未知元数据', () => {
+    for (const metadata of [
+      { ...document.metadata, explorationId: '../outside' },
+      { ...document.metadata, slug: '../outside' },
+      { ...document.metadata, semanticModelFingerprint: 'invalid' },
+      { ...document.metadata, unknown: true },
+    ]) expect(() => renderChangeStructuralDefinition({ ...document, metadata })).toThrow();
+    expect(() => renderChangeStructuralDefinition({ ...document, baseline: { modelState: 'missing', objects: {} } } as never)).toThrow();
+    expect(() => renderChangeStructuralDefinition({ ...document, baseline: { modelState: 'absent', objects: { root: {} } } })).toThrow();
   });
 });

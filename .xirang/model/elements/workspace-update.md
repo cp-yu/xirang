@@ -168,7 +168,7 @@ Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、
 
 ### Requirement: Migrate project config defaults
 
-`xirang update` SHALL 在现有项目中迁移项目配置默认值：物化缺失的 `decomposition.method: c4` 与其他功能性默认值（不覆盖用户值），并移除过时的 git 字段。
+`xirang update` SHALL 在现有项目中迁移项目配置默认值：物化缺失的 `decomposition.method: semantic-refinement` 与其他功能性默认值（不覆盖用户值），并移除过时的 git 字段。
 
 #### Scenario: 配置缺失时创建
 
@@ -176,7 +176,7 @@ Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、
 - **AND** 用户运行 `xirang update`
 - **THEN** 命令 SHALL 创建 `.xirang/config.yaml`
 - **AND** 创建的文件 SHALL 包含 `schema`、`decomposition`、`optimization`、`apply` 与 `git` 默认节点
-- **AND** `decomposition` SHALL 为 `{ method: c4 }`
+- **AND** `decomposition` SHALL 为 `{ method: semantic-refinement }`
 - **AND** SHALL NOT 包含退役的 git 字段
 
 #### Scenario: 添加缺失的嵌套默认值而不覆盖现有值
@@ -198,13 +198,13 @@ Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、
 
 - **WHEN** `.xirang/config.yaml` 不存在且 `.xirang/config.yml` 存在且有效
 - **AND** 用户运行 `xirang update`
-- **THEN** 命令 SHALL 在该 `.xirang/config.yml` 中补齐 `decomposition.method: c4` 与其他缺失默认值
+- **THEN** 命令 SHALL 在该 `.xirang/config.yml` 中补齐 `decomposition.method: semantic-refinement` 与其他缺失默认值
 - **AND** SHALL NOT 创建第二个 `.xirang/config.yaml`
 
 #### Scenario: 项目配置默认值迁移
 
 - **WHEN** 项目 `.xirang/config.yaml` 缺少功能性默认值
-- **THEN** 以 missing-only 方式补齐 `decomposition.method: c4` 与其他默认值
+- **THEN** 以 missing-only 方式补齐 `decomposition.method: semantic-refinement` 与其他默认值
 - **AND** SHALL NOT 覆盖用户已设置的值
 - **AND** 删除陈旧的 `git.merge.messageFrom`, `git.autoCommit` 与 `commitMessage.convention` 节点
 - **AND** 补齐新的 git 功能性默认结构
@@ -213,14 +213,14 @@ Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、
 
 - **WHEN** `xirang update` 在 Windows 上迁移 `.xirang/config.yaml` 或 `.xirang/config.yml`
 - **THEN** 命令 SHALL 使用 Node.js path 工具构建配置路径
-- **AND** SHALL 添加与 Unix 系统相同的 `decomposition.method: c4` 默认值
+- **AND** SHALL 添加与 Unix 系统相同的 `decomposition.method: semantic-refinement` 默认值
 - **AND** SHALL 移除过时 git 字段并添加其他新默认值
 
 #### Scenario: 添加缺失的顶层默认值
 
 - **WHEN** `.xirang/config.yaml` 存在，包含有效 YAML 对象内容，但缺少 `decomposition`、`optimization`、`apply` 和 `git`
 - **AND** 用户运行 `xirang update`
-- **THEN** 命令 SHALL 添加 `decomposition.method: c4`
+- **THEN** 命令 SHALL 添加 `decomposition.method: semantic-refinement`
 - **AND** 命令 SHALL 添加 `optimization` 默认节点
 - **AND** 命令 SHALL 添加 `apply` 默认节点
 - **AND** 命令 SHALL 添加 `git` 默认节点
@@ -234,6 +234,11 @@ Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、
 - **THEN** 命令 SHALL 保持该配置文件不变
 - **AND** 命令 SHALL 警告项目配置默认值迁移被跳过
 - **AND** 命令 SHALL 继续进行已配置工具的 artifact 刷新
+
+#### Scenario: 保留显式方法与项目 skill
+
+- **WHEN** update 遇到有效的显式 c4 方法或项目自有 decomposition skill
+- **THEN** 保留现有选择，不添加另一分支，也不覆盖项目自有 skill。
 
 ### Requirement: Update SHALL 归档退役的 legacy workspace
 

@@ -447,3 +447,13 @@ describe('Xirang shared context fragment', () => {
     }
   });
 });
+
+
+describe('默认语义精化路由', () => {
+  it('结构形成入口指向统一默认指导', () => {
+    for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
+      expect(template.instructions).toContain('semantic-refinement');
+      expect(template.instructions).toContain('.xirang/references/xirang-semantic-refinement.md');
+    }
+  });
+});

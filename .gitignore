@@ -170,6 +170,7 @@ opencode.json
 .github/*
 !.github/workflows/
 .github/workflows/*
+!.github/workflows/windows.yml
 .roadmap/
 /.pi-subagents/
 .xirang/.cache-likec4/

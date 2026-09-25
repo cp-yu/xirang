@@ -164,6 +164,11 @@ artifacts:
       - `Verifies:` MUST NOT use `.xirang/model/...`, project-root-relative paths, archived/main model paths, absolute paths, parent traversal, or backslash-separated paths
       - `Preserves:` path whitelist is independent: only `.xirang/model/elements/<identity>.md` is allowed; it does not relax `Verifies:` constraints
 
+      Semantic coverage before handoff:
+      - Read the complete current confirmed design record when one exists; independently check normative confirmations against the Expected Semantic Model, including conditions, numbers, exceptions, and timing. Informative material belongs in Plan/provenance, not new obligations; already satisfied semantics may be no-op.
+      - Then check that each target behavior requiring implementation has concrete work and observable Checks. Valid references alone do not prove behavior coverage. If behavior is missing, repair its Contract before planning; unresolved intent requires a user decision. Do not maintain a second behavior specification in Tasks.
+      - State implementation actions and dependencies through Contract references. Prompt sources, managed generated surfaces, and behavioral verification belong in the same loop as the behavior they deliver, not a later polish task.
+
       Conversion rules:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
       - Structural labels such as `### Task N:`, `Goal`, `Files`, `Requirements`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
