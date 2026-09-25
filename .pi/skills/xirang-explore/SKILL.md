@@ -47,7 +47,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload. Batch that confirmation per design section: collect the entries a section produced, present them together, and ask once, rather than interrupting for each entry.
 - Before handoff, confirm exactly one record decision when the design carries normative confirmations: a persisted record or an explicit user-granted exemption. A silent skip is neither. Record the exemption and its reason in the Design Summary.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.

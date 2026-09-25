@@ -194,12 +194,15 @@ Use \`context: build\` for a separate Build instance, including before Candidate
 
 The calling workflow must permit the operation: Build and Explore may use the following record-write protocol. Propose MUST NOT create, update, rename, or discard records; its only external write is post-gate \`framing consume\`. A needed record revision blocks Propose and returns to Explore for separate authorization, diff review, and reloaded handoff. This shared protocol never expands stage permissions.
 
+Batch by design section, not by confirmation. Keep one persistence confirmation per create or update, but do not interrupt the conversation once per individual entry: let a design section finish, then present every entry that section produced together and ask for one decision on that batch. Batching changes when the confirmation happens, never how many authorizations a write needs. It does not relax the one-clarification-question-at-a-time discipline for design itself: batching applies to the persistence decision on entries already confirmed, not to unresolved design questions.
+
 1. Before composing a replacement, reload the complete current payload. Combine it with only the proposed changes; preserve unrelated entries and identities.
-2. Identify changed entries, conflicts with earlier confirmations, and dependent design conclusions. MUST NOT treat the latest statement as overriding earlier confirmation. Explain the impact and ask the user to resolve conflicts before saving. A ruling is not write authorization.
-3. Show the complete proposed payload, record identity (or new-record slug), and managed target \`.xirang/framing/\`. Obtain separate explicit persistence confirmation for each create or update. Agreement with a design direction, option, or section does not authorize persistence.
-4. Send that exact payload on stdin to \`xirang framing create --slug <slug> --json\` or \`xirang framing update <explorationId> --json\`. Use only the CLI, never directly edit managed files. Full replacement removes omitted entries: omission is not an implicit approved deletion.
-5. Inspect returned \`diff.added\`, \`diff.modified\` (before/after), and \`diff.removed\`. Unauthorized disappearance is a context-amnesia signal: stop, reconcile with the user, and obtain authorization for any repair. Reload with show/status/validate before continuing; invalidate affected Summary and coverage conclusions, then recheck them. Keep unrelated conclusions intact.
-6. Use \`xirang framing rename <explorationId> --slug <slug> --json\` or \`xirang framing discard <explorationId> --json\` only with explicit authorization for that action.
+2. If the section produced no normative confirmation, do not ask for a persistence decision.
+3. Identify changed entries, conflicts with earlier confirmations, and dependent design conclusions. MUST NOT treat the latest statement as overriding earlier confirmation. Explain the impact and ask the user to resolve conflicts before saving. A ruling is not write authorization.
+4. Show the complete proposed payload, record identity (or new-record slug), managed target \`.xirang/framing/\`, and the entries this batch adds or changes, including those the user declined. Obtain one explicit persistence confirmation for this create or update. Agreement with a design direction, option, or section does not authorize persistence, and an entry carried into the batch without the user addressing it is not confirmed.
+5. Send that exact payload on stdin to \`xirang framing create --slug <slug> --json\` or \`xirang framing update <explorationId> --json\`. Use only the CLI, never directly edit managed files. Full replacement removes omitted entries: omission is not an implicit approved deletion.
+6. Inspect returned \`diff.added\`, \`diff.modified\` (before/after), and \`diff.removed\`. Unauthorized disappearance is a context-amnesia signal: stop, reconcile with the user, and obtain authorization for any repair. Confirm every entry this batch intended to add or change actually landed, and that no entry the user declined was persisted. Reload with show/status/validate before continuing; invalidate affected Summary and coverage conclusions, then recheck them. Keep unrelated conclusions intact.
+7. Use \`xirang framing rename <explorationId> --slug <slug> --json\` or \`xirang framing discard <explorationId> --json\` only with explicit authorization for that action.
 
 ## Summary and semantic coverage gates
 
@@ -250,7 +253,7 @@ ${TEST_QUALITY_GUIDANCE}
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload. Batch that confirmation per design section: collect the entries a section produced, present them together, and ask once, rather than interrupting for each entry.
 - Before handoff, confirm exactly one record decision when the design carries normative confirmations: a persisted record or an explicit user-granted exemption. A silent skip is neither. Record the exemption and its reason in the Design Summary.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
