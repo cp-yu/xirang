@@ -6,7 +6,7 @@ const OPTIMIZER_SELF_READ_REFERENCE = `# Optimizer Self-Read Protocol
 Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
 2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed.
-3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and optimization config.
+3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and the optimization config from \.xirang/config.yaml, treating an absent \`minImpactLevel\` as \`low\`.
 4. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
 5. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`; their union is the base scope and is used only for navigation.
 6. Read final contents of implementation evidence and base scope files.
@@ -24,7 +24,7 @@ Judge correct code for meaningful, statically provable, behavior-preserving impr
 
 ## Benefit Threshold
 
-Read \`optimization.minImpactLevel\` before scanning. It is the lowest \`impactLevel\` worth selecting, and every direction below it is out of scope for this project: do not report it as actionable, do not report it as deferred to satisfy the gate, and do not inflate its \`impactLevel\` to clear the threshold. Report only directions at or above it.
+Read \`optimization.minImpactLevel\` before scanning. It is the lowest \`impactLevel\` worth selecting, and it defaults to \`low\` when the project config does not set it, so treat an absent value as no threshold above the lowest level. Every direction below it is out of scope for this project: do not report it as actionable, do not report it as deferred to satisfy the gate, and do not inflate its \`impactLevel\` to clear the threshold. Report only directions at or above it.
 
 \`impactLevel\` measures how much the change is worth, not how easy it is: a trivial edit with a real, evidenced effect is still \`high\`; a large refactor that only rearranges code without a provable effect is below the threshold at any size. When no direction clears the threshold, finalize with \`NO_ACTIONABLE\` and state in the summary that the remaining opportunities fell below \`minImpactLevel\`. Reporting \`NO_ACTIONABLE\` here is a correct outcome, not a failure to find work.
 

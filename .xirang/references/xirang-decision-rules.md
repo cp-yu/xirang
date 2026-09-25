@@ -4,7 +4,7 @@ Judge correct code for meaningful, statically provable, behavior-preserving impr
 
 ## Benefit Threshold
 
-Read `optimization.minImpactLevel` before scanning. It is the lowest `impactLevel` worth selecting, and every direction below it is out of scope for this project: do not report it as actionable, do not report it as deferred to satisfy the gate, and do not inflate its `impactLevel` to clear the threshold. Report only directions at or above it.
+Read `optimization.minImpactLevel` before scanning. It is the lowest `impactLevel` worth selecting, and it defaults to `low` when the project config does not set it, so treat an absent value as no threshold above the lowest level. Every direction below it is out of scope for this project: do not report it as actionable, do not report it as deferred to satisfy the gate, and do not inflate its `impactLevel` to clear the threshold. Report only directions at or above it.
 
 `impactLevel` measures how much the change is worth, not how easy it is: a trivial edit with a real, evidenced effect is still `high`; a large refactor that only rearranges code without a provable effect is below the threshold at any size. When no direction clears the threshold, finalize with `NO_ACTIONABLE` and state in the summary that the remaining opportunities fell below `minImpactLevel`. Reporting `NO_ACTIONABLE` here is a correct outcome, not a failure to find work.
 

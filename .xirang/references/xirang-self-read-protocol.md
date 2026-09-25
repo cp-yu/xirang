@@ -3,7 +3,7 @@
 Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
 2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed.
-3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and optimization config.
+3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and the optimization config from .xirang/config.yaml, treating an absent `minImpactLevel` as `low`.
 4. Read `baseCommit` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
 5. Run `git diff <baseCommit>...HEAD --name-only` and `git status --short`; their union is the base scope and is used only for navigation.
 6. Read final contents of implementation evidence and base scope files.
