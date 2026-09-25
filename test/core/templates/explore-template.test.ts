@@ -132,8 +132,10 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('before starting, resuming, or producing a Design Summary');
     expect(template).toContain('Unresolved conflicts block Design Summary');
     expect(template).toContain('invalidate affected Summary and coverage conclusions');
-    expect(template).toContain('Do not create an empty framing record');
+    expect(template).toContain('do not create an empty framing record');
     expect(template).toContain('MUST carry `explorationId` and the checked `sourceVersion`');
+    expect(template).toContain('explicit user-granted exemption');
+    expect(template).toContain('A silent skip is neither');
     expect(template).not.toContain('before structural discussion');
     expect(template).not.toContain('Change Structural Definition');
   });

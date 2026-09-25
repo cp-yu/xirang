@@ -79,7 +79,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 
 ## Confirmed design inputs
 
-MUST read `.xirang/references/xirang-definition-framing.md` when a record is available, before compiling it. Re-read on resume, record changes, and before source handoff; use its authorization, conflict, and reload protocol rather than reconstructing it. Propose MUST NOT create, update, rename, or discard records. If conflict resolution or drift requires a record revision, stop and return to Explore; its revised identity/version handoff must be rechecked before continuing. The shared protocol does not expand this stage boundary. A record is formation evidence, not a complete Semantic Delta. With no record, keep the ordinary Propose path and do not create an empty record.
+MUST read `.xirang/references/xirang-definition-framing.md` when a record is available, before compiling it. Re-read on resume, record changes, and before source handoff; use its authorization, conflict, and reload protocol rather than reconstructing it. Propose MUST NOT create, update, rename, or discard records. If conflict resolution or drift requires a record revision, stop and return to Explore; its revised identity/version handoff must be rechecked before continuing. The shared protocol does not expand this stage boundary. A record is formation evidence, not a complete Semantic Delta. With no record, require the source to declare its record decision before compiling: an explicit user-granted exemption or a stated absence of normative content. An undeclared absence is a blocker, not an ordinary path, and MUST NOT be treated as an implicit exemption.
 
 ## Flow
 
@@ -138,7 +138,7 @@ MUST read `.xirang/references/xirang-definition-framing.md` when a record is ava
     - Reload with `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`. Changed source or relevant drift requires renewed conflict/coverage checks; do not hand off an old reviewed version.
     - After both coverage checks and combined Change validation succeed, run `xirang framing consume <explorationId> --change "<name>" --source-version <sourceVersion> --json`. The CLI rechecks source version, context, and target validation, not natural-language coverage. It freezes exact bytes at `.xirang/changes/<name>/framing-source.md` before removing the active source. Any failure blocks Formation; preserve source and existing destination and follow the shared recovery protocol.
     - Check the returned target and source cleanup. The frozen `framing-source.md` records Formation history only; do not parse it as a later semantic source or use it in Sync or Change Closure.
-    - With no record, skip framing validation and consumption.
+    - With no record, do not treat the source as covered by default. Require the Design Summary or current input to declare the record decision: an explicit user-granted exemption, or an absence of normative content. If neither is declared, stop Formation and return to Explore for the missing decision instead of compiling and consuming. Do not create an empty record.
 12. Finish with `xirang status --change "<name>"`. Summarize artifacts created or updated, validation errors and warnings, and readiness for `/skill:xirang-apply-change`. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Artifact Contract

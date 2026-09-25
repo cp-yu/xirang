@@ -35,7 +35,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 
 | Aspect | Value |
 |--------|-------|
-| **Stage** | `EXPLORE` - Design exploration with optional managed Definition Framing |
+| **Stage** | `EXPLORE` - Design exploration under a confirmed record decision |
 | **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and use `xirang framing` after explicit persistence confirmation |
 | **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
 
@@ -48,6 +48,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 ## Hard Rules
 
 - User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload.
+- Before handoff, confirm exactly one record decision when the design carries normative confirmations: a persisted record or an explicit user-granted exemption. A silent skip is neither. Record the exemption and its reason in the Design Summary.
 - Ask one clarification question at a time; do not auto-capture decisions into artifacts.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
@@ -110,11 +111,11 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
-Definition Framing is available throughout design, not a linear prerequisite. Follow the shared protocol for key confirmations and user-requested material; a direction confirmation still grants no write permission.
+Definition Framing is available throughout design, not a linear prerequisite. Follow the shared protocol for key confirmations and user-requested material; a direction confirmation still grants no write permission. Normative confirmations must reach a record or a recorded exemption before handoff.
 
 - Run `xirang framing list --json` and select a Change-context record when applicable. Before starting, resuming, or producing a Design Summary with a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`; read the complete payload and version.
 - Apply the shared conflict/reload gate. Unresolved conflicts block Design Summary. Record changes invalidate affected Summary and coverage conclusions; resolve, separately authorize any record edits, inspect diff, and reload before rechecking.
-- With no record, continue from the Semantic Model and project evidence using ordinary self-review. Do not create an empty framing record.
+- With no record, reach an explicit record decision before handoff: ask the user to choose a record or an exemption, then carry the outcome and its reason into the Design Summary. Do not decide by silence and do not create an empty framing record.
 - The Design Summary remains conversation-only. When record-backed, it MUST carry `explorationId` and the checked `sourceVersion` for Propose without duplicating the record. With no record, omit those fields.
 
 ## Simplicity Awareness
