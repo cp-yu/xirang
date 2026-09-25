@@ -11,7 +11,6 @@ import {
   updateFraming,
 } from '../../../src/core/framing/workspace.js';
 import type { ChangeStructuralDefinitionPayload } from '../../../src/core/framing/types.js';
-import { emptySemanticModel } from '../../../src/core/model/types.js';
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -26,14 +25,12 @@ async function workspace(): Promise<string> {
 
 function payload(identity = 'a'): ChangeStructuralDefinitionPayload {
   return {
-    elementKinds: [],
-    relationshipKinds: [],
-    elements: [{ identity, kind: 'capability', parent: 'root', title: identity, definition: `${identity}.` }],
-    relationships: [],
+    schemaVersion: 2, context: 'build', relatedIdentities: [],
+    entries: [{ identity, nature: 'normative', content: `${identity} 的确认内容` }],
   };
 }
 
-const context = { model: emptySemanticModel(), semanticModelFingerprint: 'f'.repeat(64) };
+const context = { model: null, semanticModelFingerprint: 'f'.repeat(64) };
 const identity = '20260729T120000Z-a1b2c3d4';
 const generation = { now: new Date('2026-07-29T12:00:00Z'), randomHex: 'a1b2c3d4' };
 
@@ -42,20 +39,23 @@ describe('framing workspace', () => {
     const root = await workspace();
     const created = await createFraming(root, 'first', payload(), context, generation);
     expect(created.document.metadata.explorationId).toBe(identity);
-    expect(created.path).toBe(`.xirang/changes/.explore-first-${identity}.md`);
+    expect(created.sourceVersion).toMatch(/^[a-f0-9]{64}$/);
+    expect(created.path).toBe(`.xirang/framing/first-${identity}.md`);
     expect((await listFramings(root)).map(item => item.document.metadata.slug)).toEqual(['first']);
 
     const updated = await updateFraming(root, identity, payload('replacement'), context);
-    expect(updated.record.document.payload.elements.map(item => item.identity)).toEqual(['replacement']);
-    expect(updated.record.document.payload.elements).not.toContainEqual(expect.objectContaining({ identity: 'a' }));
-    expect(updated.diff.elements.removed).toEqual([expect.objectContaining({ identity: 'a' })]);
-    expect(updated.diff.elements.added).toEqual(['replacement']);
-    expect(updated.diff.elements.modified).toEqual([]);
+    expect(updated.record.document.payload.entries.map(item => item.identity)).toEqual(['replacement']);
+    expect(updated.record.document.payload.entries).not.toContainEqual(expect.objectContaining({ identity: 'a' }));
+    expect(updated.diff.removed).toEqual([expect.objectContaining({ identity: 'a' })]);
+    expect(updated.diff.added).toEqual([expect.objectContaining({ identity: 'replacement', content: 'replacement 的确认内容' })]);
+    expect(updated.diff.modified).toEqual([]);
 
     const renamed = await renameFraming(root, identity, 'renamed');
     expect(renamed.document.metadata.explorationId).toBe(identity);
+    expect(renamed.sourceVersion).not.toBe(updated.record.sourceVersion);
+    expect(renamed.document.payload).toEqual(updated.record.document.payload);
     expect(renamed.document.metadata.slug).toBe('renamed');
-    expect(renamed.path).toContain(`.explore-renamed-${identity}.md`);
+    expect(renamed.path).toContain(`renamed-${identity}.md`);
     expect((await showFraming(root, identity)).path).toBe(renamed.path);
 
     await discardFraming(root, identity);
@@ -65,7 +65,7 @@ describe('framing workspace', () => {
   it('rejects empty create payloads and duplicate exploration identities', async () => {
     const root = await workspace();
     const empty: ChangeStructuralDefinitionPayload = {
-      elementKinds: [], relationshipKinds: [], elements: [], relationships: [],
+      schemaVersion: 2, context: 'build', relatedIdentities: [], entries: [],
     };
     await expect(createFraming(root, 'empty', empty, context, generation)).rejects.toMatchObject({ code: 'EMPTY_PAYLOAD' });
     await createFraming(root, 'first', payload(), context, generation);
@@ -79,15 +79,15 @@ describe('framing workspace', () => {
     const root = await workspace();
     const outside = path.join(await workspace(), 'outside.md');
     await fs.writeFile(outside, 'outside', 'utf8');
-    const changes = path.join(root, '.xirang', 'changes');
+    const changes = path.join(root, '.xirang', 'framing');
     await fs.mkdir(changes, { recursive: true });
-    await fs.symlink(outside, path.join(changes, `.explore-linked-${identity}.md`));
+    await fs.symlink(outside, path.join(changes, `linked-${identity}.md`));
     await expect(listFramings(root)).rejects.toMatchObject({ code: 'UNSAFE_MANAGED_PATH' });
 
     const root2 = await workspace();
     const outsideDir = await workspace();
     await fs.mkdir(path.join(root2, '.xirang'), { recursive: true });
-    await fs.symlink(outsideDir, path.join(root2, '.xirang', 'changes'));
+    await fs.symlink(outsideDir, path.join(root2, '.xirang', 'framing'));
     await expect(createFraming(root2, 'first', payload(), context, generation)).rejects.toMatchObject({
       code: 'UNSAFE_MANAGED_PATH',
     });

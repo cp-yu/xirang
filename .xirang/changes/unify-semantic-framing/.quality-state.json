@@ -1,0 +1,560 @@
+{
+  "kind": "review",
+  "timestamp": "2026-09-25T08:23:14.680Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Windows verification passed, but five symlink-related test branches remain unverified on Windows.",
+      "requirement": "隔离受控文件路径 (definition-framing-operations; deterministic-operations)",
+      "task": "C18",
+      "recommendation": "Retain the disclosed platform limitation. When a symlink-capable Windows environment is available, verify the skipped branches; do not describe the current run as complete Windows symlink coverage.",
+      "evidenceCitations": [
+        ".xirang/changes/unify-semantic-framing/tasks.md:267-272",
+        "/tmp/unify-task4-evidence.md:14-23",
+        "/tmp/unify-windows-corrections-green.log:982-993",
+        "test/commands/candidate-init.test.ts:72-97",
+        "test/core/framing/workspace.test.ts:78-93",
+        "test/core/framing/consume.test.ts:132-148",
+        "test/core/framing/consume.test.ts:182-194",
+        "test/commands/candidate-validate.test.ts:366-374"
+      ]
+    }
+  ],
+  "tasksFileHash": "34333a6410e5d086e322f39a041c77d3bc7aede97edacafc4af2448213240dfe",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/test-windows.yml",
+      ".github/workflows/windows.yml",
+      ".gitignore",
+      ".pi/skills/xirang-build/SKILL.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/unify-semantic-framing/.apply-isolation.json",
+      ".xirang/changes/unify-semantic-framing/.quality-state.json",
+      ".xirang/changes/unify-semantic-framing/design.md",
+      ".xirang/changes/unify-semantic-framing/elements/candidate-commands.md",
+      ".xirang/changes/unify-semantic-framing/elements/change-structural-definition.md",
+      ".xirang/changes/unify-semantic-framing/elements/definition-framing-operations.md",
+      ".xirang/changes/unify-semantic-framing/elements/definition-framing.md",
+      ".xirang/changes/unify-semantic-framing/elements/design-exploration.md",
+      ".xirang/changes/unify-semantic-framing/elements/deterministic-operations.md",
+      ".xirang/changes/unify-semantic-framing/elements/explore-brainstorming.md",
+      ".xirang/changes/unify-semantic-framing/elements/explore-role.md",
+      ".xirang/changes/unify-semantic-framing/elements/explore.md",
+      ".xirang/changes/unify-semantic-framing/elements/post-propose-validation.md",
+      ".xirang/changes/unify-semantic-framing/elements/project-config-loading.md",
+      ".xirang/changes/unify-semantic-framing/elements/project-tooling-configuration.md",
+      ".xirang/changes/unify-semantic-framing/elements/propose-role.md",
+      ".xirang/changes/unify-semantic-framing/elements/propose-workflow.md",
+      ".xirang/changes/unify-semantic-framing/elements/propose.md",
+      ".xirang/changes/unify-semantic-framing/elements/semantic-model-build.md",
+      ".xirang/changes/unify-semantic-framing/elements/single-dimension-decomposition.md",
+      ".xirang/changes/unify-semantic-framing/elements/tasks-document.md",
+      ".xirang/changes/unify-semantic-framing/elements/workflow-templates.md",
+      ".xirang/changes/unify-semantic-framing/elements/workspace-init.md",
+      ".xirang/changes/unify-semantic-framing/elements/workspace-update.md",
+      ".xirang/changes/unify-semantic-framing/proposal.md",
+      ".xirang/changes/unify-semantic-framing/relationships/consumes.yaml",
+      ".xirang/changes/unify-semantic-framing/relationships/invokes.yaml",
+      ".xirang/changes/unify-semantic-framing/relationships/precedes.yaml",
+      ".xirang/changes/unify-semantic-framing/tasks.md",
+      ".xirang/references/xirang-definition-framing.md",
+      ".xirang/references/xirang-explore-supperpowers-style.md",
+      ".xirang/references/xirang-semantic-refinement.md",
+      "schemas/semantic-model/schema.yaml",
+      "schemas/semantic-model/templates/tasks.md",
+      "src/commands/candidate.ts",
+      "src/commands/framing.ts",
+      "src/core/candidate/digest.ts",
+      "src/core/candidate/history.ts",
+      "src/core/candidate/promotion.ts",
+      "src/core/candidate/validator.ts",
+      "src/core/candidate/workspace.ts",
+      "src/core/framing/baseline.ts",
+      "src/core/framing/consume.ts",
+      "src/core/framing/document.ts",
+      "src/core/framing/paths.ts",
+      "src/core/framing/types.ts",
+      "src/core/framing/validator.ts",
+      "src/core/framing/workspace.ts",
+      "src/core/project-config.ts",
+      "src/core/setup.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/model-skeleton.ts",
+      "src/core/templates/skill-templates.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/workflows/build.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/propose.ts",
+      "src/core/templates/workflows/snack.ts",
+      "src/core/update.ts",
+      "test/commands/candidate-init.test.ts",
+      "test/commands/candidate-promote.test.ts",
+      "test/commands/candidate-status.test.ts",
+      "test/commands/candidate-validate.test.ts",
+      "test/commands/config.test.ts",
+      "test/commands/framing-json.test.ts",
+      "test/commands/framing.test.ts",
+      "test/core/candidate-digest.test.ts",
+      "test/core/candidate-history.test.ts",
+      "test/core/config-schema.test.ts",
+      "test/core/framing/baseline.property.test.ts",
+      "test/core/framing/baseline.test.ts",
+      "test/core/framing/consume.test.ts",
+      "test/core/framing/diff.test.ts",
+      "test/core/framing/document.property.test.ts",
+      "test/core/framing/document.test.ts",
+      "test/core/framing/paths.test.ts",
+      "test/core/framing/validator.test.ts",
+      "test/core/framing/workspace.test.ts",
+      "test/core/model/candidate-partitions.test.ts",
+      "test/core/parsers/task-structure.test.ts",
+      "test/core/project-config.test.ts",
+      "test/core/setup.test.ts",
+      "test/core/shared/skill-generation.test.ts",
+      "test/core/templates/build.test.ts",
+      "test/core/templates/definition-framing-reference.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/manifest/registry.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/semantic-model-consistency.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/core/templates/sync-engine.test.ts",
+      "test/core/templates/transforms.test.ts",
+      "test/core/update.test.ts",
+      "test/integration/framing-workflow.test.ts",
+      "test/integration/windows-definition-ci.test.ts",
+      "test/skills/semantic-model-consistency.test.ts",
+      "test/utils/framing-discovery-isolation.test.ts"
+    ],
+    "evidenceFingerprint": "24893ce39f7b86396e78e27ceba4e180acc41e759b0c734e248f04d1b3077fb7",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/test-windows.yml",
+        "hash": "6c85a8a4254cdb08d03d2d16de4d4e28d4aa8287b8de601bd50224ce9a1027fc"
+      },
+      {
+        "path": ".github/workflows/windows.yml",
+        "hash": "717fd9b98dfbb25648c8ecae17c3590f26dd4863fdf7e672a031f323856fcdfe"
+      },
+      {
+        "path": ".gitignore",
+        "hash": "d2333ec700398f35f4122c5c6fc7ba6399e8832792ea948a7fef5e787bba633a"
+      },
+      {
+        "path": ".pi/skills/xirang-build/SKILL.md",
+        "hash": "750fc758862f36100d753c9c7a969a915b62f6cf86efd519c7205a9d753a0102"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "fa27aebe7ec47ff3c8fc691103a48f48babf5e441eb6348d6da820ace428d96c"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "a0973ef37e7e84fef6ba7503f01bfc9ae7be2abe910733e64a4b214e1c226871"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "14e3b39f9f60ecdb068a863a5a079e75daa2e337fa509120900a2644dd5d2eeb"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/.apply-isolation.json",
+        "hash": "d9a0333f566edb81b84a28a8a1105ee8d601c8be4a28aa6ed8790c3901ae6b57"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/design.md",
+        "hash": "2eb63900118d5f9d5caf83baecf6c043370a88f202ababb12f4e234aeba7f118"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/candidate-commands.md",
+        "hash": "79e3f97d0b5c7382f6786b1afb762b371ed59bff6b383a8762acd66ff3fe30ce"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/change-structural-definition.md",
+        "hash": "6704ab4be9a4c729dfba88a2f82709331ad26b5aff75df1c44bf1f655ec06778"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/definition-framing-operations.md",
+        "hash": "d7f52eab14bec17be489e55798504dfe08a4cef4d175456bd5071265792d73d4"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/definition-framing.md",
+        "hash": "68460587d049926d22769497cb764e39dde15bc34ed617560118e5a6c6d79484"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/design-exploration.md",
+        "hash": "807c779cd927edd2df68671f3de12a69f210ffb60b825396949b03e6924270c3"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/deterministic-operations.md",
+        "hash": "bd4a53d4e03e50713a69cffeb38f86f84f94515f830beac524b8f5c8b8956806"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/explore-brainstorming.md",
+        "hash": "e0aec5e0778b4271e913d83459c5b6b6641cf15a4c93e0fbde5df4b841bb85ac"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/explore-role.md",
+        "hash": "6807b1d31aea376eee2a413efcc2abfca5e47e26d153e5385c53ed8d701ae1d6"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/explore.md",
+        "hash": "b52672f29e76a7b385e805f0f604da4918b944625c6e2dd61c297820a6e1812d"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/post-propose-validation.md",
+        "hash": "89e9f392f24b22b0effb2d7f215f4d698bf473cab773967cab26f86e8ca4b3ed"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/project-config-loading.md",
+        "hash": "545e238bad29f8e08d4fe98bd78f789330008c3b8ab780c7e033ed89cdaa48e6"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/project-tooling-configuration.md",
+        "hash": "e801f463553eb0bb0b59858cae90fb9e4de7246660fed05e1b79481b705f099c"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/propose-role.md",
+        "hash": "951fa10069d889f81e6daaa401c6c24b8b463fb395e469c8ceaebd1cb526664b"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/propose-workflow.md",
+        "hash": "e6acd401b37aaa43741fda17b1162e1f3045e3043dcac383085e2b4325b69624"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/propose.md",
+        "hash": "bfc72fe1464c198ba80c8c39ef2dd8659ba8a2672d96491a718df5238a6a9bad"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/semantic-model-build.md",
+        "hash": "44a005969eb11e55bcbcadbb4c642c579937ac69d2b3cc82f9803c3ed56711a5"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/single-dimension-decomposition.md",
+        "hash": "505176657651f65630f59a9ee31c59c2d00fd31819efc95c4813d32869e22be3"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/tasks-document.md",
+        "hash": "bf156a31e0011fdfa39de2a570cf2a10bae52b846609ea0d431252ca5eab0676"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/workflow-templates.md",
+        "hash": "508a66cb9d8add0234ca9fbdbe687b54a60ee326af5bfffe1e2632bd268eef50"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/workspace-init.md",
+        "hash": "a4454218348993f0ae6611f1c70cefd0f0a8a6900471e0807088b15e797a40d1"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/elements/workspace-update.md",
+        "hash": "451f40d4ceb6623e64a7343d126dedeeb9e166fc3da66f4cec88005d09ba7b77"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/proposal.md",
+        "hash": "bbc3ca8bcb75e26ecd1e7c1ed1631018d2978697bb3a0028d64493b2f6a3d25e"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/relationships/consumes.yaml",
+        "hash": "68fb05ddefb8d8d8868b1f4ca67d3ebeae80caafae790562e8d83acc3f18de42"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/relationships/invokes.yaml",
+        "hash": "00af55bab4cf3c0ebb90d3b07499a3c3fa08ff6a1a93db3baecfce610ffb4cbc"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/relationships/precedes.yaml",
+        "hash": "b30523585aa728c756de1d5cd0a9df844de0071065bac849a3dce0f1e23aec82"
+      },
+      {
+        "path": ".xirang/changes/unify-semantic-framing/tasks.md",
+        "hash": "34333a6410e5d086e322f39a041c77d3bc7aede97edacafc4af2448213240dfe"
+      },
+      {
+        "path": ".xirang/references/xirang-definition-framing.md",
+        "hash": "e5821ae8c218cb719f7c308fdbf14dbbee2207998fa8d36d1b6bb815a0440625"
+      },
+      {
+        "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+        "hash": "46c8e213c146610901032798f190a5b2ba7d6f3f807c7542a36a28aa6629659b"
+      },
+      {
+        "path": ".xirang/references/xirang-semantic-refinement.md",
+        "hash": "0cd621d76bcb6ae1848019bcc1c665df1930c928fac0071ae4aab60a927f4861"
+      },
+      {
+        "path": "schemas/semantic-model/schema.yaml",
+        "hash": "46ba4a0eb72c9c040c29384d0dac8c71f9f80406b57c2daaf52cbae8a59f8127"
+      },
+      {
+        "path": "schemas/semantic-model/templates/tasks.md",
+        "hash": "319827da6a1f7c2fcef5be598a56c8c4b47e2aec55823adce39b711c5ad4d00f"
+      },
+      {
+        "path": "src/commands/candidate.ts",
+        "hash": "1f92f72de01dea6d9d87201ad515d8e7576f4b6023013f685a1b3255fb15f8a5"
+      },
+      {
+        "path": "src/commands/framing.ts",
+        "hash": "ee84b86281e20424ccb7b2da37e641d77579729fa14f9e3b5fecc0aedadd9973"
+      },
+      {
+        "path": "src/core/candidate/digest.ts",
+        "hash": "119509b3454a6ed6d60254df67d646d5a9ade72d034e69286ff85712aead2fec"
+      },
+      {
+        "path": "src/core/candidate/history.ts",
+        "hash": "63429e03f7d940084040387065331a5817f584ad6b92ee2f2c9b6540fc8fdfe7"
+      },
+      {
+        "path": "src/core/candidate/promotion.ts",
+        "hash": "28b8260a9350127f698c1c0c7fae7c7d681da49a466c946214472dd730192eb2"
+      },
+      {
+        "path": "src/core/candidate/validator.ts",
+        "hash": "4367a6e5558e1ffba03ae6a1fe3f2798f0948f9c0974465c4d8b4d77097c4595"
+      },
+      {
+        "path": "src/core/candidate/workspace.ts",
+        "hash": "8fdeb55a5f1377bc4cd7cd14a515c7eb57e68bf1f64fd3ec3700228ee6be7d9a"
+      },
+      {
+        "path": "src/core/framing/baseline.ts",
+        "hash": "f6a6157cf892781cecf3e84bef520d3ceacacf4b9aa75b9147a0889731929bdd"
+      },
+      {
+        "path": "src/core/framing/consume.ts",
+        "hash": "401d2da6a8ed2bc427fd75daaa25193393b500b48c6f8a90fbf07a4825ac874c"
+      },
+      {
+        "path": "src/core/framing/document.ts",
+        "hash": "095f187575e3d60161c66342bc2f50df1aa50a1f0300daffc36e4c8164a188dc"
+      },
+      {
+        "path": "src/core/framing/paths.ts",
+        "hash": "1f5b1507206b59b0af8f6fde1f423c7c0dae637ca86784c51a424759e5357250"
+      },
+      {
+        "path": "src/core/framing/types.ts",
+        "hash": "daa8d9cf5ffdc1f3185b56f7461552eaa65b22ddd8aaf2199d656df8c9f62c02"
+      },
+      {
+        "path": "src/core/framing/validator.ts",
+        "hash": "15b621bbdccd3876cd852a4a4017f92a8640002b7c05f7946065357660d1c9dc"
+      },
+      {
+        "path": "src/core/framing/workspace.ts",
+        "hash": "124428ee8ebda0f2276737a9fba8c415319d3ffa45b7698340461fdae848ae1c"
+      },
+      {
+        "path": "src/core/project-config.ts",
+        "hash": "6004cc9880e27dea5a2075812c5a0f4997a5271c8095e41fd37af96d3f8aa5ad"
+      },
+      {
+        "path": "src/core/setup.ts",
+        "hash": "35d358ee15a4a6fecb9d4ccff9c257efaa3361b2fbac90ec1750643ee8d5fa80"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "9345ed01e1204998cfeae339df893c0a490875cb35373c6d13fcba959826032d"
+      },
+      {
+        "path": "src/core/templates/model-skeleton.ts",
+        "hash": "b9633b98baa596bdd300945c066c85c1c9aed9996130996f9454fd3a2f91313a"
+      },
+      {
+        "path": "src/core/templates/skill-templates.ts",
+        "hash": "3ac3dc12df5dfbaac4022932562093a491bf2c9f8f3770c08557f1cf7ef05ff2"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "d51cfef9ad6047c9471f43e0858e4182d4cd2f2127ff410153ecdc9d42e7d329"
+      },
+      {
+        "path": "src/core/templates/workflows/build.ts",
+        "hash": "d0f13ef8a9acefc466a93b079ee00a33246f5a65de5355bc07f40c51eefc6289"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "8ddeeb6365da096ff4c71974e324d60483d5a7e8833f2b6edd47c6cb4065dee7"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "62365015a64fba2d0ee2039ec7fcab8724a2bf63dc3d19c292e95f023b1517b6"
+      },
+      {
+        "path": "src/core/templates/workflows/snack.ts",
+        "hash": "8225a118192ad1ff30f16f8e9607e7b85a3c40faced1cce4b5b73fd1ebbd04c3"
+      },
+      {
+        "path": "src/core/update.ts",
+        "hash": "c3df87c3cf1dfe9718fd5b6ad6210beb78aa50f47d21a2cb422402feededc3a2"
+      },
+      {
+        "path": "test/commands/candidate-init.test.ts",
+        "hash": "e9a410af7c25e0e1e60749301b65357478cdec1135a1e617a263e49dcae32398"
+      },
+      {
+        "path": "test/commands/candidate-promote.test.ts",
+        "hash": "af7ba0b18f250503514ed18b10a8f51297c203efc09356b8c97a39bd36307ed8"
+      },
+      {
+        "path": "test/commands/candidate-status.test.ts",
+        "hash": "aa20ec4a5b4e396a0616d512117ebd5df3b5cb8d89d347d6c33b085172d9c8f5"
+      },
+      {
+        "path": "test/commands/candidate-validate.test.ts",
+        "hash": "a1594c2ac1b08038a2eaffce5289a1741ee01bfdb876b7722d20a0975d18a4f5"
+      },
+      {
+        "path": "test/commands/config.test.ts",
+        "hash": "de1570108a816ef71f8a6e142b821a543f4b7f1846597d9083a79ca8eff2d116"
+      },
+      {
+        "path": "test/commands/framing-json.test.ts",
+        "hash": "c0901630ffbe44152e07ba20d8fd9ffed570ccdb95a70258bd851028c133002e"
+      },
+      {
+        "path": "test/commands/framing.test.ts",
+        "hash": "4a1338b31e2f88036565b95aee7f0930df9041c0fbdaa7314a3020c220ce4b11"
+      },
+      {
+        "path": "test/core/candidate-digest.test.ts",
+        "hash": "0bf08ba0ac4dffdf611352d13ec34dc17210cb75f8cd698333036f2b19ccc82b"
+      },
+      {
+        "path": "test/core/candidate-history.test.ts",
+        "hash": "6a2de0864ac74f1707a19694fb93eb3a1f02091f5d5913672ad976806edd50b2"
+      },
+      {
+        "path": "test/core/config-schema.test.ts",
+        "hash": "4d1a8c1cb4e7b1e4dac1b9302c8e49a7e658186dc3ac836ed5e9b2318597e375"
+      },
+      {
+        "path": "test/core/framing/baseline.property.test.ts",
+        "hash": "b4737eab01423939fb6db35d2477d0c32a2d6279651b78e7911a9eade2110890"
+      },
+      {
+        "path": "test/core/framing/baseline.test.ts",
+        "hash": "c200951a0e750817db5f256824484e5a3adf45b1fdce34641e2e2f26de28605f"
+      },
+      {
+        "path": "test/core/framing/consume.test.ts",
+        "hash": "3ed56387d70db1f289ce51924bfca69187877f064b5726f663cd094853645a93"
+      },
+      {
+        "path": "test/core/framing/diff.test.ts",
+        "hash": "8de1e6dbc293a132865e0fade5e82a82b766a3bd118b3a68007f57cf1b7d8d53"
+      },
+      {
+        "path": "test/core/framing/document.property.test.ts",
+        "hash": "02204cc67776ff54b20c4ec586c2f9c0d3e80d09f37497641aecbf163fda78a2"
+      },
+      {
+        "path": "test/core/framing/document.test.ts",
+        "hash": "2c7206d5aa2dd377c04bcdbe8bd2f25b3493d45ebf97c45362f1e20c2a7e3a3c"
+      },
+      {
+        "path": "test/core/framing/paths.test.ts",
+        "hash": "1397d775871579dd19cbfb8828b19fede870c9ceea8917ac56f442b76cdf51a9"
+      },
+      {
+        "path": "test/core/framing/validator.test.ts",
+        "hash": "01fb415958215be0afe213a53733ea44cdee9cb8a70d773c36dd052ab17c1584"
+      },
+      {
+        "path": "test/core/framing/workspace.test.ts",
+        "hash": "2fc31c2857779f2db715d40bbe989ec0bc26f0358414dd2126479d3de4171449"
+      },
+      {
+        "path": "test/core/model/candidate-partitions.test.ts",
+        "hash": "2a2533657dcabd92869060a700f3eee7ead683c26fa166dfae3bc3b53ca319f0"
+      },
+      {
+        "path": "test/core/parsers/task-structure.test.ts",
+        "hash": "bf04d7232d8b440b75654dd691a04ab58f6e814ba69629b7bd01dda64e216cbe"
+      },
+      {
+        "path": "test/core/project-config.test.ts",
+        "hash": "b20c32bbfb0f70476ffd20d70ce5715101aa200319cd909b5a48d3f8e5b21e98"
+      },
+      {
+        "path": "test/core/setup.test.ts",
+        "hash": "61b15e2f7b2fc4c1bcf3bcddcc4825a9da8871c501ee700527aa3d723f2f5604"
+      },
+      {
+        "path": "test/core/shared/skill-generation.test.ts",
+        "hash": "4426a5b47fa2d03283a315301be9aa0ab85f22b06061a6f2733b900c5a99daf3"
+      },
+      {
+        "path": "test/core/templates/build.test.ts",
+        "hash": "d724fda20e3c416eb4dd892169b1257b34de778a76d6f7c7348d8efecd612456"
+      },
+      {
+        "path": "test/core/templates/definition-framing-reference.test.ts",
+        "hash": "2b2f2bdd768b581840a49102f60903161f10f908c1da89436c4224f30f042ac6"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "8d0051a18c81dd6ee22b42881f38bf7b9a6cf7eca7e91a27a0ba74042607a938"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "0394d65bc646a737e4438de0348962269d1547f9e79a748902e76c41cf4105e6"
+      },
+      {
+        "path": "test/core/templates/manifest/registry.test.ts",
+        "hash": "18efa9a09d1582963bd1516635d49f17a9bd37aa0cb22004e184bf3dd0b91ab9"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "0538bf9f498088c36db60824bf6a29165b5909066fba6aa5f169b217df8867dc"
+      },
+      {
+        "path": "test/core/templates/semantic-model-consistency.test.ts",
+        "hash": "12e3165988b14e65b0558bb7d60fd3f5fc0333f0a03915f2f3baa2524ea88c5f"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "d8fd6516824197ec086c0e1ad1737f8e95e40d37bf0687255fc78d7cc506898a"
+      },
+      {
+        "path": "test/core/templates/sync-engine.test.ts",
+        "hash": "742de7eef840d73c49513fc1b0f1d062d63c563e55012bd146cd8f2538fe4fab"
+      },
+      {
+        "path": "test/core/templates/transforms.test.ts",
+        "hash": "dc1d3dbf6450188152f239932b79ab8f1cffcba8e6d4fb9e733bf19fc5ddb4f3"
+      },
+      {
+        "path": "test/core/update.test.ts",
+        "hash": "c1bfa08e82f8e7fac7d51696b705f04d08a31a0f7d5a1ac947536e940dbe7fea"
+      },
+      {
+        "path": "test/integration/framing-workflow.test.ts",
+        "hash": "ceb63b6fbaf46b770090e6fa5054405bbc8b6554a494d3bd23aa0e66bbc2b245"
+      },
+      {
+        "path": "test/integration/windows-definition-ci.test.ts",
+        "hash": "8d4d845106e724cb9af49f9cbce3c7234fb27f9487f11c292d9ab3dd912120d8"
+      },
+      {
+        "path": "test/skills/semantic-model-consistency.test.ts",
+        "hash": "4a71a6b5398bd3b89f287f56fecb0589b5677b029d24e1db1f6be10788acac07"
+      },
+      {
+        "path": "test/utils/framing-discovery-isolation.test.ts",
+        "hash": "f6c6c914cf3fc6501f972fc1cb1adba93096cd0ea688a709b1fea03e7d316ecd"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/unify-semantic-framing/.quality-state.json"
+    ],
+    "gitHeadCommit": "4f30e71d15c12a70570bdb4aca26dd80a9b55215",
+    "gitDiffSummary": "Validated projectRoot, changeDir, changeName, and immutable baseline 4f30e71d15c12a70570bdb4aca26dd80a9b55215 (.xirang/changes/unify-semantic-framing/.apply-isolation.json:1-6). git diff <baseCommit>...HEAD --name-only is empty; git status --short --untracked-files=all identifies 89 staged/worktree/untracked paths. Reviewed their attribution and final contents, all 21 Element Delta units, and all three Relationship Delta units; metamodel/views Delta partitions are absent. Declared target-normalize.ts deletion is complete. Searches for target-normalize, normalizeStructural, validateFramingTarget, structuralCoverage, and the retired source filename returned no implementation/import residue; remaining .explore- references are explicit unsupported-format diagnostics and discovery-isolation tests (src/core/framing/workspace.ts:180-186; test/utils/framing-discovery-isolation.test.ts:18-45). Diff-scoped TODO/FIXME/HACK searches and both git diff --check variants were clean. Defaults and shared skeleton are implemented at src/core/project-config.ts:15-18 and src/core/templates/model-skeleton.ts:17-53, with setup preservation/validation evidence at test/core/setup.test.ts:655-692,750-793. Record identity, lifecycle, and malformed-model rejection are implemented at src/core/framing/workspace.ts:156-166,219-293 and src/core/framing/validator.ts:15-50. All three prior critical findings are corrected: final provenance must still exist before source cleanup (src/core/framing/consume.ts:134-149; regression/retry cases test/core/framing/consume.test.ts:95-120); record-backed Summary must carry identity/version (src/core/templates/workflows/explore.ts:202,289-292); Propose's external-write exception is consume-only (src/core/templates/workflows/propose.ts:39-43; .xirang/references/xirang-definition-framing.md:35-48). Candidate source bytes enter the digest but not semantic parsing (src/core/candidate/validator.ts:272-280), remain in history (src/core/candidate/history.ts:51-54), and retain final validation/review/digest gates (src/core/templates/workflows/build.ts:53-90). Reviewer reran two targeted Vitest batches: 32 files, 522 tests passed. Inspected latest full-suite evidence: 160 files, 2269 tests passed (/tmp/unify-corrections-full-test.log:1482-1485), successful build/lint, and source/projection/second-sync evidence. Native Windows evidence reports 236 passed and five explicitly disclosed skips; read-only diff -rq confirmed its src/test/schemas copies match current files. Counts cover 19 checkbox Checks across four task groups and 81 Requirement/188 Scenario headings. Two duplicated path-isolation requirements and their symlink scenarios are conservatively withheld from full PASS totals only for the Windows verification limitation, not an identified implementation contradiction. Re-ran arch outline, combined Change validation, and arch validate --change; both validators returned no issues, with relationship intent matching consumes.yaml:1-5, invokes.yaml:1-5, and precedes.yaml:1-5. Formal model, explicit project config, and project-owned decomposition skill are unchanged.",
+    "timestamp": "2026-09-25T08:23:14.680Z"
+  }
+}

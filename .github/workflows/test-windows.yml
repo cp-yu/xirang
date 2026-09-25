@@ -47,10 +47,20 @@ jobs:
           test/commands/arch-impact.test.ts
           test/core/view.test.ts
       - name: Verify Windows framing paths and build gates
-        run: |
-          pnpm exec vitest run test/core/framing/paths.test.ts test/core/framing/workspace.test.ts test/integration/framing-workflow.test.ts
-          pnpm run build
-          pnpm run lint
+        run: >-
+          pnpm exec vitest run
+          test/core/project-config.test.ts
+          test/core/setup.test.ts
+          test/core/update.test.ts
+          test/core/framing/paths.test.ts
+          test/core/framing/workspace.test.ts
+          test/core/framing/consume.test.ts
+          test/integration/framing-workflow.test.ts
+          test/commands/candidate-init.test.ts
+          test/commands/candidate-validate.test.ts
+          test/core/candidate-digest.test.ts
+          test/core/candidate-history.test.ts
+          test/commands/candidate-promote.test.ts
       - name: Run Windows vendored browser-server tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate

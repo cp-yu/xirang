@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
+import { getBuildSkillTemplate, getExploreSkillTemplate, getXirangProposeSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 import { collectSharedReferenceFiles } from '../../../src/core/templates/sync-engine.js';
 
 describe('Definition Framing reference projection', () => {
@@ -9,25 +9,24 @@ describe('Definition Framing reference projection', () => {
   it('projects one Xirang-owned, tool-neutral framing protocol', () => {
     expect(reference).toBeDefined();
     expect(reference?.content).toContain('Definition Framing');
-    expect(reference?.content).toContain('user chooses');
-    expect(reference?.content).toContain('explicit persistence confirmation');
-    expect(reference?.content).toContain('Before proposing or confirming hierarchy targets');
-    expect(reference?.content).toContain('configured decomposition guidance');
-    expect(reference?.content).toContain('stop the affected structural framing');
-    expect(reference?.content).toContain('causal definition');
-    expect(reference?.content).toContain('MECE');
-    expect(reference?.content).toContain('single structural dimension');
-    expect(reference?.content).toContain('breadth-first (BFS) order');
-    expect(reference?.content).toContain('same-level structure');
-    expect(reference?.content).toContain('identity, Kind, parent, or Relationship');
-    expect(reference?.content).toContain('complete current payload');
-    expect(reference?.content).toContain('Before composing any replacement payload');
-    expect(reference?.content).toContain('context-amnesia signal');
-    expect(reference?.content).toContain('xirang framing create');
-    expect(reference?.content).toContain('xirang framing update');
-    expect(reference?.content).toContain('xirang framing status');
-    expect(reference?.content).toContain('xirang framing validate');
-    expect(reference?.content).toContain('xirang framing discard');
+    for (const command of ['create', 'update', 'show', 'status', 'validate', 'discard']) {
+      expect(reference?.content).toContain(`xirang framing ${command}`);
+    }
+    for (const gate of [
+      'explicit persistence confirmation',
+      'complete current payload',
+      'MUST NOT treat the latest statement as overriding earlier confirmation',
+      'Unresolved conflicts block Design Summary',
+      'MUST carry `explorationId` and the checked `sourceVersion`',
+      'Propose MUST NOT create, update, rename, or discard records',
+      'schemaVersion: 2',
+      'nature: normative',
+      'nature: informative',
+      'context: change',
+      'context: build',
+    ]) expect(reference?.content).toContain(gate);
+    expect(reference?.content).not.toContain('Persist only complete structural targets');
+    expect(reference?.content).not.toContain('before Design Exploration');
     expect(reference?.content).not.toMatch(/\/xirang:|\$xirang-|\.pi\/skills|\.claude\/skills|\.codex\/skills/);
     expect(reference?.content).not.toContain('One-question discipline');
     expect(reference?.content).not.toContain('Section-by-section design approval');
@@ -39,6 +38,14 @@ describe('Definition Framing reference projection', () => {
       fileName: 'xirang-definition-framing.md',
       sourcePath: 'references/definition-framing.md',
     }));
-    expect(template.instructions).toContain('.xirang/references/xirang-definition-framing.md');
+    for (const entry of [template, getBuildSkillTemplate(), getXirangProposeSkillTemplate()]) {
+      expect(entry.instructions).toContain('.xirang/references/xirang-definition-framing.md');
+    }
+    const all = collectSharedReferenceFiles([
+      { workflowId: 'explore', template },
+      { workflowId: 'build', template: getBuildSkillTemplate() },
+      { workflowId: 'propose', template: getXirangProposeSkillTemplate() },
+    ]);
+    expect(all.filter(file => file.fileName === 'xirang-definition-framing.md')).toHaveLength(1);
   });
 });

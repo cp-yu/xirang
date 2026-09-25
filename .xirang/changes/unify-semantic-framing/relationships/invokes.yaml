@@ -1,0 +1,5 @@
+relationships:
+  - operation: ADDED
+    source: semantic-model-build
+    kind: invokes
+    target: definition-framing

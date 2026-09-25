@@ -1,34 +1,22 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { canonicalJson } from '../semantic-diff.js';
 import { captureRelevantBaseline } from './baseline.js';
-import { parseChangeStructuralDefinition, renderChangeStructuralDefinition } from './document.js';
-import { normalizedCoverageTarget } from './target-normalize.js';
+import { normalizeFramingPayload, parseChangeStructuralDefinition, renderChangeStructuralDefinition } from './document.js';
 import {
   assertContainedPath,
-  framingChangesRoot,
+  framingRoot,
   managedFramingFilename,
   managedFramingPath,
   projectRelativePosix,
   validateExplorationId,
   validateFramingSlug,
 } from './paths.js';
-import type {
-  ChangeStructuralDefinitionDocument,
-  ChangeStructuralDefinitionPayload,
-  ElementKindTarget,
-  ElementTarget,
-  FramingDiffModified,
-  FramingKeyedDiffPart,
-  FramingPayloadDiff,
-  FramingRelationshipDiffPart,
-  RelationshipKindTarget,
-  RelationshipTarget,
-} from './types.js';
-import { relationshipIdentity, type SemanticModel } from '../model/types.js';
+import type { ChangeStructuralDefinitionDocument, ChangeStructuralDefinitionPayload, FramingPayloadDiff } from './types.js';
+import type { SemanticModel } from '../model/types.js';
 
-const MANAGED_FILE = /^\.explore-(.+)-(\d{8}T\d{6}Z-[a-f0-9]{8})\.md$/;
+const MANAGED_FILE = /^(.+)-(\d{8}T\d{6}Z-[a-f0-9]{8})\.md$/;
 
 export type FramingWorkspaceErrorCode =
   | 'FRAMING_NOT_FOUND'
@@ -36,7 +24,9 @@ export type FramingWorkspaceErrorCode =
   | 'EMPTY_PAYLOAD'
   | 'UNSAFE_MANAGED_PATH'
   | 'MANAGED_PATH_CONFLICT'
-  | 'FILENAME_METADATA_MISMATCH';
+  | 'FILENAME_METADATA_MISMATCH'
+  | 'UNSUPPORTED_FRAMING_VERSION'
+  | 'CONTEXT_MISMATCH';
 
 export class FramingWorkspaceError extends Error {
   constructor(public readonly code: FramingWorkspaceErrorCode, message: string) {
@@ -46,7 +36,7 @@ export class FramingWorkspaceError extends Error {
 }
 
 export interface FramingSemanticContext {
-  model: SemanticModel;
+  model: SemanticModel | null;
   semanticModelFingerprint: string;
 }
 
@@ -58,6 +48,8 @@ export interface FramingIdentityGeneration {
 export interface FramingWorkspaceRecord {
   path: string;
   absolutePath: string;
+  sourceVersion: string;
+  bytes: Buffer;
   document: ChangeStructuralDefinitionDocument;
 }
 
@@ -106,18 +98,18 @@ async function inspectDirectory(target: string): Promise<string | undefined> {
   return target;
 }
 
-async function inspectChangesRoot(projectRoot: string): Promise<string | undefined> {
+async function inspectFramingRoot(projectRoot: string): Promise<string | undefined> {
   const root = await assertProjectRoot(projectRoot);
   const xirang = await inspectDirectory(path.join(root, '.xirang'));
   if (!xirang) return undefined;
-  return inspectDirectory(path.join(xirang, 'changes'));
+  return inspectDirectory(path.join(xirang, 'framing'));
 }
 
-async function ensureChangesRoot(projectRoot: string): Promise<string> {
+async function ensureFramingRoot(projectRoot: string): Promise<string> {
   const root = await assertProjectRoot(projectRoot);
   const xirang = path.join(root, '.xirang');
   await ensureDirectory(xirang);
-  const changes = path.join(xirang, 'changes');
+  const changes = path.join(xirang, 'framing');
   await ensureDirectory(changes);
   return changes;
 }
@@ -131,79 +123,20 @@ function createExplorationId(generation: FramingIdentityGeneration): string {
   return validateExplorationId(`${timestamp(generation.now ?? new Date())}-${suffix}`);
 }
 
-function isEmptyPayload(payload: ChangeStructuralDefinitionPayload): boolean {
-  return payload.elementKinds.length === 0
-    && payload.relationshipKinds.length === 0
-    && payload.elements.length === 0
-    && payload.relationships.length === 0;
-}
-
-type KeyedRemoval<T extends { identity: string }> = T | { operation: 'REMOVED'; identity: string };
-type RelationshipRemoval = RelationshipTarget | { operation: 'REMOVED'; source: string; kind: string; target: string };
-
-function isActiveTarget<T extends object>(item: T | { operation: 'REMOVED' }): item is T {
-  return !('operation' in item && (item as { operation?: 'REMOVED' }).operation === 'REMOVED');
-}
-
-function activeBy<T extends object>(items: readonly (T | { operation: 'REMOVED' })[], key: (item: T) => string): Map<string, T> {
-  const map = new Map<string, T>();
-  for (const item of items) {
-    if (isActiveTarget(item)) map.set(key(item), item);
-  }
-  return map;
-}
-
-function diffKeyedPart<T extends { identity: string }>(
-  entity: 'element-kind' | 'relationship-kind' | 'element-declaration',
-  previous: readonly KeyedRemoval<T>[],
-  next: readonly KeyedRemoval<T>[],
-): FramingKeyedDiffPart<T> {
-  const previousByIdentity = activeBy<T>(previous, item => item.identity);
-  const nextByIdentity = activeBy<T>(next, item => item.identity);
-  const added: string[] = [];
-  const modified: FramingDiffModified<T>[] = [];
-  const removed: T[] = [];
-  for (const identity of nextByIdentity.keys()) {
-    if (!previousByIdentity.has(identity)) added.push(identity);
-  }
-  for (const [identity, before] of previousByIdentity) {
-    const after = nextByIdentity.get(identity);
-    if (after === undefined) {
-      removed.push(before);
-    } else if (canonicalJson(normalizedCoverageTarget(entity, before))
-      !== canonicalJson(normalizedCoverageTarget(entity, after))) {
-      modified.push({ identity, before, after });
-    }
-  }
-  return { added, modified, removed };
-}
-
-function diffRelationships(
-  previous: readonly RelationshipRemoval[],
-  next: readonly RelationshipRemoval[],
-): FramingRelationshipDiffPart {
-  const previousByTriple = activeBy<RelationshipTarget>(previous, relationshipIdentity);
-  const nextByTriple = activeBy<RelationshipTarget>(next, relationshipIdentity);
-  const added: RelationshipTarget[] = [];
-  const removed: RelationshipTarget[] = [];
-  for (const [triple, item] of nextByTriple) {
-    if (!previousByTriple.has(triple)) added.push(item);
-  }
-  for (const [triple, item] of previousByTriple) {
-    if (!nextByTriple.has(triple)) removed.push(item);
-  }
-  return { added, modified: [], removed };
-}
-
 export function diffFramingPayloads(
   previous: ChangeStructuralDefinitionPayload,
   next: ChangeStructuralDefinitionPayload,
 ): FramingPayloadDiff {
+  const before = new Map(previous.entries.map(item => [item.identity, item]));
+  const after = new Map(next.entries.map(item => [item.identity, item]));
   return {
-    elementKinds: diffKeyedPart<ElementKindTarget>('element-kind', previous.elementKinds, next.elementKinds),
-    relationshipKinds: diffKeyedPart<RelationshipKindTarget>('relationship-kind', previous.relationshipKinds, next.relationshipKinds),
-    elements: diffKeyedPart<ElementTarget>('element-declaration', previous.elements, next.elements),
-    relationships: diffRelationships(previous.relationships, next.relationships),
+    added: next.entries.filter(item => !before.has(item.identity)),
+    modified: previous.entries.flatMap(item => {
+      const updated = after.get(item.identity);
+      return updated && canonicalJson(item) !== canonicalJson(updated)
+        ? [{ identity: item.identity, before: item, after: updated }] : [];
+    }),
+    removed: previous.entries.filter(item => !after.has(item.identity)),
   };
 }
 
@@ -225,11 +158,12 @@ async function readRecord(projectRoot: string, changesRoot: string, filename: st
   if (!parsed) workspaceError('UNSAFE_MANAGED_PATH', `Invalid managed framing filename: ${filename}`);
   const absolutePath = assertContainedPath(changesRoot, path.join(changesRoot, filename));
   await assertRegularFile(absolutePath);
-  const document = parseChangeStructuralDefinition(await fs.readFile(absolutePath, 'utf8'));
+  const bytes = await fs.readFile(absolutePath);
+  const document = parseChangeStructuralDefinition(bytes.toString('utf8'));
   if (document.metadata.slug !== parsed.slug || document.metadata.explorationId !== parsed.explorationId) {
     workspaceError('FILENAME_METADATA_MISMATCH', `Managed filename does not match document metadata: ${filename}`);
   }
-  return { path: projectRelativePosix(projectRoot, absolutePath), absolutePath, document };
+  return { path: projectRelativePosix(projectRoot, absolutePath), absolutePath, bytes, document, sourceVersion: createHash('sha256').update(bytes).digest('hex') };
 }
 
 async function atomicWrite(target: string, content: string): Promise<void> {
@@ -244,12 +178,20 @@ async function atomicWrite(target: string, content: string): Promise<void> {
 }
 
 export async function listFramings(projectRoot: string): Promise<FramingWorkspaceRecord[]> {
-  const changesRoot = await inspectChangesRoot(projectRoot);
+  const root = await assertProjectRoot(projectRoot);
+  const xirang = await inspectDirectory(path.join(root, '.xirang'));
+  if (xirang) {
+    const legacy = await inspectDirectory(path.join(xirang, 'changes'));
+    if (legacy && (await fs.readdir(legacy)).some(name => name.startsWith('.explore-'))) {
+      workspaceError('UNSUPPORTED_FRAMING_VERSION', 'Legacy structural records require explicit user handling; no files were migrated or deleted');
+    }
+  }
+  const changesRoot = await inspectFramingRoot(projectRoot);
   if (!changesRoot) return [];
   const entries = await fs.readdir(changesRoot, { withFileTypes: true });
   const records: FramingWorkspaceRecord[] = [];
   for (const entry of entries) {
-    if (!entry.name.startsWith('.explore-')) continue;
+    if (!entry.name.endsWith('.md')) continue;
     if (entry.isSymbolicLink() || !entry.isFile()) {
       workspaceError('UNSAFE_MANAGED_PATH', `Managed path is not a regular file: ${entry.name}`);
     }
@@ -282,8 +224,8 @@ export async function createFraming(
   generation: FramingIdentityGeneration = {},
 ): Promise<FramingWorkspaceRecord> {
   validateFramingSlug(slug);
-  if (isEmptyPayload(payload)) workspaceError('EMPTY_PAYLOAD', 'Initial framing payload must not be empty');
-  const changesRoot = await ensureChangesRoot(projectRoot);
+  payload = normalizeFramingPayload(payload);
+  const changesRoot = await ensureFramingRoot(projectRoot);
   const explorationId = createExplorationId(generation);
   if ((await listFramings(projectRoot)).some(record => record.document.metadata.explorationId === explorationId)) {
     workspaceError('DUPLICATE_EXPLORATION_ID', `Duplicate exploration identity: ${explorationId}`);
@@ -293,7 +235,7 @@ export async function createFraming(
   if (await lstat(absolutePath)) workspaceError('MANAGED_PATH_CONFLICT', `Managed framing path already exists: ${absolutePath}`);
   const document: ChangeStructuralDefinitionDocument = {
     metadata: {
-      entity: 'change-structural-definition',
+      entity: 'confirmed-design-record',
       explorationId,
       slug,
       semanticModelFingerprint: context.semanticModelFingerprint,
@@ -311,8 +253,9 @@ export async function updateFraming(
   payload: ChangeStructuralDefinitionPayload,
   context: FramingSemanticContext,
 ): Promise<FramingUpdateResult> {
-  if (isEmptyPayload(payload)) workspaceError('EMPTY_PAYLOAD', 'Updated framing payload must not be empty');
+  payload = normalizeFramingPayload(payload);
   const current = await showFraming(projectRoot, explorationId);
+  if (payload.context !== current.document.payload.context) workspaceError('CONTEXT_MISMATCH', 'Formation context is immutable; create a separate record');
   const document: ChangeStructuralDefinitionDocument = {
     metadata: { ...current.document.metadata, semanticModelFingerprint: context.semanticModelFingerprint },
     payload,
@@ -329,7 +272,7 @@ export async function renameFraming(
 ): Promise<FramingWorkspaceRecord> {
   validateFramingSlug(slug);
   const current = await showFraming(projectRoot, explorationId);
-  const changesRoot = framingChangesRoot(projectRoot);
+  const changesRoot = framingRoot(projectRoot);
   const target = managedFramingPath(projectRoot, slug, explorationId);
   assertContainedPath(changesRoot, target);
   if (target !== current.absolutePath && await lstat(target)) {

@@ -120,7 +120,7 @@ describe('SetupCommand', () => {
       const parsed = parseYaml(content);
       expect(content).toContain('schema: semantic-model');
       expect(content).toContain('decomposition:');
-      expect(content).toContain('  method: c4');
+      expect(content).toContain('  method: semantic-refinement');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
       expect(content).toContain('  directionLimit: 3');
@@ -141,7 +141,7 @@ describe('SetupCommand', () => {
       expect(parsed.git.merge).not.toHaveProperty('commitMessage');
       expect(parsed.git.merge.strategy).toBe('no-ff');
       expect(parsed.git.branch.deleteAfterArchive).toBe(false);
-      expect(parsed.decomposition).toEqual({ method: 'c4' });
+      expect(parsed.decomposition).toEqual({ method: 'semantic-refinement' });
       expect(parsed.decomposition).not.toHaveProperty('skill');
       expect(parsed).not.toHaveProperty('propose');
       expect(parsed.apply).toEqual({
@@ -658,6 +658,8 @@ describe('Xirang skeleton generation', () => {
 
     expect(SETUP_MODEL_FILE_MANIFEST.map((file) => file.relativePath)).toEqual([
       'metamodel/project.md',
+      'metamodel/element.md',
+      'metamodel/perspective.md',
       'elements/project.root.md',
     ]);
     for (const partition of PARTITIONS) {
@@ -673,8 +675,10 @@ describe('Xirang skeleton generation', () => {
     const parsed = await parseSemanticModel(modelRoot(testDir));
     expect(parsed.diagnostics).toEqual([]);
     expect(validateSemanticModel(parsed.model)).toEqual([]);
-    expect(parsed.model.elementKinds).toEqual([
-      { identity: 'project', contract: 'optional', root: true, body: 'The single Project Root of the Semantic Model.' },
+    expect(parsed.model.elementKinds.map(({ identity, contract, root }) => ({ identity, contract, root }))).toEqual([
+      { identity: 'element', contract: 'optional', root: undefined },
+      { identity: 'perspective', contract: 'optional', root: undefined },
+      { identity: 'project', contract: 'optional', root: true },
     ]);
     expect(parsed.model.elements[0].declaration).toMatchObject({
       identity: 'project.root',

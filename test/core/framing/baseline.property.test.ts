@@ -5,10 +5,8 @@ import type { ChangeStructuralDefinitionPayload } from '../../../src/core/framin
 import type { SemanticModel } from '../../../src/core/model/types.js';
 
 const payload: ChangeStructuralDefinitionPayload = {
-  elementKinds: [],
-  relationshipKinds: [],
-  elements: [{ identity: 'leaf', kind: 'node', parent: 'root', title: 'Leaf', definition: 'Leaf.' }],
-  relationships: [],
+  schemaVersion: 2, context: 'change', relatedIdentities: ['leaf'],
+  entries: [{ identity: 'limit', nature: 'normative', content: '必须保留叶节点确认。' }],
 };
 
 const base: SemanticModel = {

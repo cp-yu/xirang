@@ -14,7 +14,7 @@ describe('framing paths', () => {
     // same way the implementation does.
     const repo = path.resolve('/repo');
     expect(managedFramingPath(repo, 'definition-first', '20260729T120000Z-a1b2c3d4')).toBe(
-      path.join(repo, '.xirang', 'changes', '.explore-definition-first-20260729T120000Z-a1b2c3d4.md'),
+      path.join(repo, '.xirang', 'framing', 'definition-first-20260729T120000Z-a1b2c3d4.md'),
     );
   });
 
@@ -29,10 +29,10 @@ describe('framing paths', () => {
 
   it('checks containment and presents POSIX paths with Windows semantics', () => {
     const root = 'C:\\repo';
-    const target = 'C:\\repo\\.xirang\\changes\\.explore-a-20260729T120000Z-a1b2c3d4.md';
+    const target = 'C:\\repo\\.xirang\\framing\\a-20260729T120000Z-a1b2c3d4.md';
     expect(assertContainedPath(root, target, path.win32)).toBe(target);
     expect(projectRelativePosix(root, target, path.win32)).toBe(
-      '.xirang/changes/.explore-a-20260729T120000Z-a1b2c3d4.md',
+      '.xirang/framing/a-20260729T120000Z-a1b2c3d4.md',
     );
     expect(() => assertContainedPath(root, 'C:\\outside\\file.md', path.win32)).toThrow(/outside/i);
     expect(() => assertContainedPath(root, 'D:\\repo\\file.md', path.win32)).toThrow(/outside/i);

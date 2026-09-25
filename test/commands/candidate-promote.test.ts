@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { createFraming } from '../../src/core/framing/workspace.js';
+import { readFramingSemanticContext } from '../../src/core/framing/validator.js';
 import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
@@ -26,6 +28,14 @@ async function readFormalTree(root: string): Promise<Map<string, Buffer>> {
   };
   for (const partition of SEMANTIC_PARTITIONS) await visit(path.join(root, '.xirang', 'model', partition));
   return files;
+}
+
+async function writeProvenance(root: string, candidate: string): Promise<void> {
+  const record = await createFraming(root, 'promotion-source', {
+    schemaVersion: 2, context: 'build', relatedIdentities: ['project.root'],
+    entries: [{ identity: 'intent', nature: 'normative', content: 'Preserve the confirmed exception.' }],
+  }, await readFramingSemanticContext(root, 'build'));
+  await fs.writeFile(path.join(candidate, 'framing-source.md'), record.bytes);
 }
 
 describe('Candidate promotion', () => {
@@ -90,10 +100,12 @@ describe('Candidate promotion', () => {
     }
   });
 
-  it('rejects a stale digest without changing formal source or history', async () => {
+  it.each(['build.md', 'framing-source.md'])('rejects stale %s bytes without changing formal source or history', async (file) => {
+    if (file === 'framing-source.md') await writeProvenance(root, candidate);
     const validation = await validateCandidate(root);
     const before = await readFormalTree(root);
-    await fs.writeFile(path.join(candidate, 'build.md'), 'changed requirement\n');
+    const original = await fs.readFile(path.join(candidate, file), 'utf8');
+    await fs.writeFile(path.join(candidate, file), file === 'build.md' ? 'changed requirement\n' : original.replace('Preserve', 'Retain'));
 
     await expect(promoteCandidate(root, validation.reviewDigest!)).rejects.toThrow(/digest mismatch/i);
 
@@ -113,7 +125,10 @@ describe('Candidate promotion', () => {
     expect(await exists(candidate)).toBe(true);
   });
 
-  it('rolls back after post-write digest revalidation detects a concurrent Candidate change', async () => {
+  it.each(['build.md', 'framing-source.md'])('rolls back after post-write digest revalidation detects concurrent %s changes', async (file) => {
+    if (file === 'framing-source.md') await writeProvenance(root, candidate);
+    const original = await fs.readFile(path.join(candidate, file), 'utf8');
+    const modified = file === 'build.md' ? 'concurrent change\n' : original.replace('Preserve', 'Retain');
     const validation = await validateCandidate(root);
     const before = await readFormalTree(root);
 
@@ -124,9 +139,9 @@ describe('Candidate promotion', () => {
           if (target === path.join(root, '.xirang', 'model', 'views')
             && source.includes('.candidate-promotion-')
             && !source.includes('.backup-')) {
-            const build = path.join(path.dirname(source), 'candidate', 'build.md');
+            const build = path.join(path.dirname(source), 'candidate', file);
             await fs.chmod(build, 0o644);
-            await fs.writeFile(build, 'concurrent change\n');
+            await fs.writeFile(build, modified);
           }
         },
       },
@@ -134,7 +149,7 @@ describe('Candidate promotion', () => {
 
     expect(await readFormalTree(root)).toEqual(before);
     expect(await exists(candidate)).toBe(true);
-    expect(await fs.readFile(path.join(candidate, 'build.md'), 'utf8')).toBe('concurrent change\n');
+    expect(await fs.readFile(path.join(candidate, file), 'utf8')).toBe(modified);
     expect(await fs.readdir(path.join(root, '.xirang', 'history', 'builds')).catch(() => [])).toEqual([]);
   });
 

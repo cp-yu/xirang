@@ -172,7 +172,7 @@ describe('propose template post-validation flow', () => {
 
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('confirmed `Design Summary`');
+      expect(body).toContain('`Design Summary`');
       expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and the Declaration, Relationship, Metamodel, and View Delta units');
       expect(body).toContain('testing strategy to `design.md`');
       expect(body).toContain('concrete test work to `tasks.md`');
@@ -265,27 +265,28 @@ describe('propose template post-validation flow', () => {
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --json');
-    expect(instructions).toContain('no confirmed Change Structural Definition exists');
+    expect(instructions).toContain('unconfirmed structure');
     expect(instructions).toContain('new or reorganized hierarchy');
-    expect(instructions).toContain('compile that payload without invoking decomposition guidance again');
+    expect(instructions).toContain('Do not redo confirmed structural decisions');
     expect(instructions).toContain('Architecture Source is `None`');
     expect(instructions).toContain('do not invoke decomposition guidance');
     expect(instructions).toContain('stop Formation and ask one focused question');
     expect(instructions).toContain('do not fall back to another method');
   });
 
-  it('conditionally consumes a confirmed structural definition after all gates pass', () => {
+  it('gates exact-version record handoff on semantic coverage and final validation', () => {
     const body = getXirangProposeSkillTemplate().instructions;
-    expect(body).toContain('xirang framing list --json');
-    expect(body).toContain('only when a Change Structural Definition exists');
-    expect(body).toContain('xirang framing show <explorationId> --json');
-    expect(body).toContain('complete current payload');
-    expect(body).toContain('xirang framing status <explorationId> --json');
-    expect(body).toContain('xirang framing validate <explorationId> --json');
-    expect(body).toContain('relevant drift, downstream impacts, and structural coverage');
-    expect(body).toContain('xirang framing consume <explorationId> --change "<name>" --json');
-    expect(body).toContain('change-structural-definition.md');
-    expect(body).toContain('When no Change Structural Definition exists, preserve the ordinary Propose path');
+    for (const command of ['list --json', 'show <explorationId> --json', 'status <explorationId> --json', 'validate <explorationId> --json']) {
+      expect(body).toContain(`xirang framing ${command}`);
+    }
+    expect(body).toContain('Unresolved conflicts block Formation');
+    expect(body).toContain('only external write is post-gate `framing consume`');
+    expect(body).toContain('MUST NOT create, update, rename, or discard records');
+    expect(body).toContain('record → Expected Semantic Model');
+    expect(body).toContain('target semantics → implementation tasks and observable Checks');
+    expect(body).toContain('xirang framing consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');
+    expect(body).toContain('framing-source.md');
+    expect(body).not.toContain('Change Structural Definition');
     expect(body.indexOf('xirang framing consume')).toBeGreaterThan(body.indexOf('xirang validate --change "<name>" --json'));
   });
 

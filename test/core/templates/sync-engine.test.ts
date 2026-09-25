@@ -67,6 +67,10 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
 
     expect(summary.failed).toEqual([]);
 
+    const guidancePath = path.join(testDir, '.xirang', 'references', 'xirang-semantic-refinement.md');
+    expect((await fs.readFile(guidancePath, 'utf8')).trim().length).toBeGreaterThan(0);
+
+
     for (const [toolDir, ext] of [
       ['.claude', 'md'],
       ['.pi', 'md'],

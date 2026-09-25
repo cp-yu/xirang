@@ -3,9 +3,9 @@ import path from 'node:path';
 import type { Command } from 'commander';
 import { parse as parseYaml } from 'yaml';
 import { classifyBaselineDrift } from '../core/framing/baseline.js';
-import { consumeFraming } from '../core/framing/consume.js';
+import { consumeFraming, type FramingConsumeTarget } from '../core/framing/consume.js';
 import { normalizeFramingPayload } from '../core/framing/document.js';
-import { validateStructuralDefinition } from '../core/framing/validator.js';
+import { readFramingSemanticContext } from '../core/framing/validator.js';
 import {
   createFraming,
   discardFraming,
@@ -13,11 +13,7 @@ import {
   renameFraming,
   showFraming,
   updateFraming,
-  type FramingSemanticContext,
 } from '../core/framing/workspace.js';
-import { modelRoot } from '../core/model/paths.js';
-import { parseSemanticModel } from '../core/model/parser.js';
-import { readSemanticTree, semanticTreeFingerprint } from '../core/model/transaction.js';
 
 export interface FramingEnvelopeDiagnostic {
   severity: 'ERROR' | 'WARNING' | 'INFO';
@@ -60,16 +56,6 @@ export function emitFramingEnvelope(
   return envelope.status === 'ok' ? 0 : 1;
 }
 
-async function semanticContext(projectRoot: string): Promise<FramingSemanticContext> {
-  const parsed = await parseSemanticModel(modelRoot(projectRoot));
-  const errors = parsed.diagnostics.filter(item => item.level === 'ERROR');
-  if (errors.length > 0) throw Object.assign(new Error('Semantic Model is invalid'), { code: 'SEMANTIC_MODEL_INVALID' });
-  return {
-    model: parsed.model,
-    semanticModelFingerprint: semanticTreeFingerprint(await readSemanticTree(projectRoot)),
-  };
-}
-
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -87,7 +73,7 @@ async function readInput(from?: string): Promise<unknown> {
 }
 
 function publicRecord(record: Awaited<ReturnType<typeof showFraming>>): unknown {
-  return { path: record.path, document: record.document };
+  return { path: record.path, sourceVersion: record.sourceVersion, document: record.document };
 }
 
 function errorCode(error: unknown): string {
@@ -107,15 +93,11 @@ async function envelope(
 }
 
 async function runCreate(projectRoot: string, slug: string, from?: string): Promise<FramingEnvelope> {
-  return envelope('framing create', async () => framingOkEnvelope(
-    'framing create',
-    publicRecord(await createFraming(
-      projectRoot,
-      slug,
-      normalizeFramingPayload(await readInput(from)),
-      await semanticContext(projectRoot),
-    )),
-  ));
+  return envelope('framing create', async () => {
+    const payload = normalizeFramingPayload(await readInput(from));
+    const context = await readFramingSemanticContext(projectRoot, payload.context);
+    return framingOkEnvelope('framing create', publicRecord(await createFraming(projectRoot, slug, payload, context)));
+  });
 }
 
 async function runList(projectRoot: string): Promise<FramingEnvelope> {
@@ -133,7 +115,7 @@ async function runShow(projectRoot: string, explorationId: string): Promise<Fram
 
 async function drift(projectRoot: string, explorationId: string) {
   const record = await showFraming(projectRoot, explorationId);
-  const context = await semanticContext(projectRoot);
+  const context = await readFramingSemanticContext(projectRoot, record.document.payload.context);
   const result = classifyBaselineDrift(
     record.document.metadata.semanticModelFingerprint,
     context.semanticModelFingerprint,
@@ -150,6 +132,7 @@ async function runStatus(projectRoot: string, explorationId: string): Promise<Fr
     const result = {
       path: current.record.path,
       explorationId,
+      sourceVersion: current.record.sourceVersion,
       slug: current.record.document.metadata.slug,
       drift: current.drift.status,
       changed: current.drift.changed,
@@ -167,24 +150,18 @@ async function runStatus(projectRoot: string, explorationId: string): Promise<Fr
 async function runValidate(projectRoot: string, explorationId: string): Promise<FramingEnvelope> {
   return envelope('framing validate', async () => {
     const current = await drift(projectRoot, explorationId);
-    const validation = validateStructuralDefinition(current.context.model, current.record.document.payload);
     const diagnostics: FramingEnvelopeDiagnostic[] = [
       ...(current.drift.status === 'relevant-drift'
         ? [{ severity: 'ERROR' as const, code: 'RELEVANT_DRIFT', message: 'Relevant Semantic Model context changed' }]
         : []),
-      ...validation.diagnostics.map(item => ({
-        severity: item.level,
-        code: item.code,
-        message: item.message,
-        identity: item.identity,
-      })),
     ];
     const result = {
       path: current.record.path,
       drift: current.drift.status,
       changed: current.drift.changed,
-      structuralValid: validation.valid,
-      impacts: validation.impacts,
+      sourceVersion: current.record.sourceVersion,
+      formatValid: true,
+      semanticCoverage: 'not-evaluated',
     };
     return diagnostics.length > 0
       ? framingInvalidEnvelope('framing validate', result, diagnostics)
@@ -195,8 +172,8 @@ async function runValidate(projectRoot: string, explorationId: string): Promise<
 async function runUpdate(projectRoot: string, explorationId: string, from?: string): Promise<FramingEnvelope> {
   return envelope('framing update', async () => {
     const payload = normalizeFramingPayload(await readInput(from));
-    const { record, diff } = await updateFraming(projectRoot, explorationId, payload, await semanticContext(projectRoot));
-    return framingOkEnvelope('framing update', { path: record.path, document: record.document, diff });
+    const { record, diff } = await updateFraming(projectRoot, explorationId, payload, await readFramingSemanticContext(projectRoot, payload.context));
+    return framingOkEnvelope('framing update', { path: record.path, sourceVersion: record.sourceVersion, document: record.document, diff });
   });
 }
 
@@ -219,7 +196,7 @@ async function dispatch(action: () => Promise<FramingEnvelope>, json: boolean): 
 }
 
 export function registerFramingCommand(program: Command): void {
-  const framing = program.command('framing').description('Manage Change Structural Definition explorations');
+  const framing = program.command('framing').description('Manage confirmed design records');
   const parentOutput = program.configureOutput();
   const writeOut = parentOutput.writeOut ?? (value => process.stdout.write(value));
   const writeErr = parentOutput.writeErr ?? (value => process.stderr.write(value));
@@ -271,11 +248,13 @@ export function registerFramingCommand(program: Command): void {
     .action((explorationId: string, options: { slug: string; json?: boolean }) =>
       dispatch(() => runRename(process.cwd(), explorationId, options.slug), options.json === true));
   framing.command('consume <explorationId>')
-    .requiredOption('--change <name>', 'Target Change name')
+    .option('--change <name>', 'Explicit target Change name')
+    .option('--candidate', 'Explicit active Candidate target')
+    .requiredOption('--source-version <digest>', 'Exact source version returned by framing show')
     .option('--json', 'Output one JSON envelope')
-    .action((explorationId: string, options: { change: string; json?: boolean }) => dispatch(
+    .action((explorationId: string, options: { change?: string; candidate?: boolean; sourceVersion: string; json?: boolean }) => dispatch(
       () => envelope('framing consume', async () => framingOkEnvelope(
-        'framing consume', await consumeFraming(process.cwd(), explorationId, options.change),
+        'framing consume', await consumeFraming(process.cwd(), explorationId, { change: options.change, candidate: options.candidate } as FramingConsumeTarget, options.sourceVersion),
       )),
       options.json === true,
     ));

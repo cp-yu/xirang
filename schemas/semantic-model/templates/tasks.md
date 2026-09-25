@@ -8,8 +8,8 @@
 - Test: `<!-- path/to/test-file -->`
 
 **Requirements**:
-- <!-- requirement 1; keep each task to 5 or fewer requirements -->
-- <!-- requirement 2 -->
+- <!-- concrete implementation obligation with Contract reference and already-GREEN dependencies; at most 5 high-level requirements -->
+- <!-- include affected prompt source, managed projection, and verification in this loop; do not redefine behavior -->
 
 #### Checks
 

@@ -62,7 +62,7 @@ describe('project-config', () => {
       expect(defaults).toEqual({
         schema: 'semantic-model',
         decomposition: {
-          method: 'c4',
+          method: 'semantic-refinement',
         },
         architecture: {
           outline: {
@@ -117,7 +117,7 @@ describe('project-config', () => {
       expect(parsed).toEqual({
         schema: 'semantic-model',
         decomposition: {
-          method: 'c4',
+          method: 'semantic-refinement',
         },
         architecture: {
           outline: {
@@ -249,7 +249,7 @@ architecture:
       expect(fs.existsSync(path.join(configDir, 'config.yaml'))).toBe(false);
       const parsed = parseYaml(fs.readFileSync(ymlPath, 'utf-8'));
       expect(parsed.architecture.outline.elementDefinitionDepth).toBe(4);
-      expect(parsed.decomposition).toEqual({ method: 'c4' });
+      expect(parsed.decomposition).toEqual({ method: 'semantic-refinement' });
       expect(parsed.git.merge.strategy).toBe('no-ff');
     });
 
@@ -345,12 +345,12 @@ decomposition:
         expect(consoleWarnSpy).not.toHaveBeenCalled();
       });
 
-      it('uses c4 when the field is missing', () => {
+      it('uses semantic refinement when the field is missing', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(path.join(configDir, 'config.yaml'), 'schema: semantic-model\n');
 
-        expect(readProjectConfig(tempDir)?.decomposition).toEqual({ method: 'c4' });
+        expect(readProjectConfig(tempDir)?.decomposition).toEqual({ method: 'semantic-refinement' });
       });
 
       it.each([
@@ -447,7 +447,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           proseLanguage: 'zh-CN',
           context: 'Tech stack: TypeScript, React\nAPI style: RESTful\n',
           git: gitConfig(),
@@ -503,7 +503,7 @@ docLanguage: zh-CN
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -524,7 +524,7 @@ optimization:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           optimization: {
             enabled: false,
             directionLimit: 3,
@@ -551,7 +551,7 @@ apply:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           apply: {
             defaultIsolation: 'worktree',
           },
@@ -583,7 +583,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig({
             strategy: 'squash',
             deleteAfterArchive: true,
@@ -606,7 +606,7 @@ git:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -716,7 +716,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -742,7 +742,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -766,7 +766,7 @@ rules: ["not", "an", "object"]
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -790,7 +790,7 @@ context: Valid context
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -816,7 +816,7 @@ rules:
         // Should still parse schema and context despite null rules
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           context: 'Valid context',
           git: gitConfig(),
         });
@@ -844,7 +844,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule'],
@@ -875,7 +875,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
           rules: {
             proposal: ['Valid rule', 'Another valid rule'],
@@ -905,7 +905,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
           rules: {
             specs: ['Valid rule'],
@@ -982,7 +982,7 @@ rules:
 
         expect(config).toEqual({
           schema: 'semantic-model',
-          decomposition: { method: 'c4' },
+          decomposition: { method: 'semantic-refinement' },
           git: gitConfig(),
         });
         expect(config?.context).toBeUndefined();

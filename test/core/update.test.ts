@@ -114,7 +114,7 @@ describe('UpdateCommand', () => {
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.decomposition).toEqual({ method: 'c4' });
+      expect(config.decomposition).toEqual({ method: 'semantic-refinement' });
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.directionLimit).toBe(3);
       expect(config.optimization.directionRetries).toBe(2);
@@ -148,7 +148,7 @@ rules:
       expect(config.docLanguage).toBe('zh-CN');
       expect(config.context).toBe('keep me');
       expect(config.rules.proposal).toEqual(['keep this rule']);
-      expect(config.decomposition).toEqual({ method: 'c4' });
+      expect(config.decomposition).toEqual({ method: 'semantic-refinement' });
       expect(config.optimization.enabled).toBe(true);
       expect(config.optimization.directionLimit).toBe(3);
       expect(config.optimization.directionRetries).toBe(2);
