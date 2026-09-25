@@ -47,12 +47,17 @@ Project and Tooling Configuration SHALL 在建立新 Xirang 工作区时收集 P
 
 ### Requirement: 投影共享 Definition Framing 协议
 
-Project and Tooling Configuration SHALL 从 Xirang 托管的单一生成源向 Explore skill 与 `.xirang/references/xirang-definition-framing.md` 投影 Definition Framing 规则，SHALL NOT 运行时依赖用户级 `problem-framing` skill 或直接编辑 generated artifacts。
+Project and Tooling Configuration SHALL 从 Xirang-owned 单一生成源向 Build、Explore、Propose 及共享 references 投影同版本 Definition Framing 协议与默认 semantic-refinement 指导，不运行时依赖用户级 problem-framing skill。受管生成面的新增、更新和删除 SHALL 按显式 manifest 名单定位，不按名称模式扫描替换；用户专用拆分 skill 不受覆盖。
 
-#### Scenario: 刷新 Explore 工作面
+#### Scenario: 共享协议在三入口可用
 
 - **WHEN** CLI 同步所选 Agent 工具集成
-- **THEN** generated Explore skill 引用同版本 Xirang-owned Definition Framing reference
+- **THEN** Build、Explore、Propose 指向同版本可达 reference，入口包含适用的读取与重读条件。
+
+#### Scenario: 受管同步不覆盖用户内容
+
+- **WHEN** 刷新受本 Change 影响的模板、reference 与生成面
+- **THEN** 只按登记名单更新相关工作面，保留用户 skill 与未登记内容，不直接修改生成文件代替源模板。
 
 ### Requirement: 管理 Outline Element Definition 深度配置
 

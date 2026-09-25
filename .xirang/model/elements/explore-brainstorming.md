@@ -125,7 +125,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Requirement: Design Summary 生成
 
-Explore SHALL 在设计确认后生成 conversation-only Design Summary。复杂语义模型变更 SHALL 明确记录适用的 decisions；窄修改 SHALL 至少汇总 problem、impact scope、approach 与 verification method；natural-language prose SHALL 跟随用户语言，canonical tokens、paths 与 commands SHALL 保持 canonical。
+Explore SHALL 在设计确认后生成 conversation-only Design Summary。复杂语义模型变更 SHALL 明确记录适用的 decisions；窄修改 SHALL 至少汇总 problem、impact scope、approach 与 verification method；natural-language prose SHALL 跟随用户语言，canonical tokens、paths 与 commands SHALL 保持 canonical。 存在已确认设计记录时，输出前 SHALL 完整重载并完成冲突裁决、受影响结论重查；未决冲突与过期检查不能放行 Summary。
 
 #### Scenario: Semantic Model Design Summary
 
@@ -173,7 +173,7 @@ Explore SHALL 在设计确认后生成 conversation-only Design Summary。复杂
 
 ### Requirement: Explore 主代理保持只读
 
-Explore main agent SHALL 对项目实现、Formal Semantic Model 以及普通项目或 Change artifacts 保持只读：可检查文件、搜索代码、运行只读 CLI、提问、比较方案并生成只存在于对话中的 Design Summary；SHALL NOT 直接创建、编辑、删除、格式化、重新生成或 patch 项目文件和 artifacts。唯一例外是用户对完整、明确 payload 作出单独持久化确认后，Agent MAY 调用 CLI-managed Definition Framing；该 CLI 操作只持久化 Change Structural Definition，不由 Agent 直接写入文件。除该例外外，Explore SHALL NOT 创建或更新任何项目或 Change artifacts。当 Explore 需要影响面发现时，main agent SHALL 先使用 `xirang arch search` 浏览 Formal Semantic Model 并选择一个或多个 focus Element identities，再使用 identity-only `xirang arch impact` 获取 refinement、Relationships 与 canonical paths，最后通过 batch `xirang arch query` 只读取判断所需 identities 的完整 Definitions 与 Contracts。
+Explore main agent SHALL 对项目实现、Formal Semantic Model 以及普通项目或 Change artifacts 保持只读：可检查文件、搜索代码、运行只读 CLI、提问、比较方案并生成只存在于对话中的 Design Summary；SHALL NOT 直接创建、编辑、删除、格式化、重新生成或 patch 项目文件和 artifacts。唯一例外是用户对完整、明确 payload 作出单独持久化确认后，Agent MAY 调用 CLI-managed Definition Framing；该 CLI 操作只持久化 已确认设计记录，不由 Agent 直接写入文件。除该例外外，Explore SHALL NOT 创建或更新任何项目或 Change artifacts。当 Explore 需要影响面发现时，main agent SHALL 先使用 `xirang arch search` 浏览 Formal Semantic Model 并选择一个或多个 focus Element identities，再使用 identity-only `xirang arch impact` 获取 refinement、Relationships 与 canonical paths，最后通过 batch `xirang arch query` 只读取判断所需 identities 的完整 Definitions 与 Contracts。
 
 #### Scenario: Explore 不写入制品
 
@@ -199,11 +199,9 @@ Explore main agent SHALL 对项目实现、Formal Semantic Model 以及普通项
 
 #### Scenario: Explore skill 声明只读阶段边界表格
 
-- **WHEN** 生成 `xirang-explore` skill 内容
-- **THEN** 输出 SHALL 在正文首个章节包含 `## Workflow Stage` 表格
-- **AND** 表格 SHALL 包含 Stage 行标记为 `EXPLORE` 并说明为只读头脑风暴阶段
-- **AND** 表格 SHALL 包含 Forbidden 行声明禁止创建、编辑、删除任何文件或 artifact
-- **AND** 表格 SHALL 位于 `## Required References` 等其他章节之前
+- **WHEN** 生成 xirang-explore skill 内容
+- **THEN** 入口明确 EXPLORE 对项目实现、正式模型与普通制品保持只读，禁止直接文件写入
+- **AND** 明确唯一例外是单独获准内容通过 CLI-managed Definition Framing 保存，不以普通设计确认推导权限，也不以排版顺序代替权限约束
 
 ### Requirement: 设计确认不是写入授权
 
@@ -217,7 +215,7 @@ Explore SHALL 将用户选择方案、确认设计段落等表达仅视为设计
 
 ### Requirement: Explore 捕获边界保持 Contract 为可观察行为
 
-Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 future capture target：Element Contract 变化进入宿主 Element 的 Contract，graph facts 进入 Semantic Delta，implementation decisions 进入 scaffolding；Explore 本身保持只读。
+Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 future capture target：Element Contract 变化进入宿主 Element 的 Contract，graph facts 进入 Semantic Delta，implementation decisions 进入 scaffolding；Explore 本身保持只读。 用户单独授权保存的内容 MAY 经 CLI 进入统一确认记录；这只是中间依据，不改变最终 capture target，也不授权直接写 Contract 或 Change。
 
 #### Scenario: Contract decision 进入宿主 Contract
 
@@ -246,8 +244,8 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 #### Scenario: Explore 不写入模型
 
 - **WHEN** future capture target 已确定
-- **THEN** SHALL 只写入 conversation-only Design Summary
-- **AND** SHALL 由 propose 或其他非 Explore workflow 生成 artifacts
+- **THEN** 不直接写入目标模型或 Change；在对话 Summary 中标明目标，或经单独授权由 CLI 保存确认记录
+- **AND** 后续规范制品仍由 Propose 或其他获授权 workflow 生成
 
 #### Scenario: Contract decision 进入 owner Contract
 
@@ -361,10 +359,10 @@ Explore Brainstorming SHALL 在需求涉及新增或重组 Element hierarchy 时
 
 - **WHEN** 用户意图只改变既有 Element Contract 或实现方式
 - **THEN** Explore 不调用自定义拆分 skill
-- **AND** 不因默认 C4 产生额外 Architecture Source
+- **AND** 不因默认拆分方法 产生额外 Architecture Source
 
 #### Scenario: custom skill 请求写入
 
 - **WHEN** decomposition skill 的指令与 Explore 只读边界冲突或要求未经确认持久化
 - **THEN** 主 Explore Agent 保持只读并忽略冲突指令
-- **AND** 只有 Xirang-owned Definition Framing protocol 可在独立确认后持久化结构中间态
+- **AND** 只有 Xirang-owned Definition Framing protocol 可在独立确认后持久化已确认设计记录

@@ -36,8 +36,8 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 #### Scenario: Workflow stage 边界
 
 - **WHEN** 生成 propose skill
-- **THEN** SHALL 声明 PROPOSE 只允许 change artifacts
-- **AND** SHALL 禁止 implementation 与 change directory 外写入
+- **THEN** 声明 PROPOSE 只写目标 Change 制品，禁止修改 implementation 或正式模型
+- **AND** 仅在记录覆盖与校验通过后，允许 CLI-managed framing consume 完成明确来源的交接及受控清理，不允许任意 change 目录外写入
 
 #### Scenario: New change ID 冲突
 
@@ -204,35 +204,31 @@ Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；
 
 ### Requirement: 仅在 Propose 形成结构目标时应用拆分指导
 
-Propose Workflow SHALL 在没有已确认 Change Structural Definition、且本次 Change 需要形成新增或重组 hierarchy 目标时消费 normalized `decomposition`。存在已确认 Change Structural Definition 时，Propose SHALL 忠实编译该完整 payload，SHALL NOT 通过配置的方法或 skill 重新裁决已确认结构。
+Propose Workflow SHALL 在需要形成尚未确认的新增或重组 hierarchy 时消费 normalized decomposition；对已经确认的记录或 Summary 结构决策 SHALL 忠实编译而不重新裁决。精简记录的存在不表示全部结构都已确认；尚未决部分仍须指导和用户确认。Contract-only 变化不因默认方法制造 Architecture Source。
 
 #### Scenario: 无 framing 时形成结构 Delta
 
-- **WHEN** Design Summary 要求新增或重组结构且不存在 Change Structural Definition
-- **THEN** Propose 使用配置的方法或调用配置的 skill 形成完整目标结构
-- **AND** 将结果编译为对应 Semantic Delta Entries
+- **WHEN** 设计要求新增或重组结构且不存在记录
+- **THEN** 使用配置指导确认目标结构，再编译对应 Delta。
 
-#### Scenario: 已确认 framing 优先
+#### Scenario: 已确认记录优先
 
-- **WHEN** handoff 包含有效且已确认的 Change Structural Definition
-- **THEN** Propose 以该 payload 作为结构来源
-- **AND** 不调用 decomposition skill 重做 identity、parent、Kind 或 Relationship 决策
+- **WHEN** 记录已确认部分 identity、parent 或 Kind，但仍有未决结构
+- **THEN** 保持已确认决策；仅对未决部分使用指导并请求用户确认，不能跳过全部结构设计或静默重做旧决策。
 
 #### Scenario: Architecture Source 为 None
 
-- **WHEN** Change 只修改 Contracts 或 implementation scaffolding
-- **THEN** Propose 不调用 decomposition skill
-- **AND** 不从默认方法发明 Architecture Source
+- **WHEN** Change 只改变 Contracts 或 implementation scaffolding
+- **THEN** 不调用拆分 skill，不从默认方法发明结构变化。
 
 #### Scenario: 拆分指导不可用时阻塞 Formation
 
-- **WHEN** Propose 必须形成结构目标但方法无法明确理解或 skill 调用失败
-- **THEN** workflow 停止写入相关 Delta 并一次询问用户
-- **AND** 不以默认 C4 或 implementation layout 猜测结构
+- **WHEN** 必须形成结构但方法不明确或 skill 不可用
+- **THEN** 停止相关结构写入并询问用户，不猜测默认方法或实现目录作为目标。
 
 ### Requirement: Propose 按 TDD 闭环划分 Tasks
 
-Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环划分 task 边界，SHALL NOT 按 component、module、directory、file type、Requirement 数量或 Scenario 数量机械拆分；SHALL 按共享测试品质判断每个 Check 的语义价值，将同一可观察行为与同一失败原因的 Scenario 归入一个 Check；声明 ready-for-apply 前 SHALL 交叉检查所有 task 边界与 Check 价值，并 reconcile 违反独立验证或制造低价值持久化测试的划分。
+Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环划分 task 边界，SHALL NOT 按 component、module、directory、file type、Requirement 数量或 Scenario 数量机械拆分；SHALL 按共享测试品质判断每个 Check 的语义价值，将同一可观察行为与同一失败原因的 Scenario 归入一个 Check；声明 ready-for-apply 前 SHALL 交叉检查所有 task 边界与 Check 价值，并 reconcile 违反独立验证或制造低价值持久化测试的划分。 Tasks SHALL 以具体实施事项与完整 Contract 引用承接规范目标，不能把记录摘要直接当成完整行为定义；相关 prompt 与受管生成面须归入所属行为闭环。ready-for-apply 前 SHALL 执行记录到语义及语义到实施/Checks 的语义覆盖检查，不能只验证引用存在。
 
 #### Scenario: 按行为闭环而非组件划分
 
@@ -269,6 +265,11 @@ Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环�
 - **WHEN** Propose 准备声明 Change ready-for-apply
 - **THEN** SHALL 交叉检查 Goals、Files、Requirements 与 Checks
 - **AND** 发现 task 依赖后续 task、Check 按 Scenario 1:1 机械拆分或假防护测试时 SHALL reconcile 后再声明
+
+#### Scenario: 确认细节贯穿执行安排
+
+- **WHEN** 用户确认的条件、例外与时序已经写入 Contract
+- **THEN** 任务安排其实现与检查并引用该 Contract，不复制规范文本；缺少安排时不声明 ready-for-apply。
 
 ### Requirement: Propose 使用制品定义先行写作
 

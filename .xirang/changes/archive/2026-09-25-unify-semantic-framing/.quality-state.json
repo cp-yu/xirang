@@ -1,23 +1,22 @@
 {
-  "kind": "review",
-  "timestamp": "2026-09-25T08:23:14.680Z",
+  "kind": "optimize",
+  "timestamp": "2026-09-25T09:02:14.379Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "Windows verification passed, but five symlink-related test branches remain unverified on Windows.",
-      "requirement": "隔离受控文件路径 (definition-framing-operations; deterministic-operations)",
-      "task": "C18",
-      "recommendation": "Retain the disclosed platform limitation. When a symlink-capable Windows environment is available, verify the skipped branches; do not describe the current run as complete Windows symlink coverage.",
+      "message": "Native Windows verification passed, but five symlink-related test branches were skipped; Windows file-symlink rejection remains partially unverified.",
+      "requirement": "隔离受控文件路径 — definition-framing-operations and deterministic-operations",
+      "task": "C18 获取 Windows 上真实执行的行为证据",
+      "recommendation": "Retain the disclosed limitation. When a symlink-capable Windows environment is available, exercise file-symlink rejection for framing workspaces, consumption destinations, and Candidate initialization/validation. This is non-blocking because C18 explicitly permits reporting this environment limitation; Linux rejection tests and the Windows directory-junction test passed.",
       "evidenceCitations": [
+        ".xirang/changes/unify-semantic-framing/elements/definition-framing-operations.md:14-23",
+        ".xirang/changes/unify-semantic-framing/elements/deterministic-operations.md:20-29",
         ".xirang/changes/unify-semantic-framing/tasks.md:267-272",
-        "/tmp/unify-task4-evidence.md:14-23",
-        "/tmp/unify-windows-corrections-green.log:982-993",
         "test/commands/candidate-init.test.ts:72-97",
         "test/core/framing/workspace.test.ts:78-93",
-        "test/core/framing/consume.test.ts:132-148",
-        "test/core/framing/consume.test.ts:182-194",
-        "test/commands/candidate-validate.test.ts:366-374"
+        "/tmp/unify-task4-evidence.md:14-23",
+        "/tmp/unify-windows-corrections-green.log:982-993"
       ]
     }
   ],
@@ -131,7 +130,7 @@
       "test/skills/semantic-model-consistency.test.ts",
       "test/utils/framing-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "24893ce39f7b86396e78e27ceba4e180acc41e759b0c734e248f04d1b3077fb7",
+    "evidenceFingerprint": "3fc355e1aaa1afb4749c7a42065454549a7f66035eed57b1d29a24563d1b3121",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/test-windows.yml",
@@ -163,7 +162,7 @@
       },
       {
         "path": ".xirang/changes/unify-semantic-framing/.apply-isolation.json",
-        "hash": "d9a0333f566edb81b84a28a8a1105ee8d601c8be4a28aa6ed8790c3901ae6b57"
+        "hash": "e679e125f8c53443ad5f36bc5f06579c3837f37616bf3b8afd73f33f909a9848"
       },
       {
         "path": ".xirang/changes/unify-semantic-framing/design.md",
@@ -553,8 +552,24 @@
     "skippedEvidenceFiles": [
       ".xirang/changes/unify-semantic-framing/.quality-state.json"
     ],
-    "gitHeadCommit": "4f30e71d15c12a70570bdb4aca26dd80a9b55215",
-    "gitDiffSummary": "Validated projectRoot, changeDir, changeName, and immutable baseline 4f30e71d15c12a70570bdb4aca26dd80a9b55215 (.xirang/changes/unify-semantic-framing/.apply-isolation.json:1-6). git diff <baseCommit>...HEAD --name-only is empty; git status --short --untracked-files=all identifies 89 staged/worktree/untracked paths. Reviewed their attribution and final contents, all 21 Element Delta units, and all three Relationship Delta units; metamodel/views Delta partitions are absent. Declared target-normalize.ts deletion is complete. Searches for target-normalize, normalizeStructural, validateFramingTarget, structuralCoverage, and the retired source filename returned no implementation/import residue; remaining .explore- references are explicit unsupported-format diagnostics and discovery-isolation tests (src/core/framing/workspace.ts:180-186; test/utils/framing-discovery-isolation.test.ts:18-45). Diff-scoped TODO/FIXME/HACK searches and both git diff --check variants were clean. Defaults and shared skeleton are implemented at src/core/project-config.ts:15-18 and src/core/templates/model-skeleton.ts:17-53, with setup preservation/validation evidence at test/core/setup.test.ts:655-692,750-793. Record identity, lifecycle, and malformed-model rejection are implemented at src/core/framing/workspace.ts:156-166,219-293 and src/core/framing/validator.ts:15-50. All three prior critical findings are corrected: final provenance must still exist before source cleanup (src/core/framing/consume.ts:134-149; regression/retry cases test/core/framing/consume.test.ts:95-120); record-backed Summary must carry identity/version (src/core/templates/workflows/explore.ts:202,289-292); Propose's external-write exception is consume-only (src/core/templates/workflows/propose.ts:39-43; .xirang/references/xirang-definition-framing.md:35-48). Candidate source bytes enter the digest but not semantic parsing (src/core/candidate/validator.ts:272-280), remain in history (src/core/candidate/history.ts:51-54), and retain final validation/review/digest gates (src/core/templates/workflows/build.ts:53-90). Reviewer reran two targeted Vitest batches: 32 files, 522 tests passed. Inspected latest full-suite evidence: 160 files, 2269 tests passed (/tmp/unify-corrections-full-test.log:1482-1485), successful build/lint, and source/projection/second-sync evidence. Native Windows evidence reports 236 passed and five explicitly disclosed skips; read-only diff -rq confirmed its src/test/schemas copies match current files. Counts cover 19 checkbox Checks across four task groups and 81 Requirement/188 Scenario headings. Two duplicated path-isolation requirements and their symlink scenarios are conservatively withheld from full PASS totals only for the Windows verification limitation, not an identified implementation contradiction. Re-ran arch outline, combined Change validation, and arch validate --change; both validators returned no issues, with relationship intent matching consumes.yaml:1-5, invokes.yaml:1-5, and precedes.yaml:1-5. Formal model, explicit project config, and project-owned decomposition skill are unchanged.",
-    "timestamp": "2026-09-25T08:23:14.680Z"
+    "gitHeadCommit": "648b86ea4beee1805062f8d1eddab477c8d70523",
+    "gitDiffSummary": "Validated changeName, absolute projectRoot and changeDir. The immutable baseline declared in .xirang/changes/unify-semantic-framing/.apply-isolation.json:1-7 resolves to commit 4f30e71d15c12a70570bdb4aca26dd80a9b55215; reviewed HEAD is 648b86ea4beee1805062f8d1eddab477c8d70523. Navigation scope was the union of `git diff 4f30e71d15c12a70570bdb4aca26dd80a9b55215...HEAD --name-only` (89 paths) and `git status --short` (only .apply-isolation.json modified). All scoped paths are attributed to explicit task Files or change artifacts. Both committed and working-tree diff checks passed. The declared target-normalize.ts deletion is present in Git and the file is absent. Searches for target-normalize, normalizeStructural, validateFramingTarget, structuralCoverage, and change-structural-definition-source across src, test, managed skills and references returned no matches; searches of affected formation surfaces also found no retired complete-structural-target prerequisite or Change-only framing instructions. No added TODO/FIXME/HACK markers were found.\n\nRead proposal, design, all 19 checked Checks, quality state, all 21 Element Delta units and all three Relationship Delta units; checked that this change has no Metamodel or View units. Counts represent 81 Requirement entries and 188 Scenario entries, including removal entries and requirements repeated at different refinement levels. The two path-isolation requirements and their symlink scenarios retain WARNING-level cross-platform confidence rather than full PASS because of the disclosed Windows limitation; all requirements were reviewed.\n\nTask 1 is supported by the strict opaque method/skill union and missing-only default migration in src/core/project-config.ts:15-18,50-53,304-349,423-435; the common project/element/perspective skeleton in src/core/templates/model-skeleton.ts:17-53; and the configured routing plus bundled semantic-refinement guidance in src/core/templates/fragments/xirang-fragments.ts:30-64. Functional config/setup/update tests and the recorded walkthrough corroborate preservation of explicit project choices.\n\nTask 2 is supported by versioned, nonempty record parsing in src/core/framing/document.ts:46-107, isolated lifecycle operations in src/core/framing/workspace.ts:156-294, absent-versus-invalid model handling in src/core/framing/validator.ts:15-50, and exact-version copy/validate/delete handoff in src/core/framing/consume.ts:95-157. Source preservation when either a new or recovered destination disappears is exercised in test/core/framing/consume.test.ts:95-120. Shared authorization, conflict and identity/version Summary gates appear in src/core/templates/workflows/explore.ts:189-210; Propose's consume-only boundary and record-to-semantics-to-tasks checks appear in src/core/templates/workflows/propose.ts:39-50,89-102. Task instructions preserve concrete behavioral obligations in schemas/semantic-model/templates/tasks.md:1-56.\n\nTask 3 is supported by the Build handoff, final validation, independent review and fresh-digest approval ordering in src/core/templates/workflows/build.ts:28-60,86-100. Candidate source bytes participate in validation/digest at src/core/candidate/validator.ts:272-280,314-321, enter history at src/core/candidate/history.ts:51-54, and remain outside promoted model partitions at src/core/candidate/promotion.ts:52-81. Stale/concurrent source mutations are covered by test/commands/candidate-promote.test.ts:103-154; end-to-end Build and Change paths are covered by test/integration/framing-workflow.test.ts:35-128.\n\nTask 4 retains explicit affected test lists in .github/workflows/test-windows.yml:49-63 and .github/workflows/windows.yml:31-45. Latest recorded verification reports 160 files and 2269 passing tests at /tmp/unify-corrections-full-test.log:1482-1485, and native Windows reports 12 files, 236 passing tests and five disclosed skips at /tmp/unify-windows-corrections-green.log:982-993. These are inspected execution artifacts, not claims that this reviewer reran the complete Linux or Windows suites. This reviewer independently reran two targeted Vitest batches under native /tmp: 23 files/178 tests and 16 files/405 tests, all passing, including source/projection parity and handoff recovery. The latest generation evidence confirms fresh setup, second-sync parity and protected user/config/quality-agent contents at /tmp/unify-corrections-generation.log:28-35. Recorded build and lint evidence was also inspected.\n\nLoaded the Semantic Model through outline, impact and batched contract queries, confirming unique root project.root and the relevant refinement context. `xirang validate unify-semantic-framing --strict --no-interactive` passed; `xirang arch validate --change unify-semantic-framing --json` returned success with no errors or warnings. The declared Build consumes/invokes additions and removed framing-before-design relationship match the effective target; no hierarchy cycles or declaration/contract alignment gaps were found. The formal model, explicit project config and project-owned decomposition skill remain unchanged, as required by the change's design.",
+    "timestamp": "2026-09-25T08:32:22.614Z"
+  },
+  "optimization": {
+    "directions": [],
+    "histories": [
+      {
+        "round": 1,
+        "timestamp": "2026-09-25T09:02:14.379Z",
+        "directions": [],
+        "outcome": "none",
+        "stopReason": "USER_DECLINED",
+        "reason": "用户明确指示结束 Apply（先这样了，apply结束）；第二轮 Review 通过后优化评估未产出方向，按 USER_DECLINED 收束，终端 SKIPPED。"
+      }
+    ],
+    "directionsUsed": 0,
+    "stopReason": "USER_DECLINED",
+    "terminal": "SKIPPED"
   }
 }

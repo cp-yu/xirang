@@ -30,7 +30,7 @@ definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为�
 #### Scenario: First-run skeleton
 
 - **WHEN** `xirang setup` 在没有 Xirang workspace 的项目中运行
-- **THEN** SHALL 创建 `model/{metamodel,elements,relationships,views}` 四分区与 seed 单元（`metamodel/project.md`、`elements/project.root.md`）
+- **THEN** SHALL 创建 `model/{metamodel,elements,relationships,views}` 四分区与 seed 单元（`metamodel/project.md`、`metamodel/element.md`、`metamodel/perspective.md`、`elements/project.root.md`）
 - **AND** SHALL 创建 Project Root 骨架
 - **AND** SHALL NOT 推断 project elements 或 Contracts
 - **AND** SHALL NOT 创建 `.c4` 文件或 `.xirang/architecture/`
@@ -46,6 +46,11 @@ definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为�
 
 - **WHEN** setup 在 existing workspace 中运行
 - **THEN** existing model 分区、配置和用户内容 SHALL NOT 被覆盖
+
+#### Scenario: 默认 Kind 不预设层级
+
+- **WHEN** setup 创建默认 metamodel seed
+- **THEN** project、element 与 perspective 表达语义类别，不要求固定层数或 C4 层级；除 Project Root 骨架外不推断项目 Elements 或 Contracts。
 
 ### Requirement: Xirang Setup SHALL 安装固定 Agent workflow 集合
 
@@ -106,22 +111,27 @@ Setup 命令 SHALL 显示清晰的输出，说明生成了什么。
 
 ### Requirement: Setup 物化默认结构拆分方法
 
-`xirang setup` SHALL 通过共享 project config default materialization contract 在新工作区配置中写入 `decomposition: { method: c4 }`，并 SHALL 保留 existing workspace 中用户已配置的 `decomposition.method` 或 `decomposition.skill`。
+`xirang setup` SHALL 通过共享 project config default materialization contract 在新工作区配置中写入 `decomposition: { method: semantic-refinement }`，并 SHALL 保留 existing workspace 中用户已配置的 `decomposition.method` 或 `decomposition.skill`。
 
 #### Scenario: 新项目获得显式默认方法
 
 - **WHEN** setup 创建新的 `.xirang/config.yaml`
-- **THEN** 配置包含 `decomposition.method: c4`
+- **THEN** 配置包含 `decomposition.method: semantic-refinement`
 - **AND** 不包含 `decomposition.skill`
 
 #### Scenario: Existing project 保留用户 skill
 
 - **WHEN** existing workspace 配置包含 `decomposition: { skill: project-modeling }`
 - **THEN** setup 保留该 mapping
-- **AND** 不添加 `method: c4`
+- **AND** 不添加 `method: semantic-refinement`
 
 #### Scenario: 跨平台 setup 写入相同默认值
 
 - **WHEN** setup 在 Windows、macOS 或 Linux 上创建项目配置
 - **THEN** 使用 Node.js path API 定位配置文件
-- **AND** 写入语义相同的 `decomposition.method: c4`
+- **AND** 写入语义相同的 `decomposition.method: semantic-refinement`
+
+#### Scenario: 显式 C4 仍被保留
+
+- **WHEN** existing workspace 明确配置 decomposition.method 为 c4
+- **THEN** setup 保留该选择，不用新的默认方法替换用户值。

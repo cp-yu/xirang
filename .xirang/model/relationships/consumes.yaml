@@ -35,3 +35,6 @@ relationships:
   - source: review
     kind: consumes
     target: change
+  - source: semantic-model-build
+    kind: consumes
+    target: change-structural-definition

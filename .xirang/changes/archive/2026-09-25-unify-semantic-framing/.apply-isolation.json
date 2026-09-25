@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "unify-semantic-framing",
+  "originalBranch": "main",
+  "baseCommit": "4f30e71d15c12a70570bdb4aca26dd80a9b55215",
+  "optimizationBaselineCommit": "648b86ea4beee1805062f8d1eddab477c8d70523"
+}
