@@ -22,10 +22,16 @@ const OPTIMIZER_DECISION_REFERENCE = `# Optimization Decision Rules
 
 Judge correct code for meaningful, statically provable, behavior-preserving improvement. You judge directions; you never implement them.
 
+## Benefit Threshold
+
+Read \`optimization.minImpactLevel\` before scanning. It is the lowest \`impactLevel\` worth selecting, and every direction below it is out of scope for this project: do not report it as actionable, do not report it as deferred to satisfy the gate, and do not inflate its \`impactLevel\` to clear the threshold. Report only directions at or above it.
+
+\`impactLevel\` measures how much the change is worth, not how easy it is: a trivial edit with a real, evidenced effect is still \`high\`; a large refactor that only rearranges code without a provable effect is below the threshold at any size. When no direction clears the threshold, finalize with \`NO_ACTIONABLE\` and state in the summary that the remaining opportunities fell below \`minImpactLevel\`. Reporting \`NO_ACTIONABLE\` here is a correct outcome, not a failure to find work.
+
 ## Admission Gates
 
 Every actionable direction requires:
-1. actual benefit;
+1. actual benefit that clears \`optimization.minImpactLevel\`;
 2. static evidence from current code;
 3. behavior preservation constraints that close over applicable inputs, outputs, ordering, duplicates, key uniqueness, side effects, error timing, precision, and compatibility.
 
@@ -81,6 +87,7 @@ Return one strict JSON round ledger and no surrounding prose:
 \`\`\`
 
 - \`impactLevel\`, \`confidence\`, \`risk\`, and \`cost\` accept high, medium, or low.
+- A direction below \`optimization.minImpactLevel\` is out of scope: do not report it, do not inflate its \`impactLevel\`, and treat an empty result as \`NO_ACTIONABLE\` with the threshold stated in the \`summary\`.
 - New directions MUST omit \`id\`; the CLI assigns and echoes every identifier. To depend on another direction of the same request, use \`{ "actionIndex": 0 }\`.
 - To update a direction the CLI already recorded, send \`{ "id": "OPT-…", "status": "rejected|deferred", "reason": "...", "evidence": ["..."] }\`.
 - \`attempt\` reports the previous round outcome for the direction the CLI selected; \`stopReason\` finalizes the loop and is required when you stop.

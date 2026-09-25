@@ -351,7 +351,8 @@ export function deriveTerminal(
 }
 
 export function selectEligibleDirection(
-  directions: OptimizationDirection[]
+  directions: OptimizationDirection[],
+  minImpactLevel: DirectionLevel = 'low'
 ): OptimizationDirection | undefined {
   const verified = new Set(
     directions.filter((direction) => direction.status === 'verified').map((direction) => direction.id)
@@ -360,6 +361,7 @@ export function selectEligibleDirection(
     .filter(
       (direction) =>
         direction.status === 'pending' &&
+        DIRECTION_LEVEL_RANK[direction.impactLevel] <= DIRECTION_LEVEL_RANK[minImpactLevel] &&
         direction.dependencies.every((dependency) => verified.has(dependency))
     )
     .sort(compareDirectionPriority)[0];

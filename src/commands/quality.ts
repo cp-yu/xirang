@@ -31,6 +31,7 @@ import {
   renderReviewHelp,
 } from '../core/quality/protocol.js';
 import type {
+  DirectionLevel,
   DirectionUpdatePayload,
   Diagnostic,
   NewDirectionPayload,
@@ -58,6 +59,7 @@ const QUALITY_CODES = {
 
 const DEFAULT_DIRECTION_LIMIT = 3;
 const DEFAULT_DIRECTION_RETRIES = 2;
+const DEFAULT_MIN_IMPACT_LEVEL: DirectionLevel = 'low';
 
 interface QualityCommandOptions {
   input?: string;
@@ -68,6 +70,7 @@ interface DirectionLimits {
   enabled: boolean;
   directionLimit: number;
   directionRetries: number;
+  minImpactLevel: DirectionLevel;
 }
 
 export function registerQualityCommand(program: Command): void {
@@ -534,7 +537,7 @@ function applyRound(
   }
 
   const priorSelections = collectSelectedIds(ledger.histories);
-  const eligible = selectEligibleDirection(ledger.directions);
+  const eligible = selectEligibleDirection(ledger.directions, limits.minImpactLevel);
   const wantsSelection = Boolean(eligible) && !round.stopReason;
 
   if (wantsSelection && priorSelections.size >= limits.directionLimit) {
@@ -702,6 +705,7 @@ function renderStatus(
   }
   lines.push(
     `Directions: ${ledger?.directionsUsed ?? 0}/${limits.directionLimit} selected, ${limits.directionRetries} retry budget per direction`,
+    `Min impact level: ${limits.minImpactLevel}`,
     `Optimization: ${ledger?.terminal ?? 'not finalized'}`
   );
   const next = allowedNextOperations(state.status, ledger);
@@ -730,6 +734,7 @@ function summarizeLedger(ledger: OptimizationLedger | undefined, limits: Directi
     directionsUsed: ledger?.directionsUsed ?? 0,
     directionLimit: limits.directionLimit,
     directionRetries: limits.directionRetries,
+    minImpactLevel: limits.minImpactLevel,
     directions: summarizeDirections(ledger?.directions ?? []),
   };
 }
@@ -778,6 +783,7 @@ function readDirectionLimits(projectRoot: string): DirectionLimits {
     enabled: optimization?.enabled ?? true,
     directionLimit: optimization?.directionLimit ?? DEFAULT_DIRECTION_LIMIT,
     directionRetries: optimization?.directionRetries ?? DEFAULT_DIRECTION_RETRIES,
+    minImpactLevel: optimization?.minImpactLevel ?? DEFAULT_MIN_IMPACT_LEVEL,
   };
 }
 

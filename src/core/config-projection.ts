@@ -19,6 +19,7 @@ export interface NormalizedProjectConfig {
     enabled: boolean;
     directionLimit: number;
     directionRetries: number;
+    minImpactLevel: 'high' | 'medium' | 'low';
   };
   apply?: {
     defaultIsolation: 'ask' | 'branch' | 'worktree' | 'none';
@@ -145,6 +146,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
           enabled: config.optimization.enabled !== false,
           directionLimit: config.optimization.directionLimit ?? 3,
           directionRetries: config.optimization.directionRetries ?? 2,
+          minImpactLevel: config.optimization.minImpactLevel ?? 'low',
         }
       : undefined,
     apply: config.apply

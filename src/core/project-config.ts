@@ -25,6 +25,7 @@ export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
     enabled: true,
     directionLimit: 3,
     directionRetries: 2,
+    minImpactLevel: 'low' as const,
   },
   apply: {
     defaultIsolation: 'ask' as const,
@@ -133,9 +134,12 @@ export const ProjectConfigSchema = z.object({
       directionRetries: z.number().int().min(0).max(10).optional().default(
         PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionRetries
       ),
+      minImpactLevel: z.enum(['high', 'medium', 'low']).optional().default(
+        PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.minImpactLevel
+      ),
     })
     .optional()
-    .describe('Project-level optimization policy: how many directions may be selected and how often one direction may fail'),
+    .describe('Project-level optimization policy: how many directions may be selected, how often one direction may fail, and the lowest impact level worth selecting'),
 
   // Optional: apply-stage implementation policy
   apply: z
@@ -330,6 +334,7 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
   changed = setMissingPath(document, ['optimization', 'enabled'], defaults.optimization.enabled) || changed;
   changed = setMissingPath(document, ['optimization', 'directionLimit'], defaults.optimization.directionLimit) || changed;
   changed = setMissingPath(document, ['optimization', 'directionRetries'], defaults.optimization.directionRetries) || changed;
+  changed = setMissingPath(document, ['optimization', 'minImpactLevel'], defaults.optimization.minImpactLevel) || changed;
   changed = setMissingPath(document, ['apply', 'defaultIsolation'], defaults.apply.defaultIsolation) || changed;
   changed = deletePath(document, ['git', 'autoCommit']) || changed;
   changed = deletePath(document, ['git', 'archive', 'commitMessage', 'convention']) || changed;
@@ -491,6 +496,9 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         directionRetries: z.number().int().min(0).max(10).optional().default(
           PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.directionRetries
         ),
+        minImpactLevel: z.enum(['high', 'medium', 'low']).optional().default(
+          PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.minImpactLevel
+        ),
       });
       const optimizationResult = optimizationField.safeParse(raw.optimization);
 
@@ -498,7 +506,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         config.optimization = optimizationResult.data;
       } else {
         console.warn(
-          `Invalid 'optimization' field in config (must be an object with boolean 'enabled' and optional integers 'directionLimit' and 'directionRetries')`
+          `Invalid 'optimization' field in config (must be an object with boolean 'enabled', optional integers 'directionLimit' and 'directionRetries', and optional 'minImpactLevel' of high, medium, or low)`
         );
       }
     }

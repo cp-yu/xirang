@@ -203,6 +203,18 @@ describe('quality validators', () => {
     expect(selectEligibleDirection(findings)?.id).toBe('OPT-d');
   });
 
+  it('never selects a direction below the configured impact threshold', () => {
+    const low = stored({ id: 'OPT-low', impactLevel: 'low' });
+    const medium = stored({ id: 'OPT-med', impactLevel: 'medium' });
+    const high = stored({ id: 'OPT-high', impactLevel: 'high' });
+
+    expect(selectEligibleDirection([low, medium, high], 'high')?.id).toBe('OPT-high');
+    expect(selectEligibleDirection([low, medium], 'high')).toBeUndefined();
+    expect(selectEligibleDirection([low, medium, high], 'medium')?.id).toBe('OPT-high');
+    expect(selectEligibleDirection([low], 'medium')).toBeUndefined();
+    expect(selectEligibleDirection([low], 'low')?.id).toBe('OPT-low');
+  });
+
   it('allocates distinct sequential direction ids', () => {
     const ids = allocateDirectionIds(3);
 

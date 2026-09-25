@@ -73,6 +73,7 @@ describe('project-config', () => {
           enabled: true,
           directionLimit: 3,
           directionRetries: 2,
+          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'ask',
@@ -128,6 +129,7 @@ describe('project-config', () => {
           enabled: true,
           directionLimit: 3,
           directionRetries: 2,
+          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'ask',
@@ -197,6 +199,7 @@ git:
         enabled: true,
         directionLimit: 3,
         directionRetries: 2,
+        minImpactLevel: 'low',
       });
       expect(parsed.apply).toEqual({
         defaultIsolation: 'ask',
@@ -317,6 +320,7 @@ decomposition:
         enabled: true,
         directionLimit: 3,
         directionRetries: 2,
+        minImpactLevel: 'low',
       });
       expect(runtime.git).toEqual(gitConfig());
       expect(config).not.toHaveProperty('propose');
@@ -529,6 +533,7 @@ optimization:
             enabled: false,
             directionLimit: 3,
             directionRetries: 2,
+            minImpactLevel: 'low',
           },
           git: gitConfig(),
         });
@@ -1301,6 +1306,7 @@ rules:
           enabled: false,
           directionLimit: 3,
           directionRetries: 2,
+          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'worktree',

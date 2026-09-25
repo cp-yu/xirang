@@ -73,6 +73,7 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   lines.push('#     enabled: true');
   lines.push('#     directionLimit: 3');
   lines.push('#     directionRetries: 2');
+  lines.push('#     minImpactLevel: low');
   if (materialized.optimization) {
     lines.push('optimization:');
     lines.push(`  enabled: ${materialized.optimization.enabled !== false}`);
@@ -81,6 +82,9 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
     }
     if (materialized.optimization.directionRetries !== undefined) {
       lines.push(`  directionRetries: ${materialized.optimization.directionRetries}`);
+    }
+    if (materialized.optimization.minImpactLevel !== undefined) {
+      lines.push(`  minImpactLevel: ${materialized.optimization.minImpactLevel}`);
     }
   }
   lines.push('');

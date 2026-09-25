@@ -195,6 +195,7 @@ rules:
         enabled: false,
         directionLimit: 2,
         directionRetries: 1,
+        minImpactLevel: 'low',
       },
       apply: {
         defaultIsolation: 'branch',
