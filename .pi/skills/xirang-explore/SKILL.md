@@ -114,7 +114,7 @@ Definition Framing is available throughout design, not a linear prerequisite. Fo
 - Run `xirang framing list --json` and select a Change-context record when applicable. Before starting, resuming, or producing a Design Summary with a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`; read the complete payload and version.
 - Apply the shared conflict/reload gate. Unresolved conflicts block Design Summary. Record changes invalidate affected Summary and coverage conclusions; resolve, separately authorize any record edits, inspect diff, and reload before rechecking.
 - With no record, reach an explicit record decision before handoff: ask the user to choose a record or an exemption, then carry the outcome and its reason into the Design Summary. Do not decide by silence and do not create an empty framing record.
-- The Design Summary remains conversation-only. When record-backed, it MUST carry `explorationId` and the checked `sourceVersion` for Propose without duplicating the record. With no record, omit those fields.
+- The Design Summary remains conversation-only. When record-backed, it MUST carry `explorationId` and the checked `sourceVersion` for Propose without duplicating the record. With no record, omit those two fields and instead carry the record decision and its reason, so the absence of a record is a declared outcome rather than a gap.
 
 ## Simplicity Awareness
 

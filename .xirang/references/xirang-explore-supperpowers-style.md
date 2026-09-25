@@ -90,6 +90,7 @@ Before generating the `Design Summary`, self-review:
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
 - Has any current record passed the shared Definition Framing reload/conflict gate?
+- Is the record decision settled when the design carries normative confirmations: a persisted record, or an explicit user-granted exemption recorded with its reason?
 - Are non-framing file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
 The `Design Summary` must stay in the conversation; do not create or update files. Content focuses on architecture, components, data flow, technology stack, testing strategy (with test maintenance when applicable), risks, and trade-offs.
