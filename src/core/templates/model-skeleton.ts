@@ -13,7 +13,7 @@ export interface ModelFileManifestEntry {
 export const ROOT_ELEMENT_KIND = 'project';
 export const ROOT_ELEMENT_IDENTITY = 'project.root';
 
-/** 默认语义类别与 Project Root 骨架，不预设项目层级。 */
+/** Default semantic kinds and the Project Root skeleton; no project hierarchy is assumed. */
 export const MODEL_FILE_MANIFEST: readonly ModelFileManifestEntry[] = [
   {
     relativePath: `metamodel/${ROOT_ELEMENT_KIND}.md`,

@@ -1,22 +1,22 @@
 # Semantic Refinement
 
-## 输入与边界
+## Inputs and boundaries
 
-这是框架默认的通用语义精化方法。仅在 normalized decomposition 选择 `method: semantic-refinement` 且需要形成或重组 hierarchy 时使用；显式其他 method 或 skill 优先，Contract-only 变化不触发结构拆分。
+This is the framework's default general-purpose semantic refinement method. It applies when the normalized `decomposition` value resolves to this file and a hierarchy must be formed or reorganized; a project-specific guidance file configured through `decomposition` takes precedence, and a Contract-only change never triggers structural decomposition.
 
-以用户意图与已授权的语义依据为输入；实现文件、部署图和技术栈只是证据，不自动成为 hierarchy。指导不能覆盖正式语义、已确认设计、Contract、Relationships 或当前工作流权限；冲突先请求用户裁决。
+Take authorized user intent and semantic authority as input. Implementation files, deployment diagrams, and the technology stack are evidence only and do not become hierarchy on their own. This guidance cannot override formal semantics, confirmed design, Element Contracts, Relationships, or the current workflow's permissions; ask the user to rule when they conflict.
 
-## 逐层形成
+## Layer-by-layer formation
 
-1. 从领域概念、能力或用户目标识别当前抽象。为每个 Element 说明它是什么、为何独立、包含与不包含什么，以及与 parent、children、siblings 的边界。未决的语义选择一次询问一个问题。
-2. 为同一 parent 的完整 sibling set 选择一个明确维度；在用户确认范围内检查互斥与完整性（MECE）。不要混合职责、生命周期、部署和实现等不同坐标；需要多种独立语义视角时分别说明各自边界。
-3. 默认以 `project`、`element`、`perspective` 表达语义类别，而非规定层级。Perspective 必须是有真实语义边界、需要子级精化的视角；仅为展示同一批概念而分组时使用 View，不复制 Elements 或 Contracts。
-4. 每个概念只保留一个稳定 identity；跨视角的协作、依赖或约束用类型化 Relationships 表达，不用重复建模解决呈现问题。只有真实共享语义无法由既有 Kind 准确表达时才扩展 Metamodel。
-5. 采用 BFS：展示当前层全部 siblings、维度、边界和覆盖范围，用户确认后才展开下一层。不强制 C4 的固定技术层级或任何固定层数；按实际语义精化到足以理解和决策即可。
-6. 分别完成 Declaration 与 Contract。即使不再拆子节点，条件、数值、例外、时序、职责和保证仍完整进入宿主 Element Contract；不得把停止结构精化误作省略行为。实现安排留给 Plan。
+1. Identify the current abstraction from domain concepts, capabilities, or user goals. For each Element, state what it is, why it stands alone, what it includes and excludes, and its boundary with its parent, children, and siblings. Ask one question at a time for each unresolved semantic choice.
+2. Choose exactly one dimension for the complete sibling set under one parent, then check mutual exclusivity and completeness (MECE) within the confirmed scope. Do not mix responsibility, lifecycle, deployment, and implementation coordinates; when several independent semantic views are needed, state each boundary explicitly.
+3. Express semantic category through `project`, `element`, and `perspective` rather than prescribing levels. A Perspective must have a real semantic boundary that needs child refinement; when grouping merely presents the same set of concepts, use a View instead of duplicating Elements or Contracts.
+4. Keep exactly one stable identity per concept. Express cross-view collaboration, dependency, or constraint as typed Relationships instead of solving a presentation problem with duplicated modeling. Extend the Metamodel only when genuinely shared semantics cannot be expressed accurately by an existing Kind.
+5. Work breadth-first: present all siblings of the current layer with their dimension, boundaries, and coverage, and descend only after the user confirms. C4's fixed technical levels and any fixed number of levels are not required; refine to the point where the model can be understood and decided on.
+6. Complete Declaration and Contract separately. Even when no further children are split, conditions, numbers, exceptions, timing, responsibilities, and guarantees still belong in the host Element Contract; do not mistake stopping structural refinement for omitting behavior. Implementation planning belongs to the Plan.
 
-## 停止与交接
+## Stop and hand off
 
-指导不足、概念身份重叠、维度不明或权威冲突时停止相关结构写入并请求用户；不默选实现目录或相近方法。方法确认不授予文件写入或记录持久化权限。
+Stop writing the affected structure and ask the user when guidance is insufficient, concept identities overlap, the dimension is unclear, or authorities conflict. Do not default to an implementation directory or a similar method. Confirming a method grants no file-write or record-persistence permission.
 
-将确认的 identities、Kinds、完整 Definitions、hierarchy、Contract 细节与 Relationships 交回当前工作流。Explore 保持 conversation-only，Build 编写授权 Candidate，Propose 编译 Delta；记录仅经该工作流的独立授权协议保存。本指导不替代各流程的验证、审查、确认或提升门禁。
+Hand the confirmed identities, Kinds, complete Definitions, hierarchy, Contract detail, and Relationships back to the current workflow. Explore stays conversation-only, Build authors the authorized Candidate, and Propose compiles the Delta; persistence happens only through that workflow's separate authorization protocol. This guidance does not replace any workflow's validation, review, confirmation, or promotion gate.

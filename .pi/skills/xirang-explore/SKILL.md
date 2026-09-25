@@ -79,16 +79,14 @@ The main Explore agent remains read-only outside the managed Definition Framing 
 
 **Element Definition Semantics**
 
-- Definition SHALL 完整说明 Element 是什么、为何作为独立 Element 建模、包含什么、不包含什么，以及必要时如何区别于 parent、children 与 siblings。
-- Definition 不得只是 title 的改写或一句“用于……”摘要；它表达概念身份与范围边界，不表达实现文件、符号、调用关系或当前方案。
-- 职责、保证、约束、行为、Requirement、Scenario 与验收条件属于 Element Contract；方案与理由属于 `design.md`；变更动机与迁移历史属于 `proposal.md`。
+- A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
+- A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
+- Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios, and acceptance conditions belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
 
 **Structural Decomposition Guidance**
 
 - Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` selection from its JSON output. Do not inspect or reinterpret the raw config.
-- 当 `method` 为 `semantic-refinement` 时，先完整读取 `.xirang/references/xirang-semantic-refinement.md`；指导缺失或无法读取时停止结构形成，不猜测默认内容。
-- For other explicit `method` selections, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
-- For `skill`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
+- Before forming an Element hierarchy, read the guidance file at the path resolved from the normalized `decomposition` value in full. Do not inspect or reinterpret the raw config, and do not substitute another method. When that file is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
 

@@ -26,10 +26,11 @@ describe('generated internal agent semantic context', () => {
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
       const configRead = content.indexOf('xirang config project --json');
-      const methodGuidance = content.indexOf('.xirang/references/xirang-semantic-refinement.md');
+      const resolvedGuidance = content.indexOf('resolved from the normalized');
 
       expect(configRead, file).toBeGreaterThanOrEqual(0);
-      expect(methodGuidance, file).toBeGreaterThan(configRead);
+      expect(resolvedGuidance, file).toBeGreaterThan(configRead);
+      expect(content, file).toContain('decomposition');
     }
   });
 

@@ -152,8 +152,8 @@ describe('xirang-build workflow', () => {
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --json');
-    expect(instructions).toContain('opaque method name');
-    expect(instructions).toContain('logical skill name');
+    expect(instructions).toContain('resolved from the normalized');
+    expect(instructions).toContain('do not substitute another method');
     expect(instructions).toContain('stop hierarchy formation and ask the user once');
     expect(instructions).toContain('Modeling Decision Gate');
     expect(instructions).toContain('before the first Candidate hierarchy write');

@@ -36,7 +36,7 @@ describe('propose template post-validation flow', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 
     expect(instructions).not.toContain('equivalent to `validateTaskStructure`');
-    expect(instructions).toContain('任务结构校验');
+    expect(instructions).toContain('Task structure validation is owned by step 10');
   });
 
   it('authors and validates four-partition Semantic Delta units', () => {
@@ -132,7 +132,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('xirang instructions proposal --change "<name>" --json');
       expect(body).toContain('xirang instructions design --change "<name>" --json');
       expect(body).toContain('xirang instructions tasks --change "<name>" --json');
-      expect(body).toContain('任务结构校验由步骤 10 的 combined validation 以确定性操作承担');
+      expect(body).toContain('Task structure validation is owned by step 10');
       expect(body).toContain('Actions');
       expect(body).toContain('### Task N:');
       expect(body).toContain('Goal');

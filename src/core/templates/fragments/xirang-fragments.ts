@@ -31,9 +31,7 @@ export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
 **Structural Decomposition Guidance**
 
 - Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` selection from its JSON output. Do not inspect or reinterpret the raw config.
-- 当 \`method\` 为 \`semantic-refinement\` 时，先完整读取 \`.xirang/references/xirang-semantic-refinement.md\`；指导缺失或无法读取时停止结构形成，不猜测默认内容。
-- For other explicit \`method\` selections, treat its value as an opaque method name and use only method knowledge you clearly possess. If its meaning or application is ambiguous, stop hierarchy formation and ask the user once; never substitute another method.
-- For \`skill\`, invoke its value as a logical skill name. If the skill is unavailable, fails, or returns insufficient guidance, stop hierarchy formation and ask the user once; never infer a tool-specific path or fall back to another method.
+- Before forming an Element hierarchy, read the guidance file at the path resolved from the normalized \`decomposition\` value in full. Do not inspect or reinterpret the raw config, and do not substitute another method. When that file is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
 `.trim();
@@ -41,26 +39,26 @@ export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
 export const SEMANTIC_REFINEMENT_REFERENCE = `
 # Semantic Refinement
 
-## 输入与边界
+## Inputs and boundaries
 
-这是框架默认的通用语义精化方法。仅在 normalized decomposition 选择 \`method: semantic-refinement\` 且需要形成或重组 hierarchy 时使用；显式其他 method 或 skill 优先，Contract-only 变化不触发结构拆分。
+This is the framework's default general-purpose semantic refinement method. It applies when the normalized \`decomposition\` value resolves to this file and a hierarchy must be formed or reorganized; a project-specific guidance file configured through \`decomposition\` takes precedence, and a Contract-only change never triggers structural decomposition.
 
-以用户意图与已授权的语义依据为输入；实现文件、部署图和技术栈只是证据，不自动成为 hierarchy。指导不能覆盖正式语义、已确认设计、Contract、Relationships 或当前工作流权限；冲突先请求用户裁决。
+Take authorized user intent and semantic authority as input. Implementation files, deployment diagrams, and the technology stack are evidence only and do not become hierarchy on their own. This guidance cannot override formal semantics, confirmed design, Element Contracts, Relationships, or the current workflow's permissions; ask the user to rule when they conflict.
 
-## 逐层形成
+## Layer-by-layer formation
 
-1. 从领域概念、能力或用户目标识别当前抽象。为每个 Element 说明它是什么、为何独立、包含与不包含什么，以及与 parent、children、siblings 的边界。未决的语义选择一次询问一个问题。
-2. 为同一 parent 的完整 sibling set 选择一个明确维度；在用户确认范围内检查互斥与完整性（MECE）。不要混合职责、生命周期、部署和实现等不同坐标；需要多种独立语义视角时分别说明各自边界。
-3. 默认以 \`project\`、\`element\`、\`perspective\` 表达语义类别，而非规定层级。Perspective 必须是有真实语义边界、需要子级精化的视角；仅为展示同一批概念而分组时使用 View，不复制 Elements 或 Contracts。
-4. 每个概念只保留一个稳定 identity；跨视角的协作、依赖或约束用类型化 Relationships 表达，不用重复建模解决呈现问题。只有真实共享语义无法由既有 Kind 准确表达时才扩展 Metamodel。
-5. 采用 BFS：展示当前层全部 siblings、维度、边界和覆盖范围，用户确认后才展开下一层。不强制 C4 的固定技术层级或任何固定层数；按实际语义精化到足以理解和决策即可。
-6. 分别完成 Declaration 与 Contract。即使不再拆子节点，条件、数值、例外、时序、职责和保证仍完整进入宿主 Element Contract；不得把停止结构精化误作省略行为。实现安排留给 Plan。
+1. Identify the current abstraction from domain concepts, capabilities, or user goals. For each Element, state what it is, why it stands alone, what it includes and excludes, and its boundary with its parent, children, and siblings. Ask one question at a time for each unresolved semantic choice.
+2. Choose exactly one dimension for the complete sibling set under one parent, then check mutual exclusivity and completeness (MECE) within the confirmed scope. Do not mix responsibility, lifecycle, deployment, and implementation coordinates; when several independent semantic views are needed, state each boundary explicitly.
+3. Express semantic category through \`project\`, \`element\`, and \`perspective\` rather than prescribing levels. A Perspective must have a real semantic boundary that needs child refinement; when grouping merely presents the same set of concepts, use a View instead of duplicating Elements or Contracts.
+4. Keep exactly one stable identity per concept. Express cross-view collaboration, dependency, or constraint as typed Relationships instead of solving a presentation problem with duplicated modeling. Extend the Metamodel only when genuinely shared semantics cannot be expressed accurately by an existing Kind.
+5. Work breadth-first: present all siblings of the current layer with their dimension, boundaries, and coverage, and descend only after the user confirms. C4's fixed technical levels and any fixed number of levels are not required; refine to the point where the model can be understood and decided on.
+6. Complete Declaration and Contract separately. Even when no further children are split, conditions, numbers, exceptions, timing, responsibilities, and guarantees still belong in the host Element Contract; do not mistake stopping structural refinement for omitting behavior. Implementation planning belongs to the Plan.
 
-## 停止与交接
+## Stop and hand off
 
-指导不足、概念身份重叠、维度不明或权威冲突时停止相关结构写入并请求用户；不默选实现目录或相近方法。方法确认不授予文件写入或记录持久化权限。
+Stop writing the affected structure and ask the user when guidance is insufficient, concept identities overlap, the dimension is unclear, or authorities conflict. Do not default to an implementation directory or a similar method. Confirming a method grants no file-write or record-persistence permission.
 
-将确认的 identities、Kinds、完整 Definitions、hierarchy、Contract 细节与 Relationships 交回当前工作流。Explore 保持 conversation-only，Build 编写授权 Candidate，Propose 编译 Delta；记录仅经该工作流的独立授权协议保存。本指导不替代各流程的验证、审查、确认或提升门禁。
+Hand the confirmed identities, Kinds, complete Definitions, hierarchy, Contract detail, and Relationships back to the current workflow. Explore stays conversation-only, Build authors the authorized Candidate, and Propose compiles the Delta; persistence happens only through that workflow's separate authorization protocol. This guidance does not replace any workflow's validation, review, confirmation, or promotion gate.
 `.trim();
 
 /**
@@ -70,9 +68,9 @@ export const SEMANTIC_REFINEMENT_REFERENCE = `
 export const ELEMENT_DEFINITION_SEMANTICS = `
 **Element Definition Semantics**
 
-- Definition SHALL 完整说明 Element 是什么、为何作为独立 Element 建模、包含什么、不包含什么，以及必要时如何区别于 parent、children 与 siblings。
-- Definition 不得只是 title 的改写或一句“用于……”摘要；它表达概念身份与范围边界，不表达实现文件、符号、调用关系或当前方案。
-- 职责、保证、约束、行为、Requirement、Scenario 与验收条件属于 Element Contract；方案与理由属于 \`design.md\`；变更动机与迁移历史属于 \`proposal.md\`。
+- A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
+- A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
+- Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios, and acceptance conditions belong to the Element Contract; approach and rationale belong to \`design.md\`; change motivation and migration history belong to \`proposal.md\`.
 `.trim();
 
 /**
@@ -82,10 +80,10 @@ export const ELEMENT_DEFINITION_SEMANTICS = `
 export const ELEMENT_CONTRACT_SEMANTICS = `
 **Element Contract Semantics**
 
-- Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、保证、约束与行为；children 可以进一步精化或共同实现这些承诺，父子 Elements 可以在各自层级表达相互覆盖的完整语义。
-- Requirement SHALL 以稳定 identity 表达一项可独立演进的规范承诺。以该承诺能否独立新增、修改或移除判断边界，不得按句子、分句、\`SHALL\` 数量或目标条数机械拆分。只复述 Declaration definition 或 sibling Requirements 语义并集且不增加规范承诺的内容不形成 Requirement；独立的不变量、顺序、原子性、一致性或完成条件应保留。
-- Scenario SHALL 是具有规范约束力的 Requirement 组成，只具体化宿主 Requirement 在特定条件下的可观察行为，不得引入可独立演进的承诺。Scenarios 不默认穷尽 Requirement 的全部适用情况，Scenario 不作为独立 Semantic Delta Entry，其变化由宿主 Requirement 的完整目标内容表达。
-- Scenario SHALL NOT 规定实现结构、文档排版、说明性措辞、标题顺序或测试拆分，除非该精确表示本身就是可观察契约。Scenario 数量不决定持久化测试数量。
+- An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments, and a parent and its children may each express the complete semantics they cover at their respective levels.
+- A Requirement SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Requirement count. Content that only restates the Declaration definition or the union of sibling Requirements without adding a normative commitment does not form a Requirement; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
+- A Scenario SHALL be a normatively binding component of a Requirement, concretizing only the host Requirement's observable behavior under specific conditions, and MUST NOT introduce an independently evolvable commitment. Scenarios do not by default exhaust every applicable case of a Requirement, a Scenario is not an independent Semantic Delta Entry, and its change is expressed by the complete target content of the host Requirement.
+- A Scenario SHALL NOT prescribe implementation structure, document formatting, explanatory wording, heading order, or test splitting, unless that exact representation is itself an observable contract. Scenario count does not determine the number of persistent tests.
 `.trim();
 
 /**

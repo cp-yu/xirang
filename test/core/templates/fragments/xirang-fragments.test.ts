@@ -290,12 +290,12 @@ describe('Semantic Delta authoring fragment', () => {
 describe('Element Definition semantics fragment', () => {
   it('defines concept identity, independent modeling reason, scope, hierarchy, and Contract boundaries', () => {
     for (const token of [
-      '是什么',
-      '为何作为独立 Element 建模',
-      '包含什么、不包含什么',
-      'parent、children 与 siblings',
-      '不得只是 title 的改写',
-      '职责、保证、约束、行为、Requirement、Scenario',
+      'what the Element is',
+      'why it is modeled as an independent Element',
+      'what it includes, what it excludes',
+      'parent, children, and siblings',
+      'MUST NOT be a rewrite of the title',
+      'Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios',
       'proposal.md',
       'design.md',
     ]) {
@@ -307,13 +307,13 @@ describe('Element Definition semantics fragment', () => {
 describe('Element Contract semantics fragment', () => {
   it('defines the shared Contract, Requirement, and Scenario boundaries', () => {
     for (const token of [
-      '在自身抽象层级',
-      '独立新增、修改或移除',
-      '不得按句子、分句、`SHALL` 数量或目标条数机械拆分',
+      'at its own abstraction level',
+      'added, modified, or removed on its own',
+      'do not split mechanically by sentence, clause, `SHALL` count, or target Requirement count',
       'Scenario',
-      '只具体化宿主 Requirement',
-      '不默认穷尽',
-      '不作为独立 Semantic Delta Entry',
+      'concretizing only the host Requirement',
+      'do not by default exhaust',
+      'not an independent Semantic Delta Entry',
     ]) {
       expect(ELEMENT_CONTRACT_SEMANTICS).toContain(token);
     }
@@ -325,8 +325,8 @@ describe('Element Contract semantics fragment', () => {
   });
 
   it('requires Scenarios to describe observable behavior rather than generated layout', () => {
-    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('可观察行为');
-    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('文档排版');
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('observable behavior');
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('document formatting');
     expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('## Workflow Stage');
   });
 });
@@ -452,8 +452,9 @@ describe('Xirang shared context fragment', () => {
 describe('默认语义精化路由', () => {
   it('结构形成入口指向统一默认指导', () => {
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
-      expect(template.instructions).toContain('semantic-refinement');
-      expect(template.instructions).toContain('.xirang/references/xirang-semantic-refinement.md');
+      expect(template.instructions).toContain('xirang config project --json');
+      expect(template.instructions).toContain('resolved from the normalized');
+      expect(template.instructions).not.toContain('opaque method name');
     }
   });
 });

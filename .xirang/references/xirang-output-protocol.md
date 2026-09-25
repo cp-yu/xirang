@@ -30,6 +30,7 @@ Return one strict JSON round ledger and no surrounding prose:
 ```
 
 - `impactLevel`, `confidence`, `risk`, and `cost` accept high, medium, or low.
+- A direction below `optimization.minImpactLevel` is out of scope: do not report it, do not inflate its `impactLevel`, and treat an empty result as `NO_ACTIONABLE` with the threshold stated in the `summary`.
 - New directions MUST omit `id`; the CLI assigns and echoes every identifier. To depend on another direction of the same request, use `{ "actionIndex": 0 }`.
 - To update a direction the CLI already recorded, send `{ "id": "OPT-…", "status": "rejected|deferred", "reason": "...", "evidence": ["..."] }`.
 - `attempt` reports the previous round outcome for the direction the CLI selected; `stopReason` finalizes the loop and is required when you stop.
