@@ -1,5 +1,21 @@
 # xirang
 
+## 0.2.0
+
+### Minor Changes
+
+- **BREAKING**：`decomposition` 配置从 `{method}|{skill}` tagged union 收敛为单个字符串。含 `/` 的值作为项目根相对路径原样保留，裸名称解析为 `.xirang/references/<值>`（不以 `.md` 结尾时补 `.md`）；`xirang config project --json` 与 instructions 的 `configProjection.normalized` 改为输出解析后的指导文件路径。结构形成入口的指导读取收敛为单条无分支规则：按解析路径完整读取指导文件，缺失或不可读即停止结构形成，不再存在按方法名分派与「Agent 自有方法知识」两条分支——它们正是 Agent 在非默认分支下读取未选择指导文件的根因。功能性默认值改为 `xirang-semantic-refinement.md`。含 union 的 v0.1.x 均未发布到 npm（npm 仅有 0.0.1/0.0.2），故不提供旧格式迁移逻辑；既有 `decomposition` 值只保留不覆盖，非法值 warning 后省略该字段。共享 `STRUCTURAL_DECOMPOSITION_GUIDANCE` 片段统一为英文单一语言。
+
+- 新增 `optimization.minImpactLevel` 配置（取值 `high`/`medium`/`low`，默认 `low`），声明可选取的最低优化收益等级。低于门槛的方向不再被报告，也不得被标注为 deferred 或通过抬高 `impactLevel` 越过门槛；当全部待选方向均低于门槛时该轮以 `NO_ACTIONABLE` 收口（终态 `NOT_NEEDED`），使「没有值得做的事」成为正当结论。门槛同时由 CLI 选择器确定性过滤与 Optimizer 的 admission gate 自我约束两处执行。默认值 `low` 为最宽门槛，既有项目行为与改动前一致。
+
+- Definition Framing 从「可选增强」改为必须落定的记录决策：形成过程只要产生 normative 确认，就必须在交接前落定恰好一种终态——持久化记录、用户明确授予的豁免（连同理由写入 Design Summary 与 provenance）、或声明本次无 normative 内容。三者皆缺即阻塞，静默跳过不再是合法路径。`snack` 仍不产出该决策。
+
+- 记录写入的确认改为按设计段落聚合：一个设计段落结束后一次性展示本段全部待写条目并取得该批决策，不再逐条打断；聚合只改变确认时机，不减少一次创建或更新所需的独立授权，未被用户在该批中处理并确认的条目不算已确认。
+
+- 覆盖检查从叙事式自查改为逐条打钩：规范性条目须逐条标记落位于 Declaration、Contract、Relationship、Metamodel 或 Authored View，未标记即计为未覆盖并阻塞 ready-for-apply / promotion。原落位枚举遗漏 Authored View，会使合法的 View 条目被迫判为未覆盖，该缺口已修复。`propose` 与 Build 遇到无记录来源时必须要求其声明记录决策，未声明即阻塞并退回 Explore，不得当作隐式豁免。
+
+- Agent 面文本统一为英文单一语言（含 `ELEMENT_DEFINITION_SEMANTICS`、`ELEMENT_CONTRACT_SEMANTICS`），并清除共享片段中的方法名分派表述。
+
 ## 0.1.1
 
 ### Patch Changes
