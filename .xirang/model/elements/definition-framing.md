@@ -29,23 +29,17 @@ Definition Framing SHALL 作为 Build 与 Explore 可持续使用的方法，按
 
 ### Requirement: 按项目拆分指导确认结构目标
 
-Definition Framing SHALL 在提出或确认 Element hierarchy 目标前消费 normalized `decomposition`：对框架默认 `semantic-refinement` 读取框架随附指导，对其他显式 `method` 使用 Agent 已有方法知识，对 `skill` 调用用户提供的逻辑 skill。拆分指导 SHALL 与因果定义、identity 边界、单维度、MECE 和 BFS confirmation 联合使用，并 SHALL NOT 代替用户对本次记录内容 的显式确认。
+Definition Framing SHALL 在提出或确认 Element hierarchy 目标前消费 normalized `decomposition`：完整读取解析路径指向的指导文件并按其指导形成结构。拆分指导 SHALL 与因果定义、identity 边界、单维度、MECE 和 BFS confirmation 联合使用，并 SHALL NOT 代替用户对本次记录内容的显式确认。
 
-#### Scenario: 方法指导同层分解
+#### Scenario: 指导文件驱动结构讨论
 
-- **WHEN** Definition Framing 需要为一个 parent 确定完整 sibling set 且配置有效 `method`
-- **THEN** Agent 使用该方法选择分解维度
+- **WHEN** Definition Framing 需要为一个 parent 确定完整 sibling set 且配置有效
+- **THEN** Agent 在结构讨论前完整读取该指导文件
 - **AND** 再以单维度、MECE 与 BFS 检查该层结构
 
-#### Scenario: skill 指导自定义分解
+#### Scenario: 拆分指导不可读时停止
 
-- **WHEN** 配置有效 `skill`
-- **THEN** Agent 在结构讨论前调用该 skill
-- **AND** 消费该指导的 Agent 继续遵守一次一问、只读边界与独立 persistence confirmation
-
-#### Scenario: 拆分指导不可用
-
-- **WHEN** 方法无法明确理解或 skill 无法调用
+- **WHEN** 解析路径的指导文件缺失或不可读
 - **THEN** Definition Framing 停止形成受影响结构目标并询问用户
 - **AND** SHALL NOT 创建或更新 framing payload
 

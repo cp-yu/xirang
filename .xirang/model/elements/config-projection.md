@@ -373,19 +373,19 @@ Config projection SHALL 将 docLanguage 作为 proseLanguage 的 legacy fallback
 
 ### Requirement: 原样投影结构拆分选择
 
-Config Projection SHALL 向结构形成 workflow 暴露经过项目配置加载器校验的 `decomposition.method` 或 `decomposition.skill` tagged union，并保持所选名称不变。Projection SHALL NOT 将 `method` 映射到 CLI 内建方法论、扩展教程或 allowlist，也 SHALL NOT 将 `skill` 映射到工具专属路径。
+Config Projection SHALL 向结构形成 workflow 暴露经过项目配置加载器解析的 `decomposition` 指导文件路径字符串，并保持解析结果稳定。Projection SHALL NOT 维护方法名单、映射 CLI 内建方法论或猜测工具专属路径。
 
-#### Scenario: 投影方法名
+#### Scenario: 投影解析后的指导路径
 
-- **WHEN** normalized project config 包含 `decomposition: { method: "c4" }`
-- **THEN** `xirang config project --json` 与适用 prompt projection 输出相同方法名
-- **AND** 输出不包含任何由 CLI 生成的 C4 拆分步骤
+- **WHEN** normalized project config 包含 `decomposition: c4`
+- **THEN** `xirang config project --json` 与适用 prompt projection 输出 `.xirang/references/c4.md`
+- **AND** 输出不包含任何由 CLI 生成的拆分步骤
 
-#### Scenario: 投影 skill 名
+#### Scenario: 投影路径形态原样输出
 
-- **WHEN** normalized project config 包含 `decomposition: { skill: "xirang-project-decomposition" }`
-- **THEN** 适用结构形成 workflow 获得该逻辑名称
-- **AND** projection 不猜测 `.pi`、`.claude`、`.codex` 或其他工具目录
+- **WHEN** normalized project config 包含路径形态的 `decomposition` 值
+- **THEN** 适用结构形成 workflow 获得相同的项目根相对路径
+- **AND** projection 不猜测 `.pi`、`.claude`、`.codex` 或其他工具目录之外的额外路径
 
 #### Scenario: 非结构 workflow 不消费拆分指导
 
@@ -396,4 +396,4 @@ Config Projection SHALL 向结构形成 workflow 暴露经过项目配置加载�
 
 - **WHEN** config loading 因非法 `decomposition` 省略该字段
 - **THEN** projection SHALL 同样省略结构拆分选择
-- **AND** SHALL NOT 注入默认 C4 作为修复
+- **AND** SHALL NOT 注入默认指导路径作为修复

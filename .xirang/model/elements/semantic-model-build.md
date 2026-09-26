@@ -314,42 +314,25 @@ Semantic Model Build 从 legacy 文档或正式模型恢复仍适用的行为时
 
 ### Requirement: 按项目配置形成 Candidate hierarchy
 
-Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierarchy 写入前消费 normalized `decomposition`。当选择 `method` 时，Agent SHALL 对默认 semantic-refinement 读取框架随附的完整指导，对其他显式方法使用已明确理解的方法知识；CLI 配置解析仍不解释 opaque 方法名；当选择 `skill` 时，Agent SHALL 调用该逻辑 skill。拆分指导只决定 Element abstraction/refinement 使用的分解坐标系，SHALL NOT 覆盖用户授权、证据权威、Element Contract 或 Relationship 语义。
+Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierarchy 写入前消费 normalized `decomposition`：完整读取解析路径指向的指导文件，并按其形成 Candidate hierarchy；文件缺失或不可读时 fail closed。CLI 解析是机械的名称到路径映射，SHALL NOT 解释方法论内容。拆分指导只决定 Element abstraction/refinement 使用的分解坐标系，SHALL NOT 覆盖用户授权、证据权威、Element Contract 或 Relationship 语义。
 
-#### Scenario: 使用 Agent 已知方法
+#### Scenario: 读取解析后的指导文件
 
-- **WHEN** `decomposition.method` 为当前 Agent 明确理解的 `c4`
-- **THEN** Build 使用 Agent 已有的 C4 知识形成 Candidate hierarchy
-- **AND** 不从 CLI 请求或编造 C4 方法论 payload
+- **WHEN** 有效配置的 `decomposition` 解析出指导文件路径
+- **THEN** Build 在结构决策前完整读取该文件并遵循其拆分指导
+- **AND** 对每个 sibling set 执行单维度、MECE 与 BFS 检查
 
-#### Scenario: 方法名无法明确理解
+#### Scenario: 指导文件不可用时停止结构形成
 
-- **WHEN** 当前 Agent 不能明确理解配置的方法名或该方法对当前项目存在多个结构解释
-- **THEN** Build 在相关 hierarchy 写入前一次询问用户
-- **AND** MUST NOT 猜测相近方法或静默改用 C4
-
-#### Scenario: 调用项目自有拆分 skill
-
-- **WHEN** `decomposition.skill` 配置为一个当前工具可调用的逻辑名称
-- **THEN** Build 在结构决策前调用该 skill 并遵循其拆分指导
-- **AND** 继续对每个 sibling set 执行单维度、MECE 与 BFS 检查
-
-#### Scenario: skill 不可用时停止结构形成
-
-- **WHEN** 配置的 skill 找不到、调用失败或未返回足以形成结构的指导
-- **THEN** Build fail closed 并报告该逻辑名称
-- **AND** 不以默认方法继续写入 Candidate hierarchy
+- **WHEN** 解析路径的指导文件缺失或不可读
+- **THEN** Build fail closed 并报告该解析路径
+- **AND** 不以任何默认方法继续写入 Candidate hierarchy
 
 #### Scenario: 独立语义审查检查拆分一致性
 
 - **WHEN** Candidate 进入 clean-context semantic review
 - **THEN** review 检查 hierarchy 是否一致应用已选择的拆分指导
 - **AND** 检查同一 sibling set 未混合不相容的职责、生命周期、部署或实现维度
-
-#### Scenario: 默认方法有可用指导
-
-- **WHEN** 有效配置选择框架默认 semantic-refinement
-- **THEN** Build 在形成 hierarchy 前读取已投影的共享指导，以领域语义、单维度、MECE 与 BFS 形成任意深度结构，不猜测未交付的方法内容。
 
 ### Requirement: 复用确认记录形成 Candidate
 
