@@ -38,37 +38,22 @@ definition: Quality CLI Gate 定义 `xirang quality` 命令面的门禁与协议
 
 ### Requirement: Optimization 记录入口
 
-系统 SHALL 提供 `xirang quality optimize <change-name>` 命令，以一轮为单位接受一份优化判断台账。入口条件为当前代码已通过 Review、Optimization 尚未收口、终态不是 `ABORTED_UNSAFE`、且已选方向数未达 `optimization.directionLimit`。系统 SHALL 为台账中省略 `id` 的新方向分配稳定 ID 并在输出中回显，校验方向 ID 引用与状态迁移，按方向数与同方向失败次数更新两级计数，并持久化该轮台账。
+系统 SHALL 提供 `xirang quality optimize <change-name>` 命令，以一轮为单位接受一份优化判断台账。入口条件为当前代码已通过 Review、Optimization 尚未收口、终态不是 `ABORTED_UNSAFE`、且已选方向数未达 `optimization.directionLimit`。系统 SHALL 为台账中省略 `id` 的新方向分配稳定 ID 并在输出中回显，校验方向 ID 引用与状态迁移，按方向数与同方向失败次数更新两级计数，并按 `optimization.minImpactLevel` 过滤低于门槛的方向，并持久化该轮台账。
 
-#### Scenario: 满足入口条件并记录一轮
-
-- **WHEN** agent 执行 `xirang quality optimize <change-name> --input '<json>'`
-- **AND** 当前代码已通过 Review、尚未收口、方向数未达上限
-- **THEN** 系统 SHALL 为新方向分配稳定 ID 并在输出中回显
-- **AND** SHALL 记录该轮台账、更新两级计数
-- **AND** SHALL 输出选中的方向与下一步
-
-#### Scenario: optimization 被禁用
-
-- **WHEN** `optimization.enabled` 为 false
-- **THEN** 系统 SHALL 只接受 `stopReason` 为 `USER_DECLINED` 的收口输入
-- **AND** SHALL 记录终态 `SKIPPED`
-
-#### Scenario: 方向数用尽后只能收口
+#### Scenario: 已选方向数达到上限
 
 - **WHEN** 已选方向数达到 `optimization.directionLimit`
-- **THEN** 系统 SHALL 拒绝选择新方向
-- **AND** SHALL 仍接受收口输入
+- **THEN** 系统 SHALL 拒绝选择新方向并要求收口
 
-#### Scenario: 引用未知方向
+#### Scenario: 门槛过滤在选择阶段生效
 
-- **WHEN** 台账引用了未知的方向 ID，或提交了非法的方向状态迁移
-- **THEN** 系统 SHALL 以 exit 2 拒绝
-- **AND** MUST NOT 修改任何记录
+- **WHEN** 台账中存在 `impactLevel` 低于 `optimization.minImpactLevel` 的待选方向
+- **THEN** 该方向 SHALL 不被选取，也不消耗方向额度
+- **AND** 当全部待选方向均低于门槛时该轮不选取任何方向
 
 ### Requirement: 收口终态由 stopReason 推导
 
-Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER_DECLINED` 对应 `SKIPPED`；`NO_ACTIONABLE` 对应 `NOT_NEEDED`；`DIRECTION_REJECTED` 与 `DIRECTION_LIMIT_REACHED` 在有成功落地方向时对应 `IMPROVED`，否则对应 `DEGRADED`；`UNSAFE` 对应 `ABORTED_UNSAFE`。
+Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER_DECLINED` 对应 `SKIPPED`；`NO_ACTIONABLE` 对应 `NOT_NEEDED`；`DIRECTION_REJECTED` 与 `DIRECTION_LIMIT_REACHED` 在有成功落地方向时对应 `IMPROVED`，否则对应 `DEGRADED`；`UNSAFE` 对应 `ABORTED_UNSAFE`。全部待选方向低于 `optimization.minImpactLevel` 时 SHALL 以 `NO_ACTIONABLE` 收口，并据此推导为 `NOT_NEEDED`。
 
 #### Scenario: 被方向数上限截断但已有成功方向
 
@@ -82,6 +67,12 @@ Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER
 - **WHEN** 收口输入的 `stopReason` 为 `DIRECTION_REJECTED`
 - **AND** 台账中不存在已验证的方向
 - **THEN** 终态 SHALL 为 `DEGRADED`
+
+#### Scenario: 全部方向低于门槛
+
+- **WHEN** 台账中所有待选方向的 `impactLevel` 均低于 `minImpactLevel`
+- **THEN** 收口输入 SHALL 使用 `stopReason: NO_ACTIONABLE`
+- **AND** 终态 SHALL 为 `NOT_NEEDED`
 
 #### Scenario: unsafe 中止
 

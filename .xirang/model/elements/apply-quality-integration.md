@@ -95,19 +95,18 @@ definition: Apply Quality Integration 定义 Apply 与 Quality 的集成契约�
 
 ### Requirement: 配置驱动优化控制
 
-`optimization.enabled` SHALL 控制 Optimization 是否运行；`optimization.directionLimit` SHALL 限制可选取的新方向数；`optimization.directionRetries` SHALL 只限制同一方向的失败次数，不限制成功轮次数。
+`optimization.enabled` SHALL 控制 Optimization 是否运行；`optimization.directionLimit` SHALL 限制可选取的新方向数；`optimization.directionRetries` SHALL 只限制同一方向的失败次数，不限制成功轮次数；`optimization.minImpactLevel` SHALL 声明可选取的最低 `impactLevel`，未配置时视为 `low`。门槛由 CLI 在选择阶段确定性执行，低于门槛的方向永不被选中。
 
-#### Scenario: 成功轮次不受失败额度限制
+#### Scenario: 方向数上限与失败额度互不消耗
 
 - **WHEN** `directionRetries` 为 2 且存在三个依次通过复核的方向
-- **THEN** apply SHALL 完成三个轮次
-- **AND** SHALL NOT 以成功轮次消耗失败额度
+- **THEN** 三个方向 SHALL 均允许完成，成功不消耗失败额度
 
-#### Scenario: 跳过优化
+#### Scenario: 门槛由 CLI 确定性执行
 
-- **WHEN** 用户显式拒绝优化
-- **THEN** 系统 SHALL 以 `stopReason: USER_DECLINED` 收口并记录终态 `SKIPPED`
-- **AND** apply SHALL 直接进入 seal
+- **WHEN** 已配置 `minImpactLevel` 且某方向低于该值
+- **THEN** CLI 在选择阶段不选取该方向
+- **AND** 当全部待选方向均低于门槛时该轮以 `NO_ACTIONABLE` 收口
 
 ### Requirement: Apply 读取 Quality 诊断信息
 

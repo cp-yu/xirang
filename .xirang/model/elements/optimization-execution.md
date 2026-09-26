@@ -78,7 +78,7 @@ definition: Optimization Execution 定义 Quality 中优化活动的执行协议
 
 ### Requirement: 重试预算控制
 
-`config.optimization.directionLimit` SHALL 限制可选取的新方向数；`config.optimization.directionRetries` SHALL 只限制同一方向的失败次数。成功方向 MUST NOT 消耗方向失败额度，也 MUST NOT 被该额度限制；方向数用尽后 SHALL 只允许收口。
+`config.optimization.directionLimit` SHALL 限制可选取的新方向数；`config.optimization.directionRetries` SHALL 只限制同一方向的失败次数；`config.optimization.minImpactLevel` SHALL 声明可选取的最低 `impactLevel`，默认 `low`。成功方向 MUST NOT 消耗方向失败额度，也 MUST NOT 被该额度限制；低于门槛的方向 MUST NOT 被选取，也 MUST NOT 消耗方向额度；方向数用尽后 SHALL 只允许收口。
 
 #### Scenario: 成功方向不消耗失败额度
 
@@ -97,6 +97,12 @@ definition: Optimization Execution 定义 Quality 中优化活动的执行协议
 - **WHEN** 已选方向数达到 `directionLimit`
 - **THEN** 系统 SHALL 拒绝选择新方向
 - **AND** SHALL 要求以 `DIRECTION_LIMIT_REACHED` 收口
+
+#### Scenario: 低于门槛的方向不被选取
+
+- **WHEN** 某个待选方向的 `impactLevel` 低于 `minImpactLevel`
+- **THEN** 该方向 SHALL 永不被选取，也不消耗方向额度
+- **AND** 当全部待选方向均低于门槛时 SHALL 以 `NO_ACTIONABLE` 收口
 
 ### Requirement: 优化结果持久化
 
