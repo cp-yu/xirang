@@ -377,6 +377,10 @@ describe('artifact-workflow CLI commands', () => {
       expect(json.template).toContain('**Files**:');
       expect(json.template).toContain('**Sections**:');
       expect(json.template).toContain('#### Checks');
+      expect(json.template).toContain('  - Test action: modify');
+      expect(json.template).toContain('  - Test action: one-time');
+      expect(json.template).toContain('  - Test action: reuse');
+      expect(json.instruction).toContain('Each check MUST declare exactly one `Test action:`');
       expect(json.instruction).toContain('coarse-grained task list');
       expect(json.instruction).toContain('executable Checks');
       expect(json.instruction).toContain('non-runtime text or non-runtime artifact changes do not require artificial failing tests');
@@ -621,6 +625,7 @@ rules: {}
 
 - [x] C1 Verify Design Summary reuse
   - Verifies: \`elements/test-element.md\` / Section "Propose smart routing" / AcceptanceCase "复用 Design Summary"
+  - Test action: reuse
   - Command: \`npm run test -- test/core/templates/propose-template.test.ts\`
   - Expect: template mentions Design Summary reuse
 
@@ -639,6 +644,7 @@ rules: {}
 
 - [ ] C2 Verify pending coarse task
   - Verifies: \`elements/test-element.md\` / Section "Master agent 必须拆解粗粒度任务为 TDD 步骤" / AcceptanceCase "读取粗粒度任务"
+  - Test action: reuse
   - Command: \`npm run test -- test/commands/artifact-workflow.test.ts\`
   - Expect: apply progress reports one remaining task
 `;
@@ -686,6 +692,7 @@ rules: {}
 
 - [ ] C1 Verify strict apply
   - Verifies: \`elements/test-element.md\` / Section "Apply Phase 0 pending Checks" / AcceptanceCase "拆解为可执行工作"
+  - Test action: reuse
   - Command: \`npm run test -- test/core/templates/apply-change.test.ts\`
   - Expect: apply instructions include strict red/green TDD
 `;

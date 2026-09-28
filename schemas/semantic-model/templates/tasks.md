@@ -15,6 +15,7 @@
 
 - [ ] C1 <!-- Verification check -->
   - Verifies: `elements/<identity>.md` / Section "<section name>" / Acceptance Case "<acceptance case name>"
+  - Test action: modify
   - Command: `<!-- command or test -->`
   - Expect: <!-- observable result -->
 
@@ -25,7 +26,6 @@
 **Files**:
 - Delete: `<!-- path/to/deprecated-file -->`
 - Modify: `<!-- path/to/file-with-references -->`
-- Test: `<!-- path/to/test-file -->`
 
 **Sections**:
 - <!-- entry describing what is removed and why -->
@@ -34,6 +34,7 @@
 
 - [ ] C2 <!-- Deletion verification check -->
   - Verifies: `elements/<identity>.md` / REMOVED Section "<section name>"
+  - Test action: one-time
   - Command: `<!-- absence assertion command, e.g., grep or test -->`
   - Expect: <!-- no matches or references found -->
 
@@ -52,5 +53,6 @@
 
 - [ ] C3 <!-- Behavior equivalence check -->
   - Preserves: `.xirang/model/elements/<identity>.md` / Section "<section name>" / Acceptance Case "<acceptance case name>"
+  - Test action: reuse
   - Command: `<!-- behavior test command -->`
   - Expect: <!-- old form (old function, old path, old duplication) no longer exists -->

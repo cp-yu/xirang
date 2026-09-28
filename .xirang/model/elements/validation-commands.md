@@ -414,6 +414,20 @@ validate 命令 SHALL 校验 tasks.md 中 Check 的 Verifies 锚点：与 change
   - Check 锚点引用的 Section 或 Acceptance Case 标题与 change-local Contract 的标题不一致
   - 校验输出 SHALL 标记锚点报错
 
+### Section: Check 测试动作校验
+
+validate 命令 SHALL 对 coarse Tasks 与 Actions/Checks 两种布局中的每个 Check 校验 `Test action:`：必须恰有一个声明，值为 `reuse`、`modify`、`add`、`delete` 或 `one-time`。缺失、空值、非法值或重复声明 SHALL 标记为报错，并提供 tasks.md、Check identity 与行号定位。动作合法 SHALL NOT 豁免锚点或验证证据字段校验。
+
+- **缺失或非法动作阻塞就绪**
+
+  - Check 未声明 Test action，或声明为空、非法值或重复字段
+  - 校验 SHALL 报错并列出允许值，不推测默认动作
+
+- **合法动作仍须提供证据**
+
+  - Check 声明 one-time，但没有 Command、Evidence 或 Expect
+  - 校验 SHALL 报缺少验证证据字段
+
 ### Section: 无 delta change 的显式标记
 
 validate 命令 SHALL 将 change-local `.delta-noop` 标记识别为显式无 delta 声明：存在该标记且 change 不携带任何 Semantic Delta 单元时，SHALL 不报无 delta 错误；标记不存在且无任何 delta 单元时，SHALL 报无 delta 错误。

@@ -165,6 +165,9 @@ artifacts:
       - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
       - `Verifies:` identifies the change-local target Section, and its Acceptance Case when the Check verifies a key acceptance case; for deletion deliverables, use `Verifies: ... / REMOVED Section "<name>"`
       - `Preserves:` anchors behavior-equivalence checks to main Element Contract paths (`.xirang/model/elements/<identity>.md` / Section "<title>" / Acceptance Case "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
+      - Each check MUST declare exactly one `Test action:` with a single canonical value: `reuse`, `modify`, `add`, `delete`, or `one-time`; missing, empty, unknown, or duplicate declarations are errors
+      - `reuse` runs existing tests unchanged; `modify` updates existing tests; `add` creates new tests; `delete` removes obsolete tests and verifies the remaining behavior or absence; `one-time` collects evidence without creating a persistent test file
+      - Inspect existing tests before selecting the action; prefer reuse or modify when they cover the target behavior. Identify affected test paths in Files or the Check body for persistent test actions. Test action does not replace executable evidence
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
       - When this change has local Delta units, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `elements/<identity>.md`
       - `Verifies:` MUST name the full Section title, plus one or more exact Acceptance Case names only when the Check verifies a key acceptance case; except for the REMOVED Section variant
@@ -178,7 +181,7 @@ artifacts:
 
       Conversion rules:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
-      - Structural labels such as `### Task N:`, `Goal`, `Files`, `Sections`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
+      - Structural labels such as `### Task N:`, `Goal`, `Files`, `Sections`, `Checks`, `Verifies:`, `Preserves:`, `Test action:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
       - Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
       - For business-specification Contracts, derive test inputs and expected outcomes from Key Acceptance Cases and confirmed Contract commitments; do not invent expected business results from implementation.
       - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
@@ -194,7 +197,7 @@ artifacts:
       - non-runtime text or non-runtime artifact changes do not require artificial failing tests, but still need at least one lightweight check with a non-empty `Verifies:` explaining how completion will be verified
       - config, schema, template, workflow template, and agent instruction template changes default to behavior Checks unless the task proves there is no runtime or generated-surface consumer
       - Absence assertions (such as grep empty assertions after deletion) are handled by the non-runtime text fast path: use `Command:` output as final evidence, do not require artificial red/green form
-      - Existing Actions/Checks files remain valid for older changes, but new changes SHOULD use the Task/Goal/Files/Sections/Checks format
+      - The Actions/Checks layout remains supported for older changes, including the required Test action on every Check; new changes SHOULD use the Task/Goal/Files/Sections/Checks format
 
       Example:
       ```
@@ -216,11 +219,13 @@ artifacts:
 
       - [ ] C1 Verify registration endpoint
         - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Valid registration succeeds"
+        - Test action: add
         - Command: `npm test`
         - Expect: registration test passes
 
       - [ ] C2 Verify invalid email rejection
         - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Invalid email is rejected"
+        - Test action: add
         - Command: `npm test`
         - Expect: invalid email test passes
       ```
@@ -235,7 +240,7 @@ apply:
   requires: [tasks]
   tracks: tasks.md
   instruction: |
-    Read context files and execute each pending behavior/code Check through strict red/green TDD: add or update the targeted test first, run the Check command or equivalent targeted command and confirm the expected failure before implementation, make the minimal implementation, then rerun and confirm pass before marking nested Checks complete.
+    Read context files and inspect existing tests first. Honor each declared Test action: reuse existing tests unchanged, modify them, add new tests, delete obsolete tests, or collect one-time evidence without a persistent test file. Execute each pending behavior/code Check through strict red/green TDD: prepare the targeted test according to its declared action, run the Check command or equivalent targeted command and confirm the expected failure before implementation, make the minimal implementation, then rerun and confirm pass before marking nested Checks complete.
     For non-runtime text or artifact Checks, do not create artificial failing tests; use the declared Command, Evidence, or Expect fields as final evidence.
     Config, schema, template, workflow template, and agent instruction template Checks default to behavior Checks unless the task proves there is no runtime or generated-surface consumer.
     Pause if you hit blockers or need clarification.

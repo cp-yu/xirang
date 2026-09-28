@@ -86,6 +86,7 @@ describe('top-level validate command', () => {
       '',
       '- [ ] C1 Verify',
       '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
+      '  - Test action: reuse',
       '  - Command: `pnpm test`',
       '',
       '### Task 2: Second',
@@ -102,6 +103,7 @@ describe('top-level validate command', () => {
       '',
       '- [ ] C2 Verify',
       '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
+      '  - Test action: reuse',
       '  - Command: `pnpm test`',
     ].join('\n');
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasksContent, 'utf-8');
@@ -111,6 +113,39 @@ describe('top-level validate command', () => {
     expect(json.items[0].valid).toBe(false);
     expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('task-file-conflict'))).toBe(true);
     expect(json.items[0].issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
+  });
+
+  it.each([
+    ['', 'missing-test-action'],
+    ['  - Test action: update', 'invalid-test-action'],
+    ['  - Test action: one-time', undefined],
+  ])('validates Test action through the CLI: %j', async (declaration, code) => {
+    const tasks = `### Task 1: Verify alpha
+
+**Goal**: Verify the alpha change.
+**Files**:
+- Modify: \`src/alpha.ts\`
+**Sections**:
+- Verify target behavior
+
+#### Checks
+
+- [ ] C1 Verify alpha
+  - Verifies: \`elements/alpha.id.md\` / Section "Validator SHALL support alpha change deltas"
+${declaration}
+  - Command: \`pnpm test\`
+`;
+    await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasks);
+    const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+    const json = JSON.parse(result.stdout.trim());
+    expect(result.exitCode).toBe(code ? 1 : 0);
+    expect(json.items[0].valid).toBe(!code);
+    if (code) {
+      expect(json.items[0].issues).toContainEqual(expect.objectContaining({
+        level: 'ERROR', path: 'tasks.md', line: 11,
+        message: expect.stringContaining(`${code}: Check C1`),
+      }));
+    }
   });
 
   it('accepts a no-delta change carrying the .delta-noop marker', async () => {

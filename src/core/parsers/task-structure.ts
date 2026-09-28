@@ -23,6 +23,8 @@ export interface TaskStructureIssue {
     | 'missing-verifies-section'
     | 'missing-verifies-acceptance-case'
     | 'verifies-cross-check-skipped'
+    | 'missing-test-action'
+    | 'invalid-test-action'
     | 'missing-evidence-field'
     | 'task-file-conflict'
     | 'task-dependency-order';
@@ -48,6 +50,7 @@ interface TaskItem {
   line: number;
   fields: Set<string>;
   covers: string[];
+  testActions: string[];
   verifies?: string;
   preserves?: string;
 }
@@ -77,7 +80,8 @@ interface TaskFileEntry {
 const CHECKBOX_RE = /^\s*-\s+\[[ xX]\]\s+(\S+)/;
 const ACTION_ID_RE = /^A\d+$/;
 const CHECK_ID_RE = /^C\d+$/;
-const FIELD_RE = /^\s*-\s+(Covers|Verifies|Preserves|Command|Evidence|Expect):\s*(.*)$/;
+const FIELD_RE = /^\s*-\s+(Covers|Verifies|Preserves|Test action|Command|Evidence|Expect):\s*(.*)$/;
+const TEST_ACTIONS = ['reuse', 'modify', 'add', 'delete', 'one-time'];
 const TASK_FIELD_RE = /^\*\*(Goal|Files|Sections)\*\*:\s*(.*)$/;
 const TASK_CHECKS_HEADING_RE = /^####\s+Checks\s*$/;
 const ELEMENT_PATH_RE = /`([^`]+)`/;
@@ -139,6 +143,7 @@ export function validateTaskStructure(
       }
     }
 
+    validateTestAction(item, issues);
     validateVerifies(item, elementUnits, options.changeDir, issues);
 
     if (!hasEvidenceField(item)) {
@@ -200,6 +205,7 @@ function validateCoarseTasks(
       ? parseItems(lines, mask, fields.get('Checks')!)
       : [];
     for (const item of taskChecks) {
+      validateTestAction(item, issues);
       validateVerifies(item, elementUnits, options.changeDir, issues);
       if (!hasEvidenceField(item)) {
         issues.push(error('missing-evidence-field', `Check ${item.id} must include Command, Evidence, or Expect.`, item.line));
@@ -237,6 +243,14 @@ function isActionId(id: string): boolean {
 
 function isCheckId(id: string): boolean {
   return CHECK_ID_RE.test(id);
+}
+
+function validateTestAction(item: TaskItem, issues: TaskStructureIssue[]): void {
+  if (item.testActions.length === 0) {
+    issues.push(error('missing-test-action', `Check ${item.id} is missing Test action. Choose one of: ${TEST_ACTIONS.join(', ')}.`, item.line));
+  } else if (item.testActions.length !== 1 || !TEST_ACTIONS.includes(item.testActions[0])) {
+    issues.push(error('invalid-test-action', `Check ${item.id} must declare exactly one Test action with one of: ${TEST_ACTIONS.join(', ')}.`, item.line));
+  }
 }
 
 function hasEvidenceField(item: TaskItem): boolean {
@@ -684,7 +698,7 @@ function parseItems(
 
     const checkbox = lines[i].match(CHECKBOX_RE);
     if (checkbox) {
-      current = { id: checkbox[1], line: i + 1, fields: new Set(), covers: [] };
+      current = { id: checkbox[1], line: i + 1, fields: new Set(), covers: [], testActions: [] };
       items.push(current);
       continue;
     }
@@ -698,6 +712,8 @@ function parseItems(
     current.fields.add(name);
     if (name === 'Covers') {
       current.covers.push(...field[2].split(',').map((part) => part.trim()).filter(Boolean));
+    } else if (name === 'Test action') {
+      current.testActions.push(field[2].trim());
     } else if (name === 'Verifies') {
       current.verifies = field[2];
     } else if (name === 'Preserves') {

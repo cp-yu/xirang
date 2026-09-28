@@ -15,11 +15,13 @@ const validTasks = (verifies = '`elements/example.md` / Section "Parser behavior
 - [ ] C1 Verify invalid input is rejected
   - Covers: A1
   - Verifies: ${verifies}
+  - Test action: reuse
   - Command: \`pnpm test\`
 
 - [ ] C2 Verify behavior is unchanged
   - Covers: A2
   - Verifies: ${verifies}
+  - Test action: reuse
   - Evidence: parser fixture output
 `;
 
@@ -69,6 +71,7 @@ describe('validateTaskStructure', () => {
 
 - [ ] C1 Verify template path
   - ${field}: \`${elementPath}\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `, { changeDir: tempDir });
 
@@ -113,6 +116,7 @@ describe('validateTaskStructure', () => {
 - [ ] C1 Verify
   - Covers: A2
   - Verifies: manual verification
+  - Test action: reuse
   - Expect: behavior passes
 `);
 
@@ -130,6 +134,7 @@ describe('validateTaskStructure', () => {
 - [ ] 2.1 Verify
   - Covers: A1
   - Verifies: manual verification
+  - Test action: reuse
   - Expect: behavior passes
 `);
 
@@ -149,6 +154,7 @@ describe('validateTaskStructure', () => {
 - [ ] C1 Verify
   - Covers: A1
   - Verifies: manual verification
+  - Test action: reuse
   - Expect: behavior passes
 `);
 
@@ -182,6 +188,7 @@ describe('validateTaskStructure', () => {
 - [ ] C1 Verify
   - Covers: A1
   - Verifies: manual verification
+  - Test action: reuse
 `);
 
     expect(result.valid).toBe(false);
@@ -318,6 +325,7 @@ describe('validateTaskStructure', () => {
 
 - [ ] C1 Verify coarse task parsing
   - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
+  - Test action: reuse
   - Command: \`pnpm test test/core/parsers/task-structure.test.ts\`
 `,
         { changeDir: tempDir }
@@ -347,6 +355,7 @@ describe('validateTaskStructure', () => {
 
 - [ ] C1 Verify
   - Verifies: manual verification
+  - Test action: reuse
   - Expect: done
 `);
 
@@ -407,7 +416,7 @@ The system SHALL accept pseudocode bodies.
 
     try {
       const result = validateTaskStructure(
-        '### Task 1: Anchor\n\n**Goal**: Verify anchors.\n\n**Files**:\n- Test: `test/a.ts`\n\n**Sections**:\n- Keep anchors consistent\n\n#### Checks\n\n- [ ] C1 Verify\n  - Verifies: `elements/example.md` / Section "支持伪代码形式的 AcceptanceCase 正文" / Acceptance Case "纯伪代码正文"\n  - Command: `pnpm test`\n',
+        '### Task 1: Anchor\n\n**Goal**: Verify anchors.\n\n**Files**:\n- Test: `test/a.ts`\n\n**Sections**:\n- Keep anchors consistent\n\n#### Checks\n\n- [ ] C1 Verify\n  - Verifies: `elements/example.md` / Section "支持伪代码形式的 AcceptanceCase 正文" / Acceptance Case "纯伪代码正文"\n  - Test action: reuse\n  - Command: `pnpm test`\n',
         { changeDir: tempDir }
       );
 
@@ -444,6 +453,7 @@ describe('REMOVED section anchoring', () => {
 
 - [ ] C1 Verify feature removed
   - Verifies: \`elements/example.md\` / REMOVED Section "Deprecated feature"
+  - Test action: reuse
   - Command: \`grep -r "deprecated" src/ || true\`
   - Expect: no matches found
 `,
@@ -481,6 +491,7 @@ describe('REMOVED section anchoring', () => {
 
 - [ ] C1 Verify feature removed
   - Verifies: \`elements/example.md\` / REMOVED Section "Missing feature"
+  - Test action: reuse
   - Command: \`grep -r "missing" src/ || true\`
   - Expect: no matches found
 `,
@@ -520,6 +531,7 @@ describe('REMOVED section anchoring', () => {
 
 - [ ] C1 Verify feature
   - Verifies: \`elements/example.md\` / Section "New feature"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -561,6 +573,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify login
   - Preserves: \`.xirang/model/elements/auth.md\` / Section "Login behavior" / Acceptance Case "User authenticates"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `, { changeDir });
 
@@ -608,6 +621,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify behavior preserved
   - Preserves: \`.xirang/model/elements/auth.md\` / Section "Login behavior" / Acceptance Case "User authenticates"
+  - Test action: reuse
   - Command: \`pnpm test src/auth/login.test.ts\`
   - Expect: old function loginUser no longer exists
 `,
@@ -648,6 +662,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify behavior
   - Preserves: \`elements/example.md\` / Section "Temp spec" / Acceptance Case "Test"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -684,6 +699,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify behavior
   - Preserves: \`/.xirang/model/elements/auth.md\` / Section "Test" / Acceptance Case "Test"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -720,6 +736,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify behavior
   - Preserves: \`xirang/../model/elements/auth.md\` / Section "Test" / Acceptance Case "Test"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -756,6 +773,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify behavior
   - Preserves: \`xirang\\model\\elements\\auth.md\` / Section "Test" / Acceptance Case "Test"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -807,6 +825,7 @@ describe('Preserves field anchoring', () => {
 
 - [ ] C1 Verify feature
   - Verifies: \`.xirang/model/elements/auth.md\` / Section "Login" / Acceptance Case "Works"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -818,6 +837,54 @@ describe('Preserves field anchoring', () => {
       fs.rmSync(tempDir, { recursive: true, force: true });
       fs.rmSync(path.join(projectRoot, '.xirang'), { recursive: true, force: true });
     }
+  });
+});
+
+describe.each(['actions-checks', 'coarse-tasks'] as const)('Test action validation in %s', (format) => {
+  const tasks = (declaration: string) => `${format === 'actions-checks'
+    ? '## Actions\n\n- [ ] A1 Implement\n\n## Checks'
+    : '### Task 1: Implement\n\n**Goal**: Deliver behavior\n\n**Files**:\n- Modify: `src/feature.ts`\n\n**Sections**:\n- Implement behavior\n\n#### Checks'}
+
+- [ ] C1 Verify behavior
+  ${format === 'actions-checks' ? '- Covers: A1' : ''}
+  - Verifies: manual verification
+${declaration}
+  - Command: run verification
+`;
+
+  it.each(['reuse', 'modify', 'add', 'delete', 'one-time'])('accepts %s', (action) => {
+    expect(validateTaskStructure(tasks(`  - Test action: ${action}`)).valid).toBe(true);
+  });
+
+  it.each([
+    ['', 'missing-test-action'],
+    ['  - Test action:', 'invalid-test-action'],
+    ['  - Test action: update', 'invalid-test-action'],
+    ['  - Test action: reuse, add', 'invalid-test-action'],
+    ['  - Test action: reuse\n  - Test action: reuse', 'invalid-test-action'],
+    ['  - Test action: invalid\n  - Test action: add', 'invalid-test-action'],
+  ])('rejects declaration %j', (declaration, code) => {
+    const content = tasks(declaration);
+    const result = validateTaskStructure(content);
+    expect(result.valid).toBe(false);
+    expect(result.issues.filter(issue => issue.severity === 'error')).toEqual([{
+      code,
+      severity: 'error',
+      line: content.split('\n').findIndex(line => line.startsWith('- [ ] C1')) + 1,
+      message: expect.stringMatching(/Check C1.*reuse, modify, add, delete, one-time/),
+    }]);
+  });
+
+  it('does not treat a declaration in a code fence as the Check action', () => {
+    const result = validateTaskStructure(tasks('```md\n  - Test action: add\n```'));
+    expect(result.issues.map(issue => issue.code)).toContain('missing-test-action');
+  });
+
+  it('requires evidence for one-time Checks', () => {
+    const content = tasks('  - Test action: one-time').replace('  - Command: run verification', '');
+    const result = validateTaskStructure(content);
+    expect(result.valid).toBe(false);
+    expect(result.issues.map(issue => issue.code)).toContain('missing-evidence-field');
   });
 });
 
@@ -835,6 +902,7 @@ ${filesA}
 
 - [ ] C1 Verify first behavior
   - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
+  - Test action: reuse
   - Command: \`pnpm test\`
 
 ### Task 2: Second
@@ -850,6 +918,7 @@ ${filesB}
 
 - [ ] C2 Verify second behavior
   - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
+  - Test action: reuse
   - Command: \`pnpm test\`
 `;
 

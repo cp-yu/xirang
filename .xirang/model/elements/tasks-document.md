@@ -78,7 +78,7 @@ tasks.md SHALL 安排执行步骤与验证检查。 Tasks SHALL 具体列出实�
 
 ### Section: Checks 按可观察行为组织
 
-`tasks.md` 的 Check SHALL 作为证据单元验证一个可观察行为及其失败原因，SHALL NOT 机械对应每句规格或每个 Acceptance Case。Check SHALL 声明测试动作：reuse、modify、add、delete 或 one-time；one-time Check SHALL NOT 要求创建 persistent test file。
+`tasks.md` 的 Check SHALL 作为证据单元验证一个可观察行为及其失败原因，SHALL NOT 机械对应每句规格或每个 Acceptance Case。Check SHALL 通过唯一的 `Test action:` 字段声明一个测试动作：`reuse`（原样运行已有测试）、`modify`（修改已有测试）、`add`（新增测试）、`delete`（删除过时测试并验证剩余行为或缺失）或 `one-time`（一次性证据）；该字段 SHALL NOT 替代 Command、Evidence 或 Expect 等验证证据；one-time Check SHALL NOT 要求创建 persistent test file。
 
 Check 引用目标语义时 SHALL 使用 `Section "<title>"` 锚点；验证关键验收案例时 MAY 追加 `Acceptance Case "<name>"`。
 
