@@ -176,7 +176,7 @@
     │  xirang validate --change "<name>" │
     │    --artifacts opsx-delta --json      │
     │  → 验证 delta specs 结构            │
-    │  → 验证 SHALL/MUST + Scenario 格式   │
+    │  → 验证 SHALL/MUST + Section 结构   │
     │                                      │
     │  Dry-run opsx-delta merge:           │
     │  → formal two-file bundle            │
@@ -536,7 +536,7 @@
                     │                                      │
                     │  Correctness (正确性):                │
                     │  • 需求→实现映射                      │
-                    │  • Scenario 覆盖                     │
+                    │  • 验收案例覆盖                      │
                     │  • 引用文件路径 + 行号                │
                     │  • Git 证据仅作线索, 最终文件为权威   │
                     │                                      │

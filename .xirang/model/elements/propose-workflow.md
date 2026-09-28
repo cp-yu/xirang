@@ -7,295 +7,293 @@ title: Propose Workflow
 definition: Propose Workflow 定义 propose workflow 创建 change、分离 behavior/architecture source impact、生成完整制品并执行轻量验证的行为：semantic readiness 门禁、Design Summary 复用、制品定义先行写作、架构范围 reconcile、post-propose validation 一致性验证门禁与状态输出收敛。
 ---
 
-## Requirements
+## Specification
 
-### Requirement: Propose 创建完整 change 制品
+### Section: Propose 创建完整 change 制品
 
 系统 SHALL 提供 propose workflow，在不实施代码的前提下创建或更新 change，并生成 `proposal.md`、delta Contracts、`design.md`、`tasks.md` 与架构变化所需的结构目标制品。Workflow SHALL 在 semantic readiness 通过或用户明确 override 后才创建新 change，并 SHALL 将 graph 与 contract impacts 解释为同一 Semantic Model 的 module scopes。
 
-#### Scenario: 创建新 change
+- **创建新 change**
 
-- **WHEN** 用户明确要求创建 new change
-- **AND** semantic readiness 已通过或用户已明确 override
-- **AND** 派生 change ID 不存在
-- **THEN** workflow SHALL 执行 `xirang new change`
-- **AND** SHALL 按 artifact dependency order 生成 apply 所需制品
+  - 用户明确要求创建 new change
+  - semantic readiness 已通过或用户已明确 override
+  - 派生 change ID 不存在
+  - workflow SHALL 执行 `xirang new change`
+  - SHALL 按 artifact dependency order 生成 apply 所需制品
 
-#### Scenario: Readiness 未通过时不创建 change
+- **Readiness 未通过时不创建 change**
 
-- **WHEN** semantic readiness 不完整且用户未 override
-- **THEN** SHALL 报告缺失项并停止
-- **AND** SHALL NOT 创建 change directory
+  - semantic readiness 不完整且用户未 override
+  - SHALL 报告缺失项并停止
+  - SHALL NOT 创建 change directory
 
-#### Scenario: 更新 existing change
+- **更新 existing change**
 
-- **WHEN** 用户明确要求更新 existing change
-- **THEN** SHALL 原地更新
-- **AND** SHALL 合并现有 artifacts、当前输入、Design Summary、formal model 与 implementation evidence 判断 readiness
+  - 用户明确要求更新 existing change
+  - SHALL 原地更新
+  - SHALL 合并现有 artifacts、当前输入、Design Summary、formal model 与 implementation evidence 判断 readiness
 
-#### Scenario: Workflow stage 边界
+- **Workflow stage 边界**
 
-- **WHEN** 生成 propose skill
-- **THEN** 声明 PROPOSE 只写目标 Change 制品，禁止修改 implementation 或正式模型
-- **AND** 仅在记录覆盖与校验通过后，允许 CLI-managed framing consume 完成明确来源的交接及受控清理，不允许任意 change 目录外写入
+  - 生成 propose skill
+  - 声明 PROPOSE 只写目标 Change 制品，禁止修改 implementation 或正式模型
+  - 仅在记录覆盖与校验通过后，允许 CLI-managed framing consume 完成明确来源的交接及受控清理，不允许任意 change 目录外写入
 
-#### Scenario: New change ID 冲突
+- **New change ID 冲突**
 
-- **WHEN** 用户要求 new change 且 ID 已存在
-- **THEN** SHALL 停止并要求另一个 ID
-- **AND** SHALL NOT 覆盖或自动改名
+  - 用户要求 new change 且 ID 已存在
+  - SHALL 停止并要求另一个 ID
+  - SHALL NOT 覆盖或自动改名
 
-#### Scenario: Identity 不明确且 ID 已存在
+- **Identity 不明确且 ID 已存在**
 
-- **WHEN** 用户意图未明确区分 update existing change 或 create new change
-- **AND** 派生 ID 已存在
-- **THEN** SHALL 一次询问用户选择
-- **AND** non-interactive mode SHALL fail fast
+  - 用户意图未明确区分 update existing change 或 create new change
+  - 派生 ID 已存在
+  - SHALL 一次询问用户选择
+  - non-interactive mode SHALL fail fast
 
-#### Scenario: 等价 artifact 结果
+- **等价 artifact 结果**
 
-- **WHEN** 用户调用 propose
-- **THEN** change directory 与 planning artifact set SHALL 完整创建
+  - 用户调用 propose
+  - change directory 与 planning artifact set SHALL 完整创建
 
-### Requirement: Propose smart routing
+### Section: Propose smart routing
 
 Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
-#### Scenario: 复用 Design Summary
+- **复用 Design Summary**
 
-- **WHEN** conversation 包含已确认的 `Design Summary`
-- **THEN** propose SHALL 说明正在复用该 summary
-- **AND** SHALL 将其中的 architecture、testing、risk 与 trade-off decisions 路由到对应 artifacts
-- **AND** SHALL NOT 重新执行字符数或 detail score 判断
+  - conversation 包含已确认的 `Design Summary`
+  - propose SHALL 说明正在复用该 summary
+  - SHALL 将其中的 architecture、testing、risk 与 trade-off decisions 路由到对应 artifacts
+  - SHALL NOT 重新执行字符数或 detail score 判断
 
-#### Scenario: Semantic readiness 不完整
+- **Semantic readiness 不完整**
 
-- **WHEN** 任一 readiness 项缺失或 source decision 未决
-- **THEN** propose SHALL 在对话中列出具体缺口并建议 Explore
-- **AND** SHALL 停止 artifact generation
-- **AND** SHALL NOT 创建 change 或写入 routing decision
+  - 任一 readiness 项缺失或 source decision 未决
+  - propose SHALL 在对话中列出具体缺口并建议 Explore
+  - SHALL 停止 artifact generation
+  - SHALL NOT 创建 change 或写入 routing decision
 
-#### Scenario: 用户显式 override
+- **用户显式 override**
 
-- **WHEN** propose 已报告 readiness 缺口且用户明确要求直接生成
-- **THEN** propose SHALL 接受 override 并继续
-- **AND** override SHALL NOT 授权 Agent 猜测影响 behavior 或 architecture 的关键决策
+  - propose 已报告 readiness 缺口且用户明确要求直接生成
+  - propose SHALL 接受 override 并继续
+  - override SHALL NOT 授权 Agent 猜测影响 behavior 或 architecture 的关键决策
 
-#### Scenario: Semantic readiness 完整
+- **Semantic readiness 完整**
 
-- **WHEN** conversation 不包含已确认的 Design Summary
-- **AND** problem、impact scope、approach 与 verification method 均明确
-- **AND** 不存在会改变 Behavior Source 或 Architecture Source 的未决决策
-- **THEN** propose SHALL 说明 readiness 已满足并继续 artifact generation
+  - conversation 不包含已确认的 Design Summary
+  - problem、impact scope、approach 与 verification method 均明确
+  - 不存在会改变 Behavior Source 或 Architecture Source 的未决决策
+  - propose SHALL 说明 readiness 已满足并继续 artifact generation
 
-#### Scenario: 多 subsystem scope
+- **多 subsystem scope**
 
-- **WHEN** 请求涉及多个 subsystem
-- **THEN** propose SHALL 将其作为 impact scope 证据
-- **AND** 只有无法形成单一一致 change scope 时才 SHALL 报告 readiness 缺口
-- **AND** MUST NOT 仅凭 subsystem 数量强制 Explore
+  - 请求涉及多个 subsystem
+  - propose SHALL 将其作为 impact scope 证据
+  - 只有无法形成单一一致 change scope 时才 SHALL 报告 readiness 缺口
+  - MUST NOT 仅凭 subsystem 数量强制 Explore
 
-#### Scenario: Test Maintenance 分发
+- **Test Maintenance 分发**
 
-- **WHEN** Testing Strategy 包含过时测试信息
-- **THEN** 过时原因 SHALL 进入 `design.md`
-- **AND** 具体更新或删除操作 SHALL 进入 `tasks.md`
+  - Testing Strategy 包含过时测试信息
+  - 过时原因 SHALL 进入 `design.md`
+  - 具体更新或删除操作 SHALL 进入 `tasks.md`
 
-#### Scenario: One-time Verification 分发
+- **One-time Verification 分发**
 
-- **WHEN** Testing Strategy 包含 `One-time Verification`
-- **THEN** 项目 SHALL 生成 evidence-only Check 且 SHALL NOT 创建 persistent test file
-- **AND** absence assertion SHALL 锚定 REMOVED Requirement
+  - Testing Strategy 包含 `One-time Verification`
+  - 项目 SHALL 生成 evidence-only Check 且 SHALL NOT 创建 persistent test file
+  - absence assertion SHALL 锚定 REMOVED Section
 
-#### Scenario: Routing decision 不污染 artifacts
+- **Routing decision 不污染 artifacts**
 
-- **WHEN** propose 报告 readiness、缺失项或用户 override
-- **THEN** 这些运行过程信息 SHALL 仅保留在对话中
-- **AND** SHALL NOT 写入 `proposal.md` comment 或其他 change artifacts
+  - propose 报告 readiness、缺失项或用户 override
+  - 这些运行过程信息 SHALL 仅保留在对话中
+  - SHALL NOT 写入 `proposal.md` comment 或其他 change artifacts
 
-### Requirement: Proposal 分离 behavior 与 architecture source impact
+### Section: Proposal 分离 behavior 与 architecture source impact
 
-Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声明 behavior source scope 与 architecture source scope。两部分 SHALL 明确属于同一个 Semantic Model；Element 的 Contract 由该 Element 的稳定 identity 定位（Requirement 全局寻址为 `<element identity>#<Requirement name>`），不存在独立 Spec ID 或 Contract 绑定 registry。
+Proposal SHALL 保留 canonical `## Source Impact` 兼容结构，并分别声明 behavior source scope 与 architecture source scope。两部分 SHALL 明确属于同一个 Semantic Model；Element 的 Contract 由该 Element 的稳定 identity 定位（Section 全局寻址为 `<element identity>#<Section name>`），不存在独立 Spec ID 或 Contract 绑定 registry。
 
-#### Scenario: Contract scope 使用 Element identity
+- **Contract scope 使用 Element identity**
 
-- **WHEN** Element Contract behavior 或 guarantee 变化
-- **THEN** Behavior Source SHALL 使用受影响 Element 的稳定 identity
-- **AND** change-local delta SHALL 只为这些 Elements 在 change `elements/` 分区创建或修改对应单元
+  - Element Contract behavior 或 guarantee 变化
+  - Behavior Source SHALL 使用受影响 Element 的稳定 identity
+  - change-local delta SHALL 只为这些 Elements 在 change `elements/` 分区创建或修改对应单元
 
-#### Scenario: Graph scope 使用 elementId
+- **Graph scope 使用 elementId**
 
-- **WHEN** Metamodel、element、containment、definition、relationship 或 view 变化
-- **THEN** Architecture Source SHALL 使用稳定 identity 或明确的新 element identity
-- **AND** exact graph operations SHALL 定义在四分区 Semantic Delta 中
+  - Metamodel、element、containment、definition、relationship 或 view 变化
+  - Architecture Source SHALL 使用稳定 identity 或明确的新 element identity
+  - exact graph operations SHALL 定义在四分区 Semantic Delta 中
 
-#### Scenario: Source module 不变化
+- **Source module 不变化**
 
-- **WHEN** 某 module scope 确认不变
-- **THEN** 对应 section SHALL 写 `None`
-- **AND** unresolved impact MUST NOT 表示为 `None`
+  - 某 module scope 确认不变
+  - 对应 section SHALL 写 `None`
+  - unresolved impact MUST NOT 表示为 `None`
 
-#### Scenario: Proposal 分离 source impact
+- **Proposal 分离 source impact**
 
-- **WHEN** Agent 获取 proposal definition
-- **THEN** Behavior Source SHALL 使用 Element 稳定 identity
-- **AND** Architecture Source SHALL 使用 stable element identities
+  - Agent 获取 proposal definition
+  - Behavior Source SHALL 使用 Element 稳定 identity
+  - Architecture Source SHALL 使用 stable element identities
 
-#### Scenario: Optional contract 缺失不创建 Spec
+- **Optional contract 缺失不创建 Spec**
 
-- **WHEN** optional element 没有 Contract
-- **THEN** propose MUST NOT 仅凭该状态创建 Contract 单元
-- **AND** required element 缺失 contract SHALL 作为 source completeness gap 处理
+  - optional element 没有 Contract
+  - propose MUST NOT 仅凭该状态创建 Contract 单元
+  - required element 缺失 contract SHALL 作为 source completeness gap 处理
 
-### Requirement: Propose 在架构 delta 前 reconcile architecture scope
+### Section: Propose 在架构 delta 前 reconcile architecture scope
 
 Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph scope、design decisions、formal Semantic Model 与 implementation evidence，再生成结构目标。Workflow SHALL 在完整 Target Semantic Model 上联合检查 Element Declarations、Relationships 与 Element Contracts。
 
-#### Scenario: Design 改变 graph scope
+- **Design 改变 graph scope**
 
-- **WHEN** design 确认 graph impact 与 proposal 初稿不同
-- **THEN** SHALL 更新 proposal Architecture Source
-- **AND** exact target graph SHALL 写入 Semantic Delta
+  - design 确认 graph impact 与 proposal 初稿不同
+  - SHALL 更新 proposal Architecture Source
+  - exact target graph SHALL 写入 Semantic Delta
 
-#### Scenario: 无 graph change
+- **无 graph change**
 
-- **WHEN** Architecture Source 为 `None`
-- **THEN** SHALL 省略结构目标
-- **AND** SHALL NOT 从 contract change 发明 graph operations
+  - Architecture Source 为 `None`
+  - SHALL 省略结构目标
+  - SHALL NOT 从 contract change 发明 graph operations
 
-#### Scenario: 指导生成 Semantic Delta
+- **指导生成 Semantic Delta**
 
-- **WHEN** change 影响 Architecture semantics
-- **THEN** skill SHALL 指导在对应分区创建顶层 ADDED、MODIFIED、REMOVED sections
-- **AND** SHALL 要求 MODIFIED entity 使用完整 target payload
+  - change 影响 Architecture semantics
+  - skill SHALL 指导在对应分区创建顶层 ADDED、MODIFIED、REMOVED sections
+  - SHALL 要求 MODIFIED entity 使用完整 target payload
 
-#### Scenario: Binding 指向同一 delta 新 element
+- **Binding 指向同一 delta 新 element**
 
-- **WHEN** Contract 的宿主 Element 只存在于同一 delta 中新增
-- **THEN** propose SHALL 在 Target Semantic Model 上联合验证
-- **AND** MUST NOT 将其误报为 formal model missing element
+  - Contract 的宿主 Element 只存在于同一 delta 中新增
+  - propose SHALL 在 Target Semantic Model 上联合验证
+  - MUST NOT 将其误报为 formal model missing element
 
-#### Scenario: Graph no-op
+- **Graph no-op**
 
-- **WHEN** Architecture Source 为 None
-- **THEN** SHALL 省略 `metamodel/`、`relationships/` 与 `views/` delta 单元
-- **AND** SHALL NOT 创建空 model 单元
+  - Architecture Source 为 None
+  - SHALL 省略 `metamodel/`、`relationships/` 与 `views/` delta 单元
+  - SHALL NOT 创建空 model 单元
 
-### Requirement: Propose 状态输出保持收敛
+### Section: Propose 状态输出保持收敛
 
 Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；需要用户决定时一次询问一个问题。
 
-#### Scenario: Readiness 状态
+- **Readiness 状态**
 
-- **WHEN** propose 完成 semantic readiness 判断
-- **THEN** SHALL 报告 Design Summary reuse、readiness 或具体 gap
+  - propose 完成 semantic readiness 判断
+  - SHALL 报告 Design Summary reuse、readiness 或具体 gap
 
-#### Scenario: 最终总结
+- **最终总结**
 
-- **WHEN** propose 完成 artifacts、validation 与 report generation
-- **THEN** SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
-- **AND** SHALL NOT 报告 Scenario label result
+  - propose 完成 artifacts、validation 与 report generation
+  - SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
 
-#### Scenario: Blocker 状态
+- **Blocker 状态**
 
-- **WHEN** identity、source decision、validation 或 effective diff 阻塞流程
-- **THEN** SHALL 报告最小必要 blocker
-- **AND** 需要用户决定时 SHALL 一次询问一个问题
+  - identity、source decision、validation 或 effective diff 阻塞流程
+  - SHALL 报告最小必要 blocker
+  - 需要用户决定时 SHALL 一次询问一个问题
 
-### Requirement: 仅在 Propose 形成结构目标时应用拆分指导
+### Section: 仅在 Propose 形成结构目标时应用拆分指导
 
 Propose Workflow SHALL 在需要形成尚未确认的新增或重组 hierarchy 时消费 normalized decomposition；对已经确认的记录或 Summary 结构决策 SHALL 忠实编译而不重新裁决。精简记录的存在不表示全部结构都已确认；尚未决部分仍须指导和用户确认。Contract-only 变化不因默认方法制造 Architecture Source。
 
-#### Scenario: 无 framing 时形成结构 Delta
+- **无 framing 时形成结构 Delta**
 
-- **WHEN** 设计要求新增或重组结构且不存在记录
-- **THEN** 使用配置指导确认目标结构，再编译对应 Delta。
+  - 设计要求新增或重组结构且不存在记录
+  - 使用配置指导确认目标结构，再编译对应 Delta。
 
-#### Scenario: 已确认记录优先
+- **已确认记录优先**
 
-- **WHEN** 记录已确认部分 identity、parent 或 Kind，但仍有未决结构
-- **THEN** 保持已确认决策；仅对未决部分使用指导并请求用户确认，不能跳过全部结构设计或静默重做旧决策。
+  - 记录已确认部分 identity、parent 或 Kind，但仍有未决结构
+  - 保持已确认决策；仅对未决部分使用指导并请求用户确认，不能跳过全部结构设计或静默重做旧决策。
 
-#### Scenario: Architecture Source 为 None
+- **Architecture Source 为 None**
 
-- **WHEN** Change 只改变 Contracts 或 implementation scaffolding
-- **THEN** 不调用拆分 skill，不从默认方法发明结构变化。
+  - Change 只改变 Contracts 或 implementation scaffolding
+  - 不调用拆分 skill，不从默认方法发明结构变化。
 
-#### Scenario: 拆分指导不可用时阻塞 Formation
+- **拆分指导不可用时阻塞 Formation**
 
-- **WHEN** 必须形成结构但方法不明确或 skill 不可用
-- **THEN** 停止相关结构写入并询问用户，不猜测默认方法或实现目录作为目标。
+  - 必须形成结构但方法不明确或 skill 不可用
+  - 停止相关结构写入并询问用户，不猜测默认方法或实现目录作为目标。
 
-### Requirement: Propose 按 TDD 闭环划分 Tasks
+### Section: Propose 按 TDD 闭环划分 Tasks
 
-Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环划分 task 边界，SHALL NOT 按 component、module、directory、file type、Requirement 数量或 Scenario 数量机械拆分；SHALL 按共享测试品质判断每个 Check 的语义价值，将同一可观察行为与同一失败原因的 Scenario 归入一个 Check；声明 ready-for-apply 前 SHALL 交叉检查所有 task 边界与 Check 价值，并 reconcile 违反独立验证或制造低价值持久化测试的划分。 Tasks SHALL 以具体实施事项与完整 Contract 引用承接规范目标，不能把记录摘要直接当成完整行为定义；相关 prompt 与受管生成面须归入所属行为闭环。ready-for-apply 前 SHALL 执行记录到语义及语义到实施/Checks 的语义覆盖检查，不能只验证引用存在。
+Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环划分 task 边界，SHALL NOT 按 component、module、directory、file type、Section 数量或 Acceptance Case 数量机械拆分；SHALL 按共享测试品质判断每个 Check 的语义价值，将同一可观察行为与同一失败原因的 Acceptance Case 归入一个 Check；声明 ready-for-apply 前 SHALL 交叉检查所有 task 边界与 Check 价值，并 reconcile 违反独立验证或制造低价值持久化测试的划分。 Tasks SHALL 以具体实施事项与完整 Contract 引用承接规范目标，不能把记录摘要直接当成完整行为定义；相关 prompt 与受管生成面须归入所属行为闭环。ready-for-apply 前 SHALL 执行记录到语义及语义到实施/Checks 的语义覆盖检查，不能只验证引用存在。
 
-#### Scenario: 按行为闭环而非组件划分
+- **按行为闭环而非组件划分**
 
-- **WHEN** 多个组件共同交付一个行为
-- **THEN** Propose SHALL 将它们放入同一 task
+  - 多个组件共同交付一个行为
+  - Propose SHALL 将它们放入同一 task
 
-#### Scenario: Requirement 数量不构成拆分理由
+- **Section 数量不构成拆分理由**
 
-- **WHEN** 一个 task 的 Requirements 超过上限
-- **THEN** Propose SHALL 合并细节或将验证细节下沉到 Checks
-- **AND** SHALL NOT 仅因数量拆分 task
+  - 一个 task 的 Sections 超过上限
+  - Propose SHALL 合并细节或将验证细节下沉到 Checks
+  - SHALL NOT 仅因数量拆分 task
 
-#### Scenario: Scenario 数量不构成拆分理由
+- **Acceptance Case 数量不构成拆分理由**
 
-- **WHEN** 一个 Requirement 含多个描述同一行为与同一失败原因的 Scenario
-- **THEN** Propose SHALL 将它们编译进同一个 Check
-- **AND** SHALL NOT 为每个 Scenario 各创建一个 persistent test Check
+  - 一个 Section 含多个描述同一行为与同一失败原因的 Acceptance Case
+  - Propose SHALL 将它们编译进同一个 Check
+  - SHALL NOT 为每个 Acceptance Case 各创建一个 persistent test Check
 
-#### Scenario: Propose 必须判断 Check 价值
+- **Propose 必须判断 Check 价值**
 
-- **WHEN** Propose 编译 `tasks.md` Checks
-- **THEN** SHALL 应用共享测试品质：优先 reuse 或 modify 已有测试，只在现有测试无法保护该行为时 add
-- **AND** SHALL 把不值得持久化的证据编译为 one-time Check
-- **AND** SHALL NOT 以「不得判断 Check 是否语义足够」为由保留机械测试
+  - Propose 编译 `tasks.md` Checks
+  - SHALL 应用共享测试品质：优先 reuse 或 modify 已有测试，只在现有测试无法保护该行为时 add
+  - SHALL 把不值得持久化的证据编译为 one-time Check
+  - SHALL NOT 以「不得判断 Check 是否语义足够」为由保留机械测试
 
-#### Scenario: 新增边界必须指向独特缺陷
+- **新增边界必须指向独特缺陷**
 
-- **WHEN** Propose 为同一行为增加额外边界 Check 或测试
-- **THEN** SHALL 写明该边界能捕获、已有测试捕获不到的合理缺陷
-- **AND** 无法指出独特缺陷时 SHALL 不创建该 Check
+  - Propose 为同一行为增加额外边界 Check 或测试
+  - SHALL 写明该边界能捕获、已有测试捕获不到的合理缺陷
+  - 无法指出独特缺陷时 SHALL 不创建该 Check
 
-#### Scenario: ready-for-apply 前边界自检
+- **ready-for-apply 前边界自检**
 
-- **WHEN** Propose 准备声明 Change ready-for-apply
-- **THEN** SHALL 交叉检查 Goals、Files、Requirements 与 Checks
-- **AND** 发现 task 依赖后续 task、Check 按 Scenario 1:1 机械拆分或假防护测试时 SHALL reconcile 后再声明
+  - Propose 准备声明 Change ready-for-apply
+  - SHALL 交叉检查 Goals、Files、Sections 与 Checks
+  - 发现 task 依赖后续 task、Check 按 Acceptance Case 1:1 机械拆分或假防护测试时 SHALL reconcile 后再声明
 
-#### Scenario: 确认细节贯穿执行安排
+- **确认细节贯穿执行安排**
 
-- **WHEN** 用户确认的条件、例外与时序已经写入 Contract
-- **THEN** 任务安排其实现与检查并引用该 Contract，不复制规范文本；缺少安排时不声明 ready-for-apply。
+  - 用户确认的条件、例外与时序已经写入 Contract
+  - 任务安排其实现与检查并引用该 Contract，不复制规范文本；缺少安排时不声明 ready-for-apply。
 
-### Requirement: Propose 使用制品定义先行写作
+### Section: Propose 使用制品定义先行写作
 
-每个 artifact 写入前，workflow SHALL 读取 resolved definition，按 content boundaries 路由语义，再执行 artifact instruction 与 template。Delta Contracts SHALL 只包含 canonical unlabeled target-state Requirements 与 Scenarios；Scenario SHALL 描述特定条件下的可观察行为，SHALL NOT 规定实现结构、文档排版、说明性措辞、标题顺序或测试拆分，除非该精确表示本身就是可观察契约；完成 artifacts 后 SHALL 使用统一 change compiler 审阅 effective changes。
+每个 artifact 写入前，workflow SHALL 读取 resolved definition，按 content boundaries 路由语义，再执行 artifact instruction 与 template。Delta Contracts SHALL 只包含 target-state 的 Sections 与 Acceptance Cases；Acceptance Case SHALL 描述特定条件下的可观察行为，SHALL NOT 规定实现结构、文档排版、说明性措辞、标题顺序或测试拆分，除非该精确表示本身就是可观察契约；完成 artifacts 后 SHALL 使用统一 change compiler 审阅 effective changes。
 
-#### Scenario: Scenario operations 通过 diff 审阅
+- **Acceptance Case operations 通过 diff 审阅**
 
-- **WHEN** Agent 已完成 delta Contracts、design、结构目标与 combined validation
-- **THEN** Agent MUST NOT 手写或生成 Scenario operation labels
-- **AND** SHALL 审阅 validate concise preview
-- **AND** 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
+  - Agent 已完成 delta Contracts、design、结构目标与 combined validation
+  - SHALL 审阅 validate concise preview
+  - 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
 
-#### Scenario: Specs 按 Behavior Source 生成
+- **Sections 按 Behavior Source 生成**
 
-- **WHEN** propose 创建 change-local Contracts
-- **THEN** SHALL 只消费 proposal Behavior Source 中的 Element identities
-- **AND** SHALL 读取 Formal Contract 的 exact Requirement titles 后 author delta
+  - propose 创建 change-local Contracts
+  - SHALL 只消费 proposal Behavior Source 中的 Element identities
+  - SHALL 读取 Formal Contract 的 exact Section titles 后 author delta
 
-#### Scenario: Specs boundary 不重复定义
+- **Specs boundary 不重复定义**
 
-- **WHEN** workflow 生成 Contracts
-- **THEN** SHALL 依赖 `xirang instructions specs --change "<name>" --json` 返回的 definition（Element-owned Contract delta authoring 指导）
-- **AND** SHALL NOT 在 workflow template 维护竞争的 behavior boundary
+  - workflow 生成 Contracts
+  - SHALL 依赖 `xirang instructions specs --change "<name>" --json` 返回的 definition（Element-owned Contract delta authoring 指导）
+  - SHALL NOT 在 workflow template 维护竞争的 behavior boundary
 
-#### Scenario: Scenario 写行为而非排版
+- **Acceptance Case 写行为而非排版**
 
-- **WHEN** Propose 编写或修改 Scenario
-- **THEN** Scenario SHALL 描述条件与可观察结果
-- **AND** SHALL NOT 把生成文档标题、段落顺序或完整例句当作行为，除非该精确 token 本身是对外协议
+  - Propose 编写或修改 Acceptance Case
+  - Acceptance Case SHALL 描述条件与可观察结果
+  - SHALL NOT 把生成文档标题、段落顺序或完整例句当作行为，除非该精确 token 本身是对外协议

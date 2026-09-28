@@ -7,45 +7,45 @@ title: Propose Role
 definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身份。它复用已确认设计与有效 Design Summary，消费可用的已确认设计记录，编写完整 Semantic Delta 与 Change Plan，并编排语义覆盖复核、确定性校验及来源交接；它交付可进入实现的 Change，不修改项目实现、不更新正式模型，也不关闭 Change。
 ---
 
-## Requirements
+## Specification
 
-### Requirement: 写入 Change 制品
+### Section: 写入 Change 制品
 
 Propose Role SHALL 在授权范围内写入 Semantic Delta 与 Change Plan 制品。
 
-#### Scenario: Propose 编译完整 Change
+- **Propose 编译完整 Change**
 
-- **WHEN** 目标语义与路径已明确
-- **THEN** Agent 写入对应 Change 目录
+  - 目标语义与路径已明确
+  - Agent 写入对应 Change 目录
 
-### Requirement: 交付可进入实现的 Change
+### Section: 交付可进入实现的 Change
 
 Propose Role SHALL 将 Propose 完成的完整 Change 交付给 Change Implementation。
 
-#### Scenario: Propose 活动完成
+- **Propose 活动完成**
 
-- **WHEN** Delta、Plan、审查与确认均完整
-- **THEN** Agent 报告该 Change 可进入 Change Implementation
+  - Delta、Plan、审查与确认均完整
+  - Agent 报告该 Change 可进入 Change Implementation
 
-### Requirement: 不修改项目或正式模型
+### Section: 不修改项目或正式模型
 
 Propose Role SHALL NOT 修改项目实现，也 SHALL NOT 将 Delta 应用于 Semantic Model。
 
-#### Scenario: Change 已形成
+- **Change 已形成**
 
-- **WHEN** Propose 到达出口
-- **THEN** 项目实现与正式模型保持未落实该 Change 的状态
+  - Propose 到达出口
+  - 项目实现与正式模型保持未落实该 Change 的状态
 
-### Requirement: 编排确认记录消费
+### Section: 编排确认记录消费
 
 Propose Role SHALL 在完整 Change 通过来源到语义、语义到任务的覆盖复核与 validation 后调用 framing consume，核对版本、目标快照和来源生命周期成功才交付 Formation 结果。没有记录时直接按普通 Propose 路径交付，不执行空消费。
 
-#### Scenario: 带记录交付 Change
+- **带记录交付 Change**
 
-- **WHEN** 覆盖复核和最终校验通过且来源版本未改变
-- **THEN** 向明确的目标 Change 消费记录，核对成功结果后交付。
+  - 覆盖复核和最终校验通过且来源版本未改变
+  - 向明确的目标 Change 消费记录，核对成功结果后交付。
 
-#### Scenario: 无记录交付 Change
+- **无记录交付 Change**
 
-- **WHEN** 完整 Change 仅由已确认设计与模型形成
-- **THEN** 不调用 framing consume，不为流程创建空记录。
+  - 完整 Change 仅由已确认设计与模型形成
+  - 不调用 framing consume，不为流程创建空记录。

@@ -7,66 +7,66 @@ title: Change Creation
 definition: Change Creation 定义创建与校验 Change 目录的规范：程序化创建 `.xirang/changes/<name>/`、拒绝重复与非法名称，并强制 kebab-case 命名约定。
 ---
 
-## Requirements
+## Specification
 
-### Requirement: Change Creation
+### Section: Change Creation
 系统 SHALL 提供程序化创建新 change 目录的函数。
 
-#### Scenario: Create change
-- **WHEN** 以合法名称调用创建函数
-- **THEN** 系统创建 `.xirang/changes/<name>/` 目录
+- **Create change**
+  - 以合法名称调用创建函数
+  - 系统创建 `.xirang/changes/<name>/` 目录
 
-#### Scenario: Duplicate change rejected
-- **WHEN** 创建同名 change 且该目录已存在
-- **THEN** 系统抛出指示 change 已存在的错误
+- **Duplicate change rejected**
+  - 创建同名 change 且该目录已存在
+  - 系统抛出指示 change 已存在的错误
 
-#### Scenario: Creates parent directories if needed
-- **WHEN** `.xirang/changes/` 不存在
-- **THEN** 系统创建完整路径（含父目录）
+- **Creates parent directories if needed**
+  - `.xirang/changes/` 不存在
+  - 系统创建完整路径（含父目录）
 
-#### Scenario: Invalid change name rejected
-- **WHEN** 以非法名称调用创建函数
-- **THEN** 系统抛出校验错误
+- **Invalid change name rejected**
+  - 以非法名称调用创建函数
+  - 系统抛出校验错误
 
-### Requirement: Change Name Validation
+### Section: Change Name Validation
 系统 SHALL 校验 change 名称遵循 kebab-case 约定。
 
-#### Scenario: Valid kebab-case name accepted
-- **WHEN** 校验 `add-user-auth`
-- **THEN** 校验返回 `{ valid: true }`
+- **Valid kebab-case name accepted**
+  - 校验 `add-user-auth`
+  - 校验返回 `{ valid: true }`
 
-#### Scenario: Numeric suffixes accepted
-- **WHEN** 校验 `add-feature-2`
-- **THEN** 校验返回 `{ valid: true }`
+- **Numeric suffixes accepted**
+  - 校验 `add-feature-2`
+  - 校验返回 `{ valid: true }`
 
-#### Scenario: Single word accepted
-- **WHEN** 校验 `refactor`
-- **THEN** 校验返回 `{ valid: true }`
+- **Single word accepted**
+  - 校验 `refactor`
+  - 校验返回 `{ valid: true }`
 
-#### Scenario: Uppercase characters rejected
-- **WHEN** 校验 `Add-Auth`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Uppercase characters rejected**
+  - 校验 `Add-Auth`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Spaces rejected
-- **WHEN** 校验 `add auth`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Spaces rejected**
+  - 校验 `add auth`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Underscores rejected
-- **WHEN** 校验 `add_auth`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Underscores rejected**
+  - 校验 `add_auth`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Special characters rejected
-- **WHEN** 校验 `add-auth!`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Special characters rejected**
+  - 校验 `add-auth!`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Leading hyphen rejected
-- **WHEN** 校验 `-add-auth`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Leading hyphen rejected**
+  - 校验 `-add-auth`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Trailing hyphen rejected
-- **WHEN** 校验 `add-auth-`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Trailing hyphen rejected**
+  - 校验 `add-auth-`
+  - 校验返回 `{ valid: false, error: "..." }`
 
-#### Scenario: Consecutive hyphens rejected
-- **WHEN** 校验 `add--auth`
-- **THEN** 校验返回 `{ valid: false, error: "..." }`
+- **Consecutive hyphens rejected**
+  - 校验 `add--auth`
+  - 校验返回 `{ valid: false, error: "..." }`
