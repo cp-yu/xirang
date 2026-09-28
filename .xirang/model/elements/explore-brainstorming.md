@@ -26,7 +26,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Section: 一次一问的提问纪律
 
-系统 SHALL 每次只问一个问题，等待用户回答后再继续。
+系统 SHALL 主动发现用户尚未考虑的决策点，包括适用的失败结果、事件竞争和时间起点或容差；SHALL 解释备选方案的可观察后果并给出有理由的推荐，每次只问一个问题，等待用户回答后再继续。推荐本身不构成确认。
 
 - **单个问题等待**
 
@@ -62,12 +62,13 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Section: 分段设计呈现
 
-系统 SHALL 分段呈现并确认适用于当前问题的设计内容。复杂变更通常覆盖 architecture、core components、data flow、technology stack、testing strategy 与 risks/trade-offs；窄修改 MAY 省略明显不适用的章节，但 MUST 至少确认 problem、impact scope、approach 与 verification method。Testing Strategy SHALL 先应用共享测试品质（可重复隔离、锁行为不锁结构、单一失败原因，以及难测先改设计），再决定 reuse、modify、add、delete 或 one-time；SHALL NOT 按 Acceptance Case 条数机械规划持久化测试。
+系统 SHALL 分段呈现并确认适用于当前问题的设计内容。设计确认 SHALL 包含行为、职责边界与关键条件下的可观察验收结果，不只确认技术方案或测试工具。复杂变更还覆盖适用的 architecture、core components、data flow、technology stack、testing strategy 与 risks/trade-offs；窄修改 MAY 省略明显不适用的章节，但 MUST 至少确认 problem、impact scope、approach 与 verification method。Testing Strategy SHALL 先应用共享测试品质（可重复隔离、锁行为不锁结构、单一失败原因，以及难测先改设计），再决定 reuse、modify、add、delete 或 one-time；SHALL NOT 按 Acceptance Case 条数机械规划持久化测试。
 
 - **逐段确认**
 
   - 系统准备呈现完整设计
-  - 系统依次呈现并确认架构方案、核心组件、数据流、技术栈、测试策略、风险和权衡
+  - 系统依次呈现并确认适用的业务行为、边界、关键验收结果、架构方案、核心组件、数据流、技术栈、测试策略、风险和权衡
+  - 不要求 Explore 写完 Contract 的四个 Section、全部 Acceptance Cases 或任务清单
 
 - **窄修改压缩设计确认**
 
@@ -107,8 +108,8 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 - **用户要求修改**
 
   - 用户在某一段提出修改意见
-  - 系统修改该段内容
-  - 重新呈现修改后的内容，等待确认
+  - 系统修改该段内容并复核依赖它的设计结论
+  - 重新呈现受影响内容，等待确认
   - 确认后继续下一段
 
 - **Test Maintenance 子节格式**
@@ -125,7 +126,7 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
 
 ### Section: Design Summary 生成
 
-Explore SHALL 在设计确认后生成 conversation-only Design Summary。复杂语义模型变更 SHALL 明确记录适用的 decisions；窄修改 SHALL 至少汇总 problem、impact scope、approach 与 verification method；natural-language prose SHALL 跟随用户语言，canonical tokens、paths 与 commands SHALL 保持 canonical。 存在已确认设计记录时，输出前 SHALL 完整重载并完成冲突裁决、受影响结论重查；未决冲突与过期检查不能放行 Summary。
+Explore SHALL 在设计确认和机制自查后生成 conversation-only Design Summary。自查 SHALL 用适用的边界或竞争事件序列检验不变量、时序与失败行为；能依据已确认设计修正的表达或推导错误由 Agent 修正，需要新决策时询问用户。Summary SHALL 保留决策的条件、数值、例外、时序与关键验收结果，区分确认、推荐、未决与用户明确排除的范围；当前目标依赖的未决决策不得以 Agent 自行延期方式放行。复杂语义模型变更 SHALL 明确记录适用的 decisions；窄修改 SHALL 至少汇总 problem、impact scope、approach 与 verification method；natural-language prose SHALL 跟随用户语言，canonical tokens、paths 与 commands SHALL 保持 canonical。 存在已确认设计记录时，输出前 SHALL 完整重载并完成冲突裁决、受影响结论重查；未决冲突与过期检查不能放行 Summary。
 
 - **Semantic Model Design Summary**
 

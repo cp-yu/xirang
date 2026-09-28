@@ -110,8 +110,8 @@ artifacts:
       validation:
         - xirang validate --change <name> --json
     instruction: |
-      Create the design document that explains HOW to implement the change.
-      Use design.md for technical decisions, refactor rationale, rejected approaches, exploration decisions, implementation strategy, and why an old path should not be used. These belong here instead of specs unless they change externally observable behavior.
+      Create the design document that explains HOW to implement the change, documenting confirmed design decisions. Reuse Explore conclusions; faithful elaboration must not silently choose new behavior or architecture. If writing exposes a missing decision, ask the user before treating a choice as settled. An isolated gap can be confirmed within Propose; substantial redesign returns to Explore.
+      Use design.md for technical decisions, refactor rationale, rejected approaches, exploration decisions, implementation strategy, and why an old path should not be used. These belong here instead of specs unless they change externally observable behavior. Reconcile confirmed observable behavior with the Semantic Delta and tasks rather than defining it only in design.md.
 
       When to include design.md (create only if any apply):
       - Cross-cutting change (multiple services/modules) or new architectural pattern

@@ -11,12 +11,12 @@ definition: Post-propose Validation 定义 Propose 收尾的一致性验证门�
 
 ### Section: 计划一致性复核
 
-Post-propose Validation SHALL 在确定性校验前对照 change-local Contracts、design.md 与 Semantic Delta 复核 tasks.md 的计划一致性，检测 task 间声明矛盾以及 task 与 change-local 目标语义的冲突；发现矛盾时自行修正制品，仅当矛盾反映与用户意图或已确认决策不对齐时，一次性呈现全部发现并等待用户裁决。 复核 SHALL 同时检查可用当前确认记录到目标语义、需实施的目标语义到 tasks 实现安排与 Checks 两段覆盖；引用存在只是结构合法，不是行为覆盖证明。共同遗漏的已确认细节同样阻塞完成；缺失行为先补 Contract，再调整 Plan，未决意图交给用户。
+Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、design.md、Semantic Delta 与 tasks.md 联合对照 Explore 及 Propose 内的用户确认，检查计划与目标的一致性；不得仅以制品相互一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变或新增决策时 SHALL 呈现全部发现，一次请求一个决策并等待确认。新确认的行为 SHALL 贯穿相关 Delta 与 Plan，不得只藏在 design 或 tasks 中。 复核 SHALL 同时检查可用当前确认记录到目标语义、需实施的目标语义到 tasks 实现安排与 Checks 两段覆盖；引用存在只是结构合法，不是行为覆盖证明。共同遗漏的已确认细节同样阻塞完成；缺失行为先补 Contract，再调整 Plan，未决意图交给用户。
 
 - **检测到矛盾时自行修正**
 
   - 复核发现 task 间声明矛盾或 task 与 change-local 目标语义冲突
-  - SHALL 自行修正制品
+  - 已确认来源能确定修正方式时 SHALL 自行修正制品，否则先询问用户
   - SHALL 修正后继续复核
 
 - **矛盾反映用户意图不对齐**
@@ -46,6 +46,10 @@ Post-propose Validation SHALL 在确定性校验前对照 change-local Contracts
   - 目标 Contract 已表达条件分支，但任务与检查没有安排实现或验证
   - 补足相应行为闭环与检查，不在任务内另造规范语义。
 
+### Section: 完整机制自查
+
+Propose SHALL 用适用的边界或竞争事件序列检验机制、不变量、时序及验收结果，发现问题时区分表达或推导错误与缺失决策。前者依据已确认设计修正，后者先向用户询问；结构合法与引用有效不能证明机制正确。
+
 ### Section: 收尾确定性校验门禁
 
 Post-propose Validation SHALL 在计划一致性复核与用户裁决后的最终制品上执行确定性校验作为收尾门禁：对完整 change 执行联合验证、生效差异审阅与任务结构校验，由确定性操作承担；报错阻塞 Apply 就绪声明，最多修复一轮、复检一次，警告只披露。
@@ -63,6 +67,6 @@ Post-propose Validation SHALL 在计划一致性复核与用户裁决后的最�
 
 - **仅警告不阻塞**
 
-  - 确定性校验仅有警告
-  - SHALL 不阻塞 Apply 就绪声明
+  - 确定性校验仅有警告且语义就绪已满足
+  - 警告本身 SHALL 不阻塞 Apply 就绪声明
   - SHALL 在汇总中披露警告

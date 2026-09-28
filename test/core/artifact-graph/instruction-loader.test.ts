@@ -307,6 +307,16 @@ describe('instruction-loader', () => {
       }
     });
 
+    it('projects design documentation without authorizing unconfirmed decisions', () => {
+      const context = loadChangeContext(tempDir, 'my-change');
+      const body = generateInstructions(context, 'design').instruction ?? '';
+
+      expect(body).toContain('documenting confirmed design decisions');
+      expect(body).toContain('ask the user before treating a choice as settled');
+      expect(body).toContain('An isolated gap can be confirmed within Propose');
+      expect(body).toContain('Reconcile confirmed observable behavior with the Semantic Delta and tasks');
+    });
+
     it('projects four-partition Semantic Delta guidance and unit templates', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const projected = generateInstructions(context, 'specs');
@@ -316,7 +326,7 @@ describe('instruction-loader', () => {
         'per-unit shape reference',
         'entity',
         'element-declaration: identity, kind, parent, title, definition',
-        'element-kind: identity, contract; optional root, parents, children',
+        'element-kind: identity, contract; optional contractFormat, root, parents, children',
         'relationship-kind: identity; optional sourceKinds, targetKinds',
         'authored-view: identity, include; optional exclude, of, title, autoLayout',
         '[A-Za-z0-9._-]+',

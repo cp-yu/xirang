@@ -20,7 +20,7 @@ Explore SHALL 结合 Semantic Model 的 Elements、Relationships、Element Contr
 
 ### Section: 一次一问并比较方案
 
-Explore SHALL 通过一次一问与方案比较推进设计。
+Explore SHALL 主动识别行为、边界与实现方案中的决策点，通过一次一问与方案比较推进设计，并由用户确认选择。Agent SHALL 给出推荐与可观察后果，不将推荐当作确认；适用的关键验收结果随设计确认，完整制品留给 Propose。
 
 - **存在多个合理方案**
 
@@ -80,7 +80,7 @@ Explore SHALL 通过 Design Exploration 推进设计，并 SHALL 在过程中持
 
 ### Section: 形成不持久化的 Design Summary
 
-Explore SHALL 在适用设计确认后输出 conversation-only Design Summary。带记录时，只有完整重载、冲突调和和一致性复核通过后才能输出，并一起交付该记录身份及受核对版本；带豁免时 SHALL 交付无记录声明及其理由；本次无 normative 内容时 SHALL 声明该事实。SHALL NOT 创建空记录，也不以省略上述内容代替声明。
+Explore SHALL 在适用设计确认并完成边界、竞争与一致性自查后输出 conversation-only Design Summary。Summary SHALL 保留已确认决策的条件、数值、例外、时序和关键验收结果，区分推荐、未决事项与用户确认的排除范围；影响当前目标的未决决策 SHALL 阻塞交接，Agent 不自行延期。带记录时，只有完整重载、冲突调和和一致性复核通过后才能输出，并一起交付该记录身份及受核对版本；带豁免时 SHALL 交付无记录声明及其理由；本次无 normative 内容时 SHALL 声明该事实。SHALL NOT 创建空记录，也不以省略上述内容代替声明。
 
 - **带记录完成 Explore**
 

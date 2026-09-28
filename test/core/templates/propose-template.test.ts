@@ -32,6 +32,30 @@ describe('propose template post-validation flow', () => {
     expect(validateIndex).toBeGreaterThan(reviewIndex);
   });
 
+  it('separates faithful elaboration from decisions needing user confirmation', () => {
+    const body = getXirangProposeSkillTemplate().instructions;
+
+    expect(body).toContain('Explore forms and confirms the design; Propose documents it');
+    expect(body).toContain('without changing confirmed commitments or choosing a new behavior or architecture');
+    expect(body).toContain('ask one focused question and wait before writing the choice as settled');
+    expect(body).toContain('An isolated gap can be confirmed within Propose');
+    expect(body).toContain('substantial redesign belongs in Explore');
+    expect(body).toContain('disclosure at completion is not a substitute for prior confirmation');
+    expect(body).toContain('Propose MUST NOT create, update, rename, or discard records');
+  });
+
+  it('checks mechanism counterexamples and reports supplements separately from confirmed input', () => {
+    const body = getXirangProposeSkillTemplate().instructions;
+
+    expect(body).toContain('try relevant boundary or competing-event sequences');
+    expect(body).toContain('Do not hide a new observable behavior solely in design or tasks');
+    expect(body).toContain('faithful elaborations added during Propose, with their basis and artifact locations');
+    expect(body).toContain('new decisions confirmed by the user during Propose');
+    expect(body).toContain('unresolved items and their effect on readiness');
+    expect(body).toContain('Artifact completion and CLI success do not establish semantic readiness');
+    expect(body).toContain('do not create a separate supplement ledger');
+  });
+
   it('leaves deterministic task structure checks to combined validation', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 

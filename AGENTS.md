@@ -269,11 +269,15 @@ Explore 期间，Change Structural Definition 以受 CLI 管理的隐藏文件�
 
 Design Exploration 是 Explore 中澄清和确认设计的阶段。它基于 Semantic Model 与项目证据，通过一次一问和方案比较推进设计；复杂变更分段确认适用的行为、Element Contracts、Authored Views、implementation approach、data flow、technology、testing 与 risks，窄变更至少确认 problem、impact scope、approach 与 verification method。
 
+Explore 主动发现行为、异常、竞争与时序等决策点，说明选项、后果与推荐理由，由用户确认；关键条件与可观察验收结果随设计确认，不仅确认技术方案或测试工具。交接前通过适用的边界或竞争序列自查设计；Design Summary 保留已确认决策的条件、数值、例外、时序与验收结果，区分推荐、未决与用户明确排除的范围。影响当前目标的未决决策阻塞交接，不由 Agent 自行延期；完整 Contract、Acceptance Cases 与 tasks 留给 Propose。
+
 Change Structural Definition 存在时，Design Exploration 将其中已确认的结构内容作为设计依据；Change Structural Definition 不存在时，Design Exploration 直接基于 Semantic Model 与项目证据完成设计，不以运行 Definition Framing 为前提。设计过程中用户选择先处理结构定义时，Explore 进入 Definition Framing，并在结构确认后继续相关设计。适用设计内容全部确认后，Design Exploration 形成不持久化的 Design Summary，交由 Propose 使用。
 
 #### 5. Propose
 
 Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，以及存在时的 Change Structural Definition；缺少 Design Summary 时，Propose 先确认 problem、impact scope、approach 与 verification method 已足够清晰。
+
+Propose 以忠实文档化已确认设计为主，允许不改变承诺、不选择新行为或架构的展开补齐及表达、推导修正。新发现的决策点先询问用户；孤立缺口可在 Propose 内确认，大幅重做设计或修订已持久化记录时返回 Explore。自查联合对照确认来源、Delta 与 Plan，并用适用的边界或竞争序列检验机制。完成时在会话中区分沿用确认、Propose 补充及其依据和位置、Propose 内新确认决策与未决事项；披露不替代决策前确认，制品齐全或 CLI 通过不等于语义就绪。
 
 Change Structural Definition 存在时，Propose 将其中已确认的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries，并根据 Design Summary 形成其余目标语义；Change Structural Definition 不存在时，Propose 根据 Semantic Model 与已确认设计直接形成完整 Semantic Delta。两条路径均由 Propose 写出完整 Change Plan，并在 Formation 内完成必要审查与确认，使 Change 可进入 Change Implementation。Propose 不实现项目，也不将 Semantic Delta 更新到 Semantic Model。
 

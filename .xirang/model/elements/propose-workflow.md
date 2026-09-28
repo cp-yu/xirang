@@ -59,7 +59,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
 ### Section: Propose smart routing
 
-Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在不改变承诺或选择新行为、架构的前提下展开机制、案例和任务并修正表达或推导错误；新发现的决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。孤立缺口在 Propose 内确认，大幅重做设计或需要修订记录时返回 Explore；完成披露不能代替决策前确认。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
 - **复用 Design Summary**
 
@@ -71,15 +71,16 @@ Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`。没�
 - **Semantic readiness 不完整**
 
   - 任一 readiness 项缺失或 source decision 未决
-  - propose SHALL 在对话中列出具体缺口并建议 Explore
-  - SHALL 停止 artifact generation
-  - SHALL NOT 创建 change 或写入 routing decision
+  - propose SHALL 在对话中列出具体缺口；孤立决策可就地询问，大幅设计工作建议 Explore
+  - readiness 通过或被明确 override 前 SHALL NOT 创建 change 或写入制品
+  - 新决策确认前 SHALL NOT 将依赖它的内容写成确定方案；routing decision 保留在会话
 
 - **用户显式 override**
 
   - propose 已报告 readiness 缺口且用户明确要求直接生成
   - propose SHALL 接受 override 并继续
   - override SHALL NOT 授权 Agent 猜测影响 behavior 或 architecture 的关键决策
+  - 直接要求 propose 或不追问不提供缺失决策，必要确认无法取得时 SHALL 报告阻碍
 
 - **Semantic readiness 完整**
 
@@ -153,7 +154,7 @@ Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph 
 
 - **Design 改变 graph scope**
 
-  - design 确认 graph impact 与 proposal 初稿不同
+  - design 记录的用户确认使 graph impact 与 proposal 初稿不同；写入 design 本身不构成确认
   - SHALL 更新 proposal Architecture Source
   - exact target graph SHALL 写入 Semantic Delta
 
@@ -194,6 +195,9 @@ Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；
 
   - propose 完成 artifacts、validation 与 report generation
   - SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
+  - SHALL 区分沿用的确认、Propose 补充内容及其依据与制品位置、在 Propose 内新确认的决策和未决事项；无补充或新决策时明确说明
+  - SHALL 不把补充声称为 Explore 原有确认，不新增永久补充台账
+  - 制品完成与 CLI 通过不等于语义就绪，影响当前目标或实现方案的未决决策 SHALL 阻塞 ready-for-apply
 
 - **Blocker 状态**
 

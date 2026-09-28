@@ -258,6 +258,31 @@ describe('explore supperpowers-style reference', () => {
     expect(ref?.content).not.toMatch(/\$\{[^}]+\}/);
   });
 
+  it('discovers decisions and confirms observable outcomes before documenting the design', () => {
+    const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md')?.content ?? '';
+
+    expect(ref).toContain('Actively identify decisions the user has not yet considered');
+    expect(ref).toContain('failure outcomes, competing events, and timing origins or tolerances');
+    expect(ref).toContain('A recommendation is not a user decision');
+    expect(ref).toContain('confirm key conditions, actions, and observable expected outcomes');
+    expect(ref).toContain('not just a test tool or method');
+    expect(ref).toContain('Propose writes the complete Sections, Acceptance Cases, and tasks');
+  });
+
+  it('hands off confirmed boundaries without promoting recommendations or deferring in-scope decisions', () => {
+    const instructions = getExploreSkillTemplate().instructions;
+    const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md')?.content ?? '';
+
+    expect(ref).toContain('conditions, numbers, exceptions, timing, and key acceptance outcomes');
+    expect(ref).toContain('Keep recommendations and unselected alternatives distinct from confirmed decisions');
+    expect(ref).toContain('Deferral requires user agreement on the excluded scope and its boundary');
+    expect(ref).toContain('Unresolved decisions affecting the current target block a ready handoff');
+    expect(ref).toContain('try relevant boundary or competing-event sequences');
+    expect(ref).toContain('do not create a separate decision ledger');
+    expect(instructions).toContain('Confirm observable behavior and key acceptance outcomes');
+    expect(instructions).not.toContain('Resolve or explicitly defer scope-affecting questions');
+  });
+
   it('reference content is within 500 line limit', () => {
     const template = getExploreSkillTemplate();
     const ref = (template.referenceFiles || []).find(f => f.path === 'references/explore-supperpowers-style.md');

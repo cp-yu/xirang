@@ -11,7 +11,7 @@ definition: Propose 是 Intent-first Path 的收成阶段。它承接 Explore �
 
 ### Section: 复用已确认 Design Summary
 
-Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary。 存在确认记录时 SHALL 核对 Summary 所依赖的记录版本；受影响内容变化或冲突未决时，先调和和重新确认，不能直接沿用旧 Summary。
+Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary，以完整文档化为主要职责，不静默重做设计。 存在确认记录时 SHALL 核对 Summary 所依赖的记录版本；受影响内容变化或冲突未决时，先调和和重新确认，不能直接沿用旧 Summary。
 
 - **Design Summary 已存在**
 
@@ -26,6 +26,12 @@ Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary。 存�
 
   - 对话中没有完整 Summary
   - Agent 在编写 Change 前确认最低设计集
+
+### Section: 查缺补漏与决策确认
+
+Propose MAY 将已确认机制展开为完整正文、图示、验收案例及任务和验证安排，并修正遗漏、重复、表达或推导错误，前提是不改变已确认承诺、不选择新的行为或架构。需要在不同结果、范围或设计方案之间作选择时，Propose SHALL 说明缺口、选项及推荐理由，一次询问一个问题并等待确认后再写成确定内容；完成时告知不替代决策前确认。
+
+孤立缺口 MAY 在 Propose 内确认；大幅重做设计或修订已持久化记录时 SHALL 返回 Explore，并遵循已有记录授权与交接协议。直接 Propose、要求不追问或 override 就绪建议不构成缺失决策的答案；无法获得所需确认时 SHALL 报告阻碍。
 
 ### Section: 编写完整 Semantic Delta
 
@@ -47,12 +53,18 @@ Propose SHALL 以 Change Plan 解释意图与实现路径。
 
 ### Section: 完成 Formation 审查与确认
 
-Propose SHALL 在 Change Formation 内完成必要审查与确认。
+Propose SHALL 在 Change Formation 内完成必要审查与确认，对照已确认来源检查完整机制与制品一致性，以适用的边界或竞争序列检验规范承诺，不能仅依赖制品之间一致或 CLI 通过。新确认的决策 SHALL 贯穿相关 Delta 与 Plan。
 
 - **Change 仍有未决内容**
 
   - 目标语义或实现路径尚未确认
   - Propose 不得完成
+
+### Section: 完成时披露文档化补充
+
+Propose 完成汇报 SHALL 区分沿用的 Explore 确认或当前已确认输入、文档化时补出的内容及其依据和制品位置、Propose 内经用户确认的新决策，以及未决事项对就绪的影响；没有补充或新决策时 SHALL 明确说明。补充清单保留在会话，不新增永久台账或向规范正文混入确认过程状态。
+
+制品齐全与 CLI 校验通过 SHALL NOT 代替语义就绪判断；影响目标行为、范围或实现方案的未决决策 SHALL 阻止 ready-for-apply 声明。
 
 ### Section: 不实现项目
 
