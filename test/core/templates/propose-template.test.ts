@@ -56,6 +56,20 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('do not create a separate supplement ledger');
   });
 
+  it('checks authored decisions, executable dependencies and the basis of completion claims', () => {
+    const body = getXirangProposeSkillTemplate().instructions;
+
+    expect(body).toContain('branch outcomes, defaults, error results and restrictions');
+    expect(body).toContain('explicitly confirmed or uniquely implied');
+    expect(body).toContain('including catch-all branches such as "otherwise"');
+    expect(body).toContain('using only existing implementation, earlier GREEN tasks and that task');
+    expect(body).toContain('trace each Check to the implementation, files and commands it actually needs');
+    expect(body).toContain('initial state, event order and expected outcome');
+    expect(body).toContain('Separate observed CLI results, Agent semantic findings and remaining evidence gaps');
+    expect(body).toContain('Formatting repairs may only restate existing commitments');
+    expect(body).toContain('must not invent restrictions to satisfy a validator');
+  });
+
   it('leaves deterministic task structure checks to combined validation', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 

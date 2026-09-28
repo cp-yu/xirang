@@ -197,6 +197,7 @@ Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；
   - SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
   - SHALL 区分沿用的确认、Propose 补充内容及其依据与制品位置、在 Propose 内新确认的决策和未决事项；无补充或新决策时明确说明
   - SHALL 不把补充声称为 Explore 原有确认，不新增永久补充台账
+  - SHALL 区分实际 CLI 结果、Agent 语义检查发现与剩余证据缺口，以具体检查发现及相关制品位置支持结论；不以产物数量或引用合法推断语义通过，也不要求完整自查过程或额外报告制品
   - 制品完成与 CLI 通过不等于语义就绪，影响当前目标或实现方案的未决决策 SHALL 阻塞 ready-for-apply
 
 - **Blocker 状态**
@@ -267,6 +268,7 @@ Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环�
 
   - Propose 准备声明 Change ready-for-apply
   - SHALL 交叉检查 Goals、Files、Sections 与 Checks
+  - SHALL 按执行顺序从每个 Check 实际需要的实现、文件与命令反推依赖，确认仅用已有实现、此前 GREEN 的任务与当前任务即可达到 GREEN；若依赖后续任务则调整顺序或合并任务，引用的测试文件与命令须已存在或安排在此时提供，不能仅复述声明的依赖
   - 发现 task 依赖后续 task、Check 按 Acceptance Case 1:1 机械拆分或假防护测试时 SHALL reconcile 后再声明
 
 - **确认细节贯穿执行安排**

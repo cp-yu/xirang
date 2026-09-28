@@ -312,6 +312,8 @@ describe('instruction-loader', () => {
       const body = generateInstructions(context, 'design').instruction ?? '';
 
       expect(body).toContain('documenting confirmed design decisions');
+      expect(body).toContain('branch outcomes, defaults, error results and restrictions');
+      expect(body).toContain('explicitly confirmed or uniquely implied');
       expect(body).toContain('ask the user before treating a choice as settled');
       expect(body).toContain('An isolated gap can be confirmed within Propose');
       expect(body).toContain('Reconcile confirmed observable behavior with the Semantic Delta and tasks');
@@ -425,6 +427,9 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toMatch(/acceptance case/i);
       expect(instructions.instruction).toMatch(/paths/i);
       expect(instructions.instruction).toContain('Task titles, check names');
+      expect(instructions.instruction).toContain("Derive dependencies from each Check's actual implementation, files and commands");
+      expect(instructions.instruction).toContain('existing implementation, earlier GREEN tasks and that task');
+      expect(instructions.instruction).toContain('referenced test files and commands exist or are provided by then');
       expect(instructions.instruction).toContain('Evidence:/Expect:');
       expect(instructions.instruction).toContain('exact Acceptance Case names');
       expect(instructions.instruction).toContain('Acceptance Case "<name>"');

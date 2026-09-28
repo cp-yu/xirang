@@ -277,7 +277,7 @@ Change Structural Definition 存在时，Design Exploration 将其中已确认�
 
 Propose 是 Intent-first Path 的收成阶段。它承接 Explore 形成的 Design Summary，以及存在时的 Change Structural Definition；缺少 Design Summary 时，Propose 先确认 problem、impact scope、approach 与 verification method 已足够清晰。
 
-Propose 以忠实文档化已确认设计为主，允许不改变承诺、不选择新行为或架构的展开补齐及表达、推导修正。新发现的决策点先询问用户；孤立缺口可在 Propose 内确认，大幅重做设计或修订已持久化记录时返回 Explore。自查联合对照确认来源、Delta 与 Plan，并用适用的边界或竞争序列检验机制。完成时在会话中区分沿用确认、Propose 补充及其依据和位置、Propose 内新确认决策与未决事项；披露不替代决策前确认，制品齐全或 CLI 通过不等于语义就绪。
+Propose 以忠实文档化已确认设计为主，允许不改变承诺、不选择新行为或架构的展开补齐及表达、推导修正。补出的分支结果、默认值、错误结果和限制条件须已被确认或能从确认内容唯一推导；新发现的决策点先询问用户。孤立缺口可在 Propose 内确认，大幅重做设计或修订已持久化记录时返回 Explore。自查联合对照确认来源、Delta 与 Plan，推演适用事件序列的初始状态、顺序和结果，并从每个 Check 实际需要的实现反推任务依赖；每项 Check 应仅依赖已有实现、此前已完成任务及当前任务。格式修复不新增语义。完成时在会话中区分沿用确认、Propose 补充及其依据和位置、Propose 内新确认决策与未决事项，并区分实际 CLI 结果、语义检查发现和证据缺口；披露不替代决策前确认，制品齐全或 CLI 通过不等于语义就绪。
 
 Change Structural Definition 存在时，Propose 将其中已确认的 Element Kinds、Relationship Kinds、Element Declarations 与 Relationships 分别编译为相应的 Semantic Delta Entries，并根据 Design Summary 形成其余目标语义；Change Structural Definition 不存在时，Propose 根据 Semantic Model 与已确认设计直接形成完整 Semantic Delta。两条路径均由 Propose 写出完整 Change Plan，并在 Formation 内完成必要审查与确认，使 Change 可进入 Change Implementation。Propose 不实现项目，也不将 Semantic Delta 更新到 Semantic Model。
 

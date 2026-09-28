@@ -110,7 +110,7 @@ artifacts:
       validation:
         - xirang validate --change <name> --json
     instruction: |
-      Create the design document that explains HOW to implement the change, documenting confirmed design decisions. Reuse Explore conclusions; faithful elaboration must not silently choose new behavior or architecture. If writing exposes a missing decision, ask the user before treating a choice as settled. An isolated gap can be confirmed within Propose; substantial redesign returns to Explore.
+      Create the design document that explains HOW to implement the change, documenting confirmed design decisions. Reuse Explore conclusions; faithful elaboration must not silently choose new behavior or architecture. Check authored branch outcomes, defaults, error results and restrictions against the confirmed conversation and design: they must be explicitly confirmed or uniquely implied. If writing exposes a missing decision, ask the user before treating a choice as settled. An isolated gap can be confirmed within Propose; substantial redesign returns to Explore.
       Use design.md for technical decisions, refactor rationale, rejected approaches, exploration decisions, implementation strategy, and why an old path should not be used. These belong here instead of specs unless they change externally observable behavior. Reconcile confirmed observable behavior with the Semantic Delta and tasks rather than defining it only in design.md.
 
       When to include design.md (create only if any apply):
@@ -184,6 +184,7 @@ artifacts:
       - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
       - Split work only when each task reaches its own GREEN independently, or when an explicit delivery sequence makes a task depend only on an earlier task that is already GREEN
       - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Sections, and Checks and reconcile task boundaries before declaring the Change ready for Apply
+      - Derive dependencies from each Check's actual implementation, files and commands. Walk tasks in execution order: each Check must be able to reach GREEN using only existing implementation, earlier GREEN tasks and that task. Reorder or regroup work if it needs a later task; ensure referenced test files and commands exist or are provided by then. Declared dependencies alone do not establish executability.
       - Do not split tasks by component, module, directory, or file type; split by spec container when a Section, a safeguards item, or an acceptance case is itself an independently verifiable unit
       - Put technical stack constraints and boundary conditions under Sections, not free-form prose
       - Validation work maps to checks for invalid-input behavior
