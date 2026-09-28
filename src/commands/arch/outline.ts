@@ -77,6 +77,7 @@ function copyElementKind(kind: ElementKind): ElementKind {
   return {
     identity: kind.identity,
     contract: kind.contract,
+    ...(kind.contractFormat === undefined ? {} : { contractFormat: kind.contractFormat }),
     ...(kind.root === undefined ? {} : { root: kind.root }),
     ...(kind.parents === undefined ? {} : { parents: [...kind.parents].sort(compareCodePoints) }),
     ...(kind.children === undefined ? {} : { children: [...kind.children].sort(compareCodePoints) }),

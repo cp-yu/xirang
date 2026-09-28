@@ -3,12 +3,14 @@ import { promises as fs } from 'fs';
 import ora from 'ora';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
+import { validateSemanticModel } from '../core/model/validator.js';
 import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getContractElementIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
 import type { ParsedModel } from '../core/model/parser.js';
+import type { ModelDiagnostic } from '../core/model/types.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 import { validateTaskStructure } from '../core/parsers/task-structure.js';
 
@@ -288,6 +290,9 @@ export class ValidateCommand {
     const validator = new Validator(opts.strict);
     // One formal-model parse per bulk run; applySemanticDelta clones before mutating, so the snapshot stays read-only.
     const sharedBase = changeIds.length + contractIds.length > 0 ? readFormalSemanticModel(process.cwd()) : undefined;
+    const contractDiagnostics = contractIds.length > 0
+      ? sharedBase!.then(base => [...base.diagnostics, ...validateSemanticModel(base.model)])
+      : undefined;
     const queue: Array<() => Promise<BulkItemResult>> = [];
 
     for (const id of changeIds) {
@@ -302,7 +307,7 @@ export class ValidateCommand {
     for (const id of contractIds) {
       queue.push(async () => {
         const start = Date.now();
-        const report = await validateElementContract(validator, id, await sharedBase);
+        const report = await validateElementContract(validator, id, await sharedBase, await contractDiagnostics);
         const durationMs = Date.now() - start;
         return { id, type: 'contract' as const, valid: report.valid, issues: report.issues, durationMs };
       });
@@ -392,13 +397,24 @@ export class ValidateCommand {
 }
 
 /** Contracts are addressed by Element identity; their storage unit comes from the model index. */
-async function validateElementContract(validator: Validator, identity: string, base?: ParsedModel): Promise<ValidationReport> {
+async function validateElementContract(validator: Validator, identity: string, base?: ParsedModel, modelDiagnostics?: ModelDiagnostic[]): Promise<ValidationReport> {
   const parsed = base ?? await readFormalSemanticModel(process.cwd());
   const element = parsed.model.elements.find(item => item.declaration.identity === identity);
   if (!element) {
     return { valid: false, issues: [{ level: 'ERROR', path: 'file', message: `Element not found: ${identity}` }], summary: { errors: 1, warnings: 0, info: 0 } };
   }
-  return validator.validateElementContract(element, parsed.index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`);
+  const unitPath = parsed.index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`;
+  const report = validator.validateElementContract(element, unitPath);
+  const diagnostics = (modelDiagnostics ?? [...parsed.diagnostics, ...validateSemanticModel(parsed.model)]).filter(item =>
+    item.identity === identity && (!item.entity || item.entity === 'element-declaration')
+    || item.identity === element.declaration.kind && (!item.entity || item.entity === 'element-kind'));
+  const errors = diagnostics.filter(item => item.level === 'ERROR').length;
+  const warnings = diagnostics.filter(item => item.level === 'WARNING').length;
+  return mergeValidationReports(report, {
+    valid: errors === 0,
+    issues: diagnostics.map(item => ({ level: item.level, path: item.path || unitPath, message: `${item.code}: ${item.message}` })),
+    summary: { errors, warnings, info: 0 },
+  });
 }
 
 function mergeValidationReports(...reports: ValidationReport[]): ValidationReport {

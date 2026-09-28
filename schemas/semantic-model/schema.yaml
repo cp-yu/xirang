@@ -63,7 +63,7 @@ artifacts:
       Author units by self-declared entity type:
       - Frontmatter declares `entity`; the partition does not determine entity type.
       - element-declaration: identity, kind, parent, title, definition
-      - element-kind: identity, contract; optional root, parents, children
+      - element-kind: identity, contract; optional contractFormat, root, parents, children
       - relationship-kind: identity; optional sourceKinds, targetKinds
       - authored-view: identity, include; optional exclude, of, title, autoLayout
       - Every identity uses `[A-Za-z0-9._-]+`, never a path separator, and must not encode parent hierarchy.
@@ -73,7 +73,7 @@ artifacts:
       - Declaration, Kind, and View entries add `operation: ADDED|MODIFIED|REMOVED`; ADDED and MODIFIED carry complete target content, while REMOVED carries only identity.
       - Element Contract target content is `## Specification`; Delta Section entries factor operation into `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` sections.
       - ADDED and MODIFIED Sections contain the complete target Section with a canonical `### Section:` header and a free body; REMOVED names only the Section.
-      - Existing titles under MODIFIED Sections stay exact; new Section titles follow `proseLanguage`.
+      - Existing titles under MODIFIED Sections stay exact; new Section titles follow `proseLanguage` except the four fixed English business-specification titles.
       - Agent MUST NOT author Acceptance Case operation labels.
       - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.
 
@@ -82,6 +82,13 @@ artifacts:
       - `metamodel/` units contain one Element Kind or Relationship Kind entry.
       - `views/` units contain one Authored View entry.
       - `relationships/` YAML contains `{operation, source, kind, target}` entries, has no description field, and does not support `MODIFIED` because the three identity fields are its complete content.
+
+      Business-specification Contracts follow 4+N:
+      - Their Element Kind declares `contract: required` and `contractFormat: business-specification`; generic concept Kinds need not use this format.
+      - The complete Expected Contract requires non-empty Sections named exactly `Scope and Non-goals`, `Business Logic`, `Edge Cases and Exception Handling`, and `Key Acceptance Cases`, in English regardless of proseLanguage.
+      - Keep related mechanisms and diagrams inside Business Logic. Add freely named Sections only for commitments worth maintaining independently, not for each step or engineering characteristic.
+      - Key Acceptance Cases must contain at least one non-empty `#### Acceptance Case:` with observable outcomes grounded in confirmed intent, as the basis for TDD. Other Sections must not contain Acceptance Cases.
+      - CLI checks the complete Expected Semantic Model; a delta includes only changed Sections. Structure passing does not establish semantic correctness.
 
       Route motivation to `proposal.md`, decisions to `design.md`, and implementation work to `tasks.md`. Validate with the commands from `definition.validation`, and do not add placeholders, empty Delta sections, or process notes to authored units.
     requires:
@@ -173,6 +180,7 @@ artifacts:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
       - Structural labels such as `### Task N:`, `Goal`, `Files`, `Sections`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
       - Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
+      - For business-specification Contracts, derive test inputs and expected outcomes from Key Acceptance Cases and confirmed Contract commitments; do not invent expected business results from implementation.
       - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
       - Split work only when each task reaches its own GREEN independently, or when an explicit delivery sequence makes a task depend only on an earlier task that is already GREEN
       - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Sections, and Checks and reconcile task boundaries before declaring the Change ready for Apply
@@ -206,12 +214,12 @@ artifacts:
       #### Checks
 
       - [ ] C1 Verify registration endpoint
-        - Verifies: `elements/auth.md` / Section "Key acceptance cases" / Acceptance Case "Valid registration succeeds"
+        - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Valid registration succeeds"
         - Command: `npm test`
         - Expect: registration test passes
 
       - [ ] C2 Verify invalid email rejection
-        - Verifies: `elements/auth.md` / Section "Key acceptance cases" / Acceptance Case "Invalid email is rejected"
+        - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Invalid email is rejected"
         - Command: `npm test`
         - Expect: invalid email test passes
       ```

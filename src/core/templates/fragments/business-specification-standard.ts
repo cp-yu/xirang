@@ -1,12 +1,3 @@
-/**
- * Fragment: Business Specification Standard (full reference)
- * Used in: build, explore, propose, apply-change
- *
- * Root guidance is inlined into each SKILL.md by
- * `BUSINESS_SPECIFICATION_STANDARD_ROOT`; this file carries the complete
- * container list, carrier hints, and self-check list, and is materialized to
- * `.xirang/references/xirang-business-specification-standard.md`.
- */
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from './business-specification-standard-root.js';
 
 export const BUSINESS_SPECIFICATION_STANDARD_REFERENCE = `
@@ -14,59 +5,56 @@ export const BUSINESS_SPECIFICATION_STANDARD_REFERENCE = `
 
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
-## Element Contract shape
+## Applicability and notation
 
-\`\`\`text
-## Specification                      <- Element Contract body
-### Section: <top-level item>         <- stable identity: <element>#<title>
-    free body: any carrier, any sub-headings
+The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. For example:
+
+\`\`\`yaml
+entity: element-kind
+identity: business
+contract: required
+contractFormat: business-specification
 \`\`\`
 
-- A Section is one independently evolvable normative commitment and is the unit a Semantic Delta addresses.
-- A Section body is free: prose, lists, tables, decision tables, formulas with input/output dependency tables, pseudocode blocks, event triples, state machines, sequence diagrams, matrices, or structured data. Do not force a carrier and do not require a fixed sub-heading structure.
-- Sub-headings inside a Section are organizational only; they carry no identity and are never addressed by a delta.
-- \`#### Acceptance Case:\` appears only inside the key-acceptance-cases Section.
+Every instance of this Kind requires the 4+N Contract. Generic concepts (such as Section, Metamodel or View definitions) and organizational Elements need not use this format. If a Kind mixes business specifications and generic concepts, separate their Kinds instead of forcing business structure onto all instances.
 
-## Resident base items
+\`\`\`text
+## Specification
+### Section: Scope and Non-goals
+### Section: Business Logic
+### Section: Edge Cases and Exception Handling
+### Section: Key Acceptance Cases
+#### Acceptance Case: <name>
+### Section: <optional independently maintained commitment>
+\`\`\`
 
-**Business goal** — the Declaration \`definition\`. State in one or two sentences the core business problem and who uses it.
+This outline needs real content. CLI rejects missing, duplicate or empty mandatory Sections, a missing/empty Acceptance Case, and Acceptance Cases outside Key Acceptance Cases. It does not decide whether the business rules or acceptance outcomes are correct. Change units use ADDED/MODIFIED/REMOVED Sections as usual; only the complete Expected Semantic Model must contain all four base Sections.
 
-**Scope and non-goals** — its own Section. List at least one or two things this Element explicitly does **not** do. This stops requirement creep and responsibility shifting.
+## Four base Sections
 
-**Business mechanics** — its own Section. Express the derivation itself. Carrier hints, none of them mandatory:
+**Scope and Non-goals** — state the responsibility boundary and explicit exclusions without adding unconfirmed restrictions. Declaration definition still gives the complete concept definition and business purpose; do not duplicate it as a fifth base Section.
 
-| Characteristic | Suggested carrier |
-|---|---|
-| Procedural, cross-system, strict ordering | Structured pseudocode: neutral verbs, consistent indentation, \`if/else\` phrasing; no pointers, no loop indices, no language-level types |
-| Rule-based, multi-dimensional crossed conditions | Decision table; avoid nested \`if/else\` |
-| Computed/derived (amounts, points, tiered pricing) | Formula plus input/output dependency table; never a loop-accumulation description |
-| Event-driven | \`on [event] -> check [precondition] -> trigger [action]\` |
+**Business Logic** — express the complete related mechanism at this Element's abstraction level. Request validation, deduction, concurrent safety and timeout return can form one mechanism. Use internal sub-headings and diagrams to explain their relationships; sub-headings have no identity and are not delta targets. Pseudocode, decision tables, formulas and event triples are examples, not an exhaustive or mandatory list of carriers. Implementation choices belong in design.md.
 
-**Safeguards and edge cases** — its own Section, structured as a table or equivalent:
-- Extremes and empties: zero, negative, over-long strings, null, whitespace-only input.
-- Resource exhaustion: missing map entry, cache stampede.
-- Security defence: hostile traversal, sensitive-character injection.
+**Edge Cases and Exception Handling** — state applicable exceptional inputs, extreme values, absent resources, resource exhaustion, security concerns and failure outcomes. Use a table or equivalent when helpful. Do not invent irrelevant defensive obligations; if a category does not apply, explain that briefly. This Section is mandatory even when there are no additional applicable exceptions.
 
-## \`+N\` items
+**Key Acceptance Cases** — use named Acceptance Cases with concrete conditions, actions and observable outcomes derived from confirmed commitments. These are the contract basis for TDD; Agent-written tests must verify these outcomes rather than define new ones. Keep key positive, boundary and conflict coverage proportionate. Cases cannot introduce independently evolvable semantics or override Business Logic, and test count need not equal case count.
 
-Mount an item explicitly when the business carries the characteristic. The list is a starting point, not a closed set.
+## Additional Sections and coverage
 
-**State and lifecycle** — for long-lived documents or entities that transition state. Declare the entities and identifiers, give the transition chain or table, and name terminal states explicitly.
++N titles are unrestricted. Promote content to an additional Section only when it has a coherent normative boundary worth maintaining independently; being a concurrency rule, state transition, timer or external dependency is not sufficient by itself.
 
-**Concurrency and mutual exclusion** — for bidding, funds, inventory, or debouncing. Answer four questions: contention target (resource granularity), mutual-exclusion mechanism (isolation strategy), conflict policy (fail fast, queue, or idempotent pass-through), safe release (lock/TTL timeout and deadlock fallback).
+Check applicable state/lifecycle, concurrency, timing and external-failure details within the existing base Sections first. Related details stay in Business Logic; exceptional outcomes belong in Edge Cases and Exception Handling. Place each diagram next to the mechanism it explains. Record unknown business decisions rather than making them normative to complete the structure.
 
-**Triggers and timing** — for delay, polling, or message listening. State whether the driver is a synchronous call, a delayed message, or a scheduled sweep, and give the timing tolerance.
-
-**External contracts and fallback** — for a hard dependency on an unreliable external service. State the data-consistency assumption and the degradation contract: does an upstream timeout block the business, or pass through a default?
-
-**Key acceptance cases** — for delivery acceptance or cross-team alignment. Use \`#### Acceptance Case:\` inside this Section: one standard positive flow, plus a boundary flow and a conflict flow when applicable. Enough to hand to a test team; never one case per detail.
+Tasks and Checks trace back to Sections or their Acceptance Cases. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
 
 ## Self-check
 
-1. **Non-goals explicit?** Does it state what this logic does not do?
-2. **Carrier free of syntax noise?** No language-level types, map APIs, or parse calls in the mechanism expression.
-3. **Branch overload resolved?** More than three crossed conditions handled by a decision table rather than nested conditionals?
-4. **Concurrency transparent?** For assets or shared counters, are the contention target and conflict policy stated?
-5. **Exceptions separated?** Are extremes and errors in their own Section rather than mixed into the main flow?
-6. **Applicable \`+N\` mounted?** Does each applicable engineering characteristic have its own Section rather than being left implicit?
+1. Is the business Kind explicitly marked, while generic concept Kinds remain outside this format?
+2. Are all four fixed English Section titles present with substantive content?
+3. Does Business Logic explain the complete related mechanism, with internal organization or diagrams as useful?
+4. Are applicable edge cases and exceptional outcomes explicit and consistent with the main mechanism?
+5. Do mandatory Acceptance Cases state confirmed observable outcomes sufficient to guide TDD?
+6. Is each +N Section worth maintaining independently, rather than a fragmented step or engineering characteristic?
+7. Do tasks reference the existing contract outcomes without inventing new obligations?
 `.trim();

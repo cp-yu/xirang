@@ -88,6 +88,7 @@ export interface NodePresentation {
 export interface ElementKind {
   identity: string;
   contract: 'required' | 'optional';
+  contractFormat?: 'business-specification';
   root?: boolean;
   parents?: string[];
   children?: string[];

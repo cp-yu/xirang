@@ -131,7 +131,7 @@ Semantic-model artifact instructions SHALL 明确 parse-sensitive 结构 token �
 - **specs instruction 标注 Section 与 Acceptance Case 标题语言**
   - agent 创建 delta contract
   - instructions SHALL 指出 `### Section:` 和 `#### Acceptance Case:` 标记保持 canonical
-  - new Section 标题 与 new Acceptance Case 标题 SHALL 跟随 `proseLanguage`
+  - new Section 标题 与 new Acceptance Case 标题 SHALL 跟随 `proseLanguage`，但业务规格的四个固定 Section 标题 SHALL 保留英文 canonical 形式
   - MODIFIED section 中 exact matching 所需的 existing Section 标题 SHALL 保持原文
 
 - **tasks instruction 标注 task 与 check prose 语言**

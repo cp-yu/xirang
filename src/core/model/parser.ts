@@ -220,6 +220,10 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
     if (contract !== 'required' && contract !== 'optional') {
       diagnostics.push(error('MISSING_CONTRACT', file, `Element kind ${identity} has no explicit contract`, identity));
     }
+    if (data.contractFormat !== undefined && data.contractFormat !== 'business-specification') {
+      diagnostics.push(error('INVALID_CONTRACT_FORMAT', file,
+        `Element kind ${identity} contractFormat must be business-specification when present`, identity));
+    }
     const nodePresentation = parseNodePresentation(data.nodePresentation, file, identity, diagnostics);
     return {
       entity,
@@ -227,6 +231,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
       elementKind: {
         identity,
         contract: contract === 'optional' ? 'optional' : 'required',
+        ...(data.contractFormat === 'business-specification' ? { contractFormat: data.contractFormat } : {}),
         ...(typeof data.root === 'boolean' ? { root: data.root } : {}),
         ...(list(data.parents) ? { parents: list(data.parents)! } : {}),
         ...(list(data.children) ? { children: list(data.children)! } : {}),

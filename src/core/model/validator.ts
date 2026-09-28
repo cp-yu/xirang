@@ -1,3 +1,4 @@
+import { validateBusinessSpecification } from './business-specification.js';
 import {
   relationshipIdentity,
   type DiagnosticEntity,
@@ -262,7 +263,20 @@ export function validateSemanticModel(model: SemanticModel): ModelDiagnostic[] {
   checkContracts(model, diagnostics);
   checkViews(model, diagnostics);
 
+  for (const kind of model.elementKinds) {
+    if (kind.contractFormat === 'business-specification' && kind.contract !== 'required') {
+      diagnostics.push(error(
+        'INVALID_BUSINESS_CONTRACT_POLICY',
+        `Business Element Kind ${kind.identity} must declare contract: required`,
+        kind.identity,
+        'element-kind',
+      ));
+    }
+  }
   for (const element of model.elements) {
+    if (kinds.get(element.declaration.kind)?.contractFormat === 'business-specification') {
+      diagnostics.push(...validateBusinessSpecification(element));
+    }
     if (kinds.get(element.declaration.kind)?.contract === 'required' && element.sections.length === 0) {
       diagnostics.push(error(
         'MISSING_REQUIRED_CONTRACT',

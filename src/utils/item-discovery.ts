@@ -28,8 +28,10 @@ export async function getActiveChangeIds(root: string = process.cwd()): Promise<
 /** A Contract is not an independent object: its identity is the Element that carries it. */
 export async function getContractElementIds(root: string = process.cwd()): Promise<string[]> {
   const { model } = await parseSemanticModel(modelRoot(root));
+  const businessKinds = new Set(model.elementKinds
+    .filter(kind => kind.contractFormat === 'business-specification').map(kind => kind.identity));
   return model.elements
-    .filter(element => element.sections.length > 0)
+    .filter(element => element.sections.length > 0 || businessKinds.has(element.declaration.kind))
     .map(element => element.declaration.identity)
     .sort();
 }

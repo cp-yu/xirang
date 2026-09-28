@@ -63,6 +63,8 @@ Config projection SHALL 明确定义哪些 artifact 字段是受 proseLanguage �
   - proseLanguage 被配置
   - projection SHALL 保留 template headings、`### Section:` 与 `#### Acceptance Case:` headers、normative keywords、IDs、schema keys、relation types、paths、commands 与 code identifiers
 
+- 业务规格的四个固定 Section 标题 SHALL 作为 canonical tokens 保留英文：`Scope and Non-goals`、`Business Logic`、`Edge Cases and Exception Handling`、`Key Acceptance Cases`。
+
 - **MODIFIED 块中的 existing Section titles**
 
   - artifact 更新现有 Sections

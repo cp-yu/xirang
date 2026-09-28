@@ -19,18 +19,16 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
-**Business Specification Standard (3+N)**
+**Business Specification Standard (4+N)**
 
-Every Element Contract SHALL give each class of normative detail its own container, so detail captured during exploration is not lost when it becomes a Section or a Task.
-
-- **Resident base items, always required**: ① business goal — carried by the Declaration `definition`; ② scope and non-goals — its own Section naming what this Element does not do; ③ business mechanics — its own Section expressing the logic derivation.
-- **`+N` items, mounted explicitly when the business carries the characteristic**: state and lifecycle, concurrency and mutual exclusion, triggers and timing, external contracts and fallback, key acceptance cases, plus any item the project's own characteristics call for. Never leave these implicit in natural language.
-- **Safeguards and edge cases**: a table (or equivalent) enumerating extremes and empties, resource exhaustion, and security defence, kept out of the main flow.
-- **Key acceptance cases**: a dedicated Section using `#### Acceptance Case:`; one positive flow, plus a boundary flow and a conflict flow when applicable. Not one case per detail, and never demanded of other Sections.
-- **Carriers are free**: pseudocode, decision tables, formulas, and event triples are hints, not an enumeration. Any carrier that expresses the item completely is acceptable.
-- **Container to task mapping**: each mounted `+N` item, each safeguards row, and each acceptance case SHOULD become an independently verifiable task or Check unit, so a missing container surfaces when tasks are written rather than later at model alignment.
-- **Check anchors**: a Check points at its target semantics with a change-local Element unit path plus a Section anchor, appending an Acceptance Case anchor only when it verifies a key acceptance case. A free-form description is not an anchor.
-- Read `.xirang/references/xirang-business-specification-standard.md` (project-root file) for the complete standard and its self-check list.
+- **Applicability**: business-specification Elements MUST use an Element Kind declaring `contract: required` and `contractFormat: business-specification`. Declare an appropriate Kind when needed; do not apply this format to generic framework concepts or organizational Elements, or omit it to bypass validation. CLI uses the explicit Kind declaration, never prose inference.
+- **Four mandatory Sections**: `### Section: Scope and Non-goals`; `### Section: Business Logic`; `### Section: Edge Cases and Exception Handling`; `### Section: Key Acceptance Cases`. Keep these exact English titles regardless of proseLanguage; each needs a non-empty body. The business goal stays in Declaration `definition`, not a fifth Section.
+- **Business Logic**: keep related validation, transitions, concurrency, timing and return paths together as one complete mechanism. Use free sub-headings, prose, pseudocode, tables, formulas or diagrams inside it; engineering characteristics do not automatically create Sections.
+- **Edge Cases and Exception Handling**: explicitly cover applicable boundary inputs and failure behavior, using a table or another suitable carrier. Keep these details separate from the main mechanism.
+- **Key Acceptance Cases**: always include at least one non-empty `#### Acceptance Case:` here, never in other Sections. Ground observable inputs/conditions and expected outcomes in confirmed intent and Contract commitments; they are the TDD test basis, not outcomes invented from implementation. Cover a positive flow and applicable boundary/conflict flows without demanding a case per detail.
+- **+N**: add freely named Sections only for commitments worth maintaining independently of the four base Sections. Keep related mechanism details and their diagrams together. Do not turn every rule, step or engineering characteristic into a Section.
+- **Validation and traceability**: CLI checks the complete model (Expected Semantic Model for a Change), not four repeated Sections in every delta. Checks reference change-local Element paths plus Section anchors, and Acceptance Case anchors where relevant. Semantic coverage and independently maintainable boundaries remain author/reviewer judgments; do not invent business decisions to fill containers.
+- Read `.xirang/references/xirang-business-specification-standard.md` for the standard and self-check list.
 
 **Element Definition Semantics**
 
@@ -41,7 +39,7 @@ Every Element Contract SHALL give each class of normative detail its own contain
 **Element Contract Semantics**
 
 - An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments, and a parent and its children may each express the complete semantics they cover at their respective levels.
-- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, `SHALL` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
+- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, `SHALL` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved. Business-specification Contracts use the mandatory 4+N groups; related mechanism details remain inside Business Logic instead of becoming separate Sections.
 - A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. `### Section:` headers are the only structural unit inside `## Specification`.
 - `#### Acceptance Case:` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
 
@@ -121,7 +119,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 | entity | frontmatter fields |
 |---|---|
 | `element-declaration` | `identity`, `kind`, `parent`, `title`, `definition` |
-| `element-kind` | `identity`, `contract`; optional `root`, `parents`, `children` |
+| `element-kind` | `identity`, `contract`; optional `contractFormat`, `root`, `parents`, `children` |
 | `relationship-kind` | `identity`; optional `sourceKinds`, `targetKinds` |
 | `authored-view` | `identity`, `include`; optional `exclude`, `of`, `title`, `autoLayout` |
 
@@ -159,6 +157,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 - Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
 - Follow the existing template structure exactly; do not invent a different layout because the prose language changes
 - Keep template headings, normative keywords, `### Section:` and `#### Acceptance Case:` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
+- The four business-specification Section titles are canonical English tokens: Scope and Non-goals, Business Logic, Edge Cases and Exception Handling, Key Acceptance Cases; do not translate them.
 - Preserve exact existing Section titles required for MODIFIED matching
 - English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow `proseLanguage`
 - If no `proseLanguage` projection is present, keep the default writing behavior for prose

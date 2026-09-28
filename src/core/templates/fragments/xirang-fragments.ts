@@ -81,7 +81,7 @@ export const ELEMENT_CONTRACT_SEMANTICS = `
 **Element Contract Semantics**
 
 - An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments, and a parent and its children may each express the complete semantics they cover at their respective levels.
-- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
+- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved. Business-specification Contracts use the mandatory 4+N groups; related mechanism details remain inside Business Logic instead of becoming separate Sections.
 - A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. \`### Section:\` headers are the only structural unit inside \`## Specification\`.
 - \`#### Acceptance Case:\` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
 `.trim();
@@ -119,7 +119,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 | entity | frontmatter fields |
 |---|---|
 | \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`definition\` |
-| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`contractFormat\`, \`root\`, \`parents\`, \`children\` |
 | \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
 | \`authored-view\` | \`identity\`, \`include\`; optional \`exclude\`, \`of\`, \`title\`, \`autoLayout\` |
 
@@ -165,7 +165,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 | entity | frontmatter fields |
 |---|---|
 | \`element-declaration\` | \`identity\`, \`kind\`, \`parent\`, \`title\`, \`definition\` |
-| \`element-kind\` | \`identity\`, \`contract\`; optional \`root\`, \`parents\`, \`children\` |
+| \`element-kind\` | \`identity\`, \`contract\`; optional \`contractFormat\`, \`root\`, \`parents\`, \`children\` |
 | \`relationship-kind\` | \`identity\`; optional \`sourceKinds\`, \`targetKinds\` |
 | \`authored-view\` | \`identity\`, \`include\`; optional \`exclude\`, \`of\`, \`title\`, \`autoLayout\` |
 
@@ -207,6 +207,7 @@ export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 - Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
 - Follow the existing template structure exactly; do not invent a different layout because the prose language changes
 - Keep template headings, normative keywords, \`### Section:\` and \`#### Acceptance Case:\` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
+- The four business-specification Section titles are canonical English tokens: Scope and Non-goals, Business Logic, Edge Cases and Exception Handling, Key Acceptance Cases; do not translate them.
 - Preserve exact existing Section titles required for MODIFIED matching
 - English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow \`proseLanguage\`
 - If no \`proseLanguage\` projection is present, keep the default writing behavior for prose

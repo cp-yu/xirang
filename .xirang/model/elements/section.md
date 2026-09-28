@@ -13,7 +13,7 @@ definition: Section 是 Element Contract 中具有稳定 identity 的规范性�
 
 Section SHALL 在宿主 Element 自身抽象层级上表达一项可独立演进的职责、保证、约束或行为。
 
-- 一项语义能够独立新增、修改或移除，而不要求同一 Contract 中其他 Sections 同时改变时，它 SHALL 以独立 Section 表达。
+- Section 以值得独立维护的规范边界分组；关联机制内部的步骤、规则或工程特征不因能够单独描述而必须成为独立 Section。
 
 ### Section: 作为 Contract 的差量单位
 
@@ -32,11 +32,11 @@ Section 正文 SHALL 以最能完整表达该大点语义的形式书写，SHALL
 
 ### Section: 业务规格覆盖的必备大点
 
-Element Contract SHALL 以 Section 承载业务规格内容标准要求的常驻基底三项——业务目标、范围与边界排除、核心业务逻辑实现——并 SHALL 在业务具备相应工程特征时显式挂载对应的 +N 大点，而 SHALL NOT 将这类内容隐含在自然语言中。
+声明 `contractFormat: business-specification` 的 Kind 所属 Element Contract SHALL 包含四个固定英文 Section：`Scope and Non-goals`、`Business Logic`、`Edge Cases and Exception Handling`、`Key Acceptance Cases`。CLI SHALL 校验这些 Section 的存在、唯一性与非空内容；通用概念 Contract 不自动适用。
 
-- 业务目标以 Element Declaration 的 `definition` 表达，不重复为 Section。
-- 是否存在并发竞争、触发源与时序、外部依赖与降级、实体状态生命周期、关键验收用例等特征，由撰写者判断并显式挂载对应大点。
-- 关键验收用例以「关键验收案例」大点承载，其内部使用 `#### Acceptance Case:` 表达。
+- 业务目标由 Element Declaration 的 `definition` 表达，不重复为 Section。
+- 关联业务机制及其图示 SHALL 集中在 Business Logic 内；+N 仅用于值得独立维护的规范内容，名称自由。
+- Key Acceptance Cases SHALL 包含至少一个非空 Acceptance Case，作为 TDD 的规范依据；其它 Sections SHALL NOT 使用 Acceptance Case。
 
 ### Section: 引用稳定 identity
 

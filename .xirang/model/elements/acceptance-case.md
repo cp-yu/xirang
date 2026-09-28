@@ -33,6 +33,7 @@ Acceptance Case SHALL 仅在承载关键验收用例的 Section 内使用，SHAL
 Acceptance Case SHALL 以便于测试团队直接转化为自动化测试的表达书写，SHALL NOT 承载实现设计。
 
 - `tasks.md` 的 Check 可通过引用该 Acceptance Case 建立验证关系。
+- 业务规格 Contract SHALL 包含固定英文标题 Key Acceptance Cases 的 Section 及至少一个非空案例，作为 TDD 的规范依据；测试的预期结果 SHALL 来自已确认意图与规范承诺，不得由实现自行定义。
 
 ### Section: 从属于 Section 差量
 

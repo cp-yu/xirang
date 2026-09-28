@@ -13,6 +13,7 @@ export interface ArchQueryOptions {
 
 export interface QueryElement extends ElementDeclaration {
   contract: 'required' | 'optional';
+  contractFormat?: 'business-specification';
   hasContract: boolean;
   sections?: Section[];
 }
@@ -52,9 +53,11 @@ export async function queryArchitecture(
   const kinds = new Map(model.elementKinds.map(kind => [kind.identity, kind]));
   const elements = Object.fromEntries(requestedIds.map(identity => {
     const element = modelElements.get(identity)!;
+    const contractFormat = kinds.get(element.declaration.kind)?.contractFormat;
     const result: QueryElement = {
       ...element.declaration,
       contract: kinds.get(element.declaration.kind)?.contract ?? 'optional',
+      ...(contractFormat === undefined ? {} : { contractFormat }),
       hasContract: element.sections.length > 0,
       ...(options.contract ? { sections: element.sections } : {}),
     };

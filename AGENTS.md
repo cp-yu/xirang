@@ -117,6 +117,8 @@ Element Contract 定义 Element 在一个确定模型状态中、其自身抽象
 
 一个 Element 至多对应一个 Element Contract。Element 是否必须具有 Element Contract，由其 Element Kind 在 Metamodel 中声明的 contract policy 决定。
 
+业务规格类 Element 使用声明 `contract: required` 与 `contractFormat: business-specification` 的 Kind，其 Contract 必须包含四个固定英文标题 Section：`Scope and Non-goals`、`Business Logic`、`Edge Cases and Exception Handling`、`Key Acceptance Cases`。关联机制与图示集中在 Business Logic；+N 仅承载值得独立维护的内容，名称自由。Key Acceptance Cases 必须包含非空 Acceptance Case，作为 TDD 的规范依据。CLI 根据 Kind 声明检查完整模型中的必要结构，不通过正文猜测适用范围；框架概念与组织性 Element 不自动适用。
+
 #### 4. Section
 
 Section 是 Element Contract 中具有稳定 identity 的规范性语义单元，用于表达宿主 Element 在自身抽象层级上的一项可独立演进的职责、保证、约束或行为。可独立演进，是指该项语义能够独立新增、修改或移除，而不要求同一 Contract 中其他 Sections 同时发生语义变化。Section 是业务规格的顶层大点，组内内容以自由载体完整表达，不限定表达形式，也不要求固定的子标题结构。

@@ -20,7 +20,7 @@ export interface SnapshotTreeNode {
 }
 
 export interface SnapshotMetamodel {
-  elementKinds: Array<{ identity: string; contract: 'required' | 'optional'; body: string }>;
+  elementKinds: Array<{ identity: string; contract: 'required' | 'optional'; contractFormat?: 'business-specification'; body: string }>;
   relationshipKinds: Array<{ identity: string; body: string }>;
 }
 
@@ -146,7 +146,7 @@ function renderMetamodelText(metamodel: SnapshotMetamodel): string {
   const lines = ['[metamodel]'];
   const elementKinds = [...metamodel.elementKinds].sort((left, right) => compareCodePoints(left.identity, right.identity));
   for (const kind of elementKinds) {
-    lines.push(`element-kind: ${kind.identity} (contract: ${kind.contract})${kind.body ? ` — ${kind.body}` : ''}`);
+    lines.push(`element-kind: ${kind.identity} (contract: ${kind.contract}${kind.contractFormat ? `, format: ${kind.contractFormat}` : ''})${kind.body ? ` — ${kind.body}` : ''}`);
   }
   const relationshipKinds = [...metamodel.relationshipKinds].sort((left, right) => compareCodePoints(left.identity, right.identity));
   for (const kind of relationshipKinds) {
@@ -200,6 +200,7 @@ export async function snapshotArchitecture(
   const elementKinds = model.elementKinds.map(kind => ({
     identity: kind.identity,
     contract: kind.contract,
+    ...(kind.contractFormat === undefined ? {} : { contractFormat: kind.contractFormat }),
     body: kind.body,
   }));
   const relationshipKinds = model.relationshipKinds.map(kind => ({

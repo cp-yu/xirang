@@ -41,6 +41,9 @@ LikeC4 is generated from the complete model into `.xirang/.cache-likec4/` for vi
 
 Every model contains one Project Root. Each element has a stable `identity`, an authored `definition`, a `kind`, and at most one `parent`. Containment expresses abstraction and refinement at arbitrary depth. An Element Contract is the `## Specification` body of its Element unit; whether a Contract is required comes from the `contract` field of its Element Kind, and each element has at most one Contract.
 
+Business-specification Elements use an Element Kind with `contract: required` and `contractFormat: business-specification`. Their Contracts require four non-empty Sections with exact English titles, independently of prose language: `Scope and Non-goals`, `Business Logic`, `Edge Cases and Exception Handling`, and `Key Acceptance Cases`. The last must contain at least one non-empty `#### Acceptance Case:`; other Sections must not contain Acceptance Cases. Related mechanisms and diagrams stay together in Business Logic; additional Sections have unrestricted names and must be worth maintaining independently. CLI checks the complete model (the Expected Semantic Model for a Change), so unchanged Sections need not be repeated in a delta. Generic concept Kinds need not declare this format. Acceptance outcomes are the specification basis for TDD, not results inferred from implementation.
+
+
 **Changes** remain separate until sync. A change-local Semantic Delta — four partitions under `.xirang/changes/<name>/` mirroring the model, each entry carrying `ADDED`, `MODIFIED`, or `REMOVED` — is validated against one Expected Semantic Model before atomic promotion.
 
 ## Element Contracts
