@@ -29,7 +29,7 @@ Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary，以完
 
 ### Section: 查缺补漏与决策确认
 
-Propose MAY 将已确认机制展开为完整正文、图示、验收案例及任务和验证安排，并修正遗漏、重复、表达或推导错误，前提是不改变已确认承诺、不选择新的行为或架构。编写时补出的分支结果、默认值、错误结果与限制条件 SHALL 对照已确认对话与设计，确认其已被明确授权或可唯一推导，包括“否则”等兜底分支；仍有多个合理结果时 SHALL 作为决策缺口处理。需要在不同结果、范围或设计方案之间作选择时，Propose SHALL 说明缺口、选项及推荐理由，一次询问一个问题并等待确认后再写成确定内容；完成时告知不替代决策前确认。
+Propose MAY 将已确认机制展开为完整正文、图示、验收案例及任务和验证安排，并修正遗漏、重复、表达或推导错误。合理推导的细节与配套保证，只要不改变已确认承诺、不超出既定范围与方案，且不实质改变业务结果、用户义务或架构权衡，MAY 无需逐项确认而直接编写，在完成时披露其依据与制品位置；不要求这些细节能够唯一推导。编写时补出的分支结果、默认值、错误结果与限制条件 SHALL 对照已确认对话与设计，包括“否则”等兜底分支。改变已确认承诺、扩大范围或需要裁决重大业务及架构权衡时，Propose SHALL 说明缺口、选项及推荐理由，一次询问一个问题并等待确认后再写成确定内容；此类重大决策不能仅以完成时告知代替事先确认。
 
 孤立缺口 MAY 在 Propose 内确认；大幅重做设计或修订已持久化记录时 SHALL 返回 Explore，并遵循已有记录授权与交接协议。直接 Propose、要求不追问或 override 就绪建议不构成缺失决策的答案；无法获得所需确认时 SHALL 报告阻碍。
 
@@ -53,7 +53,7 @@ Propose SHALL 以 Change Plan 解释意图与实现路径。
 
 ### Section: 完成 Formation 审查与确认
 
-Propose SHALL 在 Change Formation 内完成必要审查与确认，对照已确认来源检查完整机制与制品一致性，以适用的边界或竞争序列检验规范承诺，不能仅依赖制品之间一致或 CLI 通过。新确认的决策 SHALL 贯穿相关 Delta 与 Plan。
+Propose SHALL 在 Change Formation 内完成必要审查与确认，对照已确认来源检查完整机制与制品一致性，以适用的边界或竞争序列检验规范承诺，不能仅依赖制品之间一致或 CLI 通过。新确认的决策与推导补充的可观察保证 SHALL 贯穿相关 Delta 与 Plan；推导补充不回写为来源记录中的用户确认。
 
 - **Change 仍有未决内容**
 
@@ -64,7 +64,7 @@ Propose SHALL 在 Change Formation 内完成必要审查与确认，对照已确
 
 Propose 完成汇报 SHALL 区分沿用的 Explore 确认或当前已确认输入、文档化时补出的内容及其依据和制品位置、Propose 内经用户确认的新决策，以及未决事项对就绪的影响；没有补充或新决策时 SHALL 明确说明。补充清单保留在会话，不新增永久台账或向规范正文混入确认过程状态。
 
-制品齐全与 CLI 校验通过 SHALL NOT 代替语义就绪判断；影响目标行为、范围或实现方案的未决决策 SHALL 阻止 ready-for-apply 声明。完成报告 SHALL 区分实际 CLI 结果、Agent 语义检查发现与仍存在的证据缺口，以简明的检查发现及相关制品位置支持就绪结论；不得以制品数量、引用合法或依赖声明代替实际覆盖、机制与可执行性检查，也不要求输出完整自查过程或新增报告制品。
+制品齐全与 CLI 校验通过 SHALL NOT 代替语义就绪判断；影响目标行为、范围或实现方案的未决重大决策 SHALL 阻止 ready-for-apply 声明；合理推导并披露的细节不因缺少单独确认而阻塞。完成报告 SHALL 区分实际 CLI 结果、Agent 语义检查发现与仍存在的证据缺口，以简明的检查发现及相关制品位置支持就绪结论；不得以制品数量、引用合法或依赖声明代替实际覆盖、机制与可执行性检查，也不要求输出完整自查过程或新增报告制品。
 
 ### Section: 不实现项目
 
@@ -109,7 +109,7 @@ Propose SHALL 为每个 ADDED 或 MODIFIED Element Declaration 编写完整目�
 
 ### Section: 处理已确认设计记录
 
-Propose SHALL 完整读取可用记录并检查来源版本、上下文及与 Summary 的一致性；将规范性确认内容编译为完整 Semantic Delta，说明性材料按性质进入 Plan 或 provenance。精简记录不等于完整结构目标。无记录时，Propose SHALL 要求 Design Summary 或当前输入声明记录决策——用户明确授予的豁免，或本次无 normative 内容的声明——SHALL NOT 将未声明的缺失当作已覆盖的默认路径，SHALL NOT 将其视为隐式豁免；两者皆未声明时 SHALL 停止 Formation 并退回 Explore 取得该决策。
+Propose SHALL 在入口读取共享 framing reference 并通过 CLI 主动发现记录，不以 Summary 是否提及记录为前提。SHALL 完整读取可用记录并检查来源版本、上下文及与 Summary 的一致性，自编写开始将其作为确认依据；将规范性确认内容编译为完整 Semantic Delta，说明性材料按性质进入 Plan 或 provenance。精简记录不等于完整结构目标。无记录时，Propose SHALL 要求 Design Summary 或当前输入声明记录决策——用户明确授予的豁免，或本次无 normative 内容的声明——SHALL NOT 将未声明的缺失当作已覆盖的默认路径，SHALL NOT 将其视为隐式豁免；两者皆未声明时 SHALL 停止 Formation 并退回 Explore 取得该决策。
 
 - **Propose 接收精简记录**
 
@@ -129,7 +129,7 @@ Propose SHALL 完整读取可用记录并检查来源版本、上下文及与 Su
 
 ### Section: 验证确认内容到目标语义的覆盖
 
-存在记录时 Propose SHALL 对记录的规范性条目逐条核对落位，将每条标记为已落位于 Declaration、Contract、Relationship、Metamodel 或 Authored View 目标，或报告为未覆盖并说明理由；未标记的条目 SHALL 计为未覆盖并阻塞 ready-for-apply。SHALL 明确说明已核对条目数与未覆盖条目身份；来源为豁免或无 normative 内容时 SHALL 显式声明该事实，不得以沉默表示核对通过。已满足内容可确认 no-op，说明材料不强造规范义务。CLI validation、结构相等或文本引用存在 SHALL NOT 替代此语义检查。缺少语义时补充适当 Contract，意图未决时请求用户裁决。
+存在记录时 Propose SHALL 对记录的规范性条目逐条核对落位，将每条标记为已落位于 Declaration、Contract、Relationship、Metamodel 或 Authored View 目标，或报告为未覆盖并说明理由；未标记的条目 SHALL 计为未覆盖并阻塞 ready-for-apply。每条核对 SHALL 给出目标位置及保留条件、例外和时序的简明语义判断，不能只列位置或复述原文。SHALL 明确说明已核对条目数与未覆盖条目身份；来源为豁免或无 normative 内容时 SHALL 显式声明该事实，不得以沉默表示核对通过。已满足内容可确认 no-op，说明材料不强造规范义务。CLI validation、结构相等或文本引用存在 SHALL NOT 替代此语义检查。缺少语义时补充适当 Contract，意图未决时请求用户裁决。
 
 - **记录细节不能被共同遗漏**
 

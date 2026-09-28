@@ -36,11 +36,14 @@ describe('propose template post-validation flow', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
     expect(body).toContain('Explore forms and confirms the design; Propose documents it');
-    expect(body).toContain('without changing confirmed commitments or choosing a new behavior or architecture');
+    expect(body).toContain('without changing confirmed commitments');
+    expect(body).toContain('Reasonable inferred details, including supporting guarantees');
+    expect(body).toContain('not proof that they are uniquely implied');
     expect(body).toContain('ask one focused question and wait before writing the choice as settled');
     expect(body).toContain('An isolated gap can be confirmed within Propose');
     expect(body).toContain('substantial redesign belongs in Explore');
-    expect(body).toContain('disclosure at completion is not a substitute for prior confirmation');
+    expect(body).toContain('inferred details need disclosure, while material decisions require prior confirmation');
+    expect(body).toContain('do not add them to the confirmed source record');
     expect(body).toContain('Propose MUST NOT create, update, rename, or discard records');
   });
 
@@ -60,7 +63,7 @@ describe('propose template post-validation flow', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
     expect(body).toContain('branch outcomes, defaults, error results and restrictions');
-    expect(body).toContain('explicitly confirmed or uniquely implied');
+    expect(body).toContain('do not materially change business outcomes, user obligations or architectural trade-offs');
     expect(body).toContain('including catch-all branches such as "otherwise"');
     expect(body).toContain('using only existing implementation, earlier GREEN tasks and that task');
     expect(body).toContain('trace each Check to the implementation, files and commands it actually needs');
@@ -318,6 +321,9 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain(`xirang framing ${command}`);
     }
     expect(body).toContain('Unresolved conflicts block Formation');
+    expect(body).toContain('discover records through the CLI even when the handoff does not mention one');
+    expect(body).toContain('Use the loaded record as the authoring baseline from the start');
+    expect(body).toContain('give its target location and a concise semantic finding');
     expect(body).toContain('only external write is post-gate `framing consume`');
     expect(body).toContain('MUST NOT create, update, rename, or discard records');
     expect(body).toContain('record → Expected Semantic Model');

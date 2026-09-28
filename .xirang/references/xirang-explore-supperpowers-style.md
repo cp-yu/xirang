@@ -94,7 +94,7 @@ Before generating the `Design Summary`, self-review:
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
 - Has any current record passed the shared Definition Framing reload/conflict gate?
-- Is the record decision settled when the design carries normative confirmations: a persisted record, or an explicit user-granted exemption recorded with its reason?
+- Has every normative confirmation reached the current record or an explicit user-granted exemption? Initiate the missing capture batch before Summary; record existence alone does not cover later confirmations.
 - Are non-framing file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
 The `Design Summary` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. With a record, reference its identity and reviewed version rather than duplicating it; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.

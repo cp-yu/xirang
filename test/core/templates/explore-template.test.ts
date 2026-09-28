@@ -125,11 +125,19 @@ describe('explore template semantic impact', () => {
     expect(template).not.toContain('Subagent Exception');
   });
 
-  it('reloads optional current records and blocks conflicting or stale Summary handoff', () => {
+  it('initiates capture and blocks conflicting, incomplete or stale Summary handoff', () => {
     for (const command of ['list --json', 'show <explorationId> --json', 'status <explorationId> --json', 'validate <explorationId> --json']) {
       expect(template).toContain(`xirang framing ${command}`);
     }
-    expect(template).toContain('before starting, resuming, or producing a Design Summary');
+    expect(template).toContain('do not preload it for ordinary discussion with no trigger');
+    expect(template).toContain('**Existing record**');
+    expect(template).toContain('normative confirmations not covered by an explicit exemption');
+    expect(template).toContain('the user requests framing, recording or revising design material');
+    expect(template).toContain('**Handoff gap**');
+    expect(template).not.toContain('even when no record exists');
+    expect(template).toContain('proactively collect its normative confirmations');
+    expect(template).toContain('Do not wait for the user to request framing');
+    expect(template).toContain('all normative confirmations are recorded or explicitly exempted');
     expect(template).toContain('Unresolved conflicts block Design Summary');
     expect(template).toContain('invalidate affected Summary and coverage conclusions');
     expect(template).toContain('do not create an empty framing record');

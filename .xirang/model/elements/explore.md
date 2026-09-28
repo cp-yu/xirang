@@ -65,7 +65,7 @@ Explore SHALL 在新增 Element 或改变概念身份、范围、parent、childr
 
 ### Section: 支持可选 Definition Framing
 
-Explore SHALL 通过 Design Exploration 推进设计，并 SHALL 在过程中持续使用 Definition Framing 记录关键确认。存在 normative 确认时，Explore SHALL 在交接前落定恰好一个记录决策——已持久化记录、用户明确授予的豁免、或本次无 normative 内容的声明——三者皆缺即阻塞交接。记录更新后 SHALL 重查受影响设计与 Summary，不得将结构 Framing 固定为所有设计的先行阶段。
+Explore SHALL 告知可通过 Definition Framing 保存已确认设计，并按触发条件加载共享 framing reference：发现或接收相关记录（含恢复已有探索）时，在读取或依赖记录前加载；设计段落产生未被明确豁免的规范性确认，或用户要求 framing、记录或修订材料时，在拟定 payload 或操作记录前加载；Summary 前发现规范性确认既未记录也未明确豁免时，加载并解决交接缺口。未触发时不为普通讨论预加载协议。通过 Design Exploration 推进设计，在每个已确认设计段落结束时主动整理规范性确认并展示完整拟保存 payload，发起一次批量持久化确认，不等待用户主动要求记录，也不默认提供豁免。明确豁免覆盖的内容不重复请求记录。存在 normative 确认时，Explore SHALL 在交接前落定恰好一个记录决策——已持久化记录、用户明确授予的豁免、或本次无 normative 内容的声明——三者皆缺即阻塞交接。记录更新后 SHALL 重查受影响设计与 Summary，不得将结构 Framing 固定为所有设计的先行阶段。
 
 - **有规范确认时落定决策**
 
@@ -80,7 +80,7 @@ Explore SHALL 通过 Design Exploration 推进设计，并 SHALL 在过程中持
 
 ### Section: 形成不持久化的 Design Summary
 
-Explore SHALL 在适用设计确认并完成边界、竞争与一致性自查后输出 conversation-only Design Summary。Summary SHALL 保留已确认决策的条件、数值、例外、时序和关键验收结果，区分推荐、未决事项与用户确认的排除范围；影响当前目标的未决决策 SHALL 阻塞交接，Agent 不自行延期。带记录时，只有完整重载、冲突调和和一致性复核通过后才能输出，并一起交付该记录身份及受核对版本；带豁免时 SHALL 交付无记录声明及其理由；本次无 normative 内容时 SHALL 声明该事实。SHALL NOT 创建空记录，也不以省略上述内容代替声明。
+Explore SHALL 在适用设计确认并完成边界、竞争与一致性自查后输出 conversation-only Design Summary。Summary SHALL 保留已确认决策的条件、数值、例外、时序和关键验收结果，区分推荐、未决事项与用户确认的排除范围；影响当前目标的未决决策 SHALL 阻塞交接，Agent 不自行延期。输出前 SHALL 对照已确认对话确认所有规范性确认均已记录或明确豁免，已有部分记录不代表后续确认已被覆盖。带记录时，只有完整重载、冲突调和和一致性复核通过后才能输出，并一起交付该记录身份及受核对版本；带豁免时 SHALL 交付无记录声明及其理由；本次无 normative 内容时 SHALL 声明该事实。SHALL NOT 创建空记录，也不以省略上述内容代替声明。
 
 - **带记录完成 Explore**
 

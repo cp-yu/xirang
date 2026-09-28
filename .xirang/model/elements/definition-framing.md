@@ -51,7 +51,7 @@ Definition Framing SHALL 在提出或确认 Element hierarchy 目标前消费 no
 
 ### Section: 捕获已确认关键设计
 
-Definition Framing SHALL 默认捕获下游生成不得擅自改变的关键确认，完整保留条件、数值、例外、时序及已确认结构片段。用户明确要求记录的材料 SHALL 优先保存，不得因 Agent 判定不重要而省略。一般讨论、备选方案、完整理由与实施/测试计划不自动记录；用户明确要求时 MAY 保存，但不得擅自改变其规范或说明性质。
+Agent SHALL 在每个已确认设计段落结束时主动发起该段确认项的批量记录，不等待用户提及 framing，也不把空记录列表视作豁免。Definition Framing SHALL 默认捕获下游生成不得擅自改变的关键确认，完整保留条件、数值、例外、时序及已确认结构片段。用户明确要求记录的材料 SHALL 优先保存，不得因 Agent 判定不重要而省略。一般讨论、备选方案、完整理由与实施/测试计划不自动记录；用户明确要求时 MAY 保存，但不得擅自改变其规范或说明性质。
 
 - **用户指定细节优先**
 
@@ -115,7 +115,7 @@ Definition Framing SHALL 默认捕获下游生成不得擅自改变的关键确�
 
 ### Section: 在交接前落定记录决策
 
-Definition Framing SHALL 在形成过程交接前落定恰好一个记录决策：已持久化记录、用户明确授予的豁免、或本次确认不含 normative 内容的声明。存在 normative 确认而三者皆缺时 SHALL 停止交接。豁免 SHALL 由用户授予并将其理由记录于 Design Summary 与 provenance。SHALL NOT 以静默跳过代替任何一态，SHALL NOT 为满足决策而创建空记录，并在后续新增 normative 确认时重新开启已豁免的决策。
+Definition Framing SHALL 在形成过程交接前落定恰好一个记录决策：已持久化记录、用户明确授予的豁免、或本次确认不含 normative 内容的声明。交接前 SHALL 对照确认对话检查各规范性确认均已记录或明确豁免；已有部分记录不覆盖后续遗漏的确认，缺失时先发起补录。存在 normative 确认而三者皆缺时 SHALL 停止交接。豁免 SHALL 由用户授予并将其理由记录于 Design Summary 与 provenance。SHALL NOT 以静默跳过代替任何一态，SHALL NOT 为满足决策而创建空记录，并在后续新增 normative 确认时重新开启已豁免的决策。
 
 - **有规范确认却未落定决策**
 
@@ -137,7 +137,7 @@ Definition Framing SHALL 在形成过程交接前落定恰好一个记录决策�
 
 ### Section: 逐条核对确认内容的落位
 
-Definition Framing SHALL 在交接前对记录的规范性条目逐条核对落位，将每条标记为已落位于目标模型或报告为未覆盖并说明理由。未标记的条目 SHALL 计为未覆盖并阻塞交接。合法落位目标 SHALL 覆盖 Declaration、Contract、Relationship、Metamodel 与 Authored View。核对结果 SHALL 记录在对话中，SHALL NOT 建立持久审计账本。豁免或本次无 normative 内容时 SHALL 显式声明该事实，不得以沉默表示核对通过。
+Definition Framing SHALL 在交接前对记录的规范性条目逐条核对落位，将每条标记为已落位于目标模型或报告为未覆盖并说明理由。未标记的条目 SHALL 计为未覆盖并阻塞交接。合法落位目标 SHALL 覆盖 Declaration、Contract、Relationship、Metamodel 与 Authored View。每条核对 SHALL 给出目标位置及保留条件、例外和时序的简明语义判断，不能只列位置或复述原文。核对结果 SHALL 记录在对话中，SHALL NOT 建立持久审计账本。豁免或本次无 normative 内容时 SHALL 显式声明该事实，不得以沉默表示核对通过。
 
 - **条目未标记即阻塞**
 

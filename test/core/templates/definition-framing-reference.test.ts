@@ -14,6 +14,10 @@ describe('Definition Framing reference projection', () => {
     }
     for (const gate of [
       'explicit persistence confirmation',
+      'The Agent initiates capture at the end of each confirmed design section',
+      'an empty framing list is a starting state, not an exemption',
+      'every normative confirmation must be captured or explicitly exempted',
+      'a concise explanation of how the conditions, exceptions and timing are preserved',
       'complete current payload',
       'MUST NOT treat the latest statement as overriding earlier confirmation',
       'Unresolved conflicts block Design Summary',

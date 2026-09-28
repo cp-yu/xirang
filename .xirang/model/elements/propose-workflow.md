@@ -195,7 +195,7 @@ Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；
 
   - propose 完成 artifacts、validation 与 report generation
   - SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
-  - SHALL 区分沿用的确认、Propose 补充内容及其依据与制品位置、在 Propose 内新确认的决策和未决事项；无补充或新决策时明确说明
+  - SHALL 区分沿用的确认、Propose 合理推导的细节与配套保证及其依据与制品位置、在 Propose 内新确认的重大决策和未决事项；合理细节无需逐项确认，无补充或新决策时明确说明
   - SHALL 不把补充声称为 Explore 原有确认，不新增永久补充台账
   - SHALL 区分实际 CLI 结果、Agent 语义检查发现与剩余证据缺口，以具体检查发现及相关制品位置支持结论；不以产物数量或引用合法推断语义通过，也不要求完整自查过程或额外报告制品
   - 制品完成与 CLI 通过不等于语义就绪，影响当前目标或实现方案的未决决策 SHALL 阻塞 ready-for-apply

@@ -307,16 +307,17 @@ describe('instruction-loader', () => {
       }
     });
 
-    it('projects design documentation without authorizing unconfirmed decisions', () => {
+    it('projects inferred detail disclosure and material decision confirmation', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const body = generateInstructions(context, 'design').instruction ?? '';
 
       expect(body).toContain('documenting confirmed design decisions');
       expect(body).toContain('branch outcomes, defaults, error results and restrictions');
-      expect(body).toContain('explicitly confirmed or uniquely implied');
-      expect(body).toContain('ask the user before treating a choice as settled');
+      expect(body).toContain('Reasonable inferred details, including supporting guarantees');
+      expect(body).toContain('disclose them at completion');
+      expect(body).toContain('material business/architecture trade-offs require asking the user');
       expect(body).toContain('An isolated gap can be confirmed within Propose');
-      expect(body).toContain('Reconcile confirmed observable behavior with the Semantic Delta and tasks');
+      expect(body).toContain('Reconcile confirmed observable behavior and inferred guarantees with the Semantic Delta and tasks');
     });
 
     it('projects four-partition Semantic Delta guidance and unit templates', () => {
