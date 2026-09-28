@@ -264,12 +264,12 @@ export class ValidateCommand {
   private printNextSteps(type: ItemType): void {
     const bullets: string[] = [];
     if (type === 'change') {
-      bullets.push('- Ensure the change carries deltas in elements/: use headers ## ADDED/MODIFIED/REMOVED Requirements');
-      bullets.push('- Each requirement MUST include at least one #### Scenario: block');
+      bullets.push('- Ensure the change carries deltas in elements/: use headers ## ADDED/MODIFIED/REMOVED Sections');
+      bullets.push('- Each Section MUST contain SHALL or MUST');
       bullets.push('- Re-run with xirang validate --change <id> --json for structured diagnostics');
     } else {
-      bullets.push('- Ensure the Element unit carries a ## Requirements section');
-      bullets.push('- Each requirement MUST include at least one #### Scenario: block');
+      bullets.push('- Ensure the Element unit carries a ## Specification section');
+      bullets.push('- Each Section MUST contain SHALL or MUST');
       bullets.push('- Re-run with --json to see structured report');
     }
     console.error('Next steps:');

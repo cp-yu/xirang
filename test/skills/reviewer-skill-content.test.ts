@@ -19,7 +19,7 @@ describe('xirang reviewer skill content', () => {
   it('contains absence-check protocol for REMOVED anchors', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('REMOVED Requirement');
+    expect(instructions).toContain('REMOVED Section');
     expect(instructions).toContain('multi-angle');
     expect(instructions).toContain('symbol');
     expect(instructions).toContain('import');

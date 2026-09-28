@@ -74,12 +74,12 @@ describe('top-level show command', () => {
       '## Why',
       'Verify legacy text is non-normative.',
       '',
-      '## ADDED Requirements',
-      '### Requirement: Proposal-only legacy behavior',
+      '## ADDED Sections',
+      '### Section: Proposal-only legacy behavior',
     ].join('\n'));
     const legacySpec = path.join(changeDir, 'specs', 'legacy', 'spec.md');
     await fs.mkdir(path.dirname(legacySpec), { recursive: true });
-    await fs.writeFile(legacySpec, '## ADDED Requirements\n\n### Requirement: Spec-only legacy behavior\n');
+    await fs.writeFile(legacySpec, '## ADDED Sections\n\n### Section: Spec-only legacy behavior\n');
 
     const shown = await runCLI(['show', 'legacy-noise', '--json'], { cwd: testDir });
     expect(shown.exitCode).toBe(0);

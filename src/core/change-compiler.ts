@@ -51,14 +51,14 @@ export async function readFormalSemanticModel(projectRoot: string): Promise<Pars
   return parseSemanticModel(modelRoot(projectRoot));
 }
 
-/** Entity identities are storage-addressable; requirement entries resolve to their host Element. */
+/** Entity identities are storage-addressable; section entries resolve to their host Element. */
 function hostIdentity(entry: DeltaEntry): string {
-  return entry.entity === 'requirement' ? entry.identity.split('#')[0] : entry.identity;
+  return entry.entity === 'section' ? entry.identity.split('#')[0] : entry.identity;
 }
 
 function unitPath(entry: DeltaEntry): string {
   if (entry.entity === 'relationship') return 'relationships';
-  const partition = entry.entity === 'requirement' ? 'elements' : DEFAULT_PARTITION[entry.entity];
+  const partition = entry.entity === 'section' ? 'elements' : DEFAULT_PARTITION[entry.entity];
   return `${partition}/${hostIdentity(entry)}.md`;
 }
 
@@ -72,7 +72,7 @@ function locate(index: ModelIndex, diagnostic: ModelDiagnostic, entries: DeltaEn
     const entry = entries.find(item => item.entity === 'relationship' && item.identity === diagnostic.identity);
     return entry ? unitPath(entry) : '';
   }
-  if (entity === 'requirement') {
+  if (entity === 'section') {
     return index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`;
   }
   if (entity) {
@@ -107,7 +107,7 @@ function currentValue(base: SemanticModel, entry: DeltaEntry): unknown {
     default: {
       const [host, ...rest] = entry.identity.split('#');
       return base.elements.find(item => item.declaration.identity === host)
-        ?.requirements.find(item => item.name === rest.join('#'));
+        ?.sections.find(item => item.name === rest.join('#'));
     }
   }
 }

@@ -1,11 +1,11 @@
 /**
- * Shared fence-aware requirement body extraction and keyword helpers.
- * Element Contract and Delta validation use these helpers over requirement bodies.
+ * Shared fence-aware Section body extraction and keyword helpers.
+ * Element Contract and Delta validation use these helpers over Section bodies.
  */
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^#{1,6}\s/;
-const SCENARIO_HEADER = /^####\s+Scenario:\s+/;
+const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s+/;
 
 export function buildCodeFenceMask(lines: string[]): boolean[] {
   const mask = new Array(lines.length).fill(false);
@@ -61,11 +61,11 @@ export function containsShallOrMust(text: string): boolean {
 }
 
 /**
- * Extract full requirement body after a requirement header.
+ * Extract the full Section body after a Section header.
  * Skips fenced lines, blanks; stops at non-fenced headers.
  * Metadata lines skipped when other prose exists; otherwise kept as body.
  */
-export function extractRequirementBody(bodyLines: string[]): string {
+export function extractSectionBody(bodyLines: string[]): string {
   const mask = buildCodeFenceMask(bodyLines);
   const captured: string[] = [];
   const metadata: string[] = [];
@@ -89,22 +89,9 @@ export function extractRequirementBody(bodyLines: string[]): string {
 
 /**
  * Display helper from a precomputed body: first line, else header title.
- * Callers must pass extractRequirementBody output (no second extraction).
+ * Callers must pass extractSectionBody output (no second extraction).
  */
-export function extractRequirementDisplayText(headerTitle: string, body: string): string {
+export function extractSectionDisplayText(headerTitle: string, body: string): string {
   if (!body) return headerTitle.trim();
   return body.split('\n')[0] ?? headerTitle.trim();
-}
-
-/**
- * Yield non-fenced scenario header lines for label-aware surviving counts.
- */
-export function listNonFencedScenarioHeaders(bodyLines: string[]): string[] {
-  const mask = buildCodeFenceMask(bodyLines);
-  const headers: string[] = [];
-  for (let i = 0; i < bodyLines.length; i++) {
-    if (mask[i]) continue;
-    if (SCENARIO_HEADER.test(bodyLines[i])) headers.push(bodyLines[i]);
-  }
-  return headers;
 }

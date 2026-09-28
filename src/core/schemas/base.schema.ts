@@ -1,21 +1,20 @@
 import { z } from 'zod';
-import { containsShallOrMust } from '../parsers/requirement-text.js';
+import { containsShallOrMust } from '../parsers/section-text.js';
 import { VALIDATION_MESSAGES } from '../validation/constants.js';
 
-export const ScenarioSchema = z.object({
-  rawText: z.string().min(1, VALIDATION_MESSAGES.SCENARIO_EMPTY),
+export const AcceptanceCaseSchema = z.object({
+  rawText: z.string().min(1, VALIDATION_MESSAGES.ACCEPTANCE_CASE_EMPTY),
 });
 
-export const RequirementSchema = z.object({
+export const SectionSchema = z.object({
   text: z.string()
-    .min(1, VALIDATION_MESSAGES.REQUIREMENT_EMPTY)
+    .min(1, VALIDATION_MESSAGES.SECTION_EMPTY)
     .refine(
       (text) => containsShallOrMust(text),
-      VALIDATION_MESSAGES.REQUIREMENT_NO_SHALL
+      VALIDATION_MESSAGES.SECTION_NO_SHALL
     ),
-  scenarios: z.array(ScenarioSchema)
-    .min(1, VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS),
+  acceptanceCases: z.array(AcceptanceCaseSchema),
 });
 
-export type Scenario = z.infer<typeof ScenarioSchema>;
-export type Requirement = z.infer<typeof RequirementSchema>;
+export type AcceptanceCase = z.infer<typeof AcceptanceCaseSchema>;
+export type Section = z.infer<typeof SectionSchema>;

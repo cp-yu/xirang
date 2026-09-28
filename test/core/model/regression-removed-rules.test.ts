@@ -33,11 +33,11 @@ describe('rules removed by the kernel rebuild', () => {
       ...MODEL,
       'elements/cap.a.md': [
         '---', 'entity: element-declaration', 'identity: cap.a', 'kind: capability', 'parent: root', '---', '',
-        '## Requirements', '', '### Requirement: One', '', 'SHALL hold.', '',
+        '## Specification', '', '### Section: One', '', 'SHALL hold.', '',
       ].join('\n'),
       'elements/cap.a.second.md': [
         '---', 'entity: element-declaration', 'identity: cap.a', 'kind: capability', 'parent: root', '---', '',
-        '## Requirements', '', '### Requirement: Two', '', 'SHALL also hold.', '',
+        '## Specification', '', '### Section: Two', '', 'SHALL also hold.', '',
       ].join('\n'),
     });
 
@@ -45,8 +45,8 @@ describe('rules removed by the kernel rebuild', () => {
     // Two units claiming one identity is a duplicate identity, not a second contract binding.
     expect(validateSemanticModel(parsed.model).map(item => item.code)).toContain('DUPLICATE_IDENTITY');
     for (const element of parsed.model.elements.filter(item => item.declaration.identity === 'cap.a')) {
-      expect(element.requirements).toHaveLength(1);
-      expect(serializeElementUnit(element).match(/^## Requirements$/gm)).toHaveLength(1);
+      expect(element.sections).toHaveLength(1);
+      expect(serializeElementUnit(element).match(/^## Specification$/gm)).toHaveLength(1);
     }
   });
 

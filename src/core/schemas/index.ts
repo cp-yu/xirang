@@ -1,6 +1,6 @@
 export {
-  ScenarioSchema,
-  RequirementSchema,
-  type Scenario,
-  type Requirement,
+  AcceptanceCaseSchema,
+  SectionSchema,
+  type AcceptanceCase,
+  type Section,
 } from './base.schema.js';

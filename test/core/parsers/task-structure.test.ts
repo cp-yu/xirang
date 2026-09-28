@@ -5,7 +5,7 @@ import * as path from 'node:path';
 
 import { validateTaskStructure } from '../../../src/core/parsers/task-structure.js';
 
-const validTasks = (verifies = '`elements/example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"') => `## 1. Actions
+const validTasks = (verifies = '`elements/example.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"') => `## 1. Actions
 
 - [ ] A1 Implement validation
 - [ ] A2 Refactor parser
@@ -31,21 +31,21 @@ describe('validateTaskStructure', () => {
     const preservesPath = template.match(/- Preserves: `([^`]+)`/)?.[1]
       .replace(/<(?:identity|capability)>/g, 'example');
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 `,
     });
     const projectRoot = path.dirname(tempDir);
     const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'example.md');
     fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
-    fs.writeFileSync(formalElementPath, `## Requirements
+    fs.writeFileSync(formalElementPath, `## Specification
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 `);
 
     try {
@@ -62,13 +62,13 @@ describe('validateTaskStructure', () => {
 **Files**:
 - Test: \`test/core/parsers/task-structure.test.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep template examples accepted by the parser
 
 #### Checks
 
 - [ ] C1 Verify template path
-  - ${field}: \`${elementPath}\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - ${field}: \`${elementPath}\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
   - Command: \`pnpm test\`
 `, { changeDir: tempDir });
 
@@ -190,11 +190,11 @@ describe('validateTaskStructure', () => {
 
   it('validates Verifies references against change-local Element units', () => {
     const tempDir = createChangeDir({
-      'example.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 `,
     });
 
@@ -209,14 +209,14 @@ describe('validateTaskStructure', () => {
   });
 
   it('reports invalid Verifies Element paths', () => {
-    const tempDir = createChangeDir({ 'example.md': '### Requirement: Parser behavior\n' });
+    const tempDir = createChangeDir({ 'example.md': '### Section: Parser behavior\n' });
 
     try {
       for (const verifies of [
-        '`.xirang/model/elements/example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
-        '`/tmp/example/spec.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
-        '`elements/../example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
-        '`elements\\example.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"',
+        '`.xirang/model/elements/example.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"',
+        '`/tmp/example/spec.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"',
+        '`elements/../example.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"',
+        '`elements\\example.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"',
       ]) {
         const result = validateTaskStructure(validTasks(verifies), { changeDir: tempDir });
 
@@ -229,11 +229,11 @@ describe('validateTaskStructure', () => {
   });
 
   it('reports missing Verifies spec references', () => {
-    const tempDir = createChangeDir({ 'example.md': '### Requirement: Parser behavior\n' });
+    const tempDir = createChangeDir({ 'example.md': '### Section: Parser behavior\n' });
 
     try {
       const result = validateTaskStructure(
-        validTasks('`elements/missing.md` / Requirement "Parser behavior" / Scenario "Valid tasks pass"'),
+        validTasks('`elements/missing.md` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"'),
         { changeDir: tempDir }
       );
 
@@ -244,30 +244,30 @@ describe('validateTaskStructure', () => {
     }
   });
 
-  it('reports missing Verifies requirement and scenario references', () => {
+  it('reports missing Verifies section and acceptanceCase references', () => {
     const tempDir = createChangeDir({
-      'example.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 `,
     });
 
     try {
-      const missingRequirement = validateTaskStructure(
-        validTasks('`elements/example.md` / Requirement "Missing" / Scenario "Valid tasks pass"'),
+      const missingSection = validateTaskStructure(
+        validTasks('`elements/example.md` / Section "Missing" / Acceptance Case "Valid tasks pass"'),
         { changeDir: tempDir }
       );
-      const missingScenario = validateTaskStructure(
-        validTasks('`elements/example.md` / Requirement "Parser behavior" / Scenario "Missing"'),
+      const missingAcceptanceCase = validateTaskStructure(
+        validTasks('`elements/example.md` / Section "Parser behavior" / Acceptance Case "Missing"'),
         { changeDir: tempDir }
       );
 
-      expect(missingRequirement.valid).toBe(false);
-      expect(missingRequirement.issues.map((issue) => issue.code)).toContain('missing-verifies-requirement');
-      expect(missingScenario.valid).toBe(false);
-      expect(missingScenario.issues.map((issue) => issue.code)).toContain('missing-verifies-scenario');
+      expect(missingSection.valid).toBe(false);
+      expect(missingSection.issues.map((issue) => issue.code)).toContain('missing-verifies-section');
+      expect(missingAcceptanceCase.valid).toBe(false);
+      expect(missingAcceptanceCase.issues.map((issue) => issue.code)).toContain('missing-verifies-acceptance-case');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -290,13 +290,13 @@ describe('validateTaskStructure', () => {
     }
   });
 
-  it('accepts coarse Task sections with Goal, Files, Requirements, and Checks', () => {
+  it('accepts coarse Task sections with Goal, Files, Sections, and Checks', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 `,
     });
 
@@ -310,14 +310,14 @@ describe('validateTaskStructure', () => {
 - Modify: \`src/core/parsers/task-structure.ts\`
 - Test: \`test/core/parsers/task-structure.test.ts\`
 
-**Requirements**:
-- Read Goal, Files, Requirements, and Checks
-- Keep requirements bounded
+**Sections**:
+- Read Goal, Files, Sections, and Checks
+- Keep sections bounded
 
 #### Checks
 
 - [ ] C1 Verify coarse task parsing
-  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
   - Command: \`pnpm test test/core/parsers/task-structure.test.ts\`
 `,
         { changeDir: tempDir }
@@ -332,10 +332,10 @@ describe('validateTaskStructure', () => {
     }
   });
 
-  it('reports missing coarse Task fields and excessive requirements', () => {
+  it('reports missing coarse Task fields and excessive sections', () => {
     const result = validateTaskStructure(`### Task 1: Missing fields
 
-**Requirements**:
+**Sections**:
 - one
 - two
 - three
@@ -354,7 +354,7 @@ describe('validateTaskStructure', () => {
     expect(result.format).toBe('coarse-tasks');
     expect(result.issues.map((issue) => issue.code)).toContain('missing-task-goal');
     expect(result.issues.map((issue) => issue.code)).toContain('missing-task-files');
-    expect(result.issues.map((issue) => issue.code)).toContain('too-many-task-requirements');
+    expect(result.issues.map((issue) => issue.code)).toContain('too-many-task-sections');
   });
 });
 
@@ -368,15 +368,15 @@ function createChangeDir(units: Record<string, string>): string {
   return tempDir;
 }
 
-describe('canonical Scenario references', () => {
-  it('matches Verifies scenario references by exact canonical title', () => {
+describe('canonical AcceptanceCase references', () => {
+  it('matches Verifies acceptanceCase references by exact canonical title', () => {
     const tempDir = createChangeDir({
-      'example.md': `## MODIFIED Requirements
+      'example.md': `## MODIFIED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 The system SHALL validate task references.
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 - **WHEN** validation runs
 - **THEN** the task reference is valid
 `,
@@ -386,20 +386,20 @@ The system SHALL validate task references.
       const result = validateTaskStructure(validTasks(), { changeDir: tempDir });
 
       expect(result.valid).toBe(true);
-      expect(result.issues.map((issue) => issue.code)).not.toContain('unknown-verifies-scenario');
+      expect(result.issues.map((issue) => issue.code)).not.toContain('unknown-verifies-acceptanceCase');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 
-  it('ignores the word Scenario inside Requirement titles when parsing anchors', () => {
+  it('ignores the word AcceptanceCase inside Section titles when parsing anchors', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: 支持伪代码形式的 Scenario 正文
+### Section: 支持伪代码形式的 AcceptanceCase 正文
 The system SHALL accept pseudocode bodies.
 
-#### Scenario: 纯伪代码正文
+#### Acceptance Case: 纯伪代码正文
 - **WHEN** a pseudocode body is authored
 - **THEN** the body is accepted
 `,
@@ -407,24 +407,24 @@ The system SHALL accept pseudocode bodies.
 
     try {
       const result = validateTaskStructure(
-        '### Task 1: Anchor\n\n**Goal**: Verify anchors.\n\n**Files**:\n- Test: `test/a.ts`\n\n**Requirements**:\n- Keep anchors consistent\n\n#### Checks\n\n- [ ] C1 Verify\n  - Verifies: `elements/example.md` / Requirement "支持伪代码形式的 Scenario 正文" / Scenario "纯伪代码正文"\n  - Command: `pnpm test`\n',
+        '### Task 1: Anchor\n\n**Goal**: Verify anchors.\n\n**Files**:\n- Test: `test/a.ts`\n\n**Sections**:\n- Keep anchors consistent\n\n#### Checks\n\n- [ ] C1 Verify\n  - Verifies: `elements/example.md` / Section "支持伪代码形式的 AcceptanceCase 正文" / Acceptance Case "纯伪代码正文"\n  - Command: `pnpm test`\n',
         { changeDir: tempDir }
       );
 
       expect(result.valid).toBe(true);
-      expect(result.issues.map((issue) => issue.code)).not.toContain('missing-verifies-scenario');
+      expect(result.issues.map((issue) => issue.code)).not.toContain('missing-verifies-acceptance-case');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
 
-describe('REMOVED requirement anchoring', () => {
-  it('accepts Verifies with REMOVED Requirement without Scenario', () => {
+describe('REMOVED section anchoring', () => {
+  it('accepts Verifies with REMOVED Section without AcceptanceCase', () => {
     const tempDir = createChangeDir({
-      'example.md': `## REMOVED Requirements
+      'example.md': `## REMOVED Sections
 
-### Requirement: Deprecated feature
+### Section: Deprecated feature
 `,
     });
 
@@ -437,13 +437,13 @@ describe('REMOVED requirement anchoring', () => {
 **Files**:
 - Delete: \`src/deprecated.ts\`
 
-**Requirements**:
+**Sections**:
 - Remove all traces of deprecated feature
 
 #### Checks
 
 - [ ] C1 Verify feature removed
-  - Verifies: \`elements/example.md\` / REMOVED Requirement "Deprecated feature"
+  - Verifies: \`elements/example.md\` / REMOVED Section "Deprecated feature"
   - Command: \`grep -r "deprecated" src/ || true\`
   - Expect: no matches found
 `,
@@ -457,11 +457,11 @@ describe('REMOVED requirement anchoring', () => {
     }
   });
 
-  it('reports error when REMOVED requirement is missing from spec', () => {
+  it('reports error when REMOVED section is missing from spec', () => {
     const tempDir = createChangeDir({
-      'example.md': `## REMOVED Requirements
+      'example.md': `## REMOVED Sections
 
-### Requirement: Deprecated feature
+### Section: Deprecated feature
 `,
     });
 
@@ -474,13 +474,13 @@ describe('REMOVED requirement anchoring', () => {
 **Files**:
 - Delete: \`src/missing.ts\`
 
-**Requirements**:
+**Sections**:
 - Remove all traces
 
 #### Checks
 
 - [ ] C1 Verify feature removed
-  - Verifies: \`elements/example.md\` / REMOVED Requirement "Missing feature"
+  - Verifies: \`elements/example.md\` / REMOVED Section "Missing feature"
   - Command: \`grep -r "missing" src/ || true\`
   - Expect: no matches found
 `,
@@ -488,19 +488,19 @@ describe('REMOVED requirement anchoring', () => {
       );
 
       expect(result.valid).toBe(false);
-      expect(result.issues.map((issue) => issue.code)).toContain('missing-verifies-requirement');
+      expect(result.issues.map((issue) => issue.code)).toContain('missing-verifies-section');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 
-  it('still requires Scenario for non-REMOVED Verifies', () => {
+  it('accepts a Section-only Verifies for non-REMOVED anchors', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: New feature
+### Section: New feature
 
-#### Scenario: Feature works
+#### Acceptance Case: Feature works
 `,
     });
 
@@ -513,20 +513,19 @@ describe('REMOVED requirement anchoring', () => {
 **Files**:
 - Create: \`src/feature.ts\`
 
-**Requirements**:
+**Sections**:
 - Implement feature
 
 #### Checks
 
 - [ ] C1 Verify feature
-  - Verifies: \`elements/example.md\` / Requirement "New feature"
+  - Verifies: \`elements/example.md\` / Section "New feature"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
       );
 
-      expect(result.valid).toBe(false);
-      expect(result.issues.map((issue) => issue.code)).toContain('invalid-verifies-path');
+      expect(result.valid).toBe(true);
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -540,11 +539,11 @@ describe('Preserves field anchoring', () => {
     const formalElementPath = path.join(projectRoot, '.xirang', 'model', 'elements', 'auth.md');
     fs.mkdirSync(changeDir, { recursive: true });
     fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
-    fs.writeFileSync(formalElementPath, `## Requirements
+    fs.writeFileSync(formalElementPath, `## Specification
 
-### Requirement: Login behavior
+### Section: Login behavior
 
-#### Scenario: User authenticates
+#### Acceptance Case: User authenticates
 `);
 
     try {
@@ -555,13 +554,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/auth.ts\`
 
-**Requirements**:
+**Sections**:
 - Preserve login
 
 #### Checks
 
 - [ ] C1 Verify login
-  - Preserves: \`.xirang/model/elements/auth.md\` / Requirement "Login behavior" / Scenario "User authenticates"
+  - Preserves: \`.xirang/model/elements/auth.md\` / Section "Login behavior" / Acceptance Case "User authenticates"
   - Command: \`pnpm test\`
 `, { changeDir });
 
@@ -572,11 +571,11 @@ describe('Preserves field anchoring', () => {
     }
   });
 
-  it('accepts Preserves with Formal Element path and Scenario', () => {
+  it('accepts Preserves with Formal Element path and AcceptanceCase', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 `,
     });
 
@@ -585,11 +584,11 @@ describe('Preserves field anchoring', () => {
     fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
     fs.writeFileSync(
       formalElementPath,
-      `## Requirements
+      `## Specification
 
-### Requirement: Login behavior
+### Section: Login behavior
 
-#### Scenario: User authenticates
+#### Acceptance Case: User authenticates
 `
     );
 
@@ -602,13 +601,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/auth/login.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep behavior unchanged
 
 #### Checks
 
 - [ ] C1 Verify behavior preserved
-  - Preserves: \`.xirang/model/elements/auth.md\` / Requirement "Login behavior" / Scenario "User authenticates"
+  - Preserves: \`.xirang/model/elements/auth.md\` / Section "Login behavior" / Acceptance Case "User authenticates"
   - Command: \`pnpm test src/auth/login.test.ts\`
   - Expect: old function loginUser no longer exists
 `,
@@ -625,11 +624,11 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with change-local path', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 
-#### Scenario: Test
+#### Acceptance Case: Test
 `,
     });
 
@@ -642,13 +641,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/code.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep behavior unchanged
 
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`elements/example.md\` / Requirement "Temp spec" / Scenario "Test"
+  - Preserves: \`elements/example.md\` / Section "Temp spec" / Acceptance Case "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -663,9 +662,9 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with absolute path', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 `,
     });
 
@@ -678,13 +677,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/code.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep behavior unchanged
 
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`/.xirang/model/elements/auth.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`/.xirang/model/elements/auth.md\` / Section "Test" / Acceptance Case "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -699,9 +698,9 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with parent traversal', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 `,
     });
 
@@ -714,13 +713,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/code.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep behavior unchanged
 
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`xirang/../model/elements/auth.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`xirang/../model/elements/auth.md\` / Section "Test" / Acceptance Case "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -735,9 +734,9 @@ describe('Preserves field anchoring', () => {
 
   it('rejects Preserves with backslash path', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 `,
     });
 
@@ -750,13 +749,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Modify: \`src/code.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep behavior unchanged
 
 #### Checks
 
 - [ ] C1 Verify behavior
-  - Preserves: \`xirang\\model\\elements\\auth.md\` / Requirement "Test" / Scenario "Test"
+  - Preserves: \`xirang\\model\\elements\\auth.md\` / Section "Test" / Acceptance Case "Test"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -771,11 +770,11 @@ describe('Preserves field anchoring', () => {
 
   it('does not relax Verifies path rules', () => {
     const tempDir = createChangeDir({
-      'example.md': `## ADDED Requirements
+      'example.md': `## ADDED Sections
 
-### Requirement: Temp spec
+### Section: Temp spec
 
-#### Scenario: Test
+#### Acceptance Case: Test
 `,
     });
 
@@ -784,11 +783,11 @@ describe('Preserves field anchoring', () => {
     fs.mkdirSync(path.dirname(formalElementPath), { recursive: true });
     fs.writeFileSync(
       formalElementPath,
-      `## Requirements
+      `## Specification
 
-### Requirement: Login
+### Section: Login
 
-#### Scenario: Works
+#### Acceptance Case: Works
 `
     );
 
@@ -801,13 +800,13 @@ describe('Preserves field anchoring', () => {
 **Files**:
 - Create: \`src/feature.ts\`
 
-**Requirements**:
+**Sections**:
 - Implement feature
 
 #### Checks
 
 - [ ] C1 Verify feature
-  - Verifies: \`.xirang/model/elements/auth.md\` / Requirement "Login" / Scenario "Works"
+  - Verifies: \`.xirang/model/elements/auth.md\` / Section "Login" / Acceptance Case "Works"
   - Command: \`pnpm test\`
 `,
         { changeDir: tempDir }
@@ -829,13 +828,13 @@ describe('coarse Task file declaration checks', () => {
 
 **Files**:
 ${filesA}
-**Requirements**:
+**Sections**:
 - Keep file declarations consistent
 
 #### Checks
 
 - [ ] C1 Verify first behavior
-  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
   - Command: \`pnpm test\`
 
 ### Task 2: Second
@@ -844,13 +843,13 @@ ${filesA}
 
 **Files**:
 ${filesB}
-**Requirements**:
+**Sections**:
 - Keep file declarations consistent
 
 #### Checks
 
 - [ ] C2 Verify second behavior
-  - Verifies: \`elements/example.md\` / Requirement "Parser behavior" / Scenario "Valid tasks pass"
+  - Verifies: \`elements/example.md\` / Section "Parser behavior" / Acceptance Case "Valid tasks pass"
   - Command: \`pnpm test\`
 `;
 
@@ -865,11 +864,11 @@ ${filesB}
   };
 
   it('reports conflicting Create declarations on the same path', () => {
-    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 ` });
     try {
       const result = validateTaskStructure(
@@ -884,11 +883,11 @@ ${filesB}
   });
 
   it('reports Delete conflicting with any other declaration on the same path', () => {
-    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 ` });
     try {
       const result = validateTaskStructure(
@@ -903,11 +902,11 @@ ${filesB}
   });
 
   it('reports Modify or Delete before a later Create as dependency order', () => {
-    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 ` });
     try {
       const result = validateTaskStructure(
@@ -922,11 +921,11 @@ ${filesB}
   });
 
   it('accepts Create followed by Modify on the same path', () => {
-    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 ` });
     try {
       const result = validateTaskStructure(
@@ -942,11 +941,11 @@ ${filesB}
   });
 
   it('accepts sequential Modify declarations on the same path', () => {
-    const tempDir = createChangeDir({ 'example.md': `## ADDED Requirements
+    const tempDir = createChangeDir({ 'example.md': `## ADDED Sections
 
-### Requirement: Parser behavior
+### Section: Parser behavior
 
-#### Scenario: Valid tasks pass
+#### Acceptance Case: Valid tasks pass
 ` });
     try {
       const result = validateTaskStructure(

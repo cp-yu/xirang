@@ -18,9 +18,9 @@ const HAND_WRITTEN = [
   '---',
   '',
   '',
-  '## Requirements',
+  '## Specification',
   '',
-  '### Requirement: Untouched',
+  '### Section: Untouched',
   '',
   'SHALL stay byte identical.',
   '',
@@ -142,16 +142,16 @@ describe('writeMinimal', () => {
     const applied = applySemanticDelta(previous.model, {
       entries: [{
         operation: 'ADDED',
-        entity: 'requirement',
+        entity: 'section',
         identity: 'cap.a#New rule',
-        target: { name: 'New rule', body: 'SHALL hold.', scenarios: [] },
+        target: { name: 'New rule', body: 'SHALL hold.', acceptanceCases: [] },
       }],
     });
     const after = await writeMinimal(root, previous, applied.expected);
     const reparsed = parseSemanticModelFiles([...after].map(([key, value]) => [key, value.toString('utf8')] as const));
     expect(reparsed.diagnostics).toEqual([]);
-    expect(reparsed.model.elements.find(item => item.declaration.identity === 'cap.a')!.requirements)
-      .toEqual([{ name: 'New rule', body: 'SHALL hold.', scenarios: [] }]);
+    expect(reparsed.model.elements.find(item => item.declaration.identity === 'cap.a')!.sections)
+      .toEqual([{ name: 'New rule', body: 'SHALL hold.', acceptanceCases: [] }]);
   });
 
   it('materializes same-identity element and element-kind units side by side', async () => {
@@ -242,7 +242,7 @@ describe('difference output', () => {
     const before = emptySemanticModel();
     before.elements.push({
       declaration: { identity: 'a', kind: 'k', parent: null, title: 'A', definition: 'Original definition.' },
-      requirements: [],
+      sections: [],
     });
     const after = structuredClone(before);
     after.elements[0].declaration.definition = 'Changed first paragraph.\n\nChanged second paragraph.';
@@ -265,7 +265,7 @@ describe('difference output', () => {
       ...empty,
       elements: [{
         declaration: { identity: 'a', kind: 'k', parent: null, title: 'A', definition: 'Element A definition.' },
-        requirements: [],
+        sections: [],
       }],
     };
     const diff = createSemanticDiff(empty, target, {

@@ -105,7 +105,7 @@ describe('Candidate promotion', () => {
     const validation = await validateCandidate(root);
     const before = await readFormalTree(root);
     const original = await fs.readFile(path.join(candidate, file), 'utf8');
-    await fs.writeFile(path.join(candidate, file), file === 'build.md' ? 'changed requirement\n' : original.replace('Preserve', 'Retain'));
+    await fs.writeFile(path.join(candidate, file), file === 'build.md' ? 'changed section\n' : original.replace('Preserve', 'Retain'));
 
     await expect(promoteCandidate(root, validation.reviewDigest!)).rejects.toThrow(/digest mismatch/i);
 

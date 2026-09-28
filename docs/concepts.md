@@ -39,13 +39,13 @@ Xirang has one persisted Semantic Model in four partitions:
 
 LikeC4 is generated from the complete model into `.xirang/.cache-likec4/` for visualization only and is never a persistence authority. The four partitions together express the current authorized human intent. Agents read these files directly and translate them into implementation; transient parser objects are implementation details, not a second persisted model.
 
-Every model contains one Project Root. Each element has a stable `identity`, an authored `definition`, a `kind`, and at most one `parent`. Containment expresses abstraction and refinement at arbitrary depth. An Element Contract is the `## Requirements` body of its Element unit; whether a Contract is required comes from the `contract` field of its Element Kind, and each element has at most one Contract.
+Every model contains one Project Root. Each element has a stable `identity`, an authored `definition`, a `kind`, and at most one `parent`. Containment expresses abstraction and refinement at arbitrary depth. An Element Contract is the `## Specification` body of its Element unit; whether a Contract is required comes from the `contract` field of its Element Kind, and each element has at most one Contract.
 
 **Changes** remain separate until sync. A change-local Semantic Delta — four partitions under `.xirang/changes/<name>/` mirroring the model, each entry carrying `ADDED`, `MODIFIED`, or `REMOVED` — is validated against one Expected Semantic Model before atomic promotion.
 
 ## Element Contracts
 
-Element Contracts describe your system's behavior using structured requirements and scenarios.
+Element Contracts describe your system's behavior as Sections with free-form bodies.
 
 ### Structure
 
@@ -67,7 +67,7 @@ Common patterns:
 
 ### Contract Format
 
-An Element unit contains requirements, and each requirement has scenarios:
+An Element unit contains Sections with free-form bodies; `#### Acceptance Case:` appears only inside the Section that carries the key acceptance cases:
 
 ```markdown
 ---
@@ -78,27 +78,25 @@ parent: auth
 title: Login
 ---
 
-## Requirements
+## Specification
 
-### Requirement: User Authentication
+### Section: User Authentication
 The system SHALL issue a JWT token upon successful login.
+Invalid credentials SHALL produce an error message and no token.
 
-#### Scenario: Valid credentials
+### Section: Session Expiration
+The system MUST expire sessions after 30 minutes of inactivity.
+An idle session SHALL be invalidated and require re-authentication.
+
+### Section: Key Acceptance Cases
+
+#### Acceptance Case: Valid credentials
 - GIVEN a user with valid credentials
 - WHEN the user submits login form
 - THEN a JWT token is returned
 - AND the user is redirected to dashboard
 
-#### Scenario: Invalid credentials
-- GIVEN invalid credentials
-- WHEN the user submits login form
-- THEN an error message is displayed
-- AND no token is issued
-
-### Requirement: Session Expiration
-The system MUST expire sessions after 30 minutes of inactivity.
-
-#### Scenario: Idle timeout
+#### Acceptance Case: Idle timeout
 - GIVEN an authenticated session
 - WHEN 30 minutes pass without activity
 - THEN the session is invalidated
@@ -112,18 +110,18 @@ The system MUST expire sessions after 30 minutes of inactivity.
 | `entity: element-declaration` | Frontmatter type marking this unit as an Element Declaration |
 | `identity` | Stable identity of the element that owns this Contract |
 | `kind` / `parent` | Element Kind and refinement parent of the Declaration |
-| `## Requirements` | Element Contract body of the Element unit |
-| `### Requirement:` | A specific behavior the system must have |
-| `#### Scenario:` | A concrete example of the requirement in action |
+| `## Specification` | Element Contract body of the Element unit |
+| `### Section:` | One independently evolvable normative commitment; the unit a Semantic Delta addresses |
+| `#### Acceptance Case:` | An observable acceptance result, used only inside the key-acceptance-cases Section |
 | SHALL/MUST/SHOULD | RFC 2119 keywords indicating requirement strength |
 
 ### Why Structure Contracts This Way
 
-**Requirements are the "what"** — they state what the system should do without specifying implementation.
+**Sections are the "what"** — they state what the system should do without specifying implementation. A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode, event triples, state machines — any carrier that expresses the commitment completely, with no required sub-heading structure.
 
-**Scenarios are the "when"** — they provide concrete examples that can be verified. Good scenarios:
+**Acceptance Cases are the "when"** — they provide concrete examples that can be verified. They are not a required part of every Section; use them only inside the key-acceptance-cases Section. Good acceptance cases:
 - Are testable (you could write an automated test for them)
-- Cover both happy path and edge cases
+- Cover the standard flow, plus boundary and conflict flows when applicable
 - Use Given/When/Then or similar structured format
 
 **RFC 2119 keywords** (SHALL, MUST, SHOULD, MAY) communicate intent:
@@ -133,13 +131,13 @@ The system MUST expire sessions after 30 minutes of inactivity.
 
 ### What a Spec Is (and Is Not)
 
-A Spec is an **Element Contract**, not an implementation plan. It is the `## Requirements` body of its Element unit and may define observable behavior, parent guarantees, data shape, or another contract appropriate to the owning element kind.
+A Spec is an **Element Contract**, not an implementation plan. It is the `## Specification` body of its Element unit and may define observable behavior, parent guarantees, data shape, or another contract appropriate to the owning element kind.
 
 Good spec content:
 - Observable behavior users or downstream systems rely on
 - Inputs, outputs, and error conditions
 - External constraints (security, privacy, reliability, compatibility)
-- Scenarios that can be tested or explicitly validated
+- Acceptance cases that can be tested or explicitly validated
 
 Avoid in specs:
 - Internal class/function names
@@ -155,7 +153,7 @@ Quick test:
 Xirang aims to avoid bureaucracy. Use the lightest level that still makes the change verifiable.
 
 **Lite spec (default):**
-- Short behavior-first requirements
+- Short behavior-first Sections
 - Clear scope and non-goals
 - A few concrete acceptance checks
 
@@ -171,7 +169,7 @@ Most changes should stay in Lite mode.
 In many teams, humans explore and agents draft artifacts. The intended loop is:
 
 1. Human provides intent, context, and constraints.
-2. Agent converts this into behavior-first requirements and scenarios.
+2. Agent converts this into behavior-first Sections.
 3. Agent keeps implementation detail in `design.md` and `tasks.md`, not in the Element unit.
 4. Validation confirms structure and clarity before implementation.
 
@@ -350,37 +348,25 @@ Delta units are the key concept that makes Xirang work for brownfield developmen
 ```markdown
 # Delta for Auth
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Two-Factor Authentication
+### Section: Two-Factor Authentication
 The system MUST support TOTP-based two-factor authentication.
 
-#### Scenario: 2FA enrollment
-- GIVEN a user without 2FA enabled
-- WHEN the user enables 2FA in settings
-- THEN a QR code is displayed for authenticator app setup
-- AND the user must verify with a code before activation
+- Enabling 2FA shows a QR code for authenticator app setup and requires verifying a code before activation.
+- Login with 2FA enabled presents an OTP challenge and completes only after a valid OTP.
 
-#### Scenario: 2FA login
-- GIVEN a user with 2FA enabled
-- WHEN the user submits valid credentials
-- THEN an OTP challenge is presented
-- AND login completes only after valid OTP
+## MODIFIED Sections
 
-## MODIFIED Requirements
-
-### Requirement: Session Expiration
+### Section: Session Expiration
 The system MUST expire sessions after 15 minutes of inactivity.
 (Previously: 30 minutes)
 
-#### Scenario: Idle timeout
-- GIVEN an authenticated session
-- WHEN 15 minutes pass without activity
-- THEN the session is invalidated
+- After 15 minutes without activity the session is invalidated.
 
-## REMOVED Requirements
+## REMOVED Sections
 
-### Requirement: Remember Me
+### Section: Remember Me
 (Deprecated in favor of 2FA. Users should re-authenticate each session.)
 ```
 
@@ -388,15 +374,15 @@ The system MUST expire sessions after 15 minutes of inactivity.
 
 | Section | Meaning | What Happens on Archive |
 |---------|---------|------------------------|
-| `## ADDED Requirements` | New behavior | Appended to the Element Contract |
-| `## MODIFIED Requirements` | Changed behavior | Replaces existing requirement |
-| `## REMOVED Requirements` | Deprecated behavior | Deleted from the Element Contract |
+| `## ADDED Sections` | New behavior | Appended to the Element Contract |
+| `## MODIFIED Sections` | Changed behavior | Replaces the existing Section |
+| `## REMOVED Sections` | Deprecated behavior | Deleted from the Element Contract |
 
 ### Why Deltas Instead of Full Contracts
 
 **Clarity.** A delta shows exactly what's changing. Reading a full Contract, you'd have to diff it mentally against the current version.
 
-**Conflict avoidance.** Two changes can touch the same Contract without conflicting, as long as they modify different requirements.
+**Conflict avoidance.** Two changes can touch the same Contract without conflicting, as long as they modify different Sections.
 
 **Review efficiency.** Reviewers see the change, not the unchanged context. Focus on what matters.
 
@@ -493,7 +479,7 @@ After archive:
 .xirang/
 ├── model/
 │   └── elements/
-│       └── auth.md        # Now includes 2FA requirements
+│       └── auth.md        # Now includes 2FA Sections
 └── changes/
     └── archive/
         └── 2025-01-24-add-2fa/    # Preserved for history
@@ -580,10 +566,10 @@ After archive:
 | **Delta unit** | A Semantic Delta entry carrying ADDED/MODIFIED/REMOVED relative to the current Semantic Model |
 | **Element** | A stable Semantic Model node with an `identity`, `kind`, `definition`, and refinement `parent` |
 | **Project Root** | The unique highest-level element expressing project intent |
-| **Element Contract** | The `## Requirements` body of an Element unit; required per its Element Kind's `contract` field |
+| **Element Contract** | The `## Specification` body of an Element unit; required per its Element Kind's `contract` field |
 | **Domain** | A legacy grouping term; models may define any metamodel kinds |
-| **Requirement** | A specific behavior the system must have |
-| **Scenario** | A concrete example of a requirement, typically in Given/When/Then format |
+| **Section** | One independently evolvable normative commitment and the unit a Semantic Delta addresses; its body is free-form (prose, lists, tables, decision tables, pseudocode, event triples, state machines, etc.) |
+| **Acceptance Case** | A concrete, observable acceptance result, used only inside the key-acceptance-cases Section |
 | **Schema** | A definition of artifact types and their dependencies |
 | **Semantic Delta** | Four partitions under `.xirang/changes/<name>/` expressing the change's ADDED/MODIFIED/REMOVED semantics |
 | **Semantic Model** | The persisted Semantic Model under `.xirang/model/` (four partitions: metamodel, elements, relationships, views) |

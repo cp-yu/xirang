@@ -11,7 +11,7 @@ import {
 } from '../../src/commands/arch/outline.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
-const CONTRACT = '## Requirements\n\n### Requirement: Hidden behavior\nThe system SHALL behave.\n\n#### Scenario: Hidden scenario\n- **WHEN** invoked\n- **THEN** it works';
+const CONTRACT = '## Specification\n\n### Section: Hidden behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Hidden acceptanceCase\n- **WHEN** invoked\n- **THEN** it works';
 const execFileAsync = promisify(execFile);
 
 describe('architecture outline', () => {
@@ -61,7 +61,7 @@ describe('architecture outline', () => {
           parent: null,
           title: 'Project',
           definition: 'Project definition.',
-          requirements: CONTRACT,
+          sections: CONTRACT,
         },
         {
           identity: 'payments',
@@ -83,7 +83,7 @@ describe('architecture outline', () => {
           parent: 'payment-processing',
           title: 'Authorize Payment',
           definition: 'Authorization definition.',
-          requirements: CONTRACT,
+          sections: CONTRACT,
         },
         {
           identity: 'audit-payment',
@@ -140,7 +140,7 @@ describe('architecture outline', () => {
       targetKinds: ['operation'],
       body: 'Invokes kind definition.',
     }));
-    expect(JSON.stringify(result)).not.toMatch(/payments-view|Hidden behavior|Hidden scenario|requirements|scenarios/);
+    expect(JSON.stringify(result)).not.toMatch(/payments-view|Hidden behavior|Hidden acceptanceCase|sections|acceptanceCases/);
   });
 
   it('loads complete Definitions through depth 2 by default and omits deeper Definitions', async () => {
@@ -200,13 +200,15 @@ architecture:
 
     // A 20k-deep chain overflows a 512KB stack only if outline work recurses
     // per depth level; the headroom above --stack-size=128 absorbs V8 frame
-    // size variance on macOS arm64 and Windows. 90s covers slow Windows fs.
+    // size variance on macOS arm64 and Windows. A recursion bug fails fast via
+    // stack overflow, while slow filesystems (WSL2 DrvFS tmpdirs) only inflate
+    // wall-clock time, so 240s keeps the timing budget from masking a pass.
     await expect(execFileAsync(process.execPath, [
       '--stack-size=512',
       fixture,
       mode,
-    ], { cwd: process.cwd(), timeout: 90_000 })).resolves.toMatchObject({ stderr: '' });
-  }, 120_000);
+    ], { cwd: process.cwd(), timeout: 240_000 })).resolves.toMatchObject({ stderr: '' });
+  }, 300_000);
 
   it('is deterministic and does not create project state', async () => {
     const before = (await fs.readdir(root, { recursive: true })).sort();

@@ -94,9 +94,9 @@ describe('BashGenerator', () => {
           description: 'Show a contract',
           flags: [
             {
-              name: 'requirement',
+              name: 'section',
               short: 'r',
-              description: 'Show specific requirement',
+              description: 'Show specific section',
               takesValue: true,
             },
           ],
@@ -106,7 +106,7 @@ describe('BashGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain('-r');
-      expect(script).toContain('--requirement');
+      expect(script).toContain('--section');
     });
 
     it('should handle boolean flags vs value-taking flags', () => {

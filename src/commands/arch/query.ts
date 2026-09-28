@@ -1,7 +1,7 @@
 import { deriveLocalNames } from '../../core/likec4/local-names.js';
 import type {
   ElementDeclaration,
-  Requirement,
+  Section,
   SemanticModel,
 } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
@@ -14,7 +14,7 @@ export interface ArchQueryOptions {
 export interface QueryElement extends ElementDeclaration {
   contract: 'required' | 'optional';
   hasContract: boolean;
-  requirements?: Requirement[];
+  sections?: Section[];
 }
 
 export interface ArchQueryResult {
@@ -55,8 +55,8 @@ export async function queryArchitecture(
     const result: QueryElement = {
       ...element.declaration,
       contract: kinds.get(element.declaration.kind)?.contract ?? 'optional',
-      hasContract: element.requirements.length > 0,
-      ...(options.contract ? { requirements: element.requirements } : {}),
+      hasContract: element.sections.length > 0,
+      ...(options.contract ? { sections: element.sections } : {}),
     };
     return [identity, result];
   }));
@@ -77,12 +77,12 @@ export function formatArchitectureQueryText(result: ArchQueryResult): string {
     const appendBody = (body: string, indentation: string): void => {
       for (const line of body.split('\n')) lines.push(`${indentation}${line}`);
     };
-    for (const requirement of element.requirements ?? []) {
-      lines.push(`  Requirement: ${requirement.name}`);
-      appendBody(requirement.body, '    ');
-      for (const scenario of requirement.scenarios) {
-        lines.push(`    Scenario: ${scenario.name}`);
-        appendBody(scenario.body, '      ');
+    for (const section of element.sections ?? []) {
+      lines.push(`  Section: ${section.name}`);
+      appendBody(section.body, '    ');
+      for (const acceptanceCase of section.acceptanceCases) {
+        lines.push(`    Acceptance Case: ${acceptanceCase.name}`);
+        appendBody(acceptanceCase.body, '      ');
       }
     }
     return lines.join('\n');

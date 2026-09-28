@@ -158,8 +158,8 @@ describe('xirang quality command', () => {
       issues: [
         {
           severity: 'WARNING',
-          message: 'one requirement lacks a boundary test',
-          requirement: 'quality state',
+          message: 'one section lacks a boundary test',
+          section: 'quality state',
           task: 'Task 3',
           recommendation: 'add a boundary case',
           evidenceCitations: ['src/core/quality/state.ts:1-2'],

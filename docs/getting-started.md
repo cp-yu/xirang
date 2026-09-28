@@ -75,35 +75,31 @@ Semantic Delta units are the key concept in Xirang. They show what's changing re
 
 ### The Format
 
-Delta units use `## ADDED/MODIFIED/REMOVED Requirements` sections to indicate the type of change:
+Delta units use `## ADDED/MODIFIED/REMOVED Sections` headers to indicate the type of change:
 
 ```markdown
 # Delta for Auth
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Two-Factor Authentication
+### Section: Two-Factor Authentication
 The system MUST require a second factor during login.
 
-#### Scenario: OTP required
 - GIVEN a user with 2FA enabled
 - WHEN the user submits valid credentials
 - THEN an OTP challenge is presented
 
-## MODIFIED Requirements
+## MODIFIED Sections
 
-### Requirement: Session Timeout
+### Section: Session Timeout
 The system SHALL expire sessions after 30 minutes of inactivity.
 (Previously: 60 minutes)
 
-#### Scenario: Idle timeout
-- GIVEN an authenticated session
-- WHEN 30 minutes pass without activity
-- THEN the session is invalidated
+- After 30 minutes without activity the session is invalidated.
 
-## REMOVED Requirements
+## REMOVED Sections
 
-### Requirement: Remember Me
+### Section: Remember Me
 (Deprecated in favor of 2FA)
 ```
 
@@ -111,9 +107,9 @@ The system SHALL expire sessions after 30 minutes of inactivity.
 
 When you archive a change:
 
-1. **ADDED** requirements are appended to the Element Contract
-2. **MODIFIED** requirements replace the existing version
-3. **REMOVED** requirements are deleted from the Contract
+1. **ADDED** Sections are appended to the Element Contract
+2. **MODIFIED** Sections replace the existing version
+3. **REMOVED** Sections are deleted from the Contract
 
 The change folder moves to `.xirang/changes/archive/` for audit history.
 
@@ -128,7 +124,7 @@ You: /xirang:propose add-dark-mode
 
 AI:  Created .xirang/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
-     ✓ specs/       — requirements and scenarios
+     ✓ specs/       — Semantic Delta sections
      ✓ design.md    — technical approach
      ✓ tasks.md     — implementation checklist
      Post-propose check:
@@ -158,26 +154,18 @@ Use CSS custom properties for theming with a React context
 for state management.
 ```
 
-**specs/ui/spec.md** - Delta showing new requirements:
+**specs/ui/spec.md** - Delta showing new Sections:
 
 ```markdown
 # Delta for UI
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Theme Selection
+### Section: Theme Selection
 The system SHALL allow users to choose between light and dark themes.
 
-#### Scenario: Manual toggle
-- GIVEN a user on any page
-- WHEN the user clicks the theme toggle
-- THEN the theme switches immediately
-- AND the preference persists across sessions
-
-#### Scenario: System preference
-- GIVEN a user with no saved preference
-- WHEN the application loads
-- THEN the system's preferred color scheme is used
+- Clicking the theme toggle switches the theme immediately and persists the preference across sessions.
+- With no saved preference, the system's preferred color scheme is used on load.
 ```
 
 **tasks.md** - Implementation checklist:

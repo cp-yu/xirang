@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
+import { type FSWatcher, watch } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
@@ -21,17 +22,45 @@ import { minimalModel, writeChangeDelta, writeModel, writeProjectModel } from '.
 
 vi.mock('../../src/commands/arch/runner.js', () => ({ runLikeC4: vi.fn() }));
 
-const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL preserve existing behavior.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
+const CONTRACT = '## Specification\n\n### Section: Existing\nThe system SHALL preserve existing behavior.\n\n#### Acceptance Case: Existing\n- **WHEN** invoked\n- **THEN** existing behavior remains';
 
-function requirementDelta(change: string): string {
+let watcherProbe: Promise<boolean> | undefined;
+
+/**
+ * `fs.watch` with `recursive: true` delivers no events on filesystems without
+ * inotify support (e.g. WSL2 DrvFS mounts when TMPDIR points at /mnt/c), so
+ * watcher-driven refresh tests cannot observe edits there. Probe once.
+ */
+function fsWatchSupported(): Promise<boolean> {
+  watcherProbe ??= (async () => {
+    const probeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-watch-probe-'));
+    let watcher: FSWatcher | undefined;
+    try {
+      return await new Promise<boolean>(resolve => {
+        watcher = watch(probeDir, { recursive: true }, () => resolve(true));
+        watcher.on('error', () => resolve(false));
+        fs.writeFile(path.join(probeDir, 'probe.md'), 'probe', 'utf8').catch(() => resolve(false));
+        setTimeout(() => resolve(false), 2_000);
+      });
+    } catch {
+      return false;
+    } finally {
+      watcher?.close();
+      await fs.rm(probeDir, { recursive: true, force: true });
+    }
+  })();
+  return watcherProbe;
+}
+
+function sectionDelta(change: string): string {
   return '---\noperation: MODIFIED\nentity: element-declaration\nidentity: alpha.id\nkind: capability\nparent: root\ntitle: Alpha\ndefinition: Alpha definition\n---\n\n'
-    + `## ADDED Requirements\n\n### Requirement: ${change}\nThe system SHALL provide ${change} behavior.\n\n`
-    + `#### Scenario: ${change}\n- **WHEN** invoked\n- **THEN** ${change} behavior is provided\n`;
+    + `## ADDED Sections\n\n### Section: ${change}\nThe system SHALL provide ${change} behavior.\n\n`
+    + `#### Acceptance Case: ${change}\n- **WHEN** invoked\n- **THEN** ${change} behavior is provided\n`;
 }
 
 async function writeBaseModel(root: string): Promise<void> {
   await writeProjectModel(root, minimalModel({
-    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', requirements: CONTRACT }],
+    elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', sections: CONTRACT }],
   }));
 }
 
@@ -123,8 +152,8 @@ describe('ViewCommand', () => {
   it('projects Semantic Model Contracts into the manifest keyed by Element identity', async () => {
     await writeProjectModel(tempDir, minimalModel({
       elements: [
-        { identity: 'zeta.id', parent: 'root', requirements: CONTRACT },
-        { identity: 'alpha.id', parent: 'root', requirements: CONTRACT },
+        { identity: 'zeta.id', parent: 'root', sections: CONTRACT },
+        { identity: 'alpha.id', parent: 'root', sections: CONTRACT },
         { identity: 'no.contract', parent: 'root' },
       ],
     }));
@@ -140,7 +169,7 @@ describe('ViewCommand', () => {
     expect(semanticModel.id).toBe('full-model');
     expect(semanticModel.label).toBe('Full Model');
     expect(Object.keys(semanticModel.contracts!)).toEqual(['alpha.id', 'zeta.id']);
-    expect(semanticModel.contracts!['alpha.id']).toContain('### Requirement: Existing');
+    expect(semanticModel.contracts!['alpha.id']).toContain('### Section: Existing');
     expect(semanticModel.contracts!['alpha.id']).toContain('identity: alpha.id');
     expect(semanticModel.partitionFingerprints).toBeDefined();
   });
@@ -179,7 +208,7 @@ describe('ViewCommand', () => {
 
   it('projects the Expected Contract of a change under the same identity key', async () => {
     await writeBaseModel(tempDir);
-    await writeChangeDelta(tempDir, 'a-change', { 'elements/alpha.id.md': requirementDelta('Alpha') });
+    await writeChangeDelta(tempDir, 'a-change', { 'elements/alpha.id.md': sectionDelta('Alpha') });
 
     const snapshot = await buildViewRuntimeSnapshot(tempDir);
     const change = snapshot.changes['a-change']!;
@@ -190,15 +219,15 @@ describe('ViewCommand', () => {
     expect(change.diffLikec4ElementPaths).toBeDefined();
     expect(change.diffSourceFingerprint).toBeDefined();
     expect(Object.keys(change.contracts!)).toEqual(['alpha.id']);
-    expect(change.contracts!['alpha.id']).toContain('### Requirement: Alpha');
-    expect(change.contracts!['alpha.id']).toContain('### Requirement: Existing');
+    expect(change.contracts!['alpha.id']).toContain('### Section: Alpha');
+    expect(change.contracts!['alpha.id']).toContain('### Section: Existing');
   });
 
   it('indexes isolated active Changes deterministically and excludes archive', async () => {
     await writeBaseModel(tempDir);
     for (const change of ['z-change', 'a-change']) {
       await writeChangeDelta(tempDir, change, {
-        'elements/alpha.id.md': requirementDelta(change === 'a-change' ? 'Alpha' : 'Zeta'),
+        'elements/alpha.id.md': sectionDelta(change === 'a-change' ? 'Alpha' : 'Zeta'),
       });
     }
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive', 'old-change'), { recursive: true });
@@ -218,9 +247,10 @@ describe('ViewCommand', () => {
       .toEqual(expect.arrayContaining(['root', 'alpha.id']));
   });
 
-  it('removes an archived Change from the live manifest', async () => {
+  it('removes an archived Change from the live manifest', async ctx => {
+    if (!(await fsWatchSupported())) return ctx.skip();
     await writeBaseModel(tempDir);
-    await writeChangeDelta(tempDir, 'archive-me', { 'elements/alpha.id.md': requirementDelta('Archive') });
+    await writeChangeDelta(tempDir, 'archive-me', { 'elements/alpha.id.md': sectionDelta('Archive') });
     const launch: ViewLauncher = async options => {
       const readManifest = async () => JSON.parse(
         await fs.readFile(options.changeManifestFile, 'utf8'),
@@ -249,7 +279,7 @@ describe('ViewCommand', () => {
 
   it('reports one fingerprint per Semantic Model partition', async () => {
     await writeBaseModel(tempDir);
-    await writeChangeDelta(tempDir, 'contract-only', { 'elements/alpha.id.md': requirementDelta('Alpha') });
+    await writeChangeDelta(tempDir, 'contract-only', { 'elements/alpha.id.md': sectionDelta('Alpha') });
 
     const before = await buildViewRuntimeSnapshot(tempDir);
     const beforeSource = before.changes['contract-only']!;
@@ -272,7 +302,7 @@ describe('ViewCommand', () => {
     const afterDefinition = `After ${'🚀'.repeat(130)}.\n\nAfter boundary.`;
     const children = [
       { kind: 'property' as const, identity: 'alpha.id#definition', operation: 'MODIFIED' as const, before: beforeDefinition, after: afterDefinition },
-      { kind: 'scenario' as const, identity: 'alpha.id#Behavior#Preserved', operation: 'ADDED' as const, after: { body: 'Preserved' } },
+      { kind: 'acceptance-case' as const, identity: 'alpha.id#Behavior#Preserved', operation: 'ADDED' as const, after: { body: 'Preserved' } },
     ];
     const diff: ChangeDiff = {
       schemaVersion: '1',
@@ -289,7 +319,7 @@ describe('ViewCommand', () => {
           before: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: beforeDefinition },
           after: { identity: 'alpha.id', kind: 'capability', parent: 'root', title: 'Alpha', definition: afterDefinition },
         },
-        { kind: 'requirement', identity: 'alpha.id#Behavior', operation: 'MODIFIED', children },
+        { kind: 'section', identity: 'alpha.id#Behavior', operation: 'MODIFIED', children },
       ],
       diagnostics: [],
     };
@@ -339,7 +369,7 @@ describe('ViewCommand', () => {
     await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
     await writeModel(candidateRoot, minimalModel({
       elements: [
-        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', requirements: CONTRACT },
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha definition', sections: CONTRACT },
         { identity: 'beta.id', parent: 'root', title: 'Beta', definition: 'Beta candidate definition' },
       ],
     }));
@@ -428,7 +458,7 @@ describe('ViewCommand', () => {
     await fs.writeFile(path.join(candidateRoot, 'build.md'), '# Build\n', 'utf8');
     await writeModel(candidateRoot, minimalModel({
       elements: [
-        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha candidate definition', requirements: CONTRACT },
+        { identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha candidate definition', sections: CONTRACT },
         { identity: 'gamma.id', parent: 'root', title: 'Gamma', definition: 'Gamma definition' },
       ],
     }));
@@ -758,7 +788,8 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
     expect(after.changes).toBe(before.changes);
   });
 
-  it('refreshes only the Candidate through the watcher and keeps artifacts untouched', async () => {
+  it('refreshes only the Candidate through the watcher and keeps artifacts untouched', async ctx => {
+    if (!(await fsWatchSupported())) return ctx.skip();
     await writeProjectModel(tempDir, minimalModel());
     await writeChangeDelta(tempDir, 'test-change', {
       'elements/alpha.md': '---\noperation: ADDED\nentity: element\nidentity: alpha\nkind: component\nparent: project.id\n---\n# Alpha\n',
@@ -797,7 +828,8 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
     await new ViewCommand(launch).execute(tempDir);
   });
 
-  it('regenerates artifacts on a model edit through the watcher', async () => {
+  it('regenerates artifacts on a model edit through the watcher', async ctx => {
+    if (!(await fsWatchSupported())) return ctx.skip();
     await writeProjectModel(tempDir, minimalModel());
     const launch: ViewLauncher = async options => {
       const readManifest = async () => JSON.parse(

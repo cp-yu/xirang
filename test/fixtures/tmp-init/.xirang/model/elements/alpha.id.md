@@ -7,12 +7,12 @@ title: Alpha
 definition: Deterministic alpha module used by the validation harness
 ---
 
-## Requirements
+## Specification
 
-### Requirement: Alpha module SHALL produce deterministic output
+### Section: Alpha module SHALL produce deterministic output
 The alpha module SHALL produce a deterministic response for validation.
 
-#### Scenario: Deterministic alpha run
+#### Acceptance Case: Deterministic alpha run
 - **GIVEN** a configured alpha module
 - **WHEN** the module runs the default flow
 - **THEN** the output matches the expected fixture result

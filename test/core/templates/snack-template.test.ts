@@ -69,7 +69,7 @@ describe('snack template artifact reconciliation', () => {
     expect(instructions).toMatch(/reconcil/i);
   });
 
-  it('covers both the no-change and stale-change scenarios', () => {
+  it('covers both the no-change and stale-change acceptanceCases', () => {
     expect(instructions).toMatch(/no matching change|does not exist|no change/i);
     expect(instructions).toMatch(/stale|existing change|already exist/i);
   });
@@ -195,10 +195,10 @@ describe('snack template evidence/artifact terminology', () => {
   const template = getSnackSkillTemplate();
   const instructions = template.instructions;
 
-  it('distinguishes Requirement Entries in the body from the Declaration Entry in frontmatter', () => {
-    expect(instructions).toContain('## ADDED Requirements');
-    expect(instructions).toContain('## MODIFIED Requirements');
-    expect(instructions).toContain('Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter');
+  it('distinguishes Section Entries in the body from the Declaration Entry in frontmatter', () => {
+    expect(instructions).toContain('## ADDED Sections');
+    expect(instructions).toContain('## MODIFIED Sections');
+    expect(instructions).toContain('Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter');
   });
 });
 
@@ -212,10 +212,10 @@ describe('snack template semantic diff gate', () => {
     expect(instructions).not.toContain('xirang diff --change "<name>" --write');
     expect(instructions).not.toContain('`.xirang/changes/<name>/effective-change.md`');
     expect(instructions).not.toContain('effective-change report');
-    expect(instructions).not.toContain('xirang scenario-labels');
-    expect(instructions).not.toContain('#### Scenario: [ADDED] <title>');
-    expect(instructions).not.toContain('#### Scenario: [MODIFIED] <title>');
-    expect(instructions).not.toContain('#### Scenario: [REMOVED] <title>');
+    expect(instructions).not.toContain('xirang acceptanceCase-labels');
+    expect(instructions).not.toContain('#### Acceptance Case: [ADDED] <title>');
+    expect(instructions).not.toContain('#### Acceptance Case: [MODIFIED] <title>');
+    expect(instructions).not.toContain('#### Acceptance Case: [REMOVED] <title>');
   });
 });
 

@@ -24,22 +24,22 @@ const CAPABILITY = [
   'definition: Reads source modules and defines the reader boundary.',
   '---',
   '',
-  '## Requirements',
+  '## Specification',
   '',
-  '### Requirement: Parses units',
+  '### Section: Parses units',
   '',
   'The reader SHALL parse every unit.',
   '',
-  '#### Scenario: Valid unit',
+  '#### Acceptance Case: Valid unit',
   '',
   '- WHEN a unit is valid',
   '- THEN it is parsed',
   '',
-  '#### Scenario: Invalid unit',
+  '#### Acceptance Case: Invalid unit',
   '',
   '- THEN a diagnostic is produced',
   '',
-  '### Requirement: Builds an index',
+  '### Section: Builds an index',
   '',
   'The reader SHALL index identities.',
   '',
@@ -123,7 +123,7 @@ describe('parseSemanticModel', () => {
     expect(parsed.model.relationships).toEqual([]);
   });
 
-  it('preserves requirement order and scenario order', async () => {
+  it('preserves section order and acceptanceCase order', async () => {
     const root = await createModelRoot({ 'elements/cap.reader.md': CAPABILITY });
     const [element] = (await parseSemanticModel(root)).model.elements;
 
@@ -134,11 +134,11 @@ describe('parseSemanticModel', () => {
       title: 'Reader',
       definition: 'Reads source modules and defines the reader boundary.',
     });
-    expect(element.requirements.map(item => item.name)).toEqual(['Parses units', 'Builds an index']);
-    expect(element.requirements[0]).toEqual({
+    expect(element.sections.map(item => item.name)).toEqual(['Parses units', 'Builds an index']);
+    expect(element.sections[0]).toEqual({
       name: 'Parses units',
       body: 'The reader SHALL parse every unit.',
-      scenarios: [
+      acceptanceCases: [
         { name: 'Valid unit', body: '- WHEN a unit is valid\n- THEN it is parsed' },
         { name: 'Invalid unit', body: '- THEN a diagnostic is produced' },
       ],
@@ -312,11 +312,11 @@ describe('parseSemanticModel', () => {
     });
   });
 
-  it('rejects contract content outside the Requirements section', async () => {
+  it('rejects contract content outside the Sections section', async () => {
     const head = '---\nentity: element-declaration\nidentity: a\nkind: capability\ntitle: A\ndefinition: Capability A.\n---\n';
     for (const body of [
-      '\n## Requirements\n\n### Requirement: R\n\nBody.\n\n## Notes\n\nTrailing.\n',
-      '\n## Purpose\n\nWhy it exists.\n\n## Requirements\n\n### Requirement: R\n\nBody.\n',
+      '\n## Specification\n\n### Section: R\n\nBody.\n\n## Notes\n\nTrailing.\n',
+      '\n## Purpose\n\nWhy it exists.\n\n## Specification\n\n### Section: R\n\nBody.\n',
       '\nLoose prose without any section.\n',
     ]) {
       const parsed = await parseSemanticModel(await createModelRoot({ 'elements/a.md': head + body }));

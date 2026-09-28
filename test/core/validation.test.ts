@@ -3,83 +3,80 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
 import {
-  ScenarioSchema,
-  RequirementSchema,
+  AcceptanceCaseSchema,
+  SectionSchema,
 } from '../../src/core/schemas/index.js';
 
 describe('Validation Schemas', () => {
-  describe('ScenarioSchema', () => {
-    it('should validate a valid scenario', () => {
-      const scenario = {
+  describe('AcceptanceCaseSchema', () => {
+    it('should validate a valid acceptanceCase', () => {
+      const acceptanceCase = {
         rawText: 'Given a user is logged in\nWhen they click logout\nThen they are redirected to login page',
       };
       
-      const result = ScenarioSchema.safeParse(scenario);
+      const result = AcceptanceCaseSchema.safeParse(acceptanceCase);
       expect(result.success).toBe(true);
     });
 
-    it('should reject scenario with empty text', () => {
-      const scenario = {
+    it('should reject acceptanceCase with empty text', () => {
+      const acceptanceCase = {
         rawText: '',
       };
       
-      const result = ScenarioSchema.safeParse(scenario);
+      const result = AcceptanceCaseSchema.safeParse(acceptanceCase);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Scenario text cannot be empty');
+        expect(result.error.issues[0].message).toBe('Acceptance Case text cannot be empty');
       }
     });
   });
 
-  describe('RequirementSchema', () => {
-    it('should validate a valid requirement', () => {
-      const requirement = {
+  describe('SectionSchema', () => {
+    it('should validate a valid section', () => {
+      const section = {
         text: 'The system SHALL provide user authentication',
-        scenarios: [
+        acceptanceCases: [
           {
             rawText: 'Given a user with valid credentials\nWhen they submit the login form\nThen they are authenticated',
           },
         ],
       };
       
-      const result = RequirementSchema.safeParse(requirement);
+      const result = SectionSchema.safeParse(section);
       expect(result.success).toBe(true);
     });
 
-    it('should reject requirement without SHALL or MUST', () => {
-      const requirement = {
+    it('should reject section without SHALL or MUST', () => {
+      const section = {
         text: 'The system provides user authentication',
-        scenarios: [
+        acceptanceCases: [
           {
             rawText: 'Given a user\nWhen they login\nThen authenticated',
           },
         ],
       };
       
-      const result = RequirementSchema.safeParse(requirement);
+      const result = SectionSchema.safeParse(section);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Requirement must contain SHALL or MUST keyword');
+        expect(result.error.issues[0].message).toBe('Section must contain SHALL or MUST keyword');
       }
     });
 
-    it('should reject requirement without scenarios', () => {
-      const requirement = {
+    it('should accept section without acceptanceCases', () => {
+      const section = {
         text: 'The system SHALL provide user authentication',
-        scenarios: [],
+        acceptanceCases: [],
       };
       
-      const result = RequirementSchema.safeParse(requirement);
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toBe('Requirement must have at least one scenario');
-      }
+      const result = SectionSchema.safeParse(section);
+      expect(result.success).toBe(true);
     });
   });
 
 });
 
-/** Requirement deltas live in the change's `elements/` partition. */
+/** Section deltas live in the change's `elements/` partition. */
 async function writeDeltaUnit(changeDir: string, body: string, identity = 'test-spec'): Promise<void> {
   const elements = path.join(changeDir, 'elements');
   await fs.mkdir(elements, { recursive: true });
@@ -101,20 +98,20 @@ describe('Validator', () => {
   });
 
   describe('validateChangeDeltaSpecs with metadata', () => {
-    it('should validate requirement with metadata before SHALL/MUST text', async () => {
+    it('should validate section with metadata before SHALL/MUST text', async () => {
       const changeDir = path.join(testDir, 'test-change');
 
       const deltaSpec = `# Test Spec
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Circuit Breaker State Management SHALL be implemented
+### Section: Circuit Breaker State Management SHALL be implemented
 **ID**: REQ-CB-001
 **Priority**: P1 (High)
 
 The system MUST implement a circuit breaker with three states.
 
-#### Scenario: Normal operation
+#### Acceptance Case: Normal operation
 **Given** the circuit breaker is in CLOSED state
 **When** a request is made
 **Then** the request is executed normally`;
@@ -128,20 +125,20 @@ The system MUST implement a circuit breaker with three states.
       expect(report.summary.errors).toBe(0);
     });
 
-    it('should validate requirement with SHALL in text but not in header', async () => {
+    it('should validate section with SHALL in text but not in header', async () => {
       const changeDir = path.join(testDir, 'test-change-2');
 
       const deltaSpec = `# Test Spec
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Error Handling
+### Section: Error Handling
 **ID**: REQ-ERR-001
 **Priority**: P2
 
 The system SHALL handle all errors gracefully.
 
-#### Scenario: Error occurs
+#### Acceptance Case: Error occurs
 **Given** an error condition
 **When** an error occurs
 **Then** the error is logged and user is notified`;
@@ -155,19 +152,19 @@ The system SHALL handle all errors gracefully.
       expect(report.summary.errors).toBe(0);
     });
 
-    it('should fail when requirement text lacks SHALL/MUST', async () => {
+    it('should fail when section text lacks SHALL/MUST', async () => {
       const changeDir = path.join(testDir, 'test-change-3');
 
       const deltaSpec = `# Test Spec
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Logging Feature
+### Section: Logging Feature
 **ID**: REQ-LOG-001
 
 The system will log all events.
 
-#### Scenario: Event occurs
+#### Acceptance Case: Event occurs
 **Given** an event
 **When** it occurs
 **Then** it is logged`;
@@ -182,17 +179,17 @@ The system will log all events.
       expect(report.issues.some(i => i.message.includes('must contain SHALL or MUST'))).toBe(true);
     });
 
-    it('should handle requirements without metadata fields', async () => {
+    it('should handle sections without metadata fields', async () => {
       const changeDir = path.join(testDir, 'test-change-4');
 
       const deltaSpec = `# Test Spec
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Simple Feature
+### Section: Simple Feature
 The system SHALL implement this feature.
 
-#### Scenario: Basic usage
+#### Acceptance Case: Basic usage
 **Given** a condition
 **When** an action occurs
 **Then** a result happens`;
@@ -211,12 +208,12 @@ The system SHALL implement this feature.
 
       const deltaSpec = `# Test Spec
 
-## Added Requirements
+## Added Sections
 
-### Requirement: Mixed Case Handling
+### Section: Mixed Case Handling
 The system MUST support mixed case delta headers.
 
-#### Scenario: Case insensitive parsing
+#### Acceptance Case: Case insensitive parsing
 **Given** a delta file with mixed case headers
 **When** validation runs
 **Then** the delta is detected`;
@@ -232,99 +229,15 @@ The system MUST support mixed case delta headers.
       expect(report.summary.info).toBe(0);
     });
 
-    it('should reject invalid scenario operation labels in change specs', async () => {
-      const cases = [
-        {
-          change: 'unknown-label',
-          body: '#### Scenario: [UPDATED] 场景',
-          message: 'Scenario operation metadata',
-        },
-        {
-          change: 'malformed-label',
-          body: '#### [ADDED] Scenario: 场景',
-          message: 'Scenario operation metadata',
-        },
-        {
-          change: 'removed-in-added',
-          body: '#### Scenario: [REMOVED] 旧场景',
-          message: 'Scenario operation metadata',
-        },
-      ];
-
-      for (const item of cases) {
-        const changeDir = path.join(testDir, item.change);
-        await writeDeltaUnit(
-          changeDir,
-          `## ADDED Requirements
-
-### Requirement: Label Validation
-The system SHALL validate labels.
-
-${item.body}
-- **WHEN** action
-- **THEN** result`,
-        );
-
-        const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-
-        expect(report.valid).toBe(false);
-        expect(report.issues.length).toBeGreaterThan(0);
-      }
-    });
-
-    it('should reject a REMOVED Scenario label before target-set validation', async () => {
-      const changeDir = path.join(testDir, 'surviving-scenarios');
-      await writeDeltaUnit(
-        changeDir,
-        `## MODIFIED Requirements
-
-### Requirement: Label Validation
-The system SHALL validate labels.
-
-#### Scenario: [REMOVED] 旧场景
-- **WHEN** old
-- **THEN** gone`,
-      );
-
-      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-
-      expect(report.valid).toBe(false);
-      expect(report.issues.some(i => i.message.includes('Unsupported Scenario operation metadata [REMOVED]'))).toBe(true);
-    });
-
-    it('should reject [MODIFIED] label under ADDED Requirements', async () => {
-      const changeDir = path.join(testDir, 'modified-under-added');
-      await writeDeltaUnit(
-        changeDir,
-        `## ADDED Requirements
-
-### Requirement: Label Validation
-The system SHALL validate labels.
-
-#### Scenario: [ADDED] 新场景
-- **WHEN** new
-- **THEN** result
-
-#### Scenario: [MODIFIED] 修改场景
-- **WHEN** action
-- **THEN** result`,
-      );
-
-      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-
-      expect(report.valid).toBe(false);
-      expect(report.issues.some(i => i.message.includes('Unsupported Scenario operation metadata [MODIFIED]'))).toBe(true);
-    });
-
-    it('should accept unlabeled MODIFIED scenarios without writing labels', async () => {
+    it('should accept unlabeled MODIFIED acceptanceCases without writing labels', async () => {
       const projectRoot = path.join(testDir, 'unlabeled-project');
-      const changeDir = path.join(projectRoot, '.xirang', 'changes', 'unlabeled-modified-scenario');
-      const content = `## MODIFIED Requirements
+      const changeDir = path.join(projectRoot, '.xirang', 'changes', 'unlabeled-modified-acceptanceCase');
+      const content = `## MODIFIED Sections
 
-### Requirement: Label Validation
+### Section: Label Validation
 The system SHALL validate labels.
 
-#### Scenario: 场景
+#### Acceptance Case: 场景
 - **WHEN** action
 - **THEN** result`;
       await writeDeltaUnit(changeDir, content);
@@ -339,7 +252,7 @@ The system SHALL validate labels.
     });
   });
 
-  describe('requirement reader fidelity (fence, multi-line, metadata, whole-word)', () => {
+  describe('section reader fidelity (fence, multi-line, metadata, whole-word)', () => {
     async function writeChangeDelta(name: string, deltaSpec: string): Promise<string> {
       const changeDir = path.join(testDir, name);
       await writeDeltaUnit(changeDir, deltaSpec);
@@ -349,13 +262,13 @@ The system SHALL validate labels.
     it('multi-line: SHALL on a later body line is recognized', async () => {
       const changeDir = await writeChangeDelta(
         'fidelity-multi-line',
-        `## ADDED Requirements
+        `## ADDED Sections
 
-### Requirement: Wrapped keyword
+### Section: Wrapped keyword
 The system performs the described behavior and it
 continues onto a second line where SHALL appears in full.
 
-#### Scenario: Wrapped
+#### Acceptance Case: Wrapped
 - **WHEN** handled
 - **THEN** accepted`,
       );
@@ -368,12 +281,12 @@ continues onto a second line where SHALL appears in full.
     it('metadata-only body carrying MUST is accepted', async () => {
       const changeDir = await writeChangeDelta(
         'fidelity-metadata-only',
-        `## ADDED Requirements
+        `## ADDED Sections
 
-### Requirement: Constraint only
+### Section: Constraint only
 **Constraint**: The system MUST enforce the limit.
 
-#### Scenario: Enforced
+#### Acceptance Case: Enforced
 - **WHEN** limit exceeded
 - **THEN** rejected`,
       );
@@ -386,16 +299,16 @@ continues onto a second line where SHALL appears in full.
     it('fence-after-body: prose after fenced block supplies keyword', async () => {
       const changeDir = await writeChangeDelta(
         'fidelity-fence-after-body',
-        `## ADDED Requirements
+        `## ADDED Sections
 
-### Requirement: Fence first
+### Section: Fence first
 \`\`\`bash
-# not the requirement text
+# not the section text
 echo hello
 \`\`\`
 The system SHALL handle fenced examples before the prose line.
 
-#### Scenario: Handled
+#### Acceptance Case: Handled
 - **WHEN** read
 - **THEN** prose is used`,
       );
@@ -405,44 +318,40 @@ The system SHALL handle fenced examples before the prose line.
       expect(report.summary.errors).toBe(0);
     });
 
-    it('fence: Scenario inside fence is not a surviving scenario', async () => {
+    it('fence: section whose only Acceptance Case is fenced stays valid (no Acceptance Case required)', async () => {
       const changeDir = await writeChangeDelta(
-        'fidelity-fence-scenario',
-        `## ADDED Requirements
+        'fidelity-fence-acceptanceCase',
+        `## ADDED Sections
 
-### Requirement: Fenced scenario only
+### Section: Fenced acceptanceCase only
 The system SHALL do something real.
 
 \`\`\`markdown
-#### Scenario: not a real scenario
+#### Acceptance Case: not a real acceptanceCase
 - **WHEN** example
 - **THEN** stays fenced
 \`\`\``,
       );
 
       const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-      expect(report.valid).toBe(false);
-      expect(
-        report.issues.some(i =>
-          i.message.includes('at least one canonical unlabeled Scenario'),
-        ),
-      ).toBe(true);
+      expect(report.valid).toBe(true);
+      expect(report.summary.errors).toBe(0);
     });
 
-    it('surviving: unlabeled real scenario coexists with fenced example', async () => {
+    it('surviving: unlabeled real acceptanceCase coexists with fenced example', async () => {
       const changeDir = await writeChangeDelta(
         'fidelity-surviving-mixed',
-        `## ADDED Requirements
+        `## ADDED Sections
 
-### Requirement: Mixed scenarios
-The system SHALL accept real scenarios only.
+### Section: Mixed acceptanceCases
+The system SHALL accept real acceptanceCases only.
 
-#### Scenario: Real one
+#### Acceptance Case: Real one
 - **WHEN** real
 - **THEN** counts
 
 \`\`\`markdown
-#### Scenario: example only
+#### Acceptance Case: example only
 - **WHEN** fenced
 - **THEN** ignored
 \`\`\``,
@@ -453,43 +362,15 @@ The system SHALL accept real scenarios only.
       expect(report.summary.errors).toBe(0);
     });
 
-    it('rejects a real REMOVED Scenario label even with a fenced example', async () => {
-      const changeDir = await writeChangeDelta(
-        'fidelity-surviving-removed',
-        `## MODIFIED Requirements
-
-### Requirement: Only removed
-The system SHALL keep label semantics.
-
-#### Scenario: [REMOVED] 旧场景
-- **WHEN** old
-- **THEN** gone
-
-\`\`\`markdown
-#### Scenario: example
-- **WHEN** fenced
-- **THEN** ignored
-\`\`\``,
-      );
-
-      const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
-      expect(report.valid).toBe(false);
-      expect(
-        report.issues.some(i =>
-          i.message.includes('Unsupported Scenario operation metadata [REMOVED]'),
-        ),
-      ).toBe(true);
-    });
-
     it('whole-word: SHALL substring inside MARSHALL is not a keyword', async () => {
       const changeDir = await writeChangeDelta(
         'fidelity-whole-word',
-        `## ADDED Requirements
+        `## ADDED Sections
 
-### Requirement: Marshalling
+### Section: Marshalling
 The MARSHALL coordinates parade logistics.
 
-#### Scenario: Coordinated
+#### Acceptance Case: Coordinated
 - **WHEN** parade begins
 - **THEN** coordinated`,
       );
@@ -501,19 +382,19 @@ The MARSHALL coordinates parade logistics.
 
 
     it('CRLF multi-line and fence behavior matches LF', async () => {
-      const lf = `## ADDED Requirements
+      const lf = `## ADDED Sections
 
-### Requirement: CRLF parity
+### Section: CRLF parity
 Line one of the body
 continues with SHALL on line two.
 
 \`\`\`markdown
-#### Scenario: fenced
+#### Acceptance Case: fenced
 - **WHEN** example
 - **THEN** ignored
 \`\`\`
 
-#### Scenario: Real
+#### Acceptance Case: Real
 - **WHEN** real
 - **THEN** counts`;
       const crlf = lf.replace(/\n/g, '\r\n');

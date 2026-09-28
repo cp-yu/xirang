@@ -42,7 +42,7 @@ export interface NormalizedProjectConfig {
 export interface CanonicalTokenPolicy {
   preserveNormativeKeywords: true;
   preserveSectionHeaders: true;
-  preserveScenarioKeywords: true;
+  preserveAcceptanceCaseKeywords: true;
   preserveIds: true;
   preserveSchemaKeys: true;
   preservePaths: true;
@@ -90,7 +90,7 @@ export interface ConfigProjectionBundle {
 const CANONICAL_TOKEN_POLICY: CanonicalTokenPolicy = {
   preserveNormativeKeywords: true,
   preserveSectionHeaders: true,
-  preserveScenarioKeywords: true,
+  preserveAcceptanceCaseKeywords: true,
   preserveIds: true,
   preserveSchemaKeys: true,
   preservePaths: true,
@@ -171,9 +171,9 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
 function buildProseLanguageLines(proseLanguage: string): string[] {
   const lines = [
     `Use ${proseLanguage} for natural-language prose that you newly write or revise.`,
-    'Natural-language prose includes task titles, check names, Requirement titles, Scenario titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries.',
-    'Preserve canonical tokens unchanged: SHALL, MUST, template headings, section headers, scenario headers, BDD keywords, IDs, schema keys, relation types, paths, commands, and code identifiers.',
-    'Preserve exact existing Requirement titles required for MODIFIED matching.',
+    'Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries.',
+    'Preserve canonical tokens unchanged: SHALL, MUST, template headings, `### Section:` headers, `#### Acceptance Case:` headers, IDs, schema keys, relation types, paths, commands, and code identifiers.',
+    'Preserve exact existing Section titles required for MODIFIED matching.',
     'English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow proseLanguage.',
   ];
 

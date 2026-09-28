@@ -23,12 +23,12 @@ describe('reviewer subagent template', () => {
     expect(prompt).toContain(TEST_QUALITY_GUIDANCE);
   });
 
-  it('judges coverage by observable behavior evidence rather than one test per Scenario', () => {
+  it('judges coverage by observable behavior evidence rather than one test per AcceptanceCase', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
     expect(prompt).toContain('observable behavior');
     expect(prompt).toContain('one-time evidence');
-    expect(prompt).not.toContain('Scenario coverage gaps are not downgrade candidates');
+    expect(prompt).not.toContain('AcceptanceCase coverage gaps are not downgrade candidates');
     expect(prompt).toContain('weak assertion');
   });
 
@@ -54,7 +54,7 @@ describe('reviewer subagent template', () => {
     expect(prompt).toContain('Only when all four partitions are empty may you conclude that the change carries no semantic change');
     expect(prompt).toContain('a partition you did not read is never an empty partition');
     expect(prompt).toContain('Element Declaration Entries');
-    expect(prompt).toContain('Requirement Entries');
+    expect(prompt).toContain('Section Entries');
     expect(prompt).toContain('Relationship entries');
     expect(prompt).toContain('xirangAlignment');
     expect(prompt).not.toContain('architecture-delta');

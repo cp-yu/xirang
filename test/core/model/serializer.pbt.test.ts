@@ -9,8 +9,8 @@ import type {
   ModelElement,
   Relationship,
   RelationshipKind,
-  Requirement,
-  Scenario,
+  Section,
+  AcceptanceCase,
   SemanticModel,
 } from '../../../src/core/model/types.js';
 
@@ -35,12 +35,12 @@ const prose = fc.oneof(
 const blockName = fc.stringMatching(/^[A-Za-z0-9][A-Za-z0-9 ._-]{0,20}$/).map(value => value.trim())
   .filter(value => value.length > 0);
 
-const scenario: fc.Arbitrary<Scenario> = fc.record({ name: blockName, body: prose });
+const acceptanceCase: fc.Arbitrary<AcceptanceCase> = fc.record({ name: blockName, body: prose });
 
-const requirement: fc.Arbitrary<Requirement> = fc.record({
+const section: fc.Arbitrary<Section> = fc.record({
   name: blockName,
   body: prose,
-  scenarios: fc.array(scenario, { maxLength: 3 }),
+  acceptanceCases: fc.array(acceptanceCase, { maxLength: 3 }),
 });
 
 function optional<T>(arbitrary: fc.Arbitrary<T>): fc.Arbitrary<T | undefined> {
@@ -61,7 +61,7 @@ const element: fc.Arbitrary<ModelElement> = fc.record({
     title: scalarText,
     definition: definitionText,
   }),
-  requirements: fc.array(requirement, { maxLength: 3 }),
+  sections: fc.array(section, { maxLength: 3 }),
 });
 
 const elementKind: fc.Arbitrary<ElementKind> = fc.record({
@@ -164,7 +164,7 @@ describe('serializer round-trip properties', () => {
       ...empty,
       elements: [{
         declaration: { identity: 'a', kind: 'k', parent: null, title: '', definition: 'Element A.' },
-        requirements: [],
+        sections: [],
       }],
       elementKinds: [{ identity: 'k', contract: 'optional', body: '' }],
       relationshipKinds: [{ identity: 'r', body: '' }],
@@ -190,10 +190,10 @@ describe('serializer round-trip properties', () => {
     const model: SemanticModel = {
       elements: [{
         declaration: { identity: 'a', kind: 'k', parent: null, title: 'a: b', definition: 'one\ntwo' },
-        requirements: [{
+        sections: [{
           name: 'Handles escapes',
           body: multiline,
-          scenarios: [{ name: 'Quoted', body: multiline }],
+          acceptanceCases: [{ name: 'Quoted', body: multiline }],
         }],
       }],
       elementKinds: [{ identity: 'k', contract: 'required', body: multiline }],

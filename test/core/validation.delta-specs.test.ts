@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import { Validator } from '../../src/core/validation/validator.js';
 import { createSemanticDiff } from '../../src/core/semantic-diff.js';
-import { emptySemanticModel, type Scenario, type SemanticModel } from '../../src/core/model/types.js';
+import { emptySemanticModel, type AcceptanceCase, type SemanticModel } from '../../src/core/model/types.js';
 import { writeChangeDelta } from '../helpers/model-fixture.js';
 
 describe('complete target delta Specs', () => {
@@ -14,13 +14,13 @@ describe('complete target delta Specs', () => {
     if (tempDir) await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('accepts canonical unlabeled Scenarios as the complete MODIFIED target set', async () => {
+  it('accepts canonical unlabeled AcceptanceCases as the complete MODIFIED target set', async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
       'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
-        + '## MODIFIED Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n'
-        + '#### Scenario: Existing path\n- **WHEN** valid credentials are supplied\n- **THEN** login succeeds\n\n'
-        + '#### Scenario: MFA path\n- **WHEN** MFA is required\n- **THEN** a challenge is shown\n',
+        + '## MODIFIED Sections\n\n### Section: Login\nThe system SHALL support login.\n\n'
+        + '#### Acceptance Case: Existing path\n- **WHEN** valid credentials are supplied\n- **THEN** login succeeds\n\n'
+        + '#### Acceptance Case: MFA path\n- **WHEN** MFA is required\n- **THEN** a challenge is shown\n',
     });
 
     const report = await new Validator(true).validateChangeDeltaSpecs(changeDir);
@@ -32,8 +32,8 @@ describe('complete target delta Specs', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-delta-validation-'));
     const changeDir = await writeChangeDelta(tempDir, 'change', {
       'elements/auth.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth.id\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth\n---\n\n'
-        + '## ADDED Requirements\n\n### Requirement: Login\nThis text has no normative keyword.\n\n'
-        + '#### Scenario: Existing path\n- **WHEN** x\n- **THEN** y\n',
+        + '## ADDED Sections\n\n### Section: Login\nThis text has no normative keyword.\n\n'
+        + '#### Acceptance Case: Existing path\n- **WHEN** x\n- **THEN** y\n',
     });
 
     const report = await new Validator().validateChangeDeltaSpecs(changeDir);
@@ -43,12 +43,12 @@ describe('complete target delta Specs', () => {
     ]);
   });
 
-  it('derives Scenario add, modify, and remove operations from Formal versus Expected', () => {
-    const model = (scenarios: Scenario[]): SemanticModel => ({
+  it('derives AcceptanceCase add, modify, and remove operations from Formal versus Expected', () => {
+    const model = (acceptanceCases: AcceptanceCase[]): SemanticModel => ({
       ...emptySemanticModel(),
       elements: [{
         declaration: { identity: 'auth.id', kind: 'capability', parent: 'root', title: 'Auth', definition: 'Auth' },
-        requirements: [{ name: 'Login', body: 'The system SHALL support login.', scenarios }],
+        sections: [{ name: 'Login', body: 'The system SHALL support login.', acceptanceCases }],
       }],
     });
     const formal = model([
@@ -63,12 +63,12 @@ describe('complete target delta Specs', () => {
     const diff = createSemanticDiff(formal, target, {
       change: 'change', valid: true, formalFingerprint: 'formal', changeFingerprint: 'change', diagnostics: [],
     });
-    const requirement = diff.entries.find(entry => entry.kind === 'requirement');
+    const section = diff.entries.find(entry => entry.kind === 'section');
 
-    expect(requirement?.children).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'scenario', identity: 'auth.id#Login#Existing path', operation: 'MODIFIED' }),
-      expect.objectContaining({ kind: 'scenario', identity: 'auth.id#Login#Legacy path', operation: 'REMOVED' }),
-      expect.objectContaining({ kind: 'scenario', identity: 'auth.id#Login#MFA path', operation: 'ADDED' }),
+    expect(section?.children).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'auth.id#Login#Existing path', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'auth.id#Login#Legacy path', operation: 'REMOVED' }),
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'auth.id#Login#MFA path', operation: 'ADDED' }),
     ]));
   });
 });

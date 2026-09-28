@@ -6,7 +6,7 @@ import { applyXirangPresentationOverlay } from '../../../likec4/packages/diagram
 import type { XirangViewSource } from '../../../likec4/packages/diagram/src/xirang/ContractLoaderContext.js';
 
 function element(identity: string, parent: string | null, kind = 'capability', title = identity, definition = `${identity} definition.`): SemanticModel['elements'][number] {
-  return { declaration: { identity, kind, parent, title, definition }, requirements: [] };
+  return { declaration: { identity, kind, parent, title, definition }, sections: [] };
 }
 
 const constrained: SemanticModel = {
@@ -247,7 +247,7 @@ const nested: SemanticModel = {
   elements: [
     {
       declaration: { identity: 'cap.reader', kind: 'capability', parent: 'domain.architecture', title: 'Reader', definition: 'Reads units' },
-      requirements: [{ name: 'Parses units', body: 'The reader SHALL parse every unit.', scenarios: [] }],
+      sections: [{ name: 'Parses units', body: 'The reader SHALL parse every unit.', acceptanceCases: [] }],
     },
     element('domain.architecture', 'project.root', 'domain', 'Architecture', 'Architecture intent'),
     element('project.root', null, 'project', 'Root', 'Project intent'),

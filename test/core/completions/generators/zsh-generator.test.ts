@@ -115,9 +115,9 @@ describe('ZshGenerator', () => {
           description: 'Show a contract',
           flags: [
             {
-              name: 'requirement',
+              name: 'section',
               short: 'r',
-              description: 'Show specific requirement',
+              description: 'Show specific section',
               takesValue: true,
             },
           ],
@@ -126,8 +126,8 @@ describe('ZshGenerator', () => {
 
       const script = generator.generate(commands);
 
-      expect(script).toContain("'(-r --requirement)'{-r,--requirement}'[Show specific requirement]:value:'");
-      expect(script).toContain('[Show specific requirement]');
+      expect(script).toContain("'(-r --section)'{-r,--section}'[Show specific section]:value:'");
+      expect(script).toContain('[Show specific section]');
     });
 
     it('should handle flags that take values', () => {

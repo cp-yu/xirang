@@ -114,9 +114,9 @@ describe('FishGenerator', () => {
           description: 'Show a contract',
           flags: [
             {
-              name: 'requirement',
+              name: 'section',
               short: 'r',
-              description: 'Show specific requirement',
+              description: 'Show specific section',
               takesValue: true,
             },
           ],
@@ -126,8 +126,8 @@ describe('FishGenerator', () => {
       const script = generator.generate(commands);
 
       expect(script).toContain("-s r");
-      expect(script).toContain("-l requirement");
-      expect(script).toContain("'Show specific requirement'");
+      expect(script).toContain("-l section");
+      expect(script).toContain("'Show specific section'");
       expect(script).toContain("-r");
     });
 

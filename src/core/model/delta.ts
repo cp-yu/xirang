@@ -1,10 +1,10 @@
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { parseDeltaSpec } from '../parsers/requirement-blocks.js';
+import { parseDeltaSpec } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import {
   normalizeProse,
   parseRelationshipContainer,
-  parseRequirementBlock,
+  parseSectionBlock,
   parseUnit,
   readEntity,
   readModelFiles,
@@ -21,18 +21,18 @@ import {
   type ModelElement,
   type Relationship,
   type RelationshipKind,
-  type Requirement,
+  type Section,
   type SemanticModel,
 } from './types.js';
 
 export type Operation = 'ADDED' | 'MODIFIED' | 'REMOVED';
 
-export type DeltaEntityType = EntityType | 'requirement' | 'relationship';
+export type DeltaEntityType = EntityType | 'section' | 'relationship';
 
 export interface DeltaEntry {
   operation: Operation;
   entity: DeltaEntityType;
-  /** requirement entries use `<element identity>#<name>` */
+  /** section entries use `<element identity>#<title>` */
   identity: string;
   /** REMOVED carries no content */
   target?: unknown;
@@ -49,7 +49,7 @@ export interface ParsedDelta {
 
 export interface DeltaApplication {
   expected: SemanticModel;
-  /** Storage-addressable identities affected by the delta; requirement entries resolve to their host Element. */
+  /** Storage-addressable identities affected by the delta; section entries resolve to their host Element. */
   touched: Set<string>;
   diagnostics: ModelDiagnostic[];
 }
@@ -71,8 +71,8 @@ function readOperation(value: unknown): Operation | undefined {
   return OPERATIONS.includes(value as Operation) ? (value as Operation) : undefined;
 }
 
-function requirementEntry(operation: Operation, element: string, requirement: Requirement): DeltaEntry {
-  return { operation, entity: 'requirement', identity: `${element}#${requirement.name}`, target: requirement };
+function sectionEntry(operation: Operation, element: string, section: Section): DeltaEntry {
+  return { operation, entity: 'section', identity: `${element}#${section.name}`, target: section };
 }
 
 function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
@@ -102,12 +102,12 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
   const plan = parseDeltaSpec(body);
   if (!Object.values(plan.sectionPresence).some(Boolean)) {
     diagnostics.push(error('MISSING_OPERATION', file,
-      'Requirement entries must appear under ## ADDED/MODIFIED/REMOVED Requirements', identity));
+      'Section entries must appear under ## ADDED/MODIFIED/REMOVED Sections', identity));
     return;
   }
-  for (const block of plan.added) entries.push(requirementEntry('ADDED', identity, parseRequirementBlock(block.name, block.raw)));
-  for (const block of plan.modified) entries.push(requirementEntry('MODIFIED', identity, parseRequirementBlock(block.name, block.raw)));
-  for (const name of plan.removed) entries.push({ operation: 'REMOVED', entity: 'requirement', identity: `${identity}#${name}` });
+  for (const block of plan.added) entries.push(sectionEntry('ADDED', identity, parseSectionBlock(block.name, block.raw)));
+  for (const block of plan.modified) entries.push(sectionEntry('MODIFIED', identity, parseSectionBlock(block.name, block.raw)));
+  for (const name of plan.removed) entries.push({ operation: 'REMOVED', entity: 'section', identity: `${identity}#${name}` });
 }
 
 function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
@@ -225,14 +225,14 @@ function cloneState(base: SemanticModel): ApplyState {
   };
 }
 
-/** Clones a host element plus its requirements array on the first requirement write, so the base is never mutated. */
+/** Clones a host element plus its sections array on the first section write, so the base is never mutated. */
 function ensureOwnedElement(state: ApplyState, host: string): ModelElement | undefined {
   const element = state.elements.get(host);
   if (!element) return undefined;
   if (state.ownedElements.has(host)) return element;
   const owned: ModelElement = {
     declaration: element.declaration,
-    requirements: [...element.requirements],
+    sections: [...element.sections],
   };
   state.elements.set(host, owned);
   state.ownedElements.add(host);
@@ -240,29 +240,29 @@ function ensureOwnedElement(state: ApplyState, host: string): ModelElement | und
 }
 
 function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, diagnostics: ModelDiagnostic[]): void {
-  if (entry.entity === 'requirement') {
+  if (entry.entity === 'section') {
     const [host, ...rest] = entry.identity.split('#');
     const name = rest.join('#');
     const element = state.elements.get(host);
     if (!element) {
-      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Requirement host element does not exist: ${host}`, entry.identity, 'requirement'));
+      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Section host element does not exist: ${host}`, entry.identity, 'section'));
       return;
     }
     const owned = ensureOwnedElement(state, host)!;
-    const index = owned.requirements.findIndex(item => item.name === name);
+    const index = owned.sections.findIndex(item => item.name === name);
     if (entry.operation === 'ADDED') {
       if (index >= 0) {
-        diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED requirement already exists: ${entry.identity}`, entry.identity, 'requirement'));
+        diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED Section already exists: ${entry.identity}`, entry.identity, 'section'));
         return;
       }
-      owned.requirements.push(entry.target as Requirement);
+      owned.sections.push(entry.target as Section);
     } else if (index < 0) {
-      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} requirement does not exist: ${entry.identity}`, entry.identity, 'requirement'));
+      diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `${entry.operation} Section does not exist: ${entry.identity}`, entry.identity, 'section'));
       return;
     } else if (entry.operation === 'REMOVED') {
-      owned.requirements.splice(index, 1);
+      owned.sections.splice(index, 1);
     } else {
-      owned.requirements[index] = entry.target as Requirement;
+      owned.sections[index] = entry.target as Section;
     }
     touched.add(host);
     return;
@@ -289,7 +289,7 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
     const previous = state.elements.get(entry.identity);
     state.elements.set(entry.identity, {
       declaration: entry.target as ElementDeclaration,
-      requirements: previous?.requirements ?? [],
+      sections: previous?.sections ?? [],
     });
   } else collection.set(entry.identity, entry.target);
   touched.add(entry.identity);

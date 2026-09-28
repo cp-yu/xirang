@@ -5,6 +5,7 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
+import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
   QUALITY_CHECKPOINT_STATE_MACHINE,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
@@ -143,6 +144,8 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
     instructions: `Implement tasks from an Xirang change.
 
 ${XIRANG_PHILOSOPHY}
+
+${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${TEST_QUALITY_GUIDANCE}
 

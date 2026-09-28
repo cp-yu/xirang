@@ -10,14 +10,13 @@ title: <title>
 definition: <complete target definition>
 ---
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: <name>
-<normative target-state requirement>
+### Section: <name>
+<normative target-state commitment; body is free — any carrier, any sub-headings>
 
-#### Scenario: <name>
-- **WHEN** <condition>
-- **THEN** <outcome>
+#### Acceptance Case: <name>
+- <observable acceptance result; use this form only inside the key-acceptance-cases Section>
 ```
 
 <!-- metamodel/<kind identity>.md -->

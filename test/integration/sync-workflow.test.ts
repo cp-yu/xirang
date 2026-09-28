@@ -12,11 +12,11 @@ import { readModelTree } from '../../src/core/model/parser.js';
 import { modelRoot } from '../../src/core/model/paths.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-const CONTRACT = '## Requirements\n\n### Requirement: Existing behavior\nThe system SHALL keep behaving.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** it works';
+const CONTRACT = '## Specification\n\n### Section: Existing behavior\nThe system SHALL keep behaving.\n\n#### Acceptance Case: Existing\n- **WHEN** invoked\n- **THEN** it works';
 
 const ADD_ELEMENT = '---\noperation: ADDED\nentity: element-declaration\nidentity: cap.added\nkind: capability\nparent: root\ntitle: Added\ndefinition: Added summary\n---\n\n'
-  + '## ADDED Requirements\n\n### Requirement: Added behavior\nThe system SHALL add behavior.\n\n'
-  + '#### Scenario: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n';
+  + '## ADDED Sections\n\n### Section: Added behavior\nThe system SHALL add behavior.\n\n'
+  + '#### Acceptance Case: Added succeeds\n- **WHEN** added runs\n- **THEN** it succeeds\n';
 
 const ADD_VIEW = '---\noperation: ADDED\nentity: authored-view\nidentity: detail\ninclude: "*"\n---\n';
 
@@ -26,7 +26,7 @@ describe('Semantic Model sync workflow', () => {
   beforeEach(async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-architecture-sync-'));
     await writeProjectModel(root, minimalModel({
-      elements: [{ identity: 'cap.existing', parent: 'root', title: 'Existing', definition: 'Existing summary', requirements: CONTRACT }],
+      elements: [{ identity: 'cap.existing', parent: 'root', title: 'Existing', definition: 'Existing summary', sections: CONTRACT }],
     }));
     await fs.mkdir(path.join(root, '.xirang', 'changes', 'add'), { recursive: true });
   });
@@ -61,7 +61,7 @@ describe('Semantic Model sync workflow', () => {
 
     const after = await readModelTree(modelRoot(root));
     for (const [file, bytes] of before) expect(after.get(file)).toEqual(bytes);
-    expect(after.get('elements/cap.added.md')?.toString('utf8')).toContain('### Requirement: Added behavior');
+    expect(after.get('elements/cap.added.md')?.toString('utf8')).toContain('### Section: Added behavior');
   });
 
   it('rolls back every partition when a prepared write fails', async () => {

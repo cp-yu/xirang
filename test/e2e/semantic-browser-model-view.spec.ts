@@ -316,7 +316,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   expect(removedStyle.outlineWidth).toBe(3)
   expect(removedStyle.outlineColor).toMatch(/255, 159, 10/)
   expect(removedStyle.opacity).toBeCloseTo(0.45, 2)
-  // peer 只有 element 级 REMOVED，无 requirement 变更：只有 outline，无计数徽章。
+  // peer 只有 element 级 REMOVED，无 section 变更：只有 outline，无计数徽章。
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-diff]')).toHaveCount(0)
 
   // The removed leaf→peer relationship keeps its diff badge.

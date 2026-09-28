@@ -260,7 +260,7 @@ describe('Semantic Delta authoring fragment', () => {
       '`operation`',
       '`REMOVED` carries identity only',
       'frontmatter is the Element Declaration Entry',
-      '## MODIFIED Requirements',
+      '## MODIFIED Sections',
       'the frontmatter declares no `operation` and only locates the host Element',
       '`{operation, source, kind, target}`',
       'no `MODIFIED` and no description',
@@ -295,7 +295,7 @@ describe('Element Definition semantics fragment', () => {
       'what it includes, what it excludes',
       'parent, children, and siblings',
       'MUST NOT be a rewrite of the title',
-      'Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios',
+      'Responsibilities, guarantees, constraints, behavior, Sections, and acceptance cases',
       'proposal.md',
       'design.md',
     ]) {
@@ -305,15 +305,14 @@ describe('Element Definition semantics fragment', () => {
 });
 
 describe('Element Contract semantics fragment', () => {
-  it('defines the shared Contract, Requirement, and Scenario boundaries', () => {
+  it('defines the shared Contract, Section, and Acceptance Case boundaries', () => {
     for (const token of [
       'at its own abstraction level',
       'added, modified, or removed on its own',
-      'do not split mechanically by sentence, clause, `SHALL` count, or target Requirement count',
-      'Scenario',
-      'concretizing only the host Requirement',
-      'do not by default exhaust',
-      'not an independent Semantic Delta Entry',
+      'do not split mechanically by sentence, clause, `SHALL` count, or target Section count',
+      'Acceptance Case',
+      '`### Section:` headers are the only structural unit inside `## Specification`',
+      '`#### Acceptance Case:` is used only inside the key-acceptance-cases Section',
     ]) {
       expect(ELEMENT_CONTRACT_SEMANTICS).toContain(token);
     }
@@ -324,9 +323,9 @@ describe('Element Contract semantics fragment', () => {
     expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('Default file naming');
   });
 
-  it('requires Scenarios to describe observable behavior rather than generated layout', () => {
-    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('observable behavior');
-    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('document formatting');
+  it('keeps Acceptance Cases as key-case-only notation rather than a general structural requirement', () => {
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('It is not a general structural requirement');
+    expect(ELEMENT_CONTRACT_SEMANTICS).toContain('do not demand Acceptance Cases from other Sections');
     expect(ELEMENT_CONTRACT_SEMANTICS).not.toContain('## Workflow Stage');
   });
 });

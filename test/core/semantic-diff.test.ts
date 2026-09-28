@@ -13,8 +13,8 @@ function base(): SemanticModel {
     ],
     relationshipKinds: [{ identity: 'organizes', body: '' }],
     elements: [
-      { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, requirements: [] },
-      { declaration: { identity: 'perspective.browser', kind: 'perspective', parent: 'root', title: 'Browser', definition: 'Browser.' }, requirements: [{ name: 'Navigates', body: 'SHALL navigate.', scenarios: [] }] },
+      { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, sections: [] },
+      { declaration: { identity: 'perspective.browser', kind: 'perspective', parent: 'root', title: 'Browser', definition: 'Browser.' }, sections: [{ name: 'Navigates', body: 'SHALL navigate.', acceptanceCases: [] }] },
     ],
     relationships: [{ source: 'perspective.browser', kind: 'organizes', target: 'root' }],
     views: [{ identity: 'overview', include: '*' }],

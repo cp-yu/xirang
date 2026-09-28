@@ -2,6 +2,7 @@
  * Snack workflow template (code-first artifact reconciliation).
  */
 import type { SkillTemplate } from '../types.js';
+import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
   ARCHITECTURE_GENERATE_DELTA,
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
@@ -22,6 +23,8 @@ export function getSnackSkillTemplate(): SkillTemplate {
     instructions: `Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
 
 ${XIRANG_PHILOSOPHY}
+
+${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${ELEMENT_DEFINITION_SEMANTICS}
 
@@ -51,8 +54,8 @@ ${XIRANG_SHARED_CONTEXT}
    - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, \`rg\`, and \`read\`. Never read \`.codegraph/codegraph.db\`.
    - Treat code locations and call/import edges as implementation evidence, not as proof that the Xirang Semantic Model must change. Do not create elements from uncertain file-name inference.
 5. Determine Element Contract impact.
-   - Select only the candidate Element identities whose current Contracts are needed, then run one batch \`xirang arch query <selected-identities...> --contract --json\` and keep their current Requirements.
-   - Add an identity to **Modified Specs** only when the observable requirements of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
+   - Select only the candidate Element identities whose current Contracts are needed, then run one batch \`xirang arch query <selected-identities...> --contract --json\` and keep their current Sections.
+   - Add an identity to **Modified Specs** only when the observable Sections of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
    - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage \`[REVIEW NEEDED]\`.
    - Behavior-preserving refactors create no Contract delta; later Checks use \`Preserves:\` against formal Element Contracts.
 6. Determine structural impact.
@@ -72,13 +75,13 @@ ${XIRANG_SHARED_CONTEXT}
 9. Reconcile Element Contract deltas in \`elements/<identity>.md\`.
    - Run \`xirang instructions specs --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Create or update only the identities declared by the Contract scope. The default unit name is \`<identity>.md\`; a file name expresses nothing, so deviating from the default changes no model semantics.
-   - Follow returned \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, and \`## REMOVED Requirements\` rules with exact title matching and canonical unlabeled Requirement/Scenario syntax. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Preserve unrelated current delta content.
+   - Follow returned \`## ADDED Sections\`, \`## MODIFIED Sections\`, and \`## REMOVED Sections\` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.
    - Run \`xirang instructions design --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
    ${ARCHITECTURE_GENERATE_DELTA}
-   - Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter.
+   - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
 13. Run \`xirang validate --change "<name>" --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
 14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
@@ -96,7 +99,7 @@ ${XIRANG_SHARED_CONTEXT}
 
 ${ARTIFACT_DOC_LANGUAGE_CONTRACT}
 
-Preserve canonical headings, IDs, schema keys, BDD keywords, paths, commands, and code identifiers.`,
+Preserve canonical headings, IDs, schema keys, paths, commands, and code identifiers.`,
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },

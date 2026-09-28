@@ -41,7 +41,7 @@ export type ArchiveBlockReason = 'NOT_FINALIZED' | 'ABORTED_UNSAFE';
 export interface QualityIssue {
   severity: 'CRITICAL' | 'WARNING' | 'SUGGESTION' | string;
   message: string;
-  requirement?: string;
+  section?: string;
   task?: string;
   recommendation?: string;
   evidence?: string[];
@@ -165,7 +165,7 @@ export interface ReviewWriteBackEntry {
   taskLine?: string;
   action?: string;
   correctionType?: string;
-  requirement?: string;
+  section?: string;
   summary?: string;
   nextAction?: string;
 }

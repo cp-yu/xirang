@@ -29,7 +29,7 @@ export async function getActiveChangeIds(root: string = process.cwd()): Promise<
 export async function getContractElementIds(root: string = process.cwd()): Promise<string[]> {
   const { model } = await parseSemanticModel(modelRoot(root));
   return model.elements
-    .filter(element => element.requirements.length > 0)
+    .filter(element => element.sections.length > 0)
     .map(element => element.declaration.identity)
     .sort();
 }

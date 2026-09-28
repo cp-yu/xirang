@@ -64,19 +64,19 @@ describe('artifact-workflow CLI commands', () => {
     if (artifacts.includes('specs')) {
       const elementsDir = path.join(changeDir, 'elements');
       await fs.mkdir(elementsDir, { recursive: true });
-      await fs.writeFile(path.join(elementsDir, 'test-element.md'), `## ADDED Requirements
+      await fs.writeFile(path.join(elementsDir, 'test-element.md'), `## ADDED Sections
 
-### Requirement: Propose smart routing
+### Section: Propose smart routing
 
-#### Scenario: 复用 Design Summary
+#### Acceptance Case: 复用 Design Summary
 
-### Requirement: Master agent 必须拆解粗粒度任务为 TDD 步骤
+### Section: Master agent 必须拆解粗粒度任务为 TDD 步骤
 
-#### Scenario: 读取粗粒度任务
+#### Acceptance Case: 读取粗粒度任务
 
-### Requirement: Apply Phase 0 pending Checks
+### Section: Apply Phase 0 pending Checks
 
-#### Scenario: 拆解为可执行工作
+#### Acceptance Case: 拆解为可执行工作
 `);
     }
 
@@ -375,7 +375,7 @@ describe('artifact-workflow CLI commands', () => {
       expect(json.template).toContain('### Task 1:');
       expect(json.template).toContain('**Goal**:');
       expect(json.template).toContain('**Files**:');
-      expect(json.template).toContain('**Requirements**:');
+      expect(json.template).toContain('**Sections**:');
       expect(json.template).toContain('#### Checks');
       expect(json.instruction).toContain('coarse-grained task list');
       expect(json.instruction).toContain('executable Checks');
@@ -614,13 +614,13 @@ rules: {}
 - Modify: \`src/core/templates/workflows/propose.ts\`
 - Test: \`test/core/templates/propose-template.test.ts\`
 
-**Requirements**:
+**Sections**:
 - Reuse a confirmed Design Summary when present
 
 #### Checks
 
 - [x] C1 Verify Design Summary reuse
-  - Verifies: \`elements/test-element.md\` / Requirement "Propose smart routing" / Scenario "复用 Design Summary"
+  - Verifies: \`elements/test-element.md\` / Section "Propose smart routing" / AcceptanceCase "复用 Design Summary"
   - Command: \`npm run test -- test/core/templates/propose-template.test.ts\`
   - Expect: template mentions Design Summary reuse
 
@@ -632,13 +632,13 @@ rules: {}
 - Modify: \`src/commands/workflow/instructions.ts\`
 - Test: \`test/commands/artifact-workflow.test.ts\`
 
-**Requirements**:
+**Sections**:
 - Keep unfinished tasks visible to apply
 
 #### Checks
 
 - [ ] C2 Verify pending coarse task
-  - Verifies: \`elements/test-element.md\` / Requirement "Master agent 必须拆解粗粒度任务为 TDD 步骤" / Scenario "读取粗粒度任务"
+  - Verifies: \`elements/test-element.md\` / Section "Master agent 必须拆解粗粒度任务为 TDD 步骤" / AcceptanceCase "读取粗粒度任务"
   - Command: \`npm run test -- test/commands/artifact-workflow.test.ts\`
   - Expect: apply progress reports one remaining task
 `;
@@ -678,14 +678,14 @@ rules: {}
 - Modify: \`src/core/templates/workflows/apply-change.ts\`
 - Test: \`test/core/templates/apply-change.test.ts\`
 
-**Requirements**:
+**Sections**:
 - Execute behavior Checks through strict red/green TDD
 - Mark checks complete after red/green evidence passes
 
 #### Checks
 
 - [ ] C1 Verify strict apply
-  - Verifies: \`elements/test-element.md\` / Requirement "Apply Phase 0 pending Checks" / Scenario "拆解为可执行工作"
+  - Verifies: \`elements/test-element.md\` / Section "Apply Phase 0 pending Checks" / AcceptanceCase "拆解为可执行工作"
   - Command: \`npm run test -- test/core/templates/apply-change.test.ts\`
   - Expect: apply instructions include strict red/green TDD
 `;
@@ -1115,7 +1115,7 @@ context: Updated context
       const json = JSON.parse(result.stdout);
       const instruction = json.instruction;
 
-      expect(instruction).toContain('REMOVED Requirement');
+      expect(instruction).toContain('REMOVED Section');
       expect(instruction).toContain('Preserves');
       expect(instruction).toContain('Delete:');
       expect(instruction).toContain('Deletion work');

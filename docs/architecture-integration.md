@@ -26,12 +26,11 @@ title: Authorize
 definition: Represents the payment authorization responsibility and boundary.
 ---
 
-## Requirements
+## Specification
 
-### Requirement: Authorize valid payments
+### Section: Authorize valid payments
 The operation SHALL authorize a valid payment request.
 
-#### Scenario: Valid request succeeds
 - **WHEN** a valid payment request is submitted
 - **THEN** authorization succeeds
 ```
@@ -70,7 +69,7 @@ A Change uses the same four partitions under `.xirang/changes/<name>/`. Each Sem
 └── views/
 ```
 
-Requirement Entries live in the body of their host Element unit under `## ADDED Requirements`, `## MODIFIED Requirements`, or `## REMOVED Requirements`. Relationship Entries use ADDED or REMOVED because the complete triple is their identity.
+Section Entries live in the body of their host Element unit under `## ADDED Sections`, `## MODIFIED Sections`, or `## REMOVED Sections`. Relationship Entries use ADDED or REMOVED because the complete triple is their identity.
 
 Validate the Expected Semantic Model before implementation or sync:
 

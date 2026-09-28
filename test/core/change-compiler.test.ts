@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { compileChange } from '../../src/core/change-compiler.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-const OLD_CONTRACT = '## Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** result';
+const OLD_CONTRACT = '## Specification\n\n### Section: Old behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Existing acceptanceCase\n- **WHEN** old\n- **THEN** result';
 
 describe('compileChange', () => {
   let root: string;
@@ -21,7 +21,7 @@ describe('compileChange', () => {
       relationshipKinds: [{ identity: 'invokes' }],
       elements: [
         { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Root' },
-        { identity: 'old.id', parent: 'project.root', title: 'Old', definition: 'Old summary', requirements: OLD_CONTRACT },
+        { identity: 'old.id', parent: 'project.root', title: 'Old', definition: 'Old summary', sections: OLD_CONTRACT },
         { identity: 'old.child', parent: 'old.id', title: 'Child', definition: 'Child summary' },
         { identity: 'consumer.id', parent: 'project.root', title: 'Consumer', definition: 'Consumer summary' },
       ],
@@ -46,7 +46,7 @@ describe('compileChange', () => {
   it('compiles Declaration and Contract deltas from one immutable Formal snapshot', async () => {
     await writeChangeDelta(root, 'change-a', {
       'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Changed summary\n---\n\n'
-        + '## MODIFIED Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave differently.\n\n#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** changed result\n',
+        + '## MODIFIED Sections\n\n### Section: Old behavior\nThe system SHALL behave differently.\n\n#### Acceptance Case: Existing acceptanceCase\n- **WHEN** old\n- **THEN** changed result\n',
     });
 
     const result = await compileChange(root, 'change-a');
@@ -55,10 +55,10 @@ describe('compileChange', () => {
     expect(result.valid).toBe(true);
     const compiled = result.target!.elements.find(item => item.declaration.identity === 'old.id')!;
     expect(compiled.declaration.definition).toBe('Changed summary');
-    expect(compiled.requirements[0].body).toContain('behave differently');
+    expect(compiled.sections[0].body).toContain('behave differently');
     expect(result.diff.entries).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'element-declaration', identity: 'old.id', operation: 'MODIFIED', declaredOperation: 'MODIFIED' }),
-      expect.objectContaining({ kind: 'requirement', identity: 'old.id#Old behavior', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'section', identity: 'old.id#Old behavior', operation: 'MODIFIED' }),
     ]));
   });
 
@@ -129,11 +129,11 @@ describe('compileChange', () => {
   it('validates the Expected Semantic Model, not just the delta', async () => {
     await writeProjectModel(root, minimalModel({
       elementKinds: [{ identity: 'contracted', contract: 'required', parents: ['project'] }],
-      elements: [{ identity: 'old.id', kind: 'contracted', parent: 'root', requirements: OLD_CONTRACT }],
+      elements: [{ identity: 'old.id', kind: 'contracted', parent: 'root', sections: OLD_CONTRACT }],
     }));
     await writeChangeDelta(root, 'remove-contract', {
       'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: contracted\nparent: root\ntitle: Old\ndefinition: Old summary\n---\n\n'
-        + '## REMOVED Requirements\n\n### Requirement: Old behavior\n',
+        + '## REMOVED Sections\n\n### Section: Old behavior\n',
     });
 
     const result = await compileChange(root, 'remove-contract');
@@ -157,12 +157,12 @@ describe('compileChange', () => {
       .toEqual(['consumer.id', 'old.id', 'project.root']);
   });
 
-  it('derives property and Scenario entries from Formal versus Expected comparison', async () => {
+  it('derives property and AcceptanceCase entries from Formal versus Expected comparison', async () => {
     await writeChangeDelta(root, 'detail', {
       'elements/old.id.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Changed summary\n---\n\n'
-        + '## MODIFIED Requirements\n\n### Requirement: Old behavior\nThe system SHALL behave differently.\n\n'
-        + '#### Scenario: Existing scenario\n- **WHEN** old\n- **THEN** changed result\n\n'
-        + '#### Scenario: New scenario\n- **WHEN** new\n- **THEN** result\n',
+        + '## MODIFIED Sections\n\n### Section: Old behavior\nThe system SHALL behave differently.\n\n'
+        + '#### Acceptance Case: Existing acceptanceCase\n- **WHEN** old\n- **THEN** changed result\n\n'
+        + '#### Acceptance Case: New acceptanceCase\n- **WHEN** new\n- **THEN** result\n',
     });
 
     const result = await compileChange(root, 'detail');
@@ -171,10 +171,10 @@ describe('compileChange', () => {
     expect(element?.children).toEqual([
       expect.objectContaining({ kind: 'property', identity: 'old.id.definition', operation: 'MODIFIED' }),
     ]);
-    const requirement = result.diff.entries.find(entry => entry.kind === 'requirement' && entry.identity === 'old.id#Old behavior');
-    expect(requirement?.children).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'scenario', identity: 'old.id#Old behavior#Existing scenario', operation: 'MODIFIED' }),
-      expect.objectContaining({ kind: 'scenario', identity: 'old.id#Old behavior#New scenario', operation: 'ADDED' }),
+    const section = result.diff.entries.find(entry => entry.kind === 'section' && entry.identity === 'old.id#Old behavior');
+    expect(section?.children).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'old.id#Old behavior#Existing acceptanceCase', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'old.id#Old behavior#New acceptanceCase', operation: 'ADDED' }),
     ]));
   });
 

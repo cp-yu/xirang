@@ -7,7 +7,7 @@ export interface ArchitectureSearchOptions {
 }
 
 export interface ArchitectureSearchEvidence {
-  field: 'elementId' | 'title' | 'definition' | 'requirement';
+  field: 'elementId' | 'title' | 'definition' | 'section';
   text: string;
 }
 
@@ -62,8 +62,8 @@ export async function searchArchitecture(
     addEvidence(evidence, searchQuery, 'title', declaration.title, 1, true);
     addEvidence(evidence, searchQuery, 'title', declaration.title, 2);
     addEvidence(evidence, searchQuery, 'definition', declaration.definition, 3);
-    for (const requirement of element.requirements) {
-      addEvidence(evidence, searchQuery, 'requirement', requirement.name, 4);
+    for (const section of element.sections) {
+      addEvidence(evidence, searchQuery, 'section', section.name, 4);
     }
 
     if (evidence.length === 0) continue;

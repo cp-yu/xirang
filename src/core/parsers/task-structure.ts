@@ -9,9 +9,9 @@ export interface TaskStructureIssue {
     | 'malformed-task-heading'
     | 'missing-task-goal'
     | 'missing-task-files'
-    | 'missing-task-requirements'
+    | 'missing-task-sections'
     | 'missing-task-checks'
-    | 'too-many-task-requirements'
+    | 'too-many-task-sections'
     | 'malformed-action-id'
     | 'malformed-check-id'
     | 'missing-covers'
@@ -20,8 +20,8 @@ export interface TaskStructureIssue {
     | 'missing-verifies'
     | 'invalid-verifies-path'
     | 'missing-verifies-element'
-    | 'missing-verifies-requirement'
-    | 'missing-verifies-scenario'
+    | 'missing-verifies-section'
+    | 'missing-verifies-acceptance-case'
     | 'verifies-cross-check-skipped'
     | 'missing-evidence-field'
     | 'task-file-conflict'
@@ -52,9 +52,9 @@ interface TaskItem {
   preserves?: string;
 }
 
-interface ContractRequirement {
+interface ContractSection {
   name: string;
-  scenarios: Set<string>;
+  acceptanceCases: Set<string>;
   isRemoved?: boolean;
 }
 
@@ -78,13 +78,13 @@ const CHECKBOX_RE = /^\s*-\s+\[[ xX]\]\s+(\S+)/;
 const ACTION_ID_RE = /^A\d+$/;
 const CHECK_ID_RE = /^C\d+$/;
 const FIELD_RE = /^\s*-\s+(Covers|Verifies|Preserves|Command|Evidence|Expect):\s*(.*)$/;
-const TASK_FIELD_RE = /^\*\*(Goal|Files|Requirements)\*\*:\s*(.*)$/;
+const TASK_FIELD_RE = /^\*\*(Goal|Files|Sections)\*\*:\s*(.*)$/;
 const TASK_CHECKS_HEADING_RE = /^####\s+Checks\s*$/;
 const ELEMENT_PATH_RE = /`([^`]+)`/;
-const REQUIREMENT_RE = /\bRequirement\s+"([^"]+)"/;
-const REMOVED_REQUIREMENT_RE = /\bREMOVED\s+Requirement\s+"([^"]+)"/;
-const SCENARIOS_RE = /\bScenarios?\s+(.+)$/;
-const SCENARIO_NAME_RE = /"([^"]+)"/g;
+const SECTION_RE = /\bSection\s+"([^"]+)"/;
+const REMOVED_SECTION_RE = /\bREMOVED\s+Section\s+"([^"]+)"/;
+const ACCEPTANCE_CASES_RE = /\bAcceptance\s+Cases?\s+(.+)$/;
+const ACCEPTANCE_CASE_NAME_RE = /"([^"]+)"/g;
 /** An Element Contract is the body of its Element unit; the unit name is `<identity>.md`. */
 const ELEMENTS_PARTITION = 'elements';
 const UNIT_FILE_RE = /^[A-Za-z0-9._-]+\.md$/;
@@ -184,16 +184,16 @@ function validateCoarseTasks(
     if (!fields.has('Files')) {
       issues.push(error('missing-task-files', `Task ${task.id} is missing Files.`, task.line));
     }
-    if (!fields.has('Requirements')) {
-      issues.push(error('missing-task-requirements', `Task ${task.id} is missing Requirements.`, task.line));
+    if (!fields.has('Sections')) {
+      issues.push(error('missing-task-sections', `Task ${task.id} is missing Sections.`, task.line));
     }
     if (!fields.has('Checks')) {
       issues.push(error('missing-task-checks', `Task ${task.id} is missing Checks.`, task.line));
     }
 
-    const requirementCount = countListItemsInField(lines, mask, fields.get('Requirements'), task.range.end);
-    if (requirementCount > 5) {
-      issues.push(error('too-many-task-requirements', `Task ${task.id} must not have more than 5 Requirements.`, task.line));
+    const sectionCount = countListItemsInField(lines, mask, fields.get('Sections'), task.range.end);
+    if (sectionCount > 5) {
+      issues.push(error('too-many-task-sections', `Task ${task.id} must not have more than 5 Sections.`, task.line));
     }
 
     const taskChecks = fields.has('Checks')
@@ -301,24 +301,24 @@ function validateVerifiesField(
     return;
   }
 
-  const contract = parseContractRequirements(fs.readFileSync(path.join(changeDir, parsed.elementPath), 'utf8'));
-  const requirement = contract.get(parsed.requirement);
-  if (!requirement) {
+  const contract = parseContractSections(fs.readFileSync(path.join(changeDir, parsed.elementPath), 'utf8'));
+  const section = contract.get(parsed.section);
+  if (!section) {
     issues.push(
       error(
-        'missing-verifies-requirement',
-        `Check ${item.id} Verifies references missing requirement "${parsed.requirement}".`,
+        'missing-verifies-section',
+        `Check ${item.id} Verifies references missing Section "${parsed.section}".`,
         item.line
       )
     );
     return;
   }
 
-  if (parsed.isRemoved && !requirement.isRemoved) {
+  if (parsed.isRemoved && !section.isRemoved) {
     issues.push(
       error(
-        'missing-verifies-requirement',
-        `Check ${item.id} Verifies references "${parsed.requirement}" as REMOVED, but it is not in a REMOVED Requirements section.`,
+        'missing-verifies-section',
+        `Check ${item.id} Verifies references "${parsed.section}" as REMOVED, but it is not in a REMOVED Sections section.`,
         item.line
       )
     );
@@ -326,12 +326,12 @@ function validateVerifiesField(
   }
 
   if (!parsed.isRemoved) {
-    for (const scenario of parsed.scenarios) {
-      if (!requirement.scenarios.has(scenario)) {
+    for (const acceptanceCase of parsed.acceptanceCases) {
+      if (!section.acceptanceCases.has(acceptanceCase)) {
         issues.push(
           error(
-            'missing-verifies-scenario',
-            `Check ${item.id} Verifies references missing scenario "${scenario}".`,
+            'missing-verifies-acceptance-case',
+            `Check ${item.id} Verifies references missing Acceptance Case "${acceptanceCase}".`,
             item.line
           )
         );
@@ -371,25 +371,25 @@ function validatePreservesField(
     return;
   }
 
-  const contract = parseContractRequirements(fs.readFileSync(formalElementPath, 'utf8'));
-  const requirement = contract.get(parsed.requirement);
-  if (!requirement) {
+  const contract = parseContractSections(fs.readFileSync(formalElementPath, 'utf8'));
+  const section = contract.get(parsed.section);
+  if (!section) {
     issues.push(
       error(
-        'missing-verifies-requirement',
-        `Check ${item.id} Preserves references missing requirement "${parsed.requirement}".`,
+        'missing-verifies-section',
+        `Check ${item.id} Preserves references missing Section "${parsed.section}".`,
         item.line
       )
     );
     return;
   }
 
-  for (const scenario of parsed.scenarios) {
-    if (!requirement.scenarios.has(scenario)) {
+  for (const acceptanceCase of parsed.acceptanceCases) {
+    if (!section.acceptanceCases.has(acceptanceCase)) {
       issues.push(
         error(
-          'missing-verifies-scenario',
-          `Check ${item.id} Preserves references missing scenario "${scenario}".`,
+          'missing-verifies-acceptance-case',
+          `Check ${item.id} Preserves references missing Acceptance Case "${acceptanceCase}".`,
           item.line
         )
       );
@@ -406,38 +406,38 @@ function projectRootForChangeDir(changeDir: string): string {
     : path.dirname(resolved);
 }
 
-function parseVerifies(value: string): { elementPath: string; requirement: string; scenarios: string[]; isRemoved?: boolean } | undefined {
+function parseVerifies(value: string): { elementPath: string; section: string; acceptanceCases: string[]; isRemoved?: boolean } | undefined {
   const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
 
-  const removedMatch = value.match(REMOVED_REQUIREMENT_RE);
+  const removedMatch = value.match(REMOVED_SECTION_RE);
   if (removedMatch) {
-    const requirement = removedMatch[1]?.trim();
-    if (!elementPath || !requirement) {
+    const section = removedMatch[1]?.trim();
+    if (!elementPath || !section) {
       return undefined;
     }
-    return { elementPath, requirement, scenarios: [], isRemoved: true };
+    return { elementPath, section, acceptanceCases: [], isRemoved: true };
   }
 
   return parseAnchorReference(value);
 }
 
-function parsePreserves(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
+function parsePreserves(value: string): { elementPath: string; section: string; acceptanceCases: string[] } | undefined {
   return parseAnchorReference(value);
 }
 
-function parseAnchorReference(value: string): { elementPath: string; requirement: string; scenarios: string[] } | undefined {
+function parseAnchorReference(value: string): { elementPath: string; section: string; acceptanceCases: string[] } | undefined {
   const elementPath = value.match(ELEMENT_PATH_RE)?.[1]?.trim();
-  const requirementMatch = value.match(REQUIREMENT_RE);
-  const requirement = requirementMatch?.[1]?.trim();
-  const remainder = requirementMatch ? value.slice(requirementMatch.index! + requirementMatch[0].length) : value;
-  const scenarioText = remainder.match(SCENARIOS_RE)?.[1] ?? '';
-  const scenarios = [...scenarioText.matchAll(SCENARIO_NAME_RE)].map((match) => match[1].trim());
+  const sectionMatch = value.match(SECTION_RE);
+  const section = sectionMatch?.[1]?.trim();
+  const remainder = sectionMatch ? value.slice(sectionMatch.index! + sectionMatch[0].length) : value;
+  const acceptanceCaseText = remainder.match(ACCEPTANCE_CASES_RE)?.[1] ?? '';
+  const acceptanceCases = [...acceptanceCaseText.matchAll(ACCEPTANCE_CASE_NAME_RE)].map((match) => match[1].trim());
 
-  if (!elementPath || !requirement || scenarios.length === 0 || scenarios.some((scenario) => !scenario)) {
+  if (!elementPath || !section || acceptanceCases.some((acceptanceCase) => !acceptanceCase)) {
     return undefined;
   }
 
-  return { elementPath, requirement, scenarios };
+  return { elementPath, section, acceptanceCases };
 }
 
 function listChangeElementUnits(changeDir: string): Set<string> {
@@ -489,33 +489,33 @@ function isValidFormalElementPath(elementPath: string): boolean {
   );
 }
 
-function parseContractRequirements(content: string): Map<string, ContractRequirement> {
-  const requirements = new Map<string, ContractRequirement>();
-  let current: ContractRequirement | undefined;
+function parseContractSections(content: string): Map<string, ContractSection> {
+  const sections = new Map<string, ContractSection>();
+  let current: ContractSection | undefined;
   let inRemovedSection = false;
 
   for (const line of content.replace(/\r\n?/g, '\n').split('\n')) {
-    const sectionHeader = line.match(/^##\s+(REMOVED|ADDED|MODIFIED)\s+Requirements\s*$/);
+    const sectionHeader = line.match(/^##\s+(REMOVED|ADDED|MODIFIED)\s+Sections\s*$/);
     if (sectionHeader) {
       inRemovedSection = sectionHeader[1] === 'REMOVED';
       current = undefined;
       continue;
     }
 
-    const requirement = line.match(/^###\s+Requirement:\s+(.+?)\s*$/);
-    if (requirement) {
-      current = { name: requirement[1], scenarios: new Set(), isRemoved: inRemovedSection };
-      requirements.set(current.name, current);
+    const section = line.match(/^###\s+Section:\s+(.+?)\s*$/);
+    if (section) {
+      current = { name: section[1], acceptanceCases: new Set(), isRemoved: inRemovedSection };
+      sections.set(current.name, current);
       continue;
     }
 
-    const scenario = line.match(/^####\s+Scenario:\s+(.+?)\s*$/);
-    if (scenario && current && !inRemovedSection) {
-      current.scenarios.add(scenario[1]);
+    const acceptanceCase = line.match(/^####\s+Acceptance Case:\s+(.+?)\s*$/);
+    if (acceptanceCase && current && !inRemovedSection) {
+      current.acceptanceCases.add(acceptanceCase[1]);
     }
   }
 
-  return requirements;
+  return sections;
 }
 
 function parseCoarseTasks(lines: string[], mask: boolean[]): CoarseTask[] {

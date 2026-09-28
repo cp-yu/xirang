@@ -119,12 +119,12 @@ describe('propose template post-validation flow', () => {
     }
   });
 
-  it('authors Contract deltas from formal requirement titles without check-delta', () => {
+  it('authors Contract deltas from formal section titles without check-delta', () => {
     const template = getXirangProposeSkillTemplate();
-    expect(template.instructions).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
+    expect(template.instructions).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
-    expect(template).not.toHaveProperty('referenceFiles');
+    expect(template.referenceFiles).toEqual([]);
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
@@ -137,12 +137,12 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('### Task N:');
       expect(body).toContain('Goal');
       expect(body).toContain('Files');
-      expect(body).toContain('Requirements');
+      expect(body).toContain('Sections');
       expect(body).toContain('Checks');
       expect(body).toContain('Covers:');
       expect(body).toContain('Verifies:');
       expect(body).toContain('change-local `Verifies:` Element unit paths');
-      expect(body).toContain('Requirement/Scenario references');
+      expect(body).toContain('Section references');
       expect(body).toContain('Command:');
       expect(body).toContain('Evidence:');
       expect(body).toContain('Expect:');
@@ -150,7 +150,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain(TEST_QUALITY_GUIDANCE);
       expect(body).not.toContain('Do NOT judge whether a check is semantically sufficient');
       expect(body).toContain('Apply Test Quality Guidance when compiling verification work');
-      expect(body).toContain('Do not create Checks solely to match Scenario count');
+      expect(body).toContain('Do not create Checks solely to match Acceptance Case count');
       expect(body).toContain('Test action: reuse, modify, add, delete, or one-time');
     }
   });
@@ -162,11 +162,11 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('Production code, configuration, generated surfaces, and tests');
     expect(body).toContain('MUST remain in one task');
     expect(body).toContain('each task reaches its own GREEN independently');
-    expect(body).toContain('cross-check Goals, Files, Requirements, and Checks');
+    expect(body).toContain('cross-check Goals, Files, Sections, and Checks');
     expect(body).toContain('persistent tests only lock wording');
     expect(body).toContain('depends only on an earlier task that is already GREEN');
     expect(body).toMatch(/a task's RED\/GREEN cycle MUST NOT depend on a later task/i);
-    expect(body).toContain('Do not split tasks by component, module, directory, file type, Requirement count, or Scenario count');
+    expect(body).toContain('Do not split tasks by component, module, directory, or file type');
     expect(body).toContain('reconcile those Checks and task boundaries before declaring the Change ready for Apply');
   });
 
@@ -239,7 +239,7 @@ describe('propose template post-validation flow', () => {
   it('uses proposal Behavior Source as the Element Contract delta input', () => {
     const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('for exactly the identities declared under proposal `Behavior Source`');
-    expect(body).toMatch(/read the exact Requirement titles from the formal Element Contract/i);
+    expect(body).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(body).not.toContain('xirang check-delta');
   });
 
@@ -299,10 +299,10 @@ describe('propose template post-validation flow', () => {
       expect(body).not.toContain('xirang diff --change "<name>" --write');
       expect(body).not.toContain('.xirang/changes/<name>/effective-change.md');
       expect(body).not.toContain('effective-change report');
-      expect(body).not.toContain('xirang scenario-labels');
-      expect(body).not.toContain('#### Scenario: [ADDED] <title>');
-      expect(body).not.toContain('#### Scenario: [MODIFIED] <title>');
-      expect(body).not.toContain('#### Scenario: [REMOVED] <title>');
+      expect(body).not.toContain('xirang acceptanceCase-labels');
+      expect(body).not.toContain('#### Acceptance Case: [ADDED] <title>');
+      expect(body).not.toContain('#### Acceptance Case: [MODIFIED] <title>');
+      expect(body).not.toContain('#### Acceptance Case: [REMOVED] <title>');
     }
   });
 
@@ -315,7 +315,7 @@ describe('propose template post-validation flow', () => {
   it('uses the shared document language contract for proseLanguage boundaries', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('Document Language Contract');
-      expect(body).toContain('task titles, check names, Requirement titles, Scenario titles');
+      expect(body).toContain('task titles, check names, Section titles, Acceptance Case titles');
       expect(body).toContain('Expect/Evidence descriptions');
       expect(body).toContain('English project terminology may remain embedded');
       expect(body).toContain('ordinary English sentences');
@@ -340,7 +340,7 @@ describe('propose template post-validation flow', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('**One-time Verification**');
       expect(body).toContain('no persistent test file');
-      expect(body).toContain('Verifies: <path> REMOVED Requirement');
+      expect(body).toContain('Verifies: <path> REMOVED Section');
     }
   });
 });

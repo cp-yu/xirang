@@ -1348,9 +1348,9 @@ rules:
         expect.objectContaining({ key: 'architecture', scope: 'global' }),
       ]);
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Use 中文 for natural-language prose');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('task titles, check names, Requirement titles, Scenario titles');
+      expect(bundle.prompt.compiledLines.join('\n')).toContain('task titles, check names, Section titles, Acceptance Case titles');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Expect/Evidence descriptions');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('exact existing Requirement titles required for MODIFIED matching');
+      expect(bundle.prompt.compiledLines.join('\n')).toContain('exact existing Section titles required for MODIFIED matching');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('English project terminology may remain embedded');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('CRITICAL: All natural-language prose');
       expect(bundle.prompt.compiledLines.join('\n')).toContain('Tech stack: TypeScript');
@@ -1564,7 +1564,7 @@ rules:
       expect(runtimeProjection.fragments).toEqual([
         expect.objectContaining({ key: 'proseLanguage' }),
       ]);
-      expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('task titles, check names, Requirement titles, Scenario titles');
+      expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('task titles, check names, Section titles, Acceptance Case titles');
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('ordinary English sentences');
       expect(runtimeProjection.fragments[0].lines.join('\n')).toContain('CRITICAL: All natural-language prose');
     });

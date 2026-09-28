@@ -19,25 +19,25 @@ const CAP_A = [
   'definition: First capability',
   '---',
   '',
-  '## Requirements',
+  '## Specification',
   '',
-  '### Requirement: First',
+  '### Section: First',
   '',
   'SHALL come first.',
   '',
-  '#### Scenario: One',
+  '#### Acceptance Case: One',
   '',
   '- THEN one',
   '',
-  '#### Scenario: Two',
+  '#### Acceptance Case: Two',
   '',
   '- THEN two',
   '',
-  '### Requirement: Second',
+  '### Section: Second',
   '',
   'SHALL come second.',
   '',
-  '#### Scenario: Second case',
+  '#### Acceptance Case: Second case',
   '',
   '- THEN second',
   '',
@@ -50,7 +50,7 @@ const MODEL: Record<string, string> = {
   'metamodel/invokes.md': '---\nentity: relationship-kind\nidentity: invokes\nsourceKinds:\n  - capability\ntargetKinds:\n  - capability\n---\n',
   'elements/root.md': '---\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Project root\n---\n',
   'elements/cap.a.md': CAP_A,
-  'elements/cap.b.md': '---\nentity: element-declaration\nidentity: cap.b\nkind: capability\nparent: root\ntitle: B\ndefinition: Second capability\n---\n\n## Requirements\n\n### Requirement: Only\n\nSHALL hold.\n\n#### Scenario: Only case\n\n- THEN it holds\n',
+  'elements/cap.b.md': '---\nentity: element-declaration\nidentity: cap.b\nkind: capability\nparent: root\ntitle: B\ndefinition: Second capability\n---\n\n## Specification\n\n### Section: Only\n\nSHALL hold.\n\n#### Acceptance Case: Only case\n\n- THEN it holds\n',
   'relationships/invokes.yaml': 'relationships:\n  - source: cap.a\n    kind: invokes\n    target: cap.b\n',
   'views/overview.md': '---\nentity: authored-view\nidentity: overview\ninclude: "*"\ntitle: Overview\n---\n',
 };
@@ -67,19 +67,19 @@ const DELTA: Record<string, string> = {
     'definition: First capability',
     '---',
     '',
-    '## ADDED Requirements',
+    '## ADDED Sections',
     '',
-    '### Requirement: Third',
+    '### Section: Third',
     '',
     'SHALL come third.',
     '',
-    '#### Scenario: Third case',
+    '#### Acceptance Case: Third case',
     '',
     '- THEN third',
     '',
-    '## REMOVED Requirements',
+    '## REMOVED Sections',
     '',
-    '### Requirement: Second',
+    '### Section: Second',
     '',
   ].join('\n'),
   'elements/cap.c.md': [
@@ -93,13 +93,13 @@ const DELTA: Record<string, string> = {
     'definition: Third capability',
     '---',
     '',
-    '## ADDED Requirements',
+    '## ADDED Sections',
     '',
-    '### Requirement: Fresh',
+    '### Section: Fresh',
     '',
     'SHALL hold.',
     '',
-    '#### Scenario: Fresh case',
+    '#### Acceptance Case: Fresh case',
     '',
     '- THEN it holds',
     '',
@@ -117,7 +117,7 @@ async function applyTree(root: string, tree: Map<string, Buffer>): Promise<void>
   }
 }
 
-/** Sorts collections and set-semantic list fields; keeps Requirement and Scenario order. */
+/** Sorts collections and set-semantic list fields; keeps Section and AcceptanceCase order. */
 function normalizeForComparison(model: SemanticModel): SemanticModel {
   const sortStrings = (values?: string[]): string[] | undefined => values && [...values].sort();
   const byIdentity = <T extends { identity: string }>(items: T[]): T[] =>
@@ -178,7 +178,7 @@ describe('kernel pipeline end to end', () => {
 
     const capA = reparsed.model.elements.find(item => item.declaration.identity === 'cap.a')!;
     expect(capA.declaration.title).toBe('A renamed');
-    expect(capA.requirements.map(item => item.name)).toEqual(['First', 'Third']);
+    expect(capA.sections.map(item => item.name)).toEqual(['First', 'Third']);
 
     // Re-applying nothing rewrites nothing.
     const stable = await writeMinimal(root, reparsed, reparsed.model);
@@ -217,28 +217,28 @@ describe('kernel pipeline end to end', () => {
     expect(normalizeForComparison(reversed.model)).toEqual(normalizeForComparison(swapped.model));
   });
 
-  it('treats Requirement order and Scenario order inside a unit as semantic', async () => {
-    const swappedRequirements = await parseSemanticModel(await createModelRoot({
+  it('treats Section order and AcceptanceCase order inside a unit as semantic', async () => {
+    const swappedSections = await parseSemanticModel(await createModelRoot({
       ...MODEL,
       'elements/cap.a.md': CAP_A
-        .replace('### Requirement: First', '### Requirement: TEMP')
-        .replace('### Requirement: Second', '### Requirement: First')
-        .replace('### Requirement: TEMP', '### Requirement: Second'),
+        .replace('### Section: First', '### Section: TEMP')
+        .replace('### Section: Second', '### Section: First')
+        .replace('### Section: TEMP', '### Section: Second'),
     }));
     const base = await parseSemanticModel(await createModelRoot(MODEL));
-    expect(normalizeForComparison(swappedRequirements.model)).not.toEqual(normalizeForComparison(base.model));
+    expect(normalizeForComparison(swappedSections.model)).not.toEqual(normalizeForComparison(base.model));
 
-    const swappedScenarios = await parseSemanticModel(await createModelRoot({
+    const swappedAcceptanceCases = await parseSemanticModel(await createModelRoot({
       ...MODEL,
       'elements/cap.a.md': CAP_A
-        .replace('#### Scenario: One\n\n- THEN one', '#### Scenario: TEMP\n\n- THEN one')
-        .replace('#### Scenario: Two\n\n- THEN two', '#### Scenario: One\n\n- THEN one')
-        .replace('#### Scenario: TEMP\n\n- THEN one', '#### Scenario: Two\n\n- THEN two'),
+        .replace('#### Acceptance Case: One\n\n- THEN one', '#### Acceptance Case: TEMP\n\n- THEN one')
+        .replace('#### Acceptance Case: Two\n\n- THEN two', '#### Acceptance Case: One\n\n- THEN one')
+        .replace('#### Acceptance Case: TEMP\n\n- THEN one', '#### Acceptance Case: Two\n\n- THEN two'),
     }));
-    const scenarioNames = swappedScenarios.model.elements
-      .find(item => item.declaration.identity === 'cap.a')!.requirements[0].scenarios.map(item => item.name);
-    expect(scenarioNames).toEqual(['Two', 'One']);
-    expect(normalizeForComparison(swappedScenarios.model)).not.toEqual(normalizeForComparison(base.model));
+    const acceptanceCaseNames = swappedAcceptanceCases.model.elements
+      .find(item => item.declaration.identity === 'cap.a')!.sections[0].acceptanceCases.map(item => item.name);
+    expect(acceptanceCaseNames).toEqual(['Two', 'One']);
+    expect(normalizeForComparison(swappedAcceptanceCases.model)).not.toEqual(normalizeForComparison(base.model));
   });
 
   it('compares prose verbatim apart from line endings and end-of-file whitespace', async () => {

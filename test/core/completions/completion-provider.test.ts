@@ -6,11 +6,11 @@ import { randomUUID } from 'crypto';
 import { CompletionProvider } from '../../../src/core/completions/completion-provider.js';
 import { minimalModel, writeProjectModel } from '../../helpers/model-fixture.js';
 
-const CONTRACT = '## Requirements\n\n### Requirement: Rule\nIt SHALL hold.\n\n#### Scenario: Case\n- **WHEN** x\n- **THEN** y';
+const CONTRACT = '## Specification\n\n### Section: Rule\nIt SHALL hold.\n\n#### Acceptance Case: Case\n- **WHEN** x\n- **THEN** y';
 
 async function writeContracts(root: string, identities: string[]): Promise<void> {
   await writeProjectModel(root, minimalModel({
-    elements: identities.map(identity => ({ identity, requirements: CONTRACT })),
+    elements: identities.map(identity => ({ identity, sections: CONTRACT })),
   }));
 }
 

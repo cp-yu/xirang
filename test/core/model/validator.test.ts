@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
 import type { ModelElement, SemanticModel } from '../../../src/core/model/types.js';
 
-function element(identity: string, kind: string, parent: string | null, requirements = 0): ModelElement {
+function element(identity: string, kind: string, parent: string | null, sections = 0): ModelElement {
   return {
     declaration: { identity, kind, parent, title: identity, definition: '' },
-    requirements: Array.from({ length: requirements }, (_, index) => ({
+    sections: Array.from({ length: sections }, (_, index) => ({
       name: `R${index}`,
       body: 'SHALL hold.',
-      scenarios: [{ name: 'S', body: '- **WHEN** checked\n- **THEN** it holds' }],
+      acceptanceCases: [{ name: 'S', body: '- **WHEN** checked\n- **THEN** it holds' }],
     })),
   };
 }
@@ -217,7 +217,7 @@ describe('validateSemanticModel', () => {
     }))).toEqual([]);
   });
 
-  it('requires a Requirement only when the Element Kind declares contract: required', () => {
+  it('requires a Section only when the Element Kind declares contract: required', () => {
     expect(codes(model({
       elements: [element('root', 'project', null), element('domain.a', 'domain', 'root'), element('cap.a', 'capability', 'domain.a', 0)],
     }))).toContain('MISSING_REQUIRED_CONTRACT');

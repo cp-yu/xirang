@@ -18,18 +18,18 @@ describe('architecture search', () => {
           identity: 'cap.impact',
           title: 'Impact Sweeper',
           definition: 'Collects architecture context across the full project boundary.',
-          requirements: [
-            '## Requirements',
+          sections: [
+            '## Specification',
             '',
-            '### Requirement: Impact behavior',
+            '### Section: Impact behavior',
             'The system SHALL behave.',
             '',
             '```md',
-            '### Requirement: FencedOnlyToken',
+            '### Section: FencedOnlyToken',
             'Example only.',
             '```',
             '',
-            '#### Scenario: Existing behavior',
+            '#### Acceptance Case: Existing behavior',
             '- **WHEN** invoked',
             '- **THEN** behavior is preserved',
           ].join('\n'),
@@ -66,10 +66,10 @@ describe('architecture search', () => {
     expect(result.matches[0]).not.toHaveProperty('ownedSpecs');
     expect(result.matches[0].evidence).toEqual(expect.arrayContaining([
       { field: 'title', text: 'Impact Sweeper' },
-      { field: 'requirement', text: 'Impact behavior' },
+      { field: 'section', text: 'Impact behavior' },
     ]));
     expect(result.matches[0].evidence.map(item => item.field))
-      .not.toEqual(expect.arrayContaining(['summary', 'fqn', 'specId', 'spec.purpose', 'spec.requirement']));
+      .not.toEqual(expect.arrayContaining(['summary', 'fqn', 'specId', 'spec.purpose', 'spec.section']));
     expect(result.diagnostics).toEqual([]);
   });
 
@@ -139,7 +139,7 @@ describe('architecture search', () => {
     const changeDir = path.join(root, '.xirang', 'changes', 'active', 'elements');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'cap.impact.md'),
-      `---\noperation: MODIFIED\nentity: element-declaration\nidentity: cap.impact\n---\n\n## ADDED Requirements\n\n### Requirement: ChangeOnlyToken\nIt SHALL hold.\n`);
+      `---\noperation: MODIFIED\nentity: element-declaration\nidentity: cap.impact\n---\n\n## ADDED Sections\n\n### Section: ChangeOnlyToken\nIt SHALL hold.\n`);
     const sourceDir = path.join(root, 'src');
     await fs.mkdir(sourceDir, { recursive: true });
     await fs.writeFile(path.join(sourceDir, 'code.ts'), 'export const CodeOnlyToken = true;\n');

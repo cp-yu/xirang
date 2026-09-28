@@ -15,11 +15,11 @@ vi.mock('@inquirer/prompts', () => ({
   select: vi.fn(),
 }));
 
-const CONTRACT = '## Requirements\n\n### Requirement: Existing\nThe system SHALL keep working.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** it works';
+const CONTRACT = '## Specification\n\n### Section: Existing\nThe system SHALL keep working.\n\n#### Acceptance Case: Existing\n- **WHEN** invoked\n- **THEN** it works';
 
 const ADD_REQUIREMENT = '---\noperation: MODIFIED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Auth summary\n---\n\n'
-  + '## ADDED Requirements\n\n### Requirement: Login\nThe system SHALL support login.\n\n'
-  + '#### Scenario: Login succeeds\n- **WHEN** credentials are valid\n- **THEN** the user is signed in\n';
+  + '## ADDED Sections\n\n### Section: Login\nThe system SHALL support login.\n\n'
+  + '#### Acceptance Case: Login succeeds\n- **WHEN** credentials are valid\n- **THEN** the user is signed in\n';
 
 describe('syncCommand', () => {
   let tempDir: string;
@@ -31,7 +31,7 @@ describe('syncCommand', () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-sync-test-'));
     await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'archive'), { recursive: true });
     await writeProjectModel(tempDir, minimalModel({
-      elements: [{ identity: 'auth', parent: 'root', title: 'Auth', definition: 'Auth summary', requirements: CONTRACT }],
+      elements: [{ identity: 'auth', parent: 'root', title: 'Auth', definition: 'Auth summary', sections: CONTRACT }],
     }));
     process.chdir(tempDir);
     console.log = vi.fn();
@@ -97,7 +97,7 @@ describe('syncCommand', () => {
 
     await syncCommand('direct-sync', { noVerify: true });
 
-    expect(await fs.readFile(elementUnit(), 'utf8')).toContain('### Requirement: Login');
+    expect(await fs.readFile(elementUnit(), 'utf8')).toContain('### Section: Login');
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'direct-sync'.");
     for (const partition of PARTITIONS) {
       expect(console.log).toHaveBeenCalledWith(`${partition}: ${partition === 'elements' ? 1 : 0}`);
@@ -235,23 +235,6 @@ describe('syncCommand', () => {
 
     await expect(syncCommand('idempotent-sync', { noVerify: true })).rejects.toThrow(/ADDED_IDENTITY_EXISTS/);
     expect(await fs.readFile(elementUnit())).toEqual(first);
-  });
-
-  it('rejects Scenario operation labels without changing the Formal unit', async () => {
-    const syncCommand = await loadSyncCommand();
-    await createChange('labelled-scenarios');
-    await writeChangeDelta(tempDir, 'labelled-scenarios', {
-      'elements/auth.md': ADD_REQUIREMENT.replace('#### Scenario: Login succeeds', '#### Scenario: [ADDED] Login succeeds'),
-    });
-    const before = await fs.readFile(elementUnit());
-
-    await syncCommand('labelled-scenarios', { noVerify: true });
-
-    expect(await fs.readFile(elementUnit())).not.toEqual(before);
-    const report = await new (await import('../../src/core/validation/validator.js')).Validator()
-      .validateChangeDeltaSpecs(path.join(tempDir, '.xirang', 'changes', 'labelled-scenarios'));
-    expect(report.valid).toBe(false);
-    expect(report.issues.some(issue => issue.message.includes('Unsupported Scenario operation metadata'))).toBe(true);
   });
 
   it('refreshes the evidence fingerprint after Semantic Model writes', async () => {

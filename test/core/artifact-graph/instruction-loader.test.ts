@@ -320,9 +320,9 @@ describe('instruction-loader', () => {
         'relationship-kind: identity; optional sourceKinds, targetKinds',
         'authored-view: identity, include; optional exclude, of, title, autoLayout',
         '[A-Za-z0-9._-]+',
-        '## ADDED Requirements',
-        '## MODIFIED Requirements',
-        '## REMOVED Requirements',
+        '## ADDED Sections',
+        '## MODIFIED Sections',
+        '## REMOVED Sections',
         'relationships/',
         'does not support `MODIFIED`',
       ]) {
@@ -397,7 +397,7 @@ describe('instruction-loader', () => {
       expect(instructions.template).toContain('### Task 1:');
       expect(instructions.template).toContain('**Goal**:');
       expect(instructions.template).toContain('**Files**:');
-      expect(instructions.template).toContain('**Requirements**:');
+      expect(instructions.template).toContain('**Sections**:');
       expect(instructions.template).toContain('#### Checks');
       expect(instructions.template).toContain('- [ ] C1');
       expect(instructions.template).toContain('Verifies: `elements/<identity>.md`');
@@ -407,17 +407,17 @@ describe('instruction-loader', () => {
       expect(instructions.instruction).toMatch(/task.*\d+/i);
       expect(instructions.instruction).toMatch(/goal/i);
       expect(instructions.instruction).toMatch(/files/i);
-      expect(instructions.instruction).toMatch(/requirements/i);
+      expect(instructions.instruction).toMatch(/sections/i);
       expect(instructions.instruction).toMatch(/checks/i);
       expect(instructions.instruction).toMatch(/verifies/i);
       expect(instructions.instruction).toMatch(/elements.*identity.*\.md/i);
-      expect(instructions.instruction).toMatch(/requirement/i);
-      expect(instructions.instruction).toMatch(/scenario/i);
+      expect(instructions.instruction).toMatch(/section/i);
+      expect(instructions.instruction).toMatch(/acceptance case/i);
       expect(instructions.instruction).toMatch(/paths/i);
       expect(instructions.instruction).toContain('Task titles, check names');
       expect(instructions.instruction).toContain('Evidence:/Expect:');
-      expect(instructions.instruction).toContain('exact canonical unlabeled Scenario names');
-      expect(instructions.instruction).toContain('Scenario "<name>"');
+      expect(instructions.instruction).toContain('exact Acceptance Case names');
+      expect(instructions.instruction).toContain('Acceptance Case "<name>"');
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
@@ -425,20 +425,19 @@ describe('instruction-loader', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
 
-      expect(instructions.instruction).toContain('`### Requirement:` and `#### Scenario:`');
-      expect(instructions.instruction).toContain('New Requirement titles and new Scenario titles');
-      expect(instructions.instruction).toContain('MODIFIED Requirements');
+      expect(instructions.instruction).toContain('a canonical `### Section:` header');
+      expect(instructions.instruction).toContain('new Section titles follow `proseLanguage`');
+      expect(instructions.instruction).toContain('MODIFIED Sections');
       expect(instructions.instruction).toContain('proseLanguage');
     });
 
-    it('derives Scenario operations through validation and semantic diff', () => {
+    it('derives AcceptanceCase operations through validation and semantic diff', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'specs');
 
-      expect(instructions.instruction).toContain('Agent MUST NOT author Scenario operation labels');
-      expect(instructions.instruction).toContain('Scenario operations are derived by `xirang validate --change <name>`');
+      expect(instructions.instruction).toContain('Agent MUST NOT author Acceptance Case operation labels');
       expect(instructions.instruction).not.toContain('xirang diff --change <name> --write');
-      expect(instructions.instruction).not.toContain('xirang scenario-labels');
+      expect(instructions.instruction).not.toContain('xirang acceptanceCase-labels');
       expect(instructions.instruction).not.toContain('use `[ADDED]`');
       expect(instructions.instruction).not.toContain('use `[MODIFIED]`');
       expect(instructions.instruction).not.toContain('use `[REMOVED]`');
@@ -741,7 +740,7 @@ rules:
           'Use 中文 for natural-language prose that you newly write or revise.'
         );
         expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
-          'task titles, check names, Requirement titles, Scenario titles'
+          'task titles, check names, Section titles, Acceptance Case titles'
         );
         expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
           'English project terminology may remain embedded'

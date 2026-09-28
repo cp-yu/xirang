@@ -8,7 +8,7 @@ export interface ElementFixture {
   parent?: string | null;
   title?: string;
   definition?: string;
-  requirements?: string;
+  sections?: string;
   /** Override the unit filename when identities would collide on case-insensitive filesystems. */
   fileName?: string;
 }
@@ -51,7 +51,7 @@ export function elementUnit(element: ElementFixture): string {
     + `parent: ${element.parent === undefined ? 'root' : element.parent === null ? 'null' : element.parent}\n`
     + `title: ${JSON.stringify(element.title ?? element.identity)}\n`
     + `definition: ${JSON.stringify(element.definition ?? `Definition of ${element.identity}.`)}\n---\n`;
-  return element.requirements ? `${frontmatter}\n${element.requirements}\n` : frontmatter;
+  return element.sections ? `${frontmatter}\n${element.sections}\n` : frontmatter;
 }
 
 /** Writes a four-partition Semantic Model below `root` (a model root, not the project root). */

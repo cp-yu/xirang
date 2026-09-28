@@ -14,7 +14,7 @@ context: |
   Tech stack: TypeScript, React, Node.js
 ```
 
-That localizes natural-language prose in generated Xirang artifacts through the shared config projection pipeline. Template headings, IDs, schema keys, BDD keywords, file paths, commands, and code identifiers remain unchanged.
+That localizes natural-language prose in generated Xirang artifacts through the shared config projection pipeline. Template headings, IDs, schema keys, relation types, file paths, commands, and code identifiers remain unchanged.
 
 ## Language Examples
 

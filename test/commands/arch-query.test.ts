@@ -7,7 +7,7 @@ import { writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 const DEFINITION = `First paragraph ${'界'.repeat(130)}.\n\nSecond paragraph remains complete.`;
-const CONTRACT = '## Requirements\n\n### Requirement: Stable behavior\nThe system SHALL behave.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
+const CONTRACT = '## Specification\n\n### Section: Stable behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
 
 describe('architecture query', () => {
   let root: string;
@@ -27,21 +27,21 @@ describe('architecture query', () => {
           parent: null,
           title: 'Project',
           definition: 'Project definition',
-          requirements: CONTRACT,
+          sections: CONTRACT,
         },
         {
           identity: 'cap.long',
           parent: 'project.root',
           title: 'Long Definition',
           definition: DEFINITION,
-          requirements: CONTRACT,
+          sections: CONTRACT,
         },
         {
           identity: 'cap.related',
           parent: 'cap.long',
           title: 'Related',
           definition: 'Related definition',
-          requirements: CONTRACT,
+          sections: CONTRACT,
         },
       ],
       relationships: [
@@ -78,8 +78,8 @@ describe('architecture query', () => {
     const result = await queryArchitecture(root, ['project.root', 'cap.long', 'project.root']);
 
     expect(Object.keys(result.elements)).toEqual(['cap.long', 'project.root']);
-    expect(result.elements['cap.long'].requirements).toBeUndefined();
-    expect(result.elements['project.root'].requirements).toBeUndefined();
+    expect(result.elements['cap.long'].sections).toBeUndefined();
+    expect(result.elements['project.root'].sections).toBeUndefined();
     expect(result.elements['project.root'].hasContract).toBe(true);
   });
 
@@ -88,17 +88,17 @@ describe('architecture query', () => {
     const text = formatArchitectureQueryText(result);
 
     expect(Object.keys(result.elements)).toEqual(['cap.long']);
-    expect(result.elements['cap.long'].requirements).toEqual([{
+    expect(result.elements['cap.long'].sections).toEqual([{
       name: 'Stable behavior',
       body: 'The system SHALL behave.',
-      scenarios: [{
+      acceptanceCases: [{
         name: 'Existing behavior',
         body: '- **WHEN** invoked\n- **THEN** behavior is preserved',
       }],
     }]);
-    expect(text).toContain('  Requirement: Stable behavior');
+    expect(text).toContain('  Section: Stable behavior');
     expect(text).toContain('    The system SHALL behave.');
-    expect(text).toContain('    Scenario: Existing behavior');
+    expect(text).toContain('    Acceptance Case: Existing behavior');
     expect(text).toContain('      - **WHEN** invoked\n      - **THEN** behavior is preserved');
     expect(JSON.stringify(result)).not.toContain('cap.related');
   });

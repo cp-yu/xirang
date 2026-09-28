@@ -25,7 +25,7 @@ Xirang is a human-intent programming framework for agent-driven software develop
 └── config.yaml           # Project configuration
 ```
 
-Every Element has a stable `identity` and a Kind declared in the Metamodel. An Element's contract is the `## Requirements` body of its `elements/` unit. `proposal.md`, `design.md`, and `tasks.md` guide compilation, but they do not replace the Semantic Model or create a persisted intermediate representation.
+Every Element has a stable `identity` and a Kind declared in the Metamodel. An Element's contract is the `## Specification` body of its `elements/` unit. `proposal.md`, `design.md`, and `tasks.md` guide compilation, but they do not replace the Semantic Model or create a persisted intermediate representation.
 
 ## Requirements
 

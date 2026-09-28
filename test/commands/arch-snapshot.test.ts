@@ -13,7 +13,7 @@ import {
 } from '../../src/commands/arch/snapshot.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
-const CONTRACT = '## Requirements\n\n### Requirement: Stable behavior\nThe system SHALL behave.\n\n#### Scenario: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
+const CONTRACT = '## Specification\n\n### Section: Stable behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Existing behavior\n- **WHEN** invoked\n- **THEN** behavior is preserved';
 const execFileAsync = promisify(execFile);
 
 describe('architecture snapshot', () => {
@@ -31,9 +31,9 @@ describe('architecture snapshot', () => {
         { identity: 'observes' },
       ],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
         { identity: 'cap.alpha', kind: 'capability', parent: 'project.root', title: 'Alpha', definition: 'Alpha definition' },
-        { identity: 'cap.beta', kind: 'capability', parent: 'cap.alpha', title: 'Beta', definition: 'Beta definition', requirements: CONTRACT },
+        { identity: 'cap.beta', kind: 'capability', parent: 'cap.alpha', title: 'Beta', definition: 'Beta definition', sections: CONTRACT },
       ],
       relationships: [
         { source: 'cap.alpha', kind: 'invokes', target: 'cap.beta' },
@@ -63,7 +63,7 @@ describe('architecture snapshot', () => {
     expect(result.statistics.kindCount).toBe(4);
     // No Contract content anywhere.
     expect(JSON.stringify(result)).not.toContain('Stable behavior');
-    expect(JSON.stringify(result)).not.toContain('## Requirements');
+    expect(JSON.stringify(result)).not.toContain('## Specification');
   });
 
   it('builds a flat element projection with parent and children links', () => {
@@ -71,9 +71,9 @@ describe('architecture snapshot', () => {
       elementKinds: [{ identity: 'project', contract: 'required', root: true, body: '' }],
       relationshipKinds: [],
       elements: [
-        { declaration: { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' }, requirements: [] },
-        { declaration: { identity: 'cap.alpha', kind: 'capability', parent: 'project.root', title: 'Alpha', definition: 'Alpha definition' }, requirements: [] },
-        { declaration: { identity: 'cap.beta', kind: 'capability', parent: 'cap.alpha', title: 'Beta', definition: 'Beta definition' }, requirements: [] },
+        { declaration: { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' }, sections: [] },
+        { declaration: { identity: 'cap.alpha', kind: 'capability', parent: 'project.root', title: 'Alpha', definition: 'Alpha definition' }, sections: [] },
+        { declaration: { identity: 'cap.beta', kind: 'capability', parent: 'cap.alpha', title: 'Beta', definition: 'Beta definition' }, sections: [] },
       ],
       relationships: [],
       views: [],
@@ -94,10 +94,10 @@ describe('architecture snapshot', () => {
       elementKinds: [{ identity: 'project', contract: 'required', root: true, body: '' }],
       relationshipKinds: [],
       elements: [
-        { declaration: { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' }, requirements: [] },
+        { declaration: { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent' }, sections: [] },
         ...[...childIds].reverse().map(identity => ({
           declaration: { identity, kind: 'capability', parent: 'project.root', title: identity, definition: identity },
-          requirements: [],
+          sections: [],
         })),
       ],
       relationships: [],
@@ -155,7 +155,7 @@ describe('architecture snapshot', () => {
     expect(json.relations.length).toBe(2);
     expect(json.metamodel.elementKinds.length).toBe(2);
     expect(JSON.stringify(json)).not.toContain('Stable behavior');
-    expect(JSON.stringify(json)).not.toContain('## Requirements');
+    expect(JSON.stringify(json)).not.toContain('## Specification');
   });
 
   it('fails with non-zero exit when the model is missing', async () => {

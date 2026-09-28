@@ -14,14 +14,14 @@ function unit(frontmatter: string, body: string): string {
 }
 
 export function serializeContract(element: ModelElement): string {
-  if (element.requirements.length === 0) return '';
-  const parts: string[] = ['## Requirements'];
-  for (const requirement of element.requirements) {
-    let block = `### Requirement: ${requirement.name}`;
-    if (requirement.body !== '') block += `\n\n${requirement.body}`;
-    for (const scenario of requirement.scenarios) {
-      block += `\n\n#### Scenario: ${scenario.name}`;
-      if (scenario.body !== '') block += `\n\n${scenario.body}`;
+  if (element.sections.length === 0) return '';
+  const parts: string[] = ['## Specification'];
+  for (const section of element.sections) {
+    let block = `### Section: ${section.name}`;
+    if (section.body !== '') block += `\n\n${section.body}`;
+    for (const acceptanceCase of section.acceptanceCases) {
+      block += `\n\n#### Acceptance Case: ${acceptanceCase.name}`;
+      if (acceptanceCase.body !== '') block += `\n\n${acceptanceCase.body}`;
     }
     parts.push(block);
   }

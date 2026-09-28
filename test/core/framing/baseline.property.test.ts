@@ -16,8 +16,8 @@ const base: SemanticModel = {
   ],
   relationshipKinds: [],
   elements: [
-    { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, requirements: [] },
-    { declaration: { identity: 'leaf', kind: 'node', parent: 'root', title: 'Leaf', definition: 'Leaf.' }, requirements: [] },
+    { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, sections: [] },
+    { declaration: { identity: 'leaf', kind: 'node', parent: 'root', title: 'Leaf', definition: 'Leaf.' }, sections: [] },
   ],
   relationships: [],
   views: [],

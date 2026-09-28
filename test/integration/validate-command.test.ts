@@ -8,8 +8,8 @@ import { modelRoot } from '../../src/core/model/paths.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
-const PROJECT_CONTRACT = '## Requirements\n\n### Requirement: Project intent\nThe project SHALL preserve its intent.\n\n#### Scenario: Preserve\n- **WHEN** the model changes\n- **THEN** the intent remains';
-const OPERATION_CONTRACT = '## Requirements\n\n### Requirement: Run payment\nThe system SHALL run the payment operation.\n\n#### Scenario: Run\n- **WHEN** payment is requested\n- **THEN** the operation runs';
+const PROJECT_CONTRACT = '## Specification\n\n### Section: Project intent\nThe project SHALL preserve its intent.\n\n#### Acceptance Case: Preserve\n- **WHEN** the model changes\n- **THEN** the intent remains';
+const OPERATION_CONTRACT = '## Specification\n\n### Section: Run payment\nThe system SHALL run the payment operation.\n\n#### Acceptance Case: Run\n- **WHEN** payment is requested\n- **THEN** the operation runs';
 
 describe('Semantic Model validation integration', () => {
   let root: string;
@@ -30,7 +30,7 @@ describe('Semantic Model validation integration', () => {
         { identity: 'produces', sourceKinds: ['operation'], targetKinds: ['artifact'] },
       ],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Project intent', requirements: PROJECT_CONTRACT },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Root', definition: 'Project intent', sections: PROJECT_CONTRACT },
         { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', definition: 'Payment area' },
         { identity: 'settlements', kind: 'area', parent: 'project.root', title: 'Settlements', definition: 'Settlement area' },
       ],
@@ -48,7 +48,7 @@ describe('Semantic Model validation integration', () => {
 
   function addOperation(identity: string, parent: string, contract = OPERATION_CONTRACT): string {
     return `---\noperation: ADDED\nentity: element-declaration\nidentity: ${identity}\nkind: operation\nparent: ${parent}\ntitle: Run\ndefinition: Run payment\n---\n\n`
-      + `## ADDED Requirements\n\n${contract.replace('## Requirements\n\n', '')}\n`;
+      + `## ADDED Sections\n\n${contract.replace('## Specification\n\n', '')}\n`;
   }
 
   it('validates the Semantic Model', async () => {

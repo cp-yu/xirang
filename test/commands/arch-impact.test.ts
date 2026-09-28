@@ -14,7 +14,7 @@ const localeFixture = path.join(projectRoot, 'test', 'fixtures', 'arch-impact-lo
 const localeVitestConfig = path.join(projectRoot, 'test', 'fixtures', 'vitest.arch-impact-locale.config.ts');
 const vitestEntry = path.join(projectRoot, 'node_modules', 'vitest', 'vitest.mjs');
 
-const CONTRACT = '## Requirements\n\n### Requirement: Stable behavior\nThe system SHALL behave.\n\n#### Scenario: Existing\n- **WHEN** invoked\n- **THEN** behavior is preserved';
+const CONTRACT = '## Specification\n\n### Section: Stable behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Existing\n- **WHEN** invoked\n- **THEN** behavior is preserved';
 const FOCUS_DEFINITION = 'Focus definition preserves the complete concept boundary.\n\nSecond paragraph remains part of the Definition.';
 
 describe('architecture impact', () => {
@@ -29,9 +29,9 @@ describe('architecture impact', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
       elements: [
-        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+        { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
         { identity: 'cap.domain', parent: 'project.root', title: 'Domain', definition: 'Domain context' },
-        { identity: 'cap.focus', parent: 'cap.domain', title: 'Focus', definition: FOCUS_DEFINITION, requirements: CONTRACT },
+        { identity: 'cap.focus', parent: 'cap.domain', title: 'Focus', definition: FOCUS_DEFINITION, sections: CONTRACT },
         { identity: 'cap.child', parent: 'cap.focus', title: 'Child', definition: 'Direct refinement' },
         { identity: 'cap.grandchild', parent: 'cap.child', title: 'Grandchild', definition: 'Deep refinement' },
         { identity: 'cap.incoming', parent: 'project.root', title: 'Incoming', definition: 'Incoming relation' },
@@ -109,7 +109,7 @@ describe('architecture impact', () => {
         ],
         relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
         elements: [
-          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
           { identity: 'm.focus', parent: 'project.root', title: 'Focus', definition: 'Focus' },
           { identity: 'a.branch', parent: 'project.root', title: 'A', definition: 'A' },
           { identity: '0.branch', parent: 'project.root', title: 'Zero', definition: 'Zero' },
@@ -154,7 +154,7 @@ describe('architecture impact', () => {
         ],
         relationshipKinds: [{ identity: 'invokes' }, { identity: 'observes' }],
         elements: [
-          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+          { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
           { identity: 'cap.focus', parent: 'project.root', title: 'Focus', definition: 'Focus' },
           ...targets.map(identity => ({ identity, parent: 'project.root', title: identity, definition: identity })),
         ],
@@ -190,7 +190,7 @@ describe('architecture impact', () => {
     expect(result.relations).toEqual([]);
     expect(result.relationPaths).toEqual([]);
     expect(serialized).not.toContain(FOCUS_DEFINITION);
-    expect(serialized).not.toMatch(/contract|requirements|scenarios|title|definition|children/);
+    expect(serialized).not.toMatch(/contract|sections|acceptanceCases|title|definition|children/);
     expect(text).toContain('Element identities: cap.domain, cap.focus, project.root');
     expect(text).not.toContain(FOCUS_DEFINITION);
   });

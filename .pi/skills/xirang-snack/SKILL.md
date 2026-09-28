@@ -19,18 +19,31 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
+**Business Specification Standard (3+N)**
+
+Every Element Contract SHALL give each class of normative detail its own container, so detail captured during exploration is not lost when it becomes a Section or a Task.
+
+- **Resident base items, always required**: ① business goal — carried by the Declaration `definition`; ② scope and non-goals — its own Section naming what this Element does not do; ③ business mechanics — its own Section expressing the logic derivation.
+- **`+N` items, mounted explicitly when the business carries the characteristic**: state and lifecycle, concurrency and mutual exclusion, triggers and timing, external contracts and fallback, key acceptance cases, plus any item the project's own characteristics call for. Never leave these implicit in natural language.
+- **Safeguards and edge cases**: a table (or equivalent) enumerating extremes and empties, resource exhaustion, and security defence, kept out of the main flow.
+- **Key acceptance cases**: a dedicated Section using `#### Acceptance Case:`; one positive flow, plus a boundary flow and a conflict flow when applicable. Not one case per detail, and never demanded of other Sections.
+- **Carriers are free**: pseudocode, decision tables, formulas, and event triples are hints, not an enumeration. Any carrier that expresses the item completely is acceptable.
+- **Container to task mapping**: each mounted `+N` item, each safeguards row, and each acceptance case SHOULD become an independently verifiable task or Check unit, so a missing container surfaces when tasks are written rather than later at model alignment.
+- **Check anchors**: a Check points at its target semantics with a change-local Element unit path plus a Section anchor, appending an Acceptance Case anchor only when it verifies a key acceptance case. A free-form description is not an anchor.
+- Read `.xirang/references/xirang-business-specification-standard.md` (project-root file) for the complete standard and its self-check list.
+
 **Element Definition Semantics**
 
 - A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
 - A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
-- Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios, and acceptance conditions belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
+- Responsibilities, guarantees, constraints, behavior, Sections, and acceptance cases belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
 
 **Element Contract Semantics**
 
 - An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments, and a parent and its children may each express the complete semantics they cover at their respective levels.
-- A Requirement SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, `SHALL` count, or target Requirement count. Content that only restates the Declaration definition or the union of sibling Requirements without adding a normative commitment does not form a Requirement; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
-- A Scenario SHALL be a normatively binding component of a Requirement, concretizing only the host Requirement's observable behavior under specific conditions, and MUST NOT introduce an independently evolvable commitment. Scenarios do not by default exhaust every applicable case of a Requirement, a Scenario is not an independent Semantic Delta Entry, and its change is expressed by the complete target content of the host Requirement.
-- A Scenario SHALL NOT prescribe implementation structure, document formatting, explanatory wording, heading order, or test splitting, unless that exact representation is itself an observable contract. Scenario count does not determine the number of persistent tests.
+- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, `SHALL` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
+- A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. `### Section:` headers are the only structural unit inside `## Specification`.
+- `#### Acceptance Case:` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
 
 **Structural Decomposition Guidance**
 
@@ -58,7 +71,7 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 - Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Specification`, and whether a Contract is required comes from the `contract` field of its Element Kind.
 - Run `xirang arch outline --format json` for the complete Element hierarchy, all Relationships, and complete Metamodel Kinds. `architecture.outline.elementDefinitionDepth` controls only which Element Definitions are loaded; it never hides Elements or loads Contracts.
 - Use `xirang arch impact <identity> --depth <n> --json` to discover identity-only refinement context, directed Relationships, and canonical paths. Impact does not return Element Definitions or Contracts.
 - Use one batch `xirang arch query <identities...> --contract --json` to read the complete Declarations and owned Contracts for only the explicit identities needed for the current decision.
@@ -75,8 +88,8 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
    - CodeGraph MAY accelerate symbol/call/import discovery; otherwise use ACE, `rg`, and `read`. Never read `.codegraph/codegraph.db`.
    - Treat code locations and call/import edges as implementation evidence, not as proof that the Xirang Semantic Model must change. Do not create elements from uncertain file-name inference.
 5. Determine Element Contract impact.
-   - Select only the candidate Element identities whose current Contracts are needed, then run one batch `xirang arch query <selected-identities...> --contract --json` and keep their current Requirements.
-   - Add an identity to **Modified Specs** only when the observable requirements of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
+   - Select only the candidate Element identities whose current Contracts are needed, then run one batch `xirang arch query <selected-identities...> --contract --json` and keep their current Sections.
+   - Add an identity to **Modified Specs** only when the observable Sections of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
    - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage `[REVIEW NEEDED]`.
    - Behavior-preserving refactors create no Contract delta; later Checks use `Preserves:` against formal Element Contracts.
 6. Determine structural impact.
@@ -96,7 +109,7 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 9. Reconcile Element Contract deltas in `elements/<identity>.md`.
    - Run `xirang instructions specs --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Create or update only the identities declared by the Contract scope. The default unit name is `<identity>.md`; a file name expresses nothing, so deviating from the default changes no model semantics.
-   - Follow returned `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` rules with exact title matching and canonical unlabeled Requirement/Scenario syntax. Express a rename as REMOVED old Requirement plus ADDED new complete Requirement. Preserve unrelated current delta content.
+   - Follow returned `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
    - Run `xirang instructions design --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
@@ -116,15 +129,15 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 - Before writing, follow the authoring order in the returned `instruction`; keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs
 - Read proposal `Source Impact` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read `design.md` for architecture decisions and the formal Xirang Semantic Model as current semantic state
-- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Requirements, Relationships, Kinds, and Views
+- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Sections, Relationships, Kinds, and Views
 - Write Delta units under `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` using the same field structure as the model plus an `operation` of `ADDED`, `MODIFIED`, or `REMOVED`; each Entry carries its complete target state, and `REMOVED` carries identity only
-- In an `elements/` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Requirement Entries under `## ADDED Requirements`, `## MODIFIED Requirements`, or `## REMOVED Requirements`; when only the Contract changes, the frontmatter declares no `operation` and only locates the host Element
+- In an `elements/` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Section Entries under `## ADDED Sections`, `## MODIFIED Sections`, or `## REMOVED Sections`; when only the Contract changes, the frontmatter declares no `operation` and only locates the host Element
 - A `relationships/` entry is `{operation, source, kind, target}` and nothing else: it has no `MODIFIED` and no description, because its identity is its whole content
 - Reference every semantic object by `identity`; a Delta unit carries no path, position, or derived-name reference
 - Leave a partition empty when it does not change; do not invent Declaration, Relationship, Kind, or View changes from Contract changes alone
 - Run `xirang arch validate --change "<name>" --json`
 - Use current code only as implementation evidence; it MUST NOT override the Xirang Semantic Model
-   - Distinguish Requirement Entries in an Element unit body from the Declaration Entry in its frontmatter.
+   - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate `tasks.md` (code is already implemented).
 13. Run `xirang validate --change "<name>" --json`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
 14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
@@ -143,11 +156,11 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 **Document Language Contract**:
 - Treat `.xirang/config.yaml` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
 - If the compiled projection includes `proseLanguage`, apply it to natural-language prose you write or revise in the artifact body
-- Natural-language prose includes task titles, check names, Requirement titles, Scenario titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
+- Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
 - Follow the existing template structure exactly; do not invent a different layout because the prose language changes
-- Keep template headings, normative keywords, BDD keywords, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
-- Preserve exact existing Requirement titles required for MODIFIED matching
+- Keep template headings, normative keywords, `### Section:` and `#### Acceptance Case:` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
+- Preserve exact existing Section titles required for MODIFIED matching
 - English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow `proseLanguage`
 - If no `proseLanguage` projection is present, keep the default writing behavior for prose
 
-Preserve canonical headings, IDs, schema keys, BDD keywords, paths, commands, and code identifiers.
+Preserve canonical headings, IDs, schema keys, paths, commands, and code identifiers.

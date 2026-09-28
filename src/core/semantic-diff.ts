@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import type {
   ModelElement,
   Relationship,
-  Requirement,
+  Section,
   SemanticModel,
 } from './model/types.js';
 
@@ -14,15 +14,15 @@ export interface SourceLocation {
 
 export type DiffOperation = 'ADDED' | 'MODIFIED' | 'REMOVED';
 
-/** Entry kinds mirror the contract `entity` values; `scenario` and `property` are child-only detail. */
+/** Entry kinds mirror the contract `entity` values; `acceptanceCase` and `property` are child-only detail. */
 export type DiffKind =
   | 'element-declaration'
   | 'element-kind'
   | 'relationship-kind'
   | 'authored-view'
   | 'relationship'
-  | 'requirement'
-  | 'scenario'
+  | 'section'
+  | 'acceptance-case'
   | 'property';
 
 export const DIFF_ENTITY_KINDS: readonly DiffKind[] = [
@@ -31,7 +31,7 @@ export const DIFF_ENTITY_KINDS: readonly DiffKind[] = [
   'relationship-kind',
   'authored-view',
   'relationship',
-  'requirement',
+  'section',
 ];
 
 export interface ChangeDiagnostic {
@@ -201,17 +201,17 @@ interface Positioned<T> {
   index: number;
 }
 
-function requirementMap(elements: readonly ModelElement[]): Map<string, Positioned<Requirement>> {
+function sectionMap(elements: readonly ModelElement[]): Map<string, Positioned<Section>> {
   return new Map(elements.flatMap(element =>
-    element.requirements.map((requirement, index) => [
-      `${element.declaration.identity}#${requirement.name}`,
-      { value: requirement, index },
+    element.sections.map((section, index) => [
+      `${element.declaration.identity}#${section.name}`,
+      { value: section, index },
     ] as const)));
 }
 
-function requirementEntries(
-  before: Map<string, Positioned<Requirement>>,
-  after: Map<string, Positioned<Requirement>>,
+function sectionEntries(
+  before: Map<string, Positioned<Section>>,
+  after: Map<string, Positioned<Section>>,
   declared: Map<string, DiffOperation>,
 ): ChangeDiffEntry[] {
   const entries: ChangeDiffEntry[] = [];
@@ -228,23 +228,23 @@ function requirementEntries(
       if (previous.value.body !== next.value.body) children.push({
         kind: 'property', identity: `${identity}.body`, operation: 'MODIFIED', before: previous.value.body, after: next.value.body,
       });
-      const beforeScenarios = keyed(previous.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
-      const afterScenarios = keyed(next.value.scenarios.map((value, index) => ({ value, index })), item => item.value.name);
-      for (const name of [...new Set([...beforeScenarios.keys(), ...afterScenarios.keys()])].sort()) {
-        const beforeScenario = beforeScenarios.get(name);
-        const afterScenario = afterScenarios.get(name);
-        const scenarioOperation = operation(beforeScenario, afterScenario);
-        if (!scenarioOperation) continue;
+      const beforeAcceptanceCases = keyed(previous.value.acceptanceCases.map((value, index) => ({ value, index })), item => item.value.name);
+      const afterAcceptanceCases = keyed(next.value.acceptanceCases.map((value, index) => ({ value, index })), item => item.value.name);
+      for (const name of [...new Set([...beforeAcceptanceCases.keys(), ...afterAcceptanceCases.keys()])].sort()) {
+        const beforeAcceptanceCase = beforeAcceptanceCases.get(name);
+        const afterAcceptanceCase = afterAcceptanceCases.get(name);
+        const acceptanceCaseOperation = operation(beforeAcceptanceCase, afterAcceptanceCase);
+        if (!acceptanceCaseOperation) continue;
         children.push({
-          kind: 'scenario', identity: `${identity}#${name}`, operation: scenarioOperation,
-          ...(beforeScenario ? { before: beforeScenario.value } : {}),
-          ...(afterScenario ? { after: afterScenario.value } : {}),
+          kind: 'acceptance-case', identity: `${identity}#${name}`, operation: acceptanceCaseOperation,
+          ...(beforeAcceptanceCase ? { before: beforeAcceptanceCase.value } : {}),
+          ...(afterAcceptanceCase ? { after: afterAcceptanceCase.value } : {}),
         });
       }
     }
-    const declaredOperation = declared.get(`requirement\u0000${identity}`);
+    const declaredOperation = declared.get(`section\u0000${identity}`);
     entries.push({
-      kind: 'requirement', identity, operation: change,
+      kind: 'section', identity, operation: change,
       ...(declaredOperation ? { declaredOperation } : {}),
       ...(previous ? { before: previous.value } : {}), ...(next ? { after: next.value } : {}),
       ...(children.length ? { children } : {}),
@@ -280,7 +280,7 @@ export function createSemanticDiff(
     ...entityEntries('relationship-kind', keyed(normalizedBase.relationshipKinds, item => item.identity), keyed(normalizedExpected.relationshipKinds, item => item.identity), declared),
     ...entityEntries('authored-view', keyed(normalizedBase.views, item => item.identity), keyed(normalizedExpected.views, item => item.identity), declared),
     ...entityEntries('relationship', relationships(normalizedBase), relationships(normalizedExpected), declared, false),
-    ...requirementEntries(requirementMap(normalizedBase.elements), requirementMap(normalizedExpected.elements), declared),
+    ...sectionEntries(sectionMap(normalizedBase.elements), sectionMap(normalizedExpected.elements), declared),
   ].sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity));
 
   return {

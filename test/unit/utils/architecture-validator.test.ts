@@ -21,12 +21,12 @@ function element(identity: string, parent = 'root', kind = 'capability', contrac
   return `---\nentity: element-declaration\nidentity: ${identity}\nkind: ${kind}\nparent: ${parent}\ntitle: T\ndefinition: S\n---\n${contract}`;
 }
 
-function requirements(...blocks: string[]): string {
-  return `\n## Requirements\n\n${blocks.join('\n\n')}\n`;
+function sections(...blocks: string[]): string {
+  return `\n## Specification\n\n${blocks.join('\n\n')}\n`;
 }
 
-function requirement(name: string, scenarios: string[] = ['S']): string {
-  return `### Requirement: ${name}\n\nBody.\n${scenarios.map(scenario => `\n#### Scenario: ${scenario}\n\n- **WHEN** condition\n- **THEN** result`).join('')}`;
+function section(name: string, acceptanceCases: string[] = ['S']): string {
+  return `### Section: ${name}\n\nBody.\n${acceptanceCases.map(acceptanceCase => `\n#### Acceptance Case: ${acceptanceCase}\n\n- **WHEN** condition\n- **THEN** result`).join('')}`;
 }
 
 describe('architecture validator', () => {
@@ -128,32 +128,32 @@ describe('architecture validator', () => {
     expect(result.errors.map(item => item.code)).toContain('INVALID_CONTAINMENT');
   });
 
-  it('rejects duplicate Requirement and Scenario names within their hosts', () => {
-    const duplicateRequirements = report({
+  it('rejects duplicate Section and Acceptance Case names within their hosts', () => {
+    const duplicateSections = report({
       'metamodel/project.md': ROOT_KIND,
       'metamodel/capability.md': CAPABILITY_KIND,
       'elements/root.md': ROOT,
-      'elements/a.md': element('a', 'root', 'capability', requirements(requirement('R'), requirement('R'))),
+      'elements/a.md': element('a', 'root', 'capability', sections(section('R'), section('R'))),
     });
-    expect(duplicateRequirements.errors.map(item => item.code)).toContain('DUPLICATE_REQUIREMENT_NAME');
+    expect(duplicateSections.errors.map(item => item.code)).toContain('DUPLICATE_SECTION_NAME');
 
-    const duplicateScenarios = report({
+    const duplicateAcceptanceCases = report({
       'metamodel/project.md': ROOT_KIND,
       'metamodel/capability.md': CAPABILITY_KIND,
       'elements/root.md': ROOT,
-      'elements/a.md': element('a', 'root', 'capability', requirements(requirement('R', ['S', 'S']))),
+      'elements/a.md': element('a', 'root', 'capability', sections(section('R', ['S', 'S']))),
     });
-    expect(duplicateScenarios.errors.map(item => item.code)).toContain('DUPLICATE_SCENARIO_NAME');
+    expect(duplicateAcceptanceCases.errors.map(item => item.code)).toContain('DUPLICATE_ACCEPTANCE_CASE_NAME');
   });
 
-  it('requires every Requirement to contain a Scenario', () => {
+  it('accepts a Section without an Acceptance Case', () => {
     const result = report({
       'metamodel/project.md': ROOT_KIND,
       'metamodel/capability.md': CAPABILITY_KIND,
       'elements/root.md': ROOT,
-      'elements/a.md': element('a', 'root', 'capability', requirements(requirement('R', []))),
+      'elements/a.md': element('a', 'root', 'capability', sections(section('R', []))),
     });
-    expect(result.errors.map(item => item.code)).toContain('MISSING_REQUIREMENT_SCENARIO');
+    expect(result.errors).toEqual([]);
   });
 
   it('requires declared Element and Relationship Kinds', () => {

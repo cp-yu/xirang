@@ -12,7 +12,7 @@ import { modelRoot } from '../../src/core/model/paths.js';
 import { runCLI } from '../helpers/run-cli.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
-const CONTRACT = '## Requirements\n\n### Requirement: Project behavior\nThe project SHALL behave.\n\n#### Scenario: Existing\n- **WHEN** used\n- **THEN** it works';
+const CONTRACT = '## Specification\n\n### Section: Project behavior\nThe project SHALL behave.\n\n#### Acceptance Case: Existing\n- **WHEN** used\n- **THEN** it works';
 
 async function withInteractiveTTY(callback: () => Promise<void>): Promise<void> {
   const originalIsTTY = process.stdin.isTTY;
@@ -40,9 +40,9 @@ describe('arch commands', () => {
       ],
       relationshipKinds: [{ identity: 'invokes' }, { identity: 'precedes' }],
       elements: [
-        { identity: 'project.root', kind: 'semanticProject', parent: null, title: 'Project', definition: 'Project intent', requirements: CONTRACT },
+        { identity: 'project.root', kind: 'semanticProject', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
         { identity: 'payments', kind: 'area', parent: 'project.root', title: 'Payments', definition: 'Payment refinement' },
-        { identity: 'payment.authorize', kind: 'operation', parent: 'payments', title: 'Authorize', definition: 'Authorize payment', requirements: CONTRACT },
+        { identity: 'payment.authorize', kind: 'operation', parent: 'payments', title: 'Authorize', definition: 'Authorize payment', sections: CONTRACT },
         { identity: 'payment.audit', kind: 'operation', parent: 'payments', title: 'Audit', definition: 'Audit payment' },
       ],
       relationships: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
@@ -150,7 +150,7 @@ describe('arch commands', () => {
     });
     expect(JSON.stringify(result)).not.toMatch(/children|refinement|relatedElements|relations/);
     expect(result.elements['payment.authorize']).not.toHaveProperty('fqn');
-    expect(result.elements['payment.authorize']).not.toHaveProperty('requirements');
+    expect(result.elements['payment.authorize']).not.toHaveProperty('sections');
 
     await expect(queryArchitecture(root, ['root.payments.authorize']))
       .rejects.toThrow('Element must use stable identity, not FQN');
@@ -161,22 +161,22 @@ describe('arch commands', () => {
   it('inlines complete Contracts only for explicitly requested identities', async () => {
     const withoutContract = await queryArchitecture(root, ['project.root']);
     expect(withoutContract.elements['project.root'].hasContract).toBe(true);
-    expect(withoutContract.elements['project.root'].requirements).toBeUndefined();
+    expect(withoutContract.elements['project.root'].sections).toBeUndefined();
 
     const withContract = await queryArchitecture(root, ['project.root'], { contract: true });
-    expect(withContract.elements['project.root'].requirements).toEqual([{
+    expect(withContract.elements['project.root'].sections).toEqual([{
       name: 'Project behavior',
       body: 'The project SHALL behave.',
-      scenarios: [{ name: 'Existing', body: '- **WHEN** used\n- **THEN** it works' }],
+      acceptanceCases: [{ name: 'Existing', body: '- **WHEN** used\n- **THEN** it works' }],
     }]);
     expect(withContract.elements).not.toHaveProperty('payment.authorize');
 
     const empty = await queryArchitecture(root, ['payment.audit'], { contract: true });
     expect(empty.elements['payment.audit'].hasContract).toBe(false);
-    expect(empty.elements['payment.audit'].requirements).toEqual([]);
+    expect(empty.elements['payment.audit'].sections).toEqual([]);
 
     const cli = await runCLI(['arch', 'query', 'project.root', '--contract', '--json'], { cwd: root });
-    expect(JSON.parse(cli.stdout).elements['project.root'].requirements[0].name).toBe('Project behavior');
+    expect(JSON.parse(cli.stdout).elements['project.root'].sections[0].name).toBe('Project behavior');
   });
 
   it('rejects removed query navigation options and fails unknown batches atomically', async () => {
@@ -341,7 +341,7 @@ describe('arch commands', () => {
     ]);
     expect(parsed.metamodel.elementKinds.length).toBeGreaterThan(0);
     expect(json.stdout).not.toContain('Project behavior');
-    expect(json.stdout).not.toContain('## Requirements');
+    expect(json.stdout).not.toContain('## Specification');
   });
 
   it('fails arch snapshot with non-zero exit when the model is missing and creates no files', async () => {

@@ -89,7 +89,7 @@ describe('xirang-build workflow', () => {
     expect(instructions).toContain('one decision at a time');
     expect(instructions).toContain('exception provenance');
     expect(instructions).toContain('decision, evidence, and affected scope');
-    expect(instructions).toContain('do not create a Requirement provenance matrix');
+    expect(instructions).toContain('do not create a Section provenance matrix');
   });
 
   it('authors and independently reviews complete Definitions before Contracts', () => {
@@ -208,7 +208,7 @@ describe('xirang-build 2026-08-03 rebuild lessons', () => {
   it('requires agent-selected placement and subagent editing for non-verbatim recovery', () => {
     const skill = getBuildSkillTemplate();
 
-    expect(skill.instructions).toContain('which Element, which hierarchy level, which Contract Requirement or Scenario');
+    expect(skill.instructions).toContain('which Element, which hierarchy level, which Contract Section');
     expect(skill.instructions).toContain('semantic choice that requires model understanding');
     expect(skill.instructions).toContain('Copying content verbatim MAY be done directly');
     expect(skill.instructions).toContain('MUST go through a subagent');

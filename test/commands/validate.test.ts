@@ -5,12 +5,12 @@ import { runCLI } from '../helpers/run-cli.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 const ALPHA_CONTRACT = [
-  '## Requirements',
+  '## Specification',
   '',
-  '### Requirement: Alpha module SHALL produce deterministic output',
+  '### Section: Alpha module SHALL produce deterministic output',
   'The alpha module SHALL produce a deterministic response for validation.',
   '',
-  '#### Scenario: Deterministic alpha run',
+  '#### Acceptance Case: Deterministic alpha run',
   '- **GIVEN** a configured alpha module',
   '- **WHEN** the module runs the default flow',
   '- **THEN** the output matches the expected fixture result',
@@ -27,11 +27,11 @@ const ALPHA_DELTA = [
   'definition: Alpha summary',
   '---',
   '',
-  '## ADDED Requirements',
-  '### Requirement: Validator SHALL support alpha change deltas',
+  '## ADDED Sections',
+  '### Section: Validator SHALL support alpha change deltas',
   'The validator SHALL accept deltas provided by the test harness.',
   '',
-  '#### Scenario: Apply alpha delta',
+  '#### Acceptance Case: Apply alpha delta',
   '- **GIVEN** the test change delta',
   '- **WHEN** xirang validate runs',
   '- **THEN** the validator reports the change as valid',
@@ -46,7 +46,7 @@ describe('top-level validate command', () => {
   beforeEach(async () => {
     await fs.mkdir(changesDir, { recursive: true });
     await writeProjectModel(testDir, minimalModel({
-      elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha summary', requirements: ALPHA_CONTRACT }],
+      elements: [{ identity: 'alpha.id', parent: 'root', title: 'Alpha', definition: 'Alpha summary', sections: ALPHA_CONTRACT }],
     }));
 
     const changeContent = `# Test Change\n\n## Why\nBecause reasons that are sufficiently long for validation.\n\n## What Changes\n- **alpha:** Add something`;
@@ -79,13 +79,13 @@ describe('top-level validate command', () => {
       '**Files**:',
       '- Create: `src/shared.ts`',
       '',
-      '**Requirements**:',
+      '**Sections**:',
       '- Keep declarations consistent',
       '',
       '#### Checks',
       '',
       '- [ ] C1 Verify',
-      '  - Verifies: `elements/alpha.id.md` / Requirement "Validator SHALL support alpha change deltas" / Scenario "Apply alpha delta"',
+      '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
       '  - Command: `pnpm test`',
       '',
       '### Task 2: Second',
@@ -95,13 +95,13 @@ describe('top-level validate command', () => {
       '**Files**:',
       '- Create: `src/shared.ts`',
       '',
-      '**Requirements**:',
+      '**Sections**:',
       '- Keep declarations consistent',
       '',
       '#### Checks',
       '',
       '- [ ] C2 Verify',
-      '  - Verifies: `elements/alpha.id.md` / Requirement "Validator SHALL support alpha change deltas" / Scenario "Apply alpha delta"',
+      '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
       '  - Command: `pnpm test`',
     ].join('\n');
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasksContent, 'utf-8');
@@ -168,7 +168,7 @@ describe('top-level validate command', () => {
     const json = JSON.parse(jsonResult.stdout);
     expect(json.items[0].summary).toBeDefined();
     expect(json.items[0].entries).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'requirement', operation: 'ADDED' }),
+      expect.objectContaining({ kind: 'section', operation: 'ADDED' }),
     ]));
     expect(json.items[0].entries[0]).not.toHaveProperty('before');
     expect(json.items[0].entries[0]).not.toHaveProperty('scope');
@@ -244,32 +244,21 @@ describe('top-level validate command', () => {
     expect(result.stderr).toContain('Ambiguous item');
   });
 
-  it('does not register the removed scenario-labels command', async () => {
-    const result = await runCLI(['scenario-labels', 'c1', '--preview'], { cwd: testDir });
+  it('does not register the removed acceptanceCase-labels command', async () => {
+    const result = await runCLI(['acceptanceCase-labels', 'c1', '--preview'], { cwd: testDir });
 
     expect(result.exitCode).not.toBe(0);
-    expect(`${result.stdout}\n${result.stderr}`).toContain("unknown command 'scenario-labels'");
+    expect(`${result.stdout}\n${result.stderr}`).toContain("unknown command 'acceptanceCase-labels'");
   });
 
-  it.each(['ADDED', 'MODIFIED', 'REMOVED', 'UPDATED'])('rejects [%s] Scenario metadata', async prefix => {
-    await writeChangeDelta(testDir, 'c1', {
-      'elements/alpha.id.md': ALPHA_DELTA.replace('#### Scenario: Apply alpha delta', `#### Scenario: [${prefix}] Apply alpha delta`),
-    });
-
-    const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
-
-    expect(result.exitCode).toBe(1);
-    expect(`${result.stdout}\n${result.stderr}`).toContain(`Unsupported Scenario operation metadata [${prefix}]`);
-  });
-
-  it('rejects RENAMED Requirements with REMOVED plus ADDED guidance', async () => {
+  it('rejects RENAMED Sections with REMOVED plus ADDED guidance', async () => {
     await writeChangeDelta(testDir, 'c1', {
       'elements/alpha.id.md': [
         '---', 'operation: MODIFIED', 'entity: element-declaration', 'identity: alpha.id',
         'kind: capability', 'parent: root', 'title: Alpha', 'definition: Alpha summary', '---', '',
-        '## RENAMED Requirements', '',
-        'FROM: ### Requirement: Alpha module SHALL produce deterministic output',
-        'TO: ### Requirement: Alpha module SHALL produce renamed output',
+        '## RENAMED Sections', '',
+        'FROM: ### Section: Alpha module SHALL produce deterministic output',
+        'TO: ### Section: Alpha module SHALL produce renamed output',
         '',
       ].join('\n'),
     });
@@ -278,8 +267,8 @@ describe('top-level validate command', () => {
 
     expect(result.exitCode).toBe(1);
     const output = `${result.stdout}\n${result.stderr}`;
-    expect(output).toContain('RENAMED Requirements is unsupported');
-    expect(output).toContain('REMOVED old Requirement plus ADDED new Requirement');
+    expect(output).toContain('RENAMED Sections is unsupported');
+    expect(output).toContain('REMOVED old Section plus ADDED new Section');
   });
 
   it('reports notation issues at the actual Element unit path', async () => {

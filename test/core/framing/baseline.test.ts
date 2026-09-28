@@ -15,11 +15,11 @@ function model(): SemanticModel {
       { identity: 'uses', sourceKinds: ['capability'], targetKinds: ['capability'], body: '' },
     ],
     elements: [
-      { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, requirements: [] },
-      { declaration: { identity: 'domain', kind: 'domain', parent: 'root', title: 'Domain', definition: 'Domain.' }, requirements: [] },
-      { declaration: { identity: 'a', kind: 'capability', parent: 'domain', title: 'A', definition: 'A.' }, requirements: [] },
-      { declaration: { identity: 'b', kind: 'capability', parent: 'domain', title: 'B', definition: 'B.' }, requirements: [] },
-      { declaration: { identity: 'other', kind: 'unrelated', parent: 'root', title: 'Other', definition: 'Other.' }, requirements: [] },
+      { declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, sections: [] },
+      { declaration: { identity: 'domain', kind: 'domain', parent: 'root', title: 'Domain', definition: 'Domain.' }, sections: [] },
+      { declaration: { identity: 'a', kind: 'capability', parent: 'domain', title: 'A', definition: 'A.' }, sections: [] },
+      { declaration: { identity: 'b', kind: 'capability', parent: 'domain', title: 'B', definition: 'B.' }, sections: [] },
+      { declaration: { identity: 'other', kind: 'unrelated', parent: 'root', title: 'Other', definition: 'Other.' }, sections: [] },
     ],
     relationships: [{ source: 'a', kind: 'uses', target: 'b' }],
     views: [{ identity: 'overview', include: ['a'] }],
@@ -38,7 +38,7 @@ describe('关联上下文基准', () => {
     expect(baseline.objects).toHaveProperty('element:a');
     expect(baseline.objects).toHaveProperty('element:root');
     expect(baseline.objects).toHaveProperty('element-kind:capability');
-    expect(baseline.objects['element:a']).toMatchObject({ requirements: [] });
+    expect(baseline.objects['element:a']).toMatchObject({ sections: [] });
     expect(baseline.objects).not.toHaveProperty('element:other');
     expect(captureRelevantBaseline(model(), { ...payload, relatedIdentities: [] }).objects).toEqual({});
   });
@@ -58,7 +58,7 @@ describe('关联上下文基准', () => {
     unrelated.elements.find(item => item.declaration.identity === 'other')!.declaration.definition = '无关变化';
     expect(classifyBaselineDrift('old', 'new', baseline, unrelated, payload).status).toBe('unrelated-drift');
     const mutations = [
-      (value: SemanticModel) => { value.elements.find(item => item.declaration.identity === 'a')!.requirements.push({ name: '上限', body: 'SHALL 最多借阅三本。', scenarios: [] }); },
+      (value: SemanticModel) => { value.elements.find(item => item.declaration.identity === 'a')!.sections.push({ name: '上限', body: 'SHALL 最多借阅三本。', acceptanceCases: [] }); },
       (value: SemanticModel) => { value.elements.find(item => item.declaration.identity === 'domain')!.declaration.definition = '关联祖先变化'; },
       (value: SemanticModel) => { value.elementKinds.find(item => item.identity === 'capability')!.nodePresentation = { shape: 'component' }; },
       (value: SemanticModel) => { value.relationships = []; },

@@ -9,7 +9,7 @@ import { emptySemanticModel, type SemanticModel } from '../../../src/core/model/
 const model: SemanticModel = {
   ...emptySemanticModel(),
   elementKinds: [{ identity: 'project', contract: 'required', root: true, body: '' }],
-  elements: [{ declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, requirements: [] }],
+  elements: [{ declaration: { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Root.' }, sections: [] }],
 };
 
 describe('transactional LikeC4 artifact cache', () => {

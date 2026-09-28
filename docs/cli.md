@@ -209,7 +209,7 @@ Start the vendored LikeC4 browser for the nearest `.xirang/` project.
 xirang view [--port <n>]
 ```
 
-The browser renders the Semantic Model generated from `.xirang/model/`. Elements whose units contain Requirements expose an on-demand Contracts tab. The SPA loads the selected Formal or Change-derived Contract through the read-only `/__xirang/contract` endpoint. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
+The browser renders the Semantic Model generated from `.xirang/model/`. Elements whose units contain a Specification expose an on-demand Contracts tab. The SPA loads the selected Formal or Change-derived Contract through the read-only `/__xirang/contract` endpoint. The command uses the vendored LikeC4 engine and does not require or resolve an external installation.
 
 ---
 

@@ -168,7 +168,7 @@ export function projectContracts(model: SemanticModel): Record<string, string> {
   const contracts: Record<string, string> = {};
   for (const element of [...model.elements].sort((left, right) =>
     left.declaration.identity.localeCompare(right.declaration.identity))) {
-    if (element.requirements.length === 0) continue;
+    if (element.sections.length === 0) continue;
     contracts[element.declaration.identity] = serializeElementUnit(element);
   }
   return contracts;

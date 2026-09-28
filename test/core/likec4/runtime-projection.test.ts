@@ -3,7 +3,7 @@ import { resolveViewSelection } from '../../../src/core/likec4/runtime-projectio
 import { emptySemanticModel, type AuthoredView, type SemanticModel } from '../../../src/core/model/types.js';
 
 function element(identity: string, parent: string | null, kind = 'capability'): SemanticModel['elements'][number] {
-  return { declaration: { identity, kind, parent, title: identity, definition: `${identity} definition.` }, requirements: [] };
+  return { declaration: { identity, kind, parent, title: identity, definition: `${identity} definition.` }, sections: [] };
 }
 
 const model: SemanticModel = {

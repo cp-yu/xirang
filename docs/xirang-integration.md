@@ -16,7 +16,7 @@ Outline returns the complete Element hierarchy, all Relationships, and complete 
 
 ## Read Element Contracts
 
-An Element Contract is the `## Requirements` body of its Element unit under `.xirang/model/elements/`. Resolve an Element through the model identity index instead of constructing a file path from its identity. Each Requirement has a stable name within its host Element, and each Scenario remains part of its Requirement.
+An Element Contract is the `## Specification` body of its Element unit under `.xirang/model/elements/`. Resolve an Element through the model identity index instead of constructing a file path from its identity. Each Section has a stable title within its host Element, and an Acceptance Case remains part of its host Section.
 
 ## Browser Contract API
 

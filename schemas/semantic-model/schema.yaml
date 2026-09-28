@@ -71,14 +71,14 @@ artifacts:
 
       Apply Delta semantics per entry:
       - Declaration, Kind, and View entries add `operation: ADDED|MODIFIED|REMOVED`; ADDED and MODIFIED carry complete target content, while REMOVED carries only identity.
-      - Element Contract target content is `## Requirements`; Delta Requirement entries factor operation into `## ADDED Requirements`, `## MODIFIED Requirements`, and `## REMOVED Requirements` sections.
-      - ADDED and MODIFIED Requirements contain the complete target Requirement with canonical `### Requirement:` and `#### Scenario:` blocks; REMOVED names only the Requirement.
-      - Existing titles under MODIFIED Requirements stay exact; New Requirement titles and new Scenario titles follow `proseLanguage`.
-      - Agent MUST NOT author Scenario operation labels. Scenario operations are derived by `xirang validate --change <name>`.
+      - Element Contract target content is `## Specification`; Delta Section entries factor operation into `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` sections.
+      - ADDED and MODIFIED Sections contain the complete target Section with a canonical `### Section:` header and a free body; REMOVED names only the Section.
+      - Existing titles under MODIFIED Sections stay exact; new Section titles follow `proseLanguage`.
+      - Agent MUST NOT author Acceptance Case operation labels.
       - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.
 
       Follow partition-specific rules:
-      - `elements/` units combine one Element Declaration entry with zero or more Requirement entries. A Requirement identity is `<element identity>#<name>` globally and only `<name>` within its unit; complete concept identity and scope prose belongs only in `definition`.
+      - `elements/` units combine one Element Declaration entry with zero or more Section entries. A Section identity is `<element identity>#<title>` globally and only `<title>` within its unit; complete concept identity and scope prose belongs only in `definition`.
       - `metamodel/` units contain one Element Kind or Relationship Kind entry.
       - `views/` units contain one Authored View entry.
       - `relationships/` YAML contains `{operation, source, kind, target}` entries, has no description field, and does not support `MODIFIED` because the three identity fields are its complete content.
@@ -150,17 +150,17 @@ artifacts:
 
       Required structure:
       - Create one `### Task N: <name>` section per independently implementable and verifiable end-to-end loop
-      - Each task MUST include `**Goal**:`, `**Files**:`, `**Requirements**:`, and `#### Checks`
+      - Each task MUST include `**Goal**:`, `**Files**:`, `**Sections**:`, and `#### Checks`
       - `Files` MUST use POSIX project-relative paths and label each path as `Create:`, `Modify:`, `Delete:`, or `Test:`
       - File-level deletions (including moves and merges that produce deletions) use `Delete:` declaration; generated-surface changes (such as skill regeneration directories) should be declared at directory granularity
-      - `Requirements` MUST contain no more than 5 high-level implementation constraints per task; consolidate details or move verification detail into Checks rather than splitting one loop by count
+      - `Sections` MUST contain no more than 5 high-level implementation constraints per task; consolidate details or move verification detail into Checks rather than splitting one loop by count
       - `Checks` are executable verification items and MUST use checkbox IDs prefixed with `C`: `- [ ] C1 Verify ...`
       - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
-      - `Verifies:` identifies the change-local spec requirement and scenario(s); for deletion deliverables, use `Verifies: ... / REMOVED Requirement "<name>"` (no Scenario required)
-      - `Preserves:` anchors behavior-equivalence checks to main Element Contract paths (`.xirang/model/elements/<identity>.md` / Requirement "<name>" / Scenario "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
+      - `Verifies:` identifies the change-local target Section, and its Acceptance Case when the Check verifies a key acceptance case; for deletion deliverables, use `Verifies: ... / REMOVED Section "<name>"`
+      - `Preserves:` anchors behavior-equivalence checks to main Element Contract paths (`.xirang/model/elements/<identity>.md` / Section "<title>" / Acceptance Case "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
       - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
       - When this change has local Delta units, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `elements/<identity>.md`
-      - `Verifies:` MUST name the full Requirement title and one or more exact canonical unlabeled Scenario names; except for REMOVED Requirement variant
+      - `Verifies:` MUST name the full Section title, plus one or more exact Acceptance Case names only when the Check verifies a key acceptance case; except for the REMOVED Section variant
       - `Verifies:` MUST NOT use `.xirang/model/...`, project-root-relative paths, archived/main model paths, absolute paths, parent traversal, or backslash-separated paths
       - `Preserves:` path whitelist is independent: only `.xirang/model/elements/<identity>.md` is allowed; it does not relax `Verifies:` constraints
 
@@ -171,21 +171,21 @@ artifacts:
 
       Conversion rules:
       - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
-      - Structural labels such as `### Task N:`, `Goal`, `Files`, `Requirements`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
+      - Structural labels such as `### Task N:`, `Goal`, `Files`, `Sections`, `Checks`, `Verifies:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
       - Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
       - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
       - Split work only when each task reaches its own GREEN independently, or when an explicit delivery sequence makes a task depend only on an earlier task that is already GREEN
-      - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Requirements, and Checks and reconcile task boundaries before declaring the Change ready for Apply
-      - Do not split tasks by component, module, directory, file type, or Requirement count
-      - Put technical stack constraints and boundary conditions under Requirements, not free-form prose
+      - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Sections, and Checks and reconcile task boundaries before declaring the Change ready for Apply
+      - Do not split tasks by component, module, directory, or file type; split by spec container when a Section, a safeguards item, or an acceptance case is itself an independently verifiable unit
+      - Put technical stack constraints and boundary conditions under Sections, not free-form prose
       - Validation work maps to checks for invalid-input behavior
       - Bug fixes map to a check that reproduces the failure and proves the regression fix
-      - Refactors map to a behavior-equivalence check: use `Preserves:` field anchoring a main spec requirement with scenarios, `Expect:` naming the old form (old symbol, old path, or old duplication), and `Command:` with corresponding absence assertion
-      - Deletion work maps to a check anchored by `Verifies: ... / REMOVED Requirement "<name>"` (no Scenario variant) with an absence assertion command
+      - Refactors map to a behavior-equivalence check: use `Preserves:` field anchoring a main spec Section, `Expect:` naming the old form (old symbol, old path, or old duplication), and `Command:` with corresponding absence assertion
+      - Deletion work maps to a check anchored by `Verifies: ... / REMOVED Section "<name>"` with an absence assertion command
       - non-runtime text or non-runtime artifact changes do not require artificial failing tests, but still need at least one lightweight check with a non-empty `Verifies:` explaining how completion will be verified
       - config, schema, template, workflow template, and agent instruction template changes default to behavior Checks unless the task proves there is no runtime or generated-surface consumer
       - Absence assertions (such as grep empty assertions after deletion) are handled by the non-runtime text fast path: use `Command:` output as final evidence, do not require artificial red/green form
-      - Existing Actions/Checks files remain valid for older changes, but new changes SHOULD use the Task/Goal/Files/Requirements/Checks format
+      - Existing Actions/Checks files remain valid for older changes, but new changes SHOULD use the Task/Goal/Files/Sections/Checks format
 
       Example:
       ```
@@ -198,7 +198,7 @@ artifacts:
       - Modify: `src/app.ts`
       - Test: `tests/auth.test.ts`
 
-      **Requirements**:
+      **Sections**:
       - Accept `POST /auth/register`
       - Validate email format
       - Hash passwords before storage
@@ -206,12 +206,12 @@ artifacts:
       #### Checks
 
       - [ ] C1 Verify registration endpoint
-        - Verifies: `elements/auth.md` / Requirement "User registration" / Scenario "Valid registration succeeds"
+        - Verifies: `elements/auth.md` / Section "Key acceptance cases" / Acceptance Case "Valid registration succeeds"
         - Command: `npm test`
         - Expect: registration test passes
 
       - [ ] C2 Verify invalid email rejection
-        - Verifies: `elements/auth.md` / Requirement "User registration" / Scenario "Invalid email is rejected"
+        - Verifies: `elements/auth.md` / Section "Key acceptance cases" / Acceptance Case "Invalid email is rejected"
         - Command: `npm test`
         - Expect: invalid email test passes
       ```

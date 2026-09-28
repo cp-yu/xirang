@@ -3,22 +3,21 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { ValidationReport, ValidationIssue } from './types.js';
 import {
-  MAX_REQUIREMENT_TEXT_LENGTH,
+  MAX_SECTION_TEXT_LENGTH,
   VALIDATION_MESSAGES
 } from './constants.js';
 import {
   parseDeltaSpec,
-  normalizeRequirementName,
-  extractRequirementsSection,
-} from '../parsers/requirement-blocks.js';
+  normalizeSectionName,
+  extractSpecificationSection,
+} from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
 import { normalizeProse, readEntity } from '../model/parser.js';
 import { PARTITIONS, type ModelElement } from '../model/types.js';
 import {
   containsShallOrMust as containsShallOrMustShared,
-  extractRequirementBody,
-  listNonFencedScenarioHeaders,
-} from '../parsers/requirement-text.js';
+  extractSectionBody,
+} from '../parsers/section-text.js';
 
 export interface ChangeDeltaValidationContext {
   projectRoot?: string;
@@ -33,7 +32,7 @@ export class Validator {
   }
 
   /**
-   * Notation-level validation of the Requirement deltas carried by the change's Element units.
+   * Notation-level validation of the Section deltas carried by the change's Element units.
    * Identity resolution against the Formal model belongs to `applySemanticDelta`, not here.
    */
   async validateChangeDeltaSpecs(changeDir: string, context?: ChangeDeltaValidationContext): Promise<ValidationReport> {
@@ -44,18 +43,14 @@ export class Validator {
     for (const [entryPath, unit] of await readElementDeltaUnits(changeDir)) {
       const plan = parseDeltaSpec(unit);
       const sectionNames: string[] = [];
-      if (plan.sectionPresence.added) sectionNames.push('## ADDED Requirements');
-      if (plan.sectionPresence.modified) sectionNames.push('## MODIFIED Requirements');
-      if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Requirements');
+      if (plan.sectionPresence.added) sectionNames.push('## ADDED Sections');
+      if (plan.sectionPresence.modified) sectionNames.push('## MODIFIED Sections');
+      if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Sections');
       const hasSections = sectionNames.length > 0;
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
       for (const section of plan.unsupportedSections) issues.push({
         level: 'ERROR', path: entryPath,
-        message: `${section} is unsupported. Use REMOVED old Requirement plus ADDED new Requirement.`,
-      });
-      for (const label of plan.scenarioOperationLabels) issues.push({
-        level: 'ERROR', path: `${entryPath}:${label.line}`,
-        message: `Unsupported Scenario operation metadata [${label.prefix}]. Remove the label and express the complete target Scenario set.`,
+        message: `${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`,
       });
       if (!hasEntries) {
         if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });
@@ -66,14 +61,14 @@ export class Validator {
       const modifiedNames = new Set<string>();
       const removedNames = new Set<string>();
 
-      this.validateDeltaRequirementBlocks(plan.added, 'ADDED', addedNames, entryPath, issues);
-      this.validateDeltaRequirementBlocks(plan.modified, 'MODIFIED', modifiedNames, entryPath, issues);
+      this.validateDeltaSectionBlocks(plan.added, 'ADDED', addedNames, entryPath, issues);
+      this.validateDeltaSectionBlocks(plan.modified, 'MODIFIED', modifiedNames, entryPath, issues);
 
       // Validate REMOVED (names only)
       for (const name of plan.removed) {
-        const key = normalizeRequirementName(name);
+        const key = normalizeSectionName(name);
         if (removedNames.has(key)) {
-          issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate requirement in REMOVED: "${name}"` });
+          issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate Section in REMOVED: "${name}"` });
         } else {
           removedNames.add(key);
         }
@@ -82,15 +77,15 @@ export class Validator {
       // Cross-section conflicts within the same unit
       for (const n of modifiedNames) {
         if (removedNames.has(n)) {
-          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and REMOVED: "${n}"` });
+          issues.push({ level: 'ERROR', path: entryPath, message: `Section present in both MODIFIED and REMOVED: "${n}"` });
         }
         if (addedNames.has(n)) {
-          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both MODIFIED and ADDED: "${n}"` });
+          issues.push({ level: 'ERROR', path: entryPath, message: `Section present in both MODIFIED and ADDED: "${n}"` });
         }
       }
       for (const n of addedNames) {
         if (removedNames.has(n)) {
-          issues.push({ level: 'ERROR', path: entryPath, message: `Requirement present in both ADDED and REMOVED: "${n}"` });
+          issues.push({ level: 'ERROR', path: entryPath, message: `Section present in both ADDED and REMOVED: "${n}"` });
         }
       }
     }
@@ -99,14 +94,14 @@ export class Validator {
       issues.push({
         level: 'ERROR',
         path: specPath,
-        message: `Delta sections ${this.formatSectionList(sections)} were found, but no requirement entries parsed. Ensure each section includes at least one "### Requirement:" block (REMOVED may use bullet list syntax).`,
+        message: `Delta sections ${this.formatSectionList(sections)} were found, but no Section entries parsed. Ensure each section includes at least one "### Section:" block (REMOVED may use bullet list syntax).`,
       });
     }
     for (const path of missingHeaderSpecs) {
       issues.push({
         level: 'ERROR',
         path,
-        message: 'No delta sections found. Add headers such as "## ADDED Requirements" to the Element delta unit.',
+        message: 'No delta sections found. Add headers such as "## ADDED Sections" to the Element delta unit.',
       });
     }
 
@@ -117,25 +112,18 @@ export class Validator {
     return this.createReport(issues);
   }
 
-  /** Element Contract validation over the IR; the Contract is the `## Requirements` section alone. */
+  /** Element Contract validation over the IR; the Contract is the `## Specification` section alone. */
   validateElementContract(element: ModelElement, unitPath: string): ValidationReport {
     const issues: ValidationIssue[] = [];
-    if (element.requirements.length === 0) {
-      issues.push({ level: 'ERROR', path: unitPath, message: VALIDATION_MESSAGES.CONTRACT_NO_REQUIREMENTS });
+    if (element.sections.length === 0) {
+      issues.push({ level: 'ERROR', path: unitPath, message: VALIDATION_MESSAGES.CONTRACT_NO_SECTIONS });
     }
-    for (const requirement of element.requirements) {
-      if (!this.containsShallOrMust(requirement.body)) {
-        issues.push({ level: 'ERROR', path: unitPath, message: `Requirement "${requirement.name}" ${VALIDATION_MESSAGES.REQUIREMENT_NO_SHALL}` });
+    for (const section of element.sections) {
+      if (!this.containsShallOrMust(section.body)) {
+        issues.push({ level: 'ERROR', path: unitPath, message: `Section "${section.name}" ${VALIDATION_MESSAGES.SECTION_NO_SHALL}` });
       }
-      if (requirement.body.length > MAX_REQUIREMENT_TEXT_LENGTH) {
-        issues.push({ level: 'INFO', path: unitPath, message: `Requirement "${requirement.name}": ${VALIDATION_MESSAGES.REQUIREMENT_TOO_LONG}` });
-      }
-      if (requirement.scenarios.length === 0) {
-        issues.push({
-          level: 'WARNING',
-          path: unitPath,
-          message: `Requirement "${requirement.name}" ${VALIDATION_MESSAGES.REQUIREMENT_NO_SCENARIOS}. ${VALIDATION_MESSAGES.GUIDE_SCENARIO_FORMAT}`,
-        });
+      if (section.body.length > MAX_SECTION_TEXT_LENGTH) {
+        issues.push({ level: 'INFO', path: unitPath, message: `Section "${section.name}": ${VALIDATION_MESSAGES.SECTION_TOO_LONG}` });
       }
     }
     return this.createReport(issues);
@@ -173,7 +161,7 @@ export class Validator {
     return report.valid;
   }
 
-  private validateDeltaRequirementBlocks(
+  private validateDeltaSectionBlocks(
     blocks: Array<{ name: string; raw: string }>,
     section: 'ADDED' | 'MODIFIED',
     seenNames: Set<string>,
@@ -181,42 +169,31 @@ export class Validator {
     issues: ValidationIssue[],
   ): void {
     for (const block of blocks) {
-      const key = normalizeRequirementName(block.name);
+      const key = normalizeSectionName(block.name);
 
       if (seenNames.has(key)) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate requirement in ${section}: "${block.name}"` });
+        issues.push({ level: 'ERROR', path: entryPath, message: `Duplicate Section in ${section}: "${block.name}"` });
       } else {
         seenNames.add(key);
       }
 
-      const requirementText = this.extractRequirementText(block.raw);
-      if (!requirementText) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" is missing requirement text` });
-      } else if (!this.containsShallOrMust(requirementText)) {
+      const sectionText = this.extractSectionText(block.raw);
+      if (!sectionText) {
+        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" is missing Section text` });
+      } else if (!this.containsShallOrMust(sectionText)) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must contain SHALL or MUST` });
-      }
-
-      if (this.countSurvivingScenarios(block.raw) < 1) {
-        issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must include at least one canonical unlabeled Scenario` });
       }
     }
   }
 
-  private extractRequirementText(blockRaw: string): string | undefined {
-    // Line 0 is the requirement header; body is fence/metadata/multi-line aware.
+  private extractSectionText(blockRaw: string): string | undefined {
+    // Line 0 is the Section header; body is fence/metadata/multi-line aware.
     const bodyLines = blockRaw.replace(/\r\n?/g, '\n').split('\n').slice(1);
-    return extractRequirementBody(bodyLines) || undefined;
+    return extractSectionBody(bodyLines) || undefined;
   }
 
   private containsShallOrMust(text: string): boolean {
     return containsShallOrMustShared(text);
-  }
-
-  private countSurvivingScenarios(blockRaw: string): number {
-    const lines = blockRaw.replace(/\r\n?/g, '\n').split('\n');
-    let count = 0;
-    for (const _line of listNonFencedScenarioHeaders(lines)) count++;
-    return count;
   }
 
   private formatSectionList(sections: string[]): string {
@@ -226,7 +203,6 @@ export class Validator {
     const last = sections[sections.length - 1];
     return `${head.join(', ')} and ${last}`;
   }
-
 }
 
 /** A change carries a Semantic Delta when any of its four partitions holds a unit. */
@@ -243,7 +219,7 @@ async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
   return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
 }
 
-/** Requirement deltas live in the `elements/` partition of the change; paths locate the unit itself. */
+/** Section deltas live in the `elements/` partition of the change; paths locate the unit itself. */
 async function readElementDeltaUnits(changeDir: string): Promise<Array<[string, string]>> {
   const partition = path.join(changeDir, 'elements');
   const units: Array<[string, string]> = [];
@@ -263,7 +239,7 @@ async function readElementDeltaUnits(changeDir: string): Promise<Array<[string, 
       const content = await fs.readFile(path.join(directory, entry.name), 'utf-8');
       const split = splitFrontmatter(content);
       if (!split.ok || readEntity(split.data) !== 'element-declaration') continue;
-      // A Declaration-only delta carries no Contract body; there is no Requirement notation to check.
+      // A Declaration-only delta carries no Contract body; there is no Section notation to check.
       if (normalizeProse(split.body) === '') continue;
       units.push([`elements/${child}`, split.body]);
     }

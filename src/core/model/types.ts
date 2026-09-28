@@ -31,21 +31,21 @@ export interface ElementDeclaration {
   definition: string;
 }
 
-export interface Scenario {
+export interface AcceptanceCase {
   name: string;
   body: string;
 }
 
-export interface Requirement {
+export interface Section {
   name: string;
   body: string;
-  scenarios: Scenario[];
+  acceptanceCases: AcceptanceCase[];
 }
 
-/** Element = Declaration + Contract; the Contract is the `## Requirements` section alone. */
+/** Element = Declaration + Contract; the Contract is the `## Specification` section alone. */
 export interface ModelElement {
   declaration: ElementDeclaration;
-  requirements: Requirement[];
+  sections: Section[];
 }
 
 export type NodeShape = 'rectangle' | 'person' | 'browser' | 'mobile' | 'cylinder' | 'storage' | 'queue' | 'bucket' | 'document' | 'component';
@@ -139,8 +139,8 @@ export interface ModelDiagnostic {
   entity?: DiagnosticEntity;
 }
 
-/** Diagnostic identities resolve within their entity type; requirement entries resolve to their host Element. */
-export type DiagnosticEntity = EntityType | 'requirement' | 'relationship';
+/** Diagnostic identities resolve within their entity type; section entries resolve to their host Element. */
+export type DiagnosticEntity = EntityType | 'section' | 'relationship';
 
 export function emptySemanticModel(): SemanticModel {
   return { elementKinds: [], relationshipKinds: [], elements: [], relationships: [], views: [] };

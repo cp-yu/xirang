@@ -70,7 +70,7 @@ export const ELEMENT_DEFINITION_SEMANTICS = `
 
 - A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
 - A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
-- Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios, and acceptance conditions belong to the Element Contract; approach and rationale belong to \`design.md\`; change motivation and migration history belong to \`proposal.md\`.
+- Responsibilities, guarantees, constraints, behavior, Sections, and acceptance cases belong to the Element Contract; approach and rationale belong to \`design.md\`; change motivation and migration history belong to \`proposal.md\`.
 `.trim();
 
 /**
@@ -81,9 +81,9 @@ export const ELEMENT_CONTRACT_SEMANTICS = `
 **Element Contract Semantics**
 
 - An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments, and a parent and its children may each express the complete semantics they cover at their respective levels.
-- A Requirement SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Requirement count. Content that only restates the Declaration definition or the union of sibling Requirements without adding a normative commitment does not form a Requirement; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
-- A Scenario SHALL be a normatively binding component of a Requirement, concretizing only the host Requirement's observable behavior under specific conditions, and MUST NOT introduce an independently evolvable commitment. Scenarios do not by default exhaust every applicable case of a Requirement, a Scenario is not an independent Semantic Delta Entry, and its change is expressed by the complete target content of the host Requirement.
-- A Scenario SHALL NOT prescribe implementation structure, document formatting, explanatory wording, heading order, or test splitting, unless that exact representation is itself an observable contract. Scenario count does not determine the number of persistent tests.
+- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved.
+- A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. \`### Section:\` headers are the only structural unit inside \`## Specification\`.
+- \`#### Acceptance Case:\` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
 `.trim();
 
 /**
@@ -101,7 +101,7 @@ Persistent tests protect observable behavior and provide fast, trustworthy feedb
 
 Design for testability: when behavior is difficult to test because of hidden global state, mixed responsibilities, or inaccessible results, improve the interface before writing the test. Do not compensate with internal mocks or implementation-coupled assertions.
 
-Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Scenarios when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
+Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Acceptance Cases when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
 `.trim();
 
 /**
@@ -125,7 +125,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 
 - \`parent: null\` marks the single Project Root. \`include\` is \`'*'\` or a list of element identities; \`exclude\` is a list of element identities whose whole descendant subtree is pruned, taking precedence over \`include\`; \`of\` is one element identity.
 - A \`relationships/\` file is a container of \`{source, kind, target}\` entries. A Relationship's identity is its entire content and it carries no other field.
-- An \`elements/\` unit body is exactly the \`## Requirements\` section: \`### Requirement: <name>\` with \`#### Scenario: <name>\` beneath it. Concept identity and scope prose belongs to the Declaration's \`definition\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
+- An \`elements/\` unit body is exactly the \`## Specification\` section: \`### Section: <name>\` items, each with a free body and optionally \`#### Acceptance Case: <name>\` blocks inside the acceptance-cases Section. Concept identity and scope prose belongs to the Declaration's \`definition\` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
 - A \`views/\` unit has no body.
 - \`identity\` uses \`[A-Za-z0-9._-]+\` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
 - Default file naming, non-normative: \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind.
@@ -140,7 +140,7 @@ export const XIRANG_SHARED_CONTEXT = `
 - Resolve the absolute Project Root, then load the Semantic Model from \`.xirang/model/{metamodel,elements,relationships,views}/\` and locate the unique Project Root Element, whose \`parent\` is null.
 - Use \`identity\` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as \`## Requirements\`, and whether a Contract is required comes from the \`contract\` field of its Element Kind.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as \`## Specification\`, and whether a Contract is required comes from the \`contract\` field of its Element Kind.
 - Run \`xirang arch outline --format json\` for the complete Element hierarchy, all Relationships, and complete Metamodel Kinds. \`architecture.outline.elementDefinitionDepth\` controls only which Element Definitions are loaded; it never hides Elements or loads Contracts.
 - Use \`xirang arch impact <identity> --depth <n> --json\` to discover identity-only refinement context, directed Relationships, and canonical paths. Impact does not return Element Definitions or Contracts.
 - Use one batch \`xirang arch query <identities...> --contract --json\` to read the complete Declarations and owned Contracts for only the explicit identities needed for the current decision.
@@ -173,9 +173,9 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 - Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
 - Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read \`design.md\` for architecture decisions and the formal Xirang Semantic Model as current semantic state
-- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Requirements, Relationships, Kinds, and Views
+- Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Sections, Relationships, Kinds, and Views
 - Write Delta units under \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` using the same field structure as the model plus an \`operation\` of \`ADDED\`, \`MODIFIED\`, or \`REMOVED\`; each Entry carries its complete target state, and \`REMOVED\` carries identity only
-- In an \`elements/\` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Requirement Entries under \`## ADDED Requirements\`, \`## MODIFIED Requirements\`, or \`## REMOVED Requirements\`; when only the Contract changes, the frontmatter declares no \`operation\` and only locates the host Element
+- In an \`elements/\` unit, the frontmatter is the Element Declaration Entry and the body carries zero or more Section Entries under \`## ADDED Sections\`, \`## MODIFIED Sections\`, or \`## REMOVED Sections\`; when only the Contract changes, the frontmatter declares no \`operation\` and only locates the host Element
 - A \`relationships/\` entry is \`{operation, source, kind, target}\` and nothing else: it has no \`MODIFIED\` and no description, because its identity is its whole content
 - Reference every semantic object by \`identity\`; a Delta unit carries no path, position, or derived-name reference
 - Leave a partition empty when it does not change; do not invent Declaration, Relationship, Kind, or View changes from Contract changes alone
@@ -204,10 +204,10 @@ export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 **Document Language Contract**:
 - Treat \`.xirang/config.yaml\` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
 - If the compiled projection includes \`proseLanguage\`, apply it to natural-language prose you write or revise in the artifact body
-- Natural-language prose includes task titles, check names, Requirement titles, Scenario titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
+- Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
 - Follow the existing template structure exactly; do not invent a different layout because the prose language changes
-- Keep template headings, normative keywords, BDD keywords, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
-- Preserve exact existing Requirement titles required for MODIFIED matching
+- Keep template headings, normative keywords, \`### Section:\` and \`#### Acceptance Case:\` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
+- Preserve exact existing Section titles required for MODIFIED matching
 - English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow \`proseLanguage\`
 - If no \`proseLanguage\` projection is present, keep the default writing behavior for prose
 `.trim();

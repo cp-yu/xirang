@@ -202,37 +202,29 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
 function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): void {
   for (const element of model.elements) {
     const elementIdentity = element.declaration.identity;
-    const requirementNames = new Set<string>();
-    for (const requirement of element.requirements) {
-      if (requirementNames.has(requirement.name)) {
+    const sectionNames = new Set<string>();
+    for (const section of element.sections) {
+      if (sectionNames.has(section.name)) {
         diagnostics.push(error(
-          'DUPLICATE_REQUIREMENT_NAME',
-          `Element ${elementIdentity} has duplicate Requirement name ${requirement.name}`,
+          'DUPLICATE_SECTION_NAME',
+          `Element ${elementIdentity} has duplicate Section name ${section.name}`,
           elementIdentity,
           'element-declaration',
         ));
       }
-      requirementNames.add(requirement.name);
+      sectionNames.add(section.name);
 
-      if (requirement.scenarios.length === 0) {
-        diagnostics.push(error(
-          'MISSING_REQUIREMENT_SCENARIO',
-          `Requirement ${elementIdentity}#${requirement.name} has no Scenario`,
-          elementIdentity,
-          'element-declaration',
-        ));
-      }
-      const scenarioNames = new Set<string>();
-      for (const scenario of requirement.scenarios) {
-        if (scenarioNames.has(scenario.name)) {
+      const acceptanceCaseNames = new Set<string>();
+      for (const acceptanceCase of section.acceptanceCases) {
+        if (acceptanceCaseNames.has(acceptanceCase.name)) {
           diagnostics.push(error(
-            'DUPLICATE_SCENARIO_NAME',
-            `Requirement ${elementIdentity}#${requirement.name} has duplicate Scenario name ${scenario.name}`,
+            'DUPLICATE_ACCEPTANCE_CASE_NAME',
+            `Section ${elementIdentity}#${section.name} has duplicate Acceptance Case name ${acceptanceCase.name}`,
             elementIdentity,
             'element-declaration',
           ));
         }
-        scenarioNames.add(scenario.name);
+        acceptanceCaseNames.add(acceptanceCase.name);
       }
     }
   }
@@ -271,10 +263,10 @@ export function validateSemanticModel(model: SemanticModel): ModelDiagnostic[] {
   checkViews(model, diagnostics);
 
   for (const element of model.elements) {
-    if (kinds.get(element.declaration.kind)?.contract === 'required' && element.requirements.length === 0) {
+    if (kinds.get(element.declaration.kind)?.contract === 'required' && element.sections.length === 0) {
       diagnostics.push(error(
         'MISSING_REQUIRED_CONTRACT',
-        `Element ${element.declaration.identity} (${element.declaration.kind}) requires at least one Requirement`,
+        `Element ${element.declaration.identity} (${element.declaration.kind}) requires at least one Section`,
         element.declaration.identity,
         'element-declaration',
       ));

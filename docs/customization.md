@@ -48,7 +48,7 @@ rules:
 
 `.xirang/config.yaml` stays intentionally small. Xirang compiles its validated whitelist fields into prompt and runtime projection bundles for downstream consumers.
 
-`docLanguage` only applies to natural-language prose in Xirang artifacts. Template headings, IDs, schema keys, relation types, BDD keywords, file paths, commands, and code identifiers stay in their canonical form.
+`docLanguage` only applies to natural-language prose in Xirang artifacts. Template headings, IDs, schema keys, relation types, file paths, commands, and code identifiers stay in their canonical form.
 
 ### How It Works
 
@@ -69,7 +69,7 @@ When generating any artifact, Xirang exposes a compiled projection bundle plus c
 ```xml
 <config_projection>
 - Use zh-CN for natural-language prose that you newly write or revise.
-- Preserve canonical tokens unchanged: SHALL, MUST, section headers, scenario headers, BDD keywords, IDs, schema keys, paths, commands, and code identifiers.
+- Preserve canonical tokens unchanged: SHALL, MUST, `### Section:` headers, `#### Acceptance Case:` headers, IDs, schema keys, paths, commands, and code identifiers.
 Tech stack: TypeScript, React, Node.js, PostgreSQL
 - Include rollback plan
 - Identify affected teams

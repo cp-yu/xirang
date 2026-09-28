@@ -19,6 +19,19 @@ Enter explore mode: investigate, clarify, compare, and help the user think befor
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
+**Business Specification Standard (3+N)**
+
+Every Element Contract SHALL give each class of normative detail its own container, so detail captured during exploration is not lost when it becomes a Section or a Task.
+
+- **Resident base items, always required**: ① business goal — carried by the Declaration `definition`; ② scope and non-goals — its own Section naming what this Element does not do; ③ business mechanics — its own Section expressing the logic derivation.
+- **`+N` items, mounted explicitly when the business carries the characteristic**: state and lifecycle, concurrency and mutual exclusion, triggers and timing, external contracts and fallback, key acceptance cases, plus any item the project's own characteristics call for. Never leave these implicit in natural language.
+- **Safeguards and edge cases**: a table (or equivalent) enumerating extremes and empties, resource exhaustion, and security defence, kept out of the main flow.
+- **Key acceptance cases**: a dedicated Section using `#### Acceptance Case:`; one positive flow, plus a boundary flow and a conflict flow when applicable. Not one case per detail, and never demanded of other Sections.
+- **Carriers are free**: pseudocode, decision tables, formulas, and event triples are hints, not an enumeration. Any carrier that expresses the item completely is acceptable.
+- **Container to task mapping**: each mounted `+N` item, each safeguards row, and each acceptance case SHOULD become an independently verifiable task or Check unit, so a missing container surfaces when tasks are written rather than later at model alignment.
+- **Check anchors**: a Check points at its target semantics with a change-local Element unit path plus a Section anchor, appending an Acceptance Case anchor only when it verifies a key acceptance case. A free-form description is not an anchor.
+- Read `.xirang/references/xirang-business-specification-standard.md` (project-root file) for the complete standard and its self-check list.
+
 **Test Quality Guidance**
 
 Persistent tests protect observable behavior and provide fast, trustworthy feedback.
@@ -29,7 +42,7 @@ Persistent tests protect observable behavior and provide fast, trustworthy feedb
 
 Design for testability: when behavior is difficult to test because of hidden global state, mixed responsibilities, or inaccessible results, improve the interface before writing the test. Do not compensate with internal mocks or implementation-coupled assertions.
 
-Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Scenarios when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
+Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Acceptance Cases when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
 
 ## Workflow Stage
 
@@ -65,7 +78,7 @@ The main Explore agent remains read-only outside the managed Definition Framing 
 - Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
-- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Requirements`, and whether a Contract is required comes from the `contract` field of its Element Kind.
+- An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Specification`, and whether a Contract is required comes from the `contract` field of its Element Kind.
 - Run `xirang arch outline --format json` for the complete Element hierarchy, all Relationships, and complete Metamodel Kinds. `architecture.outline.elementDefinitionDepth` controls only which Element Definitions are loaded; it never hides Elements or loads Contracts.
 - Use `xirang arch impact <identity> --depth <n> --json` to discover identity-only refinement context, directed Relationships, and canonical paths. Impact does not return Element Definitions or Contracts.
 - Use one batch `xirang arch query <identities...> --contract --json` to read the complete Declarations and owned Contracts for only the explicit identities needed for the current decision.
@@ -81,7 +94,7 @@ The main Explore agent remains read-only outside the managed Definition Framing 
 
 - A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
 - A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
-- Responsibilities, guarantees, constraints, behavior, Requirements, Scenarios, and acceptance conditions belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
+- Responsibilities, guarantees, constraints, behavior, Sections, and acceptance cases belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
 
 **Structural Decomposition Guidance**
 

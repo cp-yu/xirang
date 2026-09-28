@@ -15,7 +15,7 @@ describe('reviewer correctness escalation contract', () => {
   it('escalates missing behavior evidence and weak assertions', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).not.toContain('Scenario coverage gaps are not downgrade candidates');
+    expect(instructions).not.toContain('AcceptanceCase coverage gaps are not downgrade candidates');
     expect(instructions).toContain('no credible evidence');
     expect(instructions).toContain('weak assertion');
   });

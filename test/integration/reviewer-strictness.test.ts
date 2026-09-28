@@ -6,40 +6,40 @@ const instructions = getReviewerSubagentTemplate().prompt;
 
 type Severity = 'CRITICAL' | 'WARNING' | 'SUGGESTION';
 
-interface ReviewerScenario {
+interface ReviewerAcceptanceCase {
   completedTask: string;
   finalFileEvidence: string;
   specExpectation?: string;
   designDecision?: string;
 }
 
-function simulateReviewerSeverity(scenario: ReviewerScenario): {
+function simulateReviewerSeverity(acceptanceCase: ReviewerAcceptanceCase): {
   severity: Severity;
   summary: string;
 } {
   if (
-    scenario.completedTask.includes('refactor') &&
-    scenario.finalFileEvidence.includes('export function oldApi')
+    acceptanceCase.completedTask.includes('refactor') &&
+    acceptanceCase.finalFileEvidence.includes('export function oldApi')
   ) {
     return { severity: 'CRITICAL', summary: 'Dead code not removed' };
   }
 
   if (
-    scenario.specExpectation &&
-    !scenario.finalFileEvidence.includes(scenario.specExpectation)
+    acceptanceCase.specExpectation &&
+    !acceptanceCase.finalFileEvidence.includes(acceptanceCase.specExpectation)
   ) {
-    return { severity: 'CRITICAL', summary: 'Scenario not covered' };
+    return { severity: 'CRITICAL', summary: 'AcceptanceCase not covered' };
   }
 
   if (
-    scenario.designDecision &&
-    !scenario.finalFileEvidence.includes(scenario.designDecision) &&
-    !scenario.finalFileEvidence.includes('design deviation:')
+    acceptanceCase.designDecision &&
+    !acceptanceCase.finalFileEvidence.includes(acceptanceCase.designDecision) &&
+    !acceptanceCase.finalFileEvidence.includes('design deviation:')
   ) {
     return { severity: 'CRITICAL', summary: 'Design decision violated' };
   }
 
-  if (scenario.finalFileEvidence.includes('TODO: remove after migration')) {
+  if (acceptanceCase.finalFileEvidence.includes('TODO: remove after migration')) {
     return { severity: 'CRITICAL', summary: 'Stale TODO for completed work' };
   }
 
@@ -56,14 +56,14 @@ describe('reviewer strictness integration contract', () => {
     expect(result).toEqual({ severity: 'CRITICAL', summary: 'Dead code not removed' });
   });
 
-  it('blocks uncovered scenarios', () => {
+  it('blocks uncovered acceptanceCases', () => {
     const result = simulateReviewerSeverity({
-      completedTask: 'implement retry lockout scenario',
+      completedTask: 'implement retry lockout acceptanceCase',
       specExpectation: 'lock after three failures',
       finalFileEvidence: 'if (failures >= 2) lock();',
     });
 
-    expect(result).toEqual({ severity: 'CRITICAL', summary: 'Scenario not covered' });
+    expect(result).toEqual({ severity: 'CRITICAL', summary: 'AcceptanceCase not covered' });
   });
 
   it('blocks unexplained design violations', () => {

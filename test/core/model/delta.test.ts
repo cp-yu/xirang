@@ -3,10 +3,10 @@ import { applySemanticDelta, parseSemanticDelta } from '../../../src/core/model/
 import { relationshipIdentity, type ModelElement, type SemanticModel } from '../../../src/core/model/types.js';
 import { createModelRoot } from './fixtures.js';
 
-function element(identity: string, kind: string, parent: string | null, requirements: string[] = []): ModelElement {
+function element(identity: string, kind: string, parent: string | null, sections: string[] = []): ModelElement {
   return {
     declaration: { identity, kind, parent, title: identity, definition: `Definition of ${identity}.` },
-    requirements: requirements.map(name => ({ name, body: `${name} body`, scenarios: [] })),
+    sections: sections.map(name => ({ name, body: `${name} body`, acceptanceCases: [] })),
   };
 }
 
@@ -24,7 +24,7 @@ function base(): SemanticModel {
 }
 
 describe('parseSemanticDelta', () => {
-  it('produces a declaration entry and requirement entries from one element unit', async () => {
+  it('produces a declaration entry and section entries from one element unit', async () => {
     const root = await createModelRoot({
       'elements/cap.a.md': [
         '---',
@@ -37,25 +37,25 @@ describe('parseSemanticDelta', () => {
         'definition: Full new definition.',
         '---',
         '',
-        '## ADDED Requirements',
+        '## ADDED Sections',
         '',
-        '### Requirement: Added one',
+        '### Section: Added one',
         '',
         'SHALL do the new thing.',
         '',
-        '#### Scenario: Happy',
+        '#### Acceptance Case: Happy',
         '',
         '- THEN it works',
         '',
-        '## MODIFIED Requirements',
+        '## MODIFIED Sections',
         '',
-        '### Requirement: Existing',
+        '### Section: Existing',
         '',
         'SHALL do the changed thing.',
         '',
-        '## REMOVED Requirements',
+        '## REMOVED Sections',
         '',
-        '### Requirement: Obsolete',
+        '### Section: Obsolete',
         '',
       ].join('\n'),
     });
@@ -71,21 +71,21 @@ describe('parseSemanticDelta', () => {
       },
       {
         operation: 'ADDED',
-        entity: 'requirement',
+        entity: 'section',
         identity: 'cap.a#Added one',
         target: {
           name: 'Added one',
           body: 'SHALL do the new thing.',
-          scenarios: [{ name: 'Happy', body: '- THEN it works' }],
+          acceptanceCases: [{ name: 'Happy', body: '- THEN it works' }],
         },
       },
       {
         operation: 'MODIFIED',
-        entity: 'requirement',
+        entity: 'section',
         identity: 'cap.a#Existing',
-        target: { name: 'Existing', body: 'SHALL do the changed thing.', scenarios: [] },
+        target: { name: 'Existing', body: 'SHALL do the changed thing.', acceptanceCases: [] },
       },
-      { operation: 'REMOVED', entity: 'requirement', identity: 'cap.a#Obsolete' },
+      { operation: 'REMOVED', entity: 'section', identity: 'cap.a#Obsolete' },
     ]);
   });
 
@@ -93,12 +93,12 @@ describe('parseSemanticDelta', () => {
     const root = await createModelRoot({
       'elements/cap.a.md': [
         '---', 'entity: element-declaration', 'identity: cap.a', 'definition: Host definition.', '---', '',
-        '## ADDED Requirements', '', '### Requirement: Only contract', '', 'SHALL hold.', '',
+        '## ADDED Sections', '', '### Section: Only contract', '', 'SHALL hold.', '',
       ].join('\n'),
     });
     const { delta, diagnostics } = await parseSemanticDelta(root);
     expect(diagnostics).toEqual([]);
-    expect(delta.entries.map(entry => entry.entity)).toEqual(['requirement']);
+    expect(delta.entries.map(entry => entry.entity)).toEqual(['section']);
   });
 
   it('accepts an identity-only REMOVED Element Declaration', async () => {
@@ -250,19 +250,19 @@ describe('applySemanticDelta', () => {
       title: 'cap.a',
       definition: 'Changed capability boundary.',
     });
-    expect(result.expected.elements[1].requirements.map(item => item.name)).toEqual(['Existing']);
+    expect(result.expected.elements[1].sections.map(item => item.name)).toEqual(['Existing']);
     expect([...result.touched]).toEqual(['cap.a']);
   });
 
-  it('applies requirement entries and reports the host element as touched', () => {
+  it('applies section entries and reports the host element as touched', () => {
     const result = applySemanticDelta(base(), {
       entries: [
-        { operation: 'ADDED', entity: 'requirement', identity: 'cap.a#New', target: { name: 'New', body: 'B', scenarios: [] } },
-        { operation: 'REMOVED', entity: 'requirement', identity: 'cap.a#Existing' },
+        { operation: 'ADDED', entity: 'section', identity: 'cap.a#New', target: { name: 'New', body: 'B', acceptanceCases: [] } },
+        { operation: 'REMOVED', entity: 'section', identity: 'cap.a#Existing' },
       ],
     });
     expect(result.diagnostics).toEqual([]);
-    expect(result.expected.elements[1].requirements.map(item => item.name)).toEqual(['New']);
+    expect(result.expected.elements[1].sections.map(item => item.name)).toEqual(['New']);
     expect([...result.touched]).toEqual(['cap.a']);
   });
 
@@ -271,8 +271,8 @@ describe('applySemanticDelta', () => {
       entries: [
         { operation: 'ADDED', entity: 'authored-view', identity: 'overview', target: { identity: 'overview', include: '*' } },
         { operation: 'MODIFIED', entity: 'element-kind', identity: 'ghost', target: { identity: 'ghost', contract: 'optional', body: '' } },
-        { operation: 'REMOVED', entity: 'requirement', identity: 'cap.a#Ghost' },
-        { operation: 'REMOVED', entity: 'requirement', identity: 'ghost#R' },
+        { operation: 'REMOVED', entity: 'section', identity: 'cap.a#Ghost' },
+        { operation: 'REMOVED', entity: 'section', identity: 'ghost#R' },
       ],
     });
     expect(conflicting.diagnostics.map(item => item.code)).toEqual([
@@ -305,7 +305,7 @@ describe('applySemanticDelta', () => {
     expect(input).toEqual(snapshot);
   });
 
-  it('does not mutate the base model when a requirement follows an element-declaration write', () => {
+  it('does not mutate the base model when a section follows an element-declaration write', () => {
     const input = base();
     const snapshot = structuredClone(input);
     const result = applySemanticDelta(input, {
@@ -316,11 +316,11 @@ describe('applySemanticDelta', () => {
           identity: 'cap.a',
           target: { identity: 'cap.a', kind: 'capability', parent: 'root', title: 'cap.a', definition: 'Changed boundary.' },
         },
-        { operation: 'ADDED', entity: 'requirement', identity: 'cap.a#New', target: { name: 'New', body: 'B', scenarios: [] } },
+        { operation: 'ADDED', entity: 'section', identity: 'cap.a#New', target: { name: 'New', body: 'B', acceptanceCases: [] } },
       ],
     });
     expect(result.diagnostics).toEqual([]);
     expect(input).toEqual(snapshot);
-    expect(result.expected.elements[1].requirements.map(item => item.name)).toEqual(['Existing', 'New']);
+    expect(result.expected.elements[1].sections.map(item => item.name)).toEqual(['Existing', 'New']);
   });
 });

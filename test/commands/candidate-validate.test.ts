@@ -139,7 +139,7 @@ describe('Candidate validation', () => {
     ]));
   });
 
-  it('reports Requirement order changes in the promotion diff', async () => {
+  it('reports Section order changes in the promotion diff', async () => {
     const formal = path.join(root, '.xirang', 'model', 'elements', 'project.root.md');
     const candidateUnit = path.join(candidate, 'elements', 'project.root.md');
     const declaration = [
@@ -152,11 +152,11 @@ describe('Candidate validation', () => {
       'definition: Project intent',
       '---',
       '',
-      '## Requirements',
+      '## Specification',
       '',
     ];
-    const first = ['### Requirement: First', 'The project SHALL do first.', '', '#### Scenario: First case', '- **WHEN** used', '- **THEN** first holds', ''];
-    const second = ['### Requirement: Second', 'The project SHALL do second.', '', '#### Scenario: Second case', '- **WHEN** used', '- **THEN** second holds', ''];
+    const first = ['### Section: First', 'The project SHALL do first.', '', '#### Acceptance Case: First case', '- **WHEN** used', '- **THEN** first holds', ''];
+    const second = ['### Section: Second', 'The project SHALL do second.', '', '#### Acceptance Case: Second case', '- **WHEN** used', '- **THEN** second holds', ''];
     await fs.writeFile(formal, [...declaration, ...first, ...second].join('\n'));
     await fs.writeFile(candidateUnit, [...declaration, ...second, ...first].join('\n'));
 
@@ -164,12 +164,12 @@ describe('Candidate validation', () => {
 
     expect(result.valid).toBe(true);
     expect(result.diff?.entries).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'requirement', identity: 'project.root#First', operation: 'MODIFIED' }),
-      expect.objectContaining({ kind: 'requirement', identity: 'project.root#Second', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'section', identity: 'project.root#First', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'section', identity: 'project.root#Second', operation: 'MODIFIED' }),
     ]));
   });
 
-  it('reports Scenario order changes as Requirement details', async () => {
+  it('reports AcceptanceCase order changes as Section details', async () => {
     const formal = path.join(root, '.xirang', 'model', 'elements', 'project.root.md');
     const candidateUnit = path.join(candidate, 'elements', 'project.root.md');
     const declaration = [
@@ -182,25 +182,25 @@ describe('Candidate validation', () => {
       'definition: Project intent',
       '---',
       '',
-      '## Requirements',
+      '## Specification',
       '',
-      '### Requirement: Ordered',
-      'The project SHALL preserve scenario order.',
+      '### Section: Ordered',
+      'The project SHALL preserve acceptanceCase order.',
       '',
     ];
-    const one = ['#### Scenario: One', '- **WHEN** first', '- **THEN** one holds', ''];
-    const two = ['#### Scenario: Two', '- **WHEN** second', '- **THEN** two holds', ''];
+    const one = ['#### Acceptance Case: One', '- **WHEN** first', '- **THEN** one holds', ''];
+    const two = ['#### Acceptance Case: Two', '- **WHEN** second', '- **THEN** two holds', ''];
     await fs.writeFile(formal, [...declaration, ...one, ...two].join('\n'));
     await fs.writeFile(candidateUnit, [...declaration, ...two, ...one].join('\n'));
 
     const result = await validateCandidate(root);
-    const requirement = result.diff?.entries.find(entry => entry.identity === 'project.root#Ordered');
+    const section = result.diff?.entries.find(entry => entry.identity === 'project.root#Ordered');
 
     expect(result.valid).toBe(true);
-    expect(requirement).toMatchObject({ kind: 'requirement', operation: 'MODIFIED' });
-    expect(requirement?.children).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: 'scenario', identity: 'project.root#Ordered#One', operation: 'MODIFIED' }),
-      expect.objectContaining({ kind: 'scenario', identity: 'project.root#Ordered#Two', operation: 'MODIFIED' }),
+    expect(section).toMatchObject({ kind: 'section', operation: 'MODIFIED' });
+    expect(section?.children).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'project.root#Ordered#One', operation: 'MODIFIED' }),
+      expect.objectContaining({ kind: 'acceptance-case', identity: 'project.root#Ordered#Two', operation: 'MODIFIED' }),
     ]));
   });
 
@@ -329,18 +329,17 @@ describe('Candidate validation', () => {
     expect(result.diagnostics.map(item => item.code)).toContain('MISSING_PARENT');
   });
 
-  it('reports missing Scenarios and unresolved Kind constraint references', async () => {
+  it('accepts a Section without an Acceptance Case and reports unresolved Kind constraint references', async () => {
     await fs.writeFile(path.join(candidate, 'metamodel', 'capability.md'),
       '---\nentity: element-kind\nidentity: capability\ncontract: optional\nparents:\n  - missing-kind\n---\n');
     await fs.writeFile(path.join(candidate, 'elements', 'capability.md'),
-      '---\nentity: element-declaration\nidentity: capability\nkind: capability\nparent: project.root\ntitle: Capability\ndefinition: S\n---\n\n## Requirements\n\n### Requirement: R\n\nBody.\n');
+      '---\nentity: element-declaration\nidentity: capability\nkind: capability\nparent: project.root\ntitle: Capability\ndefinition: S\n---\n\n## Specification\n\n### Section: R\n\nBody.\n');
 
     const result = await validateCandidate(root);
 
     expect(result.valid).toBe(false);
     expect(result.reviewDigest).toBeUndefined();
     expect(result.diagnostics.map(item => item.code)).toEqual(expect.arrayContaining([
-      'MISSING_REQUIREMENT_SCENARIO',
       'UNRESOLVED_KIND_REFERENCE',
     ]));
   });

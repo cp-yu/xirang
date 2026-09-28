@@ -176,7 +176,7 @@ export function renderReviewHelp(): string {
     'Payload (--input)',
     `  ${REVIEW_INPUT_FIELDS.map((field) => `"${field}"`).join(', ')}`,
     `  result: ${REVIEW_RESULT_VALUES.join(' | ')}`,
-    '  issues: array of { severity, message, requirement?, task?, recommendation?, evidence? }',
+    '  issues: array of { severity, message, section?, task?, recommendation?, evidence? }',
     '  evidenceFiles: project-relative paths the review inspected',
     '',
     'Minimal example',

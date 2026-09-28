@@ -16,13 +16,13 @@ const element: ModelElement = {
     title: 'Reader',
     definition: 'Reads source modules and defines the reader boundary.',
   },
-  requirements: [
+  sections: [
     {
       name: 'Parses units',
       body: 'The reader SHALL parse every unit.',
-      scenarios: [{ name: 'Valid unit', body: '- THEN it is parsed' }],
+      acceptanceCases: [{ name: 'Valid unit', body: '- THEN it is parsed' }],
     },
-    { name: 'Empty requirement', body: '', scenarios: [] },
+    { name: 'Empty section', body: '', acceptanceCases: [] },
   ],
 };
 
@@ -41,7 +41,7 @@ const model: SemanticModel = {
 };
 
 describe('serializeElementUnit', () => {
-  it('emits frontmatter and ordered requirement blocks', () => {
+  it('emits frontmatter and ordered section blocks', () => {
     expect(serializeElementUnit(element)).toBe([
       '---',
       'entity: element-declaration',
@@ -52,23 +52,23 @@ describe('serializeElementUnit', () => {
       'definition: Reads source modules and defines the reader boundary.',
       '---',
       '',
-      '## Requirements',
+      '## Specification',
       '',
-      '### Requirement: Parses units',
+      '### Section: Parses units',
       '',
       'The reader SHALL parse every unit.',
       '',
-      '#### Scenario: Valid unit',
+      '#### Acceptance Case: Valid unit',
       '',
       '- THEN it is parsed',
       '',
-      '### Requirement: Empty requirement',
+      '### Section: Empty section',
       '',
     ].join('\n'));
   });
 
   it('emits frontmatter only for an element with no contract', () => {
-    expect(serializeElementUnit({ ...element, requirements: [] })).toBe(
+    expect(serializeElementUnit({ ...element, sections: [] })).toBe(
       '---\nentity: element-declaration\nidentity: cap.reader\nkind: capability\n'
       + 'parent: domain.architecture\ntitle: Reader\ndefinition: Reads source modules and defines the reader boundary.\n---\n',
     );

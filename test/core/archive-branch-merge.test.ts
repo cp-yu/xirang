@@ -101,10 +101,10 @@ describe('archive branch merge', () => {
     await writeChange(projectRoot);
     await writeFile(projectRoot, '.xirang/changes/feature-archive/specs/synced/spec.md', `# Synced - Changes
 
-## ADDED Requirements
+## ADDED Sections
 
-### Requirement: Synced behavior
-The system SHALL sync this requirement.
+### Section: Synced behavior
+The system SHALL sync this section.
 `);
     await writeFile(projectRoot, '.xirang/project.xirang.yaml', `schema_version: 2
 project:

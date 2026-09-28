@@ -2,8 +2,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { buildCodeFenceMask } from '../parsers/requirement-text.js';
-import { extractRequirementsSection } from '../parsers/requirement-blocks.js';
+import { buildCodeFenceMask } from '../parsers/section-text.js';
+import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
 import { validateNodePresentation } from './node-presentation.js';
@@ -23,8 +23,8 @@ import {
   type Relationship,
   type RelationshipKind,
   type RelationshipPresentation,
-  type Requirement,
-  type Scenario,
+  type Section,
+  type AcceptanceCase,
   type SemanticModel,
 } from './types.js';
 
@@ -40,7 +40,7 @@ export interface ParsedUnit {
   body: string;
 }
 
-const SCENARIO_HEADER = /^####\s+Scenario:\s*(.+?)\s*$/;
+const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
 
 export function normalizeProse(body: string): string {
   return normalizeLineEndings(body).replace(/^\n+/, '').trimEnd();
@@ -104,46 +104,46 @@ function list(value: unknown): string[] | undefined {
   return Array.isArray(value) && value.every(item => typeof item === 'string') ? (value as string[]) : undefined;
 }
 
-/** Splits a `### Requirement:` block into its body and ordered scenarios. */
-export function parseRequirementBlock(name: string, raw: string): Requirement {
+/** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
+export function parseSectionBlock(name: string, raw: string): Section {
   const lines = normalizeLineEndings(raw).split('\n').slice(1);
   const mask = buildCodeFenceMask(lines);
   const bodyLines: string[] = [];
-  const scenarios: Scenario[] = [];
+  const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const header = mask[index] ? null : lines[index].match(SCENARIO_HEADER);
+    const header = mask[index] ? null : lines[index].match(ACCEPTANCE_CASE_HEADER);
     if (header) {
-      if (current) scenarios.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
+      if (current) acceptanceCases.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
       current = { name: header[1], lines: [] };
       continue;
     }
     (current ? current.lines : bodyLines).push(lines[index]);
   }
-  if (current) scenarios.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
-  return { name, body: normalizeProse(bodyLines.join('\n')), scenarios };
+  if (current) acceptanceCases.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
+  return { name, body: normalizeProse(bodyLines.join('\n')), acceptanceCases };
 }
 
 export interface ParsedContract {
-  requirements: Requirement[];
-  /** Contract content outside the `## Requirements` section; the IR cannot represent it. */
+  sections: Section[];
+  /** Contract content outside the `## Specification` section; the IR cannot represent it. */
   leftover: string;
 }
 
-function hasRequirementsHeader(normalized: string): boolean {
+function hasSpecificationHeader(normalized: string): boolean {
   const lines = normalized.split('\n');
   const mask = buildCodeFenceMask(lines);
-  return lines.some((line, index) => !mask[index] && /^##\s+Requirements\s*$/i.test(line));
+  return lines.some((line, index) => !mask[index] && /^##\s+Specification\s*$/i.test(line));
 }
 
 export function parseContract(body: string): ParsedContract {
   const normalized = normalizeProse(body);
-  if (normalized === '') return { requirements: [], leftover: '' };
-  if (!hasRequirementsHeader(normalized)) return { requirements: [], leftover: normalized };
-  const section = extractRequirementsSection(normalized);
+  if (normalized === '') return { sections: [], leftover: '' };
+  if (!hasSpecificationHeader(normalized)) return { sections: [], leftover: normalized };
+  const section = extractSpecificationSection(normalized);
   return {
-    requirements: section.bodyBlocks.map(block => parseRequirementBlock(block.name, block.raw)),
+    sections: section.bodyBlocks.map(block => parseSectionBlock(block.name, block.raw)),
     leftover: normalizeProse(`${section.before}\n${section.preamble}\n${section.after}`),
   };
 }
@@ -196,7 +196,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
     }
     if (contract.leftover !== '') {
       diagnostics.push(error('UNSUPPORTED_CONTRACT_CONTENT', file,
-        'Element contract content outside the Requirements section cannot be represented', identity));
+        'Element contract content outside the Specification section cannot be represented', identity));
     }
     return {
       entity,
@@ -209,7 +209,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
           title: text(data.title) ?? '',
           definition: definition ?? '',
         },
-        requirements: contract.requirements,
+        sections: contract.sections,
       },
       diagnostics,
     };
