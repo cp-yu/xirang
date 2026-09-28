@@ -166,8 +166,8 @@ Definition Framing is a shared method for Build and Explore. It is required for 
 ## Inputs and authority
 
 - Load the Semantic Model, user-authorized scope, project evidence, and any current record. An absent formal model is valid for initial Build; a damaged existing model is an error, never an empty starting point.
-- Run \`xirang framing list --json\` and select by immutable \`explorationId\`, not slug or path. Build and Change use independent instances; never reuse a record across contexts.
-- Before starting, resuming, replacing a record, or handing off conclusions, run \`xirang framing show <explorationId> --json\`, \`xirang framing status <explorationId> --json\`, and \`xirang framing validate <explorationId> --json\`. Read the complete current payload and retain \`sourceVersion\`. Never reconstruct it from recent conversation or Summary.
+- Run \`xirang framing list --json\`. If a relevant record exists, select it by immutable \`explorationId\`, not slug or path. Build and Change use independent instances; never reuse a record across contexts.
+- For an existing selected record, before starting, resuming, replacing it, or handing off conclusions, run \`xirang framing show <explorationId> --json\`, \`xirang framing status <explorationId> --json\`, and \`xirang framing validate <explorationId> --json\`. Read the complete current payload and retain \`sourceVersion\`. When no record exists, skip these identity-specific commands and follow Confirm and capture when applicable; a record is not required to start discussion. Never reconstruct a record from recent conversation or Summary.
 - The CLI checks format, identity, paths, versions, and explicit related context. \`semanticCoverage: not-evaluated\` is not approval. Agents assess natural-language conflicts and coverage; users decide unresolved intent. Treat relevant drift as a re-review gate: distinguish authorized evolution from unresolved contradictions, resolve them, and separately authorize any baseline-refreshing record update. Unsupported legacy records require user handling; do not migrate or delete them automatically.
 
 ## Confirm and capture

@@ -118,7 +118,9 @@ ${XIRANG_SHARED_CONTEXT}
 
 ## Input Contract
 
-The caller passes only absolute projectRoot, absolute changeDir, and changeName. If .quality-state.json is absent, return exactly: Review record not found — cannot optimize without a passing Review
+The caller passes only absolute projectRoot, absolute changeDir, and changeName. Validate these locations and check for \`.quality-state.json\` before loading references or scanning code. If it is absent, stop and return exactly: Review record not found — cannot optimize without a passing Review
+
+This missing-record diagnostic is the sole exception to the strict JSON round-ledger output contract. It is a precondition failure, not a ledger: the caller must not submit it to \`xirang quality optimize\`. Otherwise follow the required references and return strict JSON.
 
 ## Required References
 
