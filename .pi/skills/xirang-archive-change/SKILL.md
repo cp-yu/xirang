@@ -31,21 +31,17 @@ Before archiving, run `xirang config project --json` and consume git policy from
    If no clear change name is provided, run `xirang list --json`, show active changes with schema, and ask. Do not guess. Read `.apply-isolation.json` before running the archive CLI and retain its validated `method`, `branchName`, `originalBranch`, `worktreePath`, and `sourceRoot` values because the CLI moves the active change directory.
 
 2. **Unified Quality Gate**
-   Run `xirang quality status "<change-name>" --json`. Treat `state` as the sole signal for rerunning the quality flow: only `dirty` enters Step 2.5. MUST NOT infer the code state from `changedFiles`, `information`, or the recorded review alone. A `clean` state after seal MUST reuse the recorded review even when Git HEAD information differs. For a clean state, resolve the optimization state from `optimization.terminal`:
-   - not finalized yet and recorded directions are below `optimization.directionLimit`: continue the optimization loop instead of stopping; when the optimizer finds no eligible direction, finalize with `{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"<optimizer conclusion>"}` so the terminal becomes `NOT_NEEDED` or `IMPROVED`
-   - `ABORTED_UNSAFE`: hard-stop for manual recovery and offer no automatic path
+   Run `xirang quality status "<change-name>" --json`. First check `optimization.terminal`: for `ABORTED_UNSAFE`, hard-stop for manual recovery and offer no automatic path, even when `state` is `dirty`. Treat `state` as the sole signal for rerunning the quality flow: only `dirty` enters Step 2.5 at Review. MUST NOT infer the code state from `changedFiles`, `information`, or the recorded review alone. A `clean` state after seal MUST reuse the recorded review even when Git HEAD information differs. If a `clean` state has an unfinished Optimization, continue the optimization loop instead of stopping: enter Step 2.5 at Optimization without rerunning Review; the shared protocol handles eligibility, limits, and finalization.
 
 2.5. **Execute Full Quality**
 
-   When the quality record is missing or stale, execute the same quality contract as the standalone apply workflow using the `subagent-orchestrated` skeleton:
-   - Determine `changeName`, absolute `changeDir`, and absolute `projectRoot`
-   - Delegate to the clean-context generated `xirang-reviewer` subagent with `context: "fresh"`; pass only `changeName`, absolute `changeDir`, and absolute `projectRoot`; the reviewer reads artifacts and evidence itself
-   - Validate the reviewer payload, apply only deterministic `tasks.md` write-back in the main workspace, and record it with `xirang quality review "<change-name>" --input '<json>' --json`
-   - When the recorded state is `clean`, delegate to the clean-context generated `xirang-optimizer` subagent with `context: "fresh"`, pass only `changeName`, absolute `changeDir`, and absolute `projectRoot`; the optimizer reads quality records and config itself. Submit its round ledger with `xirang quality optimize`
-   - Let the master implement only the direction the CLI selected, then delegate to the clean-context generated `xirang-reviewer` subagent again with `context: "fresh"` to verify the specs and the selected direction's `preservationConstraints`, not the optimization value
-   - Finalize the loop through `stopReason`; `SKIPPED` is valid only for `optimization.enabled: false` or an explicit user decline, and archive MUST NOT silently downgrade to a review-only run
-   - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode
-   Finalize the optimization loop before archiving; `SKIPPED` is valid only for `optimization.enabled: false` or an explicit user decline. Record the fresh review before archiving.
+   Use the standalone Apply `subagent-orchestrated` contract in the existing Apply workspace. Determine `changeName`, absolute `changeDir`, and absolute `projectRoot`; validate retained isolation through `.xirang/references/xirang-apply-step-1-preparation.md` before quality mutations. Do not reinitialize isolation or overwrite its evidence baseline; missing or invalid metadata requires manual recovery.
+   Read and execute the complete shared references at each stage, rather than reconstructing a shortened quality loop:
+   - Review: `.xirang/references/xirang-apply-step-3-review.md`
+   - Optimization: `.xirang/references/xirang-apply-step-4-optimization.md`
+   - Seal: `.xirang/references/xirang-apply-step-5-seal.md`
+   For `dirty`, enter at Review. For `clean` with unfinished Optimization, reuse the recorded Review and enter at Optimization. These references own delegation, payload validation, CRITICAL write-back, checkpoints, attempt reporting, rollback, terminal handling, and sealing. Return corrections to the Apply implementation loop and require a fresh Review after edits; never treat `ABORTED_UNSAFE` as recoverable automatically. Resume Archive only after the shared flow seals successfully.
+   The top-level archive flow MUST NOT inline a current-agent review skeleton; archive MUST NOT silently downgrade to a review-only run.
 
 3. **Check artifact completion status**
    Run `xirang status --change "<name>" --json`. Warn and confirm before proceeding if any artifact is not `done`.

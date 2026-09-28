@@ -282,6 +282,40 @@ describe('apply change workflow template', () => {
     expect(current).not.toContain('git worktree add');
   });
 
+  it('validates and reuses isolation metadata before selecting a first-run method', () => {
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const resumeIndex = preparation.indexOf('If `changeDir/.apply-isolation.json` exists');
+    const initializeIndex = preparation.indexOf('Only when isolation metadata is absent');
+
+    expect(resumeIndex).toBeGreaterThan(-1);
+    expect(initializeIndex).toBeGreaterThan(resumeIndex);
+    expect(preparation).toContain('Git resolves `baseCommit` to a commit');
+    expect(preparation).toContain('current branch matches `branchName`');
+    expect(preparation).toContain('current repository root matches `worktreePath`');
+    expect(preparation).toContain('Reuse the entire record unchanged');
+    expect(preparation).toContain('`optimizationBaselineCommit`');
+    expect(preparation).toContain('skip Step 2');
+    expect(preparation).toContain('Stop on invalid metadata or workspace mismatch');
+    expect(preparation).toContain('do not replace it from current HEAD, branch, config, or a newly requested isolation method');
+    expect(getApplyChangeSkillTemplate().instructions).toContain('skip this step when Preparation validated existing isolation');
+    for (const method of ['branch-isolation', 'worktree-isolation', 'current-branch']) {
+      expect(applyReference(`references/apply-step-2-${method}.md`)).toContain('isolation metadata is absent');
+    }
+  });
+
+  it('hard-stops unsafe quality states before recovery or implementation', () => {
+    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const optimization = applyReference('references/apply-step-4-optimization.md');
+
+    expect(preparation).toContain('xirang quality status');
+    expect(preparation).toContain('`ABORTED_UNSAFE`');
+    expect(preparation.indexOf('`ABORTED_UNSAFE`')).toBeLessThan(preparation.indexOf('`state: "needs_review"`'));
+    expect(preparation).toContain('hard-stop for manual recovery');
+    expect(optimization).toContain('hard-stop for manual recovery');
+    expect(optimization).toContain('Do not return to implementation, rerun Review, seal, or archive automatically');
+    expect(optimization).not.toContain('then return to the implementation loop with Required Corrections');
+  });
+
   it('persists separate navigation and immutable evidence baselines', () => {
     const isolationReferences = [
       applyReference('references/apply-step-2-branch-isolation.md'),

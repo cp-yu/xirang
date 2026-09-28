@@ -1,6 +1,6 @@
 # Apply Step 2: Branch Isolation
 
-Use this reference only after Step 1 selects branch isolation.
+Use this reference only after Step 1 selects branch isolation and isolation metadata is absent.
 
 1. Require that Step 1 finalized branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
 2. Record the current branch as `originalBranch` and resolve the current `HEAD` SHA as `baseCommit` before switching.

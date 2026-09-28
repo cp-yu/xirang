@@ -1,6 +1,6 @@
 # Apply Step 2: Current Branch
 
-Use this reference only after Step 1 selects current-branch isolation.
+Use this reference only after Step 1 selects current-branch isolation and isolation metadata is absent.
 
 1. Require that Step 1 finalized current-branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
 2. Record the current branch as both `branchName` and `originalBranch`, and resolve current `HEAD` as `baseCommit`.

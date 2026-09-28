@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import {
   createToolWorkflowArtifactPlan,
   createWorkflowArtifactPlan,
@@ -184,6 +185,16 @@ describe('workflow installation planning', () => {
     );
     expect(archiveReference).toContain('git.commitMessage.archive');
     expect(mergeReference).toContain('git.commitMessage.merge');
+    const applyReferences = getSkillTemplates(['apply'])[0].template.referenceFiles ?? [];
+    const planned = getPlannedToolArtifacts(
+      testDir, 'claude', createToolWorkflowArtifactPlan('claude', ['archive'], testDir)
+    );
+    for (const reference of applyReferences) {
+      const referencePath = path.join(testDir, '.xirang', 'references', `xirang-${path.basename(reference.path)}`);
+      expect(planned.skillFiles).toContain(referencePath);
+      await expect(fs.readFile(referencePath, 'utf-8')).resolves.toContain(reference.content);
+    }
+    await expect(fs.stat(path.join(testDir, '.claude', 'skills', 'xirang-apply-change'))).rejects.toThrow();
   });
 
   it('preserves user reference files and overwrites managed reference files', async () => {

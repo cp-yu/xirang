@@ -1,6 +1,6 @@
 # Apply Step 2: Worktree Isolation
 
-Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
+Use this reference only after Step 1 selects worktree isolation and isolation metadata is absent. Use native Git; do not delegate worktree creation to another skill.
 
 1. Record `originalBranch`, resolve the current `HEAD` SHA as the immutable evidence baseline `baseCommit`, and create a clean worktree from the current `HEAD`, normally with `git worktree add .worktrees/<change-name> -b <change-name> HEAD`. Existing dirty files are not carried implicitly.
 2. Build the changed file set from all files under `.xirang/changes/<name>/`, every task `Files` path, Check-referenced paths, unfinished Required Corrections paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.

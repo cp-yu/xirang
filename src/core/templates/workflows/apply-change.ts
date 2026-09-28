@@ -20,13 +20,14 @@ const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
 1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`xirang list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`xirang status --change "<name>" --json\` and \`xirang instructions apply --change "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Handle \`state: "needs_review"\` by recording a Review and \`state: "needs_optimize"\` by continuing the optimization loop.
+2. Run \`xirang status --change "<name>" --json\`, \`xirang instructions apply --change "<name>" --json\`, and \`xirang quality status "<name>" --json\`. If \`optimization.terminal\` is \`ABORTED_UNSAFE\`, hard-stop for manual recovery before any implementation or quality mutation; preserve the diagnostics and offer no automatic path. Otherwise read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. After Preparation and the isolation gate, handle \`state: "needs_review"\` by recording a Review and \`state: "needs_optimize"\` by continuing the optimization loop.
 3. Load the shared Xirang Semantic Model context before reading change artifacts.
 ${XIRANG_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect \`changeDir/.quality-state.json\` (its \`issues\` carry the failing review context) and \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority.
 5. Use the shared query protocol to read affected elements, refinement, Element Contracts, and relationships.
-6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. Select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat \`.xirang/changes/<name>/\` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
-7. Record the selected method for Step 2. Do not read the selected reference during Preparation. At Step 2, read exactly one matching reference:
+6. In a Git repository, run \`git branch --show-current\`, \`git rev-parse HEAD\`, and \`git status --short\`. If \`changeDir/.apply-isolation.json\` exists, validate its method and required fields, that Git resolves \`baseCommit\` to a commit, and that the current branch matches \`branchName\`. For worktree isolation, also verify the absolute \`worktreePath\` and \`sourceRoot\` against Git's registered worktrees and that the current repository root matches \`worktreePath\`. Reuse the entire record unchanged, including \`originalBranch\`, \`baseCommit\`, any \`optimizationBaselineCommit\`, and transfer history; skip Step 2. Stop on invalid metadata or workspace mismatch; do not replace it from current HEAD, branch, config, or a newly requested isolation method.
+   Only when isolation metadata is absent, select branch, worktree, or current-branch isolation from explicit user input or \`apply.defaultIsolation\`; only \`ask\` prompts when no method was selected. If the provisional method is branch or current branch and the initial workspace is dirty, treat \`.xirang/changes/<name>/\` files as the Change itself: always baseline, never gate. Ask only about remaining dirty files: worktree isolation, include in baseline, or stop. Never alter that state automatically.
+7. For first-run isolation, record the selected method for Step 2. Do not read the selected reference during Preparation. At Step 2, read exactly one matching reference:
    - branch: \`.xirang/references/xirang-apply-step-2-branch-isolation.md\`
    - worktree: \`.xirang/references/xirang-apply-step-2-worktree-isolation.md\`
    - none/current branch: \`.xirang/references/xirang-apply-step-2-current-branch.md\`
@@ -36,7 +37,7 @@ ${XIRANG_SHARED_CONTEXT}
 const APPLY_STEP_2_BRANCH_ISOLATION_REFERENCE = `
 # Apply Step 2: Branch Isolation
 
-Use this reference only after Step 1 selects branch isolation.
+Use this reference only after Step 1 selects branch isolation and isolation metadata is absent.
 
 1. Require that Step 1 finalized branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
 2. Record the current branch as \`originalBranch\` and resolve the current \`HEAD\` SHA as \`baseCommit\` before switching.
@@ -49,7 +50,7 @@ Use this reference only after Step 1 selects branch isolation.
 const APPLY_STEP_2_WORKTREE_ISOLATION_REFERENCE = `
 # Apply Step 2: Worktree Isolation
 
-Use this reference only after Step 1 selects worktree isolation. Use native Git; do not delegate worktree creation to another skill.
+Use this reference only after Step 1 selects worktree isolation and isolation metadata is absent. Use native Git; do not delegate worktree creation to another skill.
 
 1. Record \`originalBranch\`, resolve the current \`HEAD\` SHA as the immutable evidence baseline \`baseCommit\`, and create a clean worktree from the current \`HEAD\`, normally with \`git worktree add .worktrees/<change-name> -b <change-name> HEAD\`. Existing dirty files are not carried implicitly.
 2. Build the changed file set from all files under \`.xirang/changes/<name>/\`, every task \`Files\` path, Check-referenced paths, unfinished Required Corrections paths, and user-confirmed paths. Do not infer ownership or add unrelated dirty files.
@@ -64,7 +65,7 @@ Use this reference only after Step 1 selects worktree isolation. Use native Git;
 const APPLY_STEP_2_CURRENT_BRANCH_REFERENCE = `
 # Apply Step 2: Current Branch
 
-Use this reference only after Step 1 selects current-branch isolation.
+Use this reference only after Step 1 selects current-branch isolation and isolation metadata is absent.
 
 1. Require that Step 1 finalized current-branch isolation and the dirty-state gate is resolved. Stop before editing if either prerequisite is missing.
 2. Record the current branch as both \`branchName\` and \`originalBranch\`, and resolve current \`HEAD\` as \`baseCommit\`.
@@ -103,7 +104,7 @@ Use git commits as checkpoints; never use stash or tags. Ordinary implementation
    xirang quality optimize "<change-name>" --input '<json>' --json
    \`\`\`
    The CLI assigns every new direction ID, echoes the assigned IDs and \`selected\`, and rejects a selection that skips the highest priority eligible direction. Do not author IDs, counters, or selections.
-5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with \`{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}\`, then return to the implementation loop with Required Corrections. Otherwise implement only the direction the CLI selected.
+5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with \`{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}\`, preserve the conflict and CLI diagnostics, and hard-stop for manual recovery (terminal \`ABORTED_UNSAFE\`). Do not return to implementation, rerun Review, seal, or archive automatically. Otherwise implement only the direction the CLI selected.
 6. If project evidence contradicts the selected direction or its \`keyDesign\`, revoke it inside the round ledger with \`reason\` and \`evidence\`, then judge the remaining directions with a fresh optimizer. Do not skip or reject a direction silently.
 7. Implement the selected direction with TDD, preserving its \`preservationConstraints\`, and record any non-substantive implementation difference from \`keyDesign\`.
 8. Delegate to a fresh \`xirang-reviewer\` with \`context: "fresh"\` to verify the specs and the selected direction's \`preservationConstraints\`, not the optimization value. Record that verdict with the same \`xirang quality review\` call as Step 3; a passing review marks the direction \`implemented\` and refreshes the evidence fingerprint.
@@ -151,7 +152,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 ## Flow Outline
 
 1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`.
-2. Step 2: Isolation router — read the one method reference selected by Step 1; do not load mutually exclusive methods.
+2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops until they are complete; completing one task does not leave the loop.
 4. [Mode: Delegate Review] Step 3: Review — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-3-review.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed state. A failed Review or Seal may return corrections to the implementation loop; after those corrections are complete, the modified Change state requires another change-level Review.
 5. [Mode: Checkpoint] Step 4: Optimization — read \`.xirang/references/xirang-apply-step-4-optimization.md\` and delegate to the clean-context \`xirang-optimizer\` agent when eligible.

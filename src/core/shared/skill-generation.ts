@@ -11,6 +11,7 @@ import {
   createArchiveChangeSkillTemplateForExecutionModel,
 } from '../templates/workflows/archive-change.js';
 import { resolveQualityExecutionModel } from '../templates/workflows/quality-execution-model.js';
+import { getApplyChangeSkillTemplate } from '../templates/workflows/apply-change.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
@@ -77,6 +78,14 @@ export function getSkillTemplates(
     dirName: entry.skillDirName,
     workflowId: entry.workflowId,
   }));
+
+  const archive = workflowSurfaces.find((entry) => entry.workflowId === 'archive');
+  if (archive && !workflowSurfaces.some((entry) => entry.workflowId === 'apply')) {
+    archive.template.referenceFiles = [
+      ...(archive.template.referenceFiles ?? []),
+      ...(getApplyChangeSkillTemplate().referenceFiles ?? []),
+    ];
+  }
 
   return workflowSurfaces;
 }
