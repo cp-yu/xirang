@@ -154,7 +154,7 @@ export function renderQualityCheckpointStateMachine(): string {
 - Never use \`--allow-empty\` for the baseline or for a direction checkpoint; never use stash or tags.
 - A successful direction checkpoint is \`git commit -m "wip: opt-r\${N} (\${directionId}: \${description})"\` after the round review passes.
 - Snapshot and restore \`.quality-state.json\`, \`.quality-log.jsonl\`, and \`.apply-isolation.json\` together: \`git clean -fd\` removes the untracked log, and a snapshot without its log line is treated as \`dirty\` (fail-closed).
-- Rollback only discards speculative code; the recorded review, the failure counts, and the failed directions stay durable, and the round outcome is reported on the next \`optimize\` call.
+- Rollback only discards speculative code; preserve the failed Review and existing direction history. After restoring all three files and verifying their hashes, require \`quality status\` to report \`clean\`, then carry the failed \`attempt\` on the next \`optimize\` call. Do not submit it while \`dirty\`; stop if the restored checkpoint has no matching passing Review.
 - Keep the isolation metadata authoritative: confirm \`HEAD\` is the latest successful checkpoint before discarding work, and stop if restoration or hash verification fails.
 `.trim();
 }

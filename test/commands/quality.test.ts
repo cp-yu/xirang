@@ -309,11 +309,15 @@ describe('xirang quality command', () => {
     expect((await snapshot()).result).toBe('FAIL_NEEDS_CORRECTIONS');
   });
 
-  it('keeps the direction ledger across the documented failure rollback', async () => {
+  it('preserves failure evidence across rollback before accepting the failed attempt', async () => {
     await review();
     const directionId = await assignDirection({ opportunity: 'Risky direction' });
+    const { stdout: head } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir });
+    const isolationPath = path.join(changeDir, '.apply-isolation.json');
+    await fs.writeFile(isolationPath, JSON.stringify({
+      method: 'none', baseCommit: head.trim(), optimizationBaselineCommit: head.trim(),
+    }));
 
-    // The round implementation lands, then the round review fails.
     await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
     const failed = await review({
       result: 'FAIL_NEEDS_CORRECTIONS',
@@ -321,28 +325,44 @@ describe('xirang quality command', () => {
       evidenceFiles: ['src/a.ts'],
     });
     expect(failed.exitCode, failed.stdout).toBe(0);
+    expect(JSON.parse(failed.stdout).state).toBe('dirty');
 
-    // Rollback: snapshot both record files, discard the speculative code, restore them.
-    const statePath = path.join(changeDir, '.quality-state.json');
-    const logPath = path.join(changeDir, '.quality-log.jsonl');
-    const stateSnapshot = await fs.readFile(statePath, 'utf-8');
-    const logSnapshot = await fs.readFile(logPath, 'utf-8');
+    const files = ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json'];
+    const snapshots = await Promise.all(files.map((file) => fs.readFile(path.join(changeDir, file))));
+    const attempt = { directionId, status: 'failed', summary: 'preservation constraints broke' };
+    const premature = await optimize({ directions: [], attempt });
+    expect(premature.exitCode, premature.stdout).toBe(1);
+    expect(JSON.parse(premature.stdout).code).toBe('REVIEW_REQUIRED');
+    for (const [index, file] of files.entries()) {
+      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
+    }
+
     await execFileAsync('git', ['reset', '--hard', 'HEAD'], { cwd: tempDir });
     await execFileAsync('git', ['clean', '-fd'], { cwd: tempDir });
     expect((await fs.readdir(changeDir)).includes('.quality-log.jsonl')).toBe(false);
-    await fs.writeFile(statePath, stateSnapshot, 'utf-8');
-    await fs.appendFile(logPath, logSnapshot, 'utf-8');
+    for (const [index, file] of files.entries()) {
+      await fs.writeFile(path.join(changeDir, file), snapshots[index]);
+      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
+    }
+    expect(await fs.readFile(path.join(tempDir, 'src', 'a.ts'), 'utf-8')).toBe('const a = 1;\n');
+    const restored = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
+    expect(restored.exitCode, restored.stdout).toBe(0);
+    expect(JSON.parse(restored.stdout).state).toBe('clean');
+    expect((await snapshot()).result).toBe('FAIL_NEEDS_CORRECTIONS');
+    for (const [index, file] of files.entries()) {
+      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
+    }
 
-    // The restored code matches the earlier passing record, so the next round continues directly.
-    const failedRound = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'failed', summary: 'preservation constraints broke' },
-    });
-
+    const failedRound = await optimize({ directions: [], attempt });
     expect(failedRound.exitCode, failedRound.stdout).toBe(0);
+    expect(JSON.parse(failedRound.stdout).state).toBe('clean');
     expect((await directions()).find((item) => item.id === directionId)).toEqual(
       expect.objectContaining({ status: 'failed', failureCount: 1 })
     );
+    expect(await fs.readFile(isolationPath)).toEqual(snapshots[2]);
+    const log = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'));
+    expect(log.subarray(0, snapshots[1].length)).toEqual(snapshots[1]);
+    expect(log.toString().trim().split('\n')).toHaveLength(4);
   });
 
   it('reports REVIEW_REQUIRED when a rollback restores the snapshot without its log line', async () => {

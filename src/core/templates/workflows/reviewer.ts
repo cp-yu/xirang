@@ -103,7 +103,7 @@ For each file in the union of \`git diff <baseCommit>...HEAD --name-only\` and \
 - Attribution matching: normalize both paths to POSIX relative paths before comparing.
 
 ### Semantic Model Alignment
-- For each non-empty Delta partition, check the corresponding Entry class against the Expected Semantic Model: Element Declaration Entries for identity, kind, parent, and refinement; Section Entries for the target Contract of their host Element; Relationship entries for source, kind, and target; Kind units for Metamodel constraints; View units for \`of\` and \`include\`. Also check hierarchy cycles. Misalignment is WARNING.
+- For each non-empty Delta partition, check the corresponding Entry class against the Expected Semantic Model: Element Declaration Entries for identity, kind, parent, and refinement; Section Entries for the target Contract of their host Element; Relationship entries for source, kind, and target; Kind units for Metamodel constraints; View units for \`of\` and \`include\`. Also check hierarchy cycles. Apply the Verification Protocol severity rules: violations of target semantics or structural constraints are CRITICAL; only cosmetic drift without semantic or observable behavior impact is WARNING.
 
 ## Output Contract
 

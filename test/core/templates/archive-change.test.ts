@@ -73,7 +73,7 @@ describe('archive change workflow template', () => {
     expect(review).toContain('passing only the three locating strings');
     expect(review).toContain('Apply only CRITICAL `writeBackPlan` entries');
     expect(optimization).toContain('optimizationBaselineCommit');
-    expect(optimization).toContain('Report the verdict before rolling back');
+    expect(optimization.indexOf('Report the round outcome')).toBeGreaterThan(optimization.indexOf('restore all three files'));
     expect(optimization).toContain('restore all three files');
     expect(optimization).toContain('SHA-256');
   });

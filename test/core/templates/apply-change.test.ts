@@ -341,22 +341,23 @@ describe('apply change workflow template', () => {
     expect(reference).toContain('tasksFileHash');
   });
 
-  it('preserves persistent failed-direction state across speculative rollback', () => {
+  it('restores reviewed code before reporting a failed optimization attempt', () => {
     const reference = applyReference('references/apply-step-4-optimization.md');
-    const verificationIndex = reference.indexOf('"status":"verified"');
     const snapshotIndex = reference.indexOf('repository-external temporary file');
     const rollbackIndex = reference.indexOf('git reset --hard HEAD');
     const restoreIndex = reference.indexOf('restore all three files');
+    const stateIndex = reference.indexOf('xirang quality status', restoreIndex);
+    const reportIndex = reference.indexOf('Report the round outcome');
 
-    expect(verificationIndex).toBeGreaterThan(-1);
-    expect(snapshotIndex).toBeGreaterThan(verificationIndex);
+    expect(snapshotIndex).toBeGreaterThan(-1);
     expect(rollbackIndex).toBeGreaterThan(snapshotIndex);
     expect(restoreIndex).toBeGreaterThan(rollbackIndex);
+    expect(stateIndex).toBeGreaterThan(restoreIndex);
+    expect(reportIndex).toBeGreaterThan(stateIndex);
     expect(reference).toContain('SHA-256');
-    expect(reference).toContain('failed directions');
-    expect(reference).toContain('`.apply-isolation.json`');
-    expect(reference).toContain('.quality-state.json');
-    expect(reference).toContain('.quality-log.jsonl');
+    for (const file of ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json']) {
+      expect(reference).toContain(file);
+    }
     expect(reference).toContain('Stop if restoration or hash verification fails');
   });
 
