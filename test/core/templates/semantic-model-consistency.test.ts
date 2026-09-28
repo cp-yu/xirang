@@ -58,6 +58,19 @@ describe('generated Xirang Semantic Model guidance', () => {
     }
   });
 
+  it('loads business-specification authoring rules only in formation workflows', () => {
+    const reference = '.xirang/references/xirang-business-specification-standard.md';
+    for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
+      expect(template.instructions).toContain(reference);
+      expect(template.instructions).toContain('Before exploring such a Contract or authoring/revising its Kind or Contract');
+      expect(template.instructions).not.toContain('**Four mandatory Sections**');
+    }
+    for (const guidance of [getApplyChangeSkillTemplate().instructions, getArchiveChangeSkillTemplate().instructions, getReviewerSubagentTemplate().prompt, getOptimizerSubagentTemplate().prompt]) {
+      expect(guidance).not.toContain(reference);
+      expect(guidance).not.toContain('Business Specification Standard (4+N)');
+    }
+  });
+
   it('contains no active legacy identity, binding, ownership, or graph guidance', () => {
     const combined = activeGuidance().join('\n');
 

@@ -42,6 +42,8 @@ Treat \`proposal.md\`, \`design.md\`, and the Delta units under \`{metamodel,ele
 
 ## Flow
 
+${ARTIFACT_INSTRUCTION_CONTRACT}
+
 1. Resolve change name and reconcile mode.
    - In the default new-change mode, if \`.xirang/changes/<name>/\` does not exist, run \`xirang new change "<name>"\` and create only artifacts required by evidence. If the ID already exists, stop and ask for a different ID; do not update it or synthesize an alternative ID.
    - In update mode, use the explicitly named change. If the user explicitly asks to update the current change without naming it, run \`xirang list --json\` and reuse the single active change; if multiple or none exist, ask which existing change to target.
@@ -68,16 +70,16 @@ ${XIRANG_SHARED_CONTEXT}
    - If no structural fact changes, set the compatible Architecture Source scope to \`None\`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile \`proposal.md\`.
-   - Run \`xirang instructions proposal --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
+   - Run \`xirang instructions proposal --change "<name>" --json\`.
    - Reconcile \`## Source Impact\` from the Contract and structural scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings and reference Elements by \`identity\`.
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve \`## Why\`, \`## What Changes\`, \`## Source Impact\`, and \`## Impact\`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in \`elements/<identity>.md\`.
-   - Run \`xirang instructions specs --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
+   - Run \`xirang instructions specs --change "<name>" --json\`.
    - Create or update only the identities declared by the Contract scope. The default unit name is \`<identity>.md\`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned \`## ADDED Sections\`, \`## MODIFIED Sections\`, and \`## REMOVED Sections\` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.
-   - Run \`xirang instructions design --change "<name>" --json\`. ${ARTIFACT_INSTRUCTION_CONTRACT}
+   - Run \`xirang instructions design --change "<name>" --json\`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
    ${ARCHITECTURE_GENERATE_DELTA}

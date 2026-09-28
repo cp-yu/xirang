@@ -317,13 +317,14 @@ describe('propose template post-validation flow', () => {
 
   it('gates exact-version record handoff on semantic coverage and final validation', () => {
     const body = getXirangProposeSkillTemplate().instructions;
-    for (const command of ['list --json', 'show <explorationId> --json', 'status <explorationId> --json', 'validate <explorationId> --json']) {
-      expect(body).toContain(`xirang framing ${command}`);
-    }
+    expect(body).toContain('xirang framing list --json');
+    expect(body).toContain('shared **Inputs and authority** reload gate immediately before handoff');
+    expect(body).toContain('shared **Semantic coverage gate** to the first check');
+    expect(body).toContain('shared **Output and handoff** success and failure checks');
     expect(body).toContain('Unresolved conflicts block Formation');
     expect(body).toContain('discover records through the CLI even when the handoff does not mention one');
-    expect(body).toContain('Use the loaded record as the authoring baseline from the start');
-    expect(body).toContain('give its target location and a concise semantic finding');
+    expect(body).toContain('Use the current record as the authoring baseline');
+    expect(body).toContain('check the declared record decision before compiling');
     expect(body).toContain('only external write is post-gate `framing consume`');
     expect(body).toContain('MUST NOT create, update, rename, or discard records');
     expect(body).toContain('record → Expected Semantic Model');
@@ -356,13 +357,13 @@ describe('propose template post-validation flow', () => {
     expect(body).not.toContain('announce each artifact');
   });
 
-  it('uses the shared document language contract for proseLanguage boundaries', () => {
+  it('delegates document language boundaries to the runtime config projection', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('Document Language Contract');
-      expect(body).toContain('task titles, check names, Section titles, Acceptance Case titles');
-      expect(body).toContain('Expect/Evidence descriptions');
-      expect(body).toContain('English project terminology may remain embedded');
-      expect(body).toContain('ordinary English sentences');
+      expect(body).toContain('Follow the returned `configProjection.prompt`');
+      expect(body).toContain('prose language and canonical-token boundaries');
+      expect(body).toContain('Keep the template structure unchanged');
+      expect(body).toContain('If no `proseLanguage` projection is present');
     }
   });
 

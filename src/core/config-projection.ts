@@ -82,6 +82,10 @@ export interface RuntimeProjection {
   canonicalTokenPolicy: CanonicalTokenPolicy;
 }
 
+export interface InstructionConfigProjection {
+  prompt: Omit<PromptProjection, 'compiledLines'>;
+}
+
 export interface ConfigProjectionBundle {
   normalized: NormalizedProjectConfig;
   prompt: PromptProjection;
@@ -402,6 +406,14 @@ export function projectConfigForPrompt(
   scope: { surface: string; artifactId?: string }
 ): PromptProjection {
   return compilePromptProjection(normalizeProjectConfig(config), scope);
+}
+
+export function projectConfigForInstructions(
+  config: ProjectConfig | null,
+  scope: { surface: string; artifactId?: string }
+): InstructionConfigProjection {
+  const { compiledLines, ...prompt } = projectConfigForPrompt(config, scope);
+  return { prompt };
 }
 
 export function projectConfigForRuntime(

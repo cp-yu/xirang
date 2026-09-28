@@ -569,12 +569,13 @@ rules: {}
       expect(typeof json.contextFiles).toBe('object');
       expect(json.contextFiles.proposal).toEqual([expectedProposalPath]);
       expect(json.contextFiles.specs).toEqual([expectedSpecPath]);
-      expect(json.configProjection.normalized.proseLanguage).toBe('中文');
-      expect(json.configProjection.normalized.apply).toEqual({ defaultIsolation: 'branch' });
+      expect(json.configProjection).not.toHaveProperty('normalized');
+      expect(json.configProjection.prompt).not.toHaveProperty('compiledLines');
+      expect(result.stdout.split('Use 中文 for natural-language prose')).toHaveLength(2);
       expect(json.configProjection.prompt.fragments).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
-          expect.objectContaining({ key: 'apply', scope: 'global' }),
+          expect.objectContaining({ key: 'apply', scope: 'global', lines: ['apply.defaultIsolation: branch'] }),
         ])
       );
     });
@@ -965,12 +966,13 @@ rules: {}
     });
 
     describe('instructions command with config', () => {
-      it('injects context and rules from config into instructions', async () => {
+      it('injects context and matching rules once in text and JSON instructions', async () => {
         // Create project config with context and rules
         // Note: xirang directory already exists (from changesDir creation in beforeEach)
         await fs.writeFile(
           path.join(tempDir, '.xirang', 'config.yaml'),
           `schema: semantic-model
+proseLanguage: zh-CN
 context: |
   Tech stack: TypeScript, React
   API style: RESTful
@@ -978,6 +980,8 @@ rules:
   proposal:
     - Include rollback plan
     - Identify affected teams
+  design:
+    - Design-only instruction marker
 `
         );
 
@@ -991,13 +995,34 @@ rules:
         );
         expect(result.exitCode).toBe(0);
 
-        // Verify context is injected
-        expect(result.stdout).toContain('Tech stack: TypeScript, React');
-        expect(result.stdout).toContain('API style: RESTful');
+        for (const value of ['Tech stack: TypeScript, React', 'API style: RESTful', 'Include rollback plan', 'Identify affected teams']) {
+          expect(result.stdout.split(value)).toHaveLength(2);
+        }
+        expect(result.stdout).toContain('<project_context>');
+        expect(result.stdout).toContain('<rules>');
+        expect(result.stdout).toContain('<config_projection>');
+        expect(result.stdout).not.toContain('<fragment key="context"');
+        expect(result.stdout).not.toContain('<fragment key="rules"');
+        expect(result.stdout).not.toContain('Design-only instruction marker');
 
-        // Verify rules are injected for proposal
-        expect(result.stdout).toContain('Include rollback plan');
-        expect(result.stdout).toContain('Identify affected teams');
+        const jsonResult = await runCLI(
+          ['instructions', 'proposal', '--change', 'config-test', '--json'],
+          { cwd: tempDir, timeoutMs: 30000 }
+        );
+        expect(jsonResult.exitCode).toBe(0);
+        for (const value of ['Tech stack: TypeScript, React', 'API style: RESTful', 'Include rollback plan', 'Identify affected teams', 'Use zh-CN for natural-language prose']) {
+          expect(jsonResult.stdout.split(value)).toHaveLength(2);
+        }
+        expect(jsonResult.stdout).not.toContain('Design-only instruction marker');
+        const json = JSON.parse(jsonResult.stdout);
+        expect(json).not.toHaveProperty('context');
+        expect(json).not.toHaveProperty('rules');
+        expect(json.configProjection).not.toHaveProperty('normalized');
+        expect(json.configProjection.prompt).not.toHaveProperty('compiledLines');
+        expect(json.configProjection.prompt.fragments).toEqual(expect.arrayContaining([
+          expect.objectContaining({ key: 'context', scope: 'global' }),
+          expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Include rollback plan', 'Identify affected teams'] }),
+        ]));
       }, 60000);
 
       it('does not inject rules for non-matching artifact', async () => {

@@ -23,7 +23,7 @@ import {
 } from './shared.js';
 import { checkArchiveCompatibility, checkQualityState } from '../../core/quality/state.js';
 import { readProjectConfig } from '../../core/project-config.js';
-import { buildConfigProjectionBundle } from '../../core/config-projection.js';
+import { projectConfigForInstructions } from '../../core/config-projection.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -110,8 +110,6 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
     definition,
     fileDefinitions,
     instruction,
-    context,
-    rules,
     configProjection,
     template,
     dependencies,
@@ -186,6 +184,9 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
   console.log('</current_state>');
   console.log();
 
+  const context = configProjection.prompt.fragments.find((fragment) => fragment.key === 'context')?.lines.join('\n');
+  const rules = configProjection.prompt.fragments.find((fragment) => fragment.key === 'rules')?.lines;
+
   // Project context (AI constraint - do not include in output)
   if (context) {
     console.log('<project_context>');
@@ -206,17 +207,16 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
     console.log();
   }
 
-  if (configProjection.prompt.compiledLines.length > 0) {
+  const remainingFragments = configProjection.prompt.fragments.filter(
+    (fragment) => fragment.key !== 'context' && fragment.key !== 'rules'
+  );
+  if (remainingFragments.length > 0) {
     console.log('<config_projection>');
     console.log('<!-- This is the compiled config contract. Do NOT copy it into the artifact. -->');
-    for (const fragment of configProjection.prompt.fragments) {
+    for (const fragment of remainingFragments) {
       console.log(`<fragment key="${fragment.key}" scope="${fragment.scope}">`);
       for (const line of fragment.lines) {
-        if (fragment.key === 'rules') {
-          console.log(`- ${line}`);
-        } else {
-          console.log(line);
-        }
+        console.log(line);
       }
       console.log('</fragment>');
     }
@@ -374,7 +374,7 @@ export async function generateApplyInstructions(
   // loadChangeContext will auto-detect schema from metadata if not provided
   const context = loadChangeContext(projectRoot, changeName, schemaName);
   const changeDir = context.changeDir;
-  const configProjection = buildConfigProjectionBundle(readProjectConfig(projectRoot), {
+  const configProjection = projectConfigForInstructions(readProjectConfig(projectRoot), {
     surface: 'apply',
   });
 
@@ -532,7 +532,7 @@ export function printApplyInstructionsText(instructions: ApplyInstructions): voi
     console.log();
   }
 
-  if (configProjection.prompt.compiledLines.length > 0) {
+  if (configProjection.prompt.fragments.length > 0) {
     console.log('<config_projection>');
     console.log('<!-- This is the compiled config contract. Do NOT copy it into implementation artifacts. -->');
     for (const fragment of configProjection.prompt.fragments) {

@@ -52,4 +52,4 @@ Key Acceptance Cases SHALL 存在，且包含至少一个具备非空正文的 `
 
 CLI SHALL 对完整 Semantic Model 执行结构校验；验证 Change 时 SHALL 检查 Expected Semantic Model，不要求每份 Delta 重复携带未变动的基础 Sections。缺失、重复或正文为空的必需 Section、缺少或正文为空的 Acceptance Case、Acceptance Case 放在非专属 Section 中，均 SHALL 报错。
 
-语义覆盖、规范正确性及 +N 是否值得独立维护 SHALL 由撰写者与审查者判断，结构通过不代表语义正确。完整标准由 `.xirang/references/xirang-business-specification-standard.md` 承载，Build、Explore、Propose、Apply 与 Snack 工作面 SHALL 内嵌精简根指导。
+语义覆盖、规范正确性及 +N 是否值得独立维护 SHALL 由撰写者与审查者判断，结构通过不代表语义正确。完整标准由 `.xirang/references/xirang-business-specification-standard.md` 承载，Build、Explore、Propose 与 Snack 工作面 SHALL 提供精简内容提示与加载触发条件：探索业务规格 Contract，或编写、修订其 Kind 或 Contract 前读取完整标准。通用框架及组织性 Element 不触发该格式。Apply 消费 Contract 的目标语义，不加载 4+N 撰写规则。

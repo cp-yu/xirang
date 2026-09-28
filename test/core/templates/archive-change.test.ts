@@ -57,6 +57,9 @@ describe('archive change workflow template', () => {
     expect(instructions).toContain('delegate to the clean-context generated `xirang-optimizer` subagent');
     expect(instructions).toContain('MUST NOT inline a current-agent review skeleton');
     expect(instructions).toContain('archive MUST NOT silently downgrade to a review-only run');
+    expect(instructions).not.toContain('explicit evidence bundle');
+    expect(instructions).toContain('the reviewer reads artifacts and evidence itself');
+    expect(instructions).toContain('the optimizer reads quality records and config itself');
     expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
     expect(instructions).not.toContain('invoke `xirang-optimizer`');
     expect(instructions).not.toContain('/skills/xirang-reviewer/SKILL.md');

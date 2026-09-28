@@ -10,6 +10,10 @@ import {
   TemplateLoadError,
 } from '../../../src/core/artifact-graph/instruction-loader.js';
 
+function configLines(instructions: ReturnType<typeof generateInstructions>, key: 'context' | 'rules'): string[] | undefined {
+  return instructions.configProjection.prompt.fragments.find((fragment) => fragment.key === key)?.lines;
+}
+
 function canonicalPath(filePath: string): string {
   return fs.realpathSync.native(filePath);
 }
@@ -521,9 +525,9 @@ context: |
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        // Context should be in separate field, not in template
-        expect(instructions.context).toContain('Tech stack: TypeScript, React');
-        expect(instructions.context).toContain('API style: RESTful');
+        // Context belongs to the projection, not the template
+        expect(configLines(instructions, 'context')?.[0]).toContain('Tech stack: TypeScript, React');
+        expect(configLines(instructions, 'context')?.[0]).toContain('API style: RESTful');
         expect(instructions.template).not.toContain('Tech stack');
         expect(instructions.template).toContain('## Why'); // Actual template content
       });
@@ -532,8 +536,8 @@ context: |
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toBeUndefined();
-        expect(instructions.rules).toBeUndefined();
+        expect(configLines(instructions, 'context')?.[0]).toBeUndefined();
+        expect(configLines(instructions, 'rules')).toBeUndefined();
         expect(instructions.template).toContain('## Why'); // Actual template content
       });
 
@@ -554,7 +558,7 @@ context: |
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toContain('Line 1\nLine 2\nLine 3');
+        expect(configLines(instructions, 'context')?.[0]).toContain('Line 1\nLine 2\nLine 3');
       });
 
       it('should preserve special characters in context', () => {
@@ -572,7 +576,7 @@ context: |
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toContain('Special: < > & " \' @ # $ % [ ] { }');
+        expect(configLines(instructions, 'context')?.[0]).toContain('Special: < > & " \' @ # $ % [ ] { }');
       });
 
       it('should return rules only for matching artifact', () => {
@@ -595,12 +599,12 @@ rules:
 
         // Check proposal artifact has its rules
         const proposalInstructions = generateInstructions(context, 'proposal', tempDir);
-        expect(proposalInstructions.rules).toEqual(['Include rollback plan', 'Identify affected teams']);
+        expect(configLines(proposalInstructions, 'rules')).toEqual(['Include rollback plan', 'Identify affected teams']);
         expect(proposalInstructions.template).not.toContain('rollback plan');
 
         // Check specs artifact has its rules
         const specsInstructions = generateInstructions(context, 'specs', tempDir);
-        expect(specsInstructions.rules).toEqual(['Use Given/When/Then format']);
+        expect(configLines(specsInstructions, 'rules')).toEqual(['Use Given/When/Then format']);
         expect(specsInstructions.template).not.toContain('Given/When/Then');
       });
 
@@ -621,7 +625,7 @@ rules:
 
         // Check design artifact (no rules configured) has undefined rules
         const designInstructions = generateInstructions(context, 'design', tempDir);
-        expect(designInstructions.rules).toBeUndefined();
+        expect(configLines(designInstructions, 'rules')).toBeUndefined();
       });
 
       it('should return undefined rules when empty array', () => {
@@ -640,11 +644,11 @@ rules:
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toBe('Some context');
-        expect(instructions.rules).toBeUndefined();
+        expect(configLines(instructions, 'context')?.[0]).toBe('Some context');
+        expect(configLines(instructions, 'rules')).toBeUndefined();
       });
 
-      it('should keep context, rules, and template as separate fields', () => {
+      it('should keep context and rules in scoped fragments separate from the template', () => {
         // Create project config with both context and rules
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
@@ -661,9 +665,9 @@ rules:
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        // All three should be separate
-        expect(instructions.context).toBe('Project context here');
-        expect(instructions.rules).toEqual(['Rule 1']);
+        // Config guidance remains separate from artifact content
+        expect(configLines(instructions, 'context')?.[0]).toBe('Project context here');
+        expect(configLines(instructions, 'rules')).toEqual(['Rule 1']);
         expect(instructions.configProjection.prompt.fragments).toEqual([
           expect.objectContaining({ key: 'context', scope: 'global' }),
           expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Rule 1'] }),
@@ -693,8 +697,8 @@ context: Project context only
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toBe('Project context only');
-        expect(instructions.rules).toBeUndefined();
+        expect(configLines(instructions, 'context')?.[0]).toBe('Project context only');
+        expect(configLines(instructions, 'rules')).toBeUndefined();
         expect(instructions.template).toContain('## Why');
       });
 
@@ -714,8 +718,8 @@ rules:
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.context).toBeUndefined();
-        expect(instructions.rules).toEqual(['Rule only']);
+        expect(configLines(instructions, 'context')?.[0]).toBeUndefined();
+        expect(configLines(instructions, 'rules')).toEqual(['Rule only']);
         expect(instructions.template).toContain('## Why');
       });
 
@@ -723,8 +727,8 @@ rules:
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal'); // No projectRoot
 
-        expect(instructions.context).toBeUndefined();
-        expect(instructions.rules).toBeUndefined();
+        expect(configLines(instructions, 'context')?.[0]).toBeUndefined();
+        expect(configLines(instructions, 'rules')).toBeUndefined();
         // Functional defaults always project the unconditional architecture rule.
         expect(instructions.configProjection.prompt.fragments).toEqual([
           expect.objectContaining({
@@ -752,16 +756,16 @@ rules:
         const context = loadChangeContext(tempDir, 'my-change');
         const instructions = generateInstructions(context, 'proposal', tempDir);
 
-        expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
+        expect(instructions.configProjection.prompt.fragments.flatMap((fragment) => fragment.lines).join('\n')).toContain(
           'Use 中文 for natural-language prose that you newly write or revise.'
         );
-        expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
+        expect(instructions.configProjection.prompt.fragments.flatMap((fragment) => fragment.lines).join('\n')).toContain(
           'task titles, check names, Section titles, Acceptance Case titles'
         );
-        expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
+        expect(instructions.configProjection.prompt.fragments.flatMap((fragment) => fragment.lines).join('\n')).toContain(
           'English project terminology may remain embedded'
         );
-        expect(instructions.configProjection.prompt.compiledLines.join('\n')).toContain(
+        expect(instructions.configProjection.prompt.fragments.flatMap((fragment) => fragment.lines).join('\n')).toContain(
           'Keep rationale concise'
         );
       });

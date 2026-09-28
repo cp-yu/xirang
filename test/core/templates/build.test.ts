@@ -16,8 +16,9 @@ describe('xirang-build workflow', () => {
     expect(instructions.indexOf('xirang candidate promote --digest')).toBeGreaterThan(consume);
     expect(instructions).toContain('Do not reuse a pre-handoff digest');
     expect(instructions).toContain('framing-source.md');
-    expect(instructions).toContain('Unresolved conflicts, uncovered entries, or missing normative detail block source handoff');
-    expect(instructions).toContain('an entry left unmarked counts as uncovered');
+    expect(instructions).toContain('apply the shared **Semantic coverage gate** to current record → complete Candidate');
+    expect(instructions).toContain('Coverage must pass before source handoff');
+    expect(instructions).toContain('shared **Output and handoff** success and failure checks');
   });
 
   it('keeps scope and starting-point decisions with the user', () => {

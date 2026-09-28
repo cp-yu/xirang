@@ -5,7 +5,6 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
   QUALITY_CHECKPOINT_STATE_MACHINE,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
@@ -99,7 +98,7 @@ Use git commits as checkpoints; never use stash or tags. Ordinary implementation
    git commit -m "wip: opt-checkpoint-r0 (baseline)"
    \`\`\`
    Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as \`optimizationBaselineCommit\` in \`.apply-isolation.json\`.
-4. Delegate to a fresh \`xirang-optimizer\` with \`context: "fresh"\` and pass only the three locating strings plus the recorded review conclusion, the failed directions, and the optimization config; the optimizer owns read and bash capability and reads the base scope itself, so never pass file contents and never reuse an earlier conclusion. Wait for the complete round ledger before validating it: A slow subagent is not a failed subagent — keep waiting, and ask the user before terminating it. Submit the ledger:
+4. Delegate to a fresh \`xirang-optimizer\` with \`context: "fresh"\` and pass only changeName, absolute changeDir, and absolute projectRoot; the optimizer reads the recorded review conclusion, failed directions, optimization config and base scope itself, so never pass file contents and never reuse an earlier conclusion. Wait for the complete round ledger before validating it: A slow subagent is not a failed subagent — keep waiting, and ask the user before terminating it. Submit the ledger:
    \`\`\`bash
    xirang quality optimize "<change-name>" --input '<json>' --json
    \`\`\`
@@ -144,8 +143,6 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
     instructions: `Implement tasks from an Xirang change.
 
 ${XIRANG_PHILOSOPHY}
-
-${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${TEST_QUALITY_GUIDANCE}
 

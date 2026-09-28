@@ -21,14 +21,7 @@ Enter explore mode: investigate, clarify, compare, and confirm the design with t
 
 **Business Specification Standard (4+N)**
 
-- **Applicability**: business-specification Elements MUST use an Element Kind declaring `contract: required` and `contractFormat: business-specification`. Declare an appropriate Kind when needed; do not apply this format to generic framework concepts or organizational Elements, or omit it to bypass validation. CLI uses the explicit Kind declaration, never prose inference.
-- **Four mandatory Sections**: `### Section: Scope and Non-goals`; `### Section: Business Logic`; `### Section: Edge Cases and Exception Handling`; `### Section: Key Acceptance Cases`. Keep these exact English titles regardless of proseLanguage; each needs a non-empty body. The business goal stays in Declaration `definition`, not a fifth Section.
-- **Business Logic**: keep related validation, transitions, concurrency, timing and return paths together as one complete mechanism. Use free sub-headings, prose, pseudocode, tables, formulas or diagrams inside it; engineering characteristics do not automatically create Sections.
-- **Edge Cases and Exception Handling**: explicitly cover applicable boundary inputs and failure behavior, using a table or another suitable carrier. Keep these details separate from the main mechanism.
-- **Key Acceptance Cases**: always include at least one non-empty `#### Acceptance Case:` here, never in other Sections. Ground observable inputs/conditions and expected outcomes in confirmed intent and Contract commitments; they are the TDD test basis, not outcomes invented from implementation. Cover a positive flow and applicable boundary/conflict flows without demanding a case per detail.
-- **+N**: add freely named Sections only for commitments worth maintaining independently of the four base Sections. Keep related mechanism details and their diagrams together. Do not turn every rule, step or engineering characteristic into a Section.
-- **Validation and traceability**: CLI checks the complete model (Expected Semantic Model for a Change), not four repeated Sections in every delta. Checks reference change-local Element paths plus Section anchors, and Acceptance Case anchors where relevant. Semantic coverage and independently maintainable boundaries remain author/reviewer judgments; do not invent business decisions to fill containers.
-- Read `.xirang/references/xirang-business-specification-standard.md` for the standard and self-check list.
+For business-specification Elements, prepare scope/non-goals, the complete business mechanism, exceptions, and key acceptance outcomes; add Sections only for independently maintained commitments. Before exploring such a Contract or authoring/revising its Kind or Contract, read `.xirang/references/xirang-business-specification-standard.md` for applicability, canonical structure and self-checks. Generic framework or organizational Elements do not trigger this format.
 
 **Test Quality Guidance**
 
@@ -61,9 +54,7 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload. Batch that confirmation per design section: collect the entries a section produced, present them together, and ask once, rather than interrupting for each entry.
-- Before handoff, confirm exactly one record decision when the design carries normative confirmations: a persisted record or an explicit user-granted exemption. A silent skip is neither. Record the exemption and its reason in the Design Summary.
-- Ask one clarification question at a time; do not auto-capture decisions into artifacts.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Record writes require explicit persistence confirmation under the shared Definition Framing protocol.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
 The main Explore agent remains read-only outside the managed Definition Framing exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang framing` may persist the confirmed design record.
@@ -104,8 +95,6 @@ The main Explore agent remains read-only outside the managed Definition Framing 
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
 
-Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged.
-
 ## Semantic Impact
 
 When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
@@ -123,12 +112,7 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
-Definition Framing is available throughout design, not a linear prerequisite. Follow the shared protocol for key confirmations and user-requested material; a direction confirmation still grants no write permission. Normative confirmations must reach a record or a recorded exemption before handoff.
-
-- Run `xirang framing list --json` and select a Change-context record when applicable. Before starting, resuming, or producing a Design Summary with a record, run `xirang framing show <explorationId> --json`, `xirang framing status <explorationId> --json`, and `xirang framing validate <explorationId> --json`; read the complete payload and version.
-- Apply the shared conflict/reload gate. Unresolved conflicts block Design Summary. Record changes invalidate affected Summary and coverage conclusions; resolve, separately authorize any record edits, inspect diff, and reload before rechecking.
-- At the end of each confirmed design section, proactively collect its normative confirmations and propose the complete record payload for one persistence confirmation under the shared protocol. Do not wait for the user to request framing or defer all capture until Summary. With no record, initiate creation; with a record, propose an update only for new or changed confirmations. An explicit user exemption suspends capture within its scope; do not offer exemption as the default. Do not decide by silence and do not create an empty framing record.
-- The Design Summary remains conversation-only. When record-backed, it MUST carry `explorationId` and the checked `sourceVersion` for Propose without duplicating the record. With no record, omit those two fields and instead carry the record decision and its reason, so the absence of a record is a declared outcome rather than a gap.
+Definition Framing is available throughout design, not a linear prerequisite. Run `xirang framing list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Confirm and capture** after each confirmed section, and **Summary gate** before handoff. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
 
 ## Simplicity Awareness
 
@@ -145,12 +129,12 @@ The simplicity filter (for reference):
 ## Brainstorming Checklist
 
 If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context**. Run `xirang list --json`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
-2. **Decide whether a visual companion helps**. Use one only when it clarifies architecture, state, data flow, or trade-offs.
-3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions. Actively surface applicable behavior and boundary decisions, not just implementation choices.
-4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
-5. **Confirm the applicable design sections**. Confirm observable behavior and key acceptance outcomes, including applicable conditions, exceptions and timing, without drafting complete Contracts or task lists. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Apply Test Quality Guidance, then choose reuse, modify, add, delete, or one-time verification. Classify testing items as persistent or one-time verification (no persistent test file). After each confirmed section, apply the shared capture protocol before moving on. When existing tests are affected, list those actions with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a `One-time Verification` subsection.
-6. **Self-review and generate Design Summary**. Challenge the design with applicable boundary or competing-event sequences, recheck semantic impact context, and resolve contradictions and vague boundaries. Ask about unresolved in-scope decisions; only the user may exclude or defer scope. Before Summary, check that all normative confirmations are recorded or explicitly exempted, then apply the shared record reload/conflict gate; an existing partial record does not settle later confirmations. Unresolved conflicts cannot be deferred into a ready Summary. Produce the conversation-only `Design Summary`, preserving confirmed decisions and their conditions separately from recommendations, unresolved items and user-approved exclusions. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+1. **Explore project context** using Required Context and Semantic Impact above.
+2. **Decide whether a visual companion helps** using the brainstorming reference.
+3. **Clarify one question at a time** using the reference's One-question discipline.
+4. **Compare 2-3 options** using the reference and Simplicity Awareness.
+5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared capture protocol.
+6. **Self-review and generate Design Summary** using the reference's self-review and the Definition Framing Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

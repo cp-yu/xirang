@@ -11,7 +11,7 @@ import path from 'path';
 import * as fs from 'fs';
 import { getSchemaDir, listSchemas } from '../../core/artifact-graph/index.js';
 import { validateChangeName } from '../../utils/change-utils.js';
-import type { ConfigProjectionBundle } from '../../core/config-projection.js';
+import type { InstructionConfigProjection } from '../../core/config-projection.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -28,7 +28,7 @@ export interface ApplyInstructions {
   changeDir: string;
   schemaName: string;
   contextFiles: Record<string, string[]>;
-  configProjection: ConfigProjectionBundle;
+  configProjection: InstructionConfigProjection;
   progress: {
     total: number;
     complete: number;

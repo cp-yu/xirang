@@ -19,17 +19,6 @@ Implement tasks from an Xirang change.
 4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 
-**Business Specification Standard (4+N)**
-
-- **Applicability**: business-specification Elements MUST use an Element Kind declaring `contract: required` and `contractFormat: business-specification`. Declare an appropriate Kind when needed; do not apply this format to generic framework concepts or organizational Elements, or omit it to bypass validation. CLI uses the explicit Kind declaration, never prose inference.
-- **Four mandatory Sections**: `### Section: Scope and Non-goals`; `### Section: Business Logic`; `### Section: Edge Cases and Exception Handling`; `### Section: Key Acceptance Cases`. Keep these exact English titles regardless of proseLanguage; each needs a non-empty body. The business goal stays in Declaration `definition`, not a fifth Section.
-- **Business Logic**: keep related validation, transitions, concurrency, timing and return paths together as one complete mechanism. Use free sub-headings, prose, pseudocode, tables, formulas or diagrams inside it; engineering characteristics do not automatically create Sections.
-- **Edge Cases and Exception Handling**: explicitly cover applicable boundary inputs and failure behavior, using a table or another suitable carrier. Keep these details separate from the main mechanism.
-- **Key Acceptance Cases**: always include at least one non-empty `#### Acceptance Case:` here, never in other Sections. Ground observable inputs/conditions and expected outcomes in confirmed intent and Contract commitments; they are the TDD test basis, not outcomes invented from implementation. Cover a positive flow and applicable boundary/conflict flows without demanding a case per detail.
-- **+N**: add freely named Sections only for commitments worth maintaining independently of the four base Sections. Keep related mechanism details and their diagrams together. Do not turn every rule, step or engineering characteristic into a Section.
-- **Validation and traceability**: CLI checks the complete model (Expected Semantic Model for a Change), not four repeated Sections in every delta. Checks reference change-local Element paths plus Section anchors, and Acceptance Case anchors where relevant. Semantic coverage and independently maintainable boundaries remain author/reviewer judgments; do not invent business decisions to fill containers.
-- Read `.xirang/references/xirang-business-specification-standard.md` for the standard and self-check list.
-
 **Test Quality Guidance**
 
 Persistent tests protect observable behavior and provide fast, trustworthy feedback.

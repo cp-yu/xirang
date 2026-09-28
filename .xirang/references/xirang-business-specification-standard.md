@@ -1,19 +1,8 @@
 # Business Specification Standard
 
-**Business Specification Standard (4+N)**
-
-- **Applicability**: business-specification Elements MUST use an Element Kind declaring `contract: required` and `contractFormat: business-specification`. Declare an appropriate Kind when needed; do not apply this format to generic framework concepts or organizational Elements, or omit it to bypass validation. CLI uses the explicit Kind declaration, never prose inference.
-- **Four mandatory Sections**: `### Section: Scope and Non-goals`; `### Section: Business Logic`; `### Section: Edge Cases and Exception Handling`; `### Section: Key Acceptance Cases`. Keep these exact English titles regardless of proseLanguage; each needs a non-empty body. The business goal stays in Declaration `definition`, not a fifth Section.
-- **Business Logic**: keep related validation, transitions, concurrency, timing and return paths together as one complete mechanism. Use free sub-headings, prose, pseudocode, tables, formulas or diagrams inside it; engineering characteristics do not automatically create Sections.
-- **Edge Cases and Exception Handling**: explicitly cover applicable boundary inputs and failure behavior, using a table or another suitable carrier. Keep these details separate from the main mechanism.
-- **Key Acceptance Cases**: always include at least one non-empty `#### Acceptance Case:` here, never in other Sections. Ground observable inputs/conditions and expected outcomes in confirmed intent and Contract commitments; they are the TDD test basis, not outcomes invented from implementation. Cover a positive flow and applicable boundary/conflict flows without demanding a case per detail.
-- **+N**: add freely named Sections only for commitments worth maintaining independently of the four base Sections. Keep related mechanism details and their diagrams together. Do not turn every rule, step or engineering characteristic into a Section.
-- **Validation and traceability**: CLI checks the complete model (Expected Semantic Model for a Change), not four repeated Sections in every delta. Checks reference change-local Element paths plus Section anchors, and Acceptance Case anchors where relevant. Semantic coverage and independently maintainable boundaries remain author/reviewer judgments; do not invent business decisions to fill containers.
-- Read `.xirang/references/xirang-business-specification-standard.md` for the standard and self-check list.
-
 ## Applicability and notation
 
-The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. For example:
+The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. Business-specification Elements MUST use a Kind declaring both `contract: required` and `contractFormat: business-specification`; declare an appropriate Kind when needed, never omit the format to bypass validation. For example:
 
 ```yaml
 entity: element-kind
@@ -34,7 +23,7 @@ Every instance of this Kind requires the 4+N Contract. Generic concepts (such as
 ### Section: <optional independently maintained commitment>
 ```
 
-This outline needs real content. CLI rejects missing, duplicate or empty mandatory Sections, a missing/empty Acceptance Case, and Acceptance Cases outside Key Acceptance Cases. It does not decide whether the business rules or acceptance outcomes are correct. Change units use ADDED/MODIFIED/REMOVED Sections as usual; only the complete Expected Semantic Model must contain all four base Sections.
+All four base Section titles in the outline are canonical English tokens regardless of proseLanguage. This outline needs real content. CLI rejects missing, duplicate or empty mandatory Sections, a missing/empty Acceptance Case, and Acceptance Cases outside Key Acceptance Cases. It does not decide whether the business rules or acceptance outcomes are correct. Change units use ADDED/MODIFIED/REMOVED Sections as usual; only the complete Expected Semantic Model must contain all four base Sections.
 
 ## Four base Sections
 
@@ -52,7 +41,7 @@ This outline needs real content. CLI rejects missing, duplicate or empty mandato
 
 Check applicable state/lifecycle, concurrency, timing and external-failure details within the existing base Sections first. Related details stay in Business Logic; exceptional outcomes belong in Edge Cases and Exception Handling. Place each diagram next to the mechanism it explains. Record unknown business decisions rather than making them normative to complete the structure.
 
-Tasks and Checks trace back to Sections or their Acceptance Cases. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
+Tasks and Checks trace back to Sections or their Acceptance Cases using change-local Element paths and Section anchors, plus Acceptance Case anchors where relevant. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
 
 ## Self-check
 

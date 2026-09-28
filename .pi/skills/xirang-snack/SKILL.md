@@ -21,14 +21,7 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 
 **Business Specification Standard (4+N)**
 
-- **Applicability**: business-specification Elements MUST use an Element Kind declaring `contract: required` and `contractFormat: business-specification`. Declare an appropriate Kind when needed; do not apply this format to generic framework concepts or organizational Elements, or omit it to bypass validation. CLI uses the explicit Kind declaration, never prose inference.
-- **Four mandatory Sections**: `### Section: Scope and Non-goals`; `### Section: Business Logic`; `### Section: Edge Cases and Exception Handling`; `### Section: Key Acceptance Cases`. Keep these exact English titles regardless of proseLanguage; each needs a non-empty body. The business goal stays in Declaration `definition`, not a fifth Section.
-- **Business Logic**: keep related validation, transitions, concurrency, timing and return paths together as one complete mechanism. Use free sub-headings, prose, pseudocode, tables, formulas or diagrams inside it; engineering characteristics do not automatically create Sections.
-- **Edge Cases and Exception Handling**: explicitly cover applicable boundary inputs and failure behavior, using a table or another suitable carrier. Keep these details separate from the main mechanism.
-- **Key Acceptance Cases**: always include at least one non-empty `#### Acceptance Case:` here, never in other Sections. Ground observable inputs/conditions and expected outcomes in confirmed intent and Contract commitments; they are the TDD test basis, not outcomes invented from implementation. Cover a positive flow and applicable boundary/conflict flows without demanding a case per detail.
-- **+N**: add freely named Sections only for commitments worth maintaining independently of the four base Sections. Keep related mechanism details and their diagrams together. Do not turn every rule, step or engineering characteristic into a Section.
-- **Validation and traceability**: CLI checks the complete model (Expected Semantic Model for a Change), not four repeated Sections in every delta. Checks reference change-local Element paths plus Section anchors, and Acceptance Case anchors where relevant. Semantic coverage and independently maintainable boundaries remain author/reviewer judgments; do not invent business decisions to fill containers.
-- Read `.xirang/references/xirang-business-specification-standard.md` for the standard and self-check list.
+For business-specification Elements, prepare scope/non-goals, the complete business mechanism, exceptions, and key acceptance outcomes; add Sections only for independently maintained commitments. Before exploring such a Contract or authoring/revising its Kind or Contract, read `.xirang/references/xirang-business-specification-standard.md` for applicability, canonical structure and self-checks. Generic framework or organizational Elements do not trigger this format.
 
 **Element Definition Semantics**
 
@@ -59,6 +52,8 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 - Update an active change only when the user explicitly asks to update the current or an existing change. Supplying an existing change ID does not by itself select update mode.
 
 ## Flow
+
+For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
 
 1. Resolve change name and reconcile mode.
    - In the default new-change mode, if `.xirang/changes/<name>/` does not exist, run `xirang new change "<name>"` and create only artifacts required by evidence. If the ID already exists, stop and ask for a different ID; do not update it or synthesize an alternative ID.
@@ -100,16 +95,16 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
    - If no structural fact changes, set the compatible Architecture Source scope to `None`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile `proposal.md`.
-   - Run `xirang instructions proposal --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
+   - Run `xirang instructions proposal --change "<name>" --json`.
    - Reconcile `## Source Impact` from the Contract and structural scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings and reference Elements by `identity`.
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in `elements/<identity>.md`.
-   - Run `xirang instructions specs --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
+   - Run `xirang instructions specs --change "<name>" --json`.
    - Create or update only the identities declared by the Contract scope. The default unit name is `<identity>.md`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
-   - Run `xirang instructions design --change "<name>" --json`. For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
+   - Run `xirang instructions design --change "<name>" --json`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
    **Write the Semantic Delta**:
@@ -152,14 +147,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 ## Artifact Contract
 
 **Document Language Contract**:
-- Treat `.xirang/config.yaml` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
-- If the compiled projection includes `proseLanguage`, apply it to natural-language prose you write or revise in the artifact body
-- Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
-- Follow the existing template structure exactly; do not invent a different layout because the prose language changes
-- Keep template headings, normative keywords, `### Section:` and `#### Acceptance Case:` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
-- The four business-specification Section titles are canonical English tokens: Scope and Non-goals, Business Logic, Edge Cases and Exception Handling, Key Acceptance Cases; do not translate them.
-- Preserve exact existing Section titles required for MODIFIED matching
-- English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow `proseLanguage`
-- If no `proseLanguage` projection is present, keep the default writing behavior for prose
+- Follow the returned `configProjection.prompt` for prose language and canonical-token boundaries; do not reinterpret raw config.
+- Keep the template structure unchanged. If no `proseLanguage` projection is present, keep the default writing behavior for prose.
 
 Preserve canonical headings, IDs, schema keys, paths, commands, and code identifiers.

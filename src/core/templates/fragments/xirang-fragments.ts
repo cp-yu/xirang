@@ -202,13 +202,6 @@ export const QUALITY_CHECKPOINT_STATE_MACHINE = renderQualityCheckpointStateMach
  */
 export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 **Document Language Contract**:
-- Treat \`.xirang/config.yaml\` as the compact source of truth, but consume its compiled prompt projection rather than reinterpreting raw keys ad hoc
-- If the compiled projection includes \`proseLanguage\`, apply it to natural-language prose you write or revise in the artifact body
-- Natural-language prose includes task titles, check names, Section titles, Acceptance Case titles, bullet descriptions, Expect/Evidence descriptions, rationale, goals, risks, and summaries
-- Follow the existing template structure exactly; do not invent a different layout because the prose language changes
-- Keep template headings, normative keywords, \`### Section:\` and \`#### Acceptance Case:\` headers, IDs, schema keys, relation types, file paths, commands, and code identifiers in their canonical form
-- The four business-specification Section titles are canonical English tokens: Scope and Non-goals, Business Logic, Edge Cases and Exception Handling, Key Acceptance Cases; do not translate them.
-- Preserve exact existing Section titles required for MODIFIED matching
-- English project terminology may remain embedded in prose, but ordinary English sentences and titles still follow \`proseLanguage\`
-- If no \`proseLanguage\` projection is present, keep the default writing behavior for prose
+- Follow the returned \`configProjection.prompt\` for prose language and canonical-token boundaries; do not reinterpret raw config.
+- Keep the template structure unchanged. If no \`proseLanguage\` projection is present, keep the default writing behavior for prose.
 `.trim();

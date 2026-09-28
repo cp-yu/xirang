@@ -1,13 +1,9 @@
-import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from './business-specification-standard-root.js';
-
 export const BUSINESS_SPECIFICATION_STANDARD_REFERENCE = `
 # Business Specification Standard
 
-${BUSINESS_SPECIFICATION_STANDARD_ROOT}
-
 ## Applicability and notation
 
-The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. For example:
+The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. Business-specification Elements MUST use a Kind declaring both \`contract: required\` and \`contractFormat: business-specification\`; declare an appropriate Kind when needed, never omit the format to bypass validation. For example:
 
 \`\`\`yaml
 entity: element-kind
@@ -28,7 +24,7 @@ Every instance of this Kind requires the 4+N Contract. Generic concepts (such as
 ### Section: <optional independently maintained commitment>
 \`\`\`
 
-This outline needs real content. CLI rejects missing, duplicate or empty mandatory Sections, a missing/empty Acceptance Case, and Acceptance Cases outside Key Acceptance Cases. It does not decide whether the business rules or acceptance outcomes are correct. Change units use ADDED/MODIFIED/REMOVED Sections as usual; only the complete Expected Semantic Model must contain all four base Sections.
+All four base Section titles in the outline are canonical English tokens regardless of proseLanguage. This outline needs real content. CLI rejects missing, duplicate or empty mandatory Sections, a missing/empty Acceptance Case, and Acceptance Cases outside Key Acceptance Cases. It does not decide whether the business rules or acceptance outcomes are correct. Change units use ADDED/MODIFIED/REMOVED Sections as usual; only the complete Expected Semantic Model must contain all four base Sections.
 
 ## Four base Sections
 
@@ -46,7 +42,7 @@ This outline needs real content. CLI rejects missing, duplicate or empty mandato
 
 Check applicable state/lifecycle, concurrency, timing and external-failure details within the existing base Sections first. Related details stay in Business Logic; exceptional outcomes belong in Edge Cases and Exception Handling. Place each diagram next to the mechanism it explains. Record unknown business decisions rather than making them normative to complete the structure.
 
-Tasks and Checks trace back to Sections or their Acceptance Cases. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
+Tasks and Checks trace back to Sections or their Acceptance Cases using change-local Element paths and Section anchors, plus Acceptance Case anchors where relevant. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
 
 ## Self-check
 

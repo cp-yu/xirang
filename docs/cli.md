@@ -560,6 +560,8 @@ xirang instructions design --change add-dark-mode --json
 - Content from dependency artifacts
 - Per-artifact rules from config
 
+Artifact and Apply JSON instructions carry configuration once in `configProjection.prompt.fragments`, scoped to the requested surface and artifact. Read context, matching rules, language and other applicable guidance there. The instructions omit the former top-level `context`/`rules`, `configProjection.normalized`, and `prompt.compiledLines` copies; use `xirang config project --json` when the complete normalized project configuration is needed. Text instructions render the same fragments without repeating their content.
+
 ---
 
 ### `xirang templates`

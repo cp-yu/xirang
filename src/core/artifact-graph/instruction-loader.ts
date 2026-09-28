@@ -8,7 +8,7 @@ import { resolveSchemaForChange } from '../../utils/change-metadata.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { readProjectConfig, validateConfigRules } from '../project-config.js';
 import { XIRANG_DIR_NAME } from '../config.js';
-import { buildConfigProjectionBundle, type ConfigProjectionBundle } from '../config-projection.js';
+import { projectConfigForInstructions, type InstructionConfigProjection } from '../config-projection.js';
 import type { Artifact, CompletedSet, FileDefinition, ManagedFile } from './types.js';
 
 // Session-level cache for validation warnings (avoid repeating same warnings)
@@ -100,12 +100,8 @@ export interface ArtifactInstructions {
   fileDefinitions: ManagedFile[] | undefined;
   /** Dependencies with completion status and paths */
   dependencies: DependencyInfo[];
-  /** Project context from config (constraints/background for AI, not to be included in output) */
-  context: string | undefined;
-  /** Artifact-specific rules from config (constraints for AI, not to be included in output) */
-  rules: string[] | undefined;
   /** Compiled project config projection for prompt consumers. */
-  configProjection: ConfigProjectionBundle;
+  configProjection: InstructionConfigProjection;
   /** Definition-first authoring contract followed by artifact guidance from the schema. */
   instruction: string;
   /** Template content (structure to follow - this IS the output format) */
@@ -329,15 +325,10 @@ export function generateInstructions(
     }
   }
 
-  const configProjection = buildConfigProjectionBundle(projectConfig, {
+  const configProjection = projectConfigForInstructions(projectConfig, {
     surface: 'artifact-instructions',
     artifactId,
   });
-
-  // Backward-compatible fields are derived from the normalized projection input.
-  const configContext = configProjection.normalized.context;
-  const rulesForArtifact = configProjection.normalized.rules[artifactId];
-  const configRules = rulesForArtifact && rulesForArtifact.length > 0 ? rulesForArtifact : undefined;
 
   return {
     changeName: context.changeName,
@@ -350,8 +341,6 @@ export function generateInstructions(
     definition: artifact.definition,
     fileDefinitions,
     dependencies,
-    context: configContext,
-    rules: configRules,
     configProjection,
     instruction,
     template: templateContent,

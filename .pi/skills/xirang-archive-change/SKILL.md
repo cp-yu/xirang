@@ -39,9 +39,9 @@ Before archiving, run `xirang config project --json` and consume git policy from
 
    When the quality record is missing or stale, execute the same quality contract as the standalone apply workflow using the `subagent-orchestrated` skeleton:
    - Determine `changeName`, absolute `changeDir`, and absolute `projectRoot`
-   - Delegate to the clean-context generated `xirang-reviewer` subagent with `context: "fresh"`; pass `changeName`, `changeDir`, `projectRoot`, and the explicit evidence bundle the review needs
+   - Delegate to the clean-context generated `xirang-reviewer` subagent with `context: "fresh"`; pass only `changeName`, absolute `changeDir`, and absolute `projectRoot`; the reviewer reads artifacts and evidence itself
    - Validate the reviewer payload, apply only deterministic `tasks.md` write-back in the main workspace, and record it with `xirang quality review "<change-name>" --input '<json>' --json`
-   - When the recorded state is `clean`, delegate to the clean-context generated `xirang-optimizer` subagent with `context: "fresh"`, pass `changeName`, `changeDir`, `projectRoot`, the recorded review conclusion, the failed directions, and the optimization config, and submit its round ledger with `xirang quality optimize`
+   - When the recorded state is `clean`, delegate to the clean-context generated `xirang-optimizer` subagent with `context: "fresh"`, pass only `changeName`, absolute `changeDir`, and absolute `projectRoot`; the optimizer reads quality records and config itself. Submit its round ledger with `xirang quality optimize`
    - Let the master implement only the direction the CLI selected, then delegate to the clean-context generated `xirang-reviewer` subagent again with `context: "fresh"` to verify the specs and the selected direction's `preservationConstraints`, not the optimization value
    - Finalize the loop through `stopReason`; `SKIPPED` is valid only for `optimization.enabled: false` or an explicit user decline, and archive MUST NOT silently downgrade to a review-only run
    - The top-level archive flow MUST NOT inline a current-agent review skeleton or silently downgrade to reread mode

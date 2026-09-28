@@ -9,6 +9,7 @@ import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templ
 
 describe('explore template semantic impact', () => {
   const template = getExploreSkillTemplate().instructions;
+  const brainstorming = getExploreSkillTemplate().referenceFiles!.find(file => file.path === 'references/explore-supperpowers-style.md')!.content;
 
   it('includes unified Xirang Semantic Model context without code-map guidance', () => {
     expect(template).toContain(XIRANG_PHILOSOPHY);
@@ -72,17 +73,13 @@ describe('explore template semantic impact', () => {
     expect(template).not.toContain('## Mandatory Exploration Flow');
     expect(template).toContain('Explore MUST run this sequence before saying a proposal is ready');
     expect(template).toContain('1. **Explore project context**');
-    expect(template).toContain('If the request spans multiple independent subsystems');
-    expect(template).toContain('recommend an implementation order');
     expect(template).toContain('2. **Decide whether a visual companion helps**');
     expect(template).toContain('3. **Clarify one question at a time**');
-    expect(template).toContain('Ask exactly one question, then wait for the answer');
     expect(template).toContain('4. **Compare 2-3 options**');
-    expect(template).toContain('Present 2-3 viable approaches');
     expect(template).toContain('5. **Confirm the applicable design sections**');
-    expect(template).toContain('architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs');
-    expect(template).toContain('For a narrow change, confirm at least the problem, impact scope, approach, and verification method');
     expect(template).toContain('6. **Self-review and generate Design Summary**');
+    expect(template).toContain("using the reference's Section-by-section design approval");
+    expect(template).toContain('using the reference and Simplicity Awareness');
     expect(template).toContain('Present the Design Summary, then end with');
     expect(template).not.toContain('visible content block');
     expect(template).toContain('After presenting the Design Summary, STOP');
@@ -92,8 +89,7 @@ describe('explore template semantic impact', () => {
   it('adapts conversation-facing summary language to the user', () => {
     const ref = getExploreSkillTemplate().referenceFiles?.find(f => f.path === 'references/explore-supperpowers-style.md');
 
-    expect(template).toContain("Output language: use the user's main language for prose and non-canonical section labels");
-    expect(template).toContain('keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged');
+    expect(ref?.content).toContain('keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged');
     expect(ref?.content).toContain("Output language: use the user's main language for prose and non-canonical section labels");
   });
 
@@ -126,24 +122,18 @@ describe('explore template semantic impact', () => {
   });
 
   it('initiates capture and blocks conflicting, incomplete or stale Summary handoff', () => {
-    for (const command of ['list --json', 'show <explorationId> --json', 'status <explorationId> --json', 'validate <explorationId> --json']) {
-      expect(template).toContain(`xirang framing ${command}`);
-    }
+    expect(template).toContain('xirang framing list --json');
+    expect(template).toContain('**Inputs and authority** when opening or resuming it');
+    expect(template).toContain('**Confirm and capture** after each confirmed section');
+    expect(template).toContain('**Summary gate** before handoff');
     expect(template).toContain('do not preload it for ordinary discussion with no trigger');
     expect(template).toContain('**Existing record**');
     expect(template).toContain('normative confirmations not covered by an explicit exemption');
     expect(template).toContain('the user requests framing, recording or revising design material');
     expect(template).toContain('**Handoff gap**');
     expect(template).not.toContain('even when no record exists');
-    expect(template).toContain('proactively collect its normative confirmations');
-    expect(template).toContain('Do not wait for the user to request framing');
-    expect(template).toContain('all normative confirmations are recorded or explicitly exempted');
-    expect(template).toContain('Unresolved conflicts block Design Summary');
-    expect(template).toContain('invalidate affected Summary and coverage conclusions');
-    expect(template).toContain('do not create an empty framing record');
-    expect(template).toContain('MUST carry `explorationId` and the checked `sourceVersion`');
-    expect(template).toContain('explicit user-granted exemption');
-    expect(template).toContain('A silent skip is neither');
+    expect(template).toContain('all applicable gates must pass before a ready Summary');
+    expect(template).toContain('do not wait for the user to name the tool');
     expect(template).not.toContain('before structural discussion');
     expect(template).not.toContain('Change Structural Definition');
   });
@@ -184,15 +174,15 @@ describe('explore template semantic impact', () => {
 
   it('classifies testing items into persistent tests vs one-time verification', () => {
     expect(template).toContain(TEST_QUALITY_GUIDANCE);
-    expect(template).toContain('persistent or one-time verification');
-    expect(template).toContain('no persistent test file');
-    expect(template).toContain('reuse, modify, add, delete');
-    expect(template).toContain('authoritative suite');
+    expect(brainstorming).toContain('persistent (test suite) or one-time verification');
+    expect(brainstorming).toContain('no persistent test file');
+    expect(brainstorming).toContain('reuse, modify, add, delete');
+    expect(brainstorming).toContain('authoritative suite');
     expect(template).not.toContain('fail-closed');
   });
 
   it('emits a One-time Verification subsection in the Design Summary', () => {
-    expect(template).toContain('`One-time Verification` subsection');
+    expect(brainstorming).toContain('`One-time Verification` subsection');
   });
 });
 
@@ -287,7 +277,7 @@ describe('explore supperpowers-style reference', () => {
     expect(ref).toContain('Unresolved decisions affecting the current target block a ready handoff');
     expect(ref).toContain('try relevant boundary or competing-event sequences');
     expect(ref).toContain('do not create a separate decision ledger');
-    expect(instructions).toContain('Confirm observable behavior and key acceptance outcomes');
+    expect(instructions).toContain("using the reference's Section-by-section design approval");
     expect(instructions).not.toContain('Resolve or explicitly defer scope-affecting questions');
   });
 

@@ -83,7 +83,7 @@ Before context reads, create the todo checklist: context, visual decision, one q
 Constrain the discussion with project facts first:
 - Read relevant Xirang change, Element Contract, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
-- Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an order.
+- Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an implementation order.
 - Explicitly identify unknowns; do not substitute general experience for project evidence.
 - Actively identify decisions the user has not yet considered, including applicable failure outcomes, competing events, and timing origins or tolerances. Explain the observable consequences of alternatives, recommend with reasons, and ask one question at a time. A recommendation is not a user decision; do not leave known in-scope choices for Propose to invent.
 
@@ -98,7 +98,7 @@ For routine CLI behavior, narrow fixes, field naming, or test selection, use con
 
 ## One-question discipline
 
-Ask only one design-changing question per turn, then wait for the answer. Do not bundle scope, API, data model, and testing strategy into a string of questions.
+Ask only one design-changing question per turn, then wait for the answer; resolve terminology before impact and design questions. Do not bundle scope, API, data model, and testing strategy into a string of questions.
 
 If the choice set is clear, prefer presenting 2-3 options with differences explained; if unclear, first ask one question that narrows the problem space.
 
@@ -127,6 +127,8 @@ Confirm only the applicable design sections; narrow changes may omit sections th
 
 For the current target, confirm key conditions, actions, and observable expected outcomes, not just a test tool or method. Preserve applicable numerical limits, failure behavior, ordering and timing boundaries. Propose writes the complete Sections, Acceptance Cases, and tasks; Explore need not draft those artifacts or exhaustively enumerate tests.
 
+After each confirmed section, apply the shared Definition Framing capture protocol before moving on.
+
 **Testing Strategy**: Apply Test Quality Guidance before classifying work. Identify the observable behavior at risk, inspect existing coverage, then choose reuse, modify, add, delete, or one-time verification. Do not plan one persistent test per Acceptance Case. Classify remaining items as persistent (test suite) or one-time verification (no persistent test file). When architecture or API change affects existing tests, list reuse/modify/delete/add/one-time items with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a \`One-time Verification\` subsection.
 
 ## Design Summary self-review
@@ -136,11 +138,10 @@ Before generating the \`Design Summary\`, self-review:
 - Are there placeholders, vague boundaries, or contradictory decisions? To challenge the mechanism, try relevant boundary or competing-event sequences. Correct reasoning or expression errors when the confirmed design determines the answer; ask when resolution requires a new or changed decision.
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
-- Has any current record passed the shared Definition Framing reload/conflict gate?
-- Has every normative confirmation reached the current record or an explicit user-granted exemption? Initiate the missing capture batch before Summary; record existence alone does not cover later confirmations.
+- Has the Definition Framing **Summary gate** passed for the confirmed conversation and any current record?
 - Are non-framing file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
-The \`Design Summary\` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. With a record, reference its identity and reviewed version rather than duplicating it; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
+The \`Design Summary\` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Definition Framing **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
 
 ## User review gate
 
@@ -173,9 +174,9 @@ Definition Framing is a shared method for Build and Explore. It is required for 
 
 Retain the key confirmations that downstream generation must not change, including conditions, numbers, exceptions, timing, and structural fragments. User-requested material takes precedence over the Agent's importance filter. Ordinary discussion, alternatives, full rationale, and implementation/test plans are not automatically captured; when the user requests them, retain their informative nature instead of promoting them into obligations.
 
-The Agent initiates capture at the end of each confirmed design section: extract its normative confirmations, present the complete proposed payload, and request one persistence confirmation. Do not wait for the user to mention framing; an empty framing list is a starting state, not an exemption. When the confirmed design contains at least one normative confirmation, confirm exactly one record decision before handoff: a persisted record, or an explicit user-granted exemption. Never end formation with normative confirmations and neither. A record decision is not required when the confirmed design carries no normative content.
+The Agent initiates capture at the end of each confirmed design section: extract its normative confirmations, present the complete proposed payload, and request one persistence confirmation. With no record, initiate creation; with a record, propose an update only for new or changed confirmations. Do not defer all capture until Summary. Do not wait for the user to mention framing; an empty framing list is a starting state, not an exemption. When the confirmed design contains at least one normative confirmation, confirm exactly one record decision before handoff: a persisted record, or an explicit user-granted exemption. Never end formation with normative confirmations and neither. A record decision is not required when the confirmed design carries no normative content.
 
-An exemption is user-granted, deliberate, and recorded. When the user declines a record, do not create an empty record and do not stop; record the exemption and its reason in the Design Summary as an explicit no-record declaration, and carry it into downstream provenance. A silent skip is never an exemption. Re-open the decision if later confirmations add normative content the user has not exempted.
+An exemption is user-granted, deliberate, and recorded; do not offer exemption as the default. When the user declines a record, do not create an empty record and do not stop; record the exemption and its reason in the Design Summary (Explore) or \`build.md\` (Build) as an explicit no-record declaration, and carry it into downstream provenance. A silent skip is never an exemption. Re-open the decision if later confirmations add normative content the user has not exempted.
 
 For structural choices, apply the decomposition guidance resolved from the normalized \`decomposition\` value: read the guidance file at that resolved path in full before forming or reorganizing structure. Stop and ask when the guidance is missing or unreadable. Do not invent hierarchy work for behavior-only decisions or redo already confirmed structure.
 
@@ -210,11 +211,15 @@ Batch by design section, not by confirmation. Keep one persistence confirmation 
 6. Inspect returned \`diff.added\`, \`diff.modified\` (before/after), and \`diff.removed\`. Unauthorized disappearance is a context-amnesia signal: stop, reconcile with the user, and obtain authorization for any repair. Confirm every entry this batch intended to add or change actually landed, and that no entry the user declined was persisted. Reload with show/status/validate before continuing; invalidate affected Summary and coverage conclusions, then recheck them. Keep unrelated conclusions intact.
 7. Use \`xirang framing rename <explorationId> --slug <slug> --json\` or \`xirang framing discard <explorationId> --json\` only with explicit authorization for that action.
 
-## Summary and semantic coverage gates
+## Summary gate
 
-Before Explore outputs a Design Summary, compare the confirmed conversation with the current record: every normative confirmation must be captured or explicitly exempted. Initiate a missing capture batch before handoff; a valid partial record does not prove capture is complete. Then reload the complete record and check both internal conflicts and conflicts with the proposed design. Unresolved conflicts block Design Summary. Explain and obtain a user ruling; if a record must change, repeat the separate write authorization, diff review, reload, and conflict check. Later record changes invalidate affected Summary and coverage conclusions. Summary remains conversation-only. When record-backed, it MUST carry \`explorationId\` and the checked \`sourceVersion\`, not a duplicate record. When exempted, it MUST carry the explicit no-record declaration and the reason. When the confirmed design carries no normative content, state that instead. Do not create an empty record under any of these paths.
+Before Explore outputs a Design Summary, compare the confirmed conversation with the current record: every normative confirmation must be captured or explicitly exempted. Initiate a missing capture batch before handoff; a valid partial record does not prove capture is complete. Then reload the complete record and check both internal conflicts and conflicts with the proposed design. Unresolved conflicts block Design Summary. Explain and obtain a user ruling; if a record must change, repeat the separate write authorization, diff review, reload, and conflict check. Later record changes invalidate affected Summary and coverage conclusions. Summary remains conversation-only. When record-backed, it MUST carry \`explorationId\` and the checked \`sourceVersion\`, not a duplicate record. With no record, omit those two fields. When exempted, it MUST carry the explicit no-record declaration and the reason. When the confirmed design carries no normative content, state that instead. Do not create an empty record under any of these paths.
 
-Before a consumer hands off the source, an Agent must check each normative confirmation against the complete target model: preserve conditions, numbers, exceptions, and timing in the appropriate Declaration, Contract, Relationship, Metamodel, or Authored View. Existing satisfied semantics may be no-op. Informative entries belong in Plan/build notes or provenance, not new obligations. Missing behavior goes into its Contract before downstream planning; unresolved intent goes to the user. Matching strings, valid references, and a successful CLI validation cannot prove semantic coverage. Coverage is checked entry by entry against the record's own identities: each normative entry is either placed in the target model or reported as uncovered, and an unchecked entry counts as uncovered. Record the per-entry result in the conversation with its target location and a concise explanation of how the conditions, exceptions and timing are preserved; a location or a copied sentence alone is not a coverage finding. Do not create a permanent audit ledger. An exempted or normative-free source has no entries to check, and that absence MUST be stated rather than implied by silence.
+## Semantic coverage gate
+
+Use the loaded record as the authoring baseline from the start, not just a final validation attachment. Before compilation, a source without a record must declare an explicit user-granted exemption or a stated absence of normative content. An undeclared absence blocks formation; do not create an empty record or assume coverage.
+
+Before a consumer hands off the source, an Agent must check each normative confirmation against the complete target model: preserve conditions, numbers, exceptions, and timing in the appropriate Declaration, Contract, Relationship, Metamodel, or Authored View. Existing satisfied semantics may be no-op. Informative entries belong in Plan/build notes or provenance, not new obligations. Missing behavior goes into its Contract before downstream planning; unresolved intent goes to the user. Matching strings, valid references, and a successful CLI validation cannot prove semantic coverage. Coverage is checked entry by entry against the record's own identities: each normative entry is either placed in the target model or reported as uncovered, and an unchecked entry counts as uncovered. Record the per-entry result in the conversation with its target location and a concise explanation of how the conditions, exceptions and timing are preserved; a location or a copied sentence alone is not a coverage finding. State the count of entries checked and the uncovered identities explicitly. Unresolved conflicts, uncovered entries, or missing normative detail block source handoff. Do not redo confirmed choices or assume a partial record is a complete model. Do not create a permanent audit ledger. An exempted or normative-free source has no entries to check, and that absence MUST be stated rather than implied by silence.
 
 ## Output and handoff
 
@@ -264,9 +269,7 @@ ${TEST_QUALITY_GUIDANCE}
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification. Managed persistence requires a separate explicit persistence confirmation for the exact complete payload. Batch that confirmation per design section: collect the entries a section produced, present them together, and ask once, rather than interrupting for each entry.
-- Before handoff, confirm exactly one record decision when the design carries normative confirmations: a persisted record or an explicit user-granted exemption. A silent skip is neither. Record the exemption and its reason in the Design Summary.
-- Ask one clarification question at a time; do not auto-capture decisions into artifacts.
+- User confirmations ("ok", "option 2") approve design direction only, not file modification. Record writes require explicit persistence confirmation under the shared Definition Framing protocol.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
 
 The main Explore agent remains read-only outside the managed Definition Framing exception. \`arch search\` and \`arch impact\` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only \`xirang framing\` may persist the confirmed design record.
@@ -283,8 +286,6 @@ ${XIRANG_SHARED_CONTEXT}
 ${ELEMENT_DEFINITION_SEMANTICS}
 
 ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
-
-${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Semantic Impact
 
@@ -303,12 +304,7 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
-Definition Framing is available throughout design, not a linear prerequisite. Follow the shared protocol for key confirmations and user-requested material; a direction confirmation still grants no write permission. Normative confirmations must reach a record or a recorded exemption before handoff.
-
-- Run \`xirang framing list --json\` and select a Change-context record when applicable. Before starting, resuming, or producing a Design Summary with a record, run \`xirang framing show <explorationId> --json\`, \`xirang framing status <explorationId> --json\`, and \`xirang framing validate <explorationId> --json\`; read the complete payload and version.
-- Apply the shared conflict/reload gate. Unresolved conflicts block Design Summary. Record changes invalidate affected Summary and coverage conclusions; resolve, separately authorize any record edits, inspect diff, and reload before rechecking.
-- At the end of each confirmed design section, proactively collect its normative confirmations and propose the complete record payload for one persistence confirmation under the shared protocol. Do not wait for the user to request framing or defer all capture until Summary. With no record, initiate creation; with a record, propose an update only for new or changed confirmations. An explicit user exemption suspends capture within its scope; do not offer exemption as the default. Do not decide by silence and do not create an empty framing record.
-- The Design Summary remains conversation-only. When record-backed, it MUST carry \`explorationId\` and the checked \`sourceVersion\` for Propose without duplicating the record. With no record, omit those two fields and instead carry the record decision and its reason, so the absence of a record is a declared outcome rather than a gap.
+Definition Framing is available throughout design, not a linear prerequisite. Run \`xirang framing list --json\` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Confirm and capture** after each confirmed section, and **Summary gate** before handoff. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
 
 ## Simplicity Awareness
 
@@ -325,12 +321,12 @@ The simplicity filter (for reference):
 ## Brainstorming Checklist
 
 If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context**. Run \`xirang list --json\`, inspect relevant source and current implementation evidence, and identify affected subsystems. If the request spans multiple independent subsystems, identify them and recommend an implementation order.
-2. **Decide whether a visual companion helps**. Use one only when it clarifies architecture, state, data flow, or trade-offs.
-3. **Clarify one question at a time**. Ask exactly one question, then wait for the answer; resolve terminology before impact and design questions. Actively surface applicable behavior and boundary decisions, not just implementation choices.
-4. **Compare 2-3 options**. Present 2-3 viable approaches with strengths, weaknesses, best fit, and a recommendation when a real design choice exists. Name a simpler alternative in one line when applicable.
-5. **Confirm the applicable design sections**. Confirm observable behavior and key acceptance outcomes, including applicable conditions, exceptions and timing, without drafting complete Contracts or task lists. For a complex change, consider architecture, core components, data flow, technology stack, testing strategy, risks and trade-offs. For a narrow change, confirm at least the problem, impact scope, approach, and verification method. Apply Test Quality Guidance, then choose reuse, modify, add, delete, or one-time verification. Classify testing items as persistent or one-time verification (no persistent test file). After each confirmed section, apply the shared capture protocol before moving on. When existing tests are affected, list those actions with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a \`One-time Verification\` subsection.
-6. **Self-review and generate Design Summary**. Challenge the design with applicable boundary or competing-event sequences, recheck semantic impact context, and resolve contradictions and vague boundaries. Ask about unresolved in-scope decisions; only the user may exclude or defer scope. Before Summary, check that all normative confirmations are recorded or explicitly exempted, then apply the shared record reload/conflict gate; an existing partial record does not settle later confirmations. Unresolved conflicts cannot be deferred into a ready Summary. Produce the conversation-only \`Design Summary\`, preserving confirmed decisions and their conditions separately from recommendations, unresolved items and user-approved exclusions. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+1. **Explore project context** using Required Context and Semantic Impact above.
+2. **Decide whether a visual companion helps** using the brainstorming reference.
+3. **Clarify one question at a time** using the reference's One-question discipline.
+4. **Compare 2-3 options** using the reference and Simplicity Awareness.
+5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared capture protocol.
+6. **Self-review and generate Design Summary** using the reference's self-review and the Definition Framing Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

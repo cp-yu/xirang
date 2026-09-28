@@ -11,12 +11,14 @@ definition: Config Projection 定义项目配置编译为 prompt/runtime project
 
 ### Section: Projection 结构契约
 
-PromptProjection 和 RuntimeProjection SHALL 向消费 workflow surface 暴露 normalized config、compiled fragments 与 canonical token policy。
+共享配置编译 SHALL 提供完整 normalized config、PromptProjection 与 RuntimeProjection；Agent instructions SHALL 只暴露当前 surface 所需的投影。
 
-- **PromptProjection 包含必要字段**
+Artifact 与 Apply instructions 的 JSON SHALL 统一通过 `configProjection.prompt.fragments` 承载配置指导，并保留 `surface`、适用时的 `artifactId` 与 `canonicalTokenPolicy`。SHALL NOT 同时输出顶层 `context/rules`、`configProjection.normalized` 或 `prompt.compiledLines`，也不得携带其他 artifact 的 rules。文本呈现 SHALL 从同一份 fragments 输出一次项目 context 与匹配的 artifact rules；已在独立区块呈现的内容不在 `<config_projection>` 中重复。
 
-  - 投影构建函数被调用
-  - 输出包含 normalized、prompt.fragments、prompt.compiledLines 与 prompt.canonicalTokenPolicy
+- **完整配置投影包含必要字段**
+
+  - 完整配置 bundle 构建函数被调用
+  - 输出包含 normalized、prompt.fragments、prompt.compiledLines 与 prompt.canonicalTokenPolicy；instructions 使用其中不重复且适用于当前 surface 的部分
 
 - **RuntimeProjection 包含运行时字段**
 
@@ -343,14 +345,12 @@ Per-artifact `rules` SHALL 仅当 artifact ID 匹配 config rules 键时注入�
 
   - 用户执行 `xirang instructions apply --change "<name>" --json`
   - 输出 JSON SHALL 包含 `configProjection` 字段
-  - `configProjection.normalized` 包含 `proseLanguage`、`apply`、`git` 与 `rules` 字段
-  - `configProjection.prompt.fragments` 包含适用于 apply 上下文的投影片段
+  - `configProjection.prompt.fragments` 包含适用于 apply 上下文的投影片段，不携带其他 artifact 的 rules 或重复的 normalized/compiledLines 表示
 
 - **缺少 config.yaml 时返回最小投影**
 
   - 项目不存在 `.xirang/config.yaml`
-  - `configProjection.normalized` SHALL 返回 `{ "rules": {} }`
-  - `configProjection.prompt.fragments` 为空数组
+  - `configProjection.prompt.fragments` 保留有效的默认 architecture 投影，不生成缺失的 context、rules 或语言覆盖
   - 命令以 exit code 0 退出
 
 - **文本输出包含配置投影**

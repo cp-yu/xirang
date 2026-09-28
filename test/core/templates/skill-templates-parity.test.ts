@@ -17,12 +17,12 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getArchiveChangeSkillTemplate: 'c4e58e869503a8890b15c1bcb61889bd9b748ebfb180541d1e3a2a9ed2645555',
+  getArchiveChangeSkillTemplate: '66925951bcc50c3cf1ad9a13590023773fd9810512107a2520a5c7d8415deb87',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-archive-change': '274357df3d4ac4c75d9420dc7daf335ebdba6f5760aa92bf5a91d704f626499d',
+  'xirang-archive-change': '1901765e8d9c0cb022e4d617fbc65c25f6a37a06451ae12baa73d6673e4183d4',
 };
 
 function stableStringify(value: unknown): string {
