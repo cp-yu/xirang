@@ -1,0 +1,33 @@
+relationships:
+  - operation: REMOVED
+    source: design-exploration
+    kind: consumes
+    target: change-structural-definition
+  - operation: REMOVED
+    source: deterministic-operations
+    kind: consumes
+    target: change-structural-definition
+  - operation: REMOVED
+    source: propose
+    kind: consumes
+    target: change-structural-definition
+  - operation: REMOVED
+    source: semantic-model-build
+    kind: consumes
+    target: change-structural-definition
+  - operation: ADDED
+    source: design-exploration
+    kind: consumes
+    target: confirmed-design-record
+  - operation: ADDED
+    source: deterministic-operations
+    kind: consumes
+    target: confirmed-design-record
+  - operation: ADDED
+    source: propose
+    kind: consumes
+    target: confirmed-design-record
+  - operation: ADDED
+    source: semantic-model-build
+    kind: consumes
+    target: confirmed-design-record

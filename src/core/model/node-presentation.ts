@@ -23,7 +23,7 @@ export interface NodePresentationValidation {
 
 /**
  * Single source of truth for `nodePresentation` shape validation. Returns structured results so the
- * model parser (accumulating `INVALID_NODE_PRESENTATION` diagnostics) and the framing payload
+ * model parser (accumulating `INVALID_NODE_PRESENTATION` diagnostics) and the record payload
  * validator (throwing `INVALID_PAYLOAD`) can keep their own error contracts while sharing the same
  * mapping-ness, unknown-field and enum rules.
  */

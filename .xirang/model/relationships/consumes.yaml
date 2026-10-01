@@ -16,13 +16,13 @@ relationships:
     target: change
   - source: design-exploration
     kind: consumes
-    target: change-structural-definition
+    target: confirmed-design-record
   - source: deterministic-operations
     kind: consumes
     target: change
   - source: deterministic-operations
     kind: consumes
-    target: change-structural-definition
+    target: confirmed-design-record
   - source: deterministic-operations
     kind: consumes
     target: semantic-model
@@ -31,10 +31,10 @@ relationships:
     target: change
   - source: propose
     kind: consumes
-    target: change-structural-definition
+    target: confirmed-design-record
   - source: review
     kind: consumes
     target: change
   - source: semantic-model-build
     kind: consumes
-    target: change-structural-definition
+    target: confirmed-design-record

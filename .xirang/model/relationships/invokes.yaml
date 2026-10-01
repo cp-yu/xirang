@@ -16,7 +16,7 @@ relationships:
     target: deterministic-operations
   - source: semantic-model-build
     kind: invokes
-    target: definition-framing
+    target: design-record
   - source: snack
     kind: invokes
     target: deterministic-operations

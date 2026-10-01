@@ -53,7 +53,7 @@ definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周�
 
 ### Section: Candidate validation SHALL 确定性且只读
 
-`xirang candidate validate` SHALL 在不写入任何 workspace file 的情况下，对 `build.md`、存在时的已确认设计来源快照与四个 Candidate 分区执行 canonical representation 与 Semantic Closure validation。valid result SHALL 包含绑定精确 reviewed bytes 的 SHA-256 `reviewDigest`。
+`xirang candidate validate` SHALL 在不写入任何 workspace file 的情况下，对 `build.md`、存在时的已确认设计来源快照 `record-source.md` 与覆盖结果 `record-coverage.json` 以及四个 Candidate 分区执行 canonical representation 与 Semantic Closure validation。valid result SHALL 包含绑定精确 reviewed bytes 的 SHA-256 `reviewDigest`。
 
 - **Valid Candidate 生成 review digest**
 
@@ -75,8 +75,8 @@ definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周�
 
 - **来源绑定 review digest**
 
-  - Candidate 包含已交接的确认记录快照
-  - 校验其格式与来源身份并将精确字节纳入 reviewDigest；来源字节改变使 digest 改变，校验不写文件。
+  - Candidate 包含已交接的确认记录快照与覆盖结果
+  - 校验其格式与来源身份并将二者精确字节纳入 reviewDigest；任一字节改变使 digest 改变，校验不写文件。
 
 ### Section: Candidate promotion SHALL 要求当前 confirmed digest
 
@@ -102,7 +102,7 @@ definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周�
 
 ### Section: Candidate promotion SHALL 保留 history 并原子替换 formal source
 
-Promotion 在替换 formal source 前 SHALL 创建包含 `build.md`、存在时的已确认设计来源快照、promotion metadata 与完整 previous model 的 immutable `.xirang/history/builds/<build-id>/` entry，然后以一个可恢复 transaction 替换完整 formal 分区。
+Promotion 在替换 formal source 前 SHALL 创建包含 `build.md`、存在时的已确认设计来源快照与覆盖结果、promotion metadata 与完整 previous model 的 immutable `.xirang/history/builds/<build-id>/` entry，然后以一个可恢复 transaction 替换完整 formal 分区。
 
 - **Promotion 成功**
 
@@ -134,4 +134,4 @@ Promotion 在替换 formal source 前 SHALL 创建包含 `build.md`、存在时�
 - **来源只进入 history**
 
   - 带确认记录来源的 Candidate 成功 promotion
-  - history 保留该精确来源，formal target 仍仅由四个规范分区组成，不把来源作为运行时语义。
+  - history 保留该精确来源与覆盖结果，formal target 仍仅由四个规范分区组成，不把二者作为运行时语义。

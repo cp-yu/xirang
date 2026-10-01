@@ -37,7 +37,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
   - 生成 propose skill
   - 声明 PROPOSE 只写目标 Change 制品，禁止修改 implementation 或正式模型
-  - 仅在记录覆盖与校验通过后，允许 CLI-managed framing consume 完成明确来源的交接及受控清理，不允许任意 change 目录外写入
+  - 仅允许 CLI-managed `xirang record coverage` 向目标 Change 记录覆盖结果，并在覆盖结果有效、结构比对一致与校验通过后以 `xirang record consume` 完成明确来源的交接及受控清理；不允许任意 change 目录外写入，也不允许创建、更新、重命名或丢弃记录
 
 - **New change ID 冲突**
 
@@ -210,14 +210,14 @@ Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；
 
 Propose Workflow SHALL 在需要形成尚未确认的新增或重组 hierarchy 时消费 normalized decomposition；对已经确认的记录或 Summary 结构决策 SHALL 忠实编译而不重新裁决。精简记录的存在不表示全部结构都已确认；尚未决部分仍须指导和用户确认。Contract-only 变化不因默认方法制造 Architecture Source。
 
-- **无 framing 时形成结构 Delta**
+- **无记录时形成结构 Delta**
 
   - 设计要求新增或重组结构且不存在记录
   - 使用配置指导确认目标结构，再编译对应 Delta。
 
 - **已确认记录优先**
 
-  - 记录已确认部分 identity、parent 或 Kind，但仍有未决结构
+  - 记录结构部分已确认部分 identity、parent 或 Kind，但仍有未决结构
   - 保持已确认决策；仅对未决部分使用指导并请求用户确认，不能跳过全部结构设计或静默重做旧决策。
 
 - **Architecture Source 为 None**

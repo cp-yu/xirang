@@ -43,8 +43,8 @@ describe('Windows Definition cutover coverage', () => {
     const commands = Object.values(workflow.jobs ?? {}).flatMap(job => job.steps ?? []).map(step => step.run ?? '').join('\n');
     for (const testPath of [
       'test/core/project-config.test.ts', 'test/core/setup.test.ts', 'test/core/update.test.ts',
-      'test/core/framing/paths.test.ts', 'test/core/framing/workspace.test.ts', 'test/core/framing/consume.test.ts',
-      'test/integration/framing-workflow.test.ts', 'test/commands/candidate-init.test.ts',
+      'test/core/record/paths.test.ts', 'test/core/record/workspace.test.ts', 'test/core/record/consume.test.ts',
+      'test/integration/record-workflow.test.ts', 'test/commands/candidate-init.test.ts',
       'test/commands/candidate-validate.test.ts', 'test/core/candidate-digest.test.ts',
       'test/core/candidate-history.test.ts', 'test/commands/candidate-promote.test.ts',
     ]) expect(commands).toContain(testPath);

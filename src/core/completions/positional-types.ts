@@ -33,14 +33,15 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   // new subcommands
   'new.change': 'change-or-contract-id',
 
-  // framing subcommands
-  'framing.show': 'text',
-  'framing.status': 'text',
-  'framing.validate': 'text',
-  'framing.update': 'text',
-  'framing.rename': 'text',
-  'framing.consume': 'text',
-  'framing.discard': 'text',
+  // record subcommands
+  'record.show': 'text',
+  'record.status': 'text',
+  'record.validate': 'text',
+  'record.update': 'text',
+  'record.rename': 'text',
+  'record.coverage': 'text',
+  'record.consume': 'text',
+  'record.discard': 'text',
 
   // config subcommands
   'config.get': 'text',

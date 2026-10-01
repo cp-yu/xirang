@@ -7,8 +7,8 @@ import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { formatCandidateValidation } from '../../src/commands/candidate.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
 import { parseSemanticModel } from '../../src/core/model/parser.js';
-import { createFraming } from '../../src/core/framing/workspace.js';
-import { readFramingSemanticContext } from '../../src/core/framing/validator.js';
+import { createRecord } from '../../src/core/record/workspace.js';
+import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { semanticModelFingerprint } from '../../src/core/semantic-diff.js';
 
 async function readTree(root: string): Promise<Map<string, Buffer>> {
@@ -72,16 +72,16 @@ describe('Candidate validation', () => {
   });
 
   it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
-    const record = await createFraming(root, 'source', {
-      schemaVersion: 2, context: 'build', relatedIdentities: ['project.root'],
+    const record = await createRecord(root, 'source', {
+      schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
       entries: [{ identity: 'scope', nature: 'normative', content: 'Preserve the confirmed exception.' }],
-    }, await readFramingSemanticContext(root, 'build'));
-    const source = path.join(candidate, 'framing-source.md');
+    }, await readRecordSemanticContext(root, 'build'));
+    const source = path.join(candidate, 'record-source.md');
     await fs.writeFile(source, record.bytes);
     const tree = await readTree(root);
     const first = await validateCandidate(root);
     expect(first.valid).toBe(true);
-    expect(first.inventory.files).toContain('framing-source.md');
+    expect(first.inventory.files).toContain('record-source.md');
     expect(first.diff?.summary.total).toBe(0);
     expect((await validateCandidate(root)).reviewDigest).toBe(first.reviewDigest);
     expect(await readTree(root)).toEqual(tree);
@@ -91,10 +91,23 @@ describe('Candidate validation', () => {
     expect(changed.reviewDigest).not.toBe(first.reviewDigest);
     await fs.writeFile(source, record.bytes.toString('utf8').replace('context: build', 'context: change'));
     expect((await validateCandidate(root)).diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'CANDIDATE_FRAMING_SOURCE', path: 'framing-source.md' }),
+      expect.objectContaining({ code: 'CANDIDATE_RECORD_SOURCE', path: 'record-source.md' }),
     ]));
     await fs.writeFile(source, 'not a record\n');
     expect((await validateCandidate(root)).valid).toBe(false);
+    await fs.writeFile(source, record.bytes);
+    const coverage = path.join(candidate, 'record-coverage.json');
+    await fs.writeFile(coverage, '{"schemaVersion":1}\n');
+    const covered = await validateCandidate(root);
+    expect(covered.valid).toBe(true);
+    expect(covered.inventory.files).toContain('record-coverage.json');
+    expect(covered.reviewDigest).not.toBe(first.reviewDigest);
+    await fs.writeFile(coverage, '{"schemaVersion":2}\n');
+    expect((await validateCandidate(root)).reviewDigest).not.toBe(covered.reviewDigest);
+    await fs.writeFile(path.join(candidate, 'framing-source.md'), record.bytes);
+    expect((await validateCandidate(root)).diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'CANDIDATE_FILE_UNEXPECTED', path: 'framing-source.md' }),
+    ]));
   });
 
   it('reports unavailable comparison without invalidating the first Formal Candidate', async () => {

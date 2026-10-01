@@ -7,18 +7,24 @@ import {
 import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/build.js';
 
 describe('xirang-build workflow', () => {
-  it('consumes the reviewed Build source before final validation, independent review, and exact-digest promotion', () => {
+  it('records atomic coverage and consumes the Build source before final validation, independent review, and exact-digest promotion', () => {
     const instructions = getBuildSkillTemplate().instructions;
-    const consume = instructions.indexOf('xirang framing consume <explorationId> --candidate --source-version <sourceVersion> --json');
-    expect(consume).toBeGreaterThan(-1);
+    const coverage = instructions.indexOf('xirang record coverage <explorationId> --candidate --source-version <sourceVersion> --from <file> --json');
+    const consume = instructions.indexOf('xirang record consume <explorationId> --candidate --source-version <sourceVersion> --json');
+    expect(coverage).toBeGreaterThan(-1);
+    expect(consume).toBeGreaterThan(coverage);
     expect(instructions.indexOf('xirang candidate validate --json', consume)).toBeGreaterThan(consume);
     expect(instructions.indexOf('generic read-only subagent with a clean context')).toBeGreaterThan(consume);
     expect(instructions.indexOf('xirang candidate promote --digest')).toBeGreaterThan(consume);
     expect(instructions).toContain('Do not reuse a pre-handoff digest');
-    expect(instructions).toContain('framing-source.md');
-    expect(instructions).toContain('apply the shared **Semantic coverage gate** to current record → complete Candidate');
-    expect(instructions).toContain('Coverage must pass before source handoff');
+    expect(instructions).toContain('record-source.md');
+    expect(instructions).toContain('record-coverage.json');
+    expect(instructions).toContain('with a quote copied from the current Candidate file at that location');
+    expect(instructions).toContain('shared **Record on confirmation**');
+    expect(instructions).toContain('shared **Writing rules**');
+    expect(instructions).toContain('shared **Coverage gate** to current record → complete Candidate');
     expect(instructions).toContain('shared **Output and handoff** success and failure checks');
+    expect(instructions).not.toMatch(/framing/i);
   });
 
   it('keeps scope and starting-point decisions with the user', () => {

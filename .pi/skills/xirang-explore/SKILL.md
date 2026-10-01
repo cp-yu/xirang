@@ -40,24 +40,24 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 | Aspect | Value |
 |--------|-------|
 | **Stage** | `EXPLORE` - Design exploration under a confirmed record decision |
-| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and use `xirang framing` after explicit persistence confirmation |
+| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and record user-confirmed design with `xirang record` |
 | **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
 
 ## Required References
 
 - MUST read the project-root file `.xirang/references/xirang-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Definition Framing is the available method for preserving confirmed design in a CLI-managed record. Load `.xirang/references/xirang-definition-framing.md` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns record authorization, capture, reload and handoff.
-  - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its payload.
-  - **Capture or revision**: a design section yields normative confirmations not covered by an explicit exemption, or the user requests framing, recording or revising design material. Load before proposing the payload or operating on the record; do not wait for the user to name the tool.
+- Design Record is the method for recording confirmed design in a CLI-managed record. Load `.xirang/references/xirang-design-record.md` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
+  - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its content.
+  - **Record or revision**: a design section yields normative confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
   - **Handoff gap**: before Design Summary, confirmed normative content is neither recorded nor explicitly exempted. Load and resolve the missing record decision before handoff. Re-read after context loss or record changes when continuing record work.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Definition Framing protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
+- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Design Record protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
-- User confirmations ("ok", "option 2") approve design direction only, not file modification. Record writes require explicit persistence confirmation under the shared Definition Framing protocol.
+- A user's design confirmation authorizes recording that content through `xirang record` under the shared Design Record protocol; it does not authorize any other file or artifact write. Record only what the user confirmed, and report only the change.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
-The main Explore agent remains read-only outside the managed Definition Framing exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang framing` may persist the confirmed design record.
+The main Explore agent remains read-only outside the Design Record exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang record` may persist the confirmed design record; a record is an intermediate basis, not a capture target, and never authorizes writing a Contract or Change directly.
 
 ## Required Context
 
@@ -108,11 +108,11 @@ When a new module, workflow, command, configuration key, project concept, or unf
 
 Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to `arch impact`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
 
-## Definition Framing and Design Exploration
+## Design Record and Design Exploration
 
 Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
 
-Definition Framing is available throughout design, not a linear prerequisite. Run `xirang framing list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Confirm and capture** after each confirmed section, and **Summary gate** before handoff. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
+Design Record runs alongside design, not as a prerequisite stage. Run `xirang record list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Record on confirmation** after each confirmed section, and **Summary gate** before handoff. Confirmed Declaration fields go into the record's `structure`; partial declarations are valid. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
 
 ## Simplicity Awareness
 
@@ -133,8 +133,8 @@ If todo is available, create this checklist before context reads and tick each s
 2. **Decide whether a visual companion helps** using the brainstorming reference.
 3. **Clarify one question at a time** using the reference's One-question discipline.
 4. **Compare 2-3 options** using the reference and Simplicity Awareness.
-5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared capture protocol.
-6. **Self-review and generate Design Summary** using the reference's self-review and the Definition Framing Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
+5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol.
+6. **Self-review and generate Design Summary** using the reference's self-review and the Design Record Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes
 

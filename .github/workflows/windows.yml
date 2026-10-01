@@ -28,16 +28,16 @@ jobs:
         run: >-
           pnpm exec vitest run
           test/core/view.test.ts
-      - name: Verify Windows framing paths and build gates
+      - name: Verify Windows record paths and build gates
         run: >-
           pnpm exec vitest run
           test/core/project-config.test.ts
           test/core/setup.test.ts
           test/core/update.test.ts
-          test/core/framing/paths.test.ts
-          test/core/framing/workspace.test.ts
-          test/core/framing/consume.test.ts
-          test/integration/framing-workflow.test.ts
+          test/core/record/paths.test.ts
+          test/core/record/workspace.test.ts
+          test/core/record/consume.test.ts
+          test/integration/record-workflow.test.ts
           test/commands/candidate-init.test.ts
           test/commands/candidate-validate.test.ts
           test/core/candidate-digest.test.ts

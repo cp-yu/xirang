@@ -16,7 +16,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only `Design Summary`.
-- The original commit step is removed. Explore may persist only a user-confirmed design record through the Xirang-owned Definition Framing protocol; it does not directly write files.
+- The original commit step is removed. Explore records user-confirmed design only through the Xirang-owned Design Record protocol; it does not directly write files.
 - The original implementation-plan handoff maps to `xirang-propose` handoff.
 
 ## Conversation language
@@ -27,7 +27,7 @@ Output language: use the user's main language for prose and non-canonical sectio
 
 Do not implement before design confirmation is complete.
 
-Do not start coding, generate patches, directly update artifacts, or interpret design confirmations as write authorization during Explore. Even if the user says "ok", "that works", or chooses an option, it only confirms the design direction. Definition Framing persistence requires a separate explicit confirmation under the Xirang-owned protocol.
+Do not start coding, generate patches, or directly update artifacts during Explore. When the user says "ok", "that works", or chooses an option, it confirms the design direction and authorizes recording that confirmed content through the Design Record protocol; it authorizes no other write.
 
 Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
@@ -84,7 +84,7 @@ Confirm only the applicable design sections; narrow changes may omit sections th
 
 For the current target, confirm key conditions, actions, and observable expected outcomes, not just a test tool or method. Preserve applicable numerical limits, failure behavior, ordering and timing boundaries. Propose writes the complete Sections, Acceptance Cases, and tasks; Explore need not draft those artifacts or exhaustively enumerate tests.
 
-After each confirmed section, apply the shared Definition Framing capture protocol before moving on.
+After each confirmed section, record it under the shared Design Record protocol before moving on.
 
 **Testing Strategy**: Apply Test Quality Guidance before classifying work. Identify the observable behavior at risk, inspect existing coverage, then choose reuse, modify, add, delete, or one-time verification. Do not plan one persistent test per Acceptance Case. Classify remaining items as persistent (test suite) or one-time verification (no persistent test file). When architecture or API change affects existing tests, list reuse/modify/delete/add/one-time items with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a `One-time Verification` subsection.
 
@@ -95,10 +95,10 @@ Before generating the `Design Summary`, self-review:
 - Are there placeholders, vague boundaries, or contradictory decisions? To challenge the mechanism, try relevant boundary or competing-event sequences. Correct reasoning or expression errors when the confirmed design determines the answer; ask when resolution requires a new or changed decision.
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
-- Has the Definition Framing **Summary gate** passed for the confirmed conversation and any current record?
-- Are non-framing file writes, artifact updates, or subsequent generation actions left for non-explore workflows?
+- Has the Design Record **Summary gate** passed for the confirmed conversation and any current record?
+- Are file writes other than record writes, artifact updates, or subsequent generation actions left for non-explore workflows?
 
-The `Design Summary` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Definition Framing **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
+The `Design Summary` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
 
 ## User review gate
 

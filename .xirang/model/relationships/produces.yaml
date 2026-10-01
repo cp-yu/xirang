@@ -5,12 +5,12 @@ relationships:
   - source: change-formation
     kind: produces
     target: change
-  - source: definition-framing
+  - source: design-record
     kind: produces
-    target: change-structural-definition
+    target: confirmed-design-record
   - source: deterministic-operations
     kind: produces
-    target: change-structural-definition
+    target: confirmed-design-record
   - source: semantic-model-build
     kind: produces
     target: semantic-model

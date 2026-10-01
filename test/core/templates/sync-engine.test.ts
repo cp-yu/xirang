@@ -104,6 +104,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
       'xirang-apply-step-3-phase1-verification.md',
       'xirang-apply-step-4-phase2-optimization.md',
       'xirang-apply-step-5-phase3-seal.md',
+      'xirang-definition-framing.md',
     ]) {
       await fs.writeFile(path.join(referencesDir, retired), 'stale');
     }
@@ -122,6 +123,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
       'xirang-apply-step-3-phase1-verification.md',
       'xirang-apply-step-4-phase2-optimization.md',
       'xirang-apply-step-5-phase3-seal.md',
+      'xirang-definition-framing.md',
     ]) {
       expect(await exists(path.join(referencesDir, retired))).toBe(false);
     }

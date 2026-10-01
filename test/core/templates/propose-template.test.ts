@@ -315,24 +315,29 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain('do not fall back to another method');
   });
 
-  it('gates exact-version record handoff on semantic coverage and final validation', () => {
+  it('gates exact-version record handoff on CLI-recorded atomic coverage after final validation', () => {
     const body = getXirangProposeSkillTemplate().instructions;
-    expect(body).toContain('xirang framing list --json');
+    expect(body).toContain('xirang record list --json');
     expect(body).toContain('shared **Inputs and authority** reload gate immediately before handoff');
-    expect(body).toContain('shared **Semantic coverage gate** to the first check');
+    expect(body).toContain('shared **Coverage gate**');
+    expect(body).toContain('shared **Writing rules**');
     expect(body).toContain('shared **Output and handoff** success and failure checks');
     expect(body).toContain('Unresolved conflicts block Formation');
     expect(body).toContain('discover records through the CLI even when the handoff does not mention one');
-    expect(body).toContain('Use the current record as the authoring baseline');
     expect(body).toContain('check the declared record decision before compiling');
-    expect(body).toContain('only external write is post-gate `framing consume`');
+    expect(body).toContain('external writes are post-validation `record coverage` and post-gate `record consume`');
     expect(body).toContain('MUST NOT create, update, rename, or discard records');
-    expect(body).toContain('record → Expected Semantic Model');
     expect(body).toContain('target semantics → implementation tasks and observable Checks');
-    expect(body).toContain('xirang framing consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');
-    expect(body).toContain('framing-source.md');
-    expect(body).not.toContain('Change Structural Definition');
-    expect(body.indexOf('xirang framing consume')).toBeGreaterThan(body.indexOf('xirang validate --change "<name>" --json'));
+    expect(body).toContain('record-source.md');
+    expect(body).toContain('When `record coverage` is rejected, add the missing detail to the target Contract or Delta, then recheck');
+    expect(body).toContain('Any Delta edit after recording coverage requires a new coverage check');
+    expect(body).toContain('with a quote copied from the current Delta or formal file at that location');
+    const validate = body.indexOf('xirang validate --change "<name>" --json');
+    const coverage = body.indexOf('xirang record coverage <explorationId> --change "<name>" --source-version <sourceVersion> --from <file> --json');
+    const consume = body.indexOf('xirang record consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');
+    expect(coverage).toBeGreaterThan(validate);
+    expect(consume).toBeGreaterThan(coverage);
+    expect(body).not.toMatch(/framing|Change Structural Definition/i);
   });
 
   it('reports readiness after validation without writing a presentation artifact', () => {

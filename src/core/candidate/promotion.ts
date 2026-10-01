@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
-import { FRAMING_SOURCE_FILE } from '../framing/paths.js';
+import { RECORD_COVERAGE_FILE, RECORD_SOURCE_FILE } from '../record/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { compareUtf8Bytes } from './canonical.js';
 import {
@@ -247,7 +247,8 @@ export async function promoteCandidate(
       buildBytes(frozen.snapshot),
       promotedAt,
       plannedHistoryPath,
-      frozen.snapshot.files.find(file => file.path === FRAMING_SOURCE_FILE)?.bytes,
+      frozen.snapshot.files.find(file => file.path === RECORD_SOURCE_FILE)?.bytes,
+      frozen.snapshot.files.find(file => file.path === RECORD_COVERAGE_FILE)?.bytes,
     );
     await history.finalize({
       schemaVersion: 1,

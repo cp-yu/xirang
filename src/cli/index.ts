@@ -20,7 +20,7 @@ import { registerSyncCommand } from '../commands/sync.js';
 import { registerQualityCommand } from '../commands/quality.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
-import { registerFramingCommand } from '../commands/framing.js';
+import { registerRecordCommand } from '../commands/record.js';
 import {
   statusCommand,
   instructionsCommand,
@@ -153,7 +153,7 @@ registerSyncCommand(program);
 registerQualityCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
-registerFramingCommand(program);
+registerRecordCommand(program);
 
 program
   .command('list')

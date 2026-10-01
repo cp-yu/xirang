@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createFraming } from '../../src/core/framing/workspace.js';
-import { readFramingSemanticContext } from '../../src/core/framing/validator.js';
+import { createRecord } from '../../src/core/record/workspace.js';
+import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
@@ -31,11 +31,11 @@ async function readFormalTree(root: string): Promise<Map<string, Buffer>> {
 }
 
 async function writeProvenance(root: string, candidate: string): Promise<void> {
-  const record = await createFraming(root, 'promotion-source', {
-    schemaVersion: 2, context: 'build', relatedIdentities: ['project.root'],
+  const record = await createRecord(root, 'promotion-source', {
+    schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
     entries: [{ identity: 'intent', nature: 'normative', content: 'Preserve the confirmed exception.' }],
-  }, await readFramingSemanticContext(root, 'build'));
-  await fs.writeFile(path.join(candidate, 'framing-source.md'), record.bytes);
+  }, await readRecordSemanticContext(root, 'build'));
+  await fs.writeFile(path.join(candidate, 'record-source.md'), record.bytes);
 }
 
 describe('Candidate promotion', () => {
@@ -100,8 +100,8 @@ describe('Candidate promotion', () => {
     }
   });
 
-  it.each(['build.md', 'framing-source.md'])('rejects stale %s bytes without changing formal source or history', async (file) => {
-    if (file === 'framing-source.md') await writeProvenance(root, candidate);
+  it.each(['build.md', 'record-source.md'])('rejects stale %s bytes without changing formal source or history', async (file) => {
+    if (file === 'record-source.md') await writeProvenance(root, candidate);
     const validation = await validateCandidate(root);
     const before = await readFormalTree(root);
     const original = await fs.readFile(path.join(candidate, file), 'utf8');
@@ -125,8 +125,8 @@ describe('Candidate promotion', () => {
     expect(await exists(candidate)).toBe(true);
   });
 
-  it.each(['build.md', 'framing-source.md'])('rolls back after post-write digest revalidation detects concurrent %s changes', async (file) => {
-    if (file === 'framing-source.md') await writeProvenance(root, candidate);
+  it.each(['build.md', 'record-source.md'])('rolls back after post-write digest revalidation detects concurrent %s changes', async (file) => {
+    if (file === 'record-source.md') await writeProvenance(root, candidate);
     const original = await fs.readFile(path.join(candidate, file), 'utf8');
     const modified = file === 'build.md' ? 'concurrent change\n' : original.replace('Preserve', 'Retain');
     const validation = await validateCandidate(root);

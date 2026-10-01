@@ -29,7 +29,7 @@ export interface RelationshipPresentationValidation {
 /**
  * Single source of truth for Relationship Kind `presentation` validation. Returns structured
  * results so the model parser (accumulating `INVALID_RELATIONSHIP_PRESENTATION` diagnostics) and
- * framing payload validator (if needed) can keep their own error contracts while sharing the same
+ * record payload validator (if needed) can keep their own error contracts while sharing the same
  * mapping-ness, unknown-field and enum rules.
  */
 export function validateRelationshipPresentation(raw: unknown): RelationshipPresentationValidation {
