@@ -45,20 +45,6 @@ Project and Tooling Configuration SHALL 在建立新 Xirang 工作区时收集 P
   - 用户在 macOS、Linux 或 Windows 上建立新项目
   - CLI 通过平台路径 API 写入包含 `definition` 的 Project Root 单元，且结果不依赖路径分隔符
 
-### Section: 投影共享 Definition Framing 协议
-
-Project and Tooling Configuration SHALL 从 Xirang-owned 单一生成源向 Build、Explore、Propose 及共享 references 投影同版本 Definition Framing 协议与默认 semantic-refinement 指导，不运行时依赖用户级 problem-framing skill。受管生成面的新增、更新和删除 SHALL 按显式 manifest 名单定位，不按名称模式扫描替换；用户专用拆分 skill 不受覆盖。
-
-- **共享协议在三入口可用**
-
-  - CLI 同步所选 Agent 工具集成
-  - Build、Explore、Propose 指向同版本可达 reference，入口包含适用的读取与重读条件。
-
-- **受管同步不覆盖用户内容**
-
-  - 刷新受本 Change 影响的模板、reference 与生成面
-  - 只按登记名单更新相关工作面，保留用户 skill 与未登记内容，不直接修改生成文件代替源模板。
-
 ### Section: 管理 Outline Element Definition 深度配置
 
 Project and Tooling Configuration SHALL 将 `architecture.outline.elementDefinitionDepth` 作为项目级 functional configuration 管理。该字段 SHALL 为非负整数，缺失时有效默认值 SHALL 为 `2`；默认值 SHALL 由同一配置常量用于 setup/update 磁盘物化、resilient parsing 后的 effective config、normalized projection 与 `arch outline` command resolution。
@@ -105,3 +91,22 @@ Project and Tooling Configuration SHALL 将 `architecture.outline.elementDefinit
   - 在 Windows、macOS 或 Linux 上读取、创建或迁移 `.xirang/config.yaml` 或 `.xirang/config.yml`
   - CLI SHALL 使用 Node.js path utilities
   - 两种扩展名 SHALL 产生相同 outline configuration semantics
+
+### Section: 投影共享 Design Record 协议
+
+Project and Tooling Configuration SHALL 从 Xirang-owned 单一生成源向 Build、Explore、Propose 及共享 references 投影同版本 Design Record 协议与默认 semantic-refinement 指导，不运行时依赖用户级 problem-framing skill。受管生成面的新增、更新和删除 SHALL 按显式 manifest 名单定位，不按名称模式扫描替换；更名后不再投影的旧 Definition Framing reference SHALL 作为受管生成面被删除，用户专用拆分 skill 不受覆盖。
+
+- **共享协议在三入口可用**
+
+  - CLI 同步所选 Agent 工具集成
+  - Build、Explore、Propose 指向同版本可达的 Design Record reference，入口包含适用的读取与重读条件。
+
+- **旧受管 reference 被清理**
+
+  - 工作区中存在由框架投影的旧 Definition Framing reference
+  - 同步后该文件被删除，新 Design Record reference 可达，用户自有文件不受影响。
+
+- **受管同步不覆盖用户内容**
+
+  - 刷新受本 Change 影响的模板、reference 与生成面
+  - 只按登记名单更新相关工作面，保留用户 skill 与未登记内容，不直接修改生成文件代替源模板。

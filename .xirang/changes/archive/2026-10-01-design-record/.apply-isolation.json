@@ -1,0 +1,7 @@
+{
+  "method": "branch",
+  "branchName": "design-record",
+  "originalBranch": "main",
+  "baseCommit": "a29c43f037637ab27f68330676487cbf91252b60",
+  "optimizationBaselineCommit": "01df95943f550c7d579e95560c5d6bedeb432d0e"
+}
