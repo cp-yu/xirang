@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { stringify as stringifyYaml } from 'yaml';
-import { FRAMING_SOURCE_FILE } from '../framing/paths.js';
+import { RECORD_COVERAGE_FILE, RECORD_SOURCE_FILE } from '../record/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { modelRoot } from '../model/paths.js';
 import { SEMANTIC_PARTITIONS } from '../model/transaction.js';
@@ -37,7 +37,8 @@ export async function reserveCandidateHistory(
   buildBytes: Uint8Array,
   now: Date,
   relativePath = createCandidateHistoryRelativePath(now, reviewDigest),
-  framingSource?: Uint8Array,
+  recordSource?: Uint8Array,
+  recordCoverage?: Uint8Array,
 ): Promise<CandidateHistoryReservation> {
   if (!/^\.xirang\/history\/builds\/[^/]+$/.test(relativePath)) {
     throw new Error(`Invalid Candidate history path: ${relativePath}`);
@@ -50,7 +51,8 @@ export async function reserveCandidateHistory(
 
   try {
     await fs.writeFile(path.join(directory, 'build.md'), buildBytes);
-    if (framingSource) await fs.writeFile(path.join(directory, FRAMING_SOURCE_FILE), framingSource);
+    if (recordSource) await fs.writeFile(path.join(directory, RECORD_SOURCE_FILE), recordSource);
+    if (recordCoverage) await fs.writeFile(path.join(directory, RECORD_COVERAGE_FILE), recordCoverage);
     for (const name of SEMANTIC_PARTITIONS) {
       const source = path.join(modelRoot(projectRoot), name);
       const target = path.join(directory, 'previous', name);

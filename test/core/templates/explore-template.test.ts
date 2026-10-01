@@ -101,41 +101,44 @@ describe('explore template semantic impact', () => {
     expect(ref?.content).toContain('Before context reads, create the todo checklist');
   });
 
-  it('permits only explicitly confirmed CLI-managed record persistence', () => {
+  it('records confirmed design through the CLI as the only write exception', () => {
     expect(template).toContain('Forbidden');
     expect(template).toContain('directly create, edit, or delete project or Change artifacts');
-    expect(template).toContain('explicit persistence confirmation');
-    expect(template).toContain('`xirang framing`');
+    expect(template).toContain('`xirang record`');
+    expect(template).toContain('A user\'s design confirmation authorizes recording that content through `xirang record`');
+    expect(template).toContain('it does not authorize any other file or artifact write');
+    expect(template).not.toContain('explicit persistence confirmation');
     expect(template).toContain('produce a conversation-only `Design Summary`');
     expect(template).toContain('instruct the user to call `/xirang:propose <change-name>`');
   });
 
-  it('treats design confirmation as direction only', () => {
-    expect(template).toContain('User confirmations ("ok", "option 2") approve design direction only, not file modification');
-  });
-
-  it('keeps semantic navigation and non-framing artifacts read-only', () => {
-    expect(template).toContain('The main Explore agent remains read-only outside the managed Definition Framing exception');
+  it('keeps semantic navigation and other artifacts read-only', () => {
+    expect(template).toContain('The main Explore agent remains read-only outside the Design Record exception');
     expect(template).toContain('`arch search` and `arch impact` are read-only');
     expect(template).toContain('MUST NOT create or update project or Change artifacts');
     expect(template).not.toContain('Subagent Exception');
   });
 
+  it('treats recorded content as an intermediate basis, not a capture target', () => {
+    expect(template).toContain('a record is an intermediate basis, not a capture target');
+  });
+
   it('initiates capture and blocks conflicting, incomplete or stale Summary handoff', () => {
-    expect(template).toContain('xirang framing list --json');
+    expect(template).toContain('xirang record list --json');
     expect(template).toContain('**Inputs and authority** when opening or resuming it');
-    expect(template).toContain('**Confirm and capture** after each confirmed section');
+    expect(template).toContain('**Record on confirmation** after each confirmed section');
     expect(template).toContain('**Summary gate** before handoff');
     expect(template).toContain('do not preload it for ordinary discussion with no trigger');
     expect(template).toContain('**Existing record**');
     expect(template).toContain('normative confirmations not covered by an explicit exemption');
-    expect(template).toContain('the user requests framing, recording or revising design material');
+    expect(template).toContain('the user requests recording or revising design material');
     expect(template).toContain('**Handoff gap**');
     expect(template).not.toContain('even when no record exists');
     expect(template).toContain('all applicable gates must pass before a ready Summary');
     expect(template).toContain('do not wait for the user to name the tool');
     expect(template).not.toContain('before structural discussion');
     expect(template).not.toContain('Change Structural Definition');
+    expect(template).not.toMatch(/framing/i);
   });
 
   it('applies decomposition guidance only when structural design is required', () => {

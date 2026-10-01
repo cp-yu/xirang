@@ -1,0 +1,17 @@
+relationships:
+  - operation: REMOVED
+    source: definition-framing
+    kind: produces
+    target: change-structural-definition
+  - operation: REMOVED
+    source: deterministic-operations
+    kind: produces
+    target: change-structural-definition
+  - operation: ADDED
+    source: design-record
+    kind: produces
+    target: confirmed-design-record
+  - operation: ADDED
+    source: deterministic-operations
+    kind: produces
+    target: confirmed-design-record

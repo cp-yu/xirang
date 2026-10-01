@@ -58,7 +58,7 @@ Take authorized user intent and semantic authority as input. Implementation file
 
 Stop writing the affected structure and ask the user when guidance is insufficient, concept identities overlap, the dimension is unclear, or authorities conflict. Do not default to an implementation directory or a similar method. Confirming a method grants no file-write or record-persistence permission.
 
-Hand the confirmed identities, Kinds, complete Definitions, hierarchy, Contract detail, and Relationships back to the current workflow. Explore stays conversation-only, Build authors the authorized Candidate, and Propose compiles the Delta; persistence happens only through that workflow's separate authorization protocol. This guidance does not replace any workflow's validation, review, confirmation, or promotion gate.
+Hand the confirmed identities, Kinds, complete Definitions, hierarchy, Contract detail, and Relationships back to the current workflow. Explore stays conversation-only, Build authors the authorized Candidate, and Propose compiles the Delta; persistence happens only through that workflow's own write protocol (for confirmed design, the Design Record). This guidance does not replace any workflow's validation, review, confirmation, or promotion gate.
 `.trim();
 
 /**

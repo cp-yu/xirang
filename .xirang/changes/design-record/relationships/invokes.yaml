@@ -1,0 +1,9 @@
+relationships:
+  - operation: REMOVED
+    source: semantic-model-build
+    kind: invokes
+    target: definition-framing
+  - operation: ADDED
+    source: semantic-model-build
+    kind: invokes
+    target: design-record

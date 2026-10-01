@@ -1,8 +1,8 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import { parseChangeStructuralDefinition } from '../framing/document.js';
-import { FRAMING_SOURCE_FILE } from '../framing/paths.js';
+import { parseDesignRecord } from '../record/document.js';
+import { RECORD_COVERAGE_FILE, RECORD_SOURCE_FILE } from '../record/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from '../model/paths.js';
 import {
@@ -18,6 +18,7 @@ import { computeCandidateDigest, type CandidateDigestEntry } from './digest.js';
 import { compareUtf8Bytes, inspectCanonicalText, type CanonicalTextIssue } from './canonical.js';
 
 const ROOT_FILES = new Set(['candidate.yaml', 'build.md']);
+const RECORD_FILES = new Set([RECORD_SOURCE_FILE, RECORD_COVERAGE_FILE]);
 
 function isPartitionFile(relativePath: string): boolean {
   return PARTITIONS.some(partition => relativePath.startsWith(`${partition}/`));
@@ -198,14 +199,14 @@ function validateLayout(files: CandidateSnapshotFile[], diagnostics: ChangeDiagn
 
   for (const file of files) {
     if (!file.path.includes('/')) {
-      if (!ROOT_FILES.has(file.path) && file.path !== FRAMING_SOURCE_FILE) diagnostics.push(diagnostic('CANDIDATE_FILE_UNEXPECTED', file.path, 'Only candidate.yaml, build.md, and optional framing-source.md are allowed at Candidate root.'));
+      if (!ROOT_FILES.has(file.path) && !RECORD_FILES.has(file.path)) diagnostics.push(diagnostic('CANDIDATE_FILE_UNEXPECTED', file.path, 'Only candidate.yaml, build.md, and optional record-source.md and record-coverage.json are allowed at Candidate root.'));
       continue;
     }
     if (isPartitionFile(file.path)) continue;
     diagnostics.push(diagnostic(
       'CANDIDATE_FILE_UNEXPECTED',
       file.path,
-      `Candidate source paths must be candidate.yaml, build.md, framing-source.md, or one of: ${PARTITIONS.join('/, ')}/.`,
+      `Candidate source paths must be candidate.yaml, build.md, record-source.md, record-coverage.json, or one of: ${PARTITIONS.join('/, ')}/.`,
     ));
   }
 }
@@ -271,7 +272,7 @@ function validateMetadata(files: CandidateSnapshotFile[], diagnostics: ChangeDia
 
 function digestEntries(files: CandidateSnapshotFile[]): CandidateDigestEntry[] {
   return files
-    .filter(file => file.path === 'build.md' || file.path === FRAMING_SOURCE_FILE || isPartitionFile(file.path))
+    .filter(file => file.path === 'build.md' || RECORD_FILES.has(file.path) || isPartitionFile(file.path))
     .map(file => ({ path: file.path, bytes: file.bytes }));
 }
 
@@ -311,13 +312,13 @@ export async function validateCandidateDirectory(
   validateLayout(files, diagnostics);
   validateText(files, diagnostics);
   validateMetadata(files, diagnostics);
-  const framingSource = files.find(file => file.path === FRAMING_SOURCE_FILE);
-  if (framingSource) {
+  const recordSource = files.find(file => file.path === RECORD_SOURCE_FILE);
+  if (recordSource) {
     try {
-      const document = parseChangeStructuralDefinition(framingSource.bytes.toString('utf8'));
+      const document = parseDesignRecord(recordSource.bytes.toString('utf8'));
       if (document.payload.context !== 'build') throw new Error('Candidate provenance requires a Build-context record.');
     } catch (error) {
-      diagnostics.push(diagnostic('CANDIDATE_FRAMING_SOURCE', FRAMING_SOURCE_FILE, (error as Error).message));
+      diagnostics.push(diagnostic('CANDIDATE_RECORD_SOURCE', RECORD_SOURCE_FILE, (error as Error).message));
     }
   }
 
