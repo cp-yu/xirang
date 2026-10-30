@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "restart-change-verification",
   "originalBranch": "main",
-  "baseCommit": "5499afb2d8e4d5c436acc68190dbe708ab3cabb5"
+  "baseCommit": "5499afb2d8e4d5c436acc68190dbe708ab3cabb5",
+  "optimizationBaselineCommit": "d0fb324671e191d94bb3af111c0ef16bd65f5c2d"
 }

@@ -318,18 +318,15 @@ describe('apply change workflow template', () => {
   });
 
   it('reaches the shared recovery reference only after an explicit authorization gate', () => {
-    const preparation = applyReference('references/apply-step-1-preparation.md');
     const optimization = applyReference('references/apply-step-4-optimization.md');
     const recovery = applyReference('references/quality-recovery.md');
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(preparation).toContain('.xirang/references/xirang-quality-recovery.md');
-    expect(preparation).toContain('explicit user authorization');
-    expect(preparation.indexOf('hard-stop for manual recovery')).toBeLessThan(
-      preparation.indexOf('.xirang/references/xirang-quality-recovery.md')
-    );
-    expect(optimization).toContain('.xirang/references/xirang-quality-recovery.md');
     expect(instructions).toContain('.xirang/references/xirang-quality-recovery.md');
+    expect(instructions).toContain('explicit user authorization');
+    expect(optimization).toContain('.xirang/references/xirang-quality-recovery.md');
+    expect(optimization).not.toContain('Otherwise implement only the direction');
+    expect(instructions.indexOf('ABORTED_UNSAFE')).toBeGreaterThan(-1);
 
     const saveIndex = recovery.indexOf('Copy the raw bytes');
     const verifyIndex = recovery.indexOf('Verify both saved copies');

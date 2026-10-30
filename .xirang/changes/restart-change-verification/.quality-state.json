@@ -1,38 +1,26 @@
 {
   "kind": "review",
-  "timestamp": "2026-10-30T08:29:40.502Z",
+  "timestamp": "2026-10-30T09:32:47.725Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "Unaccounted change (benign mechanical): test/core/templates/skill-templates-parity.test.ts is modified but declared in no task Files entry; the diff only refreshes two forced content hashes (archive template function + generated skill) and extends the referenceFiles assertion from 8 to 9 entries to include references/quality-recovery.md",
+      "message": "Unaccounted change (benign mechanical): test/core/templates/skill-templates-parity.test.ts modified but declared in no task Files entry; diff is exactly two forced archive parity-hash refreshes plus the referenceFiles 8-to-9 assertion adding references/quality-recovery.md, all induced by declared Task 2 template changes",
       "section": "共享恢复 reference 编排重验",
       "task": "Task 2",
       "recommendation": "artifact_fix: add test/core/templates/skill-templates-parity.test.ts to Task 2 Files for attribution traceability; no code change needed",
       "evidence": [
-        "test/core/templates/skill-templates-parity.test.ts:19-25",
-        "test/core/templates/skill-templates-parity.test.ts:89-101"
+        "test/core/templates/skill-templates-parity.test.ts:16-20"
       ]
     },
     {
       "severity": "SUGGESTION",
-      "message": "The human-readable status guidance lines added for ABORTED_UNSAFE (quality.ts renderStatus Recovery line and Next: none) have no persistent test guard; the machine-readable path (JSON allowedNextOperations, optimize/seal diagnostics) is tested",
+      "message": "Human-readable status Recovery line for ABORTED_UNSAFE (renderStatus) has no persistent test guard; the machine-readable gate path is tested",
       "section": "Status 输出语义",
       "task": "Task 2",
-      "recommendation": "Optionally extend an existing test in test/commands/quality.test.ts to assert the human-readable status output references xirang-quality-recovery.md when the terminal is ABORTED_UNSAFE",
+      "recommendation": "Optionally extend an existing test in test/commands/quality.test.ts to assert human-readable status output references xirang-quality-recovery.md when the terminal is ABORTED_UNSAFE",
       "evidence": [
-        "src/commands/quality.ts:710-719"
-      ]
-    },
-    {
-      "severity": "SUGGESTION",
-      "message": "Cosmetic prose ambiguity persists in apply step 5: two consecutive Otherwise clauses carried over from the prior round",
-      "section": "共享恢复 reference 编排重验",
-      "task": "Task 2",
-      "recommendation": "Optionally reword to a single explicit conditional in src/core/templates/workflows/apply-change.ts step 5 and regenerate the reference projection",
-      "evidence": [
-        "src/core/templates/workflows/apply-change.ts:149",
-        ".xirang/references/xirang-apply-step-4-optimization.md:49"
+        "src/commands/quality.ts:715-718"
       ]
     }
   ],
@@ -41,6 +29,10 @@
     "contractVersion": "1.0",
     "evidenceFiles": [
       ".github/workflows/windows.yml",
+      ".pi/agents/xirang-optimizer.md",
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-apply-change/SKILL.md",
+      ".pi/skills/xirang-archive-change/SKILL.md",
       ".xirang/changes/restart-change-verification/tasks.md",
       ".xirang/changes/restart-change-verification/verification-log.md",
       ".xirang/references/xirang-apply-step-1-preparation.md",
@@ -64,11 +56,27 @@
       "test/core/templates/archive-change.test.ts",
       "test/core/templates/skill-templates-parity.test.ts"
     ],
-    "evidenceFingerprint": "1cef4a0d432b5c977480903e1631a378b4635a909f6b583475f4c7e72a3a07de",
+    "evidenceFingerprint": "6d7f246c1d72ac12987ca68a41c9f84e86c340e1497f059353405a7541773374",
     "evidenceFingerprintEntries": [
       {
         "path": ".github/workflows/windows.yml",
         "hash": "b7531514b15fc039ffb0d3bf58be230afc4cb4b31a620c2c562067bc3c5f6811"
+      },
+      {
+        "path": ".pi/agents/xirang-optimizer.md",
+        "hash": "6cf9ce784e0c5ca62701e29d37f456d9e297c22bd4e8a0d99aa4ad0349784d82"
+      },
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "591ab1909af7b917b8ee38fe50c17694393ef1f1a45a39a9a6aeb3fa80b88dac"
+      },
+      {
+        "path": ".pi/skills/xirang-apply-change/SKILL.md",
+        "hash": "22c0c7e1c1e213720390e55744898591265b9f6907f75af73e45428bf3193ff7"
+      },
+      {
+        "path": ".pi/skills/xirang-archive-change/SKILL.md",
+        "hash": "1f47b5c26da140e732420e849fd1f3756553f73dcd822cd7a100857d632f4eb9"
       },
       {
         "path": ".xirang/changes/restart-change-verification/tasks.md",
@@ -80,11 +88,11 @@
       },
       {
         "path": ".xirang/references/xirang-apply-step-1-preparation.md",
-        "hash": "b154bce1164d943e2fc34007f982df29d0a576112d47966b438fd179544fbb1e"
+        "hash": "10c723a9ded8c59df351ff2f58d6920ccb78b3c48ab628d7a24c65dee048831d"
       },
       {
         "path": ".xirang/references/xirang-apply-step-4-optimization.md",
-        "hash": "d3241ead1d45a246f67ba4243d458ea15c2714585da77953b157f1782cfc9b24"
+        "hash": "49c321bdb2640399c296747eef2856867c80ad32d8268a09cd2ac81dd2cc000e"
       },
       {
         "path": ".xirang/references/xirang-decision-rules.md",
@@ -116,7 +124,7 @@
       },
       {
         "path": "src/core/templates/workflows/apply-change.ts",
-        "hash": "33c6c0326143558db28d48a57d6a95820e858ddde0228d8489eb7c7e08a34166"
+        "hash": "a3efb60f70192ff810206d6e5c6507acf4fc372b3426f8db2924ea8e6aa3fb5e"
       },
       {
         "path": "src/core/templates/workflows/archive-change.ts",
@@ -148,7 +156,7 @@
       },
       {
         "path": "test/core/templates/apply-change.test.ts",
-        "hash": "572d382fc8235f03ad936100eca67c1dae0886b9803c85450f0d1768b43fa0e6"
+        "hash": "dd6a103cef9988d06ae68f5eb924e4c315599e999dc865387589cd58aaa7bf9e"
       },
       {
         "path": "test/core/templates/archive-change.test.ts",
@@ -160,9 +168,9 @@
       }
     ],
     "skippedEvidenceFiles": [],
-    "gitHeadCommit": "5499afb2d8e4d5c436acc68190dbe708ab3cabb5",
-    "gitDiffSummary": "Optimization round 1 review (direction OPT-20261030T080502164Z-01, per-invocation evidence fingerprint memoization). baseCommit 5499afb2 equals HEAD; scope staged/working-tree/untracked. Verified: composeStateRecord composes matched Review evidence with latest snapshot ledger; rotated history never a runtime store; optimize/seal/status/instructions gates block ABORTED_UNSAFE; recovery reference byte-identical to template; 9 apply reference projections byte-identical via dist; archive-only selection merges quality-recovery.md. Commands: vitest state/quality/archive/sync (107 passed), vitest protocol/artifact-workflow/apply/archive/reviewer/optimizer/fragments/skill-generation/parity (172 passed), tsc --noEmit exit 0. One-time C5-C8 artifacts corroborated on disk. C9 Windows CI/spaced-path evidence remains an explicitly recorded gap.",
-    "timestamp": "2026-10-30T08:29:40.502Z"
+    "gitHeadCommit": "d0fb324671e191d94bb3af111c0ef16bd65f5c2d",
+    "gitDiffSummary": "Post-seal user-directed token-separation revision: recovery-pointer sentences removed from apply-step-1 preparation (restored to the original fail-closed hard-stop) and from apply-step-4 step 5 (keeps only the OPT-02 single-conditional reword); routing now lives in apply/archive SKILL.md (one pointer each), the inlined protocol error-recovery fragments inside apply-step-4, and the CLI surfaces (status Recovery line, optimize/seal diagnostics, instructions apply). Step-4 step-9 rollback protection for .quality-history/ intentionally kept. Templates/quality/artifact-workflow suites 419 passed; tsc --noEmit clean; projections regenerated byte-identical (step-1 has zero recovery mentions, step-4 keeps quality-history extensions and fragment routing).",
+    "timestamp": "2026-10-30T09:32:47.725Z"
   },
   "optimization": {
     "directions": [
@@ -212,7 +220,7 @@
         "dependencies": [],
         "priorityReason": "Ranks first because it is the only direction with a measurable hot-path effect: every quality subcommand, sync/archive gate, list, and apply instruction re-hashes all evidence files once per PASS candidate, and the candidate set grows with each recorded round; the improvement is statically provable and output-identical. The other direction is a low-impact prose clarity fix.",
         "id": "OPT-20261030T080502164Z-01",
-        "status": "implemented",
+        "status": "verified",
         "failureCount": 0
       },
       {
@@ -259,7 +267,7 @@
         "dependencies": [],
         "priorityReason": "Ranks second: it clears an open reviewer SUGGESTION on a fail-safe branch with near-zero cost, but its benefit is confined to prose clarity in one generated sentence, whereas the first direction measurably reduces repeated I/O across all quality surfaces; the two are independent, so either can be selected alone.",
         "id": "OPT-20261030T080502164Z-02",
-        "status": "pending",
+        "status": "verified",
         "failureCount": 0
       }
     ],
@@ -273,9 +281,26 @@
         ],
         "selected": "OPT-20261030T080502164Z-01",
         "outcome": "none"
+      },
+      {
+        "round": 2,
+        "timestamp": "2026-10-30T08:37:28.275Z",
+        "directions": [],
+        "selected": "OPT-20261030T080502164Z-02",
+        "outcome": "verified",
+        "reason": "Round 2: remaining pending direction OPT-20261030T080502164Z-02 re-validated against current code and left to CLI selection; no new directions found."
+      },
+      {
+        "round": 3,
+        "timestamp": "2026-10-30T08:54:22.220Z",
+        "directions": [],
+        "outcome": "verified",
+        "stopReason": "NO_ACTIONABLE",
+        "reason": "Both recorded directions verified across rounds 1-2; fresh optimizer scan found no further eligible direction at or above minImpactLevel low."
       }
     ],
-    "directionsUsed": 1,
-    "selected": "OPT-20261030T080502164Z-01"
+    "directionsUsed": 2,
+    "stopReason": "NO_ACTIONABLE",
+    "terminal": "NOT_NEEDED"
   }
 }
