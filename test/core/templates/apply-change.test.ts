@@ -23,7 +23,7 @@ const applyReference = (path: string) => {
 describe('apply change workflow template', () => {
   it('keeps the generated apply reference set complete', () => {
     const references = getApplyChangeSkillTemplate().referenceFiles ?? [];
-    expect(references).toHaveLength(8);
+    expect(references).toHaveLength(9);
     for (const reference of references) {
       expect(reference.content.length).toBeGreaterThan(0);
     }
@@ -109,6 +109,7 @@ describe('apply change workflow template', () => {
       'references/apply-step-2-branch-isolation.md',
       'references/apply-step-2-worktree-isolation.md',
       'references/apply-step-2-current-branch.md',
+      'references/quality-recovery.md',
       'references/apply-step-3-review.md',
       'references/apply-step-4-optimization.md',
       'references/apply-step-5-seal.md',
@@ -316,6 +317,31 @@ describe('apply change workflow template', () => {
     expect(optimization).not.toContain('then return to the implementation loop with Required Corrections');
   });
 
+  it('reaches the shared recovery reference only after an explicit authorization gate', () => {
+    const optimization = applyReference('references/apply-step-4-optimization.md');
+    const recovery = applyReference('references/quality-recovery.md');
+    const instructions = getApplyChangeSkillTemplate().instructions;
+
+    expect(instructions).toContain('.xirang/references/xirang-quality-recovery.md');
+    expect(instructions).toContain('explicit user authorization');
+    expect(optimization).toContain('.xirang/references/xirang-quality-recovery.md');
+    expect(optimization).not.toContain('Otherwise implement only the direction');
+    expect(instructions.indexOf('ABORTED_UNSAFE')).toBeGreaterThan(-1);
+
+    const saveIndex = recovery.indexOf('Copy the raw bytes');
+    const verifyIndex = recovery.indexOf('Verify both saved copies');
+    const rotateIndex = recovery.indexOf('remove the active files');
+    expect(saveIndex).toBeGreaterThan(-1);
+    expect(verifyIndex).toBeGreaterThan(saveIndex);
+    expect(rotateIndex).toBeGreaterThan(verifyIndex);
+    expect(recovery).toContain('SHA-256');
+    expect(recovery).toContain('.quality-history');
+    expect(recovery).toContain('recovery.json');
+    expect(recovery).toContain('Do not treat a missing root record as a fresh start');
+    expect(recovery).toContain('directionsUsed');
+    expect(recovery).toContain('baseCommit');
+  });
+
   it('persists separate navigation and immutable evidence baselines', () => {
     const isolationReferences = [
       applyReference('references/apply-step-2-branch-isolation.md'),
@@ -343,9 +369,9 @@ describe('apply change workflow template', () => {
 
   it('restores reviewed code before reporting a failed optimization attempt', () => {
     const reference = applyReference('references/apply-step-4-optimization.md');
-    const snapshotIndex = reference.indexOf('repository-external temporary file');
+    const snapshotIndex = reference.indexOf('repository-external temporary files');
     const rollbackIndex = reference.indexOf('git reset --hard HEAD');
-    const restoreIndex = reference.indexOf('restore all three files');
+    const restoreIndex = reference.indexOf('restore all saved files including untracked history');
     const stateIndex = reference.indexOf('xirang quality status', restoreIndex);
     const reportIndex = reference.indexOf('Report the round outcome');
 
@@ -355,6 +381,7 @@ describe('apply change workflow template', () => {
     expect(stateIndex).toBeGreaterThan(restoreIndex);
     expect(reportIndex).toBeGreaterThan(stateIndex);
     expect(reference).toContain('SHA-256');
+    expect(reference).toContain('.quality-history');
     for (const file of ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json']) {
       expect(reference).toContain(file);
     }

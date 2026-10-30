@@ -68,6 +68,8 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
   - reviewer SHALL Read evidenceFiles 列表中的每个文件最终内容作为候选
   - SHALL 结合 `git diff` 与 `git status` 补充列表中未覆盖的文件
 
+- **读取重启历史**：当前 Change 存在受控轮换保存的质量历史时，Reviewer SHALL 按共享恢复 reference 自主读取旧快照、日志、失败原因与重启原因，作为问题与候选文件导航参考；历史 PASS 不构成本轮通过依据。即使代码未变，也 SHALL 在 fresh context 重新读取当前模型、Change、最终实现与证据并形成新结论。根目录尚无新活动记录时，priorQualityRecord 仍为 null，历史只作为独立参考。
+
 ### Section: 6 步验证协议
 
 `xirang-reviewer` skill SHALL 为每个 delta Section 定义并强制执行 6 步客观验证循环：Locate（识别候选文件）、Read（检查最终磁盘内容）、Analyze（对比 Section 语义与其可观察行为）、Cite（记录文件路径与行范围）、Judge（分配 PASS/WARNING/CRITICAL）、Explain（准确说明缺失、偏离或不确定内容）。覆盖按可观察行为与可信证据判断，不按 Acceptance Case 与测试文件 1:1 映射。

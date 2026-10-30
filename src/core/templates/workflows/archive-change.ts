@@ -117,7 +117,7 @@ function buildArchiveFullQualityContract(_executionModel: QualityExecutionModel)
    - Review: \`.xirang/references/xirang-apply-step-3-review.md\`
    - Optimization: \`.xirang/references/xirang-apply-step-4-optimization.md\`
    - Seal: \`.xirang/references/xirang-apply-step-5-seal.md\`
-   For \`dirty\`, enter at Review. For \`clean\` with unfinished Optimization, reuse the recorded Review and enter at Optimization. These references own delegation, payload validation, CRITICAL write-back, checkpoints, attempt reporting, rollback, terminal handling, and sealing. Return corrections to the Apply implementation loop and require a fresh Review after edits; never treat \`ABORTED_UNSAFE\` as recoverable automatically. Resume Archive only after the shared flow seals successfully.
+   For \`dirty\`, enter at Review. For \`clean\` with unfinished Optimization, reuse the recorded Review and enter at Optimization. These references own delegation, payload validation, CRITICAL write-back, checkpoints, attempt reporting, rollback, terminal handling, and sealing. Return corrections to the Apply implementation loop and require a fresh Review after edits; never treat \`ABORTED_UNSAFE\` as recoverable automatically. With explicit user authorization to restart verification and a fully stopped original flow, .xirang/references/xirang-quality-recovery.md owns the controlled record rotation and fresh Review before the normal dirty/clean routing resumes. Resume Archive only after the shared flow seals successfully.
    The top-level archive flow MUST NOT inline a current-agent review skeleton; archive MUST NOT silently downgrade to a review-only run.`;
 }
 

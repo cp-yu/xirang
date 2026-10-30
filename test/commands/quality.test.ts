@@ -403,6 +403,54 @@ describe('xirang quality command', () => {
     );
   });
 
+  it('keeps the latest ledger and unsafe terminal when a rollback matches an earlier passing review', async () => {
+    await writeConfig({ directionLimit: 3, directionRetries: 1 });
+    await review();
+    const directionId = await assignDirection({ opportunity: 'Fragile direction' });
+    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
+    const failed = await review({
+      result: 'FAIL_NEEDS_CORRECTIONS',
+      issues: [{ severity: 'CRITICAL', message: 'preservation constraints broke' }],
+      evidenceFiles: ['src/a.ts'],
+    });
+    expect(failed.exitCode, failed.stdout).toBe(0);
+    const recovered = await review();
+    expect(recovered.exitCode, recovered.stdout).toBe(0);
+    const failedRound = await optimize({
+      directions: [],
+      attempt: { directionId, status: 'failed', summary: 'preservation constraints broke' },
+    });
+    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
+    const unsafe = await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });
+    expect(unsafe.exitCode, unsafe.stdout).toBe(0);
+
+    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 1;\n', 'utf-8');
+    const logBefore = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8');
+
+    const restored = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
+    expect(restored.exitCode, restored.stdout).toBe(0);
+    const payload = JSON.parse(restored.stdout);
+    expect(payload.state).toBe('clean');
+    expect(payload.review.result).toBe('PASS');
+    expect(payload.optimization.terminal).toBe('ABORTED_UNSAFE');
+    expect(payload.optimization.directionsUsed).toBe(1);
+    expect(payload.optimization.directions).toEqual([
+      expect.objectContaining({ id: directionId, status: 'rejected', failureCount: 1 }),
+    ]);
+    expect(payload.allowedNextOperations).toEqual([]);
+
+    const blocked = await optimize({
+      directions: [],
+      attempt: { directionId, status: 'failed', summary: 'retry after rollback' },
+    });
+    expect(blocked.exitCode, blocked.stdout).toBe(1);
+    expect(JSON.parse(blocked.stdout).code).toBe('ABORTED_UNSAFE');
+
+    const log = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8');
+    expect(log.startsWith(logBefore)).toBe(true);
+    expect(log.trim().split('\n')).toHaveLength(6);
+  });
+
   it('requires a clean state before optimization', async () => {
     const round = await optimize({ directions: [direction()] });
 
@@ -749,7 +797,11 @@ describe('xirang quality command', () => {
     const round = await optimize({ directions: [direction()] });
 
     expect(round.exitCode, round.stdout).toBe(1);
-    expect(JSON.parse(round.stdout).code).toBe('ABORTED_UNSAFE');
+    const payload = JSON.parse(round.stdout);
+    expect(payload.code).toBe('ABORTED_UNSAFE');
+    expect(payload.diagnostics[0].fix).toContain('xirang-quality-recovery.md');
+    expect(payload.diagnostics[0].fix).toContain('authorization');
+    expect(payload.diagnostics[0].fix).not.toContain('Restore the workspace to the recorded baseline');
   });
 
   it('moves to reviewed-but-not-finalized status after a passing review', async () => {
@@ -824,6 +876,24 @@ describe('xirang quality command', () => {
     expect(payload.ok).toBe(true);
     expect(payload.sealHash).toMatch(/^[a-f0-9]{64}$/);
     expect(payload.allowedNextOperations).toContain('archive');
+  });
+
+  it('points the unsafe seal gate at the shared recovery reference', async () => {
+    await review();
+    await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });
+
+    const unsafe = await runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
+
+    expect(unsafe.exitCode, unsafe.stdout).toBe(1);
+    const unsafeBlocked = JSON.parse(unsafe.stdout);
+    expect(unsafeBlocked.code).toBe('SEAL_NOT_READY');
+    const terminalDiagnostic = unsafeBlocked.diagnostics.find(
+      (item: Record<string, string>) => item.path === 'optimization.terminal'
+    );
+    expect(terminalDiagnostic.actual).toBe('ABORTED_UNSAFE');
+    expect(terminalDiagnostic.fix).toContain('xirang-quality-recovery.md');
+    expect(terminalDiagnostic.fix).toContain('authorization');
+    expect(terminalDiagnostic.fix).not.toContain('Restore the workspace to the recorded baseline');
   });
 
   it('renders protocol help from the shared constants', async () => {

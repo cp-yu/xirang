@@ -26,6 +26,7 @@ import {
   validateReviewInput,
 } from '../core/quality/validators.js';
 import {
+  QUALITY_RECOVERY_REFERENCE,
   renderOptimizeHelp,
   renderQualityOverview,
   renderReviewHelp,
@@ -234,9 +235,9 @@ async function runQualityOptimize(changeName: string, options: QualityCommandOpt
       diagnostics: [
         diagnostic(
           'optimization.terminal',
-          'a recovery path that restores the recorded state',
+          'a user-authorized controlled rotation followed by a fresh Review',
           'ABORTED_UNSAFE',
-          'Restore the workspace to the recorded baseline before recording further optimization rounds.'
+          `Restoring code or recording a new Review does not lift this terminal. With explicit user authorization and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to save, verify, and rotate the active records, then re-verify from a fresh Review.`
         ),
       ],
       summary: 'Optimization was aborted as unsafe.',
@@ -371,7 +372,7 @@ async function runQualitySeal(changeName: string, options: QualityCommandOptions
         'optimization.terminal',
         [...ARCHIVE_COMPATIBLE_TERMINALS].join(' | '),
         terminal,
-        'Restore the workspace to the recorded baseline before sealing this change.'
+        `Restoring code alone never lifts this terminal. With explicit user authorization and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to rotate the records and re-verify from a fresh Review before sealing.`
       )
     );
   }
@@ -709,7 +710,12 @@ function renderStatus(
     `Optimization: ${ledger?.terminal ?? 'not finalized'}`
   );
   const next = allowedNextOperations(state.status, ledger);
-  lines.push(next.length > 0 ? `Next: ${next.join(', ')}` : 'Next: restore the workspace before continuing');
+  lines.push(next.length > 0 ? `Next: ${next.join(', ')}` : 'Next: none — further operations are blocked');
+  if (ledger?.terminal === 'ABORTED_UNSAFE') {
+    lines.push(
+      `Recovery: ${QUALITY_RECOVERY_REFERENCE} — with explicit user authorization and a fully stopped original flow, save, verify, and rotate the active records there, then re-verify from a fresh Review. Restoring code alone does not lift the terminal.`
+    );
+  }
   lines.push(...commands.map((command) => `  ${command}`));
   return lines.join('\n');
 }

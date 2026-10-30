@@ -16,6 +16,48 @@ import {
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
 
+const QUALITY_RECOVERY_REFERENCE_CONTENT = `
+# Quality Recovery: Restart Verification in the Active Change
+
+Use this reference only when the user explicitly asks to re-verify the active change (for example "review and optimize from scratch") or to re-run verification after another finalized optimization terminal, and the original verification flow has fully stopped. Ordinary corrections after a failed Review, rollbacks after a failed optimization direction, and resumption after an interrupted session stay in the current round and keep their counters and progress; they are never a restart.
+
+Serial preconditions (all required before any rotation):
+
+- No Reviewer, Optimizer, implementation task, pending result, write-back, commit, or rollback from the previous round is still running. The CLI does not detect external subagent processes; verify this yourself from the known tasks and workspace state. Never restart while a Reviewer is still out.
+- Keep \`changeDir/.apply-isolation.json\` unchanged: same workspace identity, immutable \`baseCommit\`, existing \`wip: opt-*\` checkpoints, and commits. Do not reinitialize isolation, do not revert or delete code, and do not delete checkpoints.
+- An explicit user request authorizes this procedure. Do not ask again for the same restart intent and do not require the user to run the steps by hand; without that authorization stay stopped.
+
+## Rotation procedure: save completely, verify, then rotate
+
+Work from \`changeDir\` with the platform \`path\` APIs so macOS, Linux, and Windows behave identically.
+
+1. Check \`changeDir/.quality-history/\` for an unfinished rotation (see the re-entry table). Finish or reconcile it before anything else.
+2. Create one new unique history directory \`changeDir/.quality-history/<timestamp>-<suffix>/\`. Never write into an existing history directory.
+3. Copy the raw bytes of \`.quality-state.json\` and \`.quality-log.jsonl\` into it under their original file names, and write \`recovery.json\` recording the restart reason, timestamp, source association, and the SHA-256 of both saved files. \`recovery.json\` serves recovery orchestration and human reading only; the quality state engine never parses it, and it is not a round-identity protocol.
+4. Verify both saved copies byte-for-byte (size and SHA-256) against the originals. If any save or verification fails, stop: keep the originals, do not start a new Review, and do not fake a pass.
+5. With both copies verified, remove the active files from the change root one at a time (snapshot first, then the log). After both are gone, re-verify the history copies and mark the rotation complete in \`recovery.json\`.
+6. Keep the current code, commits, checkpoints, isolation identity, and evidence baseline untouched. The history directory stays readable for later failed-round rollbacks and the final archive.
+
+## Re-entry after interruption
+
+| Saved history | Active originals | Action |
+| --- | --- | --- |
+| Incomplete | both present and consistent with the save | keep the originals, complete the same save, re-verify; no Review before the rotation completes |
+| Complete and hashes verified | both present and consistent | continue that rotation; never overwrite history |
+| Complete and hashes verified | only one consistent original remains | finish the remaining rotation, then confirm the change root has no old active records |
+| Complete, rotation marked done | a new active record exists | continue in the new round; never rotate the new record into this old round |
+| Conflicting or unidentifiable content | any | keep every file, stop, and report the exact evidence gap; do not guess what to delete |
+
+Do not treat a missing root record as a fresh start while an unfinished rotation exists. Apply preparation, the Optimization unsafe branch, and Archive must check \`.quality-history/\` before routing to Review.
+
+## After the rotation
+
+1. Run \`xirang quality status "<change-name>" --json\` and require \`state: "dirty"\`. A PASS in the history directory never satisfies the new round.
+2. Delegate a fresh-context Reviewer; validate the payload, apply only CRITICAL write-back, then record with \`xirang quality review\`. On \`FAIL_NEEDS_CORRECTIONS\`, return to the normal correction loop and review again.
+3. Only after the new Review passes, establish or verify this round's checkpoint and continue the normal Optimization loop. The new ledger starts at \`directionsUsed: 0\` with empty histories: old terminals, used direction slots, and per-direction failure counts never carry over; read the history only as navigation and judgment reference.
+4. Seal and close with the normal rules.
+`.trim();
+
 const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
@@ -104,11 +146,11 @@ Use git commits as checkpoints; never use stash or tags. Ordinary implementation
    xirang quality optimize "<change-name>" --input '<json>' --json
    \`\`\`
    The CLI assigns every new direction ID, echoes the assigned IDs and \`selected\`, and rejects a selection that skips the highest priority eligible direction. Do not author IDs, counters, or selections.
-5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with \`{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}\`, preserve the conflict and CLI diagnostics, and hard-stop for manual recovery (terminal \`ABORTED_UNSAFE\`). Do not return to implementation, rerun Review, seal, or archive automatically. Otherwise implement only the direction the CLI selected.
+5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with \`{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}\`, preserve the conflict and CLI diagnostics, and hard-stop for manual recovery (terminal \`ABORTED_UNSAFE\`). Do not return to implementation, rerun Review, seal, or archive automatically. When the optimizer reports no conflict, implement only the direction the CLI selected.
 6. If project evidence contradicts the selected direction or its \`keyDesign\`, revoke it inside the round ledger with \`reason\` and \`evidence\`, then judge the remaining directions with a fresh optimizer. Do not skip or reject a direction silently.
 7. Implement the selected direction with TDD, preserving its \`preservationConstraints\`, and record any non-substantive implementation difference from \`keyDesign\`.
 8. Delegate to a fresh \`xirang-reviewer\` with \`context: "fresh"\` to verify the specs and the selected direction's \`preservationConstraints\`, not the optimization value. Record that verdict with the same \`xirang quality review\` call as Step 3; a passing review marks the direction \`implemented\` and refreshes the evidence fingerprint.
-9. If the round Review failed, before any next optimization call copy \`.quality-state.json\`, \`.quality-log.jsonl\`, and \`.apply-isolation.json\` to repository-external temporary files and record each SHA-256. Confirm the workspace matches the selected isolation and that \`HEAD\` is the latest successful checkpoint, discard only speculative code with \`git reset --hard HEAD\` and \`git clean -fd\`, then restore all three files (\`git clean\` removes the untracked log) and verify each hash. Stop if restoration or hash verification fails, or if speculative files remain. Run \`xirang quality status "<change-name>" --json\` and require \`state: clean\` before proceeding; otherwise stop for manual recovery. Preserve the failed Review and existing ledger, and do not rerun Review on speculative code to bypass the gate.
+9. If the round Review failed, before any next optimization call copy \`.quality-state.json\`, \`.quality-log.jsonl\`, \`.apply-isolation.json\`, and the whole \`changeDir/.quality-history/\` directory (when present) to repository-external temporary files, recording a manifest with each file's SHA-256. Confirm the workspace matches the selected isolation and that \`HEAD\` is the latest successful checkpoint, discard only speculative code with \`git reset --hard HEAD\` and \`git clean -fd\`, then restore all saved files including untracked history (\`git clean\` removes the untracked log and untracked history) and verify each hash plus the complete file set. Stop if restoration or hash verification fails, if a history file is missing or extra, or if speculative files remain. Run \`xirang quality status "<change-name>" --json\` and require \`state: clean\` before proceeding; otherwise stop for manual recovery. Preserve the failed Review and existing ledger, and do not rerun Review on speculative code to bypass the gate.
 10. Report the round outcome on the next optimization call with \`attempt\`: \`{"directionId":"<direction-id>","status":"verified"}\` after a passing review, or \`"failed"\` only after the failed round has been restored and checked in Step 9. Carry the pending attempt with the fresh optimizer's next ledger or finalizing payload, not a separate fabricated optimizer conclusion. The CLI then updates the failure count; a direction reaching \`optimization.directionRetries\` becomes \`rejected\`. An unreported attempt is not a successful landing.
 11. On \`verified\`, save the successful checkpoint and judge the remaining directions:
     \`\`\`bash
@@ -151,7 +193,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Flow Outline
 
-1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`.
+1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`. If quality reports an \`ABORTED_UNSAFE\` terminal, stop automatic advancement; with explicit user authorization and a fully stopped original flow, follow \`.xirang/references/xirang-quality-recovery.md\`.
 2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops until they are complete; completing one task does not leave the loop.
 4. [Mode: Delegate Review] Step 3: Review — only after every pending task and Required Correction is complete, read \`.xirang/references/xirang-apply-step-3-review.md\` and delegate to the clean-context \`xirang-reviewer\` agent for one change-level review of that completed state. A failed Review or Seal may return corrections to the implementation loop; after those corrections are complete, the modified Change state requires another change-level Review.
@@ -196,6 +238,7 @@ When the seal passes, end with an explicit call-to-action: \`Archive ready. Run 
       { path: 'references/apply-step-2-branch-isolation.md', content: APPLY_STEP_2_BRANCH_ISOLATION_REFERENCE },
       { path: 'references/apply-step-2-worktree-isolation.md', content: APPLY_STEP_2_WORKTREE_ISOLATION_REFERENCE },
       { path: 'references/apply-step-2-current-branch.md', content: APPLY_STEP_2_CURRENT_BRANCH_REFERENCE },
+      { path: 'references/quality-recovery.md', content: QUALITY_RECOVERY_REFERENCE_CONTENT },
       { path: 'references/apply-step-3-review.md', content: APPLY_STEP_3_REVIEW_REFERENCE },
       { path: 'references/apply-step-4-optimization.md', content: APPLY_STEP_4_OPTIMIZATION_REFERENCE },
       { path: 'references/apply-step-5-seal.md', content: APPLY_STEP_5_SEAL_REFERENCE },

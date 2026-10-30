@@ -10,6 +10,8 @@ import {
 
 export const QUALITY_SUBCOMMANDS = ['review', 'optimize', 'status', 'seal'] as const;
 
+export const QUALITY_RECOVERY_REFERENCE = '.xirang/references/xirang-quality-recovery.md';
+
 export const QUALITY_EXIT_CODES = [
   { code: 0, meaning: 'the record was accepted, or the query answered' },
   { code: 1, meaning: 'the entry condition or recorded state blocks the operation' },
@@ -120,11 +122,12 @@ export function renderQualityErrorRecovery(): string {
 - exit 1 \`REVIEW_NOT_REQUIRED\`: the recorded review still matches; continue with \`optimize\` or \`seal\`.
 - exit 1 \`DIRECTION_LIMIT_REACHED\`: finalize with \`{"directions":[],"stopReason":"DIRECTION_LIMIT_REACHED","summary":"..."}\` or raise \`optimization.directionLimit\`.
 - exit 1 \`OPTIMIZATION_DISABLED\`: only \`{"directions":[],"stopReason":"USER_DECLINED","summary":"..."}\` is accepted while \`optimization.enabled\` is false.
-- exit 1 \`OPTIMIZATION_FINALIZED\`: seal and archive; a new optimization requires a new change.
-- exit 1 \`ABORTED_UNSAFE\`: restore the workspace to the recorded baseline; no automatic recovery.
+- exit 1 \`OPTIMIZATION_FINALIZED\`: seal and archive; a new optimization requires a new change. Other finalized terminals also accept an explicit user-requested re-verification through \`${QUALITY_RECOVERY_REFERENCE}\`.
+- exit 1 \`ABORTED_UNSAFE\`: stop automatic advancement. Restoring code or recording a new Review never lifts the terminal. With explicit user authorization to restart verification and a fully stopped original flow, follow the controlled rotation in \`${QUALITY_RECOVERY_REFERENCE}\` and re-verify from a fresh Review.
 - A \`stopReason\` always travels with \`summary\`; a finalize payload without it is rejected with exit 2.
 - exit 1 \`SEAL_NOT_READY\`: read the listed conditions and record the missing review conclusion or stop reason first.
-- Never edit \`.quality-state.json\` or \`.quality-log.jsonl\` by hand, and never infer the code state when no record exists.
+- Never edit \`.quality-state.json\` or \`.quality-log.jsonl\` by hand outside the authorized rotation in \`${QUALITY_RECOVERY_REFERENCE}\`, and never infer the code state when no record exists.
+- An empty \`allowedNextOperations\` is a stop, and never requires creating a successor change.
 - Fail closed when isolation metadata (\`baseCommit\`, \`optimizationBaselineCommit\`) is missing or invalid.
 `.trim();
 }
@@ -153,8 +156,8 @@ export function renderQualityCheckpointStateMachine(): string {
 **Hard rules**:
 - Never use \`--allow-empty\` for the baseline or for a direction checkpoint; never use stash or tags.
 - A successful direction checkpoint is \`git commit -m "wip: opt-r\${N} (\${directionId}: \${description})"\` after the round review passes.
-- Snapshot and restore \`.quality-state.json\`, \`.quality-log.jsonl\`, and \`.apply-isolation.json\` together: \`git clean -fd\` removes the untracked log, and a snapshot without its log line is treated as \`dirty\` (fail-closed).
-- Rollback only discards speculative code; preserve the failed Review and existing direction history. After restoring all three files and verifying their hashes, require \`quality status\` to report \`clean\`, then carry the failed \`attempt\` on the next \`optimize\` call. Do not submit it while \`dirty\`; stop if the restored checkpoint has no matching passing Review.
+- Snapshot and restore \`.quality-state.json\`, \`.quality-log.jsonl\`, \`.apply-isolation.json\`, and the whole \`changeDir/.quality-history/\` directory when present: record a manifest with a SHA-256 per file before \`git reset --hard HEAD\` and \`git clean -fd\`, restore every file (tracked or untracked), and treat a missing, extra, or mismatched history file as a failure (fail-closed). \`git clean -fd\` removes the untracked log and untracked history, and a snapshot without its log line is treated as \`dirty\`.
+- Rollback only discards speculative code; preserve the failed Review and existing direction history. After restoring all saved current and history files and verifying their hashes, require \`quality status\` to report \`clean\`, then carry the failed \`attempt\` on the next \`optimize\` call. Do not submit it while \`dirty\`; stop if the restored checkpoint has no matching passing Review.
 - Keep the isolation metadata authoritative: confirm \`HEAD\` is the latest successful checkpoint before discarding work, and stop if restoration or hash verification fails.
 `.trim();
 }

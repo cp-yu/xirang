@@ -36,6 +36,7 @@ ${XIRANG_SHARED_CONTEXT}
 ## Self-Read Protocol
 
 1. Read proposal.md, design.md, tasks.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and changeDir/.quality-state.json when present. Only when all four partitions are empty may you conclude that the change carries no semantic change; a partition you did not read is never an empty partition.
+   When changeDir/.quality-history/ exists, also read its snapshots, logs, failure reasons, and recovery.json restart reasons per .xirang/references/xirang-quality-recovery.md as problem and candidate navigation reference only; a historical PASS never counts as this round's evidence. Re-read the current Semantic Model, change artifacts, final implementation, and evidence in this fresh context even when the code is unchanged; with no active root record, treat priorQualityRecord as null.
 2. Read \`baseCommit\` from changeDir/.apply-isolation.json and validate that Git resolves it. Fail closed with one CRITICAL issue if the immutable evidence baseline is absent or invalid.
 3. Run \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`. Use their union only as navigation; final file contents are evidence.
 4. Build candidates from evidenceFiles, committed and uncommitted name-only scope, Semantic Model relationship paths, live repository search, and Section keywords.

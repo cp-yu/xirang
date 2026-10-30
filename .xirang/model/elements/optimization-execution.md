@@ -61,7 +61,7 @@ definition: Optimization Execution 定义 Quality 中优化活动的执行协议
   - CLI 已把该轮结论与失败方向写入 quality 记录
   - Apply SHALL 把更新后的 quality 记录与 `.apply-isolation.json` 快照到 repository 外
   - SHALL 执行 `git reset --hard HEAD` 和 `git clean -fd` 丢弃该轮实现
-  - SHALL 原子恢复两个持久状态文件并验证各自 SHA-256
+  - SHALL 原子恢复三份当前状态文件并验证各自 SHA-256
   - SHALL 从最近成功 checkpoint 与恢复后的台账重新判断方向
 
 - **终局状态保持兼容**
@@ -75,6 +75,13 @@ definition: Optimization Execution 定义 Quality 中优化活动的执行协议
   - Optimization 收口
   - 所有 `wip: opt-*` commits SHALL 保留
   - 系统 SHALL NOT 自动清理这些 commits
+
+回滚保护 SHALL 覆盖当前 `.quality-state.json`、`.quality-log.jsonl`、`.apply-isolation.json` 及当前 Change 内的全部质量历史目录。执行 `git reset --hard HEAD` 和 `git clean -fd` 前，SHALL 将这些数据完整保存到 repository 外并记录文件清单与 SHA-256；之后恢复并逐项校验，包括历史中未被 Git 跟踪的文件，不因 HEAD 中没有这些文件而删除它们。历史目录原先不存在时 SHALL 保留该事实，不伪造旧轮次。
+
+恢复失败、校验不一致或历史文件缺失时 SHALL 停止，不提交新的优化结果。普通失败回滚 SHALL 保留当前台账的失败记录与预算，不调用重新验证的记录轮换流程。
+
+- **重启后的优化失败**：旧轮次历史已保存在 Change 内，新方向未通过 Review；回滚只丢弃本次 speculative code，三份当前状态文件和所有旧轮次历史均保持保存时的字节，状态匹配成功 checkpoint 后可按当前台账报告失败尝试。
+- **未跟踪的历史目录**：历史文件尚未被 Git 跟踪，`git clean -fd` 会清理它们；repository 外保存及恢复 SHALL 确保回滚后这些历史文件仍完整可读。
 
 ### Section: 重试预算控制
 

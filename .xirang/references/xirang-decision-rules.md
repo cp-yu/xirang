@@ -27,7 +27,7 @@ Exclude directions whose evidence or preservation cannot close. Then order by hi
 
 ## Failed Directions
 
-Read the ledger and the failed directions. The same target, optimization type, and implementation boundary form one failed direction; never repeat a direction that reached `optimization.directionRetries` by changing wording. Below that limit you MAY propose a materially different keyDesign.
+Read the ledger and the failed directions. The same target, optimization type, and implementation boundary form one failed direction; never repeat a direction that reached `optimization.directionRetries` by changing wording. Below that limit you MAY propose a materially different keyDesign. Rotated history under `.quality-history/` does not consume this round's retry budget and never pre-rejects a direction; its failure evidence still informs judgment, and it never proves a previously failed design succeeded.
 
 ## Revocation
 

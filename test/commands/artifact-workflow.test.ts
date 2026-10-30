@@ -836,6 +836,59 @@ rules: {}
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_optimize');
       expect(json.instruction).toContain('aborted as unsafe');
+      expect(json.instruction).toContain('xirang-quality-recovery.md');
+      expect(json.instruction).toContain('explicit user authorization');
+    });
+
+    it('does not route a dirty unsafe state into a plain review', async () => {
+      const changeDir = await createTestChange('aborted-unsafe-dirty', [
+        'proposal',
+        'design',
+        'specs',
+        'tasks',
+      ]);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await writeQualityRecord(changeDir, {
+        optimization: { terminal: 'ABORTED_UNSAFE', stopReason: 'UNSAFE' },
+      });
+      await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nChanged after the unsafe abort.\n## What Changes\n- more');
+
+      const result = await runCLI(
+        ['instructions', 'apply', '--change', 'aborted-unsafe-dirty', '--json'],
+        { cwd: tempDir }
+      );
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).not.toBe('all_done');
+      expect(json.instruction).toContain('xirang-quality-recovery.md');
+      expect(json.instruction).toContain('explicit user authorization');
+    });
+
+    it('reports needs_review after rotation even when history holds a matching pass', async () => {
+      const changeDir = await createTestChange('rotated-apply', [
+        'proposal',
+        'design',
+        'specs',
+        'tasks',
+      ]);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await writeQualityRecord(changeDir);
+
+      const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
+      await fs.mkdir(historyDir, { recursive: true });
+      for (const file of [QUALITY_STATE_FILE, QUALITY_LOG_FILE]) {
+        await fs.rename(path.join(changeDir, file), path.join(historyDir, file));
+      }
+
+      const result = await runCLI(['instructions', 'apply', '--change', 'rotated-apply', '--json'], {
+        cwd: tempDir,
+      });
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).toBe('needs_review');
+      expect(json.instruction).not.toContain('all done');
     });
 
     it('outputs all_done state in JSON when the quality record is clean and archive-compatible', async () => {

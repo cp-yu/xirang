@@ -73,8 +73,9 @@ describe('archive change workflow template', () => {
     expect(review).toContain('passing only the three locating strings');
     expect(review).toContain('Apply only CRITICAL `writeBackPlan` entries');
     expect(optimization).toContain('optimizationBaselineCommit');
-    expect(optimization.indexOf('Report the round outcome')).toBeGreaterThan(optimization.indexOf('restore all three files'));
-    expect(optimization).toContain('restore all three files');
+    expect(optimization.indexOf('Report the round outcome')).toBeGreaterThan(optimization.indexOf('restore all saved files including untracked history'));
+    expect(optimization).toContain('restore all saved files including untracked history');
+    expect(optimization).toContain('.quality-history');
     expect(optimization).toContain('SHA-256');
   });
 
@@ -87,6 +88,8 @@ describe('archive change workflow template', () => {
     expect(dirtyIndex).toBeGreaterThan(unsafeIndex);
     expect(instructions).toContain('even when `state` is `dirty`');
     expect(instructions).toContain('If a `clean` state has an unfinished Optimization');
+    expect(instructions).toContain('xirang-quality-recovery.md');
+    expect(instructions).toContain('explicit user authorization');
   });
 
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {

@@ -22,6 +22,7 @@ import {
   type ApplyInstructions,
 } from './shared.js';
 import { checkArchiveCompatibility, checkQualityState } from '../../core/quality/state.js';
+import { QUALITY_RECOVERY_REFERENCE } from '../../core/quality/protocol.js';
 import { readProjectConfig } from '../../core/project-config.js';
 import { projectConfigForInstructions } from '../../core/config-projection.js';
 
@@ -336,6 +337,16 @@ async function resolveCompletedApplyState(
 ): Promise<Pick<ApplyInstructions, 'state' | 'instruction'>> {
   const qualityState = await checkQualityState(changeDir, projectRoot);
 
+  if (qualityState.record?.optimization?.terminal === 'ABORTED_UNSAFE') {
+    return {
+      state: qualityState.status === 'clean' ? 'needs_optimize' : 'needs_review',
+      instruction:
+        'All tasks are complete, but optimization aborted as unsafe (ABORTED_UNSAFE in the active ledger).\n'
+        + 'Stop automatic advancement: do not record a Review, continue Optimization, seal, or archive from this state, even when the code looks dirty or restored.\n'
+        + `With explicit user authorization to restart verification and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to save, verify, and rotate the quality records, then re-verify from a fresh Review.`,
+    };
+  }
+
   if (qualityState.status !== 'clean' || !qualityState.record) {
     return {
       state: 'needs_review',
@@ -345,12 +356,10 @@ async function resolveCompletedApplyState(
   }
 
   if (!checkArchiveCompatibility(qualityState.record).compatible) {
-    const aborted = qualityState.record.optimization?.terminal === 'ABORTED_UNSAFE';
     return {
       state: 'needs_optimize',
-      instruction: aborted
-        ? 'All tasks are complete and the code passed review, but optimization was aborted as unsafe.\nRestore the workspace to the recorded baseline before sealing this change.'
-        : 'All tasks are complete and the code passed review, but the optimization loop is not finalized.\nContinue `xirang quality optimize` and seal before archiving this change.',
+      instruction:
+        'All tasks are complete and the code passed review, but the optimization loop is not finalized.\nContinue `xirang quality optimize` and seal before archiving this change.',
     };
   }
 

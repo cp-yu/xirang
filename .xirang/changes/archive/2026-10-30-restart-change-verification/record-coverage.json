@@ -1,0 +1,602 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261030T045600Z-0ab3a67e",
+  "sourceVersion": "2d06d5ec34287b44f82c713cdf2ddf061040ba269f27f4625d76edeb4ca23187",
+  "targetFingerprint": "5c811ef84bcfd59e85a37e9551aefa2b15cff3662f6878ccdb8b456f2ec626d0",
+  "recordedAt": "2026-10-30T05:42:31.463Z",
+  "entries": [
+    {
+      "identity": "restart-active-change-verification",
+      "details": [
+        {
+          "detail": "尚未归档的活动 Change 可显式重启 Review → Optimization",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "Quality SHALL 允许尚未归档的活动 Change 在用户明确要求重新验证后，通过共享恢复 reference 在原 Change 内重新开始 Review → Optimization，不要求创建接续 Change。"
+        },
+        {
+          "detail": "在原 Change 内进行，不创建接续 Change",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "在原 Change 内重新开始 Review → Optimization，不要求创建接续 Change。"
+        },
+        {
+          "detail": "覆盖 ABORTED_UNSAFE 中止原因处理后重验",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "适用情况包括：`ABORTED_UNSAFE` 中止原因处理后重验；"
+        },
+        {
+          "detail": "覆盖 NOT_NEEDED、IMPROVED 等优化终态后的显式重验",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "`NOT_NEEDED`、`IMPROVED` 等优化终态后实现或契约改变；"
+        }
+      ]
+    },
+    {
+      "identity": "preserve-latest-optimization-state-on-review-match",
+      "details": [
+        {
+          "detail": "失败回滚可匹配历史 PASS 证明代码已通过 Review",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "最新快照记录失败 Review、代码已恢复到历史 PASS 的状态时，SHALL 使用该 PASS 证明 `clean`，同时保留最新快照的优化进度；原始历史记录不得被改写。"
+        },
+        {
+          "detail": "最新失败计数不能退回旧 PASS 台账",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "最新活动台账中方向已失败 2 次并被 `rejected`；回滚匹配到首次 PASS 后，该方向仍 SHALL 为 `rejected` 且失败计数为 2，后续写入保留最新历史。"
+        },
+        {
+          "detail": "最新方向状态不能被旧 Review 附带值替换",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "匹配到较早的通过记录时，当前方向状态、失败计数、已用方向额度、轮次判断、`stopReason` 与终态 SHALL 继续取自最新活动快照；不得回退到匹配 Review 附带的旧台账"
+        },
+        {
+          "detail": "ABORTED_UNSAFE 不因代码回退而消失",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "仅恢复代码 A 并完整保留活动记录后，状态 SHALL 为 `clean`，当前台账仍为已用方向数 1 和 `ABORTED_UNSAFE`，Optimization、seal、Sync 和 Archive 不得因此通过 unsafe 门禁。"
+        }
+      ]
+    },
+    {
+      "identity": "restart-optimization-from-zero",
+      "details": [
+        {
+          "detail": "显式重启后重新计算优化额度与方向失败数",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "旧轮次的验证结论、优化进度、终态、已用方向额度和方向失败计数 SHALL 不满足或占用新轮次的验证与优化门禁；旧记录仅作为历史参考。"
+        },
+        {
+          "detail": "新 Review 通过后从零开始 Optimization",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "通过后才可建立或验证本轮 checkpoint 并开始从零计算的 Optimization"
+        },
+        {
+          "detail": "旧终态不作为新轮次已完成结论",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "旧轮次的验证结论、优化进度、终态、已用方向额度和方向失败计数 SHALL 不满足或占用新轮次的验证与优化门禁；旧记录仅作为历史参考。"
+        }
+      ]
+    },
+    {
+      "identity": "restart-preserves-code-and-history",
+      "details": [
+        {
+          "detail": "保留当前代码和已有 commits/checkpoints",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "重启 SHALL 保留当前代码、已有 commits/checkpoints、旧质量日志与失败原因。"
+        },
+        {
+          "detail": "不自动回退或删除代码",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "不自动回退或删除代码，也不删除已有 commits/checkpoints。"
+        },
+        {
+          "detail": "保留旧质量日志和失败原因",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "轮换后的旧质量快照、日志、失败原因及重启原因 SHALL 保持可读，并在后续优化失败回滚及最终原样归档时完整保留。"
+        },
+        {
+          "detail": "撤销旧验证结论和优化进度对新轮次门禁的效力",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "旧轮次的验证结论、优化进度、终态、已用方向额度和方向失败计数 SHALL 不满足或占用新轮次的验证与优化门禁；旧记录仅作为历史参考。"
+        },
+        {
+          "detail": "Reviewer 将历史用于判断参考",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 输入合约"
+          },
+          "quote": "Reviewer SHALL 按共享恢复 reference 自主读取旧快照、日志、失败原因与重启原因，作为问题与候选文件导航参考；历史 PASS 不构成本轮通过依据。"
+        },
+        {
+          "detail": "Optimizer 将历史用于判断参考",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 输入合约"
+          },
+          "quote": "Optimizer SHALL 按共享恢复 reference 读取旧判断、失败原因与重启原因，并基于当前代码重新评估。"
+        }
+      ]
+    },
+    {
+      "identity": "restart-requires-fresh-review",
+      "details": [
+        {
+          "detail": "重启后必须 fresh-context Review",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "新轮次 SHALL 重新执行 fresh-context Review，即使旧 PASS 的文件指纹仍匹配，也不得直接复用该 PASS。"
+        },
+        {
+          "detail": "即使代码未改变且旧 PASS 匹配仍不得复用",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "旧轮次已得到 `NOT_NEEDED`，用户因证据不足要求重审；完成受控轮换后当前状态为 `dirty`，新 Review 通过前不进入 Optimization，旧 PASS 不使本轮变为 `clean`。"
+        },
+        {
+          "detail": "新 Review 不通过需修正后再 Review",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "新 Review 未通过时 SHALL 修正后再次 Review；"
+        },
+        {
+          "detail": "新 Review 通过才能建立本轮 checkpoint 并开始零额度优化",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "通过后才可建立或验证本轮 checkpoint 并开始从零计算的 Optimization"
+        }
+      ]
+    },
+    {
+      "identity": "ordinary-continuation-keeps-current-run",
+      "details": [
+        {
+          "detail": "普通 Review 失败修正沿用原轮次并保留计数进度",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "普通 Review 失败后的修正、优化方向失败后的回滚、会话中断后的续跑 SHALL 继续使用原轮次并保留计数与进度，不得自动转换为重启。"
+        },
+        {
+          "detail": "优化失败回滚不自动重启",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "普通 Review 失败后的修正、优化方向失败后的回滚、会话中断后的续跑 SHALL 继续使用原轮次并保留计数与进度，不得自动转换为重启。"
+        },
+        {
+          "detail": "中断续跑不自动重启",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "普通 Review 失败后的修正、优化方向失败后的回滚、会话中断后的续跑 SHALL 继续使用原轮次并保留计数与进度，不得自动转换为重启。"
+        },
+        {
+          "detail": "中止原因处理后的显式重验属于适用场景",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "`ABORTED_UNSAFE` 中止原因处理后重验；"
+        },
+        {
+          "detail": "优化结束后实现或契约变化可显式重验",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "`NOT_NEEDED`、`IMPROVED` 等优化终态后实现或契约改变；"
+        },
+        {
+          "detail": "旧证据或审查依据不可信时同代码亦可重验",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "旧 Review 的证据或审查依据不可信，即使代码未变仍要求重审。"
+        }
+      ]
+    },
+    {
+      "identity": "user-authorizes-quality-reset",
+      "details": [
+        {
+          "detail": "明确请求即授权 Agent 保存历史、轮换及记录原因",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "用户明确要求重新开始验证（例如“从头 review optimize”）即授权 Agent 保存历史、轮换当前质量记录并记录原因，无须用户手工执行或重复确认同一意图。"
+        },
+        {
+          "detail": "保留从头 review optimize 原样例子和不重复询问结果",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "用户说“从头 review optimize”，原流程已结束；Agent 执行恢复 reference，不再次询问是否重启。"
+        },
+        {
+          "detail": "不要求用户手工执行",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "无须用户手工执行或重复确认同一意图。"
+        },
+        {
+          "detail": "普通修正、失败回滚、中断续跑不得自动升级重启",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "未获得重启授权时保持停止，不把普通修正、回滚或中断续跑自动升级为重启。"
+        }
+      ]
+    },
+    {
+      "identity": "reset-requires-serial-verification",
+      "details": [
+        {
+          "detail": "Reviewer 运行期间不能重启",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "Reviewer 尚未返回时用户要求重启；Agent 不轮换记录、不启动并行的新 Review，须先结束原流程。"
+        },
+        {
+          "detail": "原流程、任务结果处理、回写回滚与重启串行",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "原流程 SHALL 已停止推进，Reviewer、Optimizer、实现任务及其结果处理、回写和回滚 SHALL 与重启串行执行；Reviewer 仍在运行时 MUST NOT 重启。"
+        },
+        {
+          "detail": "不引入并行旧任务结果提交的轮次标识协议",
+          "location": {
+            "element": "quality",
+            "section": "活动 Change 的显式重新验证"
+          },
+          "quote": "系统不提供并行旧任务结果提交的轮次标识协议。"
+        }
+      ]
+    },
+    {
+      "identity": "reference-managed-quality-restart",
+      "details": [
+        {
+          "detail": "不新增 quality reset，以共享恢复 reference 沿用四个既有命令",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "Apply SHALL 提供共享恢复 reference，Archive SHALL 复用同一 reference；恢复使用现有 `quality review`、`quality optimize`、`quality status` 和 `quality seal`，不提供 `xirang quality reset` 子命令。"
+        },
+        {
+          "detail": "必须用户授权且原流程停止",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "恢复前 SHALL 确认原流程已停稳，无仍在运行的 Reviewer、Optimizer、实现任务或待处理结果、回写、提交、回滚。"
+        },
+        {
+          "detail": "用户明确授权 Agent 按 reference 执行轮换",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "用户明确要求重新开始验证（例如“从头 review optimize”）即授权 Agent 保存历史、轮换当前质量记录并记录原因"
+        },
+        {
+          "detail": "原样保存两份活动质量文件并先校验再移走",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "先完整保存 `.quality-state.json`、`.quality-log.jsonl` 的原始字节和重启原因，再校验保存内容，最后才移走根目录的活动记录。"
+        },
+        {
+          "detail": "记录原因与原轮次关联，保存到同 Change 独立历史位置",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "每次历史保存 SHALL 关联原轮次，使用当前 Change 内独立且不覆盖已有历史的位置；"
+        },
+        {
+          "detail": "新轮次用既有 CLI fresh Review 后零计数 Optimization",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "轮换完成后检查 `quality status` 为 `dirty`，再委派 fresh Reviewer。新 Review 失败返回修正循环；通过后才按现有规则建立或验证本轮 checkpoint 并进入 Optimization。新台账不继承旧终态或计数，历史仅供判断参考。"
+        },
+        {
+          "detail": "历史保持原始内容，不截断日志、不仅删终态",
+          "location": {
+            "element": "quality-writeback",
+            "section": "append-only 历史日志"
+          },
+          "quote": "该受控轮换是记录位置的变化，不允许截断日志、改写旧行、仅删终态或丢弃失败证据。"
+        },
+        {
+          "detail": "Reviewer 按 reference 读取旧失败原因",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 输入合约"
+          },
+          "quote": "Reviewer SHALL 按共享恢复 reference 自主读取旧快照、日志、失败原因与重启原因"
+        },
+        {
+          "detail": "Optimizer 按 reference 读取旧失败原因",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 输入合约"
+          },
+          "quote": "Optimizer SHALL 按共享恢复 reference 读取旧判断、失败原因与重启原因"
+        },
+        {
+          "detail": "保存或轮换不完整即停止，不进入新 Review",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "保存、校验或轮换不完整时 SHALL 停止，不启动新 Review、不伪造通过记录。"
+        },
+        {
+          "detail": "允许受控轮换但不允许任意改写丢弃记录",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "Quality 模板 CLI 错误恢复指南"
+          },
+          "quote": "指引 SHALL 禁止任意改写、截断或删除质量记录，但允许用户授权且流程串行时按恢复 reference 完整保存、校验和轮换整组记录。"
+        },
+        {
+          "detail": "reference 方案同时修正历史 PASS 覆盖最新台账的缺陷",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "Review 证据匹配与当前 Optimization 台账 SHALL 独立取值。匹配到较早的通过记录时，当前方向状态、失败计数、已用方向额度、轮次判断、`stopReason` 与终态 SHALL 继续取自最新活动快照；不得回退到匹配 Review 附带的旧台账"
+        }
+      ]
+    },
+    {
+      "identity": "verified-preservation-before-record-rotation",
+      "details": [
+        {
+          "detail": "先完整保存旧快照、日志及重启原因并校验原始字节",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "先完整保存 `.quality-state.json`、`.quality-log.jsonl` 的原始字节和重启原因，再校验保存内容，最后才移走根目录的活动记录。"
+        },
+        {
+          "detail": "保存、校验、轮换未完成即停止，不启动新 Review",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "保存、校验或轮换不完整时 SHALL 停止，不启动新 Review、不伪造通过记录。"
+        },
+        {
+          "detail": "保存第二个文件或校验失败保留原件，不进入 fresh Review",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "第二个文件保存或内容校验失败时，旧原件与已保存副本仍可用，不进入 fresh Review。"
+        },
+        {
+          "detail": "重入检查已有备份不覆盖历史",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "再次执行 SHALL 检查已有备份与活动文件；一致的保存可用于继续完成该次轮换，不得覆盖已有历史或把新产生的活动记录误当作旧记录移走。"
+        },
+        {
+          "detail": "部分轮换重入核对字节关联后完成剩余操作",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "两个原始文件均已完整保存并校验，活动快照已移走而日志尚在；重入时检查字节和关联信息后完成剩余轮换，不覆盖历史，再启动新 Review。"
+        }
+      ]
+    },
+    {
+      "identity": "quality-history-survives-rollback",
+      "details": [
+        {
+          "detail": "完整质量历史纳入现有回滚保护",
+          "location": {
+            "element": "optimization-execution",
+            "section": "Checkpoint 与回滚"
+          },
+          "quote": "回滚保护 SHALL 覆盖当前 `.quality-state.json`、`.quality-log.jsonl`、`.apply-isolation.json` 及当前 Change 内的全部质量历史目录。"
+        },
+        {
+          "detail": "git reset/clean 前 repository 外保存并逐项恢复校验",
+          "location": {
+            "element": "optimization-execution",
+            "section": "Checkpoint 与回滚"
+          },
+          "quote": "执行 `git reset --hard HEAD` 和 `git clean -fd` 前，SHALL 将这些数据完整保存到 repository 外并记录文件清单与 SHA-256；之后恢复并逐项校验，包括历史中未被 Git 跟踪的文件，不因 HEAD 中没有这些文件而删除它们。"
+        },
+        {
+          "detail": "后续新优化失败回滚后旧轮次历史仍完整",
+          "location": {
+            "element": "optimization-execution",
+            "section": "Checkpoint 与回滚"
+          },
+          "quote": "旧轮次历史已保存在 Change 内，新方向未通过 Review；回滚只丢弃本次 speculative code，三份当前状态文件和所有旧轮次历史均保持保存时的字节，状态匹配成功 checkpoint 后可按当前台账报告失败尝试。"
+        }
+      ]
+    },
+    {
+      "identity": "restart-retains-apply-isolation",
+      "details": [
+        {
+          "detail": "沿用原隔离环境和工作区身份",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "恢复 SHALL 沿用 `.apply-isolation.json` 的工作区身份与不可变 `baseCommit`，不重新初始化隔离"
+        },
+        {
+          "detail": "保留不可变证据基线，不借重启重新初始化",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "恢复 SHALL 沿用 `.apply-isolation.json` 的工作区身份与不可变 `baseCommit`，不重新初始化隔离"
+        },
+        {
+          "detail": "已有 worktree 和多个 checkpoint 的例子保持原环境、代码及 commits",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "共享恢复 reference 编排重验"
+          },
+          "quote": "原 Change 使用 worktree，已有 `baseCommit` 和多个 checkpoint；重启保留同一 worktree 身份、原证据基线、代码与 commits，新 Review 自主读取当前实现。"
+        }
+      ]
+    },
+    {
+      "identity": "recovery-and-state-verification",
+      "details": [
+        {
+          "detail": "围绕可观察行为扩展既有状态与 CLI 回滚测试",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "既有状态引擎与 CLI 回滚测试 SHALL 保护历史 PASS 匹配后最新失败计数、方向状态和 unsafe 终态仍保留的行为；优先修改现有测试，不建立平行的重复套件。"
+        },
+        {
+          "detail": "测试保护最新失败计数、方向状态与 unsafe",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "既有状态引擎与 CLI 回滚测试 SHALL 保护历史 PASS 匹配后最新失败计数、方向状态和 unsafe 终态仍保留的行为"
+        },
+        {
+          "detail": "临时 Change 及 Git 使用一次性流程验证",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "reference 中的文件操作 SHALL 通过一次性临时 Change 与临时 Git 仓库流程验证，不为解释性文档措辞新增持久锁词测试。"
+        },
+        {
+          "detail": "旧记录轮换后同代码必须 fresh Review，新额度从零",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "代码未变时轮换后仍须新 Review，Optimization 新额度从零开始；"
+        },
+        {
+          "detail": "保存或轮换中断不丢历史",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "保存或轮换中断不丢历史；"
+        },
+        {
+          "detail": "后续失败优化回滚仍保留历史",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "后续失败优化回滚仍保留历史；"
+        },
+        {
+          "detail": "生成 Apply、Archive 可达同一恢复 reference",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "Apply、Archive 生成结果可达同一恢复 reference，Reviewer 与 Optimizer 能读取历史。"
+        },
+        {
+          "detail": "Reviewer 与 Optimizer 能读取旧历史",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "Reviewer 与 Optimizer 能读取历史。"
+        },
+        {
+          "detail": "文件操作一次性验证而非文档锁词持久测试",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "恢复交付的验证证据"
+          },
+          "quote": "reference 中的文件操作 SHALL 通过一次性临时 Change 与临时 Git 仓库流程验证，不为解释性文档措辞新增持久锁词测试。"
+        }
+      ]
+    }
+  ]
+}
