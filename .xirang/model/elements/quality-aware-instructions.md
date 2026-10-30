@@ -45,3 +45,6 @@ definition: Quality-aware Instructions 定义 `xirang instructions apply` 集成
   - schema 未配置 `apply.tracks`（`tracksFile` 为 null）
   - required artifacts 全部存在
   - 保持现有行为，`state` 为 `'ready'`
+
+- **unsafe 恢复指引优先**：当前活动台账为 `ABORTED_UNSAFE` 时，不得报告 `all_done`；instruction SHALL 指向共享恢复 reference，要求先停止自动推进、取得重启授权并确认串行条件，不因代码为 `dirty` 就绕过该恢复前提。
+- **轮换后重新 Review**：受控轮换完成、全部 tasks 已完成且根目录没有活动质量记录时，state SHALL 为 `needs_review`；即使历史目录保存匹配当前代码的 PASS，也不得投影为 `all_done` 或复用旧结论。新 Review 通过后才按新活动台账进入 `needs_optimize`，沿用其他既有路由。

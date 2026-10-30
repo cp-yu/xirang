@@ -95,6 +95,8 @@ definition: Archive Quality Gate 定义归档前必须具备的质量记录门�
   - SHALL NOT 仅因 archive-time 存在未提交改动风险而降级成 Review-only 流程
   - 只有在 config 禁用或用户显式拒绝时，记录才可包含 `SKIPPED` 终态
 
+Archive Agent SHALL 与 Apply 使用同一共享恢复 reference。遇到当前 `ABORTED_UNSAFE` 时，SHALL 在常规 dirty/clean 路由前停止自动推进并展示该 reference；用户明确要求重新验证且原流程停止后，才可按 reference 保存并校验历史、轮换活动记录、重新执行 fresh Review 和从零开始的 Optimization。其他优化终态后的显式重验同样适用。未经新轮次有效 Review 和优化收口，不得复用历史目录中的旧 PASS 或终态进入正常归档；既有显式绕过门禁通道的授权规则不受影响。
+
 ### Section: Archive 与 Sync 双重门禁
 
 `xirang archive` 命令 SHALL 在执行归档前校验 quality 和 sync 状态。默认强制执行，`--no-verify` 标志提供显式用户授权绕过通道。

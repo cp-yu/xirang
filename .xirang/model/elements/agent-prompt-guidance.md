@@ -78,8 +78,8 @@ archive skill 模板 SHALL 在检测到 Optimization 尚未收口时提供具体
 - **ABORTED_UNSAFE 保持 STOP**
 
   - `xirang quality status` 报告 Optimization 终态为 `ABORTED_UNSAFE`
-  - 模板 SHALL 保持 STOP 行为
-  - SHALL 不提供自动恢复路径
+  - 模板 SHALL 停止自动推进并指向 Apply、Archive 共享的恢复 reference
+  - 未获用户明确重启授权时 SHALL 保持停止；用户已明确要求重启且原流程停止时，按该 reference 受控轮换后重新执行 fresh Review
 
 ### Section: Quality 模板 CLI 错误恢复指南
 
@@ -101,3 +101,6 @@ quality skill 模板 SHALL 包含显式的 CLI 错误恢复指南，指导 Agent
 
   - 错误恢复指南被渲染
   - SHALL 保留"记录缺失时不得推断代码状态"与"baseCommit 缺失或无效时 fail closed"等条目
+
+- **终态需要重新验证**：对 `ABORTED_UNSAFE` 保持当前台账的优化与 Closure 阻塞，指向共享恢复 reference；对其他终态保留正常 seal/archive 路径，同时说明用户明确重验可按同一 reference 处理。`allowedNextOperations` 为空不表示必须创建接续 Change。
+- **受控轮换边界**：指引 SHALL 禁止任意改写、截断或删除质量记录，但允许用户授权且流程串行时按恢复 reference 完整保存、校验和轮换整组记录。普通失败修正与续跑不适用该例外；恢复不通过伪造 CLI 输入或修改终态来完成。

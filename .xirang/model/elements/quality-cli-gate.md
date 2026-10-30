@@ -78,7 +78,7 @@ Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER
 
   - 收口输入的 `stopReason` 为 `UNSAFE`
   - 终态 SHALL 为 `ABORTED_UNSAFE`
-  - 后续 optimize 入口 SHALL 被拒绝，直到工作区被恢复
+  - 当前活动台账仍为该终态时后续 optimize 入口 SHALL 被拒绝；恢复代码或重新记录 Review 不解除该终态。诊断 SHALL 指向共享恢复 reference，只有按用户授权完成受控轮换并重新通过 Review，才可在新活动台账开始优化
 
 ### Section: Seal 校验
 
@@ -126,6 +126,10 @@ Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER
 
   - agent 执行 `xirang quality status <change-name>` 或任意 help
   - 系统 MUST NOT 创建、修改或删除任何记录文件
+
+- **Review 证据与台账分离**：回滚匹配历史 PASS 时，status SHALL 显示匹配的 Review 结论与最新活动台账中的计数、方向状态和终态，不显示旧台账作为当前进度。
+- **恢复路径可发现**：当前活动台账为 `ABORTED_UNSAFE` 时，status 的人类可读指引 SHALL 引用共享恢复 reference，说明需用户授权且原流程停止后才能轮换；不得宣称仅恢复代码即可解除终态，或展示可直接 optimize/seal/archive 的操作。完成轮换后，无当前记录的状态 SHALL 为 `dirty`，后续操作为 `review`，历史目录中的 PASS 不改变该结果。
+- **优化已收口**：当前台账已为其他终态时，正常操作仍为 seal/archive；用户明确要求重新验证时，可按同一恢复 reference 开始新轮次，不增加 reset 命令。
 
 ### Section: 统一输出与诊断结构
 
