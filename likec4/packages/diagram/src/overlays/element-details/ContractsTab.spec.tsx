@@ -116,7 +116,7 @@ describe('ContractsTab', () => {
   it('renders a MODIFIED Requirement as one diff containing its Scenarios', () => {
     const model = getStructuredContractDiff(
       changeVariant([{
-        kind: 'requirement',
+        kind: 'section',
         identity: 'auth.core_v1#Login',
         operation: 'MODIFIED',
         before: { body: 'The system SHALL use password login.', scenarios: [{ name: 'Legacy', body: 'legacy' }] },
@@ -161,7 +161,7 @@ describe('ContractsTab', () => {
   it('merges ADDED Requirement text with its Scenarios into one diff', () => {
     const model = getStructuredContractDiff(
       changeVariant([{
-        kind: 'requirement',
+        kind: 'section',
         identity: 'cap.a#Own',
         operation: 'ADDED',
         after: { body: 'own', scenarios: [{ name: 'Pseudo', body: 'if (a > 0) result = a + b' }] },
@@ -180,8 +180,8 @@ describe('ContractsTab', () => {
   it('filters by host Element identity without crossing an identity boundary', () => {
     const model = getStructuredContractDiff(
       changeVariant([
-        { kind: 'requirement', identity: 'cap.a#Own', operation: 'ADDED', after: { body: 'own' } },
-        { kind: 'requirement', identity: 'cap.ab#Foreign', operation: 'ADDED', after: { body: 'foreign' } },
+        { kind: 'section', identity: 'cap.a#Own', operation: 'ADDED', after: { body: 'own' } },
+        { kind: 'section', identity: 'cap.ab#Foreign', operation: 'ADDED', after: { body: 'foreign' } },
         { kind: 'element-declaration', identity: 'cap.a', operation: 'MODIFIED' },
       ]),
       'cap.a',
@@ -193,7 +193,7 @@ describe('ContractsTab', () => {
   it('keeps Contract diagnostics partitioned from structural ones by identity', () => {
     const model = getStructuredContractDiff(
       changeVariant(
-        [{ kind: 'requirement', identity: 'auth.id#Login', operation: 'ADDED', after: { body: 'new' } }],
+        [{ kind: 'section', identity: 'auth.id#Login', operation: 'ADDED', after: { body: 'new' } }],
         [
           {
             level: 'ERROR',

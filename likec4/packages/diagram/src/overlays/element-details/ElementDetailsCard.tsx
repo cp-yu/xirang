@@ -255,7 +255,7 @@ export function ElementDetailsCard({
     && (runtime.selected.diff?.entries ?? []).some(
       entry =>
         (entry.kind === 'element-declaration' && entry.identity === stableElementId)
-        || (entry.kind === 'requirement' && entry.identity.startsWith(stableElementId + '#')),
+        || (entry.kind === 'section' && entry.identity.startsWith(stableElementId + '#')),
     )
 
   const visibleTabs = useMemo(

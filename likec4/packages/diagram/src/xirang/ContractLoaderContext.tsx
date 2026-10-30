@@ -8,15 +8,15 @@ export interface XirangContractContent {
 
 export type XirangDiffOperation = 'ADDED' | 'MODIFIED' | 'REMOVED'
 
-/** Mirrors the kernel `DiffKind`: entity types plus the child-only `scenario` and `property`. */
+/** Mirrors the kernel `DiffKind`: entity types plus the child-only `section`, `acceptance-case` and `property`. */
 export type XirangDiffKind =
   | 'element-declaration'
   | 'element-kind'
   | 'relationship-kind'
   | 'authored-view'
   | 'relationship'
-  | 'requirement'
-  | 'scenario'
+  | 'section'
+  | 'acceptance-case'
   | 'property'
 
 /** Entries are keyed by entity type and identity only; the storage partition never appears. */

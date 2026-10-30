@@ -98,7 +98,7 @@ describe('applyXirangPresentationOverlay', () => {
       },
       diff: {
         summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
-        entries: [{ kind: 'requirement', identity: 'semantic-browser#呈现 Change 目标与差异', operation: 'MODIFIED' }],
+        entries: [{ kind: 'section', identity: 'semantic-browser#呈现 Change 目标与差异', operation: 'MODIFIED' }],
       },
     }
     const view = baseView()
@@ -148,10 +148,10 @@ describe('applyXirangPresentationOverlay', () => {
       diff: {
         summary: { total: 4, ADDED: 2, MODIFIED: 1, REMOVED: 1 },
         entries: [
-          { kind: 'requirement', identity: 'a#新增一', operation: 'ADDED' },
-          { kind: 'requirement', identity: 'a#新增二', operation: 'ADDED' },
-          { kind: 'requirement', identity: 'a#修改一', operation: 'MODIFIED' },
-          { kind: 'requirement', identity: 'a#移除一', operation: 'REMOVED' },
+          { kind: 'section', identity: 'a#新增一', operation: 'ADDED' },
+          { kind: 'section', identity: 'a#新增二', operation: 'ADDED' },
+          { kind: 'section', identity: 'a#修改一', operation: 'MODIFIED' },
+          { kind: 'section', identity: 'a#移除一', operation: 'REMOVED' },
         ],
       },
     }
@@ -169,7 +169,7 @@ describe('applyXirangPresentationOverlay', () => {
         summary: { total: 2, ADDED: 1, MODIFIED: 1, REMOVED: 0 },
         entries: [
           { kind: 'element-declaration', identity: 'a', operation: 'MODIFIED' },
-          { kind: 'requirement', identity: 'a#新增一', operation: 'ADDED' },
+          { kind: 'section', identity: 'a#新增一', operation: 'ADDED' },
         ],
       },
     }

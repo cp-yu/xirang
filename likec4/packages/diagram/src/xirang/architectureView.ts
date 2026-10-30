@@ -46,7 +46,7 @@ function classifyDiffEntries(source: XirangViewSource): DiffClassification {
       if (!relationshipOperations.has(entry.identity)) {
         relationshipOperations.set(entry.identity, entry.operation)
       }
-    } else if (entry.kind === 'requirement') {
+    } else if (entry.kind === 'section') {
       const host = entry.identity.split('#')[0]
       if (!host) continue
       const counts = requirementCounts.get(host) ?? { added: 0, modified: 0, removed: 0 }

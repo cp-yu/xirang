@@ -93,7 +93,7 @@ function requirementText(value: unknown): string {
 export function getStructuredContractDiff(source: XirangViewSource, element: string): StructuredContractDiff {
   const prefix = `${element}#`
   const requirements = (source.diff?.entries ?? [])
-    .filter(entry => entry.kind === 'requirement' && entry.identity.startsWith(prefix))
+    .filter(entry => entry.kind === 'section' && entry.identity.startsWith(prefix))
   return {
     requirements: requirements.map(entry => ({
       identity: entry.identity,

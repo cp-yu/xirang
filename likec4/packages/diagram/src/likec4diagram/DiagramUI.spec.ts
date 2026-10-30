@@ -23,8 +23,8 @@ describe('getArchitectureOverlayModel', () => {
         { kind: 'element-declaration', identity: 'a', operation: 'ADDED' },
         { kind: 'element-declaration', identity: 'b', operation: 'MODIFIED' },
         { kind: 'relationship', identity: 'a|invokes|b', operation: 'REMOVED' },
-        { kind: 'requirement', identity: 'a#新增', operation: 'ADDED' },
-        { kind: 'requirement', identity: 'b#修改', operation: 'MODIFIED' },
+        { kind: 'section', identity: 'a#新增', operation: 'ADDED' },
+        { kind: 'section', identity: 'b#修改', operation: 'MODIFIED' },
       ],
     }))
     expect(overlay.counts).toEqual({ ADDED: 1, MODIFIED: 1, REMOVED: 1 })
@@ -33,7 +33,7 @@ describe('getArchitectureOverlayModel', () => {
   it('纯 requirement 变更不计入计数，也不标记 changed', () => {
     const overlay = getArchitectureOverlayModel(source({
       summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
-      entries: [{ kind: 'requirement', identity: 'a#修改', operation: 'MODIFIED' }],
+      entries: [{ kind: 'section', identity: 'a#修改', operation: 'MODIFIED' }],
     }))
     expect(overlay.counts).toEqual({ ADDED: 0, MODIFIED: 0, REMOVED: 0 })
     expect(overlay.changed).toEqual([])
