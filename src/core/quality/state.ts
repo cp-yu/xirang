@@ -46,6 +46,19 @@ export async function computeEvidenceFingerprint(
   evidenceFiles: string[],
   projectRoot: string
 ): Promise<EvidenceFingerprint> {
+  return computeEvidenceFingerprintCached(evidenceFiles, projectRoot, new Map());
+}
+
+interface EvidenceFingerprintCacheEntry {
+  entry?: EvidenceFingerprintEntry;
+  skipped?: string;
+}
+
+async function computeEvidenceFingerprintCached(
+  evidenceFiles: string[],
+  projectRoot: string,
+  cache: Map<string, EvidenceFingerprintCacheEntry>
+): Promise<EvidenceFingerprint> {
   const root = path.resolve(projectRoot);
   const skippedFiles: string[] = [];
   const entries: EvidenceFingerprintEntry[] = [];
@@ -53,20 +66,34 @@ export async function computeEvidenceFingerprint(
   for (const original of [...evidenceFiles].sort()) {
     const filePath = resolveEvidencePath(root, original);
     const relativePath = toPosixRelative(root, filePath);
+    const cached = cache.get(filePath);
+    if (cached) {
+      if (cached.entry) {
+        entries.push(cached.entry);
+      } else if (cached.skipped) {
+        skippedFiles.push(cached.skipped);
+      }
+      continue;
+    }
+
     if (QUALITY_RECORD_FILES.includes(path.basename(filePath))) {
       skippedFiles.push(relativePath);
+      cache.set(filePath, { skipped: relativePath });
       continue;
     }
 
     try {
       const content = await fs.readFile(filePath);
-      entries.push({
+      const entry: EvidenceFingerprintEntry = {
         path: relativePath,
         hash: createHash('sha256').update(content).digest('hex'),
-      });
+      };
+      entries.push(entry);
+      cache.set(filePath, { entry });
     } catch (error: any) {
       if (error?.code === 'ENOENT' || error?.code === 'EISDIR') {
         skippedFiles.push(relativePath);
+        cache.set(filePath, { skipped: relativePath });
         continue;
       }
       throw error;
@@ -96,6 +123,13 @@ function normalizeRecord(record: QualityRecord): QualityRecord {
     : record;
 }
 
+function composeStateRecord(matched: QualityRecord, snapshot: QualityRecord): QualityRecord {
+  return {
+    ...normalizeRecord(matched),
+    optimization: snapshot.optimization ? normalizeLedger(snapshot.optimization) : undefined,
+  };
+}
+
 export async function checkQualityState(
   changeDir: string,
   projectRoot: string
@@ -123,6 +157,8 @@ export async function checkQualityState(
     };
   }
 
+  const fingerprintCache = new Map<string, EvidenceFingerprintCacheEntry>();
+
   for (const candidate of [snapshot, ...log.slice().reverse()]) {
     if (!REVIEW_PASS_RESULTS.has(candidate.result)) {
       continue;
@@ -130,9 +166,10 @@ export async function checkQualityState(
     if (candidate.verificationContext?.contractVersion !== CONTRACT_VERSION) {
       continue;
     }
-    const fingerprint = await computeEvidenceFingerprint(
+    const fingerprint = await computeEvidenceFingerprintCached(
       candidate.verificationContext?.evidenceFiles ?? [],
-      projectRoot
+      projectRoot,
+      fingerprintCache
     );
     if (fingerprint.entries.length === 0) {
       continue;
@@ -142,16 +179,17 @@ export async function checkQualityState(
     }
     return {
       status: 'clean',
-      record: normalizeRecord(candidate),
+      record: composeStateRecord(candidate, snapshot),
       changedFiles: [],
       details: [],
       information: await gitHeadInformation(candidate, projectRoot),
     };
   }
 
-  const fingerprint = await computeEvidenceFingerprint(
+  const fingerprint = await computeEvidenceFingerprintCached(
     snapshot.verificationContext?.evidenceFiles ?? [],
-    projectRoot
+    projectRoot,
+    fingerprintCache
   );
   return {
     status: 'dirty',

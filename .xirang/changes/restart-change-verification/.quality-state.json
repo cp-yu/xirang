@@ -1,0 +1,281 @@
+{
+  "kind": "review",
+  "timestamp": "2026-10-30T08:29:40.502Z",
+  "result": "PASS_WITH_WARNINGS",
+  "issues": [
+    {
+      "severity": "WARNING",
+      "message": "Unaccounted change (benign mechanical): test/core/templates/skill-templates-parity.test.ts is modified but declared in no task Files entry; the diff only refreshes two forced content hashes (archive template function + generated skill) and extends the referenceFiles assertion from 8 to 9 entries to include references/quality-recovery.md",
+      "section": "共享恢复 reference 编排重验",
+      "task": "Task 2",
+      "recommendation": "artifact_fix: add test/core/templates/skill-templates-parity.test.ts to Task 2 Files for attribution traceability; no code change needed",
+      "evidence": [
+        "test/core/templates/skill-templates-parity.test.ts:19-25",
+        "test/core/templates/skill-templates-parity.test.ts:89-101"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "The human-readable status guidance lines added for ABORTED_UNSAFE (quality.ts renderStatus Recovery line and Next: none) have no persistent test guard; the machine-readable path (JSON allowedNextOperations, optimize/seal diagnostics) is tested",
+      "section": "Status 输出语义",
+      "task": "Task 2",
+      "recommendation": "Optionally extend an existing test in test/commands/quality.test.ts to assert the human-readable status output references xirang-quality-recovery.md when the terminal is ABORTED_UNSAFE",
+      "evidence": [
+        "src/commands/quality.ts:710-719"
+      ]
+    },
+    {
+      "severity": "SUGGESTION",
+      "message": "Cosmetic prose ambiguity persists in apply step 5: two consecutive Otherwise clauses carried over from the prior round",
+      "section": "共享恢复 reference 编排重验",
+      "task": "Task 2",
+      "recommendation": "Optionally reword to a single explicit conditional in src/core/templates/workflows/apply-change.ts step 5 and regenerate the reference projection",
+      "evidence": [
+        "src/core/templates/workflows/apply-change.ts:149",
+        ".xirang/references/xirang-apply-step-4-optimization.md:49"
+      ]
+    }
+  ],
+  "tasksFileHash": "ed91aee8fb7d768f7a77074cb347c81c02a2fd8b3377b6abf412c1be53b5f330",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/windows.yml",
+      ".xirang/changes/restart-change-verification/tasks.md",
+      ".xirang/changes/restart-change-verification/verification-log.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      ".xirang/references/xirang-apply-step-4-optimization.md",
+      ".xirang/references/xirang-decision-rules.md",
+      ".xirang/references/xirang-quality-recovery.md",
+      ".xirang/references/xirang-self-read-protocol.md",
+      "src/commands/quality.ts",
+      "src/commands/workflow/instructions.ts",
+      "src/core/quality/protocol.ts",
+      "src/core/quality/state.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/archive-change.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/templates/workflows/reviewer.ts",
+      "test/commands/artifact-workflow.test.ts",
+      "test/commands/quality.test.ts",
+      "test/core/quality/protocol.test.ts",
+      "test/core/quality/state.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/archive-change.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts"
+    ],
+    "evidenceFingerprint": "1cef4a0d432b5c977480903e1631a378b4635a909f6b583475f4c7e72a3a07de",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/windows.yml",
+        "hash": "b7531514b15fc039ffb0d3bf58be230afc4cb4b31a620c2c562067bc3c5f6811"
+      },
+      {
+        "path": ".xirang/changes/restart-change-verification/tasks.md",
+        "hash": "ed91aee8fb7d768f7a77074cb347c81c02a2fd8b3377b6abf412c1be53b5f330"
+      },
+      {
+        "path": ".xirang/changes/restart-change-verification/verification-log.md",
+        "hash": "673f41c39cc61d50d0186e374d702b6f256d08a615c2d0510f73161462a78c39"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "b154bce1164d943e2fc34007f982df29d0a576112d47966b438fd179544fbb1e"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-4-optimization.md",
+        "hash": "d3241ead1d45a246f67ba4243d458ea15c2714585da77953b157f1782cfc9b24"
+      },
+      {
+        "path": ".xirang/references/xirang-decision-rules.md",
+        "hash": "f6f5364e560aa9bf22b88c72734f9dcb9188db21832b3c0301b028e484449ae9"
+      },
+      {
+        "path": ".xirang/references/xirang-quality-recovery.md",
+        "hash": "f3fcc3f01e74ca63811cfc8bca6dafa17b5590838acf5ca5d03ad2dbf90dba38"
+      },
+      {
+        "path": ".xirang/references/xirang-self-read-protocol.md",
+        "hash": "11d34a515f5474ae9870f2b0cbf9eb622bdb2c7e7591e1fa2d22f6f3ccf06a10"
+      },
+      {
+        "path": "src/commands/quality.ts",
+        "hash": "5cc709422c4aa5b67d0349159f2791d756b4dc57dde5c75a7bcd53ae4a0a5e15"
+      },
+      {
+        "path": "src/commands/workflow/instructions.ts",
+        "hash": "eaac09c5e2a93bb1e744a05d45125c89238ee6de077273676fd3fc6fa1f180e6"
+      },
+      {
+        "path": "src/core/quality/protocol.ts",
+        "hash": "7fe6a76144458f01c05a441a97ded281cac6db3c134ff4d4a3084182d34cad1b"
+      },
+      {
+        "path": "src/core/quality/state.ts",
+        "hash": "376cd9547ee3e39eb57fa32ed61a26256ad3c147212da9882c98e52cb27f27ab"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "33c6c0326143558db28d48a57d6a95820e858ddde0228d8489eb7c7e08a34166"
+      },
+      {
+        "path": "src/core/templates/workflows/archive-change.ts",
+        "hash": "909ab4aef86b999986e67794fcb284ecd671b460a727f1f26c0ffaccbc740de1"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "17f6367a50093871a31c14b975c206756b8b835dca7c229a7bd979c29a432d1c"
+      },
+      {
+        "path": "src/core/templates/workflows/reviewer.ts",
+        "hash": "61c16cca1beabc89a9780db7e081f8df72e67f0bd826b4b4cb5e31b089244aed"
+      },
+      {
+        "path": "test/commands/artifact-workflow.test.ts",
+        "hash": "8b7b7cfcbc0a4f7be5cbd34e7c0559dfd2d987ebe9aa50a019c48e3beeafe855"
+      },
+      {
+        "path": "test/commands/quality.test.ts",
+        "hash": "be2a12efa4401b2603380a689929e792bf37645c6f55e1b2c147d4e7a90d5004"
+      },
+      {
+        "path": "test/core/quality/protocol.test.ts",
+        "hash": "fd24f10015fcf7e48f4d0780e50fd80f147d9c146434211de44641700ca162a6"
+      },
+      {
+        "path": "test/core/quality/state.test.ts",
+        "hash": "3f32d52488af4f7f2fba3030c2b38266c52b8a195121a750d469b73cff92fe4a"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "572d382fc8235f03ad936100eca67c1dae0886b9803c85450f0d1768b43fa0e6"
+      },
+      {
+        "path": "test/core/templates/archive-change.test.ts",
+        "hash": "5fce0dbef661b9b3f12fb3b4dd193e7fb29e37960895fe5c85ca79567b7fa2c4"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "a390cb108daf8727fc05f4c17b6e0dadf8d6edc98a57020c77f45eb58c438f34"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "5499afb2d8e4d5c436acc68190dbe708ab3cabb5",
+    "gitDiffSummary": "Optimization round 1 review (direction OPT-20261030T080502164Z-01, per-invocation evidence fingerprint memoization). baseCommit 5499afb2 equals HEAD; scope staged/working-tree/untracked. Verified: composeStateRecord composes matched Review evidence with latest snapshot ledger; rotated history never a runtime store; optimize/seal/status/instructions gates block ABORTED_UNSAFE; recovery reference byte-identical to template; 9 apply reference projections byte-identical via dist; archive-only selection merges quality-recovery.md. Commands: vitest state/quality/archive/sync (107 passed), vitest protocol/artifact-workflow/apply/archive/reviewer/optimizer/fragments/skill-generation/parity (172 passed), tsc --noEmit exit 0. One-time C5-C8 artifacts corroborated on disk. C9 Windows CI/spaced-path evidence remains an explicitly recorded gap.",
+    "timestamp": "2026-10-30T08:29:40.502Z"
+  },
+  "optimization": {
+    "directions": [
+      {
+        "location": {
+          "files": [
+            "src/core/quality/state.ts"
+          ],
+          "symbols": [
+            "checkQualityState",
+            "computeEvidenceFingerprint"
+          ]
+        },
+        "opportunity": "checkQualityState recomputes the full evidence fingerprint (one read + SHA-256 per evidence file) for every PASS candidate in the active log and once more for the final dirty verdict, re-hashing the same unchanged files each time; with the append-only log growing one record per review/optimize round, every quality invocation degrades to O(passCandidates × evidenceFiles) I/O (32+ evidence files here).",
+        "impact": "Bounds evidence file reads and hashing per quality command to O(distinct evidence paths) instead of O(passCandidates × evidenceFiles), keeping `quality status`, review, optimize, seal, sync/archive gates, list, and apply-instructions latency flat as round history accumulates, with byte-identical outputs.",
+        "evidence": [
+          "src/core/quality/state.ts:133-146 — `for (const candidate of [snapshot, ...log.slice().reverse()])` calls computeEvidenceFingerprint(candidate.verificationContext?.evidenceFiles ?? [], projectRoot) for every contractVersion-matching PASS candidate until one matches",
+          "src/core/quality/state.ts:158-165 — the final dirty branch recomputes the snapshot fingerprint after every candidate already failed",
+          "src/core/quality/state.ts:45-78 — computeEvidenceFingerprint reads and SHA-256 hashes every listed file on each call, no shared caching",
+          "src/commands/quality.ts:126,181 — runQualityReview invokes checkQualityState twice per command (entry plus post-write), same pattern at 197,299 for optimize; single calls at 320,345 (status, seal)",
+          "src/commands/sync.ts:56, src/core/archive.ts:197, src/core/list.ts:32, src/commands/workflow/instructions.ts:338 — sync/archive gates, list, and apply instructions also run checkQualityState, so the cost recurs across surfaces",
+          "src/core/quality/log.ts:35-53 — readQualityLog returns every appended record, so the candidate set grows monotonically within a change"
+        ],
+        "recommendation": "Memoize per-file hash and skip results within one checkQualityState invocation and share that cache across all candidate fingerprint computations and the final snapshot fingerprint computation.",
+        "keyDesign": "Add a module-private computeEvidenceFingerprintCached(evidenceFiles, projectRoot, cache) where cache is a Map<string, { entry?: EvidenceFingerprintEntry; skipped?: string }> keyed by the resolved evidence path; checkQualityState creates one cache before the candidate loop and passes it to every candidate computation and to the final dirty-branch computation, so identical paths are hashed once per invocation. The exported computeEvidenceFingerprint delegates with a fresh Map, keeping its public signature and per-call freshness unchanged; candidates with differing evidenceFiles lists are handled naturally by the per-path key.",
+        "preservationConstraints": [
+          "Clean/dirty verdicts, matched-candidate selection order (snapshot first, then log newest-first), changedFiles output, composeStateRecord ledger take-over from the latest snapshot, and archive-compatibility results are identical for every input",
+          "All fingerprint derivation steps unchanged: input sort, QUALITY_RECORD_FILES skip, ENOENT/EISDIR skip, POSIX relative path normalization, localeCompare entry ordering, and the SHA-256-of-JSON-entries hash",
+          "Cache lifetime is strictly one checkQualityState invocation: nothing inside the invocation writes evidence files (only quality record files are written elsewhere and they are excluded from fingerprints), so cached bytes equal re-read bytes; no module-level, cross-invocation, or persisted cache",
+          "exported computeEvidenceFingerprint keeps its signature and re-reads files on every direct call; no public API or type changes"
+        ],
+        "implementationOutline": [
+          "In src/core/quality/state.ts add the private cached helper that consults and populates the per-path cache for hash and skip decisions while reusing the existing sort, skip, and normalization logic",
+          "Create the cache at the top of checkQualityState and route the candidate-loop computation and the final dirty-branch snapshot computation through it",
+          "Keep computeEvidenceFingerprint as a thin wrapper that creates a fresh cache and delegates",
+          "Run the existing quality state and command suites plus tsc; add no new exports or fixtures beyond what the suites already cover"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/quality/state.test.ts test/commands/quality.test.ts must pass unchanged — these pin clean/dirty verdicts, historical-PASS matching after rollback, latest-ledger take-over, unsafe gates, and seal behavior, proving output equivalence",
+          "pnpm exec tsc --noEmit exits 0 — no type regressions",
+          "Claim proven by construction: per-invocation evidence reads are bounded by the number of distinct evidence paths regardless of PASS-candidate count, verifiable by inspection of the single shared cache"
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks first because it is the only direction with a measurable hot-path effect: every quality subcommand, sync/archive gate, list, and apply instruction re-hashes all evidence files once per PASS candidate, and the candidate set grows with each recorded round; the improvement is statically provable and output-identical. The other direction is a low-impact prose clarity fix.",
+        "id": "OPT-20261030T080502164Z-01",
+        "status": "implemented",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/core/templates/workflows/apply-change.ts",
+            ".xirang/references/xirang-apply-step-4-optimization.md"
+          ],
+          "symbols": [
+            "APPLY_STEP_4_OPTIMIZATION_REFERENCE"
+          ]
+        },
+        "opportunity": "Step 5 of the generated optimization reference ends with two consecutive 'Otherwise' clauses — '…; otherwise stay stopped. Otherwise implement only the direction the CLI selected.' The first scopes to the authorization branch, the second to the opening conflict condition; a fresh agent executing this fail-safe branch cannot statically resolve which condition each 'otherwise' negates, an ambiguity the active Review carried as a SUGGESTION for two rounds.",
+        "impact": "Removes a real misparse risk at the unsafe-conflict decision point of the optimization loop (implement-when-stopped versus stay-stopped) and resolves the open review SUGGESTION without changing any behavior or protocol token.",
+        "evidence": [
+          "src/core/templates/workflows/apply-change.ts:149 — the double-Otherwise sentence in step 5 of APPLY_STEP_4_OPTIMIZATION_REFERENCE",
+          ".xirang/references/xirang-apply-step-4-optimization.md:49 — the shipped projection carries the identical sentence",
+          ".xirang/changes/restart-change-verification/.quality-state.json issues[1] (SUGGESTION) — reviewer flagged 'two consecutive Otherwise clauses' in both recorded review rounds",
+          "grep over test/ finds no lock on 'Otherwise implement only'; test/core/templates/apply-change.test.ts:326-331 asserts only token presence ('.xirang/references/xirang-quality-recovery.md') and ordering ('hard-stop for manual recovery' before the reference)",
+          ".xirang/config.yaml rules.tasks — 'Do not add persistent tests for explanatory prose, Markdown heading order, or example wording', so the fix must not add a new prose lock"
+        ],
+        "recommendation": "Replace the second 'Otherwise' with an explicit no-conflict conditional, e.g. '…; otherwise stay stopped. When the optimizer reports no conflict, implement only the direction the CLI selected.', then regenerate the shipped projection from the rebuilt template so source and reference stay byte-identical.",
+        "keyDesign": "Single-sentence scope fix inside APPLY_STEP_4_OPTIMIZATION_REFERENCE step 5: keep the opening conflict condition, the UNSAFE finalize payload, the prohibition sentence, the authorization clause, and the recovery-reference path verbatim; name the second branch explicitly so the sentence contains exactly one 'otherwise'. Regenerate .xirang/references/xirang-apply-step-4-optimization.md via the existing build-and-projection flow (the change already verified 9/9 byte-identical dist projections).",
+        "preservationConstraints": [
+          "Fail-closed semantics unchanged: optimizer conflict still finalizes {\"directions\":[],\"stopReason\":\"UNSAFE\",\"summary\":\"<conflict>\"}, still hard-stops with terminal ABORTED_UNSAFE, and still forbids returning to implementation, rerunning Review, seal, or archive automatically",
+          "Without explicit user authorization and a fully stopped original flow, the agent still stays stopped; recovery still only via .xirang/references/xirang-quality-recovery.md (applies-quality-integration Section '共享恢复 reference 编排重验' unchanged)",
+          "Locked tokens and ordering survive: '.xirang/references/xirang-quality-recovery.md' present in the optimization reference and 'hard-stop for manual recovery' ordered before it (test/core/templates/apply-change.test.ts:326-331)",
+          "No new exact-text or lock-word test for the reworded prose; only the apply template changes, so the parity lock hashes (getArchiveChangeSkillTemplate function payload, xirang-archive-change generated content in test/core/templates/skill-templates-parity.test.ts:11-17) and the 9-entry referenceFiles assertion are untouched"
+        ],
+        "implementationOutline": [
+          "Edit step 5 in src/core/templates/workflows/apply-change.ts, replacing the second 'Otherwise' with the explicit 'When the optimizer reports no conflict' conditional",
+          "Run pnpm build and regenerate the tracked projections with the existing update/projection flow so .xirang/references/xirang-apply-step-4-optimization.md matches the template byte-for-byte",
+          "Run the apply template and parity suites; add no prose lock and update no hash (none covers the apply template)"
+        ],
+        "validation": [
+          "pnpm exec vitest run test/core/templates/apply-change.test.ts test/core/templates/skill-templates-parity.test.ts — token/ordering assertions and all parity hashes pass unchanged",
+          "Repeat the recorded dist-based projection parity check proving the shipped xirang-apply-step-4-optimization.md equals template output",
+          "Claim proven: the unsafe branch of step 5 reads as two explicit, non-overlapping conditionals with every protocol token and prohibition preserved"
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks second: it clears an open reviewer SUGGESTION on a fail-safe branch with near-zero cost, but its benefit is confined to prose clarity in one generated sentence, whereas the first direction measurably reduces repeated I/O across all quality surfaces; the two are independent, so either can be selected alone.",
+        "id": "OPT-20261030T080502164Z-02",
+        "status": "pending",
+        "failureCount": 0
+      }
+    ],
+    "histories": [
+      {
+        "round": 1,
+        "timestamp": "2026-10-30T08:05:02.165Z",
+        "directions": [
+          "OPT-20261030T080502164Z-01",
+          "OPT-20261030T080502164Z-02"
+        ],
+        "selected": "OPT-20261030T080502164Z-01",
+        "outcome": "none"
+      }
+    ],
+    "directionsUsed": 1,
+    "selected": "OPT-20261030T080502164Z-01"
+  }
+}

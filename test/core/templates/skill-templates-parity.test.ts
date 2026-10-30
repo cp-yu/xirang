@@ -17,12 +17,12 @@ import { generateSkillContent } from '../../../src/core/shared/skill-generation.
 import { runTransforms } from '../../../src/core/templates/transforms/index.js';
 
 const EXPECTED_FUNCTION_HASHES: Record<string, string> = {
-  getArchiveChangeSkillTemplate: '9ca8b8dedd41fbc84b3676bf8e577b22cdf9d8e3adad859ea2d734dc41bae844',
+  getArchiveChangeSkillTemplate: '299285e2e86b0da18e9ecf73e04621890760ee9bbc009c23ec8d737a6f0c54e4',
   getFeedbackSkillTemplate: 'a75ff723b3b24ba2c61aee4243d2db6cfc5ee71e3adc2309ab30e7ce1503fbca',
 };
 
 const EXPECTED_GENERATED_SKILL_CONTENT_HASHES: Record<string, string> = {
-  'xirang-archive-change': '41aa2f49c5baca9ed2bcd656842133aee25172d095a77f1dced384f98fca46ff',
+  'xirang-archive-change': '0f809feeda0f4658a1b8e09450c8b4f58570e277bb4676339f4f6b7cd572a9ff',
 };
 
 function stableStringify(value: unknown): string {
@@ -89,12 +89,13 @@ describe('skill templates split parity', () => {
     expect(rendered).toContain('Step 5: Seal');
     expect(rendered).toContain('.xirang/references/xirang-apply-step-1-preparation.md');
     expect(rendered).toContain('.xirang/references/xirang-apply-step-3-review.md');
-    expect(template.referenceFiles).toHaveLength(8);
+    expect(template.referenceFiles).toHaveLength(9);
     expect(template.referenceFiles?.map((file) => file.path)).toEqual([
       'references/apply-step-1-preparation.md',
       'references/apply-step-2-branch-isolation.md',
       'references/apply-step-2-worktree-isolation.md',
       'references/apply-step-2-current-branch.md',
+      'references/quality-recovery.md',
       'references/apply-step-3-review.md',
       'references/apply-step-4-optimization.md',
       'references/apply-step-5-seal.md',

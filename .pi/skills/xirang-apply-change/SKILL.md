@@ -35,7 +35,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 ## Flow Outline
 
-1. Step 1: Preparation — read `.xirang/references/xirang-apply-step-1-preparation.md`.
+1. Step 1: Preparation — read `.xirang/references/xirang-apply-step-1-preparation.md`. If quality reports an `ABORTED_UNSAFE` terminal, stop automatic advancement; with explicit user authorization and a fully stopped original flow, follow `.xirang/references/xirang-quality-recovery.md`.
 2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops until they are complete; completing one task does not leave the loop.
 4. [Mode: Delegate Review] Step 3: Review — only after every pending task and Required Correction is complete, read `.xirang/references/xirang-apply-step-3-review.md` and delegate to the clean-context `xirang-reviewer` agent for one change-level review of that completed state. A failed Review or Seal may return corrections to the implementation loop; after those corrections are complete, the modified Change state requires another change-level Review.

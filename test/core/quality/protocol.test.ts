@@ -63,6 +63,21 @@ describe('quality protocol projection', () => {
     for (const file of ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json']) {
       expect(surfaces).toContain(file);
     }
+    expect(surfaces).toContain('.quality-history');
+  });
+
+  it('routes ABORTED_UNSAFE to the shared recovery reference without lifting the gate', () => {
+    const recovery = renderQualityErrorRecovery();
+
+    expect(recovery).toContain('ABORTED_UNSAFE');
+    expect(recovery).toContain('xirang-quality-recovery.md');
+    expect(recovery).toContain('authorization');
+    expect(recovery).toContain('fresh Review');
+    expect(recovery).not.toContain('no automatic recovery');
+    expect(recovery).toContain(
+      'Never edit `.quality-state.json` or `.quality-log.jsonl` by hand outside the authorized rotation'
+    );
+    expect(recovery).toContain('never requires creating a successor change');
   });
 
   it('keeps the help payload field list limited to agent-authored fields', () => {

@@ -2,7 +2,7 @@
 
 Read context in this order:
 1. Validate changeName, changeDir, and projectRoot.
-2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed.
+2. Read changeDir/.quality-state.json, including the recorded review conclusion, the direction ledger, the round histories, and the failed directions; read changeDir/.quality-log.jsonl when an earlier round is needed. When changeDir/.quality-history/ exists, read its snapshots, logs, failure reasons, and recovery.json per .xirang/references/xirang-quality-recovery.md as judgment reference only: the active root records are this round's authority. Never import an old round's PASS, completed conclusions, direction states, directionsUsed, or failure counts into this round's ledger; a new round still requires a new passing Review, and a historical PASS never satisfies a missing active Review.
 3. Read proposal.md, design.md, every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/, and the optimization config from .xirang/config.yaml, treating an absent `minImpactLevel` as `low`.
 4. Read `baseCommit` from changeDir/.apply-isolation.json and validate that Git resolves it; fail closed if the immutable evidence baseline is absent or invalid.
 5. Run `git diff <baseCommit>...HEAD --name-only` and `git status --short`; their union is the base scope and is used only for navigation.

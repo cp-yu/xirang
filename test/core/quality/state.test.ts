@@ -170,8 +170,63 @@ describe('quality state engine', () => {
     expect((await checkQualityState(changeDir, tempDir)).status).toBe('dirty');
   });
 
-  it('reports clean after a failed round is rolled back', async () => {
+  it('reports clean after a failed round is rolled back and keeps the latest ledger', async () => {
     const passing = await reviewRecord('PASS', 'a');
+    passing.record.optimization = { directions: [], histories: [], directionsUsed: 0 };
+    await writeQualityRecord(changeDir, passing.record);
+
+    const failing = await reviewRecord('FAIL_NEEDS_CORRECTIONS', 'broken');
+    failing.record.optimization = {
+      directions: [
+        {
+          id: 'OPT-1',
+          status: 'rejected',
+          location: { files: ['src/a.ts'] },
+          opportunity: 'o',
+          impact: 'i',
+          evidence: ['e'],
+          recommendation: 'r',
+          keyDesign: 'k',
+          preservationConstraints: ['p'],
+          implementationOutline: ['s'],
+          validation: ['v'],
+          impactLevel: 'low',
+          confidence: 'low',
+          risk: 'low',
+          cost: 'low',
+          dependencies: [],
+          priorityReason: 'p',
+          failureCount: 2,
+        },
+      ],
+      histories: [
+        { round: 1, timestamp: failing.record.timestamp, directions: ['OPT-1'], outcome: 'failed' },
+      ],
+      directionsUsed: 1,
+      terminal: 'ABORTED_UNSAFE',
+      stopReason: 'UNSAFE',
+    };
+    await writeQualityRecord(changeDir, failing.record);
+
+    await fs.writeFile(evidencePath, 'a', 'utf-8');
+    const state = await checkQualityState(changeDir, tempDir);
+
+    expect(state.status).toBe('clean');
+    expect(state.record?.result).toBe('PASS');
+    expect(state.record?.optimization?.directionsUsed).toBe(1);
+    expect(state.record?.optimization?.terminal).toBe('ABORTED_UNSAFE');
+    expect(state.record?.optimization?.directions[0]).toEqual(
+      expect.objectContaining({ id: 'OPT-1', status: 'rejected', failureCount: 2 })
+    );
+    expect(checkArchiveCompatibility(state.record!).compatible).toBe(false);
+
+    const log = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8');
+    expect(log.trim().split('\n')).toHaveLength(2);
+  });
+
+  it('does not revive a matched record ledger when the snapshot has none', async () => {
+    const passing = await reviewRecord('PASS', 'a');
+    passing.record.optimization = { directions: [], histories: [], directionsUsed: 0 };
     await writeQualityRecord(changeDir, passing.record);
 
     const failing = await reviewRecord('FAIL_NEEDS_CORRECTIONS', 'broken');
@@ -182,6 +237,7 @@ describe('quality state engine', () => {
 
     expect(state.status).toBe('clean');
     expect(state.record?.result).toBe('PASS');
+    expect(state.record?.optimization).toBeUndefined();
   });
 
   it('reads a legacy optimization record as empty collections', async () => {
