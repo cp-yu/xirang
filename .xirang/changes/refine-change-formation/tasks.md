@@ -210,3 +210,5 @@
 
 - 第三轮局部裁决与终态：在原6会话分别续答两次，所有产品提示词保持冻结；局部裁决workflow `492804a0-ac39-4a6f-bee8-915cf8565591`，收尾workflow `c7d6a504-1f70-46fa-80ea-0d3344e9eb0d`。实际逐份核对记录diff、delivery/root/selection、proposal、完整tasks及前后快照：6/6通过CLI维护3→2裁决，既有selection草稿在局部续轮不变，未自动新增在途中断义务。终态旧版3/3仍无root Delta，候选版2/3已写父级完整筛选（全部标签、K配置/默认32/按序）和2次/30秒/取消承诺；候选v3-2仍漏root且proposal残留旧3次，尽管记录与delivery已为2次。6/6完成coverage/consume并宣称Apply就绪；父Agent独立运行6组arch/combined/status均退出0。CLI通过与模型自评未证明这些语义缺口消失，C11/C14继续未完成；不以候选2次成功结束，也不按残余1次立即追加规则。审计、验证、三阶段快照：`/tmp/formation-glm-round3-paired-3xbaVu/final-audit.json`及同目录文件。检查还观察到旧版v2-2、候选v3-3各超出一轮格式修复上限，作为流程偏差保留。
 - 调度限制单列：首次局部续跑 `22e5dec8-4f96-46e0-89e9-54bae935eebc` 在验证阶段拒绝runs.lanes内外部retained id（receipt为0 children），未执行产品场景；改用两两并行runs.run恢复原会话后6个续轮完成。无执行模式切换或规避审批。旧版v2-2清理临时coverage载荷被自动审批拦截而保留，记录为基础设施残留，不冒充已删除。
+
+- 终态统计补充纠正：final-audit.json随后按旧次数逐处检查确认，候选v3-2与v3-3共2/3份proposal残留旧3次：v3-2的What Changes/Modified Specs delivery各一处；v3-3的Modified Specs delivery一处。两份记录及delivery Delta均为2次。前条只点名v3-2并不完整，以本条补充为准；父级补全2/3不能表述为整Change通过2/3。追加保留历史事实，不改写此前提交。尝试修正最后一次本地提交的amend操作被自动审批及复核拒绝，未执行该操作。
