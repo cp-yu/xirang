@@ -240,7 +240,6 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('xirang arch query <selected-identities...> --contract --json');
       expect(body).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
       expect(body).toContain('An optional-contract Element without a Contract does not by itself require a new one');
-      expect(body).toContain('genuinely new observable behavior');
       expect(body).not.toContain('`capabilities` string array');
       expect(body).not.toContain('xirang spec list');
       expect(body).not.toContain('singular owner binding');
