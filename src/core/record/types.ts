@@ -1,6 +1,7 @@
 export interface RecordEntry {
   identity: string;
   nature: 'normative' | 'informative';
+  decision: 'pending' | 'accepted' | 'excluded';
   content: string;
 }
 
@@ -45,7 +46,7 @@ export interface RecordStructure {
 }
 
 export interface DesignRecordPayload {
-  schemaVersion: 3;
+  schemaVersion: 4;
   context: 'build' | 'change';
   relatedIdentities: string[];
   entries: RecordEntry[];
@@ -131,6 +132,7 @@ export interface DerivedStructureObject {
 export interface RecordSummary {
   entries: number;
   normativeEntries: number;
+  decisions: Record<RecordEntry['decision'], number>;
   elements: number;
   relationships: number;
   elementKinds: number;

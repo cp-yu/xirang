@@ -11,9 +11,9 @@ const document: fc.Arbitrary<DesignRecordDocument> = fc.record({
     slug: fc.stringMatching(/^[a-z0-9]{1,8}$/), semanticModelFingerprint: fc.stringMatching(/^[a-f0-9]{64}$/),
   }),
   payload: fc.record({
-    schemaVersion: fc.constant(3 as const), context: fc.constant('build' as const),
+    schemaVersion: fc.constant(4 as const), context: fc.constant('build' as const),
     relatedIdentities: fc.uniqueArray(identity, { maxLength: 3 }),
-    entries: fc.uniqueArray(fc.record({ identity, nature: fc.constantFrom('normative' as const, 'informative' as const), content }), { minLength: 1, maxLength: 5, selector: item => item.identity }),
+    entries: fc.uniqueArray(fc.record({ identity, nature: fc.constantFrom('normative' as const, 'informative' as const), decision: fc.constantFrom('pending' as const, 'accepted' as const, 'excluded' as const), content }), { minLength: 1, maxLength: 5, selector: item => item.identity }),
     structure: fc.record({
       elements: fc.uniqueArray(fc.record({
         identity, kind: identity, parent: fc.option(identity, { nil: null }), title: content, definition: content,

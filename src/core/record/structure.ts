@@ -272,6 +272,11 @@ export function summarizeRecord(payload: DesignRecordPayload): RecordSummary {
   return {
     entries: payload.entries.length,
     normativeEntries: payload.entries.filter(item => item.nature === 'normative').length,
+    decisions: {
+      pending: payload.entries.filter(item => item.decision === 'pending').length,
+      accepted: payload.entries.filter(item => item.decision === 'accepted').length,
+      excluded: payload.entries.filter(item => item.decision === 'excluded').length,
+    },
     elements: payload.structure.elements.length,
     relationships: payload.structure.relationships.length,
     elementKinds: payload.structure.elementKinds.length,

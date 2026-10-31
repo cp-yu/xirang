@@ -125,7 +125,7 @@ export function normalizeRecordStructure(value: unknown): RecordStructure {
 
 export function normalizeRecordPayload(value: unknown): DesignRecordPayload {
   const data = record(value, 'payload');
-  if (data.schemaVersion !== 3) fail('UNSUPPORTED_RECORD_VERSION', 'Unsupported record format; only schemaVersion 3 design records are supported and older records are not migrated');
+  if (data.schemaVersion !== 4) fail('UNSUPPORTED_RECORD_VERSION', 'Unsupported record format; only schemaVersion 4 design records are supported and older records are not migrated');
   exactKeys(data, ['schemaVersion', 'context', 'relatedIdentities', 'entries', 'structure'], 'payload');
   if (data.context !== 'build' && data.context !== 'change') fail('INVALID_PAYLOAD', 'context must be build or change');
   const relatedIdentities = data.relatedIdentities === undefined ? [] : identityList(data.relatedIdentities, 'relatedIdentities');
@@ -133,14 +133,15 @@ export function normalizeRecordPayload(value: unknown): DesignRecordPayload {
   if (!Array.isArray(rawEntries)) fail('INVALID_PAYLOAD', 'entries must be an array');
   const entries = rawEntries.map<RecordEntry>(raw => {
     const entry = record(raw, 'entry');
-    exactKeys(entry, ['identity', 'nature', 'content'], 'entry');
+    exactKeys(entry, ['identity', 'nature', 'decision', 'content'], 'entry');
     if (entry.nature !== 'normative' && entry.nature !== 'informative') fail('INVALID_PAYLOAD', 'nature must be normative or informative');
-    return { identity: identity(entry.identity, 'entry.identity'), nature: entry.nature, content: text(entry.content, 'entry.content') };
+    if (entry.decision !== 'pending' && entry.decision !== 'accepted' && entry.decision !== 'excluded') fail('INVALID_PAYLOAD', 'decision must be pending, accepted or excluded');
+    return { identity: identity(entry.identity, 'entry.identity'), nature: entry.nature, decision: entry.decision, content: text(entry.content, 'entry.content') };
   });
   unique(entries.map(item => item.identity), 'entries');
   const structure = normalizeRecordStructure(data.structure);
   if (!entries.length && STRUCTURE_KEYS.every(type => !structure[type].length)) fail('EMPTY_PAYLOAD', 'A design record must contain at least one entry or structure object');
-  return { schemaVersion: 3, context: data.context, relatedIdentities, entries, structure };
+  return { schemaVersion: 4, context: data.context, relatedIdentities, entries, structure };
 }
 
 function parseMetadata(data: Record<string, unknown>): DesignRecordMetadata {

@@ -32,8 +32,8 @@ async function readFormalTree(root: string): Promise<Map<string, Buffer>> {
 
 async function writeProvenance(root: string, candidate: string): Promise<void> {
   const record = await createRecord(root, 'promotion-source', {
-    schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
-    entries: [{ identity: 'intent', nature: 'normative', content: 'Preserve the confirmed exception.' }],
+    schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
+    entries: [{ identity: 'intent', nature: 'normative', decision: 'accepted', content: 'Preserve the confirmed exception.' }],
   }, await readRecordSemanticContext(root, 'build'));
   await fs.writeFile(path.join(candidate, 'record-source.md'), record.bytes);
 }

@@ -38,8 +38,12 @@ describe('built record CLI workflow', () => {
     await fs.mkdir(path.join(root, '.xirang'));
     const payloadPath = path.join(root, 'payload.json');
     await fs.writeFile(payloadPath, JSON.stringify({
-      schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
-      entries: [{ identity: 'scope', nature: 'normative', content: 'A project root with a confirmed scope.' }],
+      schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
+      entries: [
+        { identity: 'scope', nature: 'normative', decision: 'accepted', content: 'A project root with a confirmed scope.' },
+        { identity: 'future', nature: 'normative', decision: 'pending', content: '未来独立方向' },
+        { identity: 'excluded', nature: 'normative', decision: 'excluded', content: '排除方案' },
+      ],
     }));
     const created = run(root, ['record', 'create', '--slug', 'initial-build', '--from', payloadPath, '--json']);
     const { sourceVersion, document, path: sourcePath } = created.result!;
@@ -55,11 +59,11 @@ describe('built record CLI workflow', () => {
     expect(run(root, ['record', 'consume', id, '--candidate', '--source-version', sourceVersion, '--json'], 1))
       .toMatchObject({ status: 'error', error: { code: 'COVERAGE_MISSING' } });
     const coveragePath = path.join(root, 'coverage.json');
-    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'scope', details: [{ detail: '项目根', location: { element: 'ghost' }, quote: '项目根' }] }] }));
+    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'future', result: 'pending', affectsTarget: false, reason: '当前根模型不依赖未来方向' }, { identity: 'scope', result: 'covered', details: [{ detail: '项目根', location: { element: 'ghost' }, quote: '项目根' }] }] }));
     expect(run(root, ['record', 'coverage', id, '--candidate', '--source-version', sourceVersion, '--from', coveragePath, '--json'], 1)).toMatchObject({
       status: 'invalid', diagnostics: [expect.objectContaining({ code: 'COVERAGE_LOCATION_UNRESOLVED', identity: 'scope' })],
     });
-    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'scope', details: [{ detail: '项目根', location: { elementKind: 'project' } }] }] }));
+    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'future', result: 'pending', affectsTarget: false, reason: '当前根模型不依赖未来方向' }, { identity: 'scope', result: 'covered', details: [{ detail: '项目根', location: { elementKind: 'project' } }] }] }));
     expect(run(root, ['record', 'coverage', id, '--candidate', '--source-version', sourceVersion, '--from', coveragePath, '--json']))
       .toMatchObject({ status: 'ok', result: { path: '.xirang/candidate/record-coverage.json' } });
     expect(run(root, ['record', 'consume', id, '--candidate', '--source-version', sourceVersion, '--json']))
@@ -82,8 +86,11 @@ describe('built record CLI workflow', () => {
     await writeProjectModel(root, minimalModel());
     const payloadPath = path.join(root, 'payload.json');
     const payload = {
-      schemaVersion: 3, context: 'change', relatedIdentities: ['root'],
-      entries: [{ identity: 'root-boundary', nature: 'normative', content: '目标项目根边界。' }],
+      schemaVersion: 4, context: 'change', relatedIdentities: ['root'],
+      entries: [
+        { identity: 'root-boundary', nature: 'normative', decision: 'accepted', content: '目标项目根边界。' },
+        { identity: 'other-change', nature: 'normative', decision: 'accepted', content: '另一Change已确认义务' },
+      ],
     };
     await fs.writeFile(payloadPath, JSON.stringify(payload), 'utf8');
 
@@ -120,7 +127,7 @@ describe('built record CLI workflow', () => {
       entries: { added: [], modified: [], removed: [] },
       structure: { added: [], modified: [], withdrawn: [] },
     });
-    expect(updated.result!.summary).toMatchObject({ entries: 1, normativeEntries: 1 });
+    expect(updated.result!.summary).toMatchObject({ entries: 2, normativeEntries: 2, decisions: { accepted: 2, pending: 0, excluded: 0 } });
     expect(run(root, ['record', 'status', explorationId, '--json']).result).toMatchObject({ drift: 'fresh' });
     expect(run(root, ['record', 'validate', explorationId, '--json'])).toMatchObject({ status: 'ok' });
 
@@ -138,7 +145,7 @@ describe('built record CLI workflow', () => {
     expect(discovery.stdout).not.toContain('.explore-');
 
     const coveragePath = path.join(root, 'coverage.json');
-    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'root-boundary', details: [{ detail: '目标项目根边界', location: { element: 'root' }, quote: 'Target project root definition.' }] }] }));
+    await fs.writeFile(coveragePath, JSON.stringify({ entries: [{ identity: 'other-change', result: 'not-applicable', reason: '属于独立Change且当前目标无依赖' }, { identity: 'root-boundary', result: 'covered', details: [{ detail: '目标项目根边界', location: { element: 'root' }, quote: 'Target project root definition.' }] }] }));
     expect(run(root, ['record', 'coverage', explorationId, '--change', 'root-scope-change', '--source-version', updated.result!.sourceVersion as string, '--from', coveragePath, '--json']))
       .toMatchObject({ status: 'ok', result: { path: '.xirang/changes/root-scope-change/record-coverage.json' } });
     const consumed = run(root, ['record', 'consume', explorationId, '--change', 'root-scope-change', '--source-version', updated.result!.sourceVersion as string, '--json']);
@@ -166,18 +173,18 @@ describe('built record CLI workflow', () => {
     await fs.mkdir(oldDirectory, { recursive: true });
     await fs.writeFile(path.join(oldDirectory, 'old-20260729T120000Z-a1b2c3d4.md'), 'legacy', 'utf8');
     expect(run(root, ['record', 'list', '--json']).result).toEqual({ explorations: [] });
-    const v2 = [
+    const v3 = [
       '---', 'entity: confirmed-design-record', 'explorationId: 20260729T120000Z-a1b2c3d4', 'slug: old',
       `semanticModelFingerprint: ${'f'.repeat(64)}`, '---',
-      'schemaVersion: 2', 'context: build', 'relatedIdentities: []', 'entries:',
+      'schemaVersion: 3', 'context: build', 'relatedIdentities: []', 'entries:',
       '  - identity: a', '    nature: normative', '    content: 旧记录', '<!-- XIRANG:SEMANTIC_MODEL_BASELINE',
       'modelState: absent', 'objects: {}', '-->', '',
     ].join('\n');
     const records = path.join(root, '.xirang', 'records');
     await fs.mkdir(records);
-    const v2Path = path.join(records, 'old-20260729T120000Z-a1b2c3d4.md');
-    await fs.writeFile(v2Path, v2, 'utf8');
+    const v3Path = path.join(records, 'old-20260729T120000Z-a1b2c3d4.md');
+    await fs.writeFile(v3Path, v3, 'utf8');
     expect(run(root, ['record', 'list', '--json'], 1)).toMatchObject({ status: 'error', error: { code: 'UNSUPPORTED_RECORD_VERSION' } });
-    expect(await fs.readFile(v2Path, 'utf8')).toBe(v2);
+    expect(await fs.readFile(v3Path, 'utf8')).toBe(v3);
   });
 });

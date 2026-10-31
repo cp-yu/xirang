@@ -125,6 +125,29 @@ describe('workflow installation planning', () => {
     expect(artifacts.commandFiles).toEqual([]);
   });
 
+  it.each(['claude', 'pi', 'opencode', 'codex'])('安装并更新 %s 的三角色且保留实验者model', async toolId => {
+    const plan = createToolWorkflowArtifactPlan(toolId, ['explore'], testDir);
+    const artifacts = getPlannedToolArtifacts(testDir, toolId, plan);
+    const extension = toolId === 'codex' ? 'toml' : 'md';
+    const agentDir = path.join(testDir, `.${toolId}`, 'agents');
+    for (const name of ['xirang-reviewer', 'xirang-optimizer', 'xirang-experimenter']) {
+      expect(artifacts.agentFiles).toContain(path.join(agentDir, `${name}.${extension}`));
+      expect(plan.expectedSkillDirNames).not.toContain(name);
+    }
+    const sync = () => ArtifactSyncEngine.syncOne({ toolId, projectPath: testDir, workflows: ['explore'], version: 'test' });
+    expect((await sync()).error).toBeUndefined();
+    const experimenter = path.join(agentDir, `xirang-experimenter.${extension}`);
+    const initial = await fs.readFile(experimenter, 'utf8');
+    expect(initial).not.toMatch(/^model[: =]/m);
+    const withModel = toolId === 'codex' ? initial.replace('name =', 'model = "user-model"\nname =') : initial.replace('---\n', '---\nmodel: "user-model"\n');
+    await fs.writeFile(experimenter, withModel);
+    expect((await sync()).error).toBeUndefined();
+    expect(await fs.readFile(experimenter, 'utf8')).toMatch(/^model[: =]+"user-model"/m);
+    await fs.writeFile(experimenter, withModel.replace('user-model', 'inherit'));
+    expect((await sync()).error).toBeUndefined();
+    expect(await fs.readFile(experimenter, 'utf8')).not.toMatch(/^model[: =]/m);
+  });
+
   it('removes explicitly managed generated stale internal skill directories during sync', async () => {
     const skillsDir = path.join(testDir, '.claude', 'skills');
     for (const name of [

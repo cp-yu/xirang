@@ -14,12 +14,13 @@ function markdownFrontmatter(content: string): Record<string, unknown> {
 }
 
 describe('subagent generation', () => {
-  it('registers exactly the two internal subagent templates', () => {
+  it('registers the three internal subagent templates', () => {
     const names = INTERNAL_SUBAGENT_TEMPLATES.map((template) => template.name);
 
     expect(names).toEqual([
       'xirang-reviewer',
       'xirang-optimizer',
+      'xirang-experimenter',
     ]);
     expect(names).not.toContain('opsx-implementer');
 
@@ -88,7 +89,7 @@ describe('subagent generation', () => {
     expect(opencode).not.toHaveProperty('model');
   });
 
-  it('adds Pi-only foreground/no-timeout guidance to all internal subagent descriptions', () => {
+  it('adds Pi-only foreground/no-timeout guidance only to evaluation roles', () => {
     const suffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 
     for (const template of INTERNAL_SUBAGENT_TEMPLATES) {
@@ -97,10 +98,30 @@ describe('subagent generation', () => {
       const opencode = markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST'));
       const codex = generateSubagentContent(template, 'codex', 'TEST');
 
-      expect(pi.description).toBe(`${template.description}${suffix}`);
+      expect(pi.description).toBe(template.name === 'xirang-experimenter' ? template.description : `${template.description}${suffix}`);
       expect(claude.description).toBe(template.description);
       expect(opencode.description).toBe(template.description);
       expect(codex).toContain(`description = "${template.description.replace(/"/g, '\\"')}"`);
+    }
+  });
+
+  it.each(['xirang-reviewer', 'xirang-optimizer', 'xirang-experimenter'])('按 %s 能力渲染四工具权限和模型', name => {
+    const template = INTERNAL_SUBAGENT_TEMPLATES.find(item => item.name === name)!;
+    expect(template).toBeDefined();
+    const writable = name === 'xirang-experimenter';
+    const claude = markdownFrontmatter(generateSubagentContent(template, 'claude', 'TEST'));
+    const pi = markdownFrontmatter(generateSubagentContent(template, 'pi', 'TEST'));
+    for (const [metadata, write, edit] of [[claude, 'Write', 'Edit'], [pi, 'write', 'edit']] as const) {
+      const tools = String(metadata.tools).split(', ');
+      expect(tools.includes(write)).toBe(writable);
+      expect(tools.includes(edit)).toBe(writable);
+    }
+    expect(markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST')).permission)
+      .toEqual({ edit: writable ? 'allow' : 'deny', bash: 'ask' });
+    expect(generateSubagentContent(template, 'codex', 'TEST')).toContain(`sandbox_mode = "${writable ? 'workspace-write' : 'read-only'}"`);
+    for (const tool of ['claude', 'pi', 'opencode', 'codex']) {
+      expect(generateSubagentContent({ ...template, model: 'custom-model' }, tool, 'TEST')).toMatch(/^model[: =]+"custom-model"/m);
+      expect(generateSubagentContent({ ...template, model: 'inherit' }, tool, 'TEST')).not.toMatch(/^model[: =]/m);
     }
   });
 

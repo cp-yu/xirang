@@ -32,39 +32,25 @@ describe('propose template post-validation flow', () => {
     expect(validateIndex).toBeGreaterThan(reviewIndex);
   });
 
-  it('separates faithful elaboration from decisions needing user confirmation', () => {
+  it('保持重大决策的确认门禁与规范写入权限边界', () => {
     const body = getXirangProposeSkillTemplate().instructions;
-
-    expect(body).toContain('Explore forms and confirms the design; Propose documents it');
-    expect(body).toContain('without changing confirmed commitments');
-    expect(body).toContain('Reasonable inferred details, including supporting guarantees');
-    expect(body).toContain('not proof that they are uniquely implied');
     expect(body).toContain('ask one focused question and wait before writing the choice as settled');
-    expect(body).toContain('An isolated gap can be confirmed within Propose');
-    expect(body).toContain('substantial redesign belongs in Explore');
-    expect(body).toContain('inferred details need disclosure, while material decisions require prior confirmation');
-    expect(body).toContain('do not add them to the confirmed source record');
-    expect(body).toContain('Propose MUST NOT create, update, rename, or discard records');
+    expect(body).toContain('Forbidden');
+    expect(body).not.toContain('Propose MUST NOT create, update, rename, or discard records');
   });
 
   it('checks mechanism counterexamples and reports supplements separately from confirmed input', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
     expect(body).toContain('try relevant boundary or competing-event sequences');
-    expect(body).toContain('Do not hide a new observable behavior solely in design or tasks');
-    expect(body).toContain('faithful elaborations added during Propose, with their basis and artifact locations');
     expect(body).toContain('new decisions confirmed by the user during Propose');
     expect(body).toContain('unresolved items and their effect on readiness');
     expect(body).toContain('Artifact completion and CLI success do not establish semantic readiness');
-    expect(body).toContain('do not create a separate supplement ledger');
   });
 
   it('checks authored decisions, executable dependencies and the basis of completion claims', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
-    expect(body).toContain('branch outcomes, defaults, error results and restrictions');
-    expect(body).toContain('do not materially change business outcomes, user obligations or architectural trade-offs');
-    expect(body).toContain('including catch-all branches such as "otherwise"');
     expect(body).toContain('using only existing implementation, earlier GREEN tasks and that task');
     expect(body).toContain('trace each Check to the implementation, files and commands it actually needs');
     expect(body).toContain('initial state, event order and expected outcome');
@@ -238,7 +224,6 @@ describe('propose template post-validation flow', () => {
     const body = getXirangProposeSkillTemplate().instructions;
     expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
     expect(body.indexOf('xirang new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
-    expect(body).toContain('do not create a change directory or modify project files');
     expect(body).toContain('existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence');
   });
 
@@ -322,16 +307,8 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('shared **Coverage gate**');
     expect(body).toContain('shared **Writing rules**');
     expect(body).toContain('shared **Output and handoff** success and failure checks');
-    expect(body).toContain('Unresolved conflicts block Formation');
     expect(body).toContain('discover records through the CLI even when the handoff does not mention one');
-    expect(body).toContain('check the declared record decision before compiling');
-    expect(body).toContain('external writes are post-validation `record coverage` and post-gate `record consume`');
-    expect(body).toContain('MUST NOT create, update, rename, or discard records');
-    expect(body).toContain('target semantics → implementation tasks and observable Checks');
     expect(body).toContain('record-source.md');
-    expect(body).toContain('When `record coverage` is rejected, add the missing detail to the target Contract or Delta, then recheck');
-    expect(body).toContain('Any Delta edit after recording coverage requires a new coverage check');
-    expect(body).toContain('with a quote copied from the current Delta or formal file at that location');
     const validate = body.indexOf('xirang validate --change "<name>" --json');
     const coverage = body.indexOf('xirang record coverage <explorationId> --change "<name>" --source-version <sourceVersion> --from <file> --json');
     const consume = body.indexOf('xirang record consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');

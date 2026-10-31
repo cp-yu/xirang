@@ -98,7 +98,10 @@ type Location =
   | { view: string };
 
 interface CoverageDetail { detail: string; location?: Location; quote?: string; uncovered?: string }
-interface CoverageEntry { identity: string; details: CoverageDetail[] }
+type CoverageEntry =
+  | { identity: string; result: 'covered'; details: CoverageDetail[] }
+  | { identity: string; result: 'not-applicable'; reason: string }
+  | { identity: string; result: 'pending'; affectsTarget: boolean; reason?: string };
 
 function object(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
@@ -160,14 +163,46 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
   const entries: CoverageEntry[] = [];
   for (const raw of data.entries) {
     const entry = object(raw);
-    if (!entry || Object.keys(entry).sort().join(',') !== 'details,identity' || !nonEmpty(entry.identity) || !Array.isArray(entry.details)) {
-      report('INVALID_COVERAGE_INPUT', 'coverage', 'Each coverage entry must be { identity, details: [...] }');
+    if (!entry || !nonEmpty(entry.identity)) {
+      report('INVALID_COVERAGE_INPUT', 'coverage', 'Each coverage entry must have an identity and an explicit result');
       continue;
     }
     const identity = entry.identity;
     if (seen.has(identity)) report('INVALID_COVERAGE_INPUT', identity, 'Duplicate coverage entry');
     seen.add(identity);
-    if (!recorded.has(identity)) report('COVERAGE_ENTRY_UNKNOWN', identity, 'Coverage entry is not in the record');
+    const source = recorded.get(identity);
+    if (!source) {
+      report('COVERAGE_ENTRY_UNKNOWN', identity, 'Coverage entry is not in the record');
+      continue;
+    }
+    const keys = Object.keys(entry).sort().join(',');
+    if (source.decision === 'pending') {
+      if (entry.result !== 'pending' || typeof entry.affectsTarget !== 'boolean'
+        || !['affectsTarget,identity,result', 'affectsTarget,identity,reason,result'].includes(keys)
+        || (entry.reason !== undefined && !nonEmpty(entry.reason))
+        || (entry.affectsTarget === false && !nonEmpty(entry.reason))) {
+        report('INVALID_COVERAGE_INPUT', identity, 'Pending entries require result pending, affectsTarget, and a reason when unrelated to the target');
+      } else if (entry.affectsTarget) {
+        report('COVERAGE_PENDING_TARGET', identity, 'Resolve the pending decision affecting the current target before handoff');
+      }
+      entries.push(entry as unknown as CoverageEntry);
+      continue;
+    }
+    if (source.decision !== 'accepted' || source.nature !== 'normative') {
+      report('INVALID_COVERAGE_INPUT', identity, 'Excluded and informative entries do not require target commitment locations');
+      continue;
+    }
+    if (entry.result === 'not-applicable') {
+      if (keys !== 'identity,reason,result' || !nonEmpty(entry.reason)) {
+        report('INVALID_COVERAGE_INPUT', identity, 'Non-applicable entries require a non-empty reason');
+      }
+      entries.push(entry as unknown as CoverageEntry);
+      continue;
+    }
+    if (entry.result !== 'covered' || keys !== 'details,identity,result' || !Array.isArray(entry.details)) {
+      report('INVALID_COVERAGE_INPUT', identity, 'Applicable accepted normative entries require result covered and details');
+      continue;
+    }
     if (!entry.details.length) report('COVERAGE_DETAILS_EMPTY', identity, 'Coverage entry must list at least one atomic detail');
     entry.details.forEach((rawDetail, index) => {
       const detail = object(rawDetail);
@@ -189,7 +224,9 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
     entries.push(entry as unknown as CoverageEntry);
   }
   for (const item of payload.entries) {
-    if (item.nature === 'normative' && !seen.has(item.identity)) report('COVERAGE_ENTRY_MISSING', item.identity, 'Normative entry has no coverage result');
+    if ((item.decision === 'pending' || (item.decision === 'accepted' && item.nature === 'normative')) && !seen.has(item.identity)) {
+      report('COVERAGE_ENTRY_MISSING', item.identity, 'Pending or accepted normative entry has no disposition');
+    }
   }
   return { entries, diagnostics };
 }

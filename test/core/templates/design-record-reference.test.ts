@@ -13,7 +13,6 @@ describe('Design Record reference projection', () => {
       'do not show the complete proposed record before writing',
       'report only this write\'s changes and the record summary',
       'Flag every modification of already-confirmed content',
-      'Record only what the user explicitly confirmed',
       'an empty record list is a starting state, not an exemption',
     ]) expect(reference).toContain(phrase);
     expect(reference).not.toContain('explicit persistence confirmation');
@@ -25,7 +24,11 @@ describe('Design Record reference projection', () => {
       'Could a downstream author write the Contract and Acceptance Cases from this entry without the conversation?',
       'Record user examples verbatim',
       'Confirmed component structure goes into `structure`',
-      'schemaVersion: 3',
+      'schemaVersion: 4',
+      'decision: accepted',
+      'decision: pending',
+      'decision: excluded',
+      '--entry A --entry C',
       'removed: true',
       '--source-version',
       'withdraw',
@@ -39,13 +42,15 @@ describe('Design Record reference projection', () => {
       'do not offer exemption as the default',
       'a valid partial record does not prove capture is complete',
       'MUST NOT treat the latest statement as overriding earlier confirmation',
-      'Propose MUST NOT create, update, rename, or discard records',
     ]) expect(reference).toContain(phrase);
   });
 
   it('gates handoff on atomic-detail coverage recorded by the CLI', () => {
     for (const phrase of [
-      'Split each normative entry into atomic details',
+      'result: covered',
+      'result: not-applicable',
+      'result: pending',
+      'affectsTarget',
       'an example without a location counts as uncovered',
       'A summary claim such as "checked item by item" is not a coverage result',
       'Write confirmed examples as Acceptance Cases',

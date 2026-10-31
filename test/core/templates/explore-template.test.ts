@@ -101,40 +101,22 @@ describe('explore template semantic impact', () => {
     expect(ref?.content).toContain('Before context reads, create the todo checklist');
   });
 
-  it('records confirmed design through the CLI as the only write exception', () => {
-    expect(template).toContain('Forbidden');
-    expect(template).toContain('directly create, edit, or delete project or Change artifacts');
+  it('保留规范写入门禁与逻辑工作流入口', () => {
     expect(template).toContain('`xirang record`');
-    expect(template).toContain('A user\'s design confirmation authorizes recording that content through `xirang record`');
-    expect(template).toContain('it does not authorize any other file or artifact write');
-    expect(template).not.toContain('explicit persistence confirmation');
-    expect(template).toContain('produce a conversation-only `Design Summary`');
-    expect(template).toContain('instruct the user to call `/xirang:propose <change-name>`');
-  });
-
-  it('keeps semantic navigation and other artifacts read-only', () => {
-    expect(template).toContain('The main Explore agent remains read-only outside the Design Record exception');
-    expect(template).toContain('`arch search` and `arch impact` are read-only');
-    expect(template).toContain('MUST NOT create or update project or Change artifacts');
-    expect(template).not.toContain('Subagent Exception');
-  });
-
-  it('treats recorded content as an intermediate basis, not a capture target', () => {
-    expect(template).toContain('a record is an intermediate basis, not a capture target');
+    expect(template).toContain('`xirang-experimenter`');
+    expect(template).toContain('Forbidden');
+    expect(template).not.toContain('The main Explore agent remains read-only outside the Design Record exception');
+    expect(template).not.toContain('MUST NOT create or update project or Change artifacts');
   });
 
   it('initiates capture and blocks conflicting, incomplete or stale Summary handoff', () => {
     expect(template).toContain('xirang record list --json');
-    expect(template).toContain('**Inputs and authority** when opening or resuming it');
-    expect(template).toContain('**Record on confirmation** after each confirmed section');
     expect(template).toContain('**Summary gate** before handoff');
     expect(template).toContain('do not preload it for ordinary discussion with no trigger');
     expect(template).toContain('**Existing record**');
-    expect(template).toContain('normative confirmations not covered by an explicit exemption');
     expect(template).toContain('the user requests recording or revising design material');
     expect(template).toContain('**Handoff gap**');
     expect(template).not.toContain('even when no record exists');
-    expect(template).toContain('all applicable gates must pass before a ready Summary');
     expect(template).toContain('do not wait for the user to name the tool');
     expect(template).not.toContain('before structural discussion');
     expect(template).not.toContain('Change Structural Definition');
@@ -148,7 +130,6 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('adds Elements, changes a parent, or reorganizes a sibling set');
     expect(template).toContain('Contract-only');
     expect(template).toContain('do not invoke the decomposition skill');
-    expect(template).toContain('does not relax the Explore read-only boundary');
   });
 
   it('routes active-change insights to future capture targets', () => {
@@ -212,7 +193,7 @@ describe('explore supperpowers-style reference', () => {
     const ref = (template.referenceFiles || []).find(f => f.path === 'references/explore-supperpowers-style.md');
 
     expect(ref).toBeDefined();
-    expect(ref?.content).toContain('Do not implement before design confirmation is complete');
+    expect(ref?.content).toContain('Do not implement the formal Change before design confirmation is complete');
     expect(ref?.content).toContain('Simple changes still require design confirmation');
     expect(ref?.content).toContain('confirm only the applicable design sections');
     expect(ref?.content).toContain('at minimum confirm the problem, impact scope, approach, and verification method');

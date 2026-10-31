@@ -1,7 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
-import { parseDesignRecord } from '../record/document.js';
 import { RECORD_COVERAGE_FILE, RECORD_SOURCE_FILE } from '../record/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from '../model/paths.js';
@@ -312,16 +311,6 @@ export async function validateCandidateDirectory(
   validateLayout(files, diagnostics);
   validateText(files, diagnostics);
   validateMetadata(files, diagnostics);
-  const recordSource = files.find(file => file.path === RECORD_SOURCE_FILE);
-  if (recordSource) {
-    try {
-      const document = parseDesignRecord(recordSource.bytes.toString('utf8'));
-      if (document.payload.context !== 'build') throw new Error('Candidate provenance requires a Build-context record.');
-    } catch (error) {
-      diagnostics.push(diagnostic('CANDIDATE_RECORD_SOURCE', RECORD_SOURCE_FILE, (error as Error).message));
-    }
-  }
-
   const entries = digestEntries(files);
   const reviewDigest = computeCandidateDigest(entries);
 

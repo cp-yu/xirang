@@ -12,9 +12,9 @@ import type { SemanticModel } from '../../../src/core/model/types.js';
 const structure = (value: Partial<RecordStructure> = {}): RecordStructure => ({
   elements: [], relationships: [], elementKinds: [], relationshipKinds: [], ...value,
 });
-const entry = (identity: string, nature: 'normative' | 'informative' = 'normative') => ({ identity, nature, content: `${identity} 内容` });
+const entry = (identity: string, nature: 'normative' | 'informative' = 'normative') => ({ identity, nature, decision: 'accepted' as const, content: `${identity} 内容` });
 const payload = (value: Partial<DesignRecordPayload> = {}): DesignRecordPayload => ({
-  schemaVersion: 3, context: 'change', relatedIdentities: [], entries: [], structure: structure(), ...value,
+  schemaVersion: 4, context: 'change', relatedIdentities: [], entries: [], structure: structure(), ...value,
 });
 
 const element = (identity: string, kind: string, parent: string | null, definition = `${identity} 定义`) => ({
@@ -36,12 +36,12 @@ describe('按部分更新记录', () => {
 
   it('只 upsert 与修改提及的条目，其余逐字不变', () => {
     const next = applyRecordPatch(eighteen, {
-      entries: { upsert: [{ identity: 'e3', nature: 'normative', content: '修改后' }, { identity: 'new', nature: 'informative', content: '新增' }] },
+      entries: { upsert: [{ identity: 'e3', nature: 'normative', decision: 'accepted' as const, content: '修改后' }, { identity: 'new', nature: 'informative', decision: 'accepted' as const, content: '新增' }] },
     });
     expect(next.entries).toHaveLength(19);
     expect(next.entries.filter(item => !['e3', 'new'].includes(item.identity))).toEqual(eighteen.entries.filter(item => item.identity !== 'e3'));
-    expect(next.entries[3]).toEqual({ identity: 'e3', nature: 'normative', content: '修改后' });
-    expect(summarizeRecord(next)).toEqual({ entries: 19, normativeEntries: 18, elements: 0, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
+    expect(next.entries[3]).toEqual({ identity: 'e3', nature: 'normative', decision: 'accepted' as const, content: '修改后' });
+    expect(summarizeRecord(next)).toEqual({ entries: 19, normativeEntries: 18, decisions: { pending: 0, accepted: 19, excluded: 0 }, elements: 0, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
   });
 
   it('结构对象按字段合并，clear 移除字段而 parent: null 表示 Project Root', () => {

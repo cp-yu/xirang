@@ -59,7 +59,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only \`Design Summary\`.
-- The original commit step is removed. Explore records user-confirmed design only through the Xirang-owned Design Record protocol; it does not directly write files.
+- The original commit step is removed. Explore maintains pending and user-decided design states through the Xirang-owned Design Record protocol and delegates experimental writing and execution to Experimenter; it does not directly author complete Change artifacts.
 - The original implementation-plan handoff maps to \`xirang-propose\` handoff.
 
 ## Conversation language
@@ -68,9 +68,9 @@ ${CONVERSATION_LANGUAGE_GUIDANCE}
 
 ## Hard gate before implementation
 
-Do not implement before design confirmation is complete.
+Do not implement the formal Change before design confirmation is complete. Necessary feasibility experiments may be designed and executed within Explore by Experimenter.
 
-Do not start coding, generate patches, or directly update artifacts during Explore. When the user says "ok", "that works", or chooses an option, it confirms the design direction and authorizes recording that confirmed content through the Design Record protocol; it authorizes no other write.
+Do not author a complete Change or implement the project during Explore. Maintain the intermediate design through the shared Design Record protocol, including pending questions and hypotheses. When the user says "ok", "that works", or chooses an option, record the corresponding decision; that confirmation does not authorize formal model changes, generated work-surface updates, or complete Change authoring. Experimenter may write and run the minimal feasibility experiment without treating its result as user adoption.
 
 Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
@@ -84,7 +84,7 @@ Constrain the discussion with project facts first:
 - Read relevant Xirang change, Element Contract, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an implementation order.
-- Explicitly identify unknowns; do not substitute general experience for project evidence.
+- Explicitly identify unknowns; do not substitute general experience for project evidence. When feasibility needs practical proof, delegate the question, constraints, and decision background to Experimenter for independent experimental design and actual execution. Use its method, reproducible observations, analysis, and limitations before confirming the dependent design. Keep experimental facts separate from user decisions.
 - Actively identify decisions the user has not yet considered, including applicable failure outcomes, competing events, and timing origins or tolerances. Explain the observable consequences of alternatives, recommend with reasons, and ask one question at a time. A recommendation is not a user decision; do not leave known in-scope choices for Propose to invent.
 
 ## Just-in-time visual companion
@@ -139,9 +139,9 @@ Before generating the \`Design Summary\`, self-review:
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
 - Has the Design Record **Summary gate** passed for the confirmed conversation and any current record?
-- Are file writes other than record writes, artifact updates, or subsequent generation actions left for non-explore workflows?
+- Are necessary feasibility experiments complete, with evidence and limits checked? Are target-affecting pending decisions resolved and experimental facts kept distinct from user adoption? Is the current design maintained as an intermediate record, with complete Change authoring and formal implementation left to the appropriate later workflows?
 
-The \`Design Summary\` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
+The \`Design Summary\` must stay in the conversation; do not persist it as a file. CLI record maintenance and delegated experiment files follow their own protocols. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
 
 ## User review gate
 
@@ -161,40 +161,51 @@ Do not use tool-specific call syntax in references. Do not imply that explore ca
 
 const DESIGN_RECORD_REFERENCE = `# Design Record Protocol
 
-Design Record is the shared method Build and Explore use to record the user's confirmed intent as the design is confirmed, and the source Propose and Build compile from. It is required whenever the confirmed design contains a normative confirmation: that confirmation MUST reach the record before handoff. A record may hold only part of the design, and no record is needed to start discussion. Structure formation belongs to the configured decomposition guidance, not to this protocol. This protocol owns recording, conflict handling, reload, the record decision, writing rules, the coverage gate, and handoff.
+Design Record is the shared method Build, Explore, and Propose use to maintain the current design and its decision basis. Entries may be pending, accepted, or excluded; an entry is not itself a confirmed obligation. Normative confirmations MUST reach the record before handoff unless the user explicitly grants an exemption. A record may hold only part of the design, and no record is needed to start discussion. Structure formation belongs to the configured decomposition guidance, not to this protocol. This protocol owns recording, conflict handling, reload, the record decision, writing rules, the coverage gate, and handoff.
 
 ## Inputs and authority
 
 - Load the Semantic Model, user-authorized scope, project evidence, and any current record. An absent formal model is valid for initial Build; a damaged existing model is an error, never an empty starting point.
 - Run \`xirang record list --json\`. If a relevant record exists, select it by immutable \`explorationId\`, not slug or path. Build and Change use independent instances; never reuse a record across contexts.
-- For a selected record, before resuming, compiling from it, or handing it off, run \`xirang record show <explorationId> --json\`, \`xirang record status <explorationId> --json\`, and \`xirang record validate <explorationId> --json\`. Read the complete current record and retain \`sourceVersion\`. Never reconstruct a record from recent conversation or Summary.
-- The CLI checks format, identity, paths, versions, structure references, and explicit related context. \`semanticCoverage: not-evaluated\` is not approval. Agents assess natural-language conflicts and coverage; users decide unresolved intent. Treat relevant drift as a re-review gate: distinguish authorized evolution from unresolved contradictions and resolve them before continuing. Older record formats are unsupported and require user handling; do not migrate or delete them automatically.
+- For a selected record, at the start of design or authoring, when resuming after context loss, and before Summary or closing coverage, run \`xirang record show <explorationId> --json\`, \`xirang record status <explorationId> --json\`, and \`xirang record validate <explorationId> --json\`. Read the complete current record and retain its record-level \`sourceVersion\`. Never reconstruct a record from recent conversation or Summary.
+- During authoring, reload entries only when their content is needed: \`xirang record show <explorationId> --entry A --entry C --json\`. Repeated \`--entry\` selects complete entries, including \`identity\`, \`nature\`, \`decision\`, and \`content\`, with record identity and the current record-level \`sourceVersion\`; it excludes unrelated entries and the complete baseline snapshot. Unknown identities are errors, not silent omissions. Selection does not create entry-level versions or replace the complete opening and closing reads; do not require a full read for every section or adjustment.
+- The CLI checks format, identity, paths, versions, structure references, and explicit related context. \`semanticCoverage: not-evaluated\` is not approval. Agents assess natural-language conflicts and coverage; users decide unresolved intent. Treat relevant drift as a re-review gate: distinguish authorized evolution from unresolved contradictions and resolve them before continuing. Records require \`schemaVersion: 4\` and explicit \`nature\` and \`decision\` on every entry. Older formats or missing states are unsupported: never default to accepted, migrate, delete, or create a compatibility copy. Leave the source unchanged and report the diagnostic for user handling.
 
 ## Record on confirmation
 
-A user's design confirmation authorizes recording that content. Record it right after the user confirms a design section. Do not ask for a separate persistence confirmation, and do not show the complete proposed record before writing. Record only what the user explicitly confirmed; recommendations, derivations, and undecided options stay out until the user confirms them. With no record, the first confirmation creates it: an empty record list is a starting state, not an exemption.
+A user's design confirmation authorizes recording that content. Record it right after the user confirms a design section. Do not ask for a separate persistence confirmation, and do not show the complete proposed record before writing. Build, Explore, and Propose may proactively capture and maintain questions, assumptions, and recommendations as \`pending\`. Only the user's decision permits \`accepted\` or \`excluded\`; an experiment succeeding establishes evidence, not adoption. Obtain user permission before substantively revising, deleting, or changing the decision state of accepted or excluded content, or revising confirmed structure fields, including withdrawal. Do not first downgrade confirmed content to pending to bypass that permission. Agent derivations must not be labeled as user confirmations. With no record, the first design content needing preservation may create a nonempty record; an empty record list is a starting state, not an exemption.
 
 After each write, report only this write's changes and the record summary returned by the CLI; do not re-present unchanged content. Flag every modification of already-confirmed content (changed entry, changed field) separately from additions. When a new statement conflicts with recorded content, explain the conflict and its impact and let the user rule; MUST NOT treat the latest statement as overriding earlier confirmation. After the ruling, write the result.
 
 ## Entry writing standard
 
-Test every entry: Could a downstream author write the Contract and Acceptance Cases from this entry without the conversation? Keep confirmed conditions, numbers, exceptions, timing, and the positive and negative examples used to align. Record user examples verbatim; do not rewrite them into a general rule. For example, keep "When the current profile is A and C, events ABC and ACD qualify; event AB does not (missing C)" instead of only "tags must be covered". Discussion, rejected alternatives, and rationale are not recorded unless the user asks; then record them as \`informative\`, never as obligations. Material the user asks to record takes precedence over the Agent's importance filter.
+Each entry has stable \`identity\`, \`nature\` (\`normative\` or \`informative\`), \`decision\` (\`pending\`, \`accepted\`, or \`excluded\`), and free-text \`content\`. Nature and decision are independent. Pending entries preserve the question, assumption, or recommendation; accepted normative entries must pass this test: Could a downstream author write the Contract and Acceptance Cases from this entry without the conversation? Keep confirmed conditions, numbers, exceptions, timing, and the positive and negative examples used to align. Record user examples verbatim; do not rewrite them into a general rule. For example, keep "When the current profile is A and C, events ABC and ACD qualify; event AB does not (missing C)" instead of only "tags must be covered". Rationale and experiment observations are \`informative\`, not obligations; do not infer acceptance from a successful experiment. Keep only the necessary content and reasons for excluded alternatives, not the full discussion transcript. Material the user asks to record takes precedence over the Agent's importance filter. Keep details in multiline content, without fixed examples, counterexamples, or timing subfields.
 
-Confirmed component structure goes into \`structure\`, not only into entry text. \`structure\` states the confirmed target state in Semantic Model shape, keyed by semantic identity: \`elements\` (\`kind\`, \`parent\`, \`title\`, \`definition\`), \`relationships\` (\`source\`, \`kind\`, \`target\`), \`elementKinds\` (\`contract\`, \`contractFormat\`, \`root\`, \`parents\`, \`children\`), and \`relationshipKinds\` (\`sourceKinds\`, \`targetKinds\`). Record only confirmed fields; a partial declaration is valid. \`removed: true\` states a confirmed deletion; an unmentioned object is unconfirmed, not deleted. \`parent: null\` means Project Root. The CLI derives added, modified, removed, or unchanged against the current model; do not write Delta operations into the record.
+Confirmed component structure goes into \`structure\`, not only into entry text. Inclusion confirms the object and the fields supplied. Keep an unconfirmed parent, kind, or other structural proposal in a pending entry as free text until the user confirms it; do not create a second identity scheme or require a complete target model. \`structure\` states the confirmed target state in Semantic Model shape, keyed by semantic identity: \`elements\` (\`kind\`, \`parent\`, \`title\`, \`definition\`), \`relationships\` (\`source\`, \`kind\`, \`target\`), \`elementKinds\` (\`contract\`, \`contractFormat\`, \`root\`, \`parents\`, \`children\`), and \`relationshipKinds\` (\`sourceKinds\`, \`targetKinds\`). Record only confirmed fields; a partial declaration is valid. \`removed: true\` states a confirmed deletion; an unmentioned object is unconfirmed, not deleted. \`parent: null\` means Project Root. The CLI derives added, modified, removed, or unchanged against the current model; do not write Delta operations into the record.
 
 \`\`\`yaml
-schemaVersion: 3
+schemaVersion: 4
 context: change
 relatedIdentities: [service]
 entries:
   - identity: retry-window
     nature: normative
+    decision: accepted
     content: |
       Retry at most 3 times within 30 seconds, except after cancellation.
       Example the user confirmed: a cancelled request at second 10 is not retried.
   - identity: retry-rationale
     nature: informative
-    content: The user asked to keep the rejected unbounded-retry alternative for context.
+    decision: excluded
+    content: The user rejected unbounded retries because they could outlive cancellation.
+  - identity: candidate-parent
+    nature: normative
+    decision: pending
+    content: Should the unrelated reporting Element belong under analytics?
+  - identity: report-export
+    nature: normative
+    decision: accepted
+    content: The separate reporting change must export CSV.
 structure:
   elements:
     - identity: retry-policy
@@ -209,40 +220,51 @@ Use \`context: build\` for a separate Build instance, including before Candidate
 
 ## Write protocol
 
-The calling workflow must permit the operation: Build and Explore write records; Propose MUST NOT create, update, rename, or discard records, and a needed revision returns to Explore. This protocol never expands stage permissions.
+Build, Explore, and Propose share this record maintenance protocol. Create or update pending content proactively; accepted/excluded decisions and substantive revisions to confirmed content require the user's permission as above. A small record revision does not require returning from Propose to Explore. Return to Explore when the proposal needs feasibility experiments, a direction choice reconsidered through experimentation, or substantial redesign. Record maintenance never authorizes formal model, implementation, or unrelated project writes.
 
 1. Create with the complete first content on stdin: \`xirang record create --slug <slug> --json\`.
-2. Update with only this write's changes on stdin and the current version: \`xirang record update <explorationId> --source-version <sourceVersion> --json\`. The patch holds \`entries.upsert\` / \`entries.remove\`, \`structure.upsert.<type>\` (fields merge; list fields to drop under \`clear\`), \`structure.withdraw.<type>\` (object returns to unconfirmed; distinct from \`removed: true\`), and \`relatedIdentities.add\` / \`remove\`. Unmentioned entries and objects stay unchanged.
+2. Update with only this write's changes on stdin and the current record-level version: \`xirang record update <explorationId> --source-version <sourceVersion> --json\`. The patch holds \`entries.upsert\` / \`entries.remove\`, \`structure.upsert.<type>\` (fields merge; list fields to drop under \`clear\`), \`structure.withdraw.<type>\` (object returns to unconfirmed; distinct from \`removed: true\`), and \`relatedIdentities.add\` / \`remove\`. Each upsert supplies the complete entry target, including \`identity\`, \`nature\`, \`decision\`, and \`content\`; removals use identity. Unmentioned entries and objects stay unchanged. \`parent: null\` sets Project Root, not a cleared field. A selective read still supplies a version for the whole record, not only the selected entries.
 3. A stale \`--source-version\` is rejected with the current version: reload with \`xirang record show\`, reconcile, and resubmit. Never guess.
-4. Check the returned \`diff\` (entry before/after, structure changed/added/cleared fields), \`derived\`, and \`summary\` against what you meant to write. An unintended change is a context-amnesia signal: stop and reconcile with the user. Report the delta and summary as described above.
+4. Check the returned \`diff\` (entry before/after, including nature and decision, and structure changed/added/cleared fields), \`derived\`, and \`summary\` (entry, normative, structure, and decision-state counts) against what you meant to write. An unintended change is a context-amnesia signal: stop and reconcile with the user. Report only the delta, state changes, and summary as described above.
 5. Use \`xirang record rename <explorationId> --slug <slug> --json\` or \`xirang record discard <explorationId> --json\` only with explicit user authorization for that action.
 
-When a record changes, invalidate affected design, Summary, and coverage conclusions and recheck them; keep unrelated conclusions intact.
+When a record changes, inspect known related entries for present-tense assertions about the changed decision, using selective CLI reads when needed. In pending entries, reconcile only stale dependent status text through a partial CLI update; preserve experiment inputs, observed results, limitations, and statements that describe a past state. Do not change an entry's decision merely because a related entry was accepted or excluded. Substantive revisions of accepted or excluded content still require user permission under Record on confirmation. Then invalidate affected design, Summary, and coverage conclusions and recheck them; keep unrelated entries and conclusions intact.
 
 ## Record decision and Summary gate
 
 When the confirmed design contains at least one normative confirmation, confirm exactly one record decision before handoff: a record, an explicit user-granted exemption, or a statement that the design carries no normative content. Never end formation with normative confirmations and none of the three. An exemption is user-granted, deliberate, and recorded; do not offer exemption as the default. Record the exemption and its reason in the Design Summary (Explore) or \`build.md\` (Build) and carry it into provenance. A silent skip is never an exemption, and no empty record is created. Re-open the decision when later confirmations add normative content.
 
-Before Explore outputs a Design Summary, compare the confirmed conversation with the current record: every normative confirmation must be recorded or explicitly exempted; a valid partial record does not prove capture is complete. Record missing confirmations first, reload, and check internal conflicts and conflicts with the design. Unresolved conflicts block Design Summary. When record-backed, the Summary MUST carry \`explorationId\` and the checked \`sourceVersion\`, not a copy of the record.
+Before Explore outputs a Design Summary, reload the complete latest record and compare it with the confirmed conversation: every normative confirmation must be recorded or explicitly exempted; a valid partial record does not prove capture is complete. Record missing confirmations first, reload, and check internal conflicts, conflicts with the proposed design, and pending questions affecting the current target. Unresolved conflicts or target-affecting pending decisions block Design Summary. Resolve them with the user, save the ruling, and recheck affected conclusions. When record-backed, the Summary MUST carry \`explorationId\` and the checked \`sourceVersion\`, not a copy of the record. A later record change invalidates affected Summary conclusions until rechecked. Propose must also obtain an undeclared record decision before compiling; a missing decision is not an implicit exemption and does not itself require returning to Explore.
 
 ## Writing rules
 
-Write confirmed examples as Acceptance Cases when compiling from a record (a Key Acceptance Case in business-specification Contracts, a concrete case in the host Section otherwise), verbatim or in an equally concrete form with the same inputs and outcomes. Do not generalize numbers, timing, or exceptions; state them in the host Contract's business logic or exception handling. Compile each \`structure\` object into the matching Delta or Candidate entry, or leave it as a no-op when the target already matches. Informative entries go to Plan, \`build.md\`, or provenance.
+Compile only accepted normative content applicable to the current target into commitments. Write confirmed examples as Acceptance Cases when compiling from a record (a Key Acceptance Case in business-specification Contracts, a concrete case in the host Section otherwise), verbatim or in an equally concrete form with the same inputs and outcomes. Keep A and C with events ABC, ACD, and AB and their results; a generic "all tags versus some tags" case is not equivalent. Do not generalize numbers, timing, or exceptions; state them in the host Contract's business logic or exception handling. If the confirmed per-source candidate limit K is configurable with default 32, write default 32, not just "a configurable limit". Compile each confirmed \`structure\` object into the matching Delta or Candidate entry, or leave it as a no-op when the target already matches. Pending suggestions do not become settled design. Excluded alternatives and informative entries retain necessary reasons or evidence in Plan, \`build.md\`, or provenance; do not invent Contract obligations for them.
 
 ## Coverage gate
 
-Before handoff, check coverage against the complete target model: the Change's Expected Semantic Model, or the active Candidate. Split each normative entry into atomic details: conditions, numbers, examples, counterexamples, timing, exceptions. Give each detail one exact location: an Element identity plus its Declaration, a Section, or an Acceptance Case in that Section; or a Relationship, Element Kind, Relationship Kind, or Authored View. For an Element location, add a \`quote\`: the excerpt at that location that carries the detail, copied from the current target file, never from memory or paraphrased. If the excerpt states only a general rule without the example's concrete inputs and outcomes, the example is uncovered. Unchanged current semantics may serve as a no-op location. A rule placed without its aligning example leaves the example uncovered: an example without a location counts as uncovered. A summary claim such as "checked item by item" is not a coverage result.
+Before closing coverage, reload the complete latest record and check it against the complete target model: the Change's Expected Semantic Model, or the active Candidate. Classify by nature, decision, and applicability to this target:
+- For each accepted normative entry requiring implementation in this target, submit \`result: covered\` and nonempty \`details\`. Split it into atomic details: conditions, numbers, examples, counterexamples, timing, exceptions. Give each detail one exact location: an Element identity plus its Declaration, a Section, or an Acceptance Case in that Section; or a Relationship, Element Kind, Relationship Kind, or Authored View. For an Element location, add a \`quote\`: the excerpt at that location that carries the detail, copied from the current target file, never from memory or paraphrased. If the excerpt states only a general rule without the example's concrete inputs and outcomes, the example is uncovered. Unchanged current semantics may serve as a no-op location. A rule placed without its aligning example leaves the example uncovered: an example without a location counts as uncovered.
+- For an accepted normative entry outside the current target, submit \`result: not-applicable\` and a nonempty \`reason\`. Judge the reason against the confirmed scope; this declaration must not evade an accepted commitment.
+- For every pending entry, submit \`result: pending\` with \`affectsTarget\`. \`true\` blocks handoff until resolved; \`false\` requires a nonempty \`reason\`. This check also applies to informative pending entries; evidence alone does not resolve a pending design decision.
+- Excluded entries and non-pending informative entries require no target commitment locations. Read their necessary context and retain it in Plan or provenance; do not force them into Contracts.
+A summary claim such as "checked item by item" is not a coverage result.
 
 Submit the result as JSON through \`xirang record coverage <explorationId> (--change "<name>" | --candidate) --source-version <sourceVersion> --from <file> --json\`:
 
 \`\`\`json
-{ "entries": [ { "identity": "retry-window", "details": [
-  { "detail": "at most 3 retries", "location": { "element": "retry-policy", "section": "Business Logic" }, "quote": "Retry at most 3 times within 30 seconds" },
-  { "detail": "cancelled at second 10 is not retried", "location": { "element": "retry-policy", "section": "Key Acceptance Cases", "acceptanceCase": "Cancelled request is not retried" }, "quote": "a request cancelled at second 10 is not retried" }
-] } ] }
+{ "entries": [
+  { "identity": "retry-window", "result": "covered", "details": [
+    { "detail": "at most 3 retries", "location": { "element": "retry-policy", "section": "Business Logic" }, "quote": "Retry at most 3 times within 30 seconds, except after cancellation." },
+    { "detail": "within 30 seconds", "location": { "element": "retry-policy", "section": "Business Logic" }, "quote": "Retry at most 3 times within 30 seconds, except after cancellation." },
+    { "detail": "no retry after cancellation", "location": { "element": "retry-policy", "section": "Business Logic" }, "quote": "Retry at most 3 times within 30 seconds, except after cancellation." },
+    { "detail": "cancelled at second 10 is not retried", "location": { "element": "retry-policy", "section": "Key Acceptance Cases", "acceptanceCase": "Cancelled request is not retried" }, "quote": "a request cancelled at second 10 is not retried" }
+  ] },
+  { "identity": "candidate-parent", "result": "pending", "affectsTarget": false, "reason": "The reporting hierarchy is outside this retry-policy target and has no dependency on its behavior." },
+  { "identity": "report-export", "result": "not-applicable", "reason": "The accepted CSV obligation belongs to the separate reporting change; this target covers retry-policy only." }
+] }
 \`\`\`
 
-The CLI rejects a missing normative entry, an unknown entry, an entry with no details, any \`uncovered\` detail, a location absent from the target, or a missing quote or one that does not appear at its location (whitespace and Markdown emphasis are ignored), and records nothing. On rejection, write the missing detail into the target first, then recheck and resubmit. The CLI proves the check ran, each location exists, and each quote appears there, not that the quote expresses the detail; the semantic judgment remains the checker's. The \`structure\` part is not split into details: \`consume\` compares it field by field with the target. Any Delta or Candidate edit after recording coverage requires rechecking and recording again. An exempted or normative-free source has no entries to check; state that explicitly.
+The CLI rejects unknown entries, missing required results, result types inconsistent with nature or decision, empty or uncovered details, a location absent from the target, a missing quote or one that does not appear at its location (whitespace and Markdown emphasis are ignored), not-applicable results without a reason, and pending results that affect the target or omit the required reason when they do not. A rejected submission records nothing. Resolve a pending decision with the user, correct an unsupported classification, or write a missing accepted detail into the target as appropriate; then recheck and resubmit. The CLI proves the check ran, each location exists, and each quote appears there, not that the quote expresses the detail or that the user authorized it; the semantic judgment remains the checker's. The \`structure\` part is not split into details: \`consume\` compares it field by field with the target. Accepted coverage binds both \`sourceVersion\` and the target fingerprint. Any source change invalidates it. Any Delta or Candidate edit after recording coverage requires rechecking and recording again. An exempted or normative-free source with no record has no entries to check; state that explicitly and skip coverage and consumption. If a record exists, still classify its pending entries and perform the applicable handoff gates.
 
 ## Output and handoff
 
@@ -263,7 +285,7 @@ export function getExploreSkillTemplate(): SkillTemplate {
         content: DESIGN_RECORD_REFERENCE,
       },
     ],
-    instructions: `Enter explore mode: investigate, clarify, compare, and confirm the design with the user before implementation. Explore owns decision discovery and confirmation; Propose documents the confirmed design and checks for gaps.
+    instructions: `Enter explore mode: investigate, clarify, compare, and confirm the design with the user before formal implementation. Maintain the intermediate design and delegate necessary feasibility experiments to Experimenter; Propose organizes the actual Change draft with the user when the design is ready.
 
 ${XIRANG_PHILOSOPHY}
 
@@ -276,24 +298,26 @@ ${TEST_QUALITY_GUIDANCE}
 | Aspect | Value |
 |--------|-------|
 | **Stage** | \`EXPLORE\` - Design exploration under a confirmed record decision |
-| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and record user-confirmed design with \`xirang record\` |
-| **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
+| **Allowed** | Inspect evidence, query CLI, ask questions, compare options, maintain current design through \`xirang record\`, delegate feasibility experiment design and execution to \`xirang-experimenter\`, and present a conversation-only Design Summary |
+| **Forbidden** | Implement the formal Change, modify the formal model or ordinary generated work surfaces, or directly author complete Change artifacts; experimental files and execution belong to the delegated experiment |
 
 ## Required References
 
 - MUST read the project-root file \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Design Record is the method for recording confirmed design in a CLI-managed record. Load \`.xirang/references/xirang-design-record.md\` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
+- Design Record maintains current design and explicit decision states in a CLI-managed record. Load \`.xirang/references/xirang-design-record.md\` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
   - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its content.
-  - **Record or revision**: a design section yields normative confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
+  - **Record or revision**: a pending question, assumption, or recommendation affecting design needs preservation, a design section yields confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
   - **Handoff gap**: before Design Summary, confirmed normative content is neither recorded nor explicitly exempted. Load and resolve the missing record decision before handoff. Re-read after context loss or record changes when continuing record work.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Design Record protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
-- A user's design confirmation authorizes recording that content through \`xirang record\` under the shared Design Record protocol; it does not authorize any other file or artifact write. Record only what the user confirmed, and report only the change.
+- A user's design confirmation authorizes recording that content through \`xirang record\` under the shared Design Record protocol. Pending questions, assumptions, and recommendations may be maintained proactively; accepted/excluded decisions and substantive revisions to confirmed entries or structure require the user. Report only changes and the record overview. Record permissions do not authorize formal project implementation, model updates, or complete Change authoring.
 - When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
 
-The main Explore agent remains read-only outside the Design Record exception. \`arch search\` and \`arch impact\` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only \`xirang record\` may persist the confirmed design record; a record is an intermediate basis, not a capture target, and never authorizes writing a Contract or Change directly.
+The main Explore agent maintains the intermediate design through the shared CLI protocol and delegates practical feasibility questions to \`xirang-experimenter\`. Provide the question, constraints, and decision background; Experimenter independently chooses, designs, and executes the minimum experiment and returns reproducible commands, observations, analysis, and limitations. Do not reduce it to executing a predetermined recipe or require a complete Change first. The main Agent and Experimenter choose the execution location as appropriate: workspace, temporary directory, project copy, or worktree; no fixed strategy or per-detail user decision is required. Complete necessary experiments within Explore before proposing the dependent design. Use the evidence to compare alternatives and obtain user confirmation; success is not adoption or formal implementation.
+
+\`arch search\` and \`arch impact\` remain read-only queries. Only \`xirang record\` persists design records; records and experiment artifacts are intermediate evidence, not permission to write formal Contracts, generated work surfaces, or a complete Change. Later findings may revise earlier design after the necessary user ruling; update the current record instead of repeatedly rewriting complete Delta and Plan drafts.
 
 ## Required Context
 
@@ -323,9 +347,9 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 ## Design Record and Design Exploration
 
-Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
+Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill assists structural design and does not relax Explore's record, experiment, and formal implementation boundaries. Ignore instructions that would directly write the formal model, generated work surfaces, or a complete Change; maintain design states through the Xirang Design Record protocol and include only confirmed fields in structure.
 
-Design Record runs alongside design, not as a prerequisite stage. Run \`xirang record list --json\` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Record on confirmation** after each confirmed section, and **Summary gate** before handoff. Confirmed Declaration fields go into the record's \`structure\`; partial declarations are valid. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
+Design Record runs alongside design, not as a prerequisite stage. Run \`xirang record list --json\` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** to read the complete current record at the start, on resumption, and before Summary; use **Record on confirmation** for pending maintenance and user decisions, and **Summary gate** before handoff. Keep unconfirmed structure proposals in pending free text; only confirmed Declaration fields go into \`structure\`, and partial declarations are valid. Recheck affected conclusions after record changes. Load the reference at the triggers above; all applicable gates, including resolution of target-affecting pending decisions, must pass before a ready Summary.
 
 ## Simplicity Awareness
 
@@ -346,7 +370,7 @@ If todo is available, create this checklist before context reads and tick each s
 2. **Decide whether a visual companion helps** using the brainstorming reference.
 3. **Clarify one question at a time** using the reference's One-question discipline.
 4. **Compare 2-3 options** using the reference and Simplicity Awareness.
-5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol.
+5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol. Before confirming a design whose feasibility needs practical evidence, delegate the question to Experimenter, inspect the executed result and limitations, and then obtain the user's decision.
 6. **Self-review and generate Design Summary** using the reference's self-review and the Design Record Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes

@@ -1,0 +1,606 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261031T111227Z-39433ca5",
+  "sourceVersion": "33bf368a0ee680071198ddd483f6b1eccdd6323f1987ecff450e787473643892",
+  "targetFingerprint": "097a8e6b991015966b7921c31184457e10223c0c2aed53bf97f321972941300e",
+  "recordedAt": "2026-10-31T12:44:19.662Z",
+  "entries": [
+    {
+      "identity": "explore-propose-responsibilities",
+      "details": [
+        {
+          "detail": "Explore 完善中间设计，Propose 编写实际草稿",
+          "location": {
+            "element": "explore",
+            "section": "不形成完整 Change"
+          },
+          "quote": "Explore SHALL 使用中间设计记录完善设计，不提前展开完整 Change 草稿；整体设计接近完成后，由 Propose 组织并编写实际草稿。"
+        },
+        {
+          "detail": "Explore 在成文前完成必要可行性实验",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "必要的方案可行性实验 SHALL 在 Explore 完成，为 Propose 奠定设计基础。"
+        },
+        {
+          "detail": "Propose 可思考、提想法并交互，不能自主大量扩写",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "Propose SHALL 思考并与用户交互，组织实际 Change 草稿，提出想法并讨论成文时发现的问题。MAY 自主处理既定范围和方案内的细枝末节、案例组织与表达或推导修正；不得以合理补充为名自主大量扩写或替用户形成实质设计。"
+        },
+        {
+          "detail": "具体对照：细枝末节放权，不能自己写很多实质内容",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "用户说“细枝末节的内容点的话，我觉得可以放权”时，Agent 可处理局部细节，但不能自行写很多实质内容；允许交互不等于无需确认。"
+        }
+      ]
+    },
+    {
+      "identity": "local-contract-scope-and-design-choice",
+      "details": [
+        {
+          "detail": "Scope 是宿主职责，Change范围与实现取舍分别归属 Plan",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "Scope 写本 Element 的职责边界，Non-goals 只澄清必要职责排除，不罗列所有不负责的事情；整个 Change 范围属于 proposal，实现取舍与影响设计理解的理由属于 design。"
+        },
+        {
+          "detail": "pi-native-markdown-preview HTTP预览排除的具体错误路由例子",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "pi-native-markdown-preview 的“自研 HTTP 预览服务”是实现方案排除，应放 design.md，放入该 Element Contract 的 Scope and Non-goals 属于错误路由。"
+        }
+      ]
+    },
+    {
+      "identity": "explore-feasibility-experiments",
+      "details": [
+        {
+          "detail": "可行性实验在Explore完成，实践证据进入设计",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "必要的方案可行性实验 SHALL 在 Explore 完成，为 Propose 奠定设计基础。"
+        },
+        {
+          "detail": "Explore 提供问题、约束、背景，Experimenter 负责方法设计及执行",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "Explore 向专门 Experimenter 提供待回答问题、约束和决策背景；由 Experimenter 自主设计并执行最小实验，交付方法、结果、分析与限制。"
+        },
+        {
+          "detail": "不只是执行预定步骤，允许编写运行最小实验",
+          "location": {
+            "element": "experimenter",
+            "section": "设计并执行最小实验"
+          },
+          "quote": "独立选择方法，设计并执行足以回答问题的最小实验，不只执行主 Agent 预先列好的步骤。MAY 编写实验代码、文件并运行命令。"
+        },
+        {
+          "detail": "不以统一只读能力禁令阻碍实验",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "不得以统一只读能力禁令阻止实验编写与执行。"
+        }
+      ]
+    },
+    {
+      "identity": "intermediate-record-before-change-draft",
+      "details": [
+        {
+          "detail": "Explore中间态，设计接近完成才由Propose组织完整草稿",
+          "location": {
+            "element": "explore",
+            "section": "不形成完整 Change"
+          },
+          "quote": "Explore SHALL 使用中间设计记录完善设计，不提前展开完整 Change 草稿；整体设计接近完成后，由 Propose 组织并编写实际草稿。"
+        },
+        {
+          "detail": "先定设计可因后续发现修订，避免反复重写完整制品",
+          "location": {
+            "element": "explore",
+            "section": "不形成完整 Change"
+          },
+          "quote": "探索中后续发现可以使此前设计修订，记录按当前状态更新，避免每次反复都重写完整制品。"
+        },
+        {
+          "detail": "具体情形：前面条件后续改变，只更新记录不提前铺开Delta和Plan",
+          "location": {
+            "element": "explore",
+            "section": "不形成完整 Change"
+          },
+          "quote": "先确定的条件因后续发现改变：取得必要用户裁决后更新中间记录，未进入 Propose 时不展开完整 Delta、Plan。"
+        }
+      ]
+    },
+    {
+      "identity": "overlapping-stage-responsibilities",
+      "details": [
+        {
+          "detail": "小范围方案内容调整可在Propose交互确认，记录修订不强制切阶段",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "小范围内容或方案调整可在 Propose 内讨论确认并继续，不因任何设计讨论或记录修订都切回 Explore。"
+        },
+        {
+          "detail": "重新实验判断可行性及方向问题返回Explore再继续",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "需要设计实验重新判断可行性、重选方向或大幅重做设计时，SHALL 返回 Explore 完成实验与设计调整，再继续 Propose。"
+        },
+        {
+          "detail": "重叠不允许静默改写确认",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "补出的分支、默认值、错误结果及限制 SHALL 对照确认来源，不能静默改变承诺。"
+        }
+      ]
+    },
+    {
+      "identity": "propose-review-by-complexity",
+      "details": [
+        {
+          "detail": "简单变更完整草稿后集中呈现具体差异与待决问题",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "简单变更先写完整草稿，再集中呈现具体差异及待决问题"
+        },
+        {
+          "detail": "复杂变更按机制或相关Elements分段审阅，确认后继续，不逐Element机械确认",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "复杂变更围绕一项机制或一组相关 Elements 分段编写、审阅，确认后继续，不机械地逐个 Element 请求确认。"
+        }
+      ]
+    },
+    {
+      "identity": "experiment-execution-discretion",
+      "details": [
+        {
+          "detail": "实验cwd、temp、copy或worktree由Agent判断",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "实验使用当前工作区、临时目录、项目副本或 worktree 等，由主 Agent 与 Experimenter 根据情况选择"
+        },
+        {
+          "detail": "不设框架执行选择策略或逐项用户决策",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "框架不预设选择策略，也不把执行细节逐项交用户设计。"
+        }
+      ]
+    },
+    {
+      "identity": "record-current-design-state",
+      "details": [
+        {
+          "detail": "记录当前设计状态，非完整讨论流水，保存问题假设与依据",
+          "location": {
+            "element": "design-record",
+            "section": "条目写入标准"
+          },
+          "quote": "记录 SHALL 表达当前设计、决策状态及影响设计的必要依据，不保存完整讨论流水。待确认条目保留问题、假设或建议"
+        },
+        {
+          "detail": "未确认信息不能变为已确认承诺",
+          "location": {
+            "element": "design-record",
+            "section": "按写作规则编译细节"
+          },
+          "quote": "仅将已采纳、适用的规范内容编成目标承诺，不能将待确认建议或实验事实当作用户决定。"
+        },
+        {
+          "detail": "读最新记录缓解长上下文记忆丢失，收尾完整读",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "开始编写时完整读取最新记录，核对 sourceVersion、上下文与 Summary；收尾覆盖验证时再完整读取最新记录，不依赖早前长对话记忆。"
+        },
+        {
+          "detail": "逐项落实应履行确认，具体细节和示例不可泛化遗漏",
+          "location": {
+            "element": "propose",
+            "section": "验证确认内容到目标语义的覆盖"
+          },
+          "quote": "已采纳且需落实的规范内容逐项保留条件、例外、数值、时序及正反例，并给出具体位置与当前位置摘录；无落位或摘录只含泛化规则仍算未覆盖。"
+        }
+      ]
+    },
+    {
+      "identity": "propose-record-read-cadence",
+      "details": [
+        {
+          "detail": "开始与收尾各完整读取最新记录",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "开始编写时完整读取最新记录，核对 sourceVersion、上下文与 Summary；收尾覆盖验证时再完整读取最新记录"
+        },
+        {
+          "detail": "中途需要才选择读取，不每段每次调整重读全文",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "编写相关部分确需核对时 MAY 按条目选择读取；不要求每段或每次调整重读全文。"
+        }
+      ]
+    },
+    {
+      "identity": "propose-authorized-record-updates",
+      "details": [
+        {
+          "detail": "Explore与Propose共用record",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "Propose 与 Explore 共用记录。"
+        },
+        {
+          "detail": "允许主动pending，确认/排除/实质修订须用户允许",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "MAY 自主写入和维护 pending 问题、假设、建议；accepted、excluded 及既有确认的实质修改 SHALL 获用户允许，再经 CLI 局部更新，不将自行推导写成用户确认。"
+        }
+      ]
+    },
+    {
+      "identity": "record-selective-entry-read",
+      "details": [
+        {
+          "detail": "show按条目identity一条多条选择读取",
+          "location": {
+            "element": "design-record-operations",
+            "section": "按条目选择读取"
+          },
+          "quote": "`xirang record show <explorationId> --entry <identity>` SHALL 支持重复 --entry，一次选一条或多条。"
+        },
+        {
+          "detail": "只返回所选完整条目及确认态、记录identity和sourceVersion，无无关正文或完整baseline",
+          "location": {
+            "element": "design-record-operations",
+            "section": "按条目选择读取"
+          },
+          "quote": "选择读取返回记录身份、当前记录级 sourceVersion 和所选条目的完整 identity、nature、decision、content，不附无关条目正文或完整模型基准快照。"
+        },
+        {
+          "detail": "完整读仍保留、按需中途读、开始结束完整读",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "开始编写时完整读取最新记录，核对 sourceVersion、上下文与 Summary；收尾覆盖验证时再完整读取最新记录，不依赖早前长对话记忆。编写相关部分确需核对时 MAY 按条目选择读取；不要求每段或每次调整重读全文。"
+        },
+        {
+          "detail": "写入复用entries upsert/remove无第二协议",
+          "location": {
+            "element": "design-record-operations",
+            "section": "按部分更新记录"
+          },
+          "quote": "entries.upsert SHALL 接收完整条目目标，包括 nature 与 decision；entries.remove 沿用 identity 删除，不新增条目级写入协议。"
+        },
+        {
+          "detail": "继续记录级sourceVersion，不加条目级version",
+          "location": {
+            "element": "confirmed-design-record",
+            "section": "保持稳定身份与最新状态"
+          },
+          "quote": "记录级 sourceVersion 覆盖完整内容，不增加条目级版本。"
+        }
+      ]
+    },
+    {
+      "identity": "concise-contract-authoring",
+      "details": [
+        {
+          "detail": "保留业务规格4+N固定结构",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "职责边界与同层精简"
+          },
+          "quote": "业务规格 SHALL 保留四个固定基础 Section 与按独立维护边界增加的 +N，不以精简表达放松结构。"
+        },
+        {
+          "detail": "原则一：宿主层级承诺，必要Non-goals，Change与选型分别路由",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "Contract SHALL 只写宿主 Element 在自身层级的职责、保证、约束与行为。Scope 写本 Element 的职责边界，Non-goals 只澄清必要职责排除，不罗列所有不负责的事情；整个 Change 范围属于 proposal，实现取舍与影响设计理解的理由属于 design。"
+        },
+        {
+          "detail": "原则二：直接条件行为结果，不增含义的解释删除",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "SHALL 直接写条件、行为和结果，删除不增加含义的解释。"
+        },
+        {
+          "detail": "来源版本长句与精简句的原样对照",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "表达对照：“系统 MUST 对提交的来源版本进行严格校验，以确保更新始终基于最新记录，避免过期操作对现有内容造成覆盖。”可精简为“来源版本过期时，MUST 拒绝更新，记录保持不变。”"
+        },
+        {
+          "detail": "原则三：同层同规则集中，各Section补不同信息，验收具体输入结果",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "同层同一规则 SHALL 集中表达，其他位置补充不同信息：Scope 不复述完整管线，Business Logic 讲机制，异常部分补异常条件与结果，验收用具体输入和结果验证，不换措辞重复正文。"
+        },
+        {
+          "detail": "保持不同抽象层级完整语义覆盖",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "父子 Contract 在不同抽象层级的必要覆盖保持完整，不为去重使父级依赖 children 才能理解承诺。"
+        },
+        {
+          "detail": "原则四：准确旧文本沿用，不顺带润色，保留条件数值例外时序",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "已有表达准确时 SHALL 尽量沿用，只改受影响行为，不顺带润色整段；用户已确认且清楚的表达不为正式文档化重新包装，条件、数值、例外与时序完整保留。"
+        }
+      ]
+    },
+    {
+      "identity": "record-confirmation-authority",
+      "details": [
+        {
+          "detail": "Agent可自主新增维护待确认问题假设建议，防止遗忘提问",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "Explore 与 Propose 中的 Agent MAY 主动新增、维护待确认问题、假设和建议，明确标为 pending，避免遗忘后续提问。"
+        },
+        {
+          "detail": "确认或排除仅用户决定，实验成功不等于采纳",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "只有用户决定才能将设计标为 accepted 或 excluded；实验成功只构成事实依据，不代表用户采纳。"
+        },
+        {
+          "detail": "实质修订先获用户允许，不许降为pending绕过",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "已采纳或已排除内容的实质修改、删除、状态改变及已确认结构字段修改 SHALL 先获用户允许；不得先降为 pending 再自行改写。"
+        }
+      ]
+    },
+    {
+      "identity": "propose-record-closure",
+      "details": [
+        {
+          "detail": "已确认需落实内容原子覆盖保留全部具体细节",
+          "location": {
+            "element": "design-record",
+            "section": "按原子细节检查覆盖"
+          },
+          "quote": "accepted 且适用的 normative 条目须拆成条件、数值、例子、反例、时序、例外等原子细节，各给出目标模型中的具体位置及当前位置的原文摘录；未覆盖项阻塞交接。"
+        },
+        {
+          "detail": "pending影响目标先解决，不能忽略或静默延期",
+          "location": {
+            "element": "design-record",
+            "section": "按原子细节检查覆盖"
+          },
+          "quote": "pending 条目须判断是否影响当前目标，影响则先解决，不能忽略后声明就绪；确实不影响时记录理由。"
+        },
+        {
+          "detail": "明确排除仅必要依据，不强造Contract义务",
+          "location": {
+            "element": "design-record",
+            "section": "按原子细节检查覆盖"
+          },
+          "quote": "excluded 及 informative 不强制编成 Contract，仅保留必要设计依据。"
+        },
+        {
+          "detail": "记录出现不等于实现义务，性质与决策相互独立",
+          "location": {
+            "element": "confirmed-design-record",
+            "section": "以条目与结构两部分表达确认内容"
+          },
+          "quote": "nature 表达内容性质，decision 表达用户决策，二者相互独立；有条目不等于已确认，更不等于实现义务。"
+        },
+        {
+          "detail": "分类覆盖不一律要求全部normative落位",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "不得以记录中出现过为由要求所有条目编译，也不得漏检已采纳义务。"
+        }
+      ]
+    },
+    {
+      "identity": "experimenter-role-integration",
+      "details": [
+        {
+          "detail": "隔离委托与结果交付的共同边界按角色定义",
+          "location": {
+            "element": "internal-agents",
+            "section": "在 Clean Context 中判断"
+          },
+          "quote": "Internal Agents SHALL 在与主 Agent 隔离的上下文中接受委托并独立工作。Reviewer 与 Optimizer 在不受 Apply 过程判断影响的 clean context 中评估；Experimenter 独立设计与执行所委托实验。"
+        },
+        {
+          "detail": "ReviewerOptimizer只读，Experimenter可写运行，禁止统一只读",
+          "location": {
+            "element": "internal-agents",
+            "section": "按角色限定操作能力"
+          },
+          "quote": "Reviewer 与 Optimizer SHALL 保持只读，只返回事项，不通过 Bash 绕过编辑/写入限制。Experimenter MAY 编写并执行实验所需代码与文件，其能力限制由实验职责决定；不得以内部 Agent 统一只读禁止实验。"
+        },
+        {
+          "detail": "自主方法选择与最小实验设计执行",
+          "location": {
+            "element": "experimenter",
+            "section": "设计并执行最小实验"
+          },
+          "quote": "Experimenter SHALL 接受主 Agent 提供的待回答问题、相关约束和决策背景，独立选择方法，设计并执行足以回答问题的最小实验，不只执行主 Agent 预先列好的步骤。"
+        },
+        {
+          "detail": "结果分析、证据、适用限制与事实状态",
+          "location": {
+            "element": "experimenter",
+            "section": "交付实践证据与限制"
+          },
+          "quote": "Experimenter SHALL 返回实验问题、方法、执行方式、可复现证据、观察结果、分析及适用限制；区分已验证事实、失败、证据不足及剩余假设。结果供 Explore 判断可行性并继续确认设计，不能把实验成功当成用户采纳。"
+        },
+        {
+          "detail": "不承担用户确认、正式实现与模型提升",
+          "location": {
+            "element": "experimenter",
+            "section": "遵守实验职责边界"
+          },
+          "quote": "Experimenter SHALL 在委托问题范围内开展实验，不承担正式 Change 实现、用户设计确认、Change 关闭或 Semantic Model 提升。"
+        },
+        {
+          "detail": "显式注册三角色，现有机制不新增workflow或skill",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "Internal subagent 模板注册"
+          },
+          "quote": "系统 SHALL 在共享常量中显式注册 xirang-reviewer、xirang-optimizer 与 xirang-experimenter，成员不通过目录扫描、glob 或 regex 推断，不包含 xirang-implementer。内部角色不注册到 workflow manifest，不生成用户可调用 workflow 或实验 skill。"
+        },
+        {
+          "detail": "生成安装复用既有流程，保留用户model",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "Init 与 Update 集成 subagent artifact 生成"
+          },
+          "quote": "支持原生 subagent 的工具 SHALL 经现有显式列表和安装流程生成/更新三种角色；更新已有 Experimenter 时同样保留非 inherit 的用户 model。"
+        },
+        {
+          "detail": "原生权限匹配实验写执行，不仅prompt解除",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "按角色编码工具原生权限"
+          },
+          "quote": "Experimenter 允许读取、搜索、编写、编辑与执行实验，不得只在 prompt 宣称可写却仍由统一只读字段阻止。"
+        }
+      ]
+    },
+    {
+      "identity": "record-breaking-format",
+      "details": [
+        {
+          "detail": "新格式直接breaking，不默认确认不迁移兼容",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "记录 payload 使用 schemaVersion: 4，每条条目显式包含 nature、decision、content 与 identity；缺失状态或旧格式 SHALL 明确拒绝，不将旧条目默认视为 accepted，不自动迁移、删除或创建兼容副本。"
+        },
+        {
+          "detail": "旧版本或缺失decision的具体拒绝结果与源文件保留",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "schemaVersion: 3 或缺失 decision：返回不支持格式或字段诊断，原文件保持不变。"
+        }
+      ]
+    },
+    {
+      "identity": "record-state-and-structure-shape",
+      "details": [
+        {
+          "detail": "稳定identity、独立性质和决策态及自由文本",
+          "location": {
+            "element": "confirmed-design-record",
+            "section": "以条目与结构两部分表达确认内容"
+          },
+          "quote": "每条条目具有稳定 identity、nature（normative 或 informative）、decision（pending、accepted 或 excluded）及自由文本 content，可用多行文本保留条件、例外、具体例子和必要依据，不设 examples、counterexamples、timing 等固定细节子字段。"
+        },
+        {
+          "detail": "结构只含已确认目标，纳入即确认，pending结构先自由文本",
+          "location": {
+            "element": "confirmed-design-record",
+            "section": "以条目与结构两部分表达确认内容"
+          },
+          "quote": "纳入结构部分即表示用户已确认该对象及出现的字段，只保存已确认结构目标。未确认方案留在 pending 自由文本中，不要求先结构化，不引入第二套 identity，也不要求完整目标模型。"
+        },
+        {
+          "detail": "结构确认字段修改须用户允许，不可混入未确认字段",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "已采纳或已排除内容的实质修改、删除、状态改变及已确认结构字段修改 SHALL 先获用户允许；不得先降为 pending 再自行改写。"
+        },
+        {
+          "detail": "Agent自主pending，用户独占采纳排除权",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "Explore 与 Propose 中的 Agent MAY 主动新增、维护待确认问题、假设和建议，明确标为 pending，避免遗忘后续提问。只有用户决定才能将设计标为 accepted 或 excluded；实验成功只构成事实依据，不代表用户采纳。"
+        },
+        {
+          "detail": "收尾落实accepted、审查pending影响，excluded只留必要理由",
+          "location": {
+            "element": "design-record",
+            "section": "按原子细节检查覆盖"
+          },
+          "quote": "pending 条目须判断是否影响当前目标，影响则先解决，不能忽略后声明就绪；确实不影响时记录理由。excluded 及 informative 不强制编成 Contract，仅保留必要设计依据。"
+        },
+        {
+          "detail": "已采纳且适用规范内容原子落位",
+          "location": {
+            "element": "design-record",
+            "section": "按原子细节检查覆盖"
+          },
+          "quote": "accepted 且适用的 normative 条目须拆成条件、数值、例子、反例、时序、例外等原子细节，各给出目标模型中的具体位置及当前位置的原文摘录；未覆盖项阻塞交接。"
+        }
+      ]
+    }
+  ]
+}

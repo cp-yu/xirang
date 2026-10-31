@@ -28,8 +28,8 @@ describe('Candidate build history', () => {
   it('retains every successful build history entry', async () => {
     await initializeCandidate(root, { kind: 'current' });
     const source = await createRecord(root, 'history-source', {
-      schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
-      entries: [{ identity: 'intent', nature: 'normative', content: 'Preserve history without promoting provenance.' }],
+      schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
+      entries: [{ identity: 'intent', nature: 'normative', decision: 'accepted', content: 'Preserve history without promoting provenance.' }],
     }, await readRecordSemanticContext(root, 'build'));
     await fs.writeFile(path.join(root, '.xirang', 'candidate', 'record-source.md'), source.bytes);
     const coverage = Buffer.from('{"schemaVersion":1}\n');

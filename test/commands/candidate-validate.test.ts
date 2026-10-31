@@ -73,8 +73,8 @@ describe('Candidate validation', () => {
 
   it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
     const record = await createRecord(root, 'source', {
-      schemaVersion: 3, context: 'build', relatedIdentities: ['project.root'],
-      entries: [{ identity: 'scope', nature: 'normative', content: 'Preserve the confirmed exception.' }],
+      schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
+      entries: [{ identity: 'scope', nature: 'normative', decision: 'accepted', content: 'Preserve the confirmed exception.' }],
     }, await readRecordSemanticContext(root, 'build'));
     const source = path.join(candidate, 'record-source.md');
     await fs.writeFile(source, record.bytes);
@@ -89,12 +89,11 @@ describe('Candidate validation', () => {
     const changed = await validateCandidate(root);
     expect(changed.valid).toBe(true);
     expect(changed.reviewDigest).not.toBe(first.reviewDigest);
-    await fs.writeFile(source, record.bytes.toString('utf8').replace('context: build', 'context: change'));
-    expect((await validateCandidate(root)).diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'CANDIDATE_RECORD_SOURCE', path: 'record-source.md' }),
-    ]));
-    await fs.writeFile(source, 'not a record\n');
-    expect((await validateCandidate(root)).valid).toBe(false);
+    // Historical snapshots are opaque provenance; current record format gates apply before consume.
+    await fs.writeFile(source, record.bytes.toString('utf8').replace('schemaVersion: 4', 'schemaVersion: 3'));
+    const historical = await validateCandidate(root);
+    expect(historical.valid).toBe(true);
+    expect(historical.reviewDigest).not.toBe(first.reviewDigest);
     await fs.writeFile(source, record.bytes);
     const coverage = path.join(candidate, 'record-coverage.json');
     await fs.writeFile(coverage, '{"schemaVersion":1}\n');
