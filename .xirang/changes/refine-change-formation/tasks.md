@@ -21,7 +21,7 @@
 - 在现有 show 实现按条目选择读取，沿用局部 upsert/remove 与过期写拒绝；读取结果不泄露无关条目及完整基准，完整读取保持可用。
 - 按 `elements/design-record.md`、`elements/design-record-operations.md`、`elements/deterministic-operations.md` 实现状态化覆盖结果和消费门禁，保留摘录、字段比对、指纹及原子恢复，更新 Build 消费路径，不改变 Candidate review/digest/promotion。
 - 同步共享 record reference 与 Build/Explore/Propose 中记录维护、用户确认权、读频和收尾分类指令；本任务只改记录相关部分，移除 Propose 不得维护记录及所有 normative 一律落位的旧限制。通过构建后的 update 刷新受管工作面，不直接手改生成文件。
-- 修改已有行为测试及因协议变动失效的精确断言；不新增锁解释文字或例句的测试。路径继续使用 Node.js path API，安排 Windows 与本机相同门禁验证。
+- 修改已有行为测试及因协议变动失效的精确断言；不新增锁解释文字或例句的测试。路径继续使用 Node.js path API；按用户后续确认，本次不补 Windows 实际执行证据。
 
 #### Checks
 
@@ -64,7 +64,7 @@
   - Verifies: `elements/deterministic-operations.md` / Section "管理统一确认记录生命周期"
   - Test action: reuse
   - Command: `pnpm exec vitest run test/core/record/paths.test.ts test/core/record/structure.test.ts test/utils/record-discovery-isolation.test.ts`
-  - Evidence: 在 Windows CI 执行本任务记录与交接测试及同一组路径测试，附平台、命令和结果；当前环境不能执行时明确保留待验证项，不将本机结果冒充 Windows 证据。
+  - Evidence: 复用本机记录、交接及路径测试的实际结果；用户已明确本次不处理 Windows 实际验证证据。既往 Windows 待验证说明保留在实施历史，不将本机结果冒充 Windows 通过。
   - Expect: 路径 containment、symlink 拒绝、结构解析与非受管文件保护不变，macOS/Linux/Windows 采用平台 path API；不为读取选项增加文件路径入口。
 
 ### Task 2: 可设计并执行实验的内部角色与 Explore
@@ -102,7 +102,7 @@
   - Verifies: `elements/internal-subagent-generation.md` / Section "Init 与 Update 集成 subagent artifact 生成"
   - Test action: modify
   - Command: `pnpm exec vitest run test/core/workflow-installation.test.ts test/core/shared/subagent-generation.test.ts`
-  - Expect: 支持工具安装三角色，已有 Experimenter 的用户 model 更新后保留，inherit 不强写 model；不支持 agentsDir 的工具不生成；非受管同名文件不被删除，沿用显式名字及 path.join。Windows CI 执行同一测试并附结果。
+  - Expect: 支持工具安装三角色，已有 Experimenter 的用户 model 更新后保留，inherit 不强写 model；不支持 agentsDir 的工具不生成；非受管同名文件不被删除，沿用显式名字及 path.join。Windows 实际执行证据按用户后续确认不属于本次范围，不声称已通过。
 
 - [x] C9 验证 Explore 到实验结果的委托闭环
   - Verifies: `elements/experimenter.md` / Section "设计并执行最小实验"
@@ -168,7 +168,7 @@
   - Covers: `elements/design-record.md` / Section "确认即记录"；`elements/authoring-conventions.md` / Section "精简 Contract 表达"；`elements/propose-workflow.md` / Section "按复杂度组织交互审阅"
   - Test action: one-time
   - Evidence: 使用 `bigmodel/glm-5.3-flash` 作为实际执行模型，在独立临时项目中读取本次生成的 skill/reference，实际调用 built CLI、维护记录或生成草稿。记录维护、简单 Propose、复杂 Propose 与 Contract 写作各至少两次独立运行。由协调者提供分阶段模拟用户输入，检查工具轨迹、文件与校验结果，不把模型自评或桌面规则走查当作通过证据。提示词变更仍由指定 Astra 模型提供；每轮变更后刷新生成面并以新 GLM 会话重跑失败场景及相关回归，记录版本指纹、过程偏差和产物问题。
-  - Expect: 未确认建议不升级为 accepted，实验事实不代替用户采纳，局部维护不误改无关条目；简单集中审阅、复杂按机制审阅，局部裁决保持 Propose，必要可行性实验返回 Explore；Contract 保留具体承诺且方案排除正确落位。每项修订先以多次独立执行观察偏差频率、过程和产物；两次成功只是有限样本，不作为稳定结论。固定版本与输入收集一组结果后再决定是否修改，后续仅两路并行，各自在/tmp独立项目执行。
+  - Expect: 未确认建议不升级为 accepted，实验事实不代替用户采纳，局部维护不误改无关条目；简单集中审阅、复杂按机制审阅，局部裁决保持 Propose，必要可行性实验返回 Explore；Contract 保留具体承诺且方案排除正确落位。父级完整表达本层承诺，子级精化这些承诺，父子在各自层级语义对应；不以缺少子级具体数值、例子或不存在 root Delta 单独判为父级失败。每项修订先以多次独立执行观察偏差频率、过程和产物；两次成功只是有限样本，不作为稳定结论。固定版本与输入收集一组结果后再决定是否修改；最新用户授权为最多8并发，各自在/tmp独立项目执行，旧两路限制保留为历史协议。Explore 已在有效上下文中加载时不要求再次加载；用户已排除的加载问题不作为本次补测目标。
 
 ## Implementation Evidence
 
@@ -259,3 +259,13 @@
 - 独立声明的位置对照协议：Astra `7b9a4e5b-5474-4b46-a374-2e65a867eef3/diagnosis/formation-placement-only-protocol.md` 给出原文迁移的inactive JSON；仅临时W工作面从Flow5删除既有段落、在proposal的schema.instruction插入同一段，真实源/生成面不改。resolver的projectRoot不提供schema覆盖，父会话解除自行添加的单目录约束，使用同一构建内容的两份不可变scratch工具；不交换运行中schema，不改resolver。GLM实际准备 `/tmp/formation-placement-bCR9KgTI`：工具各829文件，仅schema.yaml一处差异，bin/dist全部相同；O指令相对原始捕获路径规范化后0差异，W仅proposal.instruction差异，其他3份指令完全相同；源模型/src/4条记录/空structure/baseline语义相同，任务仅规范化项目及工具路径，两个原始complex续答原字节冻结。实际76项预检通过，父层另复核工具全树唯一差异与6份SKILL指纹。计划O/W各3 fresh、固定对O1/W1、W2/O2、O3/W3、始终最多2并行，每份最多2原始续答；任意审批拒绝或基础设施失败即停止后续派发，无替换样本。
 - 位置对照实际中止：首对workflow `79e4efec-8d6e-446b-b38b-780ee33a1ad9` 的O1/W1完成首次审阅；第二对 `7d34862f-4b63-4fe0-99b1-6067230d16f2` 的O2完成首次审阅，W2记录更新被拒（entry1900f09f），其contact_supervisor请求又被拒（55d040ab）。父会话按停止条件不再派发O3/W3，不发送任何续答，不补做更新或替换样本；已启动4份均已终止为完整首次审阅或部分报告。父层读完4份报告并核对实际文件/工具：O1/O2 proposal列root并已有父级条款，O1投递部分明确待后续；W1实际proposal未列root，并把泛称父级判作完整。W2未到首次机制审阅，其拒绝后写出的proposal同样未列root，只作为受中断污染的部分证据，不并入首次审阅完成分母；未发送3→2裁决，初稿3次不计为陈旧终态。所有当前记录均未单独捕获父级责任确认，不能由条目identity推断唯一原因。
 - 中止组过程限制与结论：O1完整record show截断head60，O2截断head600字节且arch query也截断（另直接读取模型文件）；W1列出分配项目外实验基目录名，未观察到读取其他样本内容。W2未改写重试被拒update，但拒绝后仍创建Change、获取instructions并写proposal，直到父会话停止指令后才最终化，保留为拒绝后停止纪律偏差，不称审批绕过或无偏执行。4份正式model/src/data的diff与含未跟踪文件status均为空；全工具轨迹、实际快照与停止事实保存在该目录 `evidence/final-partial-tool-audit.json`、各`*-final-partial-snapshot.json`及`stop.json`。本组未完成且终点不一致，不计算终态完整率，不将中断/未启动样本记业务失败，不宣称迁移有效、无效或稳定，不采用scratch候选。此轮仅追加真实实施证据，未改变产品代码/提示词，无需重复运行未变化的437项回归；C11/C14仍未完成，正式Review/Optimization/Seal/Archive均未启动，停止自动追加修订和试验批次。
+
+### 收尾证据盘点与用户口径修正
+
+- 当前产品工作面仍为第七轮版本，Propose SHA-256 `5b65b182cba4bc16e15c6aab480e4b43c89adcb870f4f2bc8216aa26e437dc1f`；后续诊断未改产品提示词。用户确认 Windows 实际执行证据本次不处理、有效上下文中的 Explore 不要求重复加载；用户后续明确允许最多8并发，覆盖原两路上限。以上只更新本次执行和证据范围，不宣称 Windows 通过，不改平台 path API 要求。旧协议及当时偏差继续保留。
+- 父子完整性最新确认：用户明确“父级本来就不应该呈现子级的所有内容。 父级的内容在子级中都有呈现，子级的内容在父级有表达  这样就是合理的了。”并认可“父级遗漏了自身层级应表达的业务保证，仍算问题。”判据为各自抽象层级的语义对应；不能只按缺 K、默认值、重试次数或没有 root Delta 判错，也不能把子级全部具体断言预先指定为父级义务。记录 `20261101T121133Z-25852ace` 的 accepted 条目已按 CLI 局部更新，版本 `9d0bd2174d0768698d665f2dcc48a93c1816d496542d40ccddf5af45928ebff9`。此前父级完整率属于旧判据下的历史统计，须以本轮逐项语义复核为准，不能直接当新口径结论。
+- 集中修复诊断：`/tmp/formation-focused-repair-4pcni15w` 将第七轮4份实际草稿各克隆两份，以同一产品工作面执行8次fresh GLM。当前 proposal 重试3→2残留修正2/2，超范围在途中断验收断言修正1/2，请求C,A,C的结果应为C,A且Contract/Check一致修正1/2。0主体审批拒绝，正式model/src/data、来源和工作面保持不变。独立审计的8次arch validate未带--change，只验证基准模型；另8次validate --change实际执行且exit0，不把16次统称目标模型验证。
+- 撤回过强的旧案例保留判定：原用户未要求旧Acceptance Case的标题或节点位置不变。noop-v7-2的旧句“筛选结果满足本节的命中和候选上限规则。”仍由目标验收Section引言承载；仅旧泛称节点被具体案例替换，不足以证明业务语义丢失。集中修复preservation两次均零修改，不再计为确定缺陷的修复失败；不据此声明整份草稿全部正确。原始hidden scoring及历史判定保留，附此纠正。
+- 原版/单句候选screen8：初始20份搭建因缺少shutil导入及清理命令审批拒绝中止，主体0/20；用户自行删除空tool目录并授权缩为8份、最多8并发后恢复。workflow `df745753-542b-43b9-a080-a36932b2342f` 已完成8主体，启动跨度575ms；assertion/order两家族各原版2次、候选2次，原版与候选均修正2/2，无组间结果差异。独立16条arch validate --change与validate --change全部exit0，主体0拒绝、无冻结文件hash差异。父协调器已读全部实际diff与确认来源。证据 `/tmp/formation-source-first-ab-iaajT8yV/evidence/final-results.json`、`screen8-cli-fresh-validation.json`、`parent-screen8-audit.json`。setup两个外部临时日志、已修复搭建错误和node_modules只读链接未全量内容hash的限制单列，不计产品收益。原拒绝、停止记录与外部日志均保留。
+- screen8只支持窄修复结果：未观察到单句候选相对收益，不启用主产品、不自动扩到20次；过程可见证据不足以证明先推导再比较。该组没有父级完整性专门对照，断言和顺序修复不等于完整Change终态通过；重试窗口条件等其余语义未获整份通过结论。最新8次成功不能冲销此前完整工作流里的独立语义偏差。
+- 收尾证据核查由fresh GLM完成，报告 `d0c44761-3cd3-43c0-b76d-7d79811e781f/closeout/evidence-gap-audit.md`：简单集中审阅、复杂按机制分段、局部裁决留在Propose、记录状态维护等已有实际轨迹，可在对应工作面未变的范围复用。协调者未采纳报告将子级具体数值直接归为父级承诺的论证，也未采纳重新补测用户已排除的Explore加载问题；已要求同会话作一次只读纠正。陈旧目标值、超范围验收断言及请求顺序错误独立于parent问题，继续作为来源忠实性证据，不混入父级完整率。C11/C14尚未勾选；本轮先完成既有样本重新分类，不启动新行为批次或自动追加提示词，未进入正式Review/Optimization/Seal，未Archive。
