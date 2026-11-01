@@ -1,25 +1,38 @@
 {
   "kind": "review",
-  "timestamp": "2026-11-01T17:58:40.590Z",
+  "timestamp": "2026-11-01T18:19:10.583Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "Actual Propose execution still produced an acceptance assertion stronger than its confirmed source; this remains an explicitly accepted limitation.",
-      "section": "完成 Formation 审查与确认；计划一致性复核",
-      "task": "Task 3 / C11, C14",
-      "recommendation": "Retain the disclosed execution limitation when reporting readiness. Do not describe the samples as universally source-faithful, the C4 assertion as repaired, or finite successful runs as proof of stability.",
+      "message": "Actual workflow execution still shows the explicitly accepted source-faithfulness limitation: complex-1 C4 requires an in-flight attempt to remain uninterrupted although its Contract leaves that outcome open.",
+      "section": "完成 Formation 审查与确认 / 计划一致性复核",
+      "task": "Task 3 / C11 / C14",
+      "recommendation": "Retain this limitation in the quality result. Do not describe successful CLI validation, coverage, or consumption as proof that every generated obligation faithfully preserves its source. The recorded user acceptance permits this disclosed limitation for this Change.",
       "evidenceCitations": [
         "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:50-54",
         "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-16",
-        ".xirang/changes/refine-change-formation/tasks.md:183-191",
-        ".xirang/changes/refine-change-formation/tasks.md:297-302",
+        ".xirang/changes/refine-change-formation/tasks.md:190-198",
+        ".xirang/changes/refine-change-formation/tasks.md:304-309",
         ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55",
-        "src/core/templates/workflows/propose.ts:105-111"
+        "src/core/templates/workflows/propose.ts:105-113"
+      ]
+    },
+    {
+      "severity": "WARNING",
+      "message": "Windows execution evidence remains unavailable; Linux tests and portable path construction support the implementation but do not establish Windows runtime behavior.",
+      "section": "跨平台路径及安装更新",
+      "task": "Task 1 / C6; Task 2 / C8",
+      "recommendation": "Preserve the disclosed platform limitation and obtain Windows CI evidence when that environment is available. Do not report Windows execution as verified.",
+      "evidenceCitations": [
+        ".xirang/changes/refine-change-formation/tasks.md:202-209",
+        "src/core/workflow-installation.ts:90-110",
+        "src/core/templates/sync-engine.ts:379-406",
+        "test/core/workflow-installation.test.ts:1-350"
       ]
     }
   ],
-  "tasksFileHash": "c813c63ee75c2fc602edbda2859c7cd36c5a03062f7587e803c676087767561e",
+  "tasksFileHash": "5a174c57c378c4c0727c9937c3a13fd2bb48a842d715c44110511d4758de8cb6",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -31,7 +44,6 @@
       ".xirang/changes/refine-change-formation/.apply-isolation.json",
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json",
-      ".xirang/changes/refine-change-formation/.xirang.yaml",
       ".xirang/changes/refine-change-formation/design.md",
       ".xirang/changes/refine-change-formation/elements/agent-workbench-projection.md",
       ".xirang/changes/refine-change-formation/elements/authoring-conventions.md",
@@ -56,6 +68,25 @@
       ".xirang/changes/refine-change-formation/record-coverage.json",
       ".xirang/changes/refine-change-formation/record-source.md",
       ".xirang/changes/refine-change-formation/tasks.md",
+      ".xirang/model/elements/agent-workbench-projection.md",
+      ".xirang/model/elements/authoring-conventions.md",
+      ".xirang/model/elements/business-specification-standard.md",
+      ".xirang/model/elements/confirmed-design-record.md",
+      ".xirang/model/elements/design-exploration.md",
+      ".xirang/model/elements/design-record-operations.md",
+      ".xirang/model/elements/design-record.md",
+      ".xirang/model/elements/deterministic-operations.md",
+      ".xirang/model/elements/explore-brainstorming.md",
+      ".xirang/model/elements/explore-role.md",
+      ".xirang/model/elements/explore.md",
+      ".xirang/model/elements/internal-agents.md",
+      ".xirang/model/elements/internal-subagent-generation.md",
+      ".xirang/model/elements/post-propose-validation.md",
+      ".xirang/model/elements/project.root.md",
+      ".xirang/model/elements/propose-role.md",
+      ".xirang/model/elements/propose-workflow.md",
+      ".xirang/model/elements/propose.md",
+      ".xirang/model/elements/semantic-model-build.md",
       ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",
       ".xirang/references/xirang-business-specification-standard.md",
       ".xirang/references/xirang-design-record.md",
@@ -108,7 +139,7 @@
       "test/integration/record-workflow.test.ts",
       "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "4d603f1cfc058e4dded3029708dcf8e19594bcacdb530d3e1a389db71170449e",
+    "evidenceFingerprint": "cb9e4340921f9f9df21c4de34c00d3c1098c87980e11681f44c54b28211e525b",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-experimenter.md",
@@ -133,10 +164,6 @@
       {
         "path": ".xirang/changes/refine-change-formation/.apply-isolation.json",
         "hash": "18de92a27949d216105b6b5152473280d689256cc90222dbfdc6f127167a59a7"
-      },
-      {
-        "path": ".xirang/changes/refine-change-formation/.xirang.yaml",
-        "hash": "00c9615559d27f902f38301abf1c21f324c0e00172da10d3f7c2ad28809e262d"
       },
       {
         "path": ".xirang/changes/refine-change-formation/design.md",
@@ -232,7 +259,83 @@
       },
       {
         "path": ".xirang/changes/refine-change-formation/tasks.md",
-        "hash": "c813c63ee75c2fc602edbda2859c7cd36c5a03062f7587e803c676087767561e"
+        "hash": "5a174c57c378c4c0727c9937c3a13fd2bb48a842d715c44110511d4758de8cb6"
+      },
+      {
+        "path": ".xirang/model/elements/agent-workbench-projection.md",
+        "hash": "badbb1d4b30b7f46a031c2214c81683fdab6a2168def7ff9da50982d24d97d1c"
+      },
+      {
+        "path": ".xirang/model/elements/authoring-conventions.md",
+        "hash": "447e7974c300dec1104b0f963a87510b8800cc3671839ae87f0db290db421542"
+      },
+      {
+        "path": ".xirang/model/elements/business-specification-standard.md",
+        "hash": "f0fbe0352ba941563395689c6aa51c5472668cdaf0d6b00e6f4b5ad5fa590ad3"
+      },
+      {
+        "path": ".xirang/model/elements/confirmed-design-record.md",
+        "hash": "3af8d5d8107cc5a1f37ad925cbb3b7d817cd7efbe84f5125dba8743c7b1af868"
+      },
+      {
+        "path": ".xirang/model/elements/design-exploration.md",
+        "hash": "1a907879e3c794c520f0a98afac3f2a0693914315983bd628915ad106fb528cb"
+      },
+      {
+        "path": ".xirang/model/elements/design-record-operations.md",
+        "hash": "f9a4b92ba4721cfdde2bb3569a80af2e4d639b4185dd26af8f61fe198bc9f446"
+      },
+      {
+        "path": ".xirang/model/elements/design-record.md",
+        "hash": "21f476304dd8bbf8a0920031cba97376c25e421d4eb763451bd5095325b388f7"
+      },
+      {
+        "path": ".xirang/model/elements/deterministic-operations.md",
+        "hash": "c0527e2edefdba272d217f8e782189763fc5c7551874a068305b858d5498d23c"
+      },
+      {
+        "path": ".xirang/model/elements/explore-brainstorming.md",
+        "hash": "40a7ceba420fe64489ecb4bb64402a6137f4c4bcecabd192e98f3c91655664cb"
+      },
+      {
+        "path": ".xirang/model/elements/explore-role.md",
+        "hash": "b8ffc8c6736a6edf08919d7363195f1d44dd565358201e693a54ba30b03c3ae1"
+      },
+      {
+        "path": ".xirang/model/elements/explore.md",
+        "hash": "1a5c71f830b5cbfd32a7fdce6f711e263bd45ac3a20b18b542f08a557492af6f"
+      },
+      {
+        "path": ".xirang/model/elements/internal-agents.md",
+        "hash": "a12d5eb8164b9a752529f2ce3c96c03b4d51203d1b0b47fd53d63844202a40e4"
+      },
+      {
+        "path": ".xirang/model/elements/internal-subagent-generation.md",
+        "hash": "7928ef29ecc9c4edae35e5a68c892f2f5869caf15825f365be329fb424309b53"
+      },
+      {
+        "path": ".xirang/model/elements/post-propose-validation.md",
+        "hash": "0492bb7481ca3c5c6737a539c99a597ef5594d9da062427ba843ee14195a218a"
+      },
+      {
+        "path": ".xirang/model/elements/project.root.md",
+        "hash": "8bb9d2bb7d80e625006d6dba3f89dfc167da4ad646940adc34453435c572d2e4"
+      },
+      {
+        "path": ".xirang/model/elements/propose-role.md",
+        "hash": "e029ed0ac8b825d3eda349ef082273a4a776f03cfa1afbf65e51d78d1616beff"
+      },
+      {
+        "path": ".xirang/model/elements/propose-workflow.md",
+        "hash": "888387448dc9bd81245f2138ca46e1eec6e0b913dbaea90350b7a16630ccdad6"
+      },
+      {
+        "path": ".xirang/model/elements/propose.md",
+        "hash": "8bae611f22116f0f2c50e1f7fc3aa7000844c6d53f5f9ce5454d75dac5423909"
+      },
+      {
+        "path": ".xirang/model/elements/semantic-model-build.md",
+        "hash": "b5993dc8ab8f7eeeeba327d0a6a2cb9f6e06c1cd9d24ac4c122f306274c84e1c"
       },
       {
         "path": ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",
@@ -284,7 +387,7 @@
       },
       {
         "path": "src/core/record/structure.ts",
-        "hash": "df014f094543b026eee37b34338b677675fbabcd8fda3652fae397f1b0f16c79"
+        "hash": "ea930215cf1206bd540cee13525cbf5447251f2789292730da7b183761ebb341"
       },
       {
         "path": "src/core/record/types.ts",
@@ -392,7 +495,7 @@
       },
       {
         "path": "test/core/record/structure.test.ts",
-        "hash": "4b1f5ae27b421e075bfba2c50acf5ca8d4ba1af911065d498a56e542d2486813"
+        "hash": "931554e3c086ce16c51e0df25a4f5c62d927f642dc89cfc7087df6038b12d309"
       },
       {
         "path": "test/core/record/validator.test.ts",
@@ -443,8 +546,127 @@
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json"
     ],
-    "gitHeadCommit": "94d9efb8d17c8a475cf9aaa38d2e7de86c7e68b5",
-    "gitDiffSummary": "Validated the supplied absolute locations and immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 from .xirang/changes/refine-change-formation/.apply-isolation.json:1-7. Reviewed git diff <baseCommit>...HEAD --name-only and git status --short: 70 committed paths and no uncommitted paths. Final git diff --check passed; working tree and index remained clean after verification. All changed paths are explicitly attributable to task Files, Check commands, or Change artifacts (tasks.md:5-22,79-90,133-142,315-363); no Delete entries exist. Counts include 14 main checked Checks and five checked Required Corrections. Read all 19 Element Delta units; the other three Delta partitions contain no units. The authored Delta has 55 Sections, including four removals, and no canonical Acceptance Cases. Loaded the formal outline, directed impact context and batched complete Contracts; the unique project.root and Metamodel context were available. Fresh arch validate --change returned success with no errors or warnings; combined validate --change accepted 68 effective entries with no issues. SchemaVersion 4, explicit nature/decision and rejection of unsupported input are enforced at src/core/record/document.ts:126-144. Selective reads retain complete selected entries and the whole-record sourceVersion while omitting unrelated entries and baseline at src/commands/record.ts:119-132; observable assertions cover response contents, unchanged bytes and stale writes at test/commands/record-json.test.ts:60-98. State-dependent coverage and required reasons are enforced at src/core/record/coverage.ts:153-230, with source/target binding and structure gates at :290-308. Exact-byte consumption and recovery remain at src/core/record/consume.ts:53-110. Historical Candidate provenance contributes exact bytes to its digest without being reparsed as an active record at src/core/candidate/validator.ts:272-281,308-323; fresh integration, validation, promotion and history tests passed. Three-role registration and capability-based native permissions are present at src/core/shared/subagent-generation.ts:26-30,72-87,124-148, consistent with design.md:45-51 and the corrected agent-workbench-projection Delta:12-24. Installation preserves user models at src/core/templates/sync-engine.ts:369-407, with four-tool integration coverage at test/core/workflow-installation.test.ts:128-149. Shared authority, selective-read cadence, user decisions, state classification and handoff are present in .xirang/references/xirang-design-record.md:5-17,60-110. Explore experiment delegation and boundaries are present in .pi/skills/xirang-explore/SKILL.md:38-62 and the independently read Experimenter evidence report documents executed commands, observations and limitations; its date typo is disclosed in tasks.md:205. Propose routing, review and source checks are present at src/core/templates/workflows/propose.ts:46-58,84-119. Contract concision preserves responsibility boundaries and 4+N at src/core/templates/fragments/xirang-fragments.ts:80-90 and .xirang/references/xirang-business-specification-standard.md:26-44. Multi-angle rg searches over source templates, role generation, projected Explore/Propose skills and shared references returned no retired blanket read-only or Propose record-maintenance prohibition. Diff-scoped added-line searches returned no stale TODO/FIXME/HACK or tests locking formal-model prose. Fresh pnpm build, pnpm exec tsc --noEmit, and the targeted suite of 26 files / 277 tests passed; the suite and both validators were run again against the fresh build. Two source-faithfulness Sections remain at WARNING confidence because actual execution produced the disclosed C4 overconstraint; current user acceptance is independently recorded at .xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55. Prior quality records served only as navigation.",
-    "timestamp": "2026-11-01T17:58:40.590Z"
+    "gitHeadCommit": "29aa5b958bbfbaa74c839644ba0f1dcf17663ea0",
+    "gitDiffSummary": "Validated the supplied absolute locations and immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0. Reviewed the union of git diff <baseCommit>...HEAD --name-only and git status --short: 70 committed paths and five unstaged paths, all attributed through explicit task Files entries, Check commands, or Change artifacts (tasks.md:5-22,86-97,140-149). HEAD was 29aa5b958bbfbaa74c839644ba0f1dcf17663ea0. No staged files or declared deletions exist. All 19 Element Delta units were read; the other three Delta partitions are absent. The current model has one Project Root; target architecture validation passed without errors or warnings. Record schema/state enforcement is implemented in document.ts:126-144; selective show preserves requested entry order and whole-record version in commands/record.ts:119-132; status-aware coverage and binding are implemented in coverage.ts:153-230,290-308; consumption retains revalidation and exact-byte snapshot handling in consume.ts:53-110. Historical Candidate provenance remains opaque and digest-bound (candidate/validator.ts:272-281; candidate-validate.test.ts:74-109). Three-role registration and native permissions are explicit (subagent-generation.ts:26-30,72-154), with user model preservation retained in sync-engine.ts:393-406. Generated record and writing rules carry the intended authority and coverage boundaries (.xirang/references/xirang-design-record.md:9-23,62-88,106-110; xirang-business-specification-standard.md:26-44). Retirement searches for the old uniform permission and confirmed-only recording restrictions returned no matches in active implementation/projections; diff-scoped TODO/FIXME/HACK search also returned no matches. The optimization removes the old repeated modelObjects(model)[type] construction: structure.ts:182-188,216-231 now builds one fresh set per call, while diagnostics remain in their original order at 234-262. Its behavior test checks removal, overlays, restoration, root flags, exact diagnostics, and unchanged inputs (structure.test.ts:159-198). Fresh verification passed 26 files/278 tests, build, typecheck, both Change validators, the four-traversal probe, and git diff --check. Summary counts use 20 checked Check/correction items and 55 authored Sections; two Sections retain the accepted execution-confidence warning. No canonical Acceptance Case entries are authored in this Delta.",
+    "timestamp": "2026-11-01T18:19:10.583Z"
+  },
+  "optimization": {
+    "directions": [
+      {
+        "location": {
+          "files": [
+            "src/core/record/structure.ts"
+          ],
+          "symbols": [
+            "modelObjects",
+            "available",
+            "validateRecordStructure"
+          ]
+        },
+        "opportunity": "validateRecordStructure builds all four model-object maps separately for each of its three available() calls, then discards three maps from every build.",
+        "impact": "For every structure validation with a present model, construct four maps once instead of twelve. Eliminate two complete traversals and two sets of object copies for every model collection, including the relationship collection whose map is not used by reference validation.",
+        "evidence": [
+          "src/core/record/structure.ts:182-188: modelObjects eagerly maps and copies elements, relationships, Element Kinds and Relationship Kinds into four new Maps.",
+          "src/core/record/structure.ts:216-223: available calls modelObjects(model)[type], retains only one map, then overlays that structure type.",
+          "src/core/record/structure.ts:227-231: validateRecordStructure calls available three times for the same model, for elements, elementKinds and relationshipKinds.",
+          "src/core/record/workspace.ts:234,269 and src/commands/record.ts:176: create, update and validate use this deterministic validation boundary. The target implementation file is tracked and appears in git diff 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0...HEAD --name-only."
+        ],
+        "recommendation": "Build modelObjects once within validateRecordStructure and pass the independent map for each requested type into the private overlay helper. Keep maps local to the invocation.",
+        "keyDesign": "Create one invocation-local set of the existing four model maps when model is non-null. available receives the selected fresh map and overlays only structure[type]. When model is null, supply separate empty maps. Keep compareStructure and exported function signatures unchanged.",
+        "preservationConstraints": [
+          "Retain structure overlay order, field merging, removed:true deletion, and the distinction between absent fields and parent:null. Each type must receive its own Map.",
+          "Retain current Map construction semantics for repeated keys: the last model object wins; apply record overlays in their existing sequence. Do not add deduplication or validation.",
+          "Preserve root normalization to root === true and shallow object-copy semantics, including isolation from the input model and input structure.",
+          "Keep diagnostic severity, code, identity, field, message and ordering identical: Element checks first, Relationship checks next, then Kind reference checks, preserving source-array and field order.",
+          "Preserve null-model initial Build behavior, public APIs, thrown RecordStructureError behavior and caller error timing. Do not cache across calls or reuse maps between create/update/validate or consume revalidation boundaries.",
+          "Preserve schemaVersion 4, nature/decision semantics, sourceVersion checks, filesystem operations and all Element Contracts. This direction changes only in-memory preparation inside structure validation."
+        ],
+        "implementationOutline": [
+          "Move the present-model modelObjects invocation to the beginning of validateRecordStructure, before constructing the three available maps.",
+          "Change only the private available helper to overlay its supplied type-specific map; pass distinct maps or distinct empty maps for a null model.",
+          "Keep all validation loops and diagnostic emission unchanged; verify that input model objects and record objects remain unmodified across repeated calls."
+        ],
+        "validation": [
+          "Baseline executed: pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts — 4 files / 52 tests passed. Rerun after implementation.",
+          "Existing structure tests assert ordered diagnostics for unknown Kinds, deleted parents, unresolved Relationship endpoints and invalid Project Root, and verify a Build record without a formal model.",
+          "Extend the existing structure behavior test with successive validations that add/remove/override the same model identities; assert expected ordered diagnostics and exact before/after equality of the model and record structures, proving no overlay leakage or input mutation.",
+          "Statically verify one modelObjects invocation per present-model validateRecordStructure call, with no invocation remaining inside the overlay helper; this proves the eliminated work without a workload-dependent latency claim."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks first because every present-model structure validation currently repeats complete model indexing and object copying three times. Removing two whole builds has a broader unconditional effect than eliminating one duplicate location-text resolution per covered Element detail.",
+        "id": "OPT-20261101T180423403Z-01",
+        "status": "implemented",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/core/record/coverage.ts"
+          ],
+          "symbols": [
+            "checkCoverage",
+            "resolves",
+            "locationText"
+          ]
+        },
+        "opportunity": "A resolved Element coverage detail calls locationText once to establish location existence and again to retrieve the exact same text for quote matching.",
+        "impact": "Resolve each valid Element detail once instead of twice, removing one element/Section/Acceptance Case search and one text construction per resolved Element detail. For a Section location this also removes a duplicate flatMap allocation and join over its Acceptance Cases.",
+        "evidence": [
+          "src/core/record/coverage.ts:128-137: locationText searches model elements, then Sections and Acceptance Cases, and constructs Declaration, Section or Acceptance Case text.",
+          "src/core/record/coverage.ts:145-146: resolves delegates every Element location to locationText solely to compare its result with undefined.",
+          "src/core/record/coverage.ts:218-221: after resolves succeeds, checkCoverage immediately calls locationText again for quote matching against the same model and location. No mutation or await separates these calls.",
+          "src/core/record/coverage.ts:259-266: recordCoverage uses checkCoverage before any coverage write. This implementation file is tracked and belongs to the immutable base scope."
+        ],
+        "recommendation": "Within the existing detail-validation branch, retain the Element location text returned by the first resolution and reuse it for existence and quote checks.",
+        "keyDesign": "After the current detail-key, uncovered, location-shape and quote-presence checks succeed, use a local branch for Element locations: compute locationText once, treat only undefined as unresolved, otherwise apply the existing comparableText/includes check to that value. Preserve resolves for non-Element locations or narrow that private helper to the remaining variants. Avoid a new global index or cache.",
+        "preservationConstraints": [
+          "Keep input-shape and empty-quote validation before model resolution, and preserve the exact diagnostic precedence and messages for malformed input, uncovered details, unresolved locations and missing quotes.",
+          "Preserve first-match Array.find semantics for elements, Sections and Acceptance Cases, including repeated keys in any model admitted by the existing callers. Do not replace find with a last-wins Map.",
+          "Distinguish undefined from an existing empty Section body: an empty string is a resolved location. Preserve exact title/definition, Section plus Acceptance Case, and Acceptance Case name/body concatenation.",
+          "Retain comparableText exactly: remove asterisks, underscores and backticks and all whitespace before substring matching. Do not add case folding, Unicode normalization or semantic interpretation.",
+          "Preserve submitted entry/detail order and duplicates, all pending/accepted/excluded/informative dispositions, missing-result detection and complete ordered diagnostics.",
+          "Keep non-Element identity resolution, saved coverage bytes and schema, sourceVersion and target fingerprint binding, write timing, failure no-write behavior, managed paths and fresh consume gates unchanged."
+        ],
+        "implementationOutline": [
+          "Retain the existing validation guards before resolving a detail location.",
+          "Resolve and retain one text value for an Element location; issue the existing unresolved diagnostic only when it is undefined, then check the quote using that same text.",
+          "Keep non-Element resolution and all persistence paths unchanged; remove the now-unneeded duplicate Element resolution path."
+        ],
+        "validation": [
+          "Rerun test/core/record/coverage.test.ts and test/core/record/consume.test.ts after implementation; the freshly executed baseline included all 33 tests in these two files and passed.",
+          "Existing coverage cases verify whitespace-insensitive matching, Section and Acceptance Case locations, wrong-location quotes, nonexistent cases, malformed quote shape, dispositions, stale source versions and failure without creating coverage output.",
+          "Extend the existing coverage rejection cases to compare complete ordered diagnostics for multiple invalid details, and exercise Declaration text and emphasis normalization, confirming unchanged observable resolution behavior.",
+          "Review the final detail control flow to prove each resolved Element detail invokes locationText only once, without moving any filesystem reads, writes or consume revalidation. No benchmark or cache-hit assumption is required."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks second: the redundant resolution is unconditional for resolved Element details and its removal is small and behavior-local, but the avoided work is narrower than repeated full-model indexing in structure validation. It is independent of the first direction.",
+        "id": "OPT-20261101T180423403Z-02",
+        "status": "pending",
+        "failureCount": 0
+      }
+    ],
+    "histories": [
+      {
+        "round": 1,
+        "timestamp": "2026-11-01T18:04:23.403Z",
+        "directions": [
+          "OPT-20261101T180423403Z-01",
+          "OPT-20261101T180423403Z-02"
+        ],
+        "selected": "OPT-20261101T180423403Z-01",
+        "outcome": "none",
+        "reason": "Two independent behavior-preserving directions meet optimization.minImpactLevel=low: reuse invocation-local model maps during structure validation, then resolve each Element coverage location once. No previous optimization attempt or failed direction is recorded in the active state/log; no rotated history exists. Fresh baseline validation passed 52 tests. Preserve the active Review warning: actual Propose execution has an explicitly accepted source-faithfulness limitation, and these optimizations do not establish that it is repaired."
+      }
+    ],
+    "directionsUsed": 1,
+    "selected": "OPT-20261101T180423403Z-01"
   }
 }

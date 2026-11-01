@@ -156,6 +156,36 @@ describe('校验记录结构与上下文', () => {
     expect(diagnostics.every(item => item.severity === 'ERROR' && item.message)).toBe(true);
   });
 
+  it('连续校验独立覆盖对象且不修改模型或记录', () => {
+    const first = structure({
+      elements: [{ identity: 'x', removed: true }, { identity: 'y', parent: 'x' }, { identity: 'root', kind: 'capability', parent: null }],
+      relationships: [{ source: 'd', kind: 'depends-on', target: 'x' }],
+      elementKinds: [{ identity: 'capability', root: true }],
+      relationshipKinds: [{ identity: 'depends-on', removed: true }],
+    });
+    const second = structure({
+      elements: [{ identity: 'd', parent: 'x' }, { identity: 'n', kind: 'capability', parent: null }],
+      relationships: [{ source: 'd', kind: 'depends-on', target: 'x' }],
+    });
+    const originalModel = structuredClone(model);
+    const originalFirst = structuredClone(first);
+    const originalSecond = structuredClone(second);
+    const firstDiagnostics = [
+      { severity: 'ERROR', code: 'UNRESOLVED_PARENT', message: 'Parent x is not in the current model or record', identity: 'y', field: 'parent' },
+      { severity: 'ERROR', code: 'UNRESOLVED_RELATIONSHIP_ENDPOINT', message: 'Endpoint x is not in the current model or record', identity: 'd -depends-on-> x', field: 'target' },
+      { severity: 'ERROR', code: 'UNKNOWN_RELATIONSHIP_KIND', message: 'Relationship Kind depends-on is not in the Metamodel or record', identity: 'd -depends-on-> x', field: 'kind' },
+    ];
+    expect(validateRecordStructure(first, model)).toEqual(firstDiagnostics);
+    expect(validateRecordStructure(second, model)).toEqual([
+      { severity: 'ERROR', code: 'UNRESOLVED_PARENT', message: 'Element Kind capability does not allow Project Root', identity: 'n', field: 'parent' },
+    ]);
+    expect(validateRecordStructure(first, model)).toEqual(firstDiagnostics);
+    expect(validateRecordStructure(structure(), model)).toEqual([]);
+    expect(model).toEqual(originalModel);
+    expect(first).toEqual(originalFirst);
+    expect(second).toEqual(originalSecond);
+  });
+
   it('无正式模型时只按记录自身解析', () => {
     const own = structure({
       elementKinds: [{ identity: 'project', contract: 'optional', root: true }],

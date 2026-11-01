@@ -72,6 +72,13 @@
   - Evidence: 复用本机记录、交接及路径测试的实际结果；用户已明确本次不处理 Windows 实际验证证据。既往 Windows 待验证说明保留在实施历史，不将本机结果冒充 Windows 通过。
   - Expect: 路径 containment、symlink 拒绝、结构解析与非受管文件保护不变，macOS/Linux/Windows 采用平台 path API；不为读取选项增加文件路径入口。
 
+- [x] C15 优化结构校验的模型索引准备
+  - Preserves: `.xirang/model/elements/design-record-operations.md` / Section "校验记录结构与上下文"
+  - Test action: modify
+  - Command: `pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts`
+  - Evidence: CLI选择方向`OPT-20261101T180423403Z-01`；一次性遍历探针`/tmp/formation-opt-structure-traversal.mjs`对built CLI模块在修改前观察四种模型集合各map三次、共12次，并因期望每种一次退出1。行为回归在旧实现已通过，资源重复作为本次优化依据，不冒充既有业务错误；修改后重建并运行同一探针，另核对每次调用只准备一次索引且不跨调用缓存。
+  - Expect: 四种模型集合各遍历一次、共4次；跨次覆盖、移除、root与Kind解析、空模型Build、完整有序诊断及模型/记录输入不变的既有行为保持。只复用单次调用的独立Map，不改compareStructure、公开接口或持久化操作。
+
 ### Task 2: 可设计并执行实验的内部角色与 Explore
 
 **Goal**: 在 Task 1 GREEN 后，由现有工具原生安装机制交付 Experimenter，Explore 可委托必要实验并使用证据继续设计；不依赖 Task 3 的 Propose 成文改动。
@@ -309,6 +316,13 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 - RC2–RC5：在相应Task Files与Check命令中补入Candidate validator、candidate-validate、Build/Explore/Propose模板测试；C4明确历史快照不按当前格式重解析而原字节仍参与digest。相关candidate-promote/history fixture及受管设计记录也补入归属，无产品代码、测试实现或提示词修改。
 - 实际验证：pnpm build、受管update、类型检查通过；C4/C5/C7/C10/C13相关既有测试合并运行12 files /173 tests全部通过；C10退役规则搜索无匹配。arch validate --change成功，combined validate --change有效且0 issues。首次组合校验暴露协调者写回的RC条目缺少Test action/Verifies/证据字段，已补齐标准Check字段后同一校验通过；该格式修正未改变问题或目标语义。git diff --check与编辑文件LSP无诊断。
 - 五项修正完成后须重新进入fresh-context Sol Review；以上为实施证据，不替代独立通过结论，Optimization与Seal尚未执行。原C11/C14验收限制和用户限定程序优化的范围保持。
+
+### Optimization Round 1：单次校验复用模型索引
+
+- fresh Sol Optimizer `c5f158dc-f586-4896-901f-c0ac4d685658`提出两个独立程序方向，载荷经validateOptimizeInput通过；CLI于round 1选择`OPT-20261101T180423403Z-01`（medium），覆盖文本重复解析方向`OPT-20261101T180423403Z-02`保持pending，本轮未实施。
+- 只修改`src/core/record/structure.ts`私有available的输入与validateRecordStructure的索引准备：有模型时每次调用构建一套四类Map，各类型使用自己的Map；无模型时helper默认参数分别建立空Map。compareStructure、modelObjects映射内容、覆盖顺序和全部诊断循环不变，无跨调用缓存、额外持久化或提示词变动。与keyDesign唯一表达差异是用helper默认参数生成各自空Map，语义仍为每次调用独立实例。
+- 在既有structure.test.ts中补充连续移除/覆盖/恢复、Kind root标志隔离、完整诊断顺序及模型与两份记录输入不变的行为回归。优化前后同组4 files /53 tests均通过；这证明所覆盖行为保持，不把本来正确的行为制造成RED。一次性built模块探针优化前为四集合各3次、总12次且断言退出1；重建后同一探针为各1次、总4次且退出0，实测消除两次整套模型遍历/Map构造，不宣称特定耗时收益。探针位于`/tmp/formation-opt-structure-traversal.mjs`，不加入持久化测试。
+- 修改后类型检查、pnpm build、arch validate --change、combined validate --change、diff --check及源码/测试LSP通过。C15首次使用change-relative路径作Preserves被组合校验拒绝，已按现有正式路径约定改为`.xirang/model/elements/design-record-operations.md`后通过；仅修正证据链接。本轮状态尚属待Review的优化改动，不提前创建successful checkpoint或上报attempt verified；失败时按已保存checkpoint及质量历史恢复。
 
 ## Required Corrections
 
