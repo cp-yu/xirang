@@ -53,6 +53,10 @@ entries:
     nature: informative
     decision: accepted
     content: 用户在完整流程终态和Astra不建议继续修改产品提示词的诊断之后，明确回复：可以的。 现在这样吧。review。不过我感觉review应该没有什么问题， Opt要优化也只有程序上的优化，提示词感觉没有什么优化空间。此前供用户裁决的具体方案为：保留当前提示词，将GLM执行偏差列为已知限制；C11/C14按真实执行覆盖已完成、仍存在已披露的来源忠实性偏差验收，再进入正式Review。现据该确认关闭本次C11/C14，不宣称六份产物语义全部通过、模型稳定或已修复complex-1 C4的超范围在途中断断言；执行与审计的边界违规及17个临时残留继续保留。父级沿用各自抽象层级语义对应的已确认判据；Windows实际执行与Explore加载问题的排除不变。独立Review按当前实现、Semantic Model及Change自行取证，不预设通过。后续Optimization只评估有代码证据和实际收益的程序优化，不继续追加提示词；本次不Archive。该条记录本Change的验收与推进授权，不引入新的通用项目语义或自动豁免未来缺陷。
+  - identity: quality-and-diagnosis-model-selection
+    nature: informative
+    decision: accepted
+    content: 用户明确要求Review和Optimization使用与主Agent相同的模型，不使用GLM Flash，并提供精确标识shuaiapi-gpt/gpt-6.1-sol。后续正式Review/Optimization在调用参数中显式指定该标识，不依赖角色默认模型。用户另行授权的上下文注入冲突检索仍使用bigmodel/glm-5.3-flash；它只读核查complex-1实际加载上下文与complex-2对照，不是正式Review，不修改产品提示词或样本。此前GLM正式Reviewer运行f6424245-3c3f-4a7d-b20a-aa440cd12723已被停止，未形成可采纳的正式结论，不恢复该停止会话；冲突检索返回后，以指定Sol模型和fresh context启动新的Review。本条仅记录本次模型选择与推进顺序，不修改生成的角色配置、不预设审查通过。
 structure:
   elements: []
   relationships: []
