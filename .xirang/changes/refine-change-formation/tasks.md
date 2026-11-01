@@ -141,7 +141,7 @@
 
 #### Checks
 
-- [ ] C11 验证简单与复杂草稿的交互及方向回退
+- [x] C11 验证简单与复杂草稿的交互及方向回退
   - Verifies: `elements/propose.md` / Section "完成 Formation 审查与确认"
   - Covers: `elements/propose.md` / Section "查缺补漏与决策确认"；`elements/propose-role.md` / Section "写入 Change 制品"；`elements/propose-workflow.md` / Section "Propose smart routing"、Section "按复杂度组织交互审阅"；`elements/post-propose-validation.md` / Section "计划一致性复核"
   - Test action: one-time
@@ -163,7 +163,7 @@
   - Command: `pnpm exec vitest run test/core/templates/design-record-reference.test.ts test/core/templates/fragments/xirang-fragments.test.ts test/core/model/business-specification.test.ts && pnpm exec tsc --noEmit && pnpm build`
   - Expect: 修改旧权限/旧覆盖协议断言后，协议 token、fail-closed 门禁及禁止操作有有效保护；4+N 结构门禁继续通过既有测试。无新增说明散文、标题顺序和例句精确锁定，类型及构建通过；一次性行为证据与持久化测试结果分开报告。
 
-- [ ] C14 使用 GLM 5.3 Flash 重复执行最新工作面并按实际失败修复
+- [x] C14 使用 GLM 5.3 Flash 重复执行最新工作面并按实际失败修复
   - Verifies: `elements/propose.md` / Section "完成 Formation 审查与确认"
   - Covers: `elements/design-record.md` / Section "确认即记录"；`elements/authoring-conventions.md` / Section "精简 Contract 表达"；`elements/propose-workflow.md` / Section "按复杂度组织交互审阅"
   - Test action: one-time
@@ -171,6 +171,12 @@
   - Expect: 未确认建议不升级为 accepted，实验事实不代替用户采纳，局部维护不误改无关条目；简单集中审阅、复杂按机制审阅，局部裁决保持 Propose，必要可行性实验返回 Explore；Contract 保留具体承诺且方案排除正确落位。父级完整表达本层承诺，子级精化这些承诺，父子在各自层级语义对应；不以缺少子级具体数值、例子或不存在 root Delta 单独判为父级失败。每项修订先以多次独立执行观察偏差频率、过程和产物；两次成功只是有限样本，不作为稳定结论。固定版本与输入收集一组结果后再决定是否修改；最新用户授权为最多8并发，各自在/tmp独立项目执行，旧两路限制保留为历史协议。Explore 已在有效上下文中加载时不要求再次加载；用户已排除的加载问题不作为本次补测目标。
 
 ## Implementation Evidence
+
+### 本次验收口径与质量阶段授权
+
+用户在终态证据与定点诊断后明确接受“真实执行覆盖已完成，但仍存在已披露的来源忠实性偏差”的本次验收口径，授权保留当前提示词并进入正式Review。据此关闭C11/C14；已有交互、记录维护、简单/复杂草稿和写作的实际执行覆盖与确定性结果作为验收依据，complex-1 C4超范围断言及其余历史执行偏差继续作为已知限制，不表述为所有样本语义通过、稳定性已证明或该断言已被修复。此前未通过记录均保留为当时结论，本段为最新用户裁决。
+
+Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判断，不预设通过；新发现的代码或制品缺陷不因本次验收而自动豁免。后续Optimization限于有代码证据和实际收益的程序优化，不继续追加产品提示词；本次不Archive。授权已通过CLI新增为记录`20261101T121133Z-25852ace`的accepted informative条目`current-change-acceptance-and-quality-scope`，版本`6cc9410a5a1295887fbbe9468a2ea7259c14fb99bc470ee5e301dc84e46e652d`；这是本Change的验收决定，不新增通用项目语义。
 
 ### Task 1
 
