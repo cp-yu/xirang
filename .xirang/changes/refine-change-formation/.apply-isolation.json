@@ -2,5 +2,6 @@
   "method": "branch",
   "branchName": "refine-change-formation",
   "originalBranch": "main",
-  "baseCommit": "17fd82bca9a2a8aa4c0f2f69297390965e7cacb0"
+  "baseCommit": "17fd82bca9a2a8aa4c0f2f69297390965e7cacb0",
+  "optimizationBaselineCommit": "20df4abd8bf4b72cb0da474fc972ea2779a956b7"
 }
