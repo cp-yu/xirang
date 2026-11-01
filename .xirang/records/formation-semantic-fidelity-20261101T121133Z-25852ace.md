@@ -33,6 +33,14 @@ entries:
       Astra 的未启用局部候选，尚待用户选择方向与实际对照验证。完整报告：/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/1a76d18e-7df1-47c1-bbd7-e829c5312e02/focused-repair/minimal-prompt-candidate.md。产品位置 src/core/templates/workflows/propose.ts Flow10 第三个 bullet 第一句，替换后续原句不变。oldText: Challenge the complete mechanism and its acceptance outcomes: try relevant boundary or competing-event sequences, tracing initial state, event order and expected outcome against invariants, timing and failure behavior.
       newText: Challenge the complete mechanism and its acceptance outcomes. For the draft's concrete Acceptance Case and Check inputs, first derive the observable results from the confirmed source without using the authored expected results as premises; leave source-undetermined observations undetermined. Then compare that derivation with the actual Acceptance Case and Check assertions. Extend the same derivation to relevant boundary or competing-event sequences, tracing initial state and event order against invariants, timing and failure behavior.
       拟改变的动作：先以具体输入和确认来源推导结果，再比较已有 AC/Check 的断言；来源未定的观察保持未定，不以草稿答案作推导前提。因果仍是假设，8次既有执行均未使用此候选；不宣称修复父级范围遗漏，也不新增重复审查阶段、固定表格或逐条报告。保持现状是合理备选，Flow5父级完整性已有足够具体的规则，不建议再加同义要求。验证须冻结版本与输入、使用独立 fresh GLM 实际执行并整组收齐后判断；分别检查顺序、未授权验收断言、语义保留与父级自身承诺，不把子级修复计作父级成功。可见过程证据只采集简短输入/来源/可观察结果，不索取隐藏思维；正确答案或CLI通过不能证明执行了该动作。当前产品未修改，未运行候选，不构成正式 Review/Optimization/Seal。
+  - identity: source-first-comparison-authorization
+    nature: informative
+    decision: accepted
+    content: 用户对上一轮提出的单句候选隔离对照验证明确回复：开始吧。授权范围为冻结原版与 Astra 候选版、相同来源和草稿、多次 fresh bigmodel/glm-5.3-flash 实际执行、最多两路并发，整组收齐后比较语义结果；保留原始拒绝和失败，不替换样本。此次实验不启用产品候选，不代表用户已采纳候选或已完成正式 Review/Optimization/Seal。隔离证据目录：/tmp/formation-source-first-ab-iaajT8yV。
+  - identity: source-first-comparison-setup-stop
+    nature: informative
+    decision: pending
+    content: 原版/候选对照首轮搭建中止，待用户审阅。workflow cd6728be-a487-4366-89c8-dab925d5e606，setup 774651a2-9dfd-46c5-8c1f-bfb036a0234d。搭建脚本首个CLI copytree因漏导入shutil抛NameError，遗留空tool/目录；修复导入后，含rm -rf tool与额外sed操作的复合bash命令被自动隐私/安全审批拒绝，返回deletes_data=0.35、user_requested=0.04并要求不得换工具或命令绕过。主体运行数0/20，20项目目录、manifest和preflight均未生成，CLI预检未运行，不能形成候选收益或语义结论。父协调器已解析实际toolCall/toolResult核对：1次拒绝，拒绝后只读现场并保存STOP/报告，没有等效清理重试或继续搭建。实际证据 /tmp/formation-source-first-ab-iaajT8yV/evidence/parent-stop-audit.json，原STOP.json及脚本保留。主产品提示词未变。备选恢复办法为保留空目录，仅在目录确实为空且不是符号链接时复用，非空目录或非目录仍拒绝；精确未应用补丁 /tmp/formation-source-first-ab-iaajT8yV/resume-empty-directory.inactive.patch，git apply --check已通过，未执行恢复，尚需用户对拒绝后的继续方式作出决定。
 structure:
   elements: []
   relationships: []
