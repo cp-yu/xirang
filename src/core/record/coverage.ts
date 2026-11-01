@@ -142,8 +142,7 @@ function comparableText(value: string): string {
   return value.replace(/[*_`]/g, '').replace(/\s+/g, '');
 }
 
-function resolves(model: SemanticModel, location: Location): boolean {
-  if ('element' in location) return locationText(model, location) !== undefined;
+function resolves(model: SemanticModel, location: Exclude<Location, { element: string }>): boolean {
   if ('relationship' in location) return model.relationships.some(item => relationshipIdentity(item) === relationshipIdentity(location.relationship));
   if ('elementKind' in location) return model.elementKinds.some(item => item.identity === location.elementKind);
   if ('relationshipKind' in location) return model.relationshipKinds.some(item => item.identity === location.relationshipKind);
@@ -215,10 +214,15 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
         report('COVERAGE_DETAIL_UNCOVERED', identity, `Detail "${detail.detail}" is uncovered: ${String(detail.uncovered)}`);
       } else if (!locationShape(detail.location) || (elementLocation && !nonEmpty(detail.quote))) {
         report('INVALID_COVERAGE_INPUT', identity, `Detail "${detail.detail}" has an invalid location or empty quote`);
-      } else if (!resolves(model, detail.location as Location)) {
-        report('COVERAGE_LOCATION_UNRESOLVED', identity, `Detail "${detail.detail}" points to a location absent from the target: ${canonicalJson(detail.location)}`);
-      } else if (elementLocation && !comparableText(locationText(model, detail.location as { element: string })!).includes(comparableText(detail.quote as string))) {
-        report('COVERAGE_QUOTE_NOT_FOUND', identity, `Detail "${detail.detail}" quote does not appear at ${canonicalJson(detail.location)}: ${String(detail.quote)}`);
+      } else {
+        const location = detail.location as Location;
+        const text = 'element' in location ? locationText(model, location) : undefined;
+        const resolved = 'element' in location ? text !== undefined : resolves(model, location);
+        if (!resolved) {
+          report('COVERAGE_LOCATION_UNRESOLVED', identity, `Detail "${detail.detail}" points to a location absent from the target: ${canonicalJson(detail.location)}`);
+        } else if (elementLocation && !comparableText(text!).includes(comparableText(detail.quote as string))) {
+          report('COVERAGE_QUOTE_NOT_FOUND', identity, `Detail "${detail.detail}" quote does not appear at ${canonicalJson(detail.location)}: ${String(detail.quote)}`);
+        }
       }
     });
     entries.push(entry as unknown as CoverageEntry);

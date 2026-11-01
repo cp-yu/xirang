@@ -79,6 +79,13 @@
   - Evidence: CLI选择方向`OPT-20261101T180423403Z-01`；一次性遍历探针`/tmp/formation-opt-structure-traversal.mjs`对built CLI模块在修改前观察四种模型集合各map三次、共12次，并因期望每种一次退出1。行为回归在旧实现已通过，资源重复作为本次优化依据，不冒充既有业务错误；修改后重建并运行同一探针，另核对每次调用只准备一次索引且不跨调用缓存。
   - Expect: 四种模型集合各遍历一次、共4次；跨次覆盖、移除、root与Kind解析、空模型Build、完整有序诊断及模型/记录输入不变的既有行为保持。只复用单次调用的独立Map，不改compareStructure、公开接口或持久化操作。
 
+- [x] C16 复用覆盖检查中的位置文本
+  - Verifies: `elements/design-record-operations.md` / Section "记录覆盖检查结果"
+  - Test action: modify
+  - Command: `pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts`
+  - Evidence: CLI选择`OPT-20261101T180423403Z-02`；一次性探针`/tmp/formation-opt-coverage-resolution.mjs`在相同Declaration、Section、Acceptance Case三个细节上，修改前find次数为elements=6、sections=4、acceptanceCases=2，修改后为3、2、1，诊断均为空。新增行为回归在修改前已通过，不将优化描述为业务错误修复。
+  - Expect: 每个Element细节只解析一次；保留格式/空摘录检查优先、完整诊断顺序、首次匹配、原有文本拼接及强调/空白归一化、非Element身份解析、来源版本与指纹及失败不写入行为。
+
 ### Task 2: 可设计并执行实验的内部角色与 Explore
 
 **Goal**: 在 Task 1 GREEN 后，由现有工具原生安装机制交付 Experimenter，Explore 可委托必要实验并使用证据继续设计；不依赖 Task 3 的 Propose 成文改动。
@@ -323,6 +330,13 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 - 只修改`src/core/record/structure.ts`私有available的输入与validateRecordStructure的索引准备：有模型时每次调用构建一套四类Map，各类型使用自己的Map；无模型时helper默认参数分别建立空Map。compareStructure、modelObjects映射内容、覆盖顺序和全部诊断循环不变，无跨调用缓存、额外持久化或提示词变动。与keyDesign唯一表达差异是用helper默认参数生成各自空Map，语义仍为每次调用独立实例。
 - 在既有structure.test.ts中补充连续移除/覆盖/恢复、Kind root标志隔离、完整诊断顺序及模型与两份记录输入不变的行为回归。优化前后同组4 files /53 tests均通过；这证明所覆盖行为保持，不把本来正确的行为制造成RED。一次性built模块探针优化前为四集合各3次、总12次且断言退出1；重建后同一探针为各1次、总4次且退出0，实测消除两次整套模型遍历/Map构造，不宣称特定耗时收益。探针位于`/tmp/formation-opt-structure-traversal.mjs`，不加入持久化测试。
 - 修改后类型检查、pnpm build、arch validate --change、combined validate --change、diff --check及源码/测试LSP通过。C15首次使用change-relative路径作Preserves被组合校验拒绝，已按现有正式路径约定改为`.xirang/model/elements/design-record-operations.md`后通过；仅修正证据链接。本轮状态尚属待Review的优化改动，不提前创建successful checkpoint或上报attempt verified；失败时按已保存checkpoint及质量历史恢复。
+
+### Optimization Round 2：复用覆盖位置文本
+
+- fresh Sol Optimizer `c593c049-acfb-4e6f-bdfe-613219269c99`验证上一轮并保留待选方向，另提出低优先级的summary计数优化。完整载荷经validateOptimizeInput通过后原样提交CLI，round 2将`OPT-20261101T180423403Z-01`记为verified并选择`OPT-20261101T180423403Z-02`；新方向`OPT-20261101T182523356Z-01`保持pending。
+- 只调整coverage.ts的细节校验分支：所有既有输入守卫通过后，Element位置调用locationText一次，分别用于undefined存在检查与原样摘录匹配；私有resolves收窄至非Element变体。符合keyDesign，无跨调用缓存、新索引、持久化时序或产品提示词修改；locationText、comparableText及其首次匹配与空字符串语义不变。
+- 在既有coverage.test.ts增加Declaration摘录与Markdown强调归一化、输入不变及提交顺序验证，并比较格式错误/未覆盖/空摘录/位置缺失/摘录不符的完整有序诊断；失败后已存在覆盖文件字节不变。新增用例在旧实现已通过（2 files /35 tests）；修改后4 files /55 tests与类型检查通过。一次性源码转译探针使用相同模型与三个细节，find次数由6/4/2降为3/2/1，诊断均为空，证明重复搜索减少，不作耗时或总体负载收益声明。
+- pnpm build、类型检查、arch validate --change、combined validate --change均通过，架构0 errors/0 warnings、组合校验0 issues；git diff --check及源码/测试LSP无诊断。本轮程序与验证证据准备交由fresh Sol Review；尚未创建successful checkpoint或提前上报本轮verified，既有来源忠实性与Windows实际执行限制保持。
 
 ## Required Corrections
 

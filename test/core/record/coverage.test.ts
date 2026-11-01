@@ -49,6 +49,41 @@ describe('记录覆盖检查结果', () => {
     expect(saved).toMatchObject({ schemaVersion: 1, explorationId: id, sourceVersion: record.sourceVersion, targetFingerprint: result.targetFingerprint, entries: covered.entries });
   });
 
+  it('声明摘录忽略排版强调并保留提交的细节顺序', async () => {
+    const { root, changeDir, record, id } = await changeSetup();
+    const input = { entries: [
+      { ...covered.entries[0], details: [{ detail: '声明标题', location: { element: 'select' }, quote: '*select*' }, ...covered.entries[0].details] },
+      { ...covered.entries[1], details: [{ ...covered.entries[1].details[0], quote: '**最多** _5_ `本`' }] },
+    ] };
+    const before = structuredClone(input);
+    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, input);
+    expect(JSON.parse(await fs.readFile(path.join(changeDir, 'record-coverage.json'), 'utf8')).entries).toEqual(input.entries);
+    expect(input).toEqual(before);
+  });
+
+  it('按细节顺序保留格式、未覆盖、位置与摘录诊断且不覆盖已有结果', async () => {
+    const { root, changeDir, record, id } = await changeSetup();
+    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, covered);
+    const destination = path.join(changeDir, 'record-coverage.json');
+    const before = await fs.readFile(destination);
+    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, {
+      entries: [covered.entries[0], { identity: 'limit', result: 'covered', details: [
+        { detail: '格式优先', location: { element: 'missing' } },
+        { detail: '尚未覆盖', uncovered: '等待确认' },
+        { detail: '空摘录优先', location: { element: 'missing' }, quote: '' },
+        { detail: '位置缺失', location: { element: 'missing' }, quote: '最多 5 本' },
+        { detail: '摘录不符', location: { element: 'kept', section: '限额' }, quote: '最多 3 本' },
+      ] }],
+    })).rejects.toMatchObject({ code: 'INVALID_COVERAGE', diagnostics: [
+      { severity: 'ERROR', code: 'INVALID_COVERAGE_INPUT', identity: 'limit', message: 'Detail 1 must be { detail, location, quote } for an Element location, { detail, location } otherwise, or { detail, uncovered }' },
+      { severity: 'ERROR', code: 'COVERAGE_DETAIL_UNCOVERED', identity: 'limit', message: 'Detail "尚未覆盖" is uncovered: 等待确认' },
+      { severity: 'ERROR', code: 'INVALID_COVERAGE_INPUT', identity: 'limit', message: 'Detail "空摘录优先" has an invalid location or empty quote' },
+      { severity: 'ERROR', code: 'COVERAGE_LOCATION_UNRESOLVED', identity: 'limit', message: 'Detail "位置缺失" points to a location absent from the target: {"element":"missing"}' },
+      { severity: 'ERROR', code: 'COVERAGE_QUOTE_NOT_FOUND', identity: 'limit', message: 'Detail "摘录不符" quote does not appear at {"element":"kept","section":"限额"}: 最多 3 本' },
+    ] });
+    expect(await fs.readFile(destination)).toEqual(before);
+  });
+
   it.each([
     ['缺少 normative 条目', { entries: [covered.entries[0]] }, 'COVERAGE_ENTRY_MISSING', 'limit'],
     ['未知条目', { entries: [...covered.entries, { identity: 'ghost', result: 'covered', details: covered.entries[1].details }] }, 'COVERAGE_ENTRY_UNKNOWN', 'ghost'],

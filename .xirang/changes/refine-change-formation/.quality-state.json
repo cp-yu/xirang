@@ -1,38 +1,40 @@
 {
   "kind": "review",
-  "timestamp": "2026-11-01T18:19:10.583Z",
+  "timestamp": "2026-11-01T18:37:44.166Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "Actual workflow execution still shows the explicitly accepted source-faithfulness limitation: complex-1 C4 requires an in-flight attempt to remain uninterrupted although its Contract leaves that outcome open.",
+      "message": "Actual Propose execution retains the explicitly accepted source-faithfulness limitation: complex-1 C4 requires an in-flight attempt to remain uninterrupted although its Contract leaves that outcome open.",
       "section": "完成 Formation 审查与确认 / 计划一致性复核",
       "task": "Task 3 / C11 / C14",
-      "recommendation": "Retain this limitation in the quality result. Do not describe successful CLI validation, coverage, or consumption as proof that every generated obligation faithfully preserves its source. The recorded user acceptance permits this disclosed limitation for this Change.",
+      "recommendation": "Retain the qualification when reporting readiness. Do not describe the samples as universally source-faithful, the C4 assertion as repaired, or successful deterministic validation as proof of semantic completeness. The recorded user acceptance permits this disclosed limitation for this Change.",
       "evidenceCitations": [
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:50-54",
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-16",
-        ".xirang/changes/refine-change-formation/tasks.md:190-198",
-        ".xirang/changes/refine-change-formation/tasks.md:304-309",
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:36-54",
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-28",
+        ".xirang/changes/refine-change-formation/tasks.md:197-205",
+        ".xirang/changes/refine-change-formation/tasks.md:311-313",
         ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55",
-        "src/core/templates/workflows/propose.ts:105-113"
+        ".pi/skills/xirang-propose/SKILL.md:147-155"
       ]
     },
     {
       "severity": "WARNING",
-      "message": "Windows execution evidence remains unavailable; Linux tests and portable path construction support the implementation but do not establish Windows runtime behavior.",
+      "message": "Windows execution remains unverified; portable path construction and Linux tests do not establish Windows runtime behavior.",
       "section": "跨平台路径及安装更新",
       "task": "Task 1 / C6; Task 2 / C8",
-      "recommendation": "Preserve the disclosed platform limitation and obtain Windows CI evidence when that environment is available. Do not report Windows execution as verified.",
+      "recommendation": "Preserve the platform qualification. Windows execution evidence is explicitly outside this Change's accepted scope; obtain it separately when an appropriate environment is available.",
       "evidenceCitations": [
-        ".xirang/changes/refine-change-formation/tasks.md:202-209",
-        "src/core/workflow-installation.ts:90-110",
+        ".xirang/changes/refine-change-formation/tasks.md:68-73",
+        ".xirang/changes/refine-change-formation/tasks.md:121-125",
+        ".xirang/changes/refine-change-formation/tasks.md:212-216",
+        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:17-20",
         "src/core/templates/sync-engine.ts:379-406",
-        "test/core/workflow-installation.test.ts:1-350"
+        "test/core/record/paths.test.ts:11-39"
       ]
     }
   ],
-  "tasksFileHash": "5a174c57c378c4c0727c9937c3a13fd2bb48a842d715c44110511d4758de8cb6",
+  "tasksFileHash": "bcd37afa8e355e49f087a206f5961558dfcf72902f07240d550de5bc4aed2155",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -44,6 +46,7 @@
       ".xirang/changes/refine-change-formation/.apply-isolation.json",
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json",
+      ".xirang/changes/refine-change-formation/.xirang.yaml",
       ".xirang/changes/refine-change-formation/design.md",
       ".xirang/changes/refine-change-formation/elements/agent-workbench-projection.md",
       ".xirang/changes/refine-change-formation/elements/authoring-conventions.md",
@@ -86,6 +89,7 @@
       ".xirang/model/elements/propose-role.md",
       ".xirang/model/elements/propose-workflow.md",
       ".xirang/model/elements/propose.md",
+      ".xirang/model/elements/reviewer-cleanliness.md",
       ".xirang/model/elements/semantic-model-build.md",
       ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",
       ".xirang/references/xirang-business-specification-standard.md",
@@ -139,7 +143,7 @@
       "test/integration/record-workflow.test.ts",
       "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "cb9e4340921f9f9df21c4de34c00d3c1098c87980e11681f44c54b28211e525b",
+    "evidenceFingerprint": "c3e4d70793917693f73ef9a483fd8862c03ab8c0a167754c82ab0abf4a747ec3",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-experimenter.md",
@@ -164,6 +168,10 @@
       {
         "path": ".xirang/changes/refine-change-formation/.apply-isolation.json",
         "hash": "18de92a27949d216105b6b5152473280d689256cc90222dbfdc6f127167a59a7"
+      },
+      {
+        "path": ".xirang/changes/refine-change-formation/.xirang.yaml",
+        "hash": "00c9615559d27f902f38301abf1c21f324c0e00172da10d3f7c2ad28809e262d"
       },
       {
         "path": ".xirang/changes/refine-change-formation/design.md",
@@ -259,7 +267,7 @@
       },
       {
         "path": ".xirang/changes/refine-change-formation/tasks.md",
-        "hash": "5a174c57c378c4c0727c9937c3a13fd2bb48a842d715c44110511d4758de8cb6"
+        "hash": "bcd37afa8e355e49f087a206f5961558dfcf72902f07240d550de5bc4aed2155"
       },
       {
         "path": ".xirang/model/elements/agent-workbench-projection.md",
@@ -334,6 +342,10 @@
         "hash": "8bae611f22116f0f2c50e1f7fc3aa7000844c6d53f5f9ce5454d75dac5423909"
       },
       {
+        "path": ".xirang/model/elements/reviewer-cleanliness.md",
+        "hash": "8a0af2a1eb20c1b1b97175b2cae2ae601225bd16f22938ccf1b13d38f077d1ee"
+      },
+      {
         "path": ".xirang/model/elements/semantic-model-build.md",
         "hash": "b5993dc8ab8f7eeeeba327d0a6a2cb9f6e06c1cd9d24ac4c122f306274c84e1c"
       },
@@ -375,7 +387,7 @@
       },
       {
         "path": "src/core/record/coverage.ts",
-        "hash": "9c5350d85a126d24185ab2e2db0cf31c6d2379fd03a30566dac44ff1bf0c3895"
+        "hash": "24acc46e4e575863b8bc7a09ea2bbe722f642b23a76f3452dd741b4f1c9ee01f"
       },
       {
         "path": "src/core/record/document.ts",
@@ -475,7 +487,7 @@
       },
       {
         "path": "test/core/record/coverage.test.ts",
-        "hash": "c26b659ac8e7c7731535236097b322764b340b4230f306367d818404ca960d4d"
+        "hash": "aed6af250ed83dd17787dce94b531a694f46a7b071f930adb6cce87e825d8d32"
       },
       {
         "path": "test/core/record/diff.test.ts",
@@ -546,9 +558,9 @@
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json"
     ],
-    "gitHeadCommit": "29aa5b958bbfbaa74c839644ba0f1dcf17663ea0",
-    "gitDiffSummary": "Validated the supplied absolute locations and immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0. Reviewed the union of git diff <baseCommit>...HEAD --name-only and git status --short: 70 committed paths and five unstaged paths, all attributed through explicit task Files entries, Check commands, or Change artifacts (tasks.md:5-22,86-97,140-149). HEAD was 29aa5b958bbfbaa74c839644ba0f1dcf17663ea0. No staged files or declared deletions exist. All 19 Element Delta units were read; the other three Delta partitions are absent. The current model has one Project Root; target architecture validation passed without errors or warnings. Record schema/state enforcement is implemented in document.ts:126-144; selective show preserves requested entry order and whole-record version in commands/record.ts:119-132; status-aware coverage and binding are implemented in coverage.ts:153-230,290-308; consumption retains revalidation and exact-byte snapshot handling in consume.ts:53-110. Historical Candidate provenance remains opaque and digest-bound (candidate/validator.ts:272-281; candidate-validate.test.ts:74-109). Three-role registration and native permissions are explicit (subagent-generation.ts:26-30,72-154), with user model preservation retained in sync-engine.ts:393-406. Generated record and writing rules carry the intended authority and coverage boundaries (.xirang/references/xirang-design-record.md:9-23,62-88,106-110; xirang-business-specification-standard.md:26-44). Retirement searches for the old uniform permission and confirmed-only recording restrictions returned no matches in active implementation/projections; diff-scoped TODO/FIXME/HACK search also returned no matches. The optimization removes the old repeated modelObjects(model)[type] construction: structure.ts:182-188,216-231 now builds one fresh set per call, while diagnostics remain in their original order at 234-262. Its behavior test checks removal, overlays, restoration, root flags, exact diagnostics, and unchanged inputs (structure.test.ts:159-198). Fresh verification passed 26 files/278 tests, build, typecheck, both Change validators, the four-traversal probe, and git diff --check. Summary counts use 20 checked Check/correction items and 55 authored Sections; two Sections retain the accepted execution-confidence warning. No canonical Acceptance Case entries are authored in this Delta.",
-    "timestamp": "2026-11-01T18:19:10.583Z"
+    "gitHeadCommit": "269cc4706b4cc1a057164313c2b278b9c965665b",
+    "gitDiffSummary": "Reviewed HEAD 269cc4706b4cc1a057164313c2b278b9c965665b against immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0, resolved from .xirang/changes/refine-change-formation/.apply-isolation.json:1-7. Validated the supplied absolute projectRoot, changeDir and changeName. git diff <baseCommit>...HEAD --name-only returned 70 paths. git status --short returned five unstaged paths: the Change's quality log, quality state and tasks, plus coverage.ts and coverage.test.ts. Their union is fully attributed by explicit task Files, Check commands or Change artifacts (tasks.md:5-22,93-104,147-156). No staged files or declared deletions exist; git diff --check passed. Read all 19 Delta units and inspected all four Delta partitions; only elements contains units. Counts represent 21 checked Checks/corrections and 55 explicitly authored Sections, including four removals; the Delta contains no canonical Acceptance Case entries. Two source-faithfulness Sections retain WARNING confidence under the recorded acceptance. Loaded the complete formal outline, directed impact context and selected complete Contracts. Architecture validation passed without errors or warnings; combined Change validation passed with no issues and 68 effective entries. SchemaVersion 4 and explicit decisions are enforced at src/core/record/document.ts:126-144. Selective reads preserve complete requested entries and the whole-record sourceVersion at src/commands/record.ts:119-132, with response, unchanged-byte and stale-version assertions at test/commands/record-json.test.ts:60-98. State-sensitive coverage, required dispositions and quote validation remain at src/core/record/coverage.ts:152-235; source/target binding and structure agreement remain at :295-313. Exact-byte consumption and fresh revalidation remain at src/core/record/consume.ts:53-110. Historical Candidate provenance remains opaque and digest-bound at src/core/candidate/validator.ts:272-281,308-323, consistent with design.md:69-79. Three-role registration and native permissions follow capabilities at src/core/shared/subagent-generation.ts:26-30,72-87,124-154; user model preservation remains at src/core/templates/sync-engine.ts:393-406. Shared record authority and handoff rules are present in .xirang/references/xirang-design-record.md:5-23,60-110; actual-draft review and source checks are present in .pi/skills/xirang-propose/SKILL.md:86-100,125-163. Contract concision retains complete local commitments and 4+N in .pi/skills/xirang-build/SKILL.md:32-41 and .xirang/references/xirang-business-specification-standard.md:26-44. C10's specified rg retirement search and an additional search across source templates, role rendering, Explore/Propose projections and references returned no old blanket permission or Propose record-maintenance prohibition. Diff-scoped added-line searches returned no stale TODO/FIXME/HACK or tests reading formal-model prose. The structure optimization removes repeated modelObjects construction: src/core/record/structure.ts:216-231 prepares distinct invocation-local maps once; its validation loops remain unchanged at :234-262 and the isolation regression is at test/core/record/structure.test.ts:159-198. The current coverage optimization removes the old Element resolution branch from resolves at coverage.ts:145-149 and retains one locationText result for existence and quote checking at :217-225, preserving guard and diagnostic precedence at :211-224. Regression tests cover declaration/emphasis matching, submitted detail order, complete ordered diagnostics and preservation of an existing coverage file at test/core/record/coverage.test.ts:52-85. Independent probes passed with Element/Section/Acceptance Case find counts 3/2/1 for three details and one indexing traversal per model collection. Fresh typecheck, build and 26 targeted test files totaling 280 tests passed. Prior quality records were navigation only; this result rests on current files and fresh verification.",
+    "timestamp": "2026-11-01T18:37:44.166Z"
   },
   "optimization": {
     "directions": [
@@ -599,7 +611,7 @@
         "dependencies": [],
         "priorityReason": "Ranks first because every present-model structure validation currently repeats complete model indexing and object copying three times. Removing two whole builds has a broader unconditional effect than eliminating one duplicate location-text resolution per covered Element detail.",
         "id": "OPT-20261101T180423403Z-01",
-        "status": "implemented",
+        "status": "verified",
         "failureCount": 0
       },
       {
@@ -649,6 +661,53 @@
         "dependencies": [],
         "priorityReason": "Ranks second: the redundant resolution is unconditional for resolved Element details and its removal is small and behavior-local, but the avoided work is narrower than repeated full-model indexing in structure validation. It is independent of the first direction.",
         "id": "OPT-20261101T180423403Z-02",
+        "status": "implemented",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/core/record/structure.ts"
+          ],
+          "symbols": [
+            "summarizeRecord"
+          ]
+        },
+        "opportunity": "summarizeRecord traverses payload.entries four times and allocates four filtered arrays solely to count normative entries and the three decision states.",
+        "impact": "Compute all entry counts in one traversal without temporary filtered arrays. This removes three complete entry scans and four intermediate arrays on every summary calculation.",
+        "evidence": [
+          "src/core/record/structure.ts:271-278 performs four independent filter(...).length operations over the same entries array.",
+          "src/core/record/workspace.ts:280 returns summarizeRecord(payload) after a successful update; src/commands/record.ts:185 also uses it for record validation.",
+          ".xirang/changes/refine-change-formation/elements/design-record-operations.md:32 requires normative and decision-state counts in the returned summary; it does not prescribe an aggregation algorithm.",
+          "src/core/record/structure.ts is tracked and belongs to git diff 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0...HEAD --name-only. This aggregation boundary is independent of the implemented model-indexing direction."
+        ],
+        "recommendation": "Count normative entries and decision states together using invocation-local numeric counters, then return the existing RecordSummary shape.",
+        "keyDesign": "Initialize normativeEntries and pending/accepted/excluded counters to zero. Traverse entries once, checking nature independently from decision so informative entries still contribute to decision totals. Use explicit comparisons for recognized decision values. Retain the existing returned property order and direct structure-array length calculations. Array.forEach can preserve filter's handling of sparse arrays without allocating result arrays.",
+        "preservationConstraints": [
+          "Preserve the exported signature, RecordSummary fields, property order and numeric values, including zero counts.",
+          "Count nature independently from decision: every normative entry contributes to normativeEntries regardless of decision, and informative entries contribute to their decision-state count.",
+          "Count every present entry occurrence without deduplication, reordering, mutation or cross-call caching. Preserve entries as the original array length.",
+          "Preserve the existing explicit equality semantics; unexpected decision values must not create additional keys or NaN counters.",
+          "Keep all structure counts as their respective array lengths. Preserve record schema, source versions, diagnostics, persistence ordering and all Element Contracts."
+        ],
+        "implementationOutline": [
+          "Replace the four filter-based counts inside summarizeRecord with local counters populated by one traversal.",
+          "Keep the existing return object layout and structure counts unchanged.",
+          "Verify empty input, mixed nature/decision combinations and repeated calls without modifying their inputs."
+        ],
+        "validation": [
+          "Fresh baseline passed: pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts — 4 files, 53 tests.",
+          "Extend the existing summary assertion in test/core/record/structure.test.ts with mixed normative/informative entries across pending, accepted and excluded; compare the complete summary and unchanged payload.",
+          "Verify zero counts for empty entries with a nonempty structure, and verify that repeated calls return equal independent summaries.",
+          "Statically confirm one entry traversal and no filter-result arrays remain in summarizeRecord. The benefit is reduced deterministic work; no latency or workload claim is required."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Ranks after the existing pending OPT-20261101T180423403Z-02: avoiding duplicate Element/Section/Acceptance Case resolution removes searches and text construction, while this direction removes simpler counting scans and allocations. Both meet optimization.minImpactLevel=low and are independent.",
+        "id": "OPT-20261101T182523356Z-01",
         "status": "pending",
         "failureCount": 0
       }
@@ -664,9 +723,28 @@
         "selected": "OPT-20261101T180423403Z-01",
         "outcome": "none",
         "reason": "Two independent behavior-preserving directions meet optimization.minImpactLevel=low: reuse invocation-local model maps during structure validation, then resolve each Element coverage location once. No previous optimization attempt or failed direction is recorded in the active state/log; no rotated history exists. Fresh baseline validation passed 52 tests. Preserve the active Review warning: actual Propose execution has an explicitly accepted source-faithfulness limitation, and these optimizations do not establish that it is repaired."
+      },
+      {
+        "round": 2,
+        "timestamp": "2026-11-01T18:25:23.356Z",
+        "directions": [
+          "OPT-20261101T182523356Z-01"
+        ],
+        "selected": "OPT-20261101T180423403Z-02",
+        "outcome": "verified",
+        "reason": "Verified OPT-20261101T180423403Z-01 with 53 passing tests and an independent traversal probe. Retain pending OPT-20261101T180423403Z-02 unchanged; add one independent summary-counting direction meeting minImpactLevel=low. Continue the loop, preserving the accepted source-faithfulness and Windows execution limitations.",
+        "evidence": [
+          "src/core/record/structure.ts:228 invokes modelObjects once; lines 229-231 pass distinct maps to available. The helper at lines 216-222 no longer rebuilds model maps. Validation loops and diagnostic emission remain unchanged.",
+          "The diff against optimizationBaselineCommit 20df4abd8bf4b72cb0da474fc972ea2779a956b7 contains only the intended helper/map preparation changes and the behavioral isolation regression test.",
+          "test/core/record/structure.test.ts:159-198 checks successive removal and overlay validations, restoration between calls, root flags, exact ordered diagnostics and unchanged model/structure inputs.",
+          "Fresh focused validation passed 4 files and 53 tests covering structure, coverage, consumption and workspace behavior.",
+          "A read-only probe transpiled baseline and current structure implementations and counted model collection traversals: elements, relationships, elementKinds and relationshipKinds each changed from three traversals to one. All four emitted diagnostics were identical and in the same order.",
+          "git diff --check passed. git status --porcelain=v1 returned no entries; this review changed no files and staged nothing.",
+          "The active Review is PASS_WITH_WARNINGS. Residual risks remain: actual Propose execution retains the explicitly accepted source-faithfulness limitation, and Windows runtime execution remains unverified. These optimizations do not establish that either limitation is resolved."
+        ]
       }
     ],
-    "directionsUsed": 1,
-    "selected": "OPT-20261101T180423403Z-01"
+    "directionsUsed": 2,
+    "selected": "OPT-20261101T180423403Z-02"
   }
 }
