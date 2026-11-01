@@ -1,125 +1,38 @@
 {
   "kind": "review",
-  "timestamp": "2026-11-01T17:30:10.269Z",
-  "result": "FAIL_NEEDS_CORRECTIONS",
+  "timestamp": "2026-11-01T17:46:49.418Z",
+  "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
-      "severity": "CRITICAL",
-      "message": "Expected Semantic Model contradiction: agent-workbench-projection still requires exactly two internal agents, while its refinement and implementation register three.",
-      "section": "Internal subagent 模板注册",
-      "task": "Task 2 / C7",
-      "recommendation": "Reconcile the affected agent-workbench-projection Contract through this Change's Semantic Delta and proposal scope, then validate the resulting model. This is an explicit roster contradiction, independent of the previously discussed parent abstraction criteria.",
-      "evidenceCitations": [
-        ".xirang/model/elements/agent-workbench-projection.md:45-52",
-        ".xirang/changes/refine-change-formation/elements/internal-subagent-generation.md:24-28",
-        ".xirang/changes/refine-change-formation/proposal.md:21-39",
-        "src/core/shared/subagent-generation.ts:26-30"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: src/core/candidate/validator.ts changes Candidate provenance validation outside the explicit Files/Command attribution universe.",
-      "section": "Build provenance validation",
-      "task": "Task 1 / C4",
-      "recommendation": "Supplement Task 1 Files and verification commands to attribute the historical-provenance validation change (artifact_fix), or remove that change (code_fix). The implementation evidence paragraph explains the change but does not add it to the explicit attribution universe.",
-      "evidenceCitations": [
-        "src/core/candidate/validator.ts:272-281",
-        "src/core/candidate/validator.ts:308-323",
-        ".xirang/changes/refine-change-formation/tasks.md:5-17",
-        ".xirang/changes/refine-change-formation/tasks.md:48-53",
-        ".xirang/changes/refine-change-formation/tasks.md:199-199"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: test/commands/candidate-validate.test.ts changes the accepted provenance behavior without an explicit task Files or Check Command entry.",
-      "section": "Build provenance validation",
-      "task": "Task 1 / C4",
-      "recommendation": "Declare this behavioral regression test in Task 1 Files and the relevant Check Command (artifact_fix), or remove the change (code_fix). Its historical-schema acceptance assertion is substantive test behavior.",
-      "evidenceCitations": [
-        "test/commands/candidate-validate.test.ts:74-105",
-        ".xirang/changes/refine-change-formation/tasks.md:5-17",
-        ".xirang/changes/refine-change-formation/tasks.md:48-53"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: test/core/templates/build.test.ts changes maintained coverage-protocol assertions outside the explicit attribution universe.",
-      "section": "共享记录协议与测试维护",
-      "task": "Task 1 / C5",
-      "recommendation": "Add the changed test file to the responsible task Files and verification arrangement (artifact_fix), or remove its changes (code_fix). General test-maintenance prose does not substitute for explicit file attribution.",
-      "evidenceCitations": [
-        "test/core/templates/build.test.ts:10-25",
-        ".xirang/changes/refine-change-formation/tasks.md:5-17",
-        ".xirang/changes/refine-change-formation/tasks.md:55-61"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: test/core/templates/explore-template.test.ts replaces permission-boundary tests outside the explicit attribution universe.",
-      "section": "Explore 权限边界与退役规则",
-      "task": "Task 2 / C10",
-      "recommendation": "Declare the changed Explore template test in Task 2 Files and its verification arrangement (artifact_fix), or remove its changes (code_fix). The replacement changes what permission regressions the maintained tests detect.",
-      "evidenceCitations": [
-        "test/core/templates/explore-template.test.ts:104-132",
-        ".xirang/changes/refine-change-formation/tasks.md:74-84",
-        ".xirang/changes/refine-change-formation/tasks.md:115-121"
-      ]
-    },
-    {
-      "severity": "CRITICAL",
-      "message": "Unaccounted change: test/core/templates/propose-template.test.ts changes decision and permission assertions outside the explicit attribution universe.",
-      "section": "Propose 协议测试维护",
-      "task": "Task 3 / C13",
-      "recommendation": "Declare the changed Propose template test in Task 3 Files and the relevant Check Command (artifact_fix), or remove its changes (code_fix). Its changed and removed assertions are behavioral test changes.",
-      "evidenceCitations": [
-        "test/core/templates/propose-template.test.ts:20-45",
-        ".xirang/changes/refine-change-formation/tasks.md:127-140",
-        ".xirang/changes/refine-change-formation/tasks.md:159-164"
-      ]
-    },
-    {
       "severity": "WARNING",
-      "message": "Three additional files lack explicit attribution but contain benign fixture adaptation or CLI-managed design evidence.",
-      "section": "Benign attribution gaps",
-      "task": null,
-      "recommendation": "Declare test/commands/candidate-promote.test.ts, test/core/candidate-history.test.ts, and the formation-semantic-fidelity record in the appropriate Files entries. The two tests only adapt record fixtures; the record stores decisions and captured baseline evidence rather than executable behavior.",
+      "message": "Actual workflow execution still contains a disclosed source-faithfulness failure; this round's explicit acceptance does not establish reliable semantic compliance.",
+      "section": "完成 Formation 审查与确认 / 计划一致性复核",
+      "task": "Task 3 / C11, C14",
+      "recommendation": "Retain the accepted limitation and independently review generated Contracts and Checks against their confirmed source. Do not describe the behavioral samples as universally passing or the in-flight assertion defect as fixed.",
       "evidenceCitations": [
-        "test/commands/candidate-promote.test.ts:33-38",
-        "test/core/candidate-history.test.ts:28-35",
-        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:1-21",
-        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-65",
-        ".xirang/changes/refine-change-formation/tasks.md:5-17",
-        ".xirang/changes/refine-change-formation/tasks.md:127-134"
-      ]
-    },
-    {
-      "severity": "WARNING",
-      "message": "Prompt execution evidence demonstrates real workflow coverage but retains an observed source-faithfulness failure and disclosed execution limitations.",
-      "section": "完成 Formation 审查与确认 / 查缺补漏与决策确认",
-      "task": "Task 3 / C11 and C14",
-      "recommendation": "Retain the recorded acceptance qualification and residual risks. Do not describe the evidence as universal semantic success or proven model stability. The existing explicit user acceptance permits closing these execution Checks without further prompt changes; it does not waive the separate defects found in this review.",
-      "evidenceCitations": [
-        ".xirang/changes/refine-change-formation/tasks.md:175-183",
-        ".xirang/changes/refine-change-formation/tasks.md:289-294",
-        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55",
-        "src/core/templates/workflows/propose.ts:50-58",
-        "src/core/templates/workflows/propose.ts:105-111",
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:50-54",
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-16"
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:36-54",
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-28",
+        ".pi/skills/xirang-propose/SKILL.md:144-155",
+        ".xirang/changes/refine-change-formation/tasks.md:183-191",
+        ".xirang/changes/refine-change-formation/tasks.md:297-302",
+        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55"
       ]
     }
   ],
-  "tasksFileHash": "f086fb5566cdecef4c7164c5b7f0d9d9478c3990ed2a1b7de09f0329a17c4d70",
+  "tasksFileHash": "c813c63ee75c2fc602edbda2859c7cd36c5a03062f7587e803c676087767561e",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
+      ".pi/agents/xirang-experimenter.md",
       ".pi/skills/xirang-build/SKILL.md",
       ".pi/skills/xirang-explore/SKILL.md",
       ".pi/skills/xirang-propose/SKILL.md",
       ".pi/skills/xirang-snack/SKILL.md",
       ".xirang/changes/refine-change-formation/.apply-isolation.json",
+      ".xirang/changes/refine-change-formation/.quality-log.jsonl",
+      ".xirang/changes/refine-change-formation/.quality-state.json",
       ".xirang/changes/refine-change-formation/design.md",
+      ".xirang/changes/refine-change-formation/elements/agent-workbench-projection.md",
       ".xirang/changes/refine-change-formation/elements/authoring-conventions.md",
       ".xirang/changes/refine-change-formation/elements/business-specification-standard.md",
       ".xirang/changes/refine-change-formation/elements/confirmed-design-record.md",
@@ -139,9 +52,9 @@
       ".xirang/changes/refine-change-formation/elements/propose.md",
       ".xirang/changes/refine-change-formation/elements/semantic-model-build.md",
       ".xirang/changes/refine-change-formation/proposal.md",
+      ".xirang/changes/refine-change-formation/record-coverage.json",
+      ".xirang/changes/refine-change-formation/record-source.md",
       ".xirang/changes/refine-change-formation/tasks.md",
-      ".xirang/model/elements/agent-workbench-projection.md",
-      ".xirang/model/elements/reviewer-cleanliness.md",
       ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",
       ".xirang/references/xirang-business-specification-standard.md",
       ".xirang/references/xirang-design-record.md",
@@ -149,13 +62,18 @@
       ".xirang/references/xirang-semantic-refinement.md",
       "src/commands/record.ts",
       "src/core/candidate/validator.ts",
+      "src/core/record/consume.ts",
       "src/core/record/coverage.ts",
       "src/core/record/document.ts",
+      "src/core/record/paths.ts",
       "src/core/record/structure.ts",
       "src/core/record/types.ts",
+      "src/core/record/validator.ts",
+      "src/core/record/workspace.ts",
       "src/core/shared/subagent-generation.ts",
       "src/core/templates/fragments/business-specification-standard.ts",
       "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/sync-engine.ts",
       "src/core/templates/workflows/build.ts",
       "src/core/templates/workflows/experimenter.ts",
       "src/core/templates/workflows/explore.ts",
@@ -164,7 +82,9 @@
       "test/commands/candidate-promote.test.ts",
       "test/commands/candidate-validate.test.ts",
       "test/commands/record-json.test.ts",
+      "test/commands/record.test.ts",
       "test/core/candidate-history.test.ts",
+      "test/core/model/business-specification.test.ts",
       "test/core/record/baseline.property.test.ts",
       "test/core/record/baseline.test.ts",
       "test/core/record/consume.test.ts",
@@ -172,18 +92,26 @@
       "test/core/record/diff.test.ts",
       "test/core/record/document.property.test.ts",
       "test/core/record/document.test.ts",
+      "test/core/record/paths.test.ts",
       "test/core/record/structure.test.ts",
+      "test/core/record/validator.test.ts",
       "test/core/record/workspace.test.ts",
       "test/core/shared/subagent-generation.test.ts",
       "test/core/templates/build.test.ts",
       "test/core/templates/design-record-reference.test.ts",
       "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
       "test/core/templates/propose-template.test.ts",
       "test/core/workflow-installation.test.ts",
-      "test/integration/record-workflow.test.ts"
+      "test/integration/record-workflow.test.ts",
+      "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "3660be670f8e3ea54a4325dc02a54bb4b20de44ebe2c37df56661376a50a6005",
+    "evidenceFingerprint": "2f5bcd11461d131d31ea424630dca185fa367a50640fd57ac8103c446b09db45",
     "evidenceFingerprintEntries": [
+      {
+        "path": ".pi/agents/xirang-experimenter.md",
+        "hash": "ceda7145a530329fc9d71457e644c41825e2f6c63f513d87a47e13ab6e67b375"
+      },
       {
         "path": ".pi/skills/xirang-build/SKILL.md",
         "hash": "80497faaab07f8c3fec69b90685922953929a5415a5b5f8df875821cb44cb399"
@@ -207,6 +135,10 @@
       {
         "path": ".xirang/changes/refine-change-formation/design.md",
         "hash": "21cceb6bd319623414a3a06e9093acf2928b19e24d52bd8b854b67fb8ae98cb6"
+      },
+      {
+        "path": ".xirang/changes/refine-change-formation/elements/agent-workbench-projection.md",
+        "hash": "e5ef5e98e560e31731bb0c30a79c3a72182b2847a215ba9ae81af17618654a35"
       },
       {
         "path": ".xirang/changes/refine-change-formation/elements/authoring-conventions.md",
@@ -282,19 +214,19 @@
       },
       {
         "path": ".xirang/changes/refine-change-formation/proposal.md",
-        "hash": "ce162c9879719c0e0087fe4a424ca6a77cbee9df5dc9a132dfeb933c2f1b152a"
+        "hash": "934d7b5d912c2d151841b7fa75471e265ef5d1b347c588509ca29fb3e70d1ae3"
+      },
+      {
+        "path": ".xirang/changes/refine-change-formation/record-coverage.json",
+        "hash": "a174ff97f3adb393c04c7661676e10fc55c62f4c8fa9196dc85bbee94e60bdc0"
+      },
+      {
+        "path": ".xirang/changes/refine-change-formation/record-source.md",
+        "hash": "33bf368a0ee680071198ddd483f6b1eccdd6323f1987ecff450e787473643892"
       },
       {
         "path": ".xirang/changes/refine-change-formation/tasks.md",
-        "hash": "f086fb5566cdecef4c7164c5b7f0d9d9478c3990ed2a1b7de09f0329a17c4d70"
-      },
-      {
-        "path": ".xirang/model/elements/agent-workbench-projection.md",
-        "hash": "badbb1d4b30b7f46a031c2214c81683fdab6a2168def7ff9da50982d24d97d1c"
-      },
-      {
-        "path": ".xirang/model/elements/reviewer-cleanliness.md",
-        "hash": "8a0af2a1eb20c1b1b97175b2cae2ae601225bd16f22938ccf1b13d38f077d1ee"
+        "hash": "c813c63ee75c2fc602edbda2859c7cd36c5a03062f7587e803c676087767561e"
       },
       {
         "path": ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",
@@ -325,6 +257,10 @@
         "hash": "36fcce50b95952cba6f08782e7f5ec9271518d0d4ac3cf87c41662b3abaed4e2"
       },
       {
+        "path": "src/core/record/consume.ts",
+        "hash": "f3af8d6cdebc98a250f78d109a9b01c893ecf8070caaac69e7d26b2e0055c40d"
+      },
+      {
         "path": "src/core/record/coverage.ts",
         "hash": "9c5350d85a126d24185ab2e2db0cf31c6d2379fd03a30566dac44ff1bf0c3895"
       },
@@ -333,12 +269,24 @@
         "hash": "8f1303007fecba299dc9d4a26091aac3e7e7213ec8ffea6ac210f2831451d8c9"
       },
       {
+        "path": "src/core/record/paths.ts",
+        "hash": "6d730662579fcae2aee9e2f9b958979efff630580c532821830e6ae5f7c19976"
+      },
+      {
         "path": "src/core/record/structure.ts",
         "hash": "df014f094543b026eee37b34338b677675fbabcd8fda3652fae397f1b0f16c79"
       },
       {
         "path": "src/core/record/types.ts",
         "hash": "4ab022ae8828fbe07b92a7a5e4b4e5fb913f3c4c90fe1f48a7490de03796726a"
+      },
+      {
+        "path": "src/core/record/validator.ts",
+        "hash": "1ba5dc27a6fa5a3fa2a6dd18c72f123672f0acbd35a84e230017ac88ffe56e18"
+      },
+      {
+        "path": "src/core/record/workspace.ts",
+        "hash": "d75711f3dff4fe29c052ebdb6a189e377768275431492ee8cf09b1b413bd9ede"
       },
       {
         "path": "src/core/shared/subagent-generation.ts",
@@ -351,6 +299,10 @@
       {
         "path": "src/core/templates/fragments/xirang-fragments.ts",
         "hash": "6ad43793a6eff4ba693c61f2b7fac576b7c8ada6aed23469801bec2ae3c72790"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "8b05789bf22ef89b3872faa0fcc0fe960c8d0204731e58cb10651ae3166bf5c8"
       },
       {
         "path": "src/core/templates/workflows/build.ts",
@@ -385,8 +337,16 @@
         "hash": "5bc5424278927d3ea0bbd0d249a3948c486535b4fe017a7343424729192ed860"
       },
       {
+        "path": "test/commands/record.test.ts",
+        "hash": "7ba4993b675fbb2134c0884208971f7594c61c1d3427809025cc1550d2095c7b"
+      },
+      {
         "path": "test/core/candidate-history.test.ts",
         "hash": "c8c76e1a3d6711830b9f5fb1765d9ece207d028adccb878897854992e0a54982"
+      },
+      {
+        "path": "test/core/model/business-specification.test.ts",
+        "hash": "e155466e6a2cb510cb22f9bf46314c15c678ec4b23db8f6dd425ecbacb9aa4c5"
       },
       {
         "path": "test/core/record/baseline.property.test.ts",
@@ -417,8 +377,16 @@
         "hash": "d335aab60026dd1a7ed8cc37acc2e65fe415db742e1f27ec9c39011fc000999c"
       },
       {
+        "path": "test/core/record/paths.test.ts",
+        "hash": "dc6fcd79e0fb65370fcb849531526ff5a10e44a57223c7e2544ecec097904028"
+      },
+      {
         "path": "test/core/record/structure.test.ts",
         "hash": "4b1f5ae27b421e075bfba2c50acf5ca8d4ba1af911065d498a56e542d2486813"
+      },
+      {
+        "path": "test/core/record/validator.test.ts",
+        "hash": "10e964528fe54a536e3667eedb61955b6dd53eadb80e1f58d58acac645079a99"
       },
       {
         "path": "test/core/record/workspace.test.ts",
@@ -441,6 +409,10 @@
         "hash": "5c1c0d1663f678dcc05f0123df99ab347eb989994156318291169e7dfe0d9428"
       },
       {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "5f2e88b8c65746cbbdbbfe8d9e8b2ac961b2d07ef027c4624d3ed6e07545cad1"
+      },
+      {
         "path": "test/core/templates/propose-template.test.ts",
         "hash": "ddab1da9ee4f6ba0053e11f7a28f8cdad20853dcb64d58f50feddcf9b5696996"
       },
@@ -451,11 +423,18 @@
       {
         "path": "test/integration/record-workflow.test.ts",
         "hash": "73a9117817e1940610219866af03a15957e790e972afd8b976fa5d0de222860e"
+      },
+      {
+        "path": "test/utils/record-discovery-isolation.test.ts",
+        "hash": "a2675c0e77ac9bd9bc130de52f6a2e4214a19792d6c058f4ec4105860605b89f"
       }
     ],
-    "skippedEvidenceFiles": [],
-    "gitHeadCommit": "c00ab9b3e49f2a5a6e66d8b325ee47aa8a59d5d4",
-    "gitDiffSummary": "Validated the absolute projectRoot/changeDir and changeName, and resolved immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 from .apply-isolation.json:1-6. git diff <baseCommit>...HEAD --name-only reports 67 files; git status --short is empty, including after verification; git diff --check passes. No quality-state or quality-history artifacts were present. Read all 18 Delta units and inspected all four Delta partitions; only elements is populated. Counts use 14 checkbox Checks and 54 explicitly authored Section anchors, including four removals; no formal Acceptance Case anchors occur in this Delta. Two source-faithfulness Sections retain WARNING confidence under the explicit acceptance qualification. Fresh verification passed 26 Vitest files / 277 tests, TypeScript, architecture validation, and combined Change validation. Positive implementation evidence includes schema/state rejection in src/core/record/document.ts:126-144; selective reads in src/commands/record.ts:119-132 and test/commands/record-json.test.ts:75-92; stateful coverage and freshness in src/core/record/coverage.ts:153-230,259-308 and test/core/record/coverage.test.ts:44-98; native permissions in test/core/shared/subagent-generation.test.ts:108-125; and experimental execution/boundaries in src/core/templates/workflows/experimenter.ts:14-35. The C10 specified retired-rule rg search and an additional source/projection search returned no matches; absence was checked in the Explore source, generated skill, references, and subagent-generation source. The structural validators do not detect the explicit two-versus-three agent Contract contradiction.",
-    "timestamp": "2026-11-01T17:30:10.269Z"
+    "skippedEvidenceFiles": [
+      ".xirang/changes/refine-change-formation/.quality-log.jsonl",
+      ".xirang/changes/refine-change-formation/.quality-state.json"
+    ],
+    "gitHeadCommit": "169d9f38f53881ddd23ce55c1d2199cd4263fefc",
+    "gitDiffSummary": "Reviewed refine-change-formation at HEAD 169d9f38f53881ddd23ce55c1d2199cd4263fefc against validated immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 (.xirang/changes/refine-change-formation/.apply-isolation.json:1-6). git diff <baseCommit>...HEAD --name-only returned 70 files; git status --short was empty before and after verification; git diff --check passed. All changed paths are attributable to task Files, Check commands, or this Change's artifacts (tasks.md:12-31,78-98,130-148,315-363); no declared deletions exist. Read all 19 Element Delta units and explicitly checked that the other three Delta partitions have no units. Loaded the formal hierarchy, Relationships and Kinds using arch outline, impact and batched contract queries; arch validate --change succeeded without warnings, and combined validation accepted 68 effective entries without issues. The authored Delta contains 55 Sections, including four removals, and no canonical Acceptance Cases; two source-faithfulness Sections retain the reported execution WARNING. RC1 is resolved by the explicit three-role target (.xirang/changes/refine-change-formation/elements/agent-workbench-projection.md:12-24) and matching implementation (src/core/shared/subagent-generation.ts:26-30); RC2-RC5 now have explicit attribution and passing regression checks (tasks.md:325-363). SchemaVersion 4 and explicit decisions are enforced at src/core/record/document.ts:126-144. Selective reads preserve complete selected entries and the whole-record version, reject unknown identities, and omit the baseline at src/commands/record.ts:119-131, with observable byte-preservation and stale-version assertions at test/commands/record-json.test.ts:60-98. State-sensitive coverage and required dispositions are implemented at src/core/record/coverage.ts:153-230; source/target binding and structure agreement remain enforced at :290-308. Consumption preserves exact source bytes and revalidates before cleanup at src/core/record/consume.ts:53-110. Four-tool native permissions follow role capabilities at src/core/shared/subagent-generation.ts:72-87,124-148, consistent with design.md:45-51. Shared record authority, selective-read cadence, classification and handoff are present in .xirang/references/xirang-design-record.md:5-17,60-110; drafting and semantic review are present in .pi/skills/xirang-propose/SKILL.md:86-100,125-163. Contract concision preserves the existing 4+N boundary at .xirang/references/xirang-business-specification-standard.md:26-44. Multi-angle rg searches across source templates, role rendering, projected Explore/Propose skills and their references found no retired blanket read-only or old Propose record-maintenance prohibition. Diff-scoped marker searches found no introduced stale TODO/FIXME/HACK; matches in unchanged reviewer instructions describe review criteria. Fresh build, typecheck and 26 targeted test files / 277 tests passed. Prior quality records were used only for navigation, not as this round's proof.",
+    "timestamp": "2026-11-01T17:46:49.418Z"
   }
 }
