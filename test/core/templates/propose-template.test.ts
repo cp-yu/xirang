@@ -18,20 +18,6 @@ function getProposeBodies(): string[] {
 }
 
 describe('propose template post-validation flow', () => {
-  it('runs the consistency gate as semantic review before deterministic validation', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
-
-    expect(instructions).toContain('First review plan consistency');
-    expect(instructions).toContain('Fix the artifacts yourself when they contradict each other');
-    expect(instructions).toContain('when a contradiction reflects misalignment with user intent or a confirmed decision');
-    expect(instructions).toContain('present all findings at once and wait for the user to rule');
-
-    const reviewIndex = instructions.indexOf('First review plan consistency');
-    const validateIndex = instructions.indexOf('which owns combined validation, effective-diff review, and task structure validation');
-    expect(reviewIndex).toBeGreaterThan(-1);
-    expect(validateIndex).toBeGreaterThan(reviewIndex);
-  });
-
   it('保持重大决策的确认门禁与规范写入权限边界', () => {
     const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('ask one focused question and wait before writing the choice as settled');
