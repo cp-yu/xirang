@@ -5,6 +5,7 @@
 **Files**:
 - Modify: `src/core/record/`
 - Modify: `src/commands/record.ts`
+- Modify: `src/core/candidate/validator.ts`
 - Modify: `src/core/templates/workflows/explore.ts`
 - Modify: `src/core/templates/workflows/propose.ts`
 - Modify: `src/core/templates/workflows/build.ts`
@@ -14,6 +15,10 @@
 - Test: `test/commands/record.test.ts`
 - Test: `test/commands/record-json.test.ts`
 - Test: `test/integration/record-workflow.test.ts`
+- Test: `test/commands/candidate-validate.test.ts`
+- Test: `test/commands/candidate-promote.test.ts`
+- Test: `test/core/candidate-history.test.ts`
+- Test: `test/core/templates/build.test.ts`
 - Test: `test/core/templates/design-record-reference.test.ts`
 
 **Sections**:
@@ -49,14 +54,14 @@
   - Verifies: `elements/semantic-model-build.md` / Section "复用确认记录形成 Candidate"
   - Covers: `elements/propose.md` / Section "交接已确认设计来源"；`elements/design-record-operations.md` / Section "记录覆盖检查结果"；`elements/deterministic-operations.md` / Section "确定性交接确认来源"
   - Test action: modify
-  - Command: `pnpm build && pnpm exec vitest run test/integration/record-workflow.test.ts test/core/record/consume.test.ts`
-  - Expect: 使用 built CLI 分别完成 active Candidate 与 named Change 的新格式交接；覆盖/结构不一致拒绝并保留源目标，源或目标变化使覆盖失效，同字节快照可恢复，冲突快照停止；快照原字节保留且不进入模型语义。既有 Candidate digest 与 promotion 入口继续有效。
+  - Command: `pnpm build && pnpm exec vitest run test/integration/record-workflow.test.ts test/core/record/consume.test.ts test/commands/candidate-validate.test.ts test/commands/candidate-promote.test.ts test/core/candidate-history.test.ts`
+  - Expect: 使用 built CLI 分别完成 active Candidate 与 named Change 的新格式交接；覆盖/结构不一致拒绝并保留源目标，源或目标变化使覆盖失效，同字节快照可恢复，冲突快照停止；快照原字节保留且不进入模型语义。已交接的历史快照不按当前活动记录格式重解析，其原字节变化仍改变Candidate digest；活动记录在consume前仍严格校验。既有 Candidate digest 与 promotion、history 入口继续有效。
 
 - [x] C5 验证共享记录协议的确认权与读取节奏
   - Verifies: `elements/design-record.md` / Section "确认即记录"
   - Covers: `elements/design-record.md` / Section "条目写入标准"、Section "按写作规则编译细节"；`elements/propose.md` / Section "处理已确认设计记录"、Section "验证确认内容到目标语义的覆盖"；`elements/propose-role.md` / Section "写入 Change 制品" 的记录部分；`elements/propose-workflow.md` / Section "Propose 创建完整 change 制品" 的记录权限例外；`elements/post-propose-validation.md` / Section "计划一致性复核" 的状态分类
   - Test action: one-time
-  - Command: `pnpm build && node bin/xirang.js update --force`
+  - Command: `pnpm build && node bin/xirang.js update --force && pnpm exec vitest run test/core/templates/build.test.ts`
   - Evidence: 审阅生成的共享 record reference 与三个工作面，逐步演练“Agent 推荐写 pending → 实验事实不代表采纳 → 用户确认后 accepted → 用户裁决修订 → 收尾最新完整读与覆盖”；另以 pending parent、已排除方案及当前目标无关问题验证分类。记录使用的输入、所采取动作、结果与偏差到本 Check 的实施证据中，不新建持久化措辞测试。
   - Expect: 开始/结束完整读、中途按需选择读；不要求每段全文重读。确认即记录，非确认材料不伪装用户决定，不以降级 pending 绕过修订授权。具体 A、C/ABC、ACD、AB 及默认 32 示例保持具体落位标准。
 
@@ -82,6 +87,7 @@
 - Modify: `.xirang/references/`
 - Test: `test/core/shared/subagent-generation.test.ts`
 - Test: `test/core/workflow-installation.test.ts`
+- Test: `test/core/templates/explore-template.test.ts`
 
 **Sections**:
 - 依据 `elements/experimenter.md` 与 `elements/internal-agents.md` 明确三种角色共同委托边界及各自操作能力；新增实验模板和显式注册，不加入 workflow manifest，不新增实验 skill。
@@ -93,7 +99,7 @@
 
 - [x] C7 验证三角色原生权限与渲染
   - Verifies: `elements/internal-subagent-generation.md` / Section "按角色编码工具原生权限"
-  - Covers: `elements/internal-subagent-generation.md` / Section "Internal subagent 模板注册"、Section "Per-tool subagent artifact 渲染"；`elements/internal-agents.md` / Section "按角色限定操作能力"
+  - Covers: `elements/internal-subagent-generation.md` / Section "Internal subagent 模板注册"、Section "Per-tool subagent artifact 渲染"；`elements/internal-agents.md` / Section "按角色限定操作能力"；`elements/agent-workbench-projection.md` / Section "维护 internal subagent 制品"
   - Test action: modify
   - Command: `pnpm exec vitest run test/core/shared/subagent-generation.test.ts`
   - Expect: 三角色显式注册，Experimenter 在 Claude/Pi 可 Write/Edit 或 write/edit、OpenCode edit allow、Codex workspace-write；Reviewer/Optimizer 仍拒绝写入及 Bash 绕过。模型、合法 TOML 转义和 Pi-only 提示按原契约保留，workflow 列表不新增实验入口。
@@ -116,7 +122,7 @@
   - Verifies: `elements/explore-brainstorming.md` / REMOVED Section "Explore 主代理保持只读"
   - Covers: `elements/explore-role.md` / REMOVED Section "保持只读工作边界"；`elements/internal-agents.md` / REMOVED Section "不修改项目"；`elements/internal-subagent-generation.md` / REMOVED Section "Generated subagent artifact 编码只读权限模型"
   - Test action: one-time
-  - Command: `! rg -n '唯一例外是用户在对话中确认设计内容后|SHALL NOT 记录用户未确认的内容|只包含.*xirang-reviewer.*xirang-optimizer.*两个' .pi/skills/xirang-explore .xirang/references/xirang-explore-supperpowers-style.md .xirang/references/xirang-design-record.md`
+  - Command: `! rg -n '唯一例外是用户在对话中确认设计内容后|SHALL NOT 记录用户未确认的内容|只包含.*xirang-reviewer.*xirang-optimizer.*两个' .pi/skills/xirang-explore .xirang/references/xirang-explore-supperpowers-style.md .xirang/references/xirang-design-record.md && pnpm exec vitest run test/core/templates/explore-template.test.ts`
   - Evidence: 同时审阅四工具生成内容，确认已撤下对 Experimenter 的统一 deny，保留 Reviewer、Optimizer 对应禁写规则；本 Check 是退役规则的最终证据，不新增文本快照测试。
   - Expect: 旧的统一禁令无匹配；记录权限、实验权限与正式实现边界均由对应新规则表达。
 
@@ -132,6 +138,8 @@
 - Modify: `.xirang/references/`
 - Test: `test/core/templates/design-record-reference.test.ts`
 - Test: `test/core/templates/fragments/xirang-fragments.test.ts`
+- Test: `test/core/templates/propose-template.test.ts`
+- Modify: `.xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md`
 
 **Sections**:
 - 依据 `elements/propose.md`、`elements/propose-role.md`、`elements/propose-workflow.md` 更新实际草稿、局部调整、复杂度审阅和细节自主权指令，不鼓励大量自主补充；记录读取/写入能力复用 Task 1，实验返回 Explore 复用 Task 2。
@@ -160,7 +168,7 @@
   - Verifies: `elements/propose-workflow.md` / Section "Propose 创建完整 change 制品"
   - Covers: `elements/business-specification-standard.md` / Section "职责边界与同层精简"
   - Test action: modify
-  - Command: `pnpm exec vitest run test/core/templates/design-record-reference.test.ts test/core/templates/fragments/xirang-fragments.test.ts test/core/model/business-specification.test.ts && pnpm exec tsc --noEmit && pnpm build`
+  - Command: `pnpm exec vitest run test/core/templates/design-record-reference.test.ts test/core/templates/fragments/xirang-fragments.test.ts test/core/templates/propose-template.test.ts test/core/model/business-specification.test.ts && pnpm exec tsc --noEmit && pnpm build`
   - Expect: 修改旧权限/旧覆盖协议断言后，协议 token、fail-closed 门禁及禁止操作有有效保护；4+N 结构门禁继续通过既有测试。无新增说明散文、标题顺序和例句精确锁定，类型及构建通过；一次性行为证据与持久化测试结果分开报告。
 
 - [x] C14 使用 GLM 5.3 Flash 重复执行最新工作面并按实际失败修复
@@ -294,34 +302,62 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 - 指定Astra最终定点诊断 `fa04bbd2-1b75-4341-a226-d681c0fe44cb/closeout-flow/check-strengthening-disposition.md` 已全文读取：Flow9已有允许结果被拒的反例、发起/完成区分及实现选择不得升级验收；Flow10已有来源/反向依据核对；生成skill与两份complex指纹一致。未找到缺失或误导指令所支持的最小修补，建议不改产品，未提出或激活新候选。协调者采纳“不继续无依据追加提示词”，保留真实执行未遵循的证据；screen8无相对收益也不足以启用旧候选。本轮仅追加实施证据，不重复未变化产品的437项回归。**C11/C14仍未通过，正式Review/Optimization/Seal及Archive均未启动**；按当前验收标准，不能以CLI全绿或另一份正确样本消去失败。若改变有限行为证据与已知执行偏差的验收口径，须由用户明确裁决，不能由协调者自行豁免。
 
 
+### 首次独立Review及修正
+
+- Sol Reviewer `61b3a3df-6ed6-457b-9a49-9ffbfe10af57`返回FAIL_NEEDS_CORRECTIONS：6个CRITICAL、2个WARNING。完整JSON经运行时validateReviewInput验证，5个writeBackPlan条目均唯一匹配现有Check并对应CRITICAL；仅这些阻塞条目写入Required Corrections，然后通过CLI保存失败结论（2026-11-01T17:30:10.269Z）。原报告及CLI质量历史保留，未将WARNING强制写回修正清单。
+- RC1：新增`elements/agent-workbench-projection.md`，仅修改“维护 internal subagent 制品”Section，将显式名单与三角色目标一致；保留声明、原生写入路径及其余Sections。proposal的Behavior Source补入该对象，C7增加对应覆盖。此处修复明确“仅两个”与“三个”的逻辑矛盾，不要求父级复制子级细节，不新增角色或实施方案。
+- RC2–RC5：在相应Task Files与Check命令中补入Candidate validator、candidate-validate、Build/Explore/Propose模板测试；C4明确历史快照不按当前格式重解析而原字节仍参与digest。相关candidate-promote/history fixture及受管设计记录也补入归属，无产品代码、测试实现或提示词修改。
+- 实际验证：pnpm build、受管update、类型检查通过；C4/C5/C7/C10/C13相关既有测试合并运行12 files /173 tests全部通过；C10退役规则搜索无匹配。arch validate --change成功，combined validate --change有效且0 issues。首次组合校验暴露协调者写回的RC条目缺少Test action/Verifies/证据字段，已补齐标准Check字段后同一校验通过；该格式修正未改变问题或目标语义。git diff --check与编辑文件LSP无诊断。
+- 五项修正完成后须重新进入fresh-context Sol Review；以上为实施证据，不替代独立通过结论，Optimization与Seal尚未执行。原C11/C14验收限制和用户限定程序优化的范围保持。
+
 ## Required Corrections
 
-- [ ] RC1 [artifact_fix] 消除内部角色名单的显式模型矛盾
+- [x] RC1 [artifact_fix] 消除内部角色名单的显式模型矛盾
   - Task: Task 2 / C7
   - Section: Internal subagent 模板注册
+  - Verifies: `elements/agent-workbench-projection.md` / Section "维护 internal subagent 制品"
+  - Test action: one-time
+  - Command: `node bin/xirang.js arch validate --change refine-change-formation --json && node bin/xirang.js validate --change refine-change-formation --json`
+  - Expect: 目标Section显式注册Reviewer、Optimizer、Experimenter三角色，与内部角色精化及实现一致，原生写入路径承诺保留。
   - Finding: agent-workbench-projection仍明确只允许两个内部角色，而本Change的精化与实现注册三个角色。
   - Next action: 在本Change的proposal范围与Semantic Delta中协调agent-workbench-projection Contract，重新校验完整Expected Semantic Model。
 
-- [ ] RC2 [artifact_fix] 补齐Candidate历史provenance校验改动归属
+- [x] RC2 [artifact_fix] 补齐Candidate历史provenance校验改动归属
   - Task: Task 1 / C4
   - Section: Build provenance validation
+  - Verifies: `elements/semantic-model-build.md` / Section "复用确认记录形成 Candidate"
+  - Test action: one-time
+  - Command: `pnpm exec vitest run test/commands/candidate-validate.test.ts test/commands/candidate-promote.test.ts test/core/candidate-history.test.ts`
+  - Expect: Task 1显式声明Candidate validator及历史快照行为测试，历史来源按原字节参与digest、promotion及history回归通过。
   - Finding: Candidate validator及candidate-validate行为测试的改动未进入显式Files/Command归属范围。
   - Next action: 在Task 1 Files与相关验证命令声明src/core/candidate/validator.ts、test/commands/candidate-validate.test.ts，或移除相应改动。
 
-- [ ] RC3 [artifact_fix] 补齐Build模板测试改动归属
+- [x] RC3 [artifact_fix] 补齐Build模板测试改动归属
   - Task: Task 1 / C5
   - Section: 共享记录协议与测试维护
+  - Verifies: `elements/design-record.md` / Section "确认即记录"
+  - Test action: one-time
+  - Command: `pnpm exec vitest run test/core/templates/build.test.ts`
+  - Expect: Task 1 Files与C5验证安排明确包含Build模板测试，既有协议门禁测试通过。
   - Finding: 已修改的Build模板coverage协议断言缺少显式归属。
   - Next action: 在负责任务的Files及验证安排声明test/core/templates/build.test.ts，或移除相应改动。
 
-- [ ] RC4 [artifact_fix] 补齐Explore权限边界测试改动归属
+- [x] RC4 [artifact_fix] 补齐Explore权限边界测试改动归属
   - Task: Task 2 / C10
   - Section: Explore 权限边界与退役规则
+  - Verifies: `elements/explore-brainstorming.md` / REMOVED Section "Explore 主代理保持只读"
+  - Test action: one-time
+  - Command: `pnpm exec vitest run test/core/templates/explore-template.test.ts`
+  - Expect: Task 2 Files与C10验证安排明确包含Explore权限边界测试，既有测试通过。
   - Finding: 已修改的Explore权限边界测试缺少显式归属。
   - Next action: 在Task 2 Files及验证安排声明test/core/templates/explore-template.test.ts，或移除相应改动。
 
-- [ ] RC5 [artifact_fix] 补齐Propose协议测试改动归属
+- [x] RC5 [artifact_fix] 补齐Propose协议测试改动归属
   - Task: Task 3 / C13
   - Section: Propose 协议测试维护
+  - Verifies: `elements/propose-workflow.md` / Section "Propose 创建完整 change 制品"
+  - Test action: one-time
+  - Command: `pnpm exec vitest run test/core/templates/propose-template.test.ts`
+  - Expect: Task 3 Files与C13命令明确包含Propose协议测试，既有测试通过。
   - Finding: 已修改的Propose协议测试缺少显式归属。
   - Next action: 在Task 3 Files与相关验证命令声明test/core/templates/propose-template.test.ts，或移除相应改动。

@@ -34,6 +34,7 @@
 - `deterministic-operations`：记录操作的上层完整承诺。
 - `semantic-model-build`：共享记录新状态的 Candidate 消费。
 - `internal-agents`：按角色区分评估与实验操作能力。
+- `agent-workbench-projection`：内部角色制品的显式名单包含 Reviewer、Optimizer 与 Experimenter。
 - `internal-subagent-generation`：三种内部角色的显式注册及原生权限。
 - `authoring-conventions`：局部职责与精简表达规则。
 - `business-specification-standard`：4+N 内的职责边界及避免同层重复。
@@ -64,6 +65,7 @@ None；Experimenter 的层级通过 parent 表达，职责在其 Contract 与 Ex
 ## Impact
 
 - `src/core/record/`、`src/commands/record.ts`：记录格式、解析、部分更新、选择查询、覆盖及交接；旧活动记录需由用户重新形成，新实现不提供迁移层。
+- `src/core/candidate/validator.ts`：已交接的记录快照仅作原字节历史来源，不按当前活动记录格式重解析；继续绑定 Candidate digest。
 - 共享 Design Record、Explore、Propose、Build 和 Contract 写作提示词及受管工作面。
 - subagent 模板、注册、各工具渲染与 init/update 安装；保留用户 model 设置。
 - 现有记录命令、Build/Change 交接及 subagent 生成安装测试；无新依赖。
