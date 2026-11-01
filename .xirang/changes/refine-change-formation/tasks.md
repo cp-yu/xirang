@@ -292,3 +292,36 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 - 本轮主体审批与边界偏差：heldout-1在consume已成功后，含rm的组合清理命令被自动审批拒绝（会话line118）；并非consume被拒。载荷保留、未改写重试删除，但主体仍继续只读list/ls/status及报告，违反完整停止规则，不能算全程合规成功。heldout-2除首阶段项目外`/tmp/record-patch.json`外，局部轮又通过`call_f254b036f19949d49aab5e66`写出`/tmp/record-patch2.json`；最终该主体自行rm清理两者成功，当前文件已不存在，原违规轨迹保留，不谎称文件仍在，也不把自行清理消去违规。父层未替主体补做被拒操作或交接。
 - 本轮审计自身偏差另列：最终审计脚本因cd影响后续重定向，在6份项目根误写17个未跟踪txt；审计者的rm清理及contact_supervisor调用均遭自动审批拒绝。父层确认没有实际待回复请求后，仅指示保留所有残留并基于已有证据结束；未批准删除、改写被拒命令或修复主体。17文件清单在`evidence/final/auditor-residue-disclosure.txt`，与主体产物分开；所有受保护model/src/data/skills/references基线字节均未变。首次门禁解析中断、准备者自行修复未停止及此处审计污染均保留为协调/核查过程限制，不归为产品语义失败，也不声称本轮无干预合规成功。最终原始证据在`/tmp/formation-closeout-flow-awcvrtfe/evidence/final/`、`evidence/parent-final-snapshots.json`。
 - 指定Astra最终定点诊断 `fa04bbd2-1b75-4341-a226-d681c0fe44cb/closeout-flow/check-strengthening-disposition.md` 已全文读取：Flow9已有允许结果被拒的反例、发起/完成区分及实现选择不得升级验收；Flow10已有来源/反向依据核对；生成skill与两份complex指纹一致。未找到缺失或误导指令所支持的最小修补，建议不改产品，未提出或激活新候选。协调者采纳“不继续无依据追加提示词”，保留真实执行未遵循的证据；screen8无相对收益也不足以启用旧候选。本轮仅追加实施证据，不重复未变化产品的437项回归。**C11/C14仍未通过，正式Review/Optimization/Seal及Archive均未启动**；按当前验收标准，不能以CLI全绿或另一份正确样本消去失败。若改变有限行为证据与已知执行偏差的验收口径，须由用户明确裁决，不能由协调者自行豁免。
+
+
+## Required Corrections
+
+- [ ] RC1 [artifact_fix] 消除内部角色名单的显式模型矛盾
+  - Task: Task 2 / C7
+  - Section: Internal subagent 模板注册
+  - Finding: agent-workbench-projection仍明确只允许两个内部角色，而本Change的精化与实现注册三个角色。
+  - Next action: 在本Change的proposal范围与Semantic Delta中协调agent-workbench-projection Contract，重新校验完整Expected Semantic Model。
+
+- [ ] RC2 [artifact_fix] 补齐Candidate历史provenance校验改动归属
+  - Task: Task 1 / C4
+  - Section: Build provenance validation
+  - Finding: Candidate validator及candidate-validate行为测试的改动未进入显式Files/Command归属范围。
+  - Next action: 在Task 1 Files与相关验证命令声明src/core/candidate/validator.ts、test/commands/candidate-validate.test.ts，或移除相应改动。
+
+- [ ] RC3 [artifact_fix] 补齐Build模板测试改动归属
+  - Task: Task 1 / C5
+  - Section: 共享记录协议与测试维护
+  - Finding: 已修改的Build模板coverage协议断言缺少显式归属。
+  - Next action: 在负责任务的Files及验证安排声明test/core/templates/build.test.ts，或移除相应改动。
+
+- [ ] RC4 [artifact_fix] 补齐Explore权限边界测试改动归属
+  - Task: Task 2 / C10
+  - Section: Explore 权限边界与退役规则
+  - Finding: 已修改的Explore权限边界测试缺少显式归属。
+  - Next action: 在Task 2 Files及验证安排声明test/core/templates/explore-template.test.ts，或移除相应改动。
+
+- [ ] RC5 [artifact_fix] 补齐Propose协议测试改动归属
+  - Task: Task 3 / C13
+  - Section: Propose 协议测试维护
+  - Finding: 已修改的Propose协议测试缺少显式归属。
+  - Next action: 在Task 3 Files与相关验证命令声明test/core/templates/propose-template.test.ts，或移除相应改动。
