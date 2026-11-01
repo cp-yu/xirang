@@ -30,9 +30,9 @@ entries:
     nature: informative
     decision: pending
     content: |-
-      Astra 的未启用局部候选，尚待用户选择方向与实际对照验证。完整报告：/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/1a76d18e-7df1-47c1-bbd7-e829c5312e02/focused-repair/minimal-prompt-candidate.md。产品位置 src/core/templates/workflows/propose.ts Flow10 第三个 bullet 第一句，替换后续原句不变。oldText: Challenge the complete mechanism and its acceptance outcomes: try relevant boundary or competing-event sequences, tracing initial state, event order and expected outcome against invariants, timing and failure behavior.
+      Astra 的未启用局部候选，用户已授权并完成 screen8 隔离筛查，尚未采纳为产品变更；筛查未观察到相对原版收益。完整报告：/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/1a76d18e-7df1-47c1-bbd7-e829c5312e02/focused-repair/minimal-prompt-candidate.md。产品位置 src/core/templates/workflows/propose.ts Flow10 第三个 bullet 第一句，替换后续原句不变。oldText: Challenge the complete mechanism and its acceptance outcomes: try relevant boundary or competing-event sequences, tracing initial state, event order and expected outcome against invariants, timing and failure behavior.
       newText: Challenge the complete mechanism and its acceptance outcomes. For the draft's concrete Acceptance Case and Check inputs, first derive the observable results from the confirmed source without using the authored expected results as premises; leave source-undetermined observations undetermined. Then compare that derivation with the actual Acceptance Case and Check assertions. Extend the same derivation to relevant boundary or competing-event sequences, tracing initial state and event order against invariants, timing and failure behavior.
-      拟改变的动作：先以具体输入和确认来源推导结果，再比较已有 AC/Check 的断言；来源未定的观察保持未定，不以草稿答案作推导前提。因果仍是假设，8次既有执行均未使用此候选；不宣称修复父级范围遗漏，也不新增重复审查阶段、固定表格或逐条报告。保持现状是合理备选，Flow5父级完整性已有足够具体的规则，不建议再加同义要求。验证须冻结版本与输入、使用独立 fresh GLM 实际执行并整组收齐后判断；分别检查顺序、未授权验收断言、语义保留与父级自身承诺，不把子级修复计作父级成功。可见过程证据只采集简短输入/来源/可观察结果，不索取隐藏思维；正确答案或CLI通过不能证明执行了该动作。当前产品未修改，未运行候选，不构成正式 Review/Optimization/Seal。
+      拟改变的动作：先以具体输入和确认来源推导结果，再比较已有 AC/Check 的断言；来源未定的观察保持未定，不以草稿答案作推导前提。因果仍是假设，8次既有执行均未使用此候选；不宣称修复父级范围遗漏，也不新增重复审查阶段、固定表格或逐条报告。保持现状是合理备选，Flow5父级完整性已有足够具体的规则，不建议再加同义要求。验证须冻结版本与输入、使用独立 fresh GLM 实际执行并整组收齐后判断；分别检查顺序、未授权验收断言、语义保留与父级自身承诺，不把子级修复计作父级成功。可见过程证据只采集简短输入/来源/可观察结果，不索取隐藏思维；正确答案或CLI通过不能证明执行了该动作。候选提出时产品未修改且未运行候选；现已完成 screen8 局部筛查，主产品仍未修改，不构成正式 Review/Optimization/Seal。
   - identity: source-first-comparison-authorization
     nature: informative
     decision: accepted
@@ -41,6 +41,14 @@ entries:
     nature: informative
     decision: pending
     content: 原版/候选对照首轮搭建中止，待用户审阅。workflow cd6728be-a487-4366-89c8-dab925d5e606，setup 774651a2-9dfd-46c5-8c1f-bfb036a0234d。搭建脚本首个CLI copytree因漏导入shutil抛NameError，遗留空tool/目录；修复导入后，含rm -rf tool与额外sed操作的复合bash命令被自动隐私/安全审批拒绝，返回deletes_data=0.35、user_requested=0.04并要求不得换工具或命令绕过。主体运行数0/20，20项目目录、manifest和preflight均未生成，CLI预检未运行，不能形成候选收益或语义结论。父协调器已解析实际toolCall/toolResult核对：1次拒绝，拒绝后只读现场并保存STOP/报告，没有等效清理重试或继续搭建。实际证据 /tmp/formation-source-first-ab-iaajT8yV/evidence/parent-stop-audit.json，原STOP.json及脚本保留。主产品提示词未变。备选恢复办法为保留空目录，仅在目录确实为空且不是符号链接时复用，非空目录或非目录仍拒绝；精确未应用补丁 /tmp/formation-source-first-ab-iaajT8yV/resume-empty-directory.inactive.patch，git apply --check已通过，未执行恢复，尚需用户对拒绝后的继续方式作出决定。
+  - identity: source-first-screening-eight-authorization
+    nature: informative
+    decision: accepted
+    content: 用户要求删除指令、明确允许 glm flash 8 并发，并询问20次是否必要。协调器建议首轮缩为8次：assertion与order两类各原版2次、候选版2次；每次仍检查原有语义是否被误改；这轮用于筛查是否值得继续，不能证明稳定改善，不自动扩到20次。用户随后明确回复：删除了。 go on。父协调器只读核实 /tmp/formation-source-first-ab-iaajT8yV/tool 已不存在且不是符号链接，主体目录和manifest仍未创建。现授权在同一隔离目录继续原定单句候选的8次筛查、bigmodel/glm-5.3-flash、最多8并发；旧20次/2并发计划及搭建中止作为历史保留，本轮不执行剩余12次，不启用主产品候选，不替换失败样本。
+  - identity: source-first-screen8-results
+    nature: informative
+    decision: pending
+    content: screen8 已完成的实际证据与协调器建议，待用户审阅，不是产品采纳决定。workflow df745753-542b-43b9-a080-a36932b2342f，8个fresh bigmodel/glm-5.3-flash主体启动时间跨度575ms，原版/候选各4次，assertion/order每格2次。原版与候选的超范围在途中断验收断言均修正2/2；请求C,A,C应得C,A的Contract AC和Check均修正2/2。本轮没有组间结果差异，不能证明候选相对收益或稳定性；不能把两个成功当作长流程可靠性。主体0审批拒绝、无越界hash差异，冻结来源/正式model/src/data/skill/reference/CLI运行时不变；独立审计实际执行16条arch validate --change与validate --change，均exit0。父协调器读取全部git diff及原确认来源，独立核对hash/拒绝轨迹/575ms启动跨度，结果一致。过程可见证据不足以证明先推导再比较实际发生，不从隐藏思维补证。父级完整性无专门对照样本，不声称解决；assertion-O1给既有根条款补最多，不能当整体父级通过。target修复均成功不等于完整草稿全部正确：原先持续失败即总3次的Check仍需结合窗口内完成条件解读，O1显式补条件，其它未补，不纳入本轮两项主要评分的全面通过声明。运行审计发现setup两个外部临时日志及两次已修复搭建错误、格式attestation缺口，独立预检已验证冻结输入，非主体候选收益证据。审计建议可继续验证，但当前无新增收益，协调器建议保持主产品原版、候选仅留作未启用备选，不自动扩样；这项建议尚未标为用户决定。证据 /tmp/formation-source-first-ab-iaajT8yV/evidence/final-results.json、screen8-cli-fresh-validation.json、parent-screen8-audit.json；完整审计 /home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/df745753-542b-43b9-a080-a36932b2342f/screen8/final-audit.md。
 structure:
   elements: []
   relationships: []
