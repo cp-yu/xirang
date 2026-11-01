@@ -180,6 +180,8 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 
 用户随后指定正式Review/Optimization使用`shuaiapi-gpt/gpt-6.1-sol`，覆盖此前GLM质量阶段模型选择；调用中显式指定，不修改生成的角色配置。此前Reviewer运行`f6424245-3c3f-4a7d-b20a-aa440cd12723`已停止且无正式结论，不恢复该会话。用户另行授权`bigmodel/glm-5.3-flash`只读追查complex-1实际上下文注入与complex-2对照（运行`f25b3498-267a-4677-9277-85fa912a4799`）；该诊断返回后，以指定Sol模型在fresh context启动新的Review。模型与顺序授权已通过CLI新增accepted informative条目`quality-and-diagnosis-model-selection`，记录版本`e9dca2edd7492f6b6bbd6fad1170a920ecb1b3efa55fd6a3a4f1d86b83a8aed4`。
 
+上下文取证已完成（GLM报告`f25b3498-267a-4677-9277-85fa912a4799/diagnosis/context-conflict-audit.md`）：在可还原且可证明实际加载的来源中，未找到要求在途尝试不得中断、与主skill直接相反的规范指令。父层核对原trace：用户两次续答、record返回与delivery Scope均保留在途结果开放；最后轮实际读取了tasks instruction，design与tasks在同一生成轮写出，design的“不做在途中断逻辑”在Task2及C4中被表述成验收义务。当前schema同时要求“move verification detail into Checks”和“do not invent expected business results from implementation”，前者是组织规则，不足以证明规范冲突；自生成短语与局部读取只能支持可能干扰的假设。complex-2同来源且对应C8排除了在途断言，不能从差异归因具体模型能力。报告使用的trace有TRUNC；部分指令全文按未变schema重构，不冒充当时完整执行字节；runtime system/developer注入无法由现有冻结材料完整还原。因此结论限于“未找到已证明加载的直接冲突，观察符合实现选择被升格为验收保证”，不宣称排除了全部上下文影响或证明GLM为唯一原因。未新增产品修订、实验或样本修复；本次用户验收与质量阶段边界不变。
+
 ### Task 1
 
 - C1–C3：先运行新格式与选择读取用例，观察 schemaVersion 4 被旧解析器拒绝、`--entry` 不存在、状态化结果不被旧 coverage 接受；升级后 `pnpm exec vitest run test/core/record test/commands/record.test.ts test/commands/record-json.test.ts test/utils/record-discovery-isolation.test.ts` 全部通过（14 files / 104 tests）。覆盖显式状态往返、18→19 且17条不变、状态差异、局部合并、整记录过期拒绝、选择响应无 baseline、pending 与不适用理由门禁。
