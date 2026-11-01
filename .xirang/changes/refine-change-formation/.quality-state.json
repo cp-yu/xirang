@@ -1,21 +1,21 @@
 {
   "kind": "review",
-  "timestamp": "2026-11-01T17:46:49.418Z",
+  "timestamp": "2026-11-01T17:58:40.590Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
       "severity": "WARNING",
-      "message": "Actual workflow execution still contains a disclosed source-faithfulness failure; this round's explicit acceptance does not establish reliable semantic compliance.",
-      "section": "完成 Formation 审查与确认 / 计划一致性复核",
+      "message": "Actual Propose execution still produced an acceptance assertion stronger than its confirmed source; this remains an explicitly accepted limitation.",
+      "section": "完成 Formation 审查与确认；计划一致性复核",
       "task": "Task 3 / C11, C14",
-      "recommendation": "Retain the accepted limitation and independently review generated Contracts and Checks against their confirmed source. Do not describe the behavioral samples as universally passing or the in-flight assertion defect as fixed.",
+      "recommendation": "Retain the disclosed execution limitation when reporting readiness. Do not describe the samples as universally source-faithful, the C4 assertion as repaired, or finite successful runs as proof of stability.",
       "evidenceCitations": [
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:36-54",
-        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-28",
-        ".pi/skills/xirang-propose/SKILL.md:144-155",
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:50-54",
+        "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-16",
         ".xirang/changes/refine-change-formation/tasks.md:183-191",
         ".xirang/changes/refine-change-formation/tasks.md:297-302",
-        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55"
+        ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55",
+        "src/core/templates/workflows/propose.ts:105-111"
       ]
     }
   ],
@@ -31,6 +31,7 @@
       ".xirang/changes/refine-change-formation/.apply-isolation.json",
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json",
+      ".xirang/changes/refine-change-formation/.xirang.yaml",
       ".xirang/changes/refine-change-formation/design.md",
       ".xirang/changes/refine-change-formation/elements/agent-workbench-projection.md",
       ".xirang/changes/refine-change-formation/elements/authoring-conventions.md",
@@ -62,6 +63,7 @@
       ".xirang/references/xirang-semantic-refinement.md",
       "src/commands/record.ts",
       "src/core/candidate/validator.ts",
+      "src/core/record/baseline.ts",
       "src/core/record/consume.ts",
       "src/core/record/coverage.ts",
       "src/core/record/document.ts",
@@ -106,7 +108,7 @@
       "test/integration/record-workflow.test.ts",
       "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "2f5bcd11461d131d31ea424630dca185fa367a50640fd57ac8103c446b09db45",
+    "evidenceFingerprint": "4d603f1cfc058e4dded3029708dcf8e19594bcacdb530d3e1a389db71170449e",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-experimenter.md",
@@ -130,7 +132,11 @@
       },
       {
         "path": ".xirang/changes/refine-change-formation/.apply-isolation.json",
-        "hash": "fc7829915822da546111f21c98d19077d022f45726e7187594c103a0963da7fd"
+        "hash": "18de92a27949d216105b6b5152473280d689256cc90222dbfdc6f127167a59a7"
+      },
+      {
+        "path": ".xirang/changes/refine-change-formation/.xirang.yaml",
+        "hash": "00c9615559d27f902f38301abf1c21f324c0e00172da10d3f7c2ad28809e262d"
       },
       {
         "path": ".xirang/changes/refine-change-formation/design.md",
@@ -255,6 +261,10 @@
       {
         "path": "src/core/candidate/validator.ts",
         "hash": "36fcce50b95952cba6f08782e7f5ec9271518d0d4ac3cf87c41662b3abaed4e2"
+      },
+      {
+        "path": "src/core/record/baseline.ts",
+        "hash": "a0718ccf72bffba0aadef353efac315c3cb1b47f0125fa72925262c7a61ad90e"
       },
       {
         "path": "src/core/record/consume.ts",
@@ -433,8 +443,8 @@
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json"
     ],
-    "gitHeadCommit": "169d9f38f53881ddd23ce55c1d2199cd4263fefc",
-    "gitDiffSummary": "Reviewed refine-change-formation at HEAD 169d9f38f53881ddd23ce55c1d2199cd4263fefc against validated immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 (.xirang/changes/refine-change-formation/.apply-isolation.json:1-6). git diff <baseCommit>...HEAD --name-only returned 70 files; git status --short was empty before and after verification; git diff --check passed. All changed paths are attributable to task Files, Check commands, or this Change's artifacts (tasks.md:12-31,78-98,130-148,315-363); no declared deletions exist. Read all 19 Element Delta units and explicitly checked that the other three Delta partitions have no units. Loaded the formal hierarchy, Relationships and Kinds using arch outline, impact and batched contract queries; arch validate --change succeeded without warnings, and combined validation accepted 68 effective entries without issues. The authored Delta contains 55 Sections, including four removals, and no canonical Acceptance Cases; two source-faithfulness Sections retain the reported execution WARNING. RC1 is resolved by the explicit three-role target (.xirang/changes/refine-change-formation/elements/agent-workbench-projection.md:12-24) and matching implementation (src/core/shared/subagent-generation.ts:26-30); RC2-RC5 now have explicit attribution and passing regression checks (tasks.md:325-363). SchemaVersion 4 and explicit decisions are enforced at src/core/record/document.ts:126-144. Selective reads preserve complete selected entries and the whole-record version, reject unknown identities, and omit the baseline at src/commands/record.ts:119-131, with observable byte-preservation and stale-version assertions at test/commands/record-json.test.ts:60-98. State-sensitive coverage and required dispositions are implemented at src/core/record/coverage.ts:153-230; source/target binding and structure agreement remain enforced at :290-308. Consumption preserves exact source bytes and revalidates before cleanup at src/core/record/consume.ts:53-110. Four-tool native permissions follow role capabilities at src/core/shared/subagent-generation.ts:72-87,124-148, consistent with design.md:45-51. Shared record authority, selective-read cadence, classification and handoff are present in .xirang/references/xirang-design-record.md:5-17,60-110; drafting and semantic review are present in .pi/skills/xirang-propose/SKILL.md:86-100,125-163. Contract concision preserves the existing 4+N boundary at .xirang/references/xirang-business-specification-standard.md:26-44. Multi-angle rg searches across source templates, role rendering, projected Explore/Propose skills and their references found no retired blanket read-only or old Propose record-maintenance prohibition. Diff-scoped marker searches found no introduced stale TODO/FIXME/HACK; matches in unchanged reviewer instructions describe review criteria. Fresh build, typecheck and 26 targeted test files / 277 tests passed. Prior quality records were used only for navigation, not as this round's proof.",
-    "timestamp": "2026-11-01T17:46:49.418Z"
+    "gitHeadCommit": "94d9efb8d17c8a475cf9aaa38d2e7de86c7e68b5",
+    "gitDiffSummary": "Validated the supplied absolute locations and immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 from .xirang/changes/refine-change-formation/.apply-isolation.json:1-7. Reviewed git diff <baseCommit>...HEAD --name-only and git status --short: 70 committed paths and no uncommitted paths. Final git diff --check passed; working tree and index remained clean after verification. All changed paths are explicitly attributable to task Files, Check commands, or Change artifacts (tasks.md:5-22,79-90,133-142,315-363); no Delete entries exist. Counts include 14 main checked Checks and five checked Required Corrections. Read all 19 Element Delta units; the other three Delta partitions contain no units. The authored Delta has 55 Sections, including four removals, and no canonical Acceptance Cases. Loaded the formal outline, directed impact context and batched complete Contracts; the unique project.root and Metamodel context were available. Fresh arch validate --change returned success with no errors or warnings; combined validate --change accepted 68 effective entries with no issues. SchemaVersion 4, explicit nature/decision and rejection of unsupported input are enforced at src/core/record/document.ts:126-144. Selective reads retain complete selected entries and the whole-record sourceVersion while omitting unrelated entries and baseline at src/commands/record.ts:119-132; observable assertions cover response contents, unchanged bytes and stale writes at test/commands/record-json.test.ts:60-98. State-dependent coverage and required reasons are enforced at src/core/record/coverage.ts:153-230, with source/target binding and structure gates at :290-308. Exact-byte consumption and recovery remain at src/core/record/consume.ts:53-110. Historical Candidate provenance contributes exact bytes to its digest without being reparsed as an active record at src/core/candidate/validator.ts:272-281,308-323; fresh integration, validation, promotion and history tests passed. Three-role registration and capability-based native permissions are present at src/core/shared/subagent-generation.ts:26-30,72-87,124-148, consistent with design.md:45-51 and the corrected agent-workbench-projection Delta:12-24. Installation preserves user models at src/core/templates/sync-engine.ts:369-407, with four-tool integration coverage at test/core/workflow-installation.test.ts:128-149. Shared authority, selective-read cadence, user decisions, state classification and handoff are present in .xirang/references/xirang-design-record.md:5-17,60-110. Explore experiment delegation and boundaries are present in .pi/skills/xirang-explore/SKILL.md:38-62 and the independently read Experimenter evidence report documents executed commands, observations and limitations; its date typo is disclosed in tasks.md:205. Propose routing, review and source checks are present at src/core/templates/workflows/propose.ts:46-58,84-119. Contract concision preserves responsibility boundaries and 4+N at src/core/templates/fragments/xirang-fragments.ts:80-90 and .xirang/references/xirang-business-specification-standard.md:26-44. Multi-angle rg searches over source templates, role generation, projected Explore/Propose skills and shared references returned no retired blanket read-only or Propose record-maintenance prohibition. Diff-scoped added-line searches returned no stale TODO/FIXME/HACK or tests locking formal-model prose. Fresh pnpm build, pnpm exec tsc --noEmit, and the targeted suite of 26 files / 277 tests passed; the suite and both validators were run again against the fresh build. Two source-faithfulness Sections remain at WARNING confidence because actual execution produced the disclosed C4 overconstraint; current user acceptance is independently recorded at .xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55. Prior quality records served only as navigation.",
+    "timestamp": "2026-11-01T17:58:40.590Z"
   }
 }
