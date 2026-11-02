@@ -78,7 +78,7 @@ describe('apply change workflow template', () => {
   it('routes recovery through impact discovery before batch semantic reads', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
     const impactIndex = preparation.indexOf('xirang arch impact <identity> --depth <n> --json');
-    const queryIndex = preparation.indexOf('xirang arch query <identities...> --contract --json');
+    const queryIndex = preparation.indexOf('xirang arch query <identity> --json');
 
     expect(impactIndex).toBeGreaterThan(-1);
     expect(queryIndex).toBeGreaterThan(impactIndex);
@@ -169,7 +169,8 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Step 1: Preparation');
     expect(instructions).not.toContain('capabilities: []');
     expect(preparation).toContain('xirang arch impact <identity> --depth <n> --json');
-    expect(preparation).toContain('xirang arch query <identities...> --contract --json');
+    expect(preparation).toContain('xirang arch query <identity> --json');
+    expect(preparation).toContain('--contract');
     expect(preparation).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(preparation).toContain('one Element has at most one Contract');
   });

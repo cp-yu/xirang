@@ -35,6 +35,55 @@ describe('Design Record reference projection', () => {
     ]) expect(reference).toContain(phrase);
   });
 
+  it('uses record read commands and recovery/version protocol tokens', () => {
+    for (const token of [
+      'xirang record list --json',
+      'xirang record show <explorationId> --json',
+      'xirang record status <explorationId> --json',
+      'xirang record validate <explorationId> --json',
+      'xirang record show <explorationId> --entry A --entry C --json',
+      'sourceVersion',
+      'source-version conflict',
+      'context compression',
+      'session switch',
+      'relevant drift',
+      'ordinary discussion',
+      'each section',
+      'diff and summary',
+    ]) expect(reference).toContain(token);
+
+    const bullets: string[] = [];
+    for (const line of reference.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('- ')) bullets.push(trimmed.slice(2));
+      else if (bullets.length > 0 && trimmed) bullets[bullets.length - 1] += ` ${trimmed}`;
+    }
+    const normalized = bullets.map(line => line.replace(/\s+/g, ' '));
+    const positiveReuse = (line: string) => /(?:reuse|retain|carry forward|keep using)[\s\S]*(?:latest|current|returned|new)[\s\S]*version/i.test(line)
+      && !/(?:do not|don't|never|must not|shall not)[\s\S]*(?:reuse|retain|carry|keep)/i.test(line);
+    const reuseRule = normalized.find(line => /sourceVersion/i.test(line) && /across sections/i.test(line));
+    expect(reuseRule && positiveReuse(reuseRule)).toBe(true);
+    expect(positiveReuse('Keep using the current version across sections.')).toBe(true);
+    expect(positiveReuse('Do not reuse the latest version across sections.')).toBe(false);
+    const updateRule = normalized.find(line => /after (?:an )?update/i.test(line));
+    expect(updateRule && /(?:diff|summary)[\s\S]*(?:reuse|retain|carry forward|keep using)/i.test(updateRule)).toBe(true);
+
+    const hasRecoveryAction = (line: string) => /(?:context compression|session switch|source-version conflict|relevant drift|unknown semantic detail)[\s\S]*(?:reload|re-read|refresh|re-establish)[\s\S]*(?:complete record|full record)[\s\S]*(?:status|validation)[\s\S]*(?:only then|before continuing|before continue|then continue|then proceed)/i.test(line)
+      && !/(?:do not|don't|never|must not|shall not)[\s\S]{0,50}(?:reload|re-read|refresh|re-establish)/i.test(line);
+    const recoveryRule = normalized.find(line => /context compression/i.test(line) && /source-version conflict/i.test(line));
+    expect(recoveryRule && hasRecoveryAction(recoveryRule)).toBe(true);
+    expect(hasRecoveryAction('On context compression, reload the full record plus status and validation, and only then proceed.')).toBe(true);
+    expect(hasRecoveryAction('On context compression, do not reload the full record plus status and validation; continue immediately.')).toBe(false);
+    expect(hasRecoveryAction('On context compression,\nreload the full record plus status and validation, and only then proceed.')).toBe(true);
+
+    const avoidsRepeatedReads = (line: string) => /(?:ordinary discussion|each section)[\s\S]*(?:do not|don't|never|must not|shall not|avoid)[\s\S]*(?:repeat|rerun)[\s\S]*(?:full show|show\/status\/validate|complete read)/i.test(line)
+      || /(?:do not|don't|never|must not|shall not|avoid)[\s\S]*(?:repeat|rerun)[\s\S]*(?:full show|show\/status\/validate|complete read)[\s\S]*(?:ordinary discussion|each section)/i.test(line);
+    const repetitionRule = normalized.find(line => /ordinary discussion/i.test(line) && /full show\/status\/validate/i.test(line));
+    expect(repetitionRule && avoidsRepeatedReads(repetitionRule)).toBe(true);
+    expect(avoidsRepeatedReads('For ordinary discussion, repeat the full show/status/validate sequence.')).toBe(false);
+    expect(avoidsRepeatedReads('During ordinary discussion,\navoid repeating the full show/status/validate sequence.')).toBe(true);
+  });
+
   it('keeps dependent consistency and the three-state record decision', () => {
     for (const phrase of [
       'invalidate affected design, Summary, and coverage conclusions',

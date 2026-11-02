@@ -46,9 +46,9 @@ describe('built record CLI workflow', () => {
       ],
     }));
     const created = run(root, ['record', 'create', '--slug', 'initial-build', '--from', payloadPath, '--json']);
-    const { sourceVersion, document, path: sourcePath } = created.result!;
-    const id = document.metadata.explorationId as string;
-    expect(document.baseline.modelState).toBe('absent');
+    const { sourceVersion, explorationId: id, path: sourcePath } = created.result!;
+    expect(created.result).not.toHaveProperty('document');
+    expect(created.result).not.toHaveProperty('baseline');
     for (const args of [[], ['--candidate', '--change', 'ambiguous']]) {
       expect(run(root, ['record', 'consume', id, ...args, '--source-version', sourceVersion, '--json'], 1))
         .toMatchObject({ status: 'error', error: { code: 'INVALID_CONSUME_TARGET' } });
@@ -96,7 +96,7 @@ describe('built record CLI workflow', () => {
 
     const created = run(root, ['record', 'create', '--slug', 'root-scope', '--from', payloadPath, '--json']);
     expect(created).toMatchObject({ version: '1.0', command: 'record create', status: 'ok', error: null });
-    const explorationId = created.result!.document.metadata.explorationId as string;
+    const explorationId = created.result!.explorationId as string;
     const sourcePath = path.join(root, ...(created.result!.path as string).split('/'));
 
     await fs.writeFile(

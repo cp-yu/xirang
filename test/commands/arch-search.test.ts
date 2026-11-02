@@ -51,25 +51,23 @@ describe('architecture search', () => {
     await fs.rm(root, { recursive: true, force: true });
   });
 
-  it('returns one element with declaration and Contract match evidence', async () => {
+  it('returns a finite candidate projection with Declaration and Contract match evidence', async () => {
     const result = await searchArchitecture(root, 'Impact');
 
     expect(result.query).toBe('Impact');
     expect(result.matches).toHaveLength(1);
     expect(result.matches[0].element).toEqual({
       identity: 'cap.impact',
-      kind: 'capability',
-      parent: 'root',
       title: 'Impact Sweeper',
-      definition: 'Collects architecture context across the full project boundary.',
+      parent: 'root',
     });
+    expect(result.matches[0]).toHaveProperty('matchedFields', ['section', 'title']);
     expect(result.matches[0]).not.toHaveProperty('ownedSpecs');
     expect(result.matches[0].evidence).toEqual(expect.arrayContaining([
       { field: 'title', text: 'Impact Sweeper' },
       { field: 'section', text: 'Impact behavior' },
     ]));
-    expect(result.matches[0].evidence.map(item => item.field))
-      .not.toEqual(expect.arrayContaining(['summary', 'fqn', 'specId', 'spec.purpose', 'spec.section']));
+    expect(JSON.stringify(result)).not.toMatch(/definition|sections|acceptanceCases|The system SHALL/);
     expect(result.diagnostics).toEqual([]);
   });
 
@@ -84,29 +82,30 @@ describe('architecture search', () => {
     expect(stable.totalMatches).toBe(2);
   });
 
-  it('searches and returns the complete Definition without Browser truncation', async () => {
+  it('searches Definitions with bounded evidence centered on the matching text', async () => {
     const result = await searchArchitecture(root, 'UnicodeNeedle');
 
     expect(result.matches).toHaveLength(1);
-    expect(result.matches[0].evidence).toEqual([{
-      field: 'definition',
-      text: LONG_DEFINITION,
-    }]);
-    expect(result.matches[0].evidence[0].text).not.toContain('...');
+    expect(result.matches[0].evidence).toHaveLength(1);
+    expect(result.matches[0].evidence[0].field).toBe('definition');
+    expect(result.matches[0].evidence[0].text).toContain('UnicodeNeedle');
+    expect(result.matches[0].evidence[0].text.length).toBeLessThan(200);
+    expect(result.matches[0].evidence[0].text).not.toBe(LONG_DEFINITION);
   });
 
-  it('always includes the complete Definition in text for non-Definition matches', async () => {
+  it('keeps complete Declaration text behind explicit arch query', async () => {
     const cases = [
       { result: await searchArchitecture(root, 'cap.exact'), definition: 'Exact identity candidate definition.' },
       { result: await searchArchitecture(root, 'Long Definition'), definition: LONG_DEFINITION },
       { result: await searchArchitecture(root, 'Impact behavior'), definition: 'Collects architecture context across the full project boundary.' },
     ];
 
-    for (const { result, definition } of cases) {
+    for (const { result } of cases) {
       const text = formatArchitectureSearchText(result);
-      expect(text).toContain(`Definition: ${definition}`);
+      expect(text).not.toContain('Definition:');
     }
-    expect(formatArchitectureSearchText(cases[1].result)).not.toContain('...');
+    expect(formatArchitectureSearchText(cases[1].result)).not.toContain(LONG_DEFINITION);
+    expect(formatArchitectureSearchText(cases[1].result)).toContain('Long Definition');
   });
 
   it('returns identical matches and ordering across process locale settings', async () => {

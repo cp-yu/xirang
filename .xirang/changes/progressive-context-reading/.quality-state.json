@@ -1,0 +1,337 @@
+{
+  "kind": "review",
+  "timestamp": "2026-11-02T12:24:13.987Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "40b7a6174aa84d1da3f48496ac6ea892e5ae12b311bcae41ab35c550388ea24a",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".github/workflows/windows.yml",
+      ".pi/agents/xirang-optimizer.md",
+      ".pi/agents/xirang-reviewer.md",
+      ".pi/skills/xirang-explore/SKILL.md",
+      ".pi/skills/xirang-propose/SKILL.md",
+      ".pi/skills/xirang-snack/SKILL.md",
+      ".xirang/changes/progressive-context-reading/.apply-isolation.json",
+      ".xirang/changes/progressive-context-reading/.quality-state.json",
+      ".xirang/changes/progressive-context-reading/design.md",
+      ".xirang/changes/progressive-context-reading/elements/arch-impact.md",
+      ".xirang/changes/progressive-context-reading/elements/arch-outline.md",
+      ".xirang/changes/progressive-context-reading/elements/arch-search.md",
+      ".xirang/changes/progressive-context-reading/elements/design-record-operations.md",
+      ".xirang/changes/progressive-context-reading/elements/deterministic-operations.md",
+      ".xirang/changes/progressive-context-reading/elements/explore-role.md",
+      ".xirang/changes/progressive-context-reading/elements/explore.md",
+      ".xirang/changes/progressive-context-reading/elements/propose-role.md",
+      ".xirang/changes/progressive-context-reading/elements/propose.md",
+      ".xirang/changes/progressive-context-reading/elements/workflow-templates.md",
+      ".xirang/changes/progressive-context-reading/proposal.md",
+      ".xirang/changes/progressive-context-reading/tasks.md",
+      ".xirang/model/metamodel/element.md",
+      ".xirang/model/metamodel/project.md",
+      ".xirang/references/xirang-apply-step-1-preparation.md",
+      ".xirang/references/xirang-design-record.md",
+      ".xirang/references/xirang-self-read-protocol.md",
+      "AGENTS.md",
+      "src/commands/arch/impact.ts",
+      "src/commands/arch/index.ts",
+      "src/commands/arch/outline.ts",
+      "src/commands/arch/query.ts",
+      "src/commands/arch/search.ts",
+      "src/commands/arch/snapshot.ts",
+      "src/commands/record.ts",
+      "src/core/change-compiler.ts",
+      "src/core/model/delta.ts",
+      "src/core/record/baseline.ts",
+      "src/core/record/workspace.ts",
+      "src/core/shared/subagent-generation.ts",
+      "src/core/templates/fragments/xirang-fragments.ts",
+      "src/core/templates/sync-engine.ts",
+      "src/core/templates/workflows/apply-change.ts",
+      "src/core/templates/workflows/explore.ts",
+      "src/core/templates/workflows/optimizer.ts",
+      "src/core/templates/workflows/propose.ts",
+      "test/commands/arch-impact.test.ts",
+      "test/commands/arch-outline.test.ts",
+      "test/commands/arch-query.test.ts",
+      "test/commands/arch-search.test.ts",
+      "test/commands/arch-snapshot.test.ts",
+      "test/commands/record-json.test.ts",
+      "test/commands/record.test.ts",
+      "test/core/model/business-specification.test.ts",
+      "test/core/templates/apply-change.test.ts",
+      "test/core/templates/design-record-reference.test.ts",
+      "test/core/templates/explore-template.test.ts",
+      "test/core/templates/fragments/xirang-fragments.test.ts",
+      "test/core/templates/optimizer-template.test.ts",
+      "test/core/templates/propose-template.test.ts",
+      "test/core/templates/reviewer-template.test.ts",
+      "test/core/templates/semantic-model-consistency.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts",
+      "test/integration/arch-command.test.ts",
+      "test/integration/record-workflow.test.ts"
+    ],
+    "evidenceFingerprint": "dec0fb7098a0c41909e3d46e8e986eb0598e4231d5776b699f1a3d348c11f1da",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".github/workflows/windows.yml",
+        "hash": "b7531514b15fc039ffb0d3bf58be230afc4cb4b31a620c2c562067bc3c5f6811"
+      },
+      {
+        "path": ".pi/agents/xirang-optimizer.md",
+        "hash": "070a0932f91c56c67a7c1f9978f8f0779c6b752fa05c3bd2dc7f9a90063c1480"
+      },
+      {
+        "path": ".pi/agents/xirang-reviewer.md",
+        "hash": "956ccac239fa2fcb6e56adb1aecd0aa897084f299c49866a8cd833fd7d4e3d39"
+      },
+      {
+        "path": ".pi/skills/xirang-explore/SKILL.md",
+        "hash": "af37ae434dcbdc6105cf652e1e5e58e66117ec68e07005a6bcd278ded6a4b1af"
+      },
+      {
+        "path": ".pi/skills/xirang-propose/SKILL.md",
+        "hash": "2811571b92bd1a9961536bf8d6b76b6f9f56583d706495291d8edc3463f1d6e7"
+      },
+      {
+        "path": ".pi/skills/xirang-snack/SKILL.md",
+        "hash": "829f40c9a975b3196850542934ac384e4a0b0107e900034ac1700162ad713294"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/.apply-isolation.json",
+        "hash": "165a42735346addd1fbbe5ca09d7cdc090ca9ffc45c7d47f85c4e97d4af60192"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/design.md",
+        "hash": "00d3f190ccf1461787fc07a9d2b892a2fabc25d3c1c137083b6a64a50fb05dc1"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/arch-impact.md",
+        "hash": "b4ea8c4dcbdeabe0e48e730057c93a2ff17a96d5c041063bb3e872a026c5d95b"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/arch-outline.md",
+        "hash": "832de0e50bf2958d81557514a2243e1802c2140ea991cd857f315fb1f220c020"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/arch-search.md",
+        "hash": "a8f5494affe64f3dc9987369343dc67be5c986b19f01cd6c81037cf408ed1842"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/design-record-operations.md",
+        "hash": "206c6fca76a50f1b3168bfc058c51fede4fd88373820c6c13769ad380daa271e"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/deterministic-operations.md",
+        "hash": "e6391534bffcfecadb6b6d63063eaaf26973ff22fcea67a46b104caa56513505"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/explore-role.md",
+        "hash": "c0970769d48bd56eb28eb352e4423d0889d34fe929fd17c037ed8eb8e7d0fee9"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/explore.md",
+        "hash": "5cb37d5c279f5dfd4b1afb9f17723de1d05b116c627ccb785a8eaed8c2c9ff11"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/propose-role.md",
+        "hash": "45b8383e43bcd0bd6dde4df3d17b94e867be278122be35d4578b82b2b234beeb"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/propose.md",
+        "hash": "d8846199f48ffa54f268149a54ffde054d0a29007e7938dcad8a5395ab1c2cf0"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/workflow-templates.md",
+        "hash": "8d79574abf9ddf51d6fb7ae1025c55198d7cee92f6801e329667d94b9283eacb"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/proposal.md",
+        "hash": "2d893fca8286d14d8c4da7480f6adc6531daadc1a74692c9f4135b0f80908ee9"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/tasks.md",
+        "hash": "40b7a6174aa84d1da3f48496ac6ea892e5ae12b311bcae41ab35c550388ea24a"
+      },
+      {
+        "path": ".xirang/model/metamodel/element.md",
+        "hash": "64c0b98dc85aee272b8e96af9c7de1740b49ef64f5ebbfa1fc73e1b3449e7cb0"
+      },
+      {
+        "path": ".xirang/model/metamodel/project.md",
+        "hash": "ce15fdb5f8e886b8e87bc04d5c977216d3bdcb3640b3b823784cf707b43d1929"
+      },
+      {
+        "path": ".xirang/references/xirang-apply-step-1-preparation.md",
+        "hash": "f12c471dc2c53ff0bde486bbc6ff6f214311ee3e9cf97739da1db3961366163e"
+      },
+      {
+        "path": ".xirang/references/xirang-design-record.md",
+        "hash": "181e1764c97c5647cf8aed4cd2c145cb470985dd8d017f3868c4a125495570ee"
+      },
+      {
+        "path": ".xirang/references/xirang-self-read-protocol.md",
+        "hash": "60441cc8f4477c03c9eb89fbd3c18aeb5959d7cf5a25ddf8264cff77eaced901"
+      },
+      {
+        "path": "AGENTS.md",
+        "hash": "d6c2749afa7bf0318f38f3373dca905bdb89edb849bf5ed9ac4de58dcceebe86"
+      },
+      {
+        "path": "src/commands/arch/impact.ts",
+        "hash": "e8e44d0ea8acbd81be426c7398e7cf971a607921fbf48e6b364d0f54b1e30a30"
+      },
+      {
+        "path": "src/commands/arch/index.ts",
+        "hash": "2a9be61dd6a66af3cfa3243209bc3ca183cb547cdd170eb64fd07b16b7f970a2"
+      },
+      {
+        "path": "src/commands/arch/outline.ts",
+        "hash": "7442a06c150df675419b392325c9c0a4996f1ca718be450c6d56037f5d75f517"
+      },
+      {
+        "path": "src/commands/arch/query.ts",
+        "hash": "4781bf1ee6464e6d3282f63ffe5896c20ab04163cd35be224a07d302d6df5f3c"
+      },
+      {
+        "path": "src/commands/arch/search.ts",
+        "hash": "db8ba548d438ee5812819309e98a8ada178efcfaf9998f24a68cd0e7693b99c4"
+      },
+      {
+        "path": "src/commands/arch/snapshot.ts",
+        "hash": "7f5d62b7d424b17f383559d5e7b1e0bee161d3bac1da2c81f3c520ded24ab621"
+      },
+      {
+        "path": "src/commands/record.ts",
+        "hash": "24e058e2d5917012b4e93181e3d0abbccf0b787fe798b6da8e4c50a149cedb6c"
+      },
+      {
+        "path": "src/core/change-compiler.ts",
+        "hash": "2015a5662d1a3bb7cd53d4ff02fa6e24b190abfa6fc7efc9db37f8699ead68c5"
+      },
+      {
+        "path": "src/core/model/delta.ts",
+        "hash": "d1de02ead0721c6350eb00a4d711e7ac6cb72f3d641b7f283a6a0fff8decf475"
+      },
+      {
+        "path": "src/core/record/baseline.ts",
+        "hash": "a0718ccf72bffba0aadef353efac315c3cb1b47f0125fa72925262c7a61ad90e"
+      },
+      {
+        "path": "src/core/record/workspace.ts",
+        "hash": "d75711f3dff4fe29c052ebdb6a189e377768275431492ee8cf09b1b413bd9ede"
+      },
+      {
+        "path": "src/core/shared/subagent-generation.ts",
+        "hash": "4d549d4662964861e271f9a3bb8b0a3c118a208bb118738032dca88716d50f50"
+      },
+      {
+        "path": "src/core/templates/fragments/xirang-fragments.ts",
+        "hash": "0e6f05b76008f0df202b33ab9effa199414d4be8305d36df5cd8db47c5cac5ea"
+      },
+      {
+        "path": "src/core/templates/sync-engine.ts",
+        "hash": "8b05789bf22ef89b3872faa0fcc0fe960c8d0204731e58cb10651ae3166bf5c8"
+      },
+      {
+        "path": "src/core/templates/workflows/apply-change.ts",
+        "hash": "a3efb60f70192ff810206d6e5c6507acf4fc372b3426f8db2924ea8e6aa3fb5e"
+      },
+      {
+        "path": "src/core/templates/workflows/explore.ts",
+        "hash": "f50f03e974d49eb40622c4388548b82c2e60f08655fa53907c25777cf1389b98"
+      },
+      {
+        "path": "src/core/templates/workflows/optimizer.ts",
+        "hash": "edeadad4409644a73803a96ed9a2127fb199bbe80313d410bfc465a5d3988935"
+      },
+      {
+        "path": "src/core/templates/workflows/propose.ts",
+        "hash": "1bf959a3d02f640e31755485e47f1bf0f6b58670cbcf5c43efcd7dfadf5d69b9"
+      },
+      {
+        "path": "test/commands/arch-impact.test.ts",
+        "hash": "44b65dd1d3e7bac25dcd42820b21b83bfb2eaf3caacad32d5f90d99ac710a0f7"
+      },
+      {
+        "path": "test/commands/arch-outline.test.ts",
+        "hash": "e089b3ac2bc6b12034b0449cb907ea7f1e2472d26d6969bfc3017d32f7ed36f7"
+      },
+      {
+        "path": "test/commands/arch-query.test.ts",
+        "hash": "5125df9948f581e5984bbbb46f06c1a05aa89e148bb6aab9cb2574a4270db0e8"
+      },
+      {
+        "path": "test/commands/arch-search.test.ts",
+        "hash": "1995d8544ef03eb784b0cff2978cf48e00120d224e01345035ef421a0fed84be"
+      },
+      {
+        "path": "test/commands/arch-snapshot.test.ts",
+        "hash": "f806c6d0f21657e7287e3c5535d1fdfb9ab534435a10123ebc86a78b5a3ec169"
+      },
+      {
+        "path": "test/commands/record-json.test.ts",
+        "hash": "8f60c75f1baa233acda13815c5be0123414434dc091edbd2d0609482d3d8cbc2"
+      },
+      {
+        "path": "test/commands/record.test.ts",
+        "hash": "7ba4993b675fbb2134c0884208971f7594c61c1d3427809025cc1550d2095c7b"
+      },
+      {
+        "path": "test/core/model/business-specification.test.ts",
+        "hash": "4c1d84abb4b13b1bda12ee35bf714a286d0b4bb20fc272dab18d50dfc8a6115a"
+      },
+      {
+        "path": "test/core/templates/apply-change.test.ts",
+        "hash": "8e9b7e7feb17cbd7b4cb4416334b36e28271eca9d2d48848648a7ea26e157fdf"
+      },
+      {
+        "path": "test/core/templates/design-record-reference.test.ts",
+        "hash": "4b480cbad08a97e4412ad1f5d944d3593521c8c253bfd48286c91d30d1f2d30c"
+      },
+      {
+        "path": "test/core/templates/explore-template.test.ts",
+        "hash": "b701ad71f519b454465a4936d02be355c56aa14b69f952bc9cdc56c339818a49"
+      },
+      {
+        "path": "test/core/templates/fragments/xirang-fragments.test.ts",
+        "hash": "acf0b733aa39b34f1133508c1cedacdecf9e8d50c89ed9bcf42c72d19e555a03"
+      },
+      {
+        "path": "test/core/templates/optimizer-template.test.ts",
+        "hash": "e9e47834d3e5d439fba218aa5612a9dcc5a86d39aae8301f82f0da11f2b5edf0"
+      },
+      {
+        "path": "test/core/templates/propose-template.test.ts",
+        "hash": "bb22f9c236b285cb4ad5499c5110c1043b497bc09adc8e83d138e6758322910c"
+      },
+      {
+        "path": "test/core/templates/reviewer-template.test.ts",
+        "hash": "963b723593693b34fc8ebdb9985a0913bdd27ccedaab5f8e464114da5e6ef8b5"
+      },
+      {
+        "path": "test/core/templates/semantic-model-consistency.test.ts",
+        "hash": "ad9b2b72754a7bfdebe477fd0554802c2a56da4cc3d5da9da7c53ac51897d542"
+      },
+      {
+        "path": "test/core/templates/skill-templates-parity.test.ts",
+        "hash": "a390cb108daf8727fc05f4c17b6e0dadf8d6edc98a57020c77f45eb58c438f34"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "bee46292ff3eab0b384607516a0a119505fff8ba10d81c7c76333ed4e9f343e3"
+      },
+      {
+        "path": "test/integration/record-workflow.test.ts",
+        "hash": "3fbb9fa91812b8a9d385f5029ee15f09c691a0c9c9f8bd768a19410039329733"
+      }
+    ],
+    "skippedEvidenceFiles": [
+      ".xirang/changes/progressive-context-reading/.quality-state.json"
+    ],
+    "gitHeadCommit": "12d7e917dd8669b7dfa83b20cf7c4caf0ecf2297",
+    "gitDiffSummary": "Validated the three location inputs against the absolute repository root. Immutable baseCommit 12d7e917dd8669b7dfa83b20cf7c4caf0ecf2297 resolves to a commit (.xirang/changes/progressive-context-reading/.apply-isolation.json:1-6). git diff <baseCommit>...HEAD --name-only is empty; git status --short supplies 52 staged, unstaged, and untracked paths. Explicit task Files attribution accounts for every scoped path (tasks.md:5-10,29-37,75-90). No declared deletions exist. All ten Element Delta units were read; the other three change-local partitions and .quality-history are absent. Historical quality conclusions were navigation only.\n\nCompleteness: all eight checkbox Checks are complete and independently supported (tasks.md:19-23,47-69,101-118). Counts use verifiable checkbox Checks rather than the three enclosing Task headings. The compiler produces 21 Section entries; every compiled target Section was compared directly with its Delta target and matches exactly. The Expected Semantic Model validates without errors or warnings and has one Project Root, project.root. Acceptance Case totals are zero because these Delta examples are Section-body bullets, not parsed Acceptance Case units. Compilation and validation boundaries are implemented at src/core/change-compiler.ts:143-182 and src/core/model/delta.ts:298-312.\n\nCorrectness PASS evidence: record public receipts, selective/full reads, summaries, and baseline exclusion are implemented at src/commands/record.ts:78-97,122-165,183-244 and exercised at test/commands/record-json.test.ts:60-179. Baseline persistence and stale-version rejection remain intact at src/core/record/workspace.ts:243-280; relevant drift and rebasing are exercised at test/integration/record-workflow.test.ts:102-132. Search bounds evidence and sorts before limiting at src/commands/arch/search.ts:31-38,69-108, with behavioral assertions at test/commands/arch-search.test.ts:54-93. Outline preserves the complete hierarchy and gates semantic expansions at src/commands/arch/outline.ts:111-157; configuration, overrides, and expansions are covered at test/commands/arch-outline.test.ts:108-175,192-227. Impact separates default summaries from explicit relationship/path records at src/commands/arch/impact.ts:230-251; canonical paths, cycles, and identity-only output are covered at test/commands/arch-impact.test.ts:57-107,194-221. Explicit query preserves selected Declarations and Contracts at src/commands/arch/query.ts:53-65 and test/commands/arch-query.test.ts:57-103. Snapshot retains complete JSON Declarations and Kind fields at src/commands/arch/snapshot.ts:84-91,202-215 and test/commands/arch-snapshot.test.ts:49-79.\n\nWorkflow PASS evidence: phase-entry/local/recovery/closing record gates and sourceVersion reuse are present at src/core/templates/workflows/explore.ts:168-173,325-354 and src/core/templates/workflows/propose.ts:44-69,109-120. Shared bounded-reading, selective semantics, truncation recovery, and no-guessing rules are present at src/core/templates/fragments/xirang-fragments.ts:142-161. Owning checks cover recovery/reuse polarity and bounded-reading safeguards at test/core/templates/design-record-reference.test.ts:38-84 and test/core/templates/fragments/xirang-fragments.test.ts:406-437. Optimizer explicitly requests relationship paths at src/core/templates/workflows/optimizer.ts:15-19. Tracked skill parity is asserted at test/core/templates/skill-templates-parity.test.ts:106-116; fresh byte comparisons additionally confirm both changed agents and all three changed references equal their generators.\n\nCoherence and cleanliness: command-specific projections and progressive-reading decisions follow design.md:26-52. Windows execution is explicitly outside this Change's completion gate (design.md:62-64; tasks.md:113-122), and the existing Windows workflow is unchanged. Live caller searches, final-file reads, explicit attribution, lint/typecheck, and git diff HEAD --check found no introduced orphaned code, dead imports, stale TODO/FIXME/HACK markers, half migrations, or unaccounted changes. Reviewer made no source edits or staging changes; the final Git scope remains the same 52 paths.\n\n```acceptance-report\n{\"criteriaSatisfied\":[{\"id\":\"criterion-1\",\"status\":\"satisfied\",\"evidence\":\"PASS with cited implementation and test evidence, fresh regression execution, compiled-target checks, generated-surface parity, and explicit residual limitations.\"}],\"changedFiles\":[],\"testsAddedOrUpdated\":[],\"commandsRun\":[{\"command\":\"pnpm build && pnpm test && pnpm exec tsc --noEmit && pnpm lint\",\"result\":\"passed\",\"summary\":\"Build, all 163 test files / 2391 tests, typecheck, and lint passed.\"},{\"command\":\"xirang arch validate --change progressive-context-reading --json; xirang validate --change progressive-context-reading --json\",\"result\":\"passed\",\"summary\":\"Expected model and Change validate without errors or warnings; 21 Section entries.\"},{\"command\":\"Read-only compiled-target, attribution, and generated-surface comparisons\",\"result\":\"passed\",\"summary\":\"All 21 target Sections match; all 52 scoped paths are attributed; three skills, two agents, and three references match their generators.\"},{\"command\":\"Representative built CLI search, default/expanded outline, default/expanded impact, query, query --contract, and snapshot reads\",\"result\":\"passed\",\"summary\":\"All eight outputs parsed as complete JSON; snapshot retained Declaration titles and Metamodel constraints.\"},{\"command\":\"git diff HEAD --check\",\"result\":\"passed\",\"summary\":\"No whitespace errors.\"},{\"command\":\"Windows runtime verification\",\"result\":\"not-run\",\"summary\":\"Explicitly excluded from this Change's completion gate by the current design.\"}],\"validationOutput\":[\"PASS: no review blockers found.\",\"Eight of eight verification Checks completed; 21 of 21 target Sections supported.\"],\"residualRisks\":[\"Windows runtime was not executed in this Linux review; current design explicitly excludes it from the completion gate.\",\"The default JSON projections intentionally break callers relying on old fields; external consumers were not independently exercised.\",\"Complete explicit outputs remain potentially larger than tool limits; the verified workflow requires narrowing or splitting truncated reads.\"],\"noStagedFiles\":false,\"diffSummary\":\"Read-only review; pre-existing staged and unstaged changes were preserved.\",\"reviewFindings\":[\"No blockers found in the reviewed current files.\"],\"manualNotes\":\"Fresh-context independent review. Prior quality records were not accepted as current evidence. Build regenerated ignored outputs; no source files were edited or staged. Conclusions apply to the reviewed working-tree state, not only HEAD.\"}\n```",
+    "timestamp": "2026-11-02T12:24:13.987Z"
+  }
+}

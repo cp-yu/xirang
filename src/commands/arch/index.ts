@@ -50,10 +50,14 @@ export function registerArchCommand(program: Command): void {
   arch.command('impact <element-ids...>')
     .description('Project Semantic Model context around focus Elements')
     .option('--depth <n>', 'Relationship and descendant depth', '2')
+    .option('--paths', 'Include the full depth-bounded Relationship subgraph and canonical shortest paths')
     .option('--json', 'Output canonical JSON')
     .action(async (elementIds, options) => {
       try {
-        const result = await impactArchitecture(process.cwd(), elementIds, { depth: Number(options.depth) });
+        const result = await impactArchitecture(process.cwd(), elementIds, {
+          depth: Number(options.depth),
+          paths: options.paths,
+        });
         console.log(options.json ? JSON.stringify(result, null, 2) : formatArchitectureImpactText(result));
       } catch (error) {
         console.error((error as Error).message);
@@ -61,8 +65,11 @@ export function registerArchCommand(program: Command): void {
       }
     });
   arch.command('outline')
-    .description('Project the complete Semantic Model structure with depth-bounded Element Definitions')
-    .option('--definition-depth <n>', 'Maximum hierarchy depth whose Element Definitions are loaded')
+    .description('Project complete Element hierarchy with explicitly selected semantic expansions')
+    .option('--definitions', 'Load Element Definitions according to project configuration')
+    .option('--definition-depth <n>', 'Select Definitions and limit loading to this hierarchy depth')
+    .option('--relationships', 'Include all persisted Relationships')
+    .option('--metamodel', 'Include all Element and Relationship Kind declarations')
     .option('--format <format>', 'text, markdown, or json', 'text')
     .action(async options => {
       if (!['text', 'markdown', 'json'].includes(options.format)) {
@@ -77,9 +84,12 @@ export function registerArchCommand(program: Command): void {
       }
       try {
         const result = await outlineArchitecture(process.cwd(), {
+          definitions: options.definitions || options.definitionDepth !== undefined,
           definitionDepth: options.definitionDepth === undefined
             ? undefined
             : Number(options.definitionDepth),
+          relationships: options.relationships,
+          metamodel: options.metamodel,
         });
         if (options.format === 'json') {
           console.log(JSON.stringify(result, null, 2));

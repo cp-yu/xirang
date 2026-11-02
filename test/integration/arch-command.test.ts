@@ -80,8 +80,10 @@ describe('arch commands', () => {
     expect(impact.exitCode).toBe(0);
     expect(JSON.parse(impact.stdout)).toMatchObject({
       focusElements: ['payment.authorize'],
-      relations: [{ source: 'payment.authorize', kind: 'invokes', target: 'payment.audit' }],
+      relationshipSummary: [{ kind: 'invokes', count: 1 }],
     });
+    expect(JSON.parse(impact.stdout)).not.toHaveProperty('relations');
+    expect(JSON.parse(impact.stdout)).not.toHaveProperty('relationPaths');
 
     const invalid = await runCLI(['arch', 'impact', 'payment.authorize', '--change', 'active'], { cwd: root });
     expect(invalid.exitCode).toBe(1);
@@ -90,7 +92,7 @@ describe('arch commands', () => {
 
   it('renders complete Contracts and canonical paths through the default CLI format', async () => {
     const query = await runCLI(['arch', 'query', 'project.root', '--contract'], { cwd: root });
-    const impact = await runCLI(['arch', 'impact', 'payment.authorize'], { cwd: root });
+    const impact = await runCLI(['arch', 'impact', 'payment.authorize', '--paths'], { cwd: root });
 
     expect(query.exitCode).toBe(0);
     expect(query.stdout).toContain('    The project SHALL behave.');
@@ -201,7 +203,7 @@ describe('arch commands', () => {
       expect.objectContaining({ elementId: 'payment.audit', direction: 'descendant', depth: 2 }),
       expect.objectContaining({ elementId: 'payment.authorize', direction: 'descendant', depth: 2 }),
     ]));
-    expect(result.relations).toEqual([]);
+    expect(result).not.toHaveProperty('relations');
     expect(formatArchitectureImpactText(result)).toContain('Element identities:');
   });
 
@@ -298,15 +300,8 @@ describe('arch commands', () => {
     expect(markdown.exitCode).toBe(0);
     expect(markdown.stdout).toContain('- project.root (semanticProject) Project');
     expect(json.exitCode).toBe(0);
-    expect(JSON.parse(json.stdout)).toMatchObject({
-      elementDefinitionDepth: 2,
-      elements: [
-        expect.objectContaining({ identity: 'payment.audit' }),
-        expect.objectContaining({ identity: 'payment.authorize' }),
-        expect.objectContaining({ identity: 'payments' }),
-        expect.objectContaining({ identity: 'project.root' }),
-      ],
-    });
+    expect(JSON.parse(json.stdout)).not.toHaveProperty('elementDefinitionDepth');
+    expect(JSON.parse(json.stdout).elements.every((element: object) => !('definition' in element))).toBe(true);
 
     for (const depth of ['-1', '1.5', 'invalid']) {
       const invalid = await runCLI(['arch', 'outline', '--definition-depth', depth], { cwd: root });

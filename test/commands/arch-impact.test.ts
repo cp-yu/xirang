@@ -54,8 +54,22 @@ describe('architecture impact', () => {
     await fs.rm(root, { recursive: true, force: true });
   });
 
+  it('omits complete paths by default and returns the full subgraph only when selected', async () => {
+    const summary = await impactArchitecture(root, ['cap.focus'], { depth: 2 });
+    expect(summary).not.toHaveProperty('relations');
+    expect(summary).not.toHaveProperty('relationPaths');
+    expect(summary.relationshipSummary).toEqual([
+      { kind: 'invokes', count: 4 },
+      { kind: 'observes', count: 2 },
+    ]);
+
+    const expanded = await impactArchitecture(root, ['cap.focus'], { depth: 2, paths: true });
+    expect(expanded.relations).toContainEqual({ source: 'cap.focus', kind: 'invokes', target: 'cap.alpha' });
+    expect(expanded.relationPaths?.some(item => item.relatedElementId === 'cap.target')).toBe(true);
+  });
+
   it('merges focus identities and expands all Relationship kinds bidirectionally to depth two', async () => {
-    const result = await impactArchitecture(root, ['cap.focus', 'cap.incoming', 'cap.focus']);
+    const result = await impactArchitecture(root, ['cap.focus', 'cap.incoming', 'cap.focus'], { paths: true });
 
     expect(result.focusElements).toEqual(['cap.focus', 'cap.incoming']);
     expect(result.elements).toEqual([...result.elements].sort());
@@ -75,7 +89,7 @@ describe('architecture impact', () => {
   });
 
   it('selects one canonical shortest path while preserving non-selected edges and terminating cycles', async () => {
-    const result = await impactArchitecture(root, ['cap.focus']);
+    const result = await impactArchitecture(root, ['cap.focus'], { paths: true });
     const targetPath = result.relationPaths.find(item => item.focusElementId === 'cap.focus' && item.relatedElementId === 'cap.target');
 
     expect(targetPath?.steps).toEqual([
@@ -121,7 +135,7 @@ describe('architecture impact', () => {
     }));
 
     try {
-      const results = await Promise.all(roots.map(fixtureRoot => impactArchitecture(fixtureRoot, ['m.focus'], { depth: 2 })));
+      const results = await Promise.all(roots.map(fixtureRoot => impactArchitecture(fixtureRoot, ['m.focus'], { depth: 2, paths: true })));
       const targetPath = results[0].relationPaths.find(path => path.relatedElementId === 'z.target');
 
       expect(results[1]).toEqual(results[0]);
@@ -164,7 +178,7 @@ describe('architecture impact', () => {
         ],
       });
 
-      const result = await impactArchitecture(highDegreeRoot, ['cap.focus'], { depth: 1 });
+      const result = await impactArchitecture(highDegreeRoot, ['cap.focus'], { depth: 1, paths: true });
 
       expect(result.relations.filter(relation => relation.source === 'cap.focus')).toEqual([
         ...targets.map(target => ({ source: 'cap.focus', kind: 'invokes', target })),
@@ -187,8 +201,8 @@ describe('architecture impact', () => {
       { focusElementId: 'cap.focus', elementId: 'cap.domain', direction: 'ancestor', depth: 1 },
       { focusElementId: 'cap.focus', elementId: 'project.root', direction: 'ancestor', depth: 2 },
     ]));
-    expect(result.relations).toEqual([]);
-    expect(result.relationPaths).toEqual([]);
+    expect(result).not.toHaveProperty('relations');
+    expect(result).not.toHaveProperty('relationPaths');
     expect(serialized).not.toContain(FOCUS_DEFINITION);
     expect(serialized).not.toMatch(/contract|sections|acceptanceCases|title|definition|children/);
     expect(text).toContain('Element identities: cap.domain, cap.focus, project.root');
@@ -196,7 +210,7 @@ describe('architecture impact', () => {
   });
 
   it('separates the complete ancestor chain from depth-bounded descendants', async () => {
-    const result = await impactArchitecture(root, ['cap.focus'], { depth: 1 });
+    const result = await impactArchitecture(root, ['cap.focus'], { depth: 1, paths: true });
 
     expect(result.refinementContext).toEqual(expect.arrayContaining([
       expect.objectContaining({ focusElementId: 'cap.focus', elementId: 'cap.domain', direction: 'ancestor', depth: 1 }),

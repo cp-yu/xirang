@@ -383,11 +383,11 @@ describe('Xirang shared context fragment', () => {
       'refinement',
       'one Element has at most one Contract',
       '`contract` field of its Element Kind',
-      'directed Relationships',
+      'relationships',
       'xirang arch outline --format json',
       'xirang arch impact <identity> --depth <n> --json',
-      'xirang arch query <identities...> --contract --json',
-      '--contract',
+      'xirang arch query <identity> --json',
+      '`--contract` only when that Element Contract is needed',
       'elements/<identity>.md',
       'metamodel/<kind identity>.md',
       'views/<view identity>.md',
@@ -404,13 +404,37 @@ describe('Xirang shared context fragment', () => {
   });
 
   it('defines deterministic context reload rules and bounded projections', () => {
-    expect(XIRANG_SHARED_CONTEXT).toContain('overall Semantic Model understanding is unclear');
-    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch outline --format json');
-    expect(XIRANG_SHARED_CONTEXT).toContain('specific Element Definition or Contract is unclear');
-    expect(XIRANG_SHARED_CONTEXT).toContain('batch `arch query`');
+    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch snapshot --format json');
+    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch query <identity> --json');
+    expect(XIRANG_SHARED_CONTEXT).toContain('`--contract`');
+    expect(XIRANG_SHARED_CONTEXT).toContain('`--paths`');
     expect(XIRANG_SHARED_CONTEXT).toContain('MUST NOT guess');
-    expect(XIRANG_SHARED_CONTEXT).toContain('architecture.outline.elementDefinitionDepth');
-    expect(XIRANG_SHARED_CONTEXT).toContain('identity-only');
+  });
+
+  it('preserves bounded-reading safeguards across prose edits', () => {
+    const rules = XIRANG_SHARED_CONTEXT.split(/\n(?=- )/).map(rule => rule.replace(/\s+/g, ' '));
+    const hasPositiveRule = (pattern: RegExp, rejected: RegExp) => rules.some(rule => pattern.test(rule) && !rejected.test(rule));
+
+    const questionGate = (text: string) => {
+      const normalized = text.replace(/\s+/g, ' ');
+      return /(?:(?:before|prior to|first)[\s\S]*(?:expand|broaden|batch|additional read)[\s\S]*(?:question|uncertainty|issue to answer)|(?:question|uncertainty)[\s\S]*(?:before|prior to)[\s\S]*(?:expand|broaden|batch|additional read))/i.test(normalized)
+        && !/(?:do not|don't|never|must not|shall not)[\s\S]*(?:state|identify|ask)/i.test(normalized);
+    };
+    expect(rules.some(questionGate)).toBe(true);
+    expect(questionGate('State the question before expanding the read.')).toBe(true);
+    expect(questionGate('Ask what uncertainty the query resolves before broadening the read.')).toBe(true);
+    expect(questionGate('Before expanding a read or issuing a batch,\nstate the concrete question it must answer.')).toBe(true);
+    expect(questionGate('Do not state a question before expanding a read.')).toBe(false);
+    expect(hasPositiveRule(/(LSP|symbols?|definitions?)[\s\S]*(before|first|then)[\s\S]*(smallest|minimal|relevant range)/i, /(do not|don't|never|must not|shall not)[\s\S]{0,50}(locate symbols|use LSP)/i)).toBe(true);
+    expect(hasPositiveRule(/test[\s\S]*(owns|responsible for)[\s\S]*behavior/i, /(do not|don't|never|must not|shall not)[\s\S]*(locate|identify|find)/i)).toBe(true);
+    expect(hasPositiveRule(/bounded[\s\S]*independent reads/i, /(unbounded|unlimited|all reads)/i)).toBe(true);
+    expect(rules.some(rule => /nested JSON/i.test(rule) && /(do not|avoid|never|must not|shall not)[\s\S]*raw nested JSON/i.test(rule))).toBe(true);
+    expect(hasPositiveRule(/truncat[\s\S]*(incomplete|missing)[\s\S]*(narrow|split|retrieve|fetch|verify)/i, /(trust|rely on)[\s\S]*truncated/i)).toBe(true);
+  });
+
+  it('includes bounded search and safe expansion protocol tokens', () => {
+    expect(XIRANG_SHARED_CONTEXT).toContain('arch search <query> --limit <n>');
+    expect(XIRANG_SHARED_CONTEXT).toContain('MUST NOT guess');
   });
 
   it('does not reintroduce retired public CLI or Browser forms', () => {

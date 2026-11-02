@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261102T060213Z-5fa50c9a",
+  "sourceVersion": "0f88f1e688da3c93e6f59276689482c484a8d3bf714ff856f278a271dbc00bfe",
+  "targetFingerprint": "52e7f8cab61c2c358f924c004261d567c125d041b89170dc85e417e42e6edde5",
+  "recordedAt": "2026-11-02T06:56:50.990Z",
+  "entries": [
+    {
+      "identity": "progressive-context-reading-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "本 Change 同时调整 record 与 arch CLI 默认投影以及 Explore/Propose 渐进读取规则。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "对模型和 Change 提供结构化操作"
+          },
+          "quote": "发现型命令 SHALL 默认返回完成其职责所需的最小投影；完整语义 SHALL 只在调用方显式提供 stable identity 后由 `arch query` 返回，完整 Contract SHALL 只在显式使用 `--contract` 时返回。"
+        },
+        {
+          "detail": "完整 Definition 与 Contract 必须仍可显式完整读取，不得摘要、截断或改写。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "完整处理 Element Definition"
+          },
+          "quote": "显式 `arch query` 与 `arch query --contract` SHALL 返回选定 identity 的完整 Declaration 与 Contract。"
+        },
+        {
+          "detail": "共享工作流源模板、生成面与验证同步覆盖。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "相关源模板、受管生成面与行为验证 SHALL 一起维护。"
+        }
+      ]
+    },
+    {
+      "identity": "command-responsibility-projections",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "record list 只返回记录索引、身份、版本、状态和摘要，不返回 payload 或 baseline。",
+          "location": {
+            "element": "design-record-operations",
+            "section": "提供稳定 Record JSON Contract"
+          },
+          "quote": "返回记录索引、explorationId、slug、sourceVersion、状态与摘要\n  - 不返回 record payload 或 baseline"
+        },
+        {
+          "detail": "record create 和 rename 返回操作回执、身份、新版本与摘要，不返回完整 document 或 baseline。",
+          "location": {
+            "element": "design-record-operations",
+            "section": "提供稳定 Record JSON Contract"
+          },
+          "quote": "返回操作回执、记录身份、新 sourceVersion 与摘要\n  - 不返回完整 document 或 baseline"
+        },
+        {
+          "detail": "record show 返回完整 design payload、结构与元信息但不返回 baseline，并保留 --entry。",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "`record show` 无 `--entry` 时返回完整当前 design payload、structure 与 metadata，不返回 baseline。\n- `record show --entry` 继续只返回显式选择条目，不返回无关内容或 baseline。"
+        },
+        {
+          "detail": "record status、validate、update 只返回状态、差异、诊断、结构比较、摘要与 sourceVersion，不回传完整 document 或 baseline。",
+          "location": {
+            "element": "design-record-operations",
+            "section": "提供稳定 Record JSON Contract"
+          },
+          "quote": "`record status`、`record validate` 与 `record update` 返回状态、差异、诊断、结构比较、摘要和 sourceVersion\n  - status、validate 和 update 不返回完整 document"
+        },
+        {
+          "detail": "arch search 默认只返回候选 identity、title、parent、匹配字段、有限证据和计数；完整语义通过显式 query。",
+          "location": {
+            "element": "arch-search",
+            "section": "arch search SHALL 返回可解释的统一结果"
+          },
+          "quote": "默认每个 match SHALL 返回最小候选投影：stable identity、title、parent、匹配字段、有限 match evidence，以及候选计数；默认不返回完整 Element Declaration 或 Contract。"
+        },
+        {
+          "detail": "arch outline 默认返回完整层级导航，不返回 Definitions、Relationships 或 Metamodel。",
+          "location": {
+            "element": "arch-outline",
+            "section": "arch outline SHALL 投影完整模型结构"
+          },
+          "quote": "`xirang arch outline` SHALL 默认投影全部 Element identities 与 hierarchy，包含 identity、kind、title、parent、children 与 depth；默认不返回 Relationships、Metamodel 或 Element Definitions。"
+        },
+        {
+          "detail": "arch outline 仅在显式请求时展开 Definitions、Relationships 与 Metamodel，并完整返回而不摘要或截断。",
+          "location": {
+            "element": "arch-outline",
+            "section": "arch outline SHALL 投影完整模型结构"
+          },
+          "quote": "通过明确的命令选项，调用方 MAY 展开完整 Relationships、Metamodel Kinds 与配置深度内的完整 Definitions。"
+        },
+        {
+          "detail": "arch impact 默认返回局部影响摘要与必要关系摘要，完整关系子图和 canonical paths 显式请求。",
+          "location": {
+            "element": "arch-impact",
+            "section": "arch impact SHALL 共享统一输出投影"
+          },
+          "quote": "默认 JSON SHALL 包含 identity-only `focusElements` 与相关 `elements`、必要关系摘要、结构化 `refinementContext`、范围统计与 `diagnostics`；canonical `relations` 子图与 `relationPaths` SHALL 只在显式完整关系/path projection 时返回。"
+        },
+        {
+          "detail": "完整显式 identity query 返回完整 Declaration，只有 --contract 返回完整 Contract。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "对模型和 Change 提供结构化操作"
+          },
+          "quote": "完整语义 SHALL 只在调用方显式提供 stable identity 后由 `arch query` 返回，完整 Contract SHALL 只在显式使用 `--contract` 时返回。"
+        },
+        {
+          "detail": "baseline 继续用于确定性 drift 检查，但从普通命令返回值隔离。",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "普通命令返回值 SHALL 隔离内部 baseline，baseline 继续持久化并供确定性 drift 检查使用。"
+        }
+      ]
+    },
+    {
+      "identity": "progressive-architecture-query-flow",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "普通 Explore/Propose 从 search 定位候选，按需展开结构与影响，随后读取选定 Declaration 和 Contract。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "对模型和 Change 提供结构化操作"
+          },
+          "quote": "使用 `xirang arch search <query> --limit <n> --json` 定位候选\n  - 再按需使用 `arch outline` 或 `arch impact` 获取层级和关系范围，使用 `arch query` 获取选定 Declaration，最后使用 `arch query --contract` 获取选定完整 Contract"
+        },
+        {
+          "detail": "完整 snapshot 保留全局 Declaration、Relationships 和 Metamodel 诊断能力，但不包含 Contract，且不是普通探索默认入口。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "对模型和 Change 提供结构化操作"
+          },
+          "quote": "使用 `xirang arch snapshot` 获取完整 Declaration、Relationships 和 Metamodel\n  - snapshot 不包含 Contract，普通探索不将其作为默认入口"
+        },
+        {
+          "detail": "arch query 的 Declaration 和 Contract 均完整，不摘要、截断或改写。",
+          "location": {
+            "element": "deterministic-operations",
+            "section": "完整处理 Element Definition"
+          },
+          "quote": "显式 `arch query` 与 `arch query --contract` SHALL 返回选定 identity 的完整 Declaration 与 Contract。"
+        }
+      ]
+    },
+    {
+      "identity": "agent-progressive-read-rules",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Explore 阶段入口先运行 xirang list --json 并建立必要的完整 record 基础；完整 show/status/validate 限于入口、恢复和收尾门禁。",
+          "location": {
+            "element": "explore",
+            "section": "按确认即记录使用 Design Record"
+          },
+          "quote": "Explore SHALL 在每个阶段入口先运行 `xirang list --json` 发现当前记录，并读取必要的完整基础状态；完整 show/status/validate 用于入口、恢复和收尾门禁，不用于普通讨论或每次局部更新前的重复仪式。"
+        },
+        {
+          "detail": "有效上下文复用最近成功读取的 sourceVersion、summary 和已知 identity；局部记录问题通过 --entry 读取并检查更新 diff/summary。",
+          "location": {
+            "element": "explore",
+            "section": "按确认即记录使用 Design Record"
+          },
+          "quote": "有效上下文未发生相关变化时，SHALL 复用最近成功操作返回的 `sourceVersion`、summary 与已知 identity；局部设计问题使用 `record show --entry`，update 使用最近有效 `sourceVersion` 并检查返回的 diff 与 summary。"
+        },
+        {
+          "detail": "Propose 在完整入口与收尾门禁之间复用有效记录版本，并在冲突时重载而不猜测或覆盖。",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "有效上下文未发生变化时 SHALL 复用最近成功操作的 record-level `sourceVersion`、summary 和已知 identity；局部更新携带该版本，并检查返回的差异、summary 与新版本。版本冲突时重新加载当前记录并调和，不猜测或覆盖。"
+        },
+        {
+          "detail": "发生上下文压缩、会话切换、版本冲突、相关模型 drift 或状态未知时重新建立完整依据。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "统一加载协议与优雅降级"
+          },
+          "quote": "仅当整体模型理解丢失、上下文压缩、长会话切换或明确需要全局结构诊断时，才显式扩大到完整结构投影或 snapshot。"
+        },
+        {
+          "detail": "完整模型语义不明时重新查询，不从旧摘要、identity、title、对话残留或实现证据猜测。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "Agent 认知缺口 SHALL 触发确定性语义重载"
+          },
+          "quote": "Agent MUST NOT 根据 identity、title、旧摘要、残余对话上下文或实现代码猜测缺失的 Element Definition 或 Contract。"
+        },
+        {
+          "detail": "影响分析返回的全部 identities 不自动批量查询，只显式查询当前决策需要的 identities。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "统一 CLI 查询接口"
+          },
+          "quote": "完整读取 SHALL 只覆盖当前决策需要的显式 identities；不得自动 query impact 的全部 identities。"
+        },
+        {
+          "detail": "每次扩大读取范围都对应明确问题；代码与测试先定位 owner 再读最小范围。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "先说明该读取回答的具体问题，只读取需要的 identity 与范围\n  - 代码证据先用 rg、LSP 或符号定位，再读取最小相关范围；测试先定位拥有行为的测试，不批量读取整个测试目录"
+        },
+        {
+          "detail": "并发仅用于独立小查询，不全量输出原始嵌套 JSON，输出超范围时收窄或分批并保护截断边界。",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "并发只用于已确定且独立的小查询；不得把原始嵌套 JSON 全量输出\n  - 输出超范围时缩小或分批读取，不把截断结果视为完整证据"
+        },
+        {
+          "detail": "Record 内容减少读取不能代替收尾的完整覆盖检查。",
+          "location": {
+            "element": "propose",
+            "section": "处理已确认设计记录"
+          },
+          "quote": "收尾覆盖验证前再次完整读取。"
+        }
+      ]
+    },
+    {
+      "identity": "progressive-reading-validation-strategy",
+      "result": "not-applicable",
+      "reason": "该条规定本次 Change 的持久化测试、生成面同步和一次性效率/跨平台验证安排，不增加 Expected Semantic Model 的行为或结构承诺；具体工作与命令已写入 tasks.md，确定性语义覆盖目标中没有对应的目标态 Section。"
+    }
+  ]
+}

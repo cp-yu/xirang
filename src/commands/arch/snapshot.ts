@@ -1,4 +1,4 @@
-import type { Relationship, SemanticModel } from '../../core/model/types.js';
+import type { ElementKind, Relationship, RelationshipKind, SemanticModel } from '../../core/model/types.js';
 import { compareCodePoints } from '../../utils/stable-order.js';
 import { readValidArchitecture } from './reader.js';
 
@@ -6,6 +6,7 @@ import { readValidArchitecture } from './reader.js';
 export interface SnapshotElement {
   identity: string;
   kind: string;
+  title: string;
   definition: string;
   parent: string | null;
   children: string[];
@@ -15,13 +16,14 @@ export interface SnapshotElement {
 export interface SnapshotTreeNode {
   identity: string;
   kind: string;
+  title: string;
   definition: string;
   children: SnapshotTreeNode[];
 }
 
 export interface SnapshotMetamodel {
-  elementKinds: Array<{ identity: string; contract: 'required' | 'optional'; contractFormat?: 'business-specification'; body: string }>;
-  relationshipKinds: Array<{ identity: string; body: string }>;
+  elementKinds: ElementKind[];
+  relationshipKinds: RelationshipKind[];
 }
 
 export interface ArchitectureSnapshotResult {
@@ -49,6 +51,7 @@ function buildTree(elements: readonly SnapshotElement[]): SnapshotTreeNode[] {
     elements.map(element => [element.identity, {
       identity: element.identity,
       kind: element.kind,
+      title: element.title,
       definition: element.definition,
       children: [],
     }]),
@@ -81,6 +84,7 @@ export function buildModelTree(model: SemanticModel): SnapshotElement[] {
   return sortElements(model.elements.map(element => ({
     identity: element.declaration.identity,
     kind: element.declaration.kind,
+    title: element.declaration.title,
     definition: element.declaration.definition,
     parent: element.declaration.parent,
     children: childrenOf.get(element.declaration.identity) ?? [],
@@ -146,11 +150,11 @@ function renderMetamodelText(metamodel: SnapshotMetamodel): string {
   const lines = ['[metamodel]'];
   const elementKinds = [...metamodel.elementKinds].sort((left, right) => compareCodePoints(left.identity, right.identity));
   for (const kind of elementKinds) {
-    lines.push(`element-kind: ${kind.identity} (contract: ${kind.contract}${kind.contractFormat ? `, format: ${kind.contractFormat}` : ''})${kind.body ? ` — ${kind.body}` : ''}`);
+    lines.push(`element-kind: ${kind.identity} ${JSON.stringify(kind)}`);
   }
   const relationshipKinds = [...metamodel.relationshipKinds].sort((left, right) => compareCodePoints(left.identity, right.identity));
   for (const kind of relationshipKinds) {
-    lines.push(`relationship-kind: ${kind.identity}${kind.body ? ` — ${kind.body}` : ''}`);
+    lines.push(`relationship-kind: ${kind.identity} ${JSON.stringify(kind)}`);
   }
   return lines.join('\n');
 }
@@ -197,16 +201,8 @@ export async function snapshotArchitecture(
 
   const elements = buildModelTree(model);
   const relations = sortArchitectureRelationships(model.relationships);
-  const elementKinds = model.elementKinds.map(kind => ({
-    identity: kind.identity,
-    contract: kind.contract,
-    ...(kind.contractFormat === undefined ? {} : { contractFormat: kind.contractFormat }),
-    body: kind.body,
-  }));
-  const relationshipKinds = model.relationshipKinds.map(kind => ({
-    identity: kind.identity,
-    body: kind.body,
-  }));
+  const elementKinds = model.elementKinds.map(kind => ({ ...kind }));
+  const relationshipKinds = model.relationshipKinds.map(kind => ({ ...kind }));
 
   return {
     elements,

@@ -12,7 +12,8 @@ export interface ArchitectureSearchEvidence {
 }
 
 export interface ArchitectureSearchMatch {
-  element: ElementDeclaration;
+  element: Pick<ElementDeclaration, 'identity' | 'title' | 'parent'>;
+  matchedFields: ArchitectureSearchEvidence['field'][];
   evidence: ArchitectureSearchEvidence[];
 }
 
@@ -25,6 +26,16 @@ export interface ArchitectureSearchResult {
 
 interface RankedEvidence extends ArchitectureSearchEvidence {
   rank: number;
+}
+
+function boundedEvidence(text: string, query: string): string {
+  const maxLength = 160;
+  if (text.length <= maxLength) return text;
+  const matchIndex = text.toLowerCase().indexOf(query.toLowerCase());
+  const start = Math.max(0, matchIndex - Math.floor((maxLength - query.length) / 2));
+  const end = Math.min(text.length, start + maxLength);
+  const adjustedStart = Math.max(0, end - maxLength);
+  return `${adjustedStart > 0 ? '…' : ''}${text.slice(adjustedStart, end)}${end < text.length ? '…' : ''}`;
 }
 
 function addEvidence(
@@ -71,8 +82,16 @@ export async function searchArchitecture(
       || compareCodePoints(left.field, right.field)
       || compareCodePoints(left.text, right.text));
     matches.push({
-      element: declaration,
-      evidence: evidence.map(({ rank: _rank, ...item }) => item),
+      element: {
+        identity: declaration.identity,
+        title: declaration.title,
+        parent: declaration.parent,
+      },
+      matchedFields: [...new Set(evidence.map(item => item.field))].sort(compareCodePoints),
+      evidence: evidence.map(({ rank: _rank, ...item }) => ({
+        ...item,
+        text: boundedEvidence(item.text, searchQuery),
+      })),
       rank: evidence[0].rank,
     });
   }
@@ -92,14 +111,9 @@ export async function searchArchitecture(
 
 export function formatArchitectureSearchText(result: ArchitectureSearchResult): string {
   if (result.matches.length === 0) return `No Semantic Model matches for: ${result.query}`;
-  return result.matches.map(match => {
-    const evidence = match.evidence
-      .filter(item => item.field !== 'definition')
-      .map(item => `  ${item.field}: ${item.text}`);
-    return [
-      `${match.element.identity}  ${match.element.title}`,
-      `Definition: ${match.element.definition}`,
-      ...evidence,
-    ].join('\n');
-  }).join('\n\n');
+  return result.matches.map(match => [
+    `${match.element.identity}  ${match.element.title} (parent: ${match.element.parent ?? '(none)'})`,
+    `Matched fields: ${match.matchedFields.join(', ')}`,
+    ...match.evidence.map(item => `  ${item.field}: ${item.text}`),
+  ].join('\n')).join('\n\n');
 }

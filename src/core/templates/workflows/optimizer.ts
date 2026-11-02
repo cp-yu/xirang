@@ -14,7 +14,7 @@ Read context in this order:
 
 ## Dependency Expansion (One Hop)
 
-Expand direct imports, callers, and directed semantic relationships from \`xirang arch impact <identity> --depth 1 --json\`. Select only the identities needed to interpret each relationship, then run one batch \`xirang arch query <selected-identities...> --contract --json\`. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relationships are missing, continue with imports and callers.
+Expand direct imports, callers, and directed semantic relationships from \`xirang arch impact <identity> --depth 1 --paths --json\`. Select only the identities needed to interpret each relationship, then run one batch \`xirang arch query <selected-identities...> --json\` for complete Declarations and add \`--contract\` only for Contracts required by the current question. Interpret each relationship by its declared meaning and stop after one hop. Use path.relative to reject paths outside projectRoot, apply gitignore filtering, and exclude node_modules, dist, build, and .git. If relationships are missing, continue with imports and callers.
 
 Expansion candidates MUST NOT be actionable direction targets. Actionable locations MUST remain inside base scope files only; report scope-outside opportunities as deferred.`;
 
