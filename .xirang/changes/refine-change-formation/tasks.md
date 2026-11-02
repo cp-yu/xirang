@@ -86,6 +86,13 @@
   - Evidence: CLI选择`OPT-20261101T180423403Z-02`；一次性探针`/tmp/formation-opt-coverage-resolution.mjs`在相同Declaration、Section、Acceptance Case三个细节上，修改前find次数为elements=6、sections=4、acceptanceCases=2，修改后为3、2、1，诊断均为空。新增行为回归在修改前已通过，不将优化描述为业务错误修复。
   - Expect: 每个Element细节只解析一次；保留格式/空摘录检查优先、完整诊断顺序、首次匹配、原有文本拼接及强调/空白归一化、非Element身份解析、来源版本与指纹及失败不写入行为。
 
+- [x] C17 单次遍历汇总记录概况
+  - Verifies: `elements/design-record-operations.md` / Section "按部分更新记录"
+  - Test action: modify
+  - Command: `pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts`
+  - Evidence: CLI选择`OPT-20261101T182523356Z-01`；一次性探针`/tmp/formation-opt-summary-counts.mjs`在相同输入上先观察4次遍历、4个filter结果数组，修改后为1次遍历、0个filter结果数组；完整概况与字段顺序保持。行为测试在修改前已通过，不冒充业务行为RED。
+  - Expect: nature与decision独立计数，informative计入对应决策，重复项按出现次数统计；空条目与非空结构计数正确，保留返回字段及顺序，连续调用独立且不修改输入，无跨调用缓存或持久化变化。
+
 ### Task 2: 可设计并执行实验的内部角色与 Explore
 
 **Goal**: 在 Task 1 GREEN 后，由现有工具原生安装机制交付 Experimenter，Explore 可委托必要实验并使用证据继续设计；不依赖 Task 3 的 Propose 成文改动。
@@ -337,6 +344,13 @@ Review仍由独立Reviewer依据当前模型、Change、实现和证据自行判
 - 只调整coverage.ts的细节校验分支：所有既有输入守卫通过后，Element位置调用locationText一次，分别用于undefined存在检查与原样摘录匹配；私有resolves收窄至非Element变体。符合keyDesign，无跨调用缓存、新索引、持久化时序或产品提示词修改；locationText、comparableText及其首次匹配与空字符串语义不变。
 - 在既有coverage.test.ts增加Declaration摘录与Markdown强调归一化、输入不变及提交顺序验证，并比较格式错误/未覆盖/空摘录/位置缺失/摘录不符的完整有序诊断；失败后已存在覆盖文件字节不变。新增用例在旧实现已通过（2 files /35 tests）；修改后4 files /55 tests与类型检查通过。一次性源码转译探针使用相同模型与三个细节，find次数由6/4/2降为3/2/1，诊断均为空，证明重复搜索减少，不作耗时或总体负载收益声明。
 - pnpm build、类型检查、arch validate --change、combined validate --change均通过，架构0 errors/0 warnings、组合校验0 issues；git diff --check及源码/测试LSP无诊断。本轮程序与验证证据准备交由fresh Sol Review；尚未创建successful checkpoint或提前上报本轮verified，既有来源忠实性与Windows实际执行限制保持。
+
+### Optimization Round 3：单次遍历汇总记录概况
+
+- fresh Sol Optimizer `e19584eb-be4a-4622-9448-dcb40e77e802`通过独立差分/搜索探针及55项测试验证上一轮，未新增或撤销方向；完整载荷经validateOptimizeInput后原样提交。CLI将`OPT-20261101T180423403Z-02`记为verified，round 3选择既有`OPT-20261101T182523356Z-01`，已用3/3方向额度。
+- summarizeRecord按keyDesign使用调用内计数器与一次forEach，nature单独判断，decision显式比较；保留forEach/filter对稀疏数组的跳过行为、未知decision不产生额外键或NaN、全部返回字段和顺序及结构数组length。不改公开接口、Schema、诊断、来源版本、持久化或产品提示词。
+- 在既有structure.test.ts增加六种nature/decision组合、重复出现、空条目/非空结构、连续调用独立及输入原样的完整概况断言；修改前后4 files /56 tests均通过，类型检查通过。一次性源码转译探针对含稀疏位置及未知decision的相同输入观察遍历/结果数组由4/4降为1/0，完整概况和字段顺序保持；不宣称特定耗时收益。探针位于`/tmp/formation-opt-summary-counts.mjs`，不形成持久化测试。
+- pnpm build、arch validate --change、combined validate --change均通过，架构0 errors/0 warnings、组合校验0 issues；git diff --check及源码/测试LSP无诊断。本轮实现尚待fresh Sol Review；通过后才保存successful checkpoint，再由fresh Optimizer验证本轮与决定终态，既有来源忠实性与Windows实际执行限制保持。
 
 ## Required Corrections
 

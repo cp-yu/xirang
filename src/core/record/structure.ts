@@ -269,14 +269,18 @@ export function assertRecordStructure(structure: RecordStructure, model: Semanti
 }
 
 export function summarizeRecord(payload: DesignRecordPayload): RecordSummary {
+  let normativeEntries = 0;
+  const decisions = { pending: 0, accepted: 0, excluded: 0 };
+  payload.entries.forEach(item => {
+    if (item.nature === 'normative') normativeEntries++;
+    if (item.decision === 'pending') decisions.pending++;
+    else if (item.decision === 'accepted') decisions.accepted++;
+    else if (item.decision === 'excluded') decisions.excluded++;
+  });
   return {
     entries: payload.entries.length,
-    normativeEntries: payload.entries.filter(item => item.nature === 'normative').length,
-    decisions: {
-      pending: payload.entries.filter(item => item.decision === 'pending').length,
-      accepted: payload.entries.filter(item => item.decision === 'accepted').length,
-      excluded: payload.entries.filter(item => item.decision === 'excluded').length,
-    },
+    normativeEntries,
+    decisions,
     elements: payload.structure.elements.length,
     relationships: payload.structure.relationships.length,
     elementKinds: payload.structure.elementKinds.length,

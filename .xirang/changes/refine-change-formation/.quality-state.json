@@ -1,6 +1,6 @@
 {
   "kind": "review",
-  "timestamp": "2026-11-01T18:37:44.166Z",
+  "timestamp": "2026-11-02T04:46:41.885Z",
   "result": "PASS_WITH_WARNINGS",
   "issues": [
     {
@@ -8,33 +8,32 @@
       "message": "Actual Propose execution retains the explicitly accepted source-faithfulness limitation: complex-1 C4 requires an in-flight attempt to remain uninterrupted although its Contract leaves that outcome open.",
       "section": "完成 Formation 审查与确认 / 计划一致性复核",
       "task": "Task 3 / C11 / C14",
-      "recommendation": "Retain the qualification when reporting readiness. Do not describe the samples as universally source-faithful, the C4 assertion as repaired, or successful deterministic validation as proof of semantic completeness. The recorded user acceptance permits this disclosed limitation for this Change.",
+      "recommendation": "Retain this qualification when reporting readiness. Do not describe all samples as source-faithful or the C4 assertion as repaired. The recorded user acceptance permits this disclosed limitation for this Change.",
       "evidenceCitations": [
         "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/tasks.md:36-54",
         "/tmp/formation-closeout-flow-awcvrtfe/subjects/complex-1/.xirang/changes/event-selection-retry/elements/delivery.md:12-28",
-        ".xirang/changes/refine-change-formation/tasks.md:197-205",
-        ".xirang/changes/refine-change-formation/tasks.md:311-313",
+        ".xirang/changes/refine-change-formation/tasks.md:195-208",
         ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:52-55",
         ".pi/skills/xirang-propose/SKILL.md:147-155"
       ]
     },
     {
       "severity": "WARNING",
-      "message": "Windows execution remains unverified; portable path construction and Linux tests do not establish Windows runtime behavior.",
+      "message": "Windows runtime execution remains unverified; portable path construction and Linux tests do not establish Windows runtime behavior.",
       "section": "跨平台路径及安装更新",
       "task": "Task 1 / C6; Task 2 / C8",
-      "recommendation": "Preserve the platform qualification. Windows execution evidence is explicitly outside this Change's accepted scope; obtain it separately when an appropriate environment is available.",
+      "recommendation": "Preserve the platform qualification. Windows execution evidence is explicitly outside this Change's accepted scope and should be obtained separately when an appropriate environment is available.",
       "evidenceCitations": [
         ".xirang/changes/refine-change-formation/tasks.md:68-73",
-        ".xirang/changes/refine-change-formation/tasks.md:121-125",
-        ".xirang/changes/refine-change-formation/tasks.md:212-216",
+        ".xirang/changes/refine-change-formation/tasks.md:128-132",
+        ".xirang/changes/refine-change-formation/tasks.md:218-224",
         ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md:17-20",
         "src/core/templates/sync-engine.ts:379-406",
         "test/core/record/paths.test.ts:11-39"
       ]
     }
   ],
-  "tasksFileHash": "bcd37afa8e355e49f087a206f5961558dfcf72902f07240d550de5bc4aed2155",
+  "tasksFileHash": "2d6f5a0518063b43b565f22a09d4062948148de1ee05180e10ab366f2b2ccfca",
   "verificationContext": {
     "contractVersion": "1.0",
     "evidenceFiles": [
@@ -143,7 +142,7 @@
       "test/integration/record-workflow.test.ts",
       "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "c3e4d70793917693f73ef9a483fd8862c03ab8c0a167754c82ab0abf4a747ec3",
+    "evidenceFingerprint": "c3dc596c38877d191b13db3e501a47b155bf4383dbc65e7d86db7bf7bef2dd3c",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-experimenter.md",
@@ -267,7 +266,7 @@
       },
       {
         "path": ".xirang/changes/refine-change-formation/tasks.md",
-        "hash": "bcd37afa8e355e49f087a206f5961558dfcf72902f07240d550de5bc4aed2155"
+        "hash": "2d6f5a0518063b43b565f22a09d4062948148de1ee05180e10ab366f2b2ccfca"
       },
       {
         "path": ".xirang/model/elements/agent-workbench-projection.md",
@@ -399,7 +398,7 @@
       },
       {
         "path": "src/core/record/structure.ts",
-        "hash": "ea930215cf1206bd540cee13525cbf5447251f2789292730da7b183761ebb341"
+        "hash": "a15cd48fd9fa8a865c425016b0464fa4b8c38dc2fc66bf7ee98a61cc40b16cf5"
       },
       {
         "path": "src/core/record/types.ts",
@@ -507,7 +506,7 @@
       },
       {
         "path": "test/core/record/structure.test.ts",
-        "hash": "931554e3c086ce16c51e0df25a4f5c62d927f642dc89cfc7087df6038b12d309"
+        "hash": "c963fdc3ed624131177de15b3cff61710bf045e7951a7b7e43707ae1e0443863"
       },
       {
         "path": "test/core/record/validator.test.ts",
@@ -558,9 +557,9 @@
       ".xirang/changes/refine-change-formation/.quality-log.jsonl",
       ".xirang/changes/refine-change-formation/.quality-state.json"
     ],
-    "gitHeadCommit": "269cc4706b4cc1a057164313c2b278b9c965665b",
-    "gitDiffSummary": "Reviewed HEAD 269cc4706b4cc1a057164313c2b278b9c965665b against immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0, resolved from .xirang/changes/refine-change-formation/.apply-isolation.json:1-7. Validated the supplied absolute projectRoot, changeDir and changeName. git diff <baseCommit>...HEAD --name-only returned 70 paths. git status --short returned five unstaged paths: the Change's quality log, quality state and tasks, plus coverage.ts and coverage.test.ts. Their union is fully attributed by explicit task Files, Check commands or Change artifacts (tasks.md:5-22,93-104,147-156). No staged files or declared deletions exist; git diff --check passed. Read all 19 Delta units and inspected all four Delta partitions; only elements contains units. Counts represent 21 checked Checks/corrections and 55 explicitly authored Sections, including four removals; the Delta contains no canonical Acceptance Case entries. Two source-faithfulness Sections retain WARNING confidence under the recorded acceptance. Loaded the complete formal outline, directed impact context and selected complete Contracts. Architecture validation passed without errors or warnings; combined Change validation passed with no issues and 68 effective entries. SchemaVersion 4 and explicit decisions are enforced at src/core/record/document.ts:126-144. Selective reads preserve complete requested entries and the whole-record sourceVersion at src/commands/record.ts:119-132, with response, unchanged-byte and stale-version assertions at test/commands/record-json.test.ts:60-98. State-sensitive coverage, required dispositions and quote validation remain at src/core/record/coverage.ts:152-235; source/target binding and structure agreement remain at :295-313. Exact-byte consumption and fresh revalidation remain at src/core/record/consume.ts:53-110. Historical Candidate provenance remains opaque and digest-bound at src/core/candidate/validator.ts:272-281,308-323, consistent with design.md:69-79. Three-role registration and native permissions follow capabilities at src/core/shared/subagent-generation.ts:26-30,72-87,124-154; user model preservation remains at src/core/templates/sync-engine.ts:393-406. Shared record authority and handoff rules are present in .xirang/references/xirang-design-record.md:5-23,60-110; actual-draft review and source checks are present in .pi/skills/xirang-propose/SKILL.md:86-100,125-163. Contract concision retains complete local commitments and 4+N in .pi/skills/xirang-build/SKILL.md:32-41 and .xirang/references/xirang-business-specification-standard.md:26-44. C10's specified rg retirement search and an additional search across source templates, role rendering, Explore/Propose projections and references returned no old blanket permission or Propose record-maintenance prohibition. Diff-scoped added-line searches returned no stale TODO/FIXME/HACK or tests reading formal-model prose. The structure optimization removes repeated modelObjects construction: src/core/record/structure.ts:216-231 prepares distinct invocation-local maps once; its validation loops remain unchanged at :234-262 and the isolation regression is at test/core/record/structure.test.ts:159-198. The current coverage optimization removes the old Element resolution branch from resolves at coverage.ts:145-149 and retains one locationText result for existence and quote checking at :217-225, preserving guard and diagnostic precedence at :211-224. Regression tests cover declaration/emphasis matching, submitted detail order, complete ordered diagnostics and preservation of an existing coverage file at test/core/record/coverage.test.ts:52-85. Independent probes passed with Element/Section/Acceptance Case find counts 3/2/1 for three details and one indexing traversal per model collection. Fresh typecheck, build and 26 targeted test files totaling 280 tests passed. Prior quality records were navigation only; this result rests on current files and fresh verification.",
-    "timestamp": "2026-11-01T18:37:44.166Z"
+    "gitHeadCommit": "2fc7ec00eabb4ce4b803ee1dae847afb3f916a4a",
+    "gitDiffSummary": "Validated the absolute projectRoot, changeDir and changeName and resolved immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 from .xirang/changes/refine-change-formation/.apply-isolation.json:1-7. Reviewed HEAD 2fc7ec00e and final working files. git diff <baseCommit>...HEAD --name-only returned 70 paths; git status --short added no paths outside that scope and showed five unstaged files: quality log, quality state, tasks, structure.ts and structure.test.ts. Explicit attribution against task Files, Check commands and Change artifacts found zero unaccounted files. There are no staged files or declared deletions; git diff --check passed. Read all 19 Delta Element units and inspected all four Delta partitions; metamodel, relationships and views contain no Delta units. No rotated .quality-history exists. Prior quality results were used only for navigation. Counts represent 22 checked Checks/corrections and 55 explicitly authored Sections, including four removals; there are no canonical Acceptance Case entries in this Delta. Two source-faithfulness Sections retain WARNING confidence under the recorded acceptance. Loaded the complete formal hierarchy, Relationships and Metamodel, confirmed the unique Project Root project.root, and read directed impact and selected complete Contracts. Fresh architecture validation returned success with zero errors and warnings; combined Change validation returned zero issues and 68 effective entries. SchemaVersion 4 and explicit decisions are enforced at src/core/record/document.ts:126-144. Selective reads retain complete requested entries and whole-record sourceVersion at src/commands/record.ts:119-132, with response, unchanged-byte and stale-version assertions at test/commands/record-json.test.ts:60-98. Coverage dispositions and atomic excerpt checks remain at src/core/record/coverage.ts:152-235; source/target bindings and structure agreement remain at :295-313. Exact-byte consumption and fresh revalidation remain at src/core/record/consume.ts:53-110. Candidate provenance remains opaque and digest-bound at src/core/candidate/validator.ts:272-281,308-323, consistent with design.md:69-79. Three-role registration and native permissions follow capabilities at src/core/shared/subagent-generation.ts:26-30,72-87,124-154; user model preservation remains at src/core/templates/sync-engine.ts:393-406. Shared record authority and handoff rules are present in .xirang/references/xirang-design-record.md:5-23,60-110; actual-draft review and source checks are present in .pi/skills/xirang-propose/SKILL.md:86-100,125-163. Contract concision preserves local commitments and 4+N in .pi/skills/xirang-build/SKILL.md:32-41 and .xirang/references/xirang-business-specification-standard.md:26-44. Experimenter design, execution and applicability boundaries are present in .pi/agents/xirang-experimenter.md:7-35; the executed C9 report at the referenced 77c2f17b-060c-46d4-acf4-e40d07df05fd/experimenter-fetch-evidence.md:13-118 supplies commands, outputs and limits, with its date correction documented in tasks.md:227-227. C10's specified rg search and an additional source/template/projection/reference search returned no retired blanket permission or Propose record-maintenance prohibition. Added-line searches found no stale TODO/FIXME/HACK or tests reading formal-model prose. C15 removes repeated modelObjects construction at src/core/record/structure.ts:216-231 while preserving validation loops at :234-262 and isolation assertions at test/core/record/structure.test.ts:183-223. C16 retains one Element locationText result for existence and quote checking at src/core/record/coverage.ts:211-225; complete ordered diagnostics and failure preservation are asserted at test/core/record/coverage.test.ts:52-85. The current C17 optimization replaces four filter counts with one invocation-local forEach at src/core/record/structure.ts:271-289. Nature and decision counts remain independent, explicit comparisons ignore unknown decisions, sparse entries retain filter semantics, structure counts and output property order remain unchanged, and no cache or mutation is introduced. Its complete-summary regression at test/core/record/structure.test.ts:47-69 covers all six nature/decision combinations, repeated occurrences, empty entries with nonempty structure, independent return objects and unchanged inputs. The old four-filter form is absent from final code. A fresh one-time probe confirmed one traversal and zero filter-result arrays while asserting sparse-array output, unknown-decision handling and field order. Fresh typecheck, build and 26 targeted test files totaling 281 tests passed. No new blockers or required corrections were found.",
+    "timestamp": "2026-11-02T04:46:41.885Z"
   },
   "optimization": {
     "directions": [
@@ -661,7 +660,7 @@
         "dependencies": [],
         "priorityReason": "Ranks second: the redundant resolution is unconditional for resolved Element details and its removal is small and behavior-local, but the avoided work is narrower than repeated full-model indexing in structure validation. It is independent of the first direction.",
         "id": "OPT-20261101T180423403Z-02",
-        "status": "implemented",
+        "status": "verified",
         "failureCount": 0
       },
       {
@@ -708,7 +707,7 @@
         "dependencies": [],
         "priorityReason": "Ranks after the existing pending OPT-20261101T180423403Z-02: avoiding duplicate Element/Section/Acceptance Case resolution removes searches and text construction, while this direction removes simpler counting scans and allocations. Both meet optimization.minImpactLevel=low and are independent.",
         "id": "OPT-20261101T182523356Z-01",
-        "status": "pending",
+        "status": "implemented",
         "failureCount": 0
       }
     ],
@@ -742,9 +741,28 @@
           "git diff --check passed. git status --porcelain=v1 returned no entries; this review changed no files and staged nothing.",
           "The active Review is PASS_WITH_WARNINGS. Residual risks remain: actual Propose execution retains the explicitly accepted source-faithfulness limitation, and Windows runtime execution remains unverified. These optimizations do not establish that either limitation is resolved."
         ]
+      },
+      {
+        "round": 3,
+        "timestamp": "2026-11-01T18:41:30.470Z",
+        "directions": [],
+        "selected": "OPT-20261101T182523356Z-01",
+        "outcome": "verified",
+        "reason": "Verified OPT-20261101T180423403Z-02 with 55 passing tests, typecheck and an independent differential/search-count probe. Retain existing pending OPT-20261101T182523356Z-01 unchanged for the next selection; continue the loop. Preserve the accepted source-faithfulness and unverified Windows execution limitations.",
+        "evidence": [
+          "Validated the absolute projectRoot, changeDir and changeName, then read the active PASS_WITH_WARNINGS Review, all three recorded directions, both round histories and failure counts (all zero). The active log agrees; no rotated .quality-history exists. optimization.minImpactLevel is low, directionLimit is 3 and directionsUsed is 2.",
+          "Resolved immutable baseCommit 17fd82bca9a2a8aa4c0f2f69297390965e7cacb0 and inspected its changed-file scope plus Git status. Both coverage.ts and structure.ts are tracked base-scope implementation files. Independently read proposal, design, all 19 Delta units, complete formal outline (unique root project.root), one-hop impact and selected complete Contracts.",
+          "Compared current HEAD 2fc7ec00e with preceding implementation commit 269cc4706b4cc1a057164313c2b278b9c965665b. The coverage implementation diff only narrows the private resolves helper to non-Element locations and reuses one invocation-local locationText result. src/core/record/coverage.ts:211-224 preserves shape/uncovered/quote guards, unresolved-before-quote diagnostic precedence, messages and submitted detail order; only undefined denotes an unresolved Element location.",
+          "src/core/record/coverage.ts:128-142 retains first-match element/Section/Acceptance Case searches, exact text construction and whitespace/Markdown emphasis normalization. Non-Element identity checks remain at :145-149. Source-version checks, persistence and fingerprint/structure gates remain unchanged at :238-313; consumeRecord retains fresh validation boundaries and exact-byte snapshot handling in src/core/record/consume.ts:53-110.",
+          "test/core/record/coverage.test.ts:52-85 exercises Declaration and emphasized excerpts, unchanged submitted input, saved detail order, all five ordered diagnostic categories and preservation of an existing coverage file on rejection. Fresh pnpm exec vitest run test/core/record/structure.test.ts test/core/record/coverage.test.ts test/core/record/consume.test.ts test/core/record/workspace.test.ts passed 4 files and 55 tests.",
+          "Independent read-only in-memory differential probe transpiled baseline and current checkCoverage implementations and compared complete ordered results for four input groups covering all three Element location levels, repeated details, duplicate model keys, an existing empty Section, missing locations, malformed/empty quotes, uncovered details and non-Element locations. Outputs matched and inputs stayed unchanged. For three valid details, instrumented find calls fell from elements/Sections/Acceptance Cases 6/4/2 to 3/2/1, proving the eliminated work without a latency claim.",
+          "pnpm exec tsc --noEmit and git diff --check passed. git status --porcelain=v1 returned no entries. No repository files were edited or staged by this review.",
+          "Pending OPT-20261101T182523356Z-01 remains supported by current src/core/record/structure.ts:271-278: summarizeRecord still performs four filter(...).length traversals. Its existing keyDesign and preservationConstraints remain applicable, including independent nature/decision counts, explicit decision comparisons, occurrence counts, sparse-array handling, unchanged output property order and invocation-local state. Do not duplicate or revoke this pending direction.",
+          "Residual risks remain exactly the accepted Review qualifications: actual Propose execution still has the complex-1 C4 source-faithfulness limitation, and Windows runtime execution remains unverified. This optimization does not establish that either limitation is resolved."
+        ]
       }
     ],
-    "directionsUsed": 2,
-    "selected": "OPT-20261101T180423403Z-02"
+    "directionsUsed": 3,
+    "selected": "OPT-20261101T182523356Z-01"
   }
 }

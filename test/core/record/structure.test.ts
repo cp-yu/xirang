@@ -44,6 +44,30 @@ describe('按部分更新记录', () => {
     expect(summarizeRecord(next)).toEqual({ entries: 19, normativeEntries: 18, decisions: { pending: 0, accepted: 19, excluded: 0 }, elements: 0, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
   });
 
+  it('概况分别统计条目性质与决策，空条目仍报告结构且多次调用不改输入', () => {
+    const pending = { ...entry('pending'), decision: 'pending' as const };
+    const input = payload({
+      entries: [pending, entry('accepted'), { ...entry('excluded'), decision: 'excluded' },
+        { ...entry('info-pending', 'informative'), decision: 'pending' }, entry('info-accepted', 'informative'),
+        { ...entry('info-excluded', 'informative'), decision: 'excluded' }, pending],
+      structure: structure({
+        elements: [{ identity: 'x' }],
+        relationships: [{ source: 'x', kind: 'uses', target: 'y' }],
+        elementKinds: [{ identity: 'capability' }],
+        relationshipKinds: [{ identity: 'uses' }],
+      }),
+    });
+    const before = structuredClone(input);
+    const first = summarizeRecord(input);
+    expect(first).toEqual({ entries: 7, normativeEntries: 4, decisions: { pending: 3, accepted: 2, excluded: 2 }, elements: 1, relationships: 1, elementKinds: 1, relationshipKinds: 1 });
+    const second = summarizeRecord(input);
+    expect(second).toEqual(first);
+    expect(second).not.toBe(first);
+    expect(second.decisions).not.toBe(first.decisions);
+    expect(summarizeRecord({ ...input, entries: [] })).toEqual({ entries: 0, normativeEntries: 0, decisions: { pending: 0, accepted: 0, excluded: 0 }, elements: 1, relationships: 1, elementKinds: 1, relationshipKinds: 1 });
+    expect(input).toEqual(before);
+  });
+
   it('结构对象按字段合并，clear 移除字段而 parent: null 表示 Project Root', () => {
     const before = payload({ structure: structure({ elements: [{ identity: 'd', kind: 'capability', parent: 'x', title: 'D' }] }) });
     const merged = applyRecordPatch(before, { structure: { upsert: { elements: [{ identity: 'd', definition: 'D 定义' }] } } });
