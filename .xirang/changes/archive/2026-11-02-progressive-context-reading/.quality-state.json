@@ -1,0 +1,241 @@
+{
+  "kind": "optimize",
+  "timestamp": "2026-11-02T14:55:45.390Z",
+  "result": "PASS",
+  "issues": [],
+  "tasksFileHash": "40b7a6174aa84d1da3f48496ac6ea892e5ae12b311bcae41ab35c550388ea24a",
+  "verificationContext": {
+    "contractVersion": "1.0",
+    "evidenceFiles": [
+      ".xirang/changes/progressive-context-reading/design.md",
+      ".xirang/changes/progressive-context-reading/elements/arch-impact.md",
+      ".xirang/changes/progressive-context-reading/elements/arch-search.md",
+      ".xirang/changes/progressive-context-reading/tasks.md",
+      "src/commands/arch/impact.ts",
+      "src/commands/arch/search.ts",
+      "test/commands/arch-impact.test.ts",
+      "test/commands/arch-search.test.ts",
+      "test/integration/arch-command.test.ts"
+    ],
+    "evidenceFingerprint": "0006143f11a23d1e98776b574d24b1f608674251cc83a24903a3a0968f2dbe4d",
+    "evidenceFingerprintEntries": [
+      {
+        "path": ".xirang/changes/progressive-context-reading/design.md",
+        "hash": "00d3f190ccf1461787fc07a9d2b892a2fabc25d3c1c137083b6a64a50fb05dc1"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/arch-impact.md",
+        "hash": "b4ea8c4dcbdeabe0e48e730057c93a2ff17a96d5c041063bb3e872a026c5d95b"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/elements/arch-search.md",
+        "hash": "a8f5494affe64f3dc9987369343dc67be5c986b19f01cd6c81037cf408ed1842"
+      },
+      {
+        "path": ".xirang/changes/progressive-context-reading/tasks.md",
+        "hash": "40b7a6174aa84d1da3f48496ac6ea892e5ae12b311bcae41ab35c550388ea24a"
+      },
+      {
+        "path": "src/commands/arch/impact.ts",
+        "hash": "32dd3a4023152fe1e3f03cd283c27af876f7ad5e2ef75d959e91d06b430e1a13"
+      },
+      {
+        "path": "src/commands/arch/search.ts",
+        "hash": "0075e7fdbbc0ad99eea97d5020c51ed8916a8044e4f8c62acb7813237d6d7eab"
+      },
+      {
+        "path": "test/commands/arch-impact.test.ts",
+        "hash": "f36d645b36df3f5be5b4fb64a9954e5d7874c02ccd86fb1dd30d10b33b647e80"
+      },
+      {
+        "path": "test/commands/arch-search.test.ts",
+        "hash": "41d5025d9f6c583032bdc969f711026c7465b1ddbbd19128c126efd32cee8b1a"
+      },
+      {
+        "path": "test/integration/arch-command.test.ts",
+        "hash": "bee46292ff3eab0b384607516a0a119505fff8ba10d81c7c76333ed4e9f343e3"
+      }
+    ],
+    "skippedEvidenceFiles": [],
+    "gitHeadCommit": "20c53c6e424f15295aaa4d9ba3119919d4c8a268",
+    "gitDiffSummary": "Manual review authorized by the user. OPT-01 preserves summary reachability with multi-source BFS and explicit canonical paths; OPT-02 removes only adjacency-local sorting because append order follows globally sorted uniqueRelations; OPT-03 retains full matching/ranking/totalMatches and delays public projection, matchedFields, and bounded evidence until after limit selection. LSP reports no diagnostics for all four changed TypeScript files. Focused tests (40), full tests (163 files / 2395 tests), build, typecheck, lint, semantic validation, and diff checks pass. The earlier validation command raced a parallel build and briefly saw a missing dist entry; validation was rerun successfully after build completion.",
+    "timestamp": "2026-11-02T14:55:24.391Z"
+  },
+  "optimization": {
+    "directions": [
+      {
+        "location": {
+          "files": [
+            "src/commands/arch/impact.ts"
+          ]
+        },
+        "opportunity": "Default impact computes canonical paths that its result deliberately omits.",
+        "impact": "Remove path-array copying, canonical tie-breaking, and path-result sorting from summary-only calls. A multi-source breadth-first traversal computes the required union of reachable identities without retaining paths or repeating traversal separately for every focus.",
+        "evidence": [
+          "src/commands/arch/impact.ts:61-91 copies path prefixes and compares serialized candidate paths; lines 160-172 perform this work unconditionally for every focus.",
+          "src/commands/arch/impact.ts:230-249 uses reachable identities for the induced relationship subgraph and summary, but exposes relations and relationPaths only when options.paths is truthy.",
+          "The arch-impact Delta explicitly separates summary-only defaults from --paths while retaining depth-bounded traversal and independent refinement context.",
+          "A read-only in-memory comparison against the current canonicalPaths helper passed 17,920 combinations covering all 512 directed three-node graphs, nonempty focus subsets, and depths 0-4."
+        ],
+        "recommendation": "Keep the existing canonical-path implementation for explicit path requests; use identity-only multi-source BFS for the default projection.",
+        "keyDesign": "After the existing validation and adjacency construction, branch on the same options.paths condition used by the result. For summary-only calls, initialize visited and frontier with all deduplicated focus identities, traverse incoming and outgoing adjacency one layer at a time up to depth, and stop when the frontier is empty. Leave refinement construction and induced-subgraph filtering shared and unchanged. For explicit paths, retain per-focus canonicalPaths and its current tie-breaking.",
+        "preservationConstraints": [
+          "Preserve option validation, model loading, root checks, sorted focus validation, endpoint validation, diagnostic text, and their error order; do not skip these at depth zero.",
+          "Preserve the union of identities reachable within depth from any focus, including duplicate-focus elimination, disconnected focuses, cycles, self-loops, and all declared relationship kinds.",
+          "Do not seed relationship traversal with refinement ancestors or descendants. Refinement context remains separately computed, including full ancestor chains and depth-bounded descendants.",
+          "Keep relationships selected by both endpoints belonging to the reachable union, including cross-focus edges and edges not used by traversal; preserve relation counts, per-kind counts, and deterministic output ordering.",
+          "Default and paths:false outputs must still omit relations and relationPaths entirely. Explicit paths retain canonical direction, shortest-path tie-breaking, ordering, and text/JSON output.",
+          "Retain current accepted numeric depth semantics and exhausted-frontier termination; introduce no cache, file writes, public API changes, or model changes."
+        ],
+        "implementationOutline": [
+          "Add a private identity-only traversal in the existing implementation file, using sets/frontiers rather than path records.",
+          "Use it only for summary-only calls; retain the existing explicit-path branch and common downstream projection.",
+          "Extend the owning impact tests with equality between default output and expanded output after removing its two optional fields."
+        ],
+        "validation": [
+          "Extend test/commands/arch-impact.test.ts:57-107 to compare complete shared projections across both modes, not merely field presence.",
+          "Exercise multiple and duplicate focuses, overlapping neighborhoods, cross-focus edges, cycles, self-loops, depth zero, empty adjacency, and huge depth with early exhaustion.",
+          "Retain canonical tie-breaking and permutation coverage at test/commands/arch-impact.test.ts:110-148, high-degree/self-loop coverage at 160-190, and refinement/error/read-only coverage at 194-245.",
+          "Run the owning impact suite and test/integration/arch-command.test.ts after implementation; inspect that summary-only execution never calls canonicalPaths or constructs path-step arrays."
+        ],
+        "impactLevel": "medium",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "First because it removes an entire unused path-computation phase and repeated per-focus traversal, a larger provable reduction than redundant sorting or discarded search-result formatting.",
+        "id": "OPT-20261102T133115236Z-01",
+        "status": "verified",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/commands/arch/impact.ts"
+          ]
+        },
+        "opportunity": "Adjacency lists are sorted again even though they are built as ordered subsequences of an already sorted relationship collection.",
+        "impact": "Eliminate one redundant sort per adjacency list and its comparator/key-string work for both default and explicit-path calls.",
+        "evidence": [
+          "src/commands/arch/impact.ts:138-140 deduplicates relationships and sorts uniqueRelations with compareRelations.",
+          "src/commands/arch/impact.ts:150-156 visits that sorted array once and appends each relationship to its endpoint lists without reordering; the endpoint Set inserts a self-loop once.",
+          "src/commands/arch/impact.ts:158 sorts each resulting subsequence using the identical comparator.",
+          "The in-memory check confirmed that every adjacency list across all 512 directed three-node graphs was already equal to its sorted copy."
+        ],
+        "recommendation": "Remove only the redundant per-adjacency sort and document that list order is inherited from uniqueRelations.",
+        "keyDesign": "Make the existing globally sorted uniqueRelations collection the ordering owner. Continue append-only adjacency construction with the same endpoint deduplication; consumers receive exactly the same relationship sequence without another sorting pass.",
+        "preservationConstraints": [
+          "Retain relationKey deduplication, its current duplicate-selection behavior, the global compareRelations sort, and endpoint validation order.",
+          "Retain append order and the Set around source/target so self-loops are not inserted twice.",
+          "Do not substitute locale-dependent comparison or reorder canonical path candidates, emitted relationships, or error checks.",
+          "Do not remove unrelated child, refinement, result, or summary sorts; preserve all public results and side effects."
+        ],
+        "implementationOutline": [
+          "Delete the per-list sorting loop at the current line 158.",
+          "Add a short invariant comment at adjacency construction explaining why each list is already sorted.",
+          "Keep this change independent of the summary-only traversal optimization so either can be verified separately."
+        ],
+        "validation": [
+          "Run test/commands/arch-impact.test.ts, especially canonical-path permutations at 110-148, high-degree/self-loop ordering at 160-190, and cross-locale output at 248-263.",
+          "Compare complete explicit-path output before and after the change on shuffled relationship inputs, multiple kinds, incoming edges, and self-loops.",
+          "Confirm by source inspection that adjacency construction remains an append-only projection of globally sorted uniqueRelations."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "low",
+        "dependencies": [],
+        "priorityReason": "Second: smaller benefit than removing unused canonical paths, but the preservation proof is especially narrow and implementation cost is lower than restructuring search projection.",
+        "id": "OPT-20261102T133115236Z-02",
+        "status": "verified",
+        "failureCount": 0
+      },
+      {
+        "location": {
+          "files": [
+            "src/commands/arch/search.ts"
+          ]
+        },
+        "opportunity": "Search constructs public evidence projections for every match before --limit discards excess matches.",
+        "impact": "For matches excluded by the limit, avoid matched-field Set construction/sorting, bounded-evidence string processing, and public-result object allocation. Matching, complete candidate ordering, and totalMatches remain unchanged.",
+        "evidence": [
+          "src/commands/arch/search.ts:80-96 sorts evidence and immediately constructs matchedFields and bounded evidence for every matching Element.",
+          "src/commands/arch/search.ts:99-106 sorts all matches and applies the limit only afterward.",
+          "The arch-search Delta requires limiting after complete candidate sorting, but does not require constructing presentation evidence for candidates that will not be returned.",
+          "test/commands/arch-search.test.ts:74-93 owns rank/identity ordering, totalMatches, limit behavior, and bounded Unicode evidence."
+        ],
+        "recommendation": "Separate internal ranked candidates from public match projection, applying the existing output transformation only to selected candidates.",
+        "keyDesign": "Retain each candidate's declaration reference, sorted RankedEvidence array, and strongest rank. Preserve the existing global rank/identity sort and totalMatches calculation, then slice by limit. Only afterward construct element identity/title/parent, matchedFields, and bounded evidence using the existing transformation and boundedEvidence helper.",
+        "preservationConstraints": [
+          "Preserve query trimming, empty-query and invalid-limit errors, model-read timing, case conversion, exact versus substring matching, and all current rank values.",
+          "Continue scanning all Elements and Sections and fully sorting all candidate matches before limiting; preserve totalMatches and unbounded-search behavior.",
+          "Preserve evidence ordering by rank, field, and original unbounded text. Do not sort by excerpts or deduplicate evidence: exact-title and substring-title evidence may both exist.",
+          "Preserve matchedFields ordering and uniqueness, candidate multiplicity, stable equal-key ordering, and exact identity/title/parent values.",
+          "Keep boundedEvidence's current UTF-16 length/index behavior, ellipses, centering, and query handling byte-for-byte; this is not a Unicode or matching-behavior redesign.",
+          "Preserve JSON field boundaries, text formatting, diagnostics, read-only behavior, and complete semantic content behind explicit query."
+        ],
+        "implementationOutline": [
+          "Introduce an internal ranked-candidate shape in the existing file without changing exported interfaces.",
+          "Move only public match construction from the discovery loop to the mapping after sorting and slicing; retain evidence sorting and rank derivation initially.",
+          "Extend the owning tests to compare every limited result with the corresponding prefix of the unlimited result."
+        ],
+        "validation": [
+          "Run test/commands/arch-search.test.ts and search coverage in test/integration/arch-command.test.ts.",
+          "Compare limited and unlimited results for exact identity/title matches, title substrings, long Definitions, repeated Section evidence, tied identities, no matches, and limits below/equal to/above match count.",
+          "Assert identical totalMatches, evidence multiplicity/order, matchedFields, excerpts, diagnostics, and formatted text for selected candidates.",
+          "Verify structurally that boundedEvidence and public projection construction occur only after candidate selection; avoid timing-dependent performance assertions."
+        ],
+        "impactLevel": "low",
+        "confidence": "high",
+        "risk": "low",
+        "cost": "medium",
+        "dependencies": [],
+        "priorityReason": "Third: statically avoids discarded projection work, but has a smaller benefit and a broader data-flow edit than the preceding directions.",
+        "id": "OPT-20261102T133115236Z-03",
+        "status": "verified",
+        "failureCount": 0
+      }
+    ],
+    "histories": [
+      {
+        "round": 1,
+        "timestamp": "2026-11-02T13:31:15.236Z",
+        "directions": [
+          "OPT-20261102T133115236Z-01",
+          "OPT-20261102T133115236Z-02",
+          "OPT-20261102T133115236Z-03"
+        ],
+        "selected": "OPT-20261102T133115236Z-01",
+        "outcome": "none",
+        "reason": "Three independent actionable directions meet the configured low impact threshold. No attempts or prior failures are recorded."
+      },
+      {
+        "round": 2,
+        "timestamp": "2026-11-02T14:28:26.773Z",
+        "directions": [],
+        "selected": "OPT-20261102T133115236Z-02",
+        "outcome": "verified",
+        "reason": "OPT-01 已完成实现并通过独立 Xirang Review；默认 impact 的多源 BFS 与原 canonical reachability 等价，显式 --paths 行为保持不变。聚焦测试、全量测试、typecheck、lint 与 build 均通过。"
+      },
+      {
+        "round": 3,
+        "timestamp": "2026-11-02T14:51:35.806Z",
+        "directions": [],
+        "selected": "OPT-20261102T133115236Z-03",
+        "outcome": "verified",
+        "reason": "OPT-02 removes redundant adjacency sorting. The invariant was manually checked against the globally sorted unique relationship sequence; existing permutation, canonical-path, ordering, self-loop, and high-degree tests pass. LSP, typecheck, lint, focused/full tests, build, and change validation pass."
+      },
+      {
+        "round": 4,
+        "timestamp": "2026-11-02T14:55:45.390Z",
+        "directions": [],
+        "outcome": "verified",
+        "stopReason": "DIRECTION_LIMIT_REACHED",
+        "reason": "已完成本轮配置上限内的三个优化方向：默认 impact 的 identity-only 多源遍历、移除 adjacency 重复排序、以及在 --limit 之后构造 search 展示结果。三项均经手动复核，LSP 无诊断，聚焦/全量测试、build、typecheck、lint 和变更校验通过。按 directionLimit=3 收束。"
+      }
+    ],
+    "directionsUsed": 3,
+    "stopReason": "DIRECTION_LIMIT_REACHED",
+    "terminal": "IMPROVED"
+  }
+}
