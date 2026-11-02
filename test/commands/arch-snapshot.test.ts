@@ -28,7 +28,7 @@ describe('architecture snapshot', () => {
       ],
       relationshipKinds: [
         { identity: 'invokes', body: 'invokes 表达 source 调用 target 的能力。' },
-        { identity: 'observes' },
+        { identity: 'observes', sourceKinds: ['project'], targetKinds: ['capability'] },
       ],
       elements: [
         { identity: 'project.root', kind: 'project', parent: null, title: 'Project', definition: 'Project intent', sections: CONTRACT },
@@ -58,6 +58,19 @@ describe('architecture snapshot', () => {
     ]);
     expect(result.metamodel.elementKinds.map(kind => kind.identity).sort()).toEqual(['capability', 'project']);
     expect(result.metamodel.relationshipKinds.map(kind => kind.identity).sort()).toEqual(['invokes', 'observes']);
+    expect(result.elements.find(element => element.identity === 'project.root')).toMatchObject({
+      title: 'Project',
+      definition: 'Project intent',
+      parent: null,
+    });
+    expect(result.metamodel.elementKinds.find(kind => kind.identity === 'project')).toMatchObject({
+      root: true,
+      children: ['capability'],
+    });
+    expect(result.metamodel.relationshipKinds.find(kind => kind.identity === 'observes')).toMatchObject({
+      sourceKinds: ['project'],
+      targetKinds: ['capability'],
+    });
     expect(result.statistics.elementCount).toBe(3);
     expect(result.statistics.relationshipCount).toBe(2);
     expect(result.statistics.kindCount).toBe(4);
@@ -118,7 +131,7 @@ describe('architecture snapshot', () => {
     ], { cwd: process.cwd() })).resolves.toMatchObject({ stderr: '' });
   });
 
-  it('renders a box-drawing text tree with identity (kind) | definition and no title', async () => {
+  it('renders a box-drawing text tree without Declaration title fields', async () => {
     const result = await snapshotArchitecture(root);
     const text = formatArchitectureSnapshotText(result);
 
@@ -126,16 +139,19 @@ describe('architecture snapshot', () => {
     expect(text).toContain('cap.alpha (capability) | Alpha definition');
     expect(text).toContain('cap.beta (capability) | Beta definition');
     expect(text).toContain('└── ');
-    // title "Alpha" and "Beta" must not appear as bare node labels.
-    expect(text).not.toMatch(/\n\s*(└──|├──) Alpha\b/);
+    // Titles remain part of the complete JSON Declaration, not tree node labels.
     // parent identity is not repeated in node lines.
-    expect(text).not.toContain('parent');
+    expect(text.split('\n').filter(line => line.includes('──')).every(line => !line.includes('parent'))).toBe(true);
     // Relations grouped by kind.
     expect(text).toContain('invokes:');
     expect(text).toContain('cap.alpha --> cap.beta');
-    // Metamodel kinds carry definitions when present.
+    // Metamodel projection retains complete Kind declarations in every format.
     expect(text).toContain('invokes');
     expect(text).toContain('invokes 表达 source 调用 target 的能力。');
+    expect(text).toContain('"root":true');
+    expect(text).toContain('"children":["capability"]');
+    expect(text).toContain('"sourceKinds":["project"]');
+    expect(text).toContain('"targetKinds":["capability"]');
   });
 
   it('renders a markdown nested list', async () => {
@@ -145,6 +161,8 @@ describe('architecture snapshot', () => {
     expect(markdown).toContain('- project.root (project) | Project intent');
     expect(markdown).toContain('  - cap.alpha (capability) | Alpha definition');
     expect(markdown).toContain('    - cap.beta (capability) | Beta definition');
+    expect(markdown).toContain('"root":true');
+    expect(markdown).toContain('"sourceKinds":["project"]');
   });
 
   it('serializes json without Contract and with stable identities', async () => {

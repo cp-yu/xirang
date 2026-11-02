@@ -38,6 +38,8 @@ describe('architecture impact', () => {
         { identity: 'cap.alpha', parent: 'project.root', title: 'Alpha', definition: 'Canonical branch' },
         { identity: 'cap.beta', parent: 'project.root', title: 'Beta', definition: 'Alternate branch' },
         { identity: 'cap.target', parent: 'project.root', title: 'Target', definition: 'Depth two target' },
+        { identity: 'cap.isolated-focus', parent: 'project.root', title: 'Isolated focus', definition: 'Separate focus component' },
+        { identity: 'cap.isolated-neighbor', parent: 'project.root', title: 'Isolated neighbor', definition: 'Separate relationship component' },
       ],
       relationships: [
         { source: 'cap.incoming', kind: 'observes', target: 'cap.focus' },
@@ -46,6 +48,8 @@ describe('architecture impact', () => {
         { source: 'cap.alpha', kind: 'invokes', target: 'cap.target' },
         { source: 'cap.beta', kind: 'invokes', target: 'cap.target' },
         { source: 'cap.target', kind: 'observes', target: 'cap.alpha' },
+        { source: 'cap.isolated-focus', kind: 'invokes', target: 'cap.isolated-neighbor' },
+        { source: 'cap.isolated-focus', kind: 'observes', target: 'cap.isolated-focus' },
       ],
     });
   });
@@ -54,29 +58,74 @@ describe('architecture impact', () => {
     await fs.rm(root, { recursive: true, force: true });
   });
 
-  it('merges focus identities and expands all Relationship kinds bidirectionally to depth two', async () => {
-    const result = await impactArchitecture(root, ['cap.focus', 'cap.incoming', 'cap.focus']);
+  it('omits complete paths by default and returns the full subgraph only when selected', async () => {
+    const summary = await impactArchitecture(root, ['cap.focus'], { depth: 2 });
+    expect(summary).not.toHaveProperty('relations');
+    expect(summary).not.toHaveProperty('relationPaths');
+    expect(summary.relationshipSummary).toEqual([
+      { kind: 'invokes', count: 4 },
+      { kind: 'observes', count: 2 },
+    ]);
 
-    expect(result.focusElements).toEqual(['cap.focus', 'cap.incoming']);
+    const expanded = await impactArchitecture(root, ['cap.focus'], { depth: 2, paths: true });
+    expect(expanded.relations).toContainEqual({ source: 'cap.focus', kind: 'invokes', target: 'cap.alpha' });
+    expect(expanded.relationPaths?.some(item => item.relatedElementId === 'cap.target')).toBe(true);
+  });
+
+  it('merges focus identities and expands all Relationship kinds bidirectionally to depth two', async () => {
+    const focusElementIds = ['cap.focus', 'cap.incoming', 'cap.isolated-focus', 'cap.focus'];
+    const options = { depth: 2 };
+    const result = await impactArchitecture(root, focusElementIds, { ...options, paths: true });
+    const summary = await impactArchitecture(root, focusElementIds, options);
+    const { relations: _relations, relationPaths: _relationPaths, ...sharedProjection } = result;
+
+    expect(summary).toEqual(sharedProjection);
+    expect(summary).not.toHaveProperty('relations');
+    expect(summary).not.toHaveProperty('relationPaths');
+    expect(result.focusElements).toEqual(['cap.focus', 'cap.incoming', 'cap.isolated-focus']);
     expect(result.elements).toEqual([...result.elements].sort());
     expect(result.elements).toEqual(expect.arrayContaining([
-      'cap.alpha', 'cap.beta', 'cap.focus', 'cap.incoming', 'cap.target',
+      'cap.alpha', 'cap.beta', 'cap.focus', 'cap.incoming', 'cap.target', 'cap.isolated-neighbor',
     ]));
-    expect(result.relations).toEqual(expect.arrayContaining([
+    expect(result.relations!).toEqual(expect.arrayContaining([
       { source: 'cap.incoming', kind: 'observes', target: 'cap.focus' },
       { source: 'cap.focus', kind: 'invokes', target: 'cap.alpha' },
       { source: 'cap.target', kind: 'observes', target: 'cap.alpha' },
+      { source: 'cap.isolated-focus', kind: 'invokes', target: 'cap.isolated-neighbor' },
+      { source: 'cap.isolated-focus', kind: 'observes', target: 'cap.isolated-focus' },
     ]));
     expect(result.statistics).toEqual({
-      focusElementCount: 2,
+      focusElementCount: 3,
       elementCount: result.elements.length,
-      relationCount: result.relations.length,
+      relationCount: result.relations!.length,
     });
   });
 
+  it.each([0, 1, 2])('preserves the summary projection for disconnected focuses at depth %i', async depth => {
+    const focusElementIds = ['cap.focus', 'cap.isolated-focus', 'cap.focus'];
+    const expanded = await impactArchitecture(root, focusElementIds, { depth, paths: true });
+    const summary = await impactArchitecture(root, focusElementIds, { depth });
+    const { relations: _relations, relationPaths: _relationPaths, ...sharedProjection } = expanded;
+
+    expect(summary).toEqual(sharedProjection);
+    expect(summary).not.toHaveProperty('relations');
+    expect(summary).not.toHaveProperty('relationPaths');
+    expect(expanded.focusElements).toEqual(['cap.focus', 'cap.isolated-focus']);
+    expect(expanded.relations).toContainEqual({
+      source: 'cap.isolated-focus',
+      kind: 'observes',
+      target: 'cap.isolated-focus',
+    });
+    if (depth === 0) {
+      expect(expanded.elements).not.toContain('cap.isolated-neighbor');
+    } else {
+      expect(expanded.elements).toContain('cap.isolated-neighbor');
+    }
+  });
+
   it('selects one canonical shortest path while preserving non-selected edges and terminating cycles', async () => {
-    const result = await impactArchitecture(root, ['cap.focus']);
-    const targetPath = result.relationPaths.find(item => item.focusElementId === 'cap.focus' && item.relatedElementId === 'cap.target');
+    const result = await impactArchitecture(root, ['cap.focus'], { paths: true });
+    const targetPath = result.relationPaths!.find(item => item.focusElementId === 'cap.focus' && item.relatedElementId === 'cap.target');
 
     expect(targetPath?.steps).toEqual([
       { source: 'cap.focus', kind: 'invokes', target: 'cap.alpha', traversal: 'outgoing' },
@@ -86,11 +135,11 @@ describe('architecture impact', () => {
     expect(text).toContain('Canonical paths:');
     expect(text).toContain('cap.focus => cap.target: cap.focus --invokes [outgoing]--> cap.alpha --invokes [outgoing]--> cap.target');
     expect(text).toContain('cap.focus => cap.incoming: cap.focus --observes [incoming]--> cap.incoming');
-    expect(result.relations).toEqual(expect.arrayContaining([
+    expect(result.relations!).toEqual(expect.arrayContaining([
       { source: 'cap.beta', kind: 'invokes', target: 'cap.target' },
       { source: 'cap.target', kind: 'observes', target: 'cap.alpha' },
     ]));
-    expect(result.relationPaths.every(item => item.steps.length <= 2)).toBe(true);
+    expect(result.relationPaths!.every(item => item.steps.length <= 2)).toBe(true);
   });
 
   it('selects the same canonical path from an unsorted frontier across input permutations', async () => {
@@ -121,8 +170,8 @@ describe('architecture impact', () => {
     }));
 
     try {
-      const results = await Promise.all(roots.map(fixtureRoot => impactArchitecture(fixtureRoot, ['m.focus'], { depth: 2 })));
-      const targetPath = results[0].relationPaths.find(path => path.relatedElementId === 'z.target');
+      const results = await Promise.all(roots.map(fixtureRoot => impactArchitecture(fixtureRoot, ['m.focus'], { depth: 2, paths: true })));
+      const targetPath = results[0].relationPaths!.find(path => path.relatedElementId === 'z.target');
 
       expect(results[1]).toEqual(results[0]);
       expect(targetPath?.steps).toEqual([
@@ -164,14 +213,14 @@ describe('architecture impact', () => {
         ],
       });
 
-      const result = await impactArchitecture(highDegreeRoot, ['cap.focus'], { depth: 1 });
+      const result = await impactArchitecture(highDegreeRoot, ['cap.focus'], { depth: 1, paths: true });
 
-      expect(result.relations.filter(relation => relation.source === 'cap.focus')).toEqual([
+      expect(result.relations!.filter(relation => relation.source === 'cap.focus')).toEqual([
         ...targets.map(target => ({ source: 'cap.focus', kind: 'invokes', target })),
         { source: 'cap.focus', kind: 'observes', target: 'cap.focus' },
       ]);
-      expect(result.relationPaths).toHaveLength(targets.length);
-      expect(result.relationPaths.some(path => path.relatedElementId === 'cap.focus')).toBe(false);
+      expect(result.relationPaths!).toHaveLength(targets.length);
+      expect(result.relationPaths!.some(path => path.relatedElementId === 'cap.focus')).toBe(false);
     } finally {
       await fs.rm(highDegreeRoot, { recursive: true, force: true });
     }
@@ -187,8 +236,8 @@ describe('architecture impact', () => {
       { focusElementId: 'cap.focus', elementId: 'cap.domain', direction: 'ancestor', depth: 1 },
       { focusElementId: 'cap.focus', elementId: 'project.root', direction: 'ancestor', depth: 2 },
     ]));
-    expect(result.relations).toEqual([]);
-    expect(result.relationPaths).toEqual([]);
+    expect(result).not.toHaveProperty('relations');
+    expect(result).not.toHaveProperty('relationPaths');
     expect(serialized).not.toContain(FOCUS_DEFINITION);
     expect(serialized).not.toMatch(/contract|sections|acceptanceCases|title|definition|children/);
     expect(text).toContain('Element identities: cap.domain, cap.focus, project.root');
@@ -196,7 +245,7 @@ describe('architecture impact', () => {
   });
 
   it('separates the complete ancestor chain from depth-bounded descendants', async () => {
-    const result = await impactArchitecture(root, ['cap.focus'], { depth: 1 });
+    const result = await impactArchitecture(root, ['cap.focus'], { depth: 1, paths: true });
 
     expect(result.refinementContext).toEqual(expect.arrayContaining([
       expect.objectContaining({ focusElementId: 'cap.focus', elementId: 'cap.domain', direction: 'ancestor', depth: 1 }),
@@ -204,7 +253,7 @@ describe('architecture impact', () => {
       expect.objectContaining({ focusElementId: 'cap.focus', elementId: 'cap.child', direction: 'descendant', depth: 1 }),
     ]));
     expect(result.refinementContext.some(item => item.elementId === 'cap.grandchild')).toBe(false);
-    expect(result.relationPaths.some(item => item.relatedElementId === 'cap.child')).toBe(false);
+    expect(result.relationPaths!.some(item => item.relatedElementId === 'cap.child')).toBe(false);
   });
 
   it('accepts optional elements without Contracts and rejects unknown identities', async () => {

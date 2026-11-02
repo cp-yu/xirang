@@ -12,7 +12,8 @@ describe('optimizer subagent template', () => {
     expect(prompt).toContain('one Element has at most one Contract');
     expect(prompt).toContain('xirang arch outline --format json');
     expect(prompt).toContain('xirang arch impact <identity> --depth <n> --json');
-    expect(prompt).toContain('xirang arch query <identities...> --contract --json');
+    expect(prompt).toContain('xirang arch query <identity> --json');
+    expect(prompt).toContain('--contract');
     expect(prompt).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(prompt).toContain('Preserve observable behavior, Element Contracts');
     expect(prompt).toContain('direction-first');
@@ -54,8 +55,9 @@ describe('optimizer subagent template', () => {
     expect(selfRead).toContain('git diff <baseCommit>...HEAD --name-only');
     expect(selfRead).toContain('git status --short');
     expect(selfRead).toContain('every Semantic Delta unit under changeDir/{metamodel,elements,relationships,views}/');
-    expect(selfRead).toContain('xirang arch impact <identity> --depth 1 --json');
-    expect(selfRead).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(selfRead).toContain('xirang arch impact <identity> --depth 1 --paths --json');
+    expect(selfRead).toContain('xirang arch query <selected-identities...> --json');
+    expect(selfRead).toContain('add `--contract` only for Contracts required by the current question');
     expect(selfRead).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(selfRead).not.toContain('git diff <originalBranch>...HEAD');
     expect(selfRead).not.toContain('specs/*/spec.md');

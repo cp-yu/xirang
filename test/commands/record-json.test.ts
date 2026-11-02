@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { createRecord, updateRecord } from '../../src/core/record/workspace.js';
+import { createRecord, showRecord, updateRecord } from '../../src/core/record/workspace.js';
 import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
@@ -83,13 +83,95 @@ describe('Record JSON envelope', () => {
       } });
       expect(Object.keys(selected.result).sort()).toEqual(['entries', 'explorationId', 'path', 'slug', 'sourceVersion']);
       expect(await show('--entry', 'missing')).toMatchObject({ status: 'error', error: { code: 'RECORD_ENTRY_NOT_FOUND' } });
-      expect((await show()).result).toEqual({ path: record.path, sourceVersion: record.sourceVersion, document: record.document });
+      expect((await show()).result).toEqual({
+        path: record.path,
+        sourceVersion: record.sourceVersion,
+        document: { metadata: record.document.metadata, payload: record.document.payload },
+      });
       expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
       const updated = await updateRecord(root, id, { entries: { upsert: [{ ...entries[1], content: 'B changed' }] } }, record.sourceVersion, context);
       expect((await show('--entry', 'A')).result).toMatchObject({ entries: [entries[0]], sourceVersion: updated.record.sourceVersion });
       await expect(updateRecord(root, id, { entries: { remove: ['A'] } }, selected.result.sourceVersion, context))
         .rejects.toMatchObject({ code: 'SOURCE_VERSION_STALE' });
       expect(await fs.readFile(record.absolutePath)).toEqual(updated.record.bytes);
+    } finally {
+      output.mockRestore();
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('returns minimal lifecycle projections without exposing the persisted baseline', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-record-projection-'));
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const context = await readRecordSemanticContext(root, 'build');
+      const payloadPath = path.join(root, 'payload.json');
+      const patchPath = path.join(root, 'patch.json');
+      await fs.writeFile(payloadPath, JSON.stringify({
+        schemaVersion: 4,
+        context: 'build',
+        entries: [{ identity: 'A', nature: 'normative', decision: 'accepted', content: 'Confirmed' }],
+      }));
+      await fs.writeFile(patchPath, JSON.stringify({
+        entries: { upsert: [{ identity: 'A', nature: 'normative', decision: 'accepted', content: 'Updated' }] },
+      }));
+      process.chdir(root);
+      const run = async (...args: string[]) => {
+        const program = new Command();
+        registerRecordCommand(program);
+        await program.parseAsync(['record', ...args], { from: 'user' });
+        return JSON.parse(output.mock.calls.at(-1)![0]);
+      };
+
+      const created = await run('create', '--slug', 'projection', '--from', payloadPath, '--json');
+      expect(Object.keys(created.result).sort()).toEqual(['explorationId', 'path', 'slug', 'sourceVersion', 'summary']);
+      expect(created.result.summary).toMatchObject({ entries: 1, normativeEntries: 1 });
+      expect(created.result).not.toHaveProperty('document');
+      expect(created.result).not.toHaveProperty('baseline');
+      const id = created.result.explorationId as string;
+      const sourceVersion = created.result.sourceVersion as string;
+
+      const listed = await run('list', '--json');
+      expect(Object.keys(listed.result.explorations[0]).sort()).toEqual([
+        'explorationId', 'path', 'slug', 'sourceVersion', 'status', 'summary',
+      ]);
+      expect(listed.result.explorations[0].status).toBeTypeOf('string');
+      expect(listed.result.explorations[0]).not.toHaveProperty('document');
+      expect(listed.result.explorations[0]).not.toHaveProperty('baseline');
+
+      const shown = await run('show', id, '--json');
+      expect(shown.result.document.payload.entries).toEqual([{ identity: 'A', nature: 'normative', decision: 'accepted', content: 'Confirmed' }]);
+      expect(shown.result.document).not.toHaveProperty('baseline');
+      expect(shown.result).not.toHaveProperty('baseline');
+      for (const command of ['status', 'validate'] as const) {
+        const result = await run(command, id, '--json');
+        expect(result.result).not.toHaveProperty('document');
+        expect(result.result).not.toHaveProperty('baseline');
+        if (command === 'status') {
+          expect(result.result.summary).toMatchObject({ entries: 1, normativeEntries: 1 });
+        }
+      }
+
+      const updated = await run('update', id, '--source-version', sourceVersion, '--from', patchPath, '--json');
+      expect(Object.keys(updated.result).sort()).toEqual(['derived', 'diff', 'path', 'sourceVersion', 'summary']);
+      expect(updated.result.summary).toMatchObject({ entries: 1, normativeEntries: 1 });
+      expect(updated.result).not.toHaveProperty('document');
+      expect(updated.result).not.toHaveProperty('baseline');
+
+      const renamed = await run('rename', id, '--slug', 'renamed', '--json');
+      expect(Object.keys(renamed.result).sort()).toEqual(['explorationId', 'path', 'slug', 'sourceVersion', 'summary']);
+      expect(renamed.result.slug).toBe('renamed');
+      expect(renamed.result).not.toHaveProperty('document');
+      expect(renamed.result).not.toHaveProperty('baseline');
+      const persisted = await showRecord(root, id);
+      expect(persisted.document.baseline).toBeDefined();
+      expect(persisted.document.payload.entries[0].content).toBe('Updated');
+      await expect(updateRecord(root, id, { entries: { remove: ['A'] } }, sourceVersion, context))
+        .rejects.toMatchObject({ code: 'SOURCE_VERSION_STALE' });
     } finally {
       output.mockRestore();
       process.chdir(previousCwd);

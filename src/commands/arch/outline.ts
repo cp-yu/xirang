@@ -19,15 +19,15 @@ export interface OutlineElement {
   parent: string | null;
   children: string[];
   depth: number;
-  definitionState: 'loaded' | 'unloaded';
+  definitionState?: 'loaded' | 'unloaded';
   definition?: string;
 }
 
 export interface ArchitectureOutlineResult {
-  elementDefinitionDepth: number;
+  elementDefinitionDepth?: number;
   elements: OutlineElement[];
-  relations: Relationship[];
-  metamodel: {
+  relations?: Relationship[];
+  metamodel?: {
     elementKinds: ElementKind[];
     relationshipKinds: RelationshipKind[];
   };
@@ -40,7 +40,10 @@ export interface ArchitectureOutlineResult {
 }
 
 export interface OutlineOptions {
+  definitions?: boolean;
   definitionDepth?: number;
+  relationships?: boolean;
+  metamodel?: boolean;
 }
 
 function validateDefinitionDepth(value: number): number {
@@ -105,9 +108,12 @@ export async function outlineArchitecture(
     throw new Error('Semantic Model unavailable: no Elements found');
   }
 
-  const configuredDepth = readProjectConfig(projectRoot)?.architecture?.outline.elementDefinitionDepth
-    ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth;
-  const elementDefinitionDepth = validateDefinitionDepth(options.definitionDepth ?? configuredDepth);
+  const definitionsSelected = options.definitions === true || options.definitionDepth !== undefined;
+  const configuredDepth = definitionsSelected
+    ? validateDefinitionDepth(options.definitionDepth
+      ?? readProjectConfig(projectRoot)?.architecture?.outline.elementDefinitionDepth
+      ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth)
+    : undefined;
   const declarations = new Map(
     model.elements.map(element => [element.declaration.identity, element.declaration]),
   );
@@ -115,7 +121,6 @@ export async function outlineArchitecture(
   const elements = buildModelTree(model).map(element => {
     const declaration = declarations.get(element.identity)!;
     const depth = depths.get(element.identity)!;
-    const definitionLoaded = depth <= elementDefinitionDepth;
     return {
       identity: element.identity,
       kind: element.kind,
@@ -123,27 +128,31 @@ export async function outlineArchitecture(
       parent: element.parent,
       children: element.children,
       depth,
-      definitionState: definitionLoaded ? 'loaded' as const : 'unloaded' as const,
-      ...(definitionLoaded ? { definition: element.definition } : {}),
+      ...(configuredDepth === undefined ? {} : {
+        definitionState: depth <= configuredDepth ? 'loaded' as const : 'unloaded' as const,
+        ...(depth <= configuredDepth ? { definition: element.definition } : {}),
+      }),
     };
   });
-  const relations = sortArchitectureRelationships(model.relationships);
-  const elementKinds = model.elementKinds
-    .map(copyElementKind)
-    .sort((left, right) => compareCodePoints(left.identity, right.identity));
-  const relationshipKinds = model.relationshipKinds
-    .map(copyRelationshipKind)
-    .sort((left, right) => compareCodePoints(left.identity, right.identity));
+  const relations = options.relationships ? sortArchitectureRelationships(model.relationships) : undefined;
+  const metamodel = options.metamodel ? {
+    elementKinds: model.elementKinds
+      .map(copyElementKind)
+      .sort((left, right) => compareCodePoints(left.identity, right.identity)),
+    relationshipKinds: model.relationshipKinds
+      .map(copyRelationshipKind)
+      .sort((left, right) => compareCodePoints(left.identity, right.identity)),
+  } : undefined;
 
   return {
-    elementDefinitionDepth,
+    ...(configuredDepth === undefined ? {} : { elementDefinitionDepth: configuredDepth }),
     elements,
-    relations,
-    metamodel: { elementKinds, relationshipKinds },
+    ...(relations === undefined ? {} : { relations }),
+    ...(metamodel === undefined ? {} : { metamodel }),
     statistics: {
       elementCount: elements.length,
-      relationshipCount: relations.length,
-      kindCount: elementKinds.length + relationshipKinds.length,
+      relationshipCount: model.relationships.length,
+      kindCount: model.elementKinds.length + model.relationshipKinds.length,
       loadedDefinitionCount: elements.filter(element => element.definitionState === 'loaded').length,
     },
   };
@@ -169,6 +178,7 @@ function buildOutlineTree(elements: readonly OutlineElement[]): OutlineTreeNode[
 }
 
 function outlineNodeLabel(element: OutlineElement): string {
+  if (element.definitionState === undefined) return `${element.identity} (${element.kind}) ${element.title}`;
   const definition = element.definitionState === 'loaded'
     ? element.definition
     : '[definition unloaded]';
@@ -180,12 +190,12 @@ function renderRelations(relations: readonly Relationship[], markdown: boolean):
   return [heading, ...relations.map(relation => `${relation.source} --${relation.kind}--> ${relation.target}`)];
 }
 
-function renderMetamodel(result: ArchitectureOutlineResult, markdown: boolean): string[] {
+function renderMetamodel(metamodel: NonNullable<ArchitectureOutlineResult['metamodel']>, markdown: boolean): string[] {
   const lines = [markdown ? '## Metamodel' : '[metamodel]'];
-  for (const kind of result.metamodel.elementKinds) {
+  for (const kind of metamodel.elementKinds) {
     lines.push(`element-kind: ${kind.identity} ${JSON.stringify(kind)}`);
   }
-  for (const kind of result.metamodel.relationshipKinds) {
+  for (const kind of metamodel.relationshipKinds) {
     lines.push(`relationship-kind: ${kind.identity} ${JSON.stringify(kind)}`);
   }
   return lines;
@@ -211,13 +221,10 @@ export function formatArchitectureOutlineText(result: ArchitectureOutlineResult)
       });
     }
   }
-  return [
-    ...lines,
-    '',
-    ...renderRelations(result.relations, false),
-    '',
-    ...renderMetamodel(result, false),
-  ].join('\n');
+  const sections = [lines.join('\n')];
+  if (result.relations !== undefined) sections.push(renderRelations(result.relations, false).join('\n'));
+  if (result.metamodel !== undefined) sections.push(renderMetamodel(result.metamodel, false).join('\n'));
+  return sections.join('\n\n');
 }
 
 export function formatArchitectureOutlineMarkdown(result: ArchitectureOutlineResult): string {
@@ -232,11 +239,8 @@ export function formatArchitectureOutlineMarkdown(result: ArchitectureOutlineRes
       stack.push({ node: node.childNodes[index], depth: depth + 1 });
     }
   }
-  return [
-    ...lines,
-    '',
-    ...renderRelations(result.relations, true),
-    '',
-    ...renderMetamodel(result, true),
-  ].join('\n');
+  const sections = [lines.join('\n')];
+  if (result.relations !== undefined) sections.push(renderRelations(result.relations, true).join('\n'));
+  if (result.metamodel !== undefined) sections.push(renderMetamodel(result.metamodel, true).join('\n'));
+  return sections.join('\n\n');
 }

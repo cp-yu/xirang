@@ -6,6 +6,7 @@ import {
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
+  XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getXirangProposeSkillTemplate,
@@ -102,12 +103,31 @@ describe('propose template post-validation flow', () => {
   it('navigates the formal Semantic Model before authoring', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
-    expect(instructions).toContain('xirang arch search <query> --json');
+    expect(instructions).toContain('xirang arch search <query> --limit 20 --json');
     expect(instructions).toContain('xirang arch impact <identities...> --depth 2 --json');
-    expect(instructions).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(instructions).toContain('xirang arch query <identity> --json');
+    expect(instructions).toContain('--contract');
     expect(instructions).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(instructions).not.toContain('.xirang/architecture/');
     expect(instructions).not.toContain('.xirang/project.xirang.yaml');
+  });
+
+  it('uses progressive model navigation before selected semantic expansion', () => {
+    const instructions = getXirangProposeSkillTemplate().instructions;
+    for (const token of [
+      'xirang arch outline --format json',
+      'xirang arch impact <identities...> --depth 2 --json',
+      'xirang arch query <identity> --json',
+      'xirang arch snapshot --format json',
+    ]) expect(instructions).toContain(token);
+    expect(instructions).toContain(XIRANG_SHARED_CONTEXT);
+
+    const outline = instructions.indexOf('xirang arch outline --format json');
+    const impact = instructions.indexOf('xirang arch impact <identities...> --depth 2 --json', outline);
+    const query = instructions.indexOf('xirang arch query <identity> --json', impact);
+    expect(outline).toBeGreaterThan(-1);
+    expect(impact).toBeGreaterThan(outline);
+    expect(query).toBeGreaterThan(impact);
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
@@ -223,7 +243,8 @@ describe('propose template post-validation flow', () => {
   it('treats an Element Contract as the body of one Element unit', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('one Element has at most one Contract');
-      expect(body).toContain('xirang arch query <selected-identities...> --contract --json');
+      expect(body).toContain('xirang arch query <identity> --json');
+      expect(body).toContain('--contract');
       expect(body).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
       expect(body).toContain('An optional-contract Element without a Contract does not by itself require a new one');
       expect(body).not.toContain('`capabilities` string array');

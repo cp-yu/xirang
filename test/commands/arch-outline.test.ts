@@ -9,6 +9,7 @@ import {
   formatArchitectureOutlineText,
   outlineArchitecture,
 } from '../../src/commands/arch/outline.js';
+import { runCLI } from '../helpers/run-cli.js';
 import { writeProjectModel } from '../helpers/model-fixture.js';
 
 const CONTRACT = '## Specification\n\n### Section: Hidden behavior\nThe system SHALL behave.\n\n#### Acceptance Case: Hidden acceptanceCase\n- **WHEN** invoked\n- **THEN** it works';
@@ -104,8 +105,38 @@ describe('architecture outline', () => {
     await fs.rm(root, { recursive: true, force: true });
   }, 180_000); // deep tests create 20k files; removal exceeds 30s on Windows/macOS
 
-  it('projects the complete hierarchy, relationships, and metamodel without Views or Contracts', async () => {
-    const result = await outlineArchitecture(root);
+  it('defaults to hierarchy navigation and expands semantic partitions only when selected', async () => {
+    const navigation = await outlineArchitecture(root);
+    expect(navigation.elements[0]).toMatchObject({ identity: expect.any(String), kind: expect.any(String), title: expect.any(String), depth: expect.any(Number) });
+    expect(navigation.elements.every(element => !('definition' in element) && !('definitionState' in element))).toBe(true);
+    expect(navigation).not.toHaveProperty('relations');
+    expect(navigation).not.toHaveProperty('metamodel');
+
+    const expanded = await outlineArchitecture(root, { definitions: true, relationships: true, metamodel: true });
+    expect(expanded.elementDefinitionDepth).toBe(2);
+    expect(expanded.relations).toEqual([{ source: 'authorize-payment', kind: 'invokes', target: 'audit-payment' }]);
+    expect(expanded.metamodel).toBeDefined();
+    expect(expanded.metamodel!.elementKinds).toHaveLength(4);
+    expect(expanded.elements.filter(element => element.depth <= 2).every(element => element.definitionState === 'loaded' && typeof element.definition === 'string')).toBe(true);
+    expect(expanded.elements.filter(element => element.depth > 2).every(element => element.definitionState === 'unloaded' && !('definition' in element))).toBe(true);
+  });
+
+  it('CLI defaults to navigation and supports explicit projection flags', async () => {
+    const navigation = await runCLI(['arch', 'outline', '--format', 'json'], { cwd: root });
+    const expanded = await runCLI([
+      'arch', 'outline', '--definitions', '--relationships', '--metamodel', '--format', 'json',
+    ], { cwd: root });
+    expect(navigation.exitCode).toBe(0);
+    expect(JSON.parse(navigation.stdout)).not.toHaveProperty('relations');
+    expect(JSON.parse(navigation.stdout)).not.toHaveProperty('metamodel');
+    expect(JSON.parse(navigation.stdout).elements.every((element: object) => !('definition' in element))).toBe(true);
+    expect(expanded.exitCode).toBe(0);
+    expect(JSON.parse(expanded.stdout).relations).toHaveLength(1);
+    expect(JSON.parse(expanded.stdout).metamodel.elementKinds).toHaveLength(4);
+  });
+
+  it('projects the complete hierarchy without Views or Contracts', async () => {
+    const result = await outlineArchitecture(root, { definitions: true, relationships: true, metamodel: true });
 
     expect(result.elements.map(element => element.identity)).toEqual([
       'audit-payment',
@@ -127,14 +158,15 @@ describe('architecture outline', () => {
     expect(result.relations).toEqual([
       { source: 'authorize-payment', kind: 'invokes', target: 'audit-payment' },
     ]);
-    expect(result.metamodel.elementKinds).toContainEqual(expect.objectContaining({
+    expect(result.metamodel).toBeDefined();
+    expect(result.metamodel!.elementKinds).toContainEqual(expect.objectContaining({
       identity: 'project',
       contract: 'required',
       root: true,
       children: ['area'],
       body: 'Project kind definition.',
     }));
-    expect(result.metamodel.relationshipKinds).toContainEqual(expect.objectContaining({
+    expect(result.metamodel!.relationshipKinds).toContainEqual(expect.objectContaining({
       identity: 'invokes',
       sourceKinds: ['operation'],
       targetKinds: ['operation'],
@@ -143,8 +175,8 @@ describe('architecture outline', () => {
     expect(JSON.stringify(result)).not.toMatch(/payments-view|Hidden behavior|Hidden acceptanceCase|sections|acceptanceCases/);
   });
 
-  it('loads complete Definitions through depth 2 by default and omits deeper Definitions', async () => {
-    const result = await outlineArchitecture(root);
+  it('loads complete Definitions through configured depth when selected', async () => {
+    const result = await outlineArchitecture(root, { definitions: true });
 
     expect(result.elementDefinitionDepth).toBe(2);
     for (const element of result.elements.filter(element => element.depth <= 2)) {
@@ -166,9 +198,9 @@ architecture:
     elementDefinitionDepth: 1
 `);
 
-    const configured = await outlineArchitecture(root);
+    const configured = await outlineArchitecture(root, { definitions: true });
     const overridden = await outlineArchitecture(root, { definitionDepth: 0 });
-    const repeated = await outlineArchitecture(root);
+    const repeated = await outlineArchitecture(root, { definitions: true });
 
     expect(configured.elementDefinitionDepth).toBe(1);
     expect(configured.elements.filter(element => element.definitionState === 'loaded').map(element => element.depth))
@@ -181,13 +213,13 @@ architecture:
   });
 
   it('renders text and markdown from the canonical result without truncating Definitions', async () => {
-    const result = await outlineArchitecture(root, { definitionDepth: 1 });
+    const result = await outlineArchitecture(root, { definitions: true, relationships: true, metamodel: true });
     const text = formatArchitectureOutlineText(result);
     const markdown = formatArchitectureOutlineMarkdown(result);
 
     expect(text).toContain('project.root (project) Project');
     expect(text).toContain('Project definition.');
-    expect(text).toContain('payment-processing (capability) Payment Processing | [definition unloaded]');
+    expect(text).toContain('payment-processing (capability) Payment Processing | Processing definition.');
     expect(text).toMatch(/└── |├── /);
     expect(markdown).toContain('- project.root (project) Project');
     expect(markdown).toContain('  - payments (area) Payments');

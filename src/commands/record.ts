@@ -75,8 +75,26 @@ async function readInput(from?: string): Promise<unknown> {
   return parseYaml(await fs.readFile(target, 'utf8'));
 }
 
-function publicRecord(record: Awaited<ReturnType<typeof showRecord>>): unknown {
-  return { path: record.path, sourceVersion: record.sourceVersion, document: record.document };
+function publicRecord(record: Awaited<ReturnType<typeof showRecord>>) {
+  return {
+    path: record.path,
+    sourceVersion: record.sourceVersion,
+    document: { metadata: record.document.metadata, payload: record.document.payload },
+  };
+}
+
+function publicReceipt(record: Awaited<ReturnType<typeof showRecord>>) {
+  return {
+    path: record.path,
+    explorationId: record.document.metadata.explorationId,
+    slug: record.document.metadata.slug,
+    sourceVersion: record.sourceVersion,
+    summary: summarizeRecord(record.document.payload),
+  };
+}
+
+function publicSummary(record: Awaited<ReturnType<typeof showRecord>>) {
+  return summarizeRecord(record.document.payload);
 }
 
 function errorCode(error: unknown): string {
@@ -105,15 +123,33 @@ async function runCreate(projectRoot: string, slug: string, from?: string): Prom
   return envelope('record create', async () => {
     const payload = normalizeRecordPayload(await readInput(from));
     const context = await readRecordSemanticContext(projectRoot, payload.context);
-    return recordOkEnvelope('record create', publicRecord(await createRecord(projectRoot, slug, payload, context)));
+    return recordOkEnvelope('record create', publicReceipt(await createRecord(projectRoot, slug, payload, context)));
   });
 }
 
 async function runList(projectRoot: string): Promise<RecordEnvelope> {
-  return envelope('record list', async () => recordOkEnvelope(
-    'record list',
-    { explorations: (await listRecords(projectRoot)).map(publicRecord) },
-  ));
+  return envelope('record list', async () => {
+    const records = await listRecords(projectRoot);
+    const explorations = await Promise.all(records.map(async record => {
+      const context = await readRecordSemanticContext(projectRoot, record.document.payload.context);
+      const currentDrift = classifyBaselineDrift(
+        record.document.metadata.semanticModelFingerprint,
+        context.semanticModelFingerprint,
+        record.document.baseline,
+        context.model,
+        record.document.payload,
+      );
+      return {
+        path: record.path,
+        explorationId: record.document.metadata.explorationId,
+        slug: record.document.metadata.slug,
+        sourceVersion: record.sourceVersion,
+        status: currentDrift.status,
+        summary: publicSummary(record),
+      };
+    }));
+    return recordOkEnvelope('record list', { explorations });
+  });
 }
 
 async function runShow(projectRoot: string, explorationId: string, selected?: string[]): Promise<RecordEnvelope> {
@@ -154,6 +190,7 @@ async function runStatus(projectRoot: string, explorationId: string): Promise<Re
       slug: current.record.document.metadata.slug,
       drift: current.drift.status,
       changed: current.drift.changed,
+      summary: summarizeRecord(current.record.document.payload),
     };
     return current.drift.status === 'relevant-drift'
       ? recordInvalidEnvelope('record status', result, [{
@@ -203,7 +240,7 @@ async function runUpdate(projectRoot: string, explorationId: string, sourceVersi
 
 async function runRename(projectRoot: string, explorationId: string, slug: string): Promise<RecordEnvelope> {
   return envelope('record rename', async () => recordOkEnvelope(
-    'record rename', publicRecord(await renameRecord(projectRoot, explorationId, slug)),
+    'record rename', publicReceipt(await renameRecord(projectRoot, explorationId, slug)),
   ));
 }
 

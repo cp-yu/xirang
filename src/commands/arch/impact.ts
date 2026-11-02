@@ -5,6 +5,7 @@ import { readValidArchitecture } from './reader.js';
 
 export interface ArchitectureImpactOptions {
   depth?: number;
+  paths?: boolean;
 }
 
 export interface ArchitectureRefinementContext {
@@ -28,8 +29,9 @@ export interface ArchitectureImpactResult {
   focusElements: string[];
   elements: string[];
   refinementContext: ArchitectureRefinementContext[];
-  relations: Relationship[];
-  relationPaths: ArchitectureRelationPath[];
+  relationshipSummary: Array<{ kind: string; count: number }>;
+  relations?: Relationship[];
+  relationPaths?: ArchitectureRelationPath[];
   statistics: {
     focusElementCount: number;
     elementCount: number;
@@ -153,21 +155,37 @@ export async function impactArchitecture(
       else adjacency.set(endpoint, [relation]);
     }
   }
-  for (const adjacent of adjacency.values()) adjacent.sort(compareRelations);
+  // Every adjacency list is an ordered subsequence of globally sorted uniqueRelations.
 
   const reachableIds = new Set(focusElements);
   const relationPaths: ArchitectureRelationPath[] = [];
-  for (const focusElementId of focusElements) {
-    const paths = canonicalPaths(focusElementId, depth, adjacency);
-    for (const [relatedElementId, steps] of paths) {
-      reachableIds.add(relatedElementId);
-      if (relatedElementId !== focusElementId) {
-        relationPaths.push({ focusElementId, relatedElementId, steps });
+  if (options.paths) {
+    for (const focusElementId of focusElements) {
+      const paths = canonicalPaths(focusElementId, depth, adjacency);
+      for (const [relatedElementId, steps] of paths) {
+        reachableIds.add(relatedElementId);
+        if (relatedElementId !== focusElementId) {
+          relationPaths.push({ focusElementId, relatedElementId, steps });
+        }
       }
     }
+    relationPaths.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
+      || compareCodePoints(left.relatedElementId, right.relatedElementId));
+  } else {
+    let frontier = new Set(focusElements);
+    for (let currentDepth = 1; currentDepth <= depth; currentDepth += 1) {
+      const next = new Set<string>();
+      for (const current of frontier) {
+        for (const relation of adjacency.get(current) ?? []) {
+          const adjacent = relation.source === current ? relation.target : relation.source;
+          if (!reachableIds.has(adjacent)) next.add(adjacent);
+        }
+      }
+      if (next.size === 0) break;
+      for (const elementId of next) reachableIds.add(elementId);
+      frontier = next;
+    }
   }
-  relationPaths.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
-    || compareCodePoints(left.relatedElementId, right.relatedElementId));
 
   const refinementContext: ArchitectureRefinementContext[] = [];
   const contextElementIds = new Set<string>();
@@ -229,13 +247,18 @@ export async function impactArchitecture(
   const relations = uniqueRelations.filter(
     relation => reachableIds.has(relation.source) && reachableIds.has(relation.target),
   );
+  const countsByKind = new Map<string, number>();
+  for (const relation of relations) countsByKind.set(relation.kind, (countsByKind.get(relation.kind) ?? 0) + 1);
+  const relationshipSummary = [...countsByKind]
+    .sort(([left], [right]) => compareCodePoints(left, right))
+    .map(([kind, count]) => ({ kind, count }));
 
   return {
     focusElements,
     elements,
     refinementContext,
-    relations,
-    relationPaths,
+    relationshipSummary,
+    ...(options.paths ? { relations, relationPaths } : {}),
     statistics: {
       focusElementCount: focusElements.length,
       elementCount: elements.length,
@@ -256,11 +279,15 @@ export function formatArchitectureImpactText(result: ArchitectureImpactResult): 
       `${context.focusElementId} ${context.direction} ${context.elementId} [depth ${context.depth}]`,
     );
   }
-  for (const relation of result.relations) {
+  for (const summary of result.relationshipSummary) {
+    lines.push(`Relationship kind ${summary.kind}: ${summary.count}`);
+  }
+  for (const relation of result.relations ?? []) {
     lines.push(`${relation.source} --${relation.kind}--> ${relation.target}`);
   }
-  if (result.relationPaths.length > 0) lines.push('Canonical paths:');
-  for (const relationPath of result.relationPaths) {
+  const relationPaths = result.relationPaths ?? [];
+  if (relationPaths.length > 0) lines.push('Canonical paths:');
+  for (const relationPath of relationPaths) {
     let path = relationPath.focusElementId;
     for (const step of relationPath.steps) {
       const adjacent = step.traversal === 'outgoing' ? step.target : step.source;

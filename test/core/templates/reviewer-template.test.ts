@@ -12,7 +12,8 @@ describe('reviewer subagent template', () => {
     expect(prompt).toContain('one Element has at most one Contract');
     expect(prompt).toContain('xirang arch outline --format json');
     expect(prompt).toContain('xirang arch impact <identity> --depth <n> --json');
-    expect(prompt).toContain('xirang arch query <identities...> --contract --json');
+    expect(prompt).toContain('xirang arch query <identity> --json');
+    expect(prompt).toContain('--contract');
     expect(prompt).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(prompt).toContain('Prefer direct evidence over inferred intent.');
     expect(prompt).toContain('Treat stale code, orphaned imports, half migrations, and unaccounted behavior changes as defects.');

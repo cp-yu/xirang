@@ -4,6 +4,7 @@ import {
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
+  XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
@@ -26,19 +27,29 @@ describe('explore template semantic impact', () => {
     expect(template).toContain('Do not include a Definition rewrite for behavior-only or implementation-only changes');
   });
 
+  it('uses progressive semantic reads and expands only selected identities', () => {
+    for (const token of [
+      'xirang arch outline --format json',
+      'xirang arch impact <identities...> --depth 2 --json',
+      'xirang arch query <identity> --json',
+      'xirang arch snapshot --format json',
+    ]) expect(template).toContain(token);
+    expect(template).toContain(XIRANG_SHARED_CONTEXT);
+  });
+
   it('directly obtains semantic impact context for focus Elements', () => {
     expect(template).toContain('## Semantic Impact');
-    expect(template).toContain('xirang arch search <query> --json');
+    expect(template).toContain('xirang arch search <query> --limit 20 --json');
     expect(template).toContain('focus Elements');
     expect(template).toContain('xirang arch impact <identities...> --depth 2 --json');
-    expect(template).toContain('xirang arch query <selected-identities...> --contract --json');
+    expect(template).toContain('xirang arch query <identity> --json');
     expect(template).toContain('identity-only');
-    expect(template).toContain('re-query that identity');
     expect(template).toContain('Semantic Model');
     expect(template).not.toContain('Formal Semantic Model');
     expect(template).toContain('Relationship adjacency');
-    expect(template.indexOf('xirang arch impact <identities...> --depth 2 --json'))
-      .toBeLessThan(template.indexOf('xirang arch query <selected-identities...> --contract --json'));
+    const semanticImpact = template.slice(template.indexOf('## Semantic Impact'));
+    expect(semanticImpact.indexOf('xirang arch impact <identities...> --depth 2 --json'))
+      .toBeLessThan(semanticImpact.indexOf('xirang arch query <identity> --json'));
   });
 
   it('collects implementation evidence separately and keeps judgments in the main agent', () => {

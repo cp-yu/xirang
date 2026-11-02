@@ -156,7 +156,7 @@ describe('business specification 4+N', () => {
 
   it('exposes the format to Agents through outline and query', async () => {
     const project = await createProject();
-    const outline = await runCLI(['arch', 'outline', '--format', 'json'], { cwd: project });
+    const outline = await runCLI(['arch', 'outline', '--metamodel', '--format', 'json'], { cwd: project });
     expect(outline.exitCode).toBe(0);
     expect(JSON.parse(outline.stdout).metamodel.elementKinds).toContainEqual(expect.objectContaining({
       identity: 'business', contractFormat: 'business-specification',
