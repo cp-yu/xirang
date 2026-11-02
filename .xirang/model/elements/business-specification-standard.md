@@ -53,3 +53,9 @@ Key Acceptance Cases SHALL 存在，且包含至少一个具备非空正文的 `
 CLI SHALL 对完整 Semantic Model 执行结构校验；验证 Change 时 SHALL 检查 Expected Semantic Model，不要求每份 Delta 重复携带未变动的基础 Sections。缺失、重复或正文为空的必需 Section、缺少或正文为空的 Acceptance Case、Acceptance Case 放在非专属 Section 中，均 SHALL 报错。
 
 语义覆盖、规范正确性及 +N 是否值得独立维护 SHALL 由撰写者与审查者判断，结构通过不代表语义正确。完整标准由 `.xirang/references/xirang-business-specification-standard.md` 承载，Build、Explore、Propose 与 Snack 工作面 SHALL 提供精简内容提示与加载触发条件：探索业务规格 Contract，或编写、修订其 Kind 或 Contract 前读取完整标准。通用框架及组织性 Element 不触发该格式。Apply 消费 Contract 的目标语义，不加载 4+N 撰写规则。
+
+### Section: 职责边界与同层精简
+
+业务规格 SHALL 保留四个固定基础 Section 与按独立维护边界增加的 +N，不以精简表达放松结构。Scope and Non-goals 只写本 Element 的职责及必要排除，不能承载整个 Change 的目标、非目标或实现选型。
+
+同一层级规则集中表达：Business Logic 完整讲机制，Edge Cases and Exception Handling 补不同的异常条件与结果，Key Acceptance Cases 用具体输入与结果检验已有承诺，不换措辞复述规则。Scope 不提前重述管线，必要的父子抽象层级语义覆盖仍保留。撰写与修订遵循共享精简表达规则，保持条件、数值、例外和时序。

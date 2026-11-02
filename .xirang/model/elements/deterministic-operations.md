@@ -301,22 +301,9 @@ Deterministic Operations SHALL 仅通过顶层 verb-first commands 提供 Change
 
 ### Section: 管理统一确认记录生命周期
 
-`xirang record create|list|show|status|validate|update|rename|coverage|consume|discard` SHALL 管理非空已确认设计记录，以 explorationId 寻址，使用统一 versioned 格式和彼此独立的 Build / Change 形成实例；update 只接收本次变化并以 `--source-version` 拒绝过期写入，写入后返回差异与记录概况而非完整内容。CLI SHALL NOT 决定哪些用户内容重要，也不提供 `xirang framing` 兼容别名。旧格式记录 SHALL 明确诊断不受支持，不自动迁移、删除或建立兼容副本。
+xirang record SHALL 统一管理非空中间设计记录，Build 与 Change 各用独立实例，保留稳定 explorationId、完整读取、局部更新与记录级 sourceVersion。条目显式区分 nature（normative/informative）与 decision（pending/accepted/excluded），结构部分只承载已确认目标。使用 schemaVersion: 4，旧格式不支持、不自动迁移、不默认确认，也不提供 framing 兼容别名。
 
-- **创建并恢复记录**
-
-  - create 接收合法 slug、明确形成上下文与非空条目或结构对象
-  - 生成稳定 explorationId 并保存到受控位置，show 返回完整当前内容，list 与 status 可重新发现记录。
-
-- **空记录和旧格式不隐式转换**
-
-  - 输入为空或发现旧 schemaVersion 记录
-  - 拒绝无意义空记录或报告不支持的旧格式，既有文件不被迁移或删除。
-
-- **版本过期拒绝写入**
-
-  - update 携带的 sourceVersion 与当前记录不一致
-  - 拒绝写入并返回当前版本，记录不变。
+show 可一次选择一条或多条 identity，返回所选完整内容及状态、记录身份和当前 sourceVersion，不附无关条目或完整基准；无选择时仍完整读取。update 保留未提及内容、结构字段合并及版本过期拒绝机制，返回差异、状态概况与新版本，不回传整份记录。CLI 校验格式与确定性关系，不代用户确认设计。
 
 ### Section: 返回记录校验与上下文变化
 
@@ -339,27 +326,9 @@ Record validation SHALL 分别报告格式、稳定身份、结构部分的 Kind
 
 ### Section: 确定性交接确认来源
 
-`xirang record consume` SHALL 显式选择 named Change 或 active Candidate，核对当前源版本，并要求目标中存在绑定当前 sourceVersion 与目标指纹的有效覆盖结果；覆盖结果由 `xirang record coverage` 在校验每条 normative 条目均有原子细节且位置真实存在后记录。consume SHALL 逐字段比对记录结构部分与目标模型，不一致即拒绝。CLI SHALL 先保存精确来源快照，再完成适用校验，最后删除活动记录；任何前置失败 SHALL 保留活动记录与原有目标。同字节快照允许重验后恢复，冲突快照必须停止。CLI 只证明检查已执行、位置存在与结构一致，SHALL NOT 以此代替语义覆盖判断。
+record coverage SHALL 按性质、决策状态及适用性记录检查：需落实的 accepted normative 内容须有逐项原子细节、真实目标位置及适用摘录；pending 问题影响当前目标时阻塞，不影响须有理由；excluded 与 informative 不强制生成目标承诺。非当前目标的规范内容须声明不适用并说明理由。CLI 校验结果类型、完整性、位置与摘录，不判断自然语言语义覆盖或授权。
 
-- **缺少有效覆盖结果**
-
-  - 目标中没有覆盖结果，或其绑定的版本或指纹已过期
-  - 拒绝交接并要求重新执行覆盖检查。
-
-- **相同快照恢复交接**
-
-  - 上次交接在复制后中断且来源与目标快照字节相同
-  - 重验源版本、覆盖结果及目标后完成清理，不覆盖来源快照。
-
-- **冲突或失败保留来源**
-
-  - 目标已有不同快照、版本变化、结构不一致或目标校验失败
-  - 返回错误，保留活动记录及既有目标，不声明交接完成。
-
-- **显式选择消费目标**
-
-  - 同一项目存在活动 Candidate 与多个 Changes
-  - 只向命令明确指定的合法目标交接，不从当前目录猜测目标。
+record consume SHALL 显式选择 named Change 或 active Candidate，核对源版本，要求覆盖结果绑定当前 sourceVersion 与目标指纹，并逐字段比对已确认结构目标。先保存精确 record-source.md，再完成适用校验，最后删除活动记录；任一前置失败保留来源与既有目标。同字节快照可重验恢复，冲突快照停止，不猜测目标。来源与覆盖只作为形成历史，不进入后续语义计算。
 
 ### Section: 提供稳定 Record JSON Contract
 

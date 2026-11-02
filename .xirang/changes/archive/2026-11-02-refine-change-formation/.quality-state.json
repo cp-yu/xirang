@@ -142,7 +142,7 @@
       "test/integration/record-workflow.test.ts",
       "test/utils/record-discovery-isolation.test.ts"
     ],
-    "evidenceFingerprint": "c3dc596c38877d191b13db3e501a47b155bf4383dbc65e7d86db7bf7bef2dd3c",
+    "evidenceFingerprint": "68fc16d6e1d735188723a248957ca8b2a4105a07cd647d018caa14d4b687048d",
     "evidenceFingerprintEntries": [
       {
         "path": ".pi/agents/xirang-experimenter.md",
@@ -270,59 +270,59 @@
       },
       {
         "path": ".xirang/model/elements/agent-workbench-projection.md",
-        "hash": "badbb1d4b30b7f46a031c2214c81683fdab6a2168def7ff9da50982d24d97d1c"
+        "hash": "984e771b348dfb215494cade8fcdcbdd4082900b8a8a613b1dc55997f25d40b5"
       },
       {
         "path": ".xirang/model/elements/authoring-conventions.md",
-        "hash": "447e7974c300dec1104b0f963a87510b8800cc3671839ae87f0db290db421542"
+        "hash": "539a486290a6b3e2ba43448b8f6b745b71d2747472eef70091f7a5f94b958c4b"
       },
       {
         "path": ".xirang/model/elements/business-specification-standard.md",
-        "hash": "f0fbe0352ba941563395689c6aa51c5472668cdaf0d6b00e6f4b5ad5fa590ad3"
+        "hash": "301acb71f293ccf7a122dbbb40dcd6fdb77c8382a43dd9aeb378a615799ac7ff"
       },
       {
         "path": ".xirang/model/elements/confirmed-design-record.md",
-        "hash": "3af8d5d8107cc5a1f37ad925cbb3b7d817cd7efbe84f5125dba8743c7b1af868"
+        "hash": "f912792b46b0a7d4ef8bca39623f653e03c5a36ef1d29590dcd885e1c9b10fd4"
       },
       {
         "path": ".xirang/model/elements/design-exploration.md",
-        "hash": "1a907879e3c794c520f0a98afac3f2a0693914315983bd628915ad106fb528cb"
+        "hash": "d92931070bf5f6e9eabbd151d3607df04f7464854a7a50b55aede01e1a098775"
       },
       {
         "path": ".xirang/model/elements/design-record-operations.md",
-        "hash": "f9a4b92ba4721cfdde2bb3569a80af2e4d639b4185dd26af8f61fe198bc9f446"
+        "hash": "a56b476a0773344e36129de041e4466cb8eae0216d0ca58f02072a272769f18f"
       },
       {
         "path": ".xirang/model/elements/design-record.md",
-        "hash": "21f476304dd8bbf8a0920031cba97376c25e421d4eb763451bd5095325b388f7"
+        "hash": "06375b1ca8900eb2c342c8f6794c0d5d23b793ade446c112d5fca542c601cdc2"
       },
       {
         "path": ".xirang/model/elements/deterministic-operations.md",
-        "hash": "c0527e2edefdba272d217f8e782189763fc5c7551874a068305b858d5498d23c"
+        "hash": "a31ebaabaf16862def43198ff7c7739ffc6a3b997357a8b6870fba0612b7c633"
       },
       {
         "path": ".xirang/model/elements/explore-brainstorming.md",
-        "hash": "40a7ceba420fe64489ecb4bb64402a6137f4c4bcecabd192e98f3c91655664cb"
+        "hash": "d2831bc1eeeeb118d53572067a413bf2516d1198e3d8147d7f9a8f0445f359b3"
       },
       {
         "path": ".xirang/model/elements/explore-role.md",
-        "hash": "b8ffc8c6736a6edf08919d7363195f1d44dd565358201e693a54ba30b03c3ae1"
+        "hash": "dd1228358f563a61d01d180194d3d2b6b56c723e5314220eef5c905171396eee"
       },
       {
         "path": ".xirang/model/elements/explore.md",
-        "hash": "1a5c71f830b5cbfd32a7fdce6f711e263bd45ac3a20b18b542f08a557492af6f"
+        "hash": "e53d691c7443e15fe88f73b549beb0afcace40426b067b359097ffce658433c7"
       },
       {
         "path": ".xirang/model/elements/internal-agents.md",
-        "hash": "a12d5eb8164b9a752529f2ce3c96c03b4d51203d1b0b47fd53d63844202a40e4"
+        "hash": "f0314bfbf3c93f81f78c947c4ea73db8b494dc0152c860925b0684acef2fbd9a"
       },
       {
         "path": ".xirang/model/elements/internal-subagent-generation.md",
-        "hash": "7928ef29ecc9c4edae35e5a68c892f2f5869caf15825f365be329fb424309b53"
+        "hash": "06e62a9d0be81e452404313037cbbc092ee59dbd92211eff4defbcc545ec2ff9"
       },
       {
         "path": ".xirang/model/elements/post-propose-validation.md",
-        "hash": "0492bb7481ca3c5c6737a539c99a597ef5594d9da062427ba843ee14195a218a"
+        "hash": "620834eebd31688472d3fab0d5abc7aca58c3d2b647c8176da0bca0942d85da9"
       },
       {
         "path": ".xirang/model/elements/project.root.md",
@@ -330,15 +330,15 @@
       },
       {
         "path": ".xirang/model/elements/propose-role.md",
-        "hash": "e029ed0ac8b825d3eda349ef082273a4a776f03cfa1afbf65e51d78d1616beff"
+        "hash": "576b8da0459f6f014fa69ad41900fdfabb23f4292de45485661290d0e500d074"
       },
       {
         "path": ".xirang/model/elements/propose-workflow.md",
-        "hash": "888387448dc9bd81245f2138ca46e1eec6e0b913dbaea90350b7a16630ccdad6"
+        "hash": "758c38f60369253bbca310186fe4710b2db32c48d997bbaf3ee07d5eab362448"
       },
       {
         "path": ".xirang/model/elements/propose.md",
-        "hash": "8bae611f22116f0f2c50e1f7fc3aa7000844c6d53f5f9ce5454d75dac5423909"
+        "hash": "2bc634612ae724ab8447475f06c70e4985189670538075ba48e65fb1e89349f1"
       },
       {
         "path": ".xirang/model/elements/reviewer-cleanliness.md",
@@ -346,7 +346,7 @@
       },
       {
         "path": ".xirang/model/elements/semantic-model-build.md",
-        "hash": "b5993dc8ab8f7eeeeba327d0a6a2cb9f6e06c1cd9d24ac4c122f306274c84e1c"
+        "hash": "1c0e5397f40b7b1d7df1f139b6fa015a36829e72111e3fc303a5ad4a057e3ee9"
       },
       {
         "path": ".xirang/records/formation-semantic-fidelity-20261101T121133Z-25852ace.md",

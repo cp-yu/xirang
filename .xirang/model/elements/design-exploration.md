@@ -27,29 +27,15 @@ Design Exploration SHALL 主动发现需要用户选择的决策点，通过一�
   - 多个方案具有不同权衡
   - Design Exploration 比较方案并请求用户选择
 
+需要实践求证的可行性问题 SHALL 交 Experimenter 设计并执行实验，在 Explore 内取得结果再确认相关方案；实验事实与用户决策分开记录。
+
 ### Section: 形成不持久化的 Design Summary
 
-Design Exploration SHALL 在适用设计确认后形成 conversation-only Design Summary 供 Propose 使用。有记录时 SHALL 先重载完整当前记录，检查记录内部及记录与拟议设计间冲突，由用户裁决未决意图；涉及记录修改时仍单独授权并在保存后重载复核。任一未决冲突 SHALL 阻止 Summary，之后记录变化 SHALL 使受影响结论失效。
+适用设计已确认、必要可行性实验完成后，Design Exploration SHALL 形成 conversation-only Design Summary 供 Propose 使用。存在记录时先完整重载当前设计及状态，检查内部冲突、与拟议设计的冲突及影响当前目标的 pending 问题，先由用户裁决。用户确认即授权相应记录更新，无需额外写入授权；保存后核对差异与受影响设计。
 
-- **Design Exploration 完成**
-
-  - 适用设计已确认，当前记录已重载且不存在未决冲突
-  - 呈现 conversation-only Design Summary，等待用户触发 Propose。
-
-- **冲突阻止 Summary**
-
-  - 记录内部互相矛盾或拟议设计违背既有确认
-  - 说明冲突及影响，等待用户裁决，不输出可交接的 Summary。
-
-- **裁决后重新检查**
-
-  - 用户裁决并单独授权必要记录修改
-  - 保存并检查 diff，再读取完整记录重查冲突；通过后才生成 Summary。
-
-- **后续记录变化使 Summary 过期**
-
-  - Summary 已产生但相关记录条目随后改变
-  - 重查并更新受影响 Summary 和覆盖结论，不使用旧结论放行。
+- 冲突或影响当前目标的未决决策未解决：不输出可交接 Summary。
+- 用户裁决修订后：按裁决更新，重查受影响结论再输出。
+- Summary 后记录变化：相关结论失效，重查后才能交接。
 
 ### Section: 设计自查与忠实交接
 
@@ -59,7 +45,7 @@ Design Summary SHALL 保留已确认行为、范围、决策及理由，包含�
 
 ### Section: 使用完整当前确认记录
 
-Design Exploration SHALL 在开始、恢复和准备输出 Summary 时读取存在的完整当前记录，联合 Semantic Model 与项目证据使用已确认内容，不得仅依赖最近对话或记录摘要。无记录时 SHALL 直接按通常流程探索。
+Design Exploration SHALL 在开始、恢复和准备输出 Summary 时读取存在的完整当前记录，联合 Semantic Model、项目证据与实验结果使用当前设计，区分 pending、accepted 与 excluded；只将已采纳规范内容作为确认依据，不得仅依赖最近对话或记录摘要。无记录时 SHALL 直接按通常流程探索。
 
 - **恢复已有记录的探索**
 

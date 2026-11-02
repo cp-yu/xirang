@@ -47,12 +47,9 @@ Explore SHALL 主动识别行为、边界与实现方案中的决策点，通过
 
 ### Section: 不形成完整 Change
 
-Explore SHALL NOT 形成完整 Change。
+Explore SHALL 使用中间设计记录完善设计，不提前展开完整 Change 草稿；整体设计接近完成后，由 Propose 组织并编写实际草稿。探索中后续发现可以使此前设计修订，记录按当前状态更新，避免每次反复都重写完整制品。Explore SHALL NOT 实现正式 Change。
 
-- **Design Summary 已形成**
-
-  - Explore 到达出口
-  - 完整 Change 仍由 Propose 形成
+- 先确定的条件因后续发现改变：取得必要用户裁决后更新中间记录，未进入 Propose 时不展开完整 Delta、Plan。
 
 ### Section: 澄清 Element Definition 影响
 
@@ -89,20 +86,14 @@ Explore SHALL 在适用设计确认并完成边界、竞争与一致性自查后
 
 ### Section: 按确认即记录使用 Design Record
 
-Explore SHALL 按触发条件加载共享 Design Record reference：发现或接收相关记录（含恢复已有探索）时，在读取或依赖记录前加载；设计段落产生未被明确豁免的规范性确认，或用户要求记录或修订材料时，在写入前加载；Summary 前发现规范性确认既未记录也未明确豁免时，加载并解决交接缺口。未触发时不为普通讨论预加载协议。Explore SHALL 在用户确认设计内容后立即通过 `xirang record` 记录，只报告本次变更与记录概况，不等待用户要求记录、不另行请求写入授权、不重新呈现未改动内容，也不默认提供豁免；明确豁免覆盖的内容不重复记录。存在 normative 确认时，Explore SHALL 在交接前落定恰好一个记录决策——已持久化记录、用户明确授予的豁免、或本次无 normative 内容的声明——三者皆缺即阻塞交接。记录更新后 SHALL 重查受影响设计与 Summary，不得将记录设为所有设计的先行阶段。
+发现相关记录、需保存影响设计的 pending 问题/假设、产生未豁免的设计确认、用户要求记录或修订、Summary 前发现记录缺口时，Explore SHALL 加载共享 Design Record reference；普通讨论不预加载。按协议主动维护 pending 内容，用户确认后立即通过 xirang record 局部更新为相应状态；不等待用户要求记录，不另行索要持久化授权。修改已确认内容须用户允许，写入后只报告变化与概况。
 
-- **确认后立即记录**
+记录随设计形成，不是先行阶段；记录变化使受影响设计与 Summary 需重查。交接前对照完整确认内容补足遗漏，并落定已持久化记录、用户明确豁免或无 normative 内容声明之一；不创建空记录，不默认豁免。
 
-  - 用户确认一个设计段落中的两项规范性内容
-  - Explore 立即写入这两项并报告变更，不先展示完整拟保存内容等待授权
+### Section: 委托可行性实验
 
-- **有规范确认时落定决策**
+必要的方案可行性实验 SHALL 在 Explore 完成，为 Propose 奠定设计基础。Explore 向专门 Experimenter 提供待回答问题、约束和决策背景；由 Experimenter 自主设计并执行最小实验，交付方法、结果、分析与限制。Explore 依据证据继续比较方案、请求用户确认，不把实验成功当作方案已获采纳。不得以统一只读能力禁令阻止实验编写与执行。
 
-  - 采用的设计含 normative 确认
-  - 在交接前取得记录、豁免或无 normative 内容声明之一
-  - 不将无记录继续作为默认路径
+实验使用当前工作区、临时目录、项目副本或 worktree 等，由主 Agent 与 Experimenter 根据情况选择；框架不预设选择策略，也不把执行细节逐项交用户设计。实验产物不视为正式 Change 实现。
 
-- **已确认内容修订**
-
-  - 记录中的行为或结构确认被修订
-  - 重载记录并重新检查依赖旧条目的设计结论
+- Propose 前必须确认某 API 能力：Explore 提供问题与约束，Experimenter 设计并运行最小验证，Explore 将可行性证据和限制用于设计确认。

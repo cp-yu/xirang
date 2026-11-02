@@ -44,12 +44,12 @@ Workflow skill 模板 SHALL 复用共享片段常量，并将长协议物化到 
 
 ### Section: 维护 internal subagent 制品
 
-系统 SHALL 显式注册 `xirang-reviewer` 与 `xirang-optimizer` 两个 internal subagents，并按工具原生格式渲染与写入 subagent artifacts。
+系统 SHALL 显式注册 `xirang-reviewer`、`xirang-optimizer` 与 `xirang-experimenter` 三个 internal subagents，并按工具原生格式渲染与写入 subagent artifacts。
 
-- **显式注册两个 internal subagents**
+- **显式注册三个 internal subagents**
 
   - 读取 internal subagent 模板常量
-  - 只包含 `xirang-reviewer` 与 `xirang-optimizer` 两个显式条目
+  - 只包含 `xirang-reviewer`、`xirang-optimizer` 与 `xirang-experimenter` 三个显式条目
 
 - **写入路径遵循工具原生规范**
 
