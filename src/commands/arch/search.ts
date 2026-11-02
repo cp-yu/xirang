@@ -28,6 +28,12 @@ interface RankedEvidence extends ArchitectureSearchEvidence {
   rank: number;
 }
 
+interface RankedCandidate {
+  declaration: ElementDeclaration;
+  evidence: RankedEvidence[];
+  rank: number;
+}
+
 function boundedEvidence(text: string, query: string): string {
   const maxLength = 160;
   if (text.length <= maxLength) return text;
@@ -64,7 +70,7 @@ export async function searchArchitecture(
   }
 
   const model = await readValidArchitecture(projectRoot);
-  const matches: Array<ArchitectureSearchMatch & { rank: number }> = [];
+  const candidates: RankedCandidate[] = [];
 
   for (const element of model.elements) {
     const declaration = element.declaration;
@@ -81,7 +87,17 @@ export async function searchArchitecture(
     evidence.sort((left, right) => left.rank - right.rank
       || compareCodePoints(left.field, right.field)
       || compareCodePoints(left.text, right.text));
-    matches.push({
+    candidates.push({ declaration, evidence, rank: evidence[0].rank });
+  }
+
+  candidates.sort((left, right) => left.rank - right.rank
+    || compareCodePoints(left.declaration.identity, right.declaration.identity));
+  const totalMatches = candidates.length;
+  const limited = options.limit === undefined ? candidates : candidates.slice(0, options.limit);
+
+  return {
+    query: searchQuery,
+    matches: limited.map(({ declaration, evidence }) => ({
       element: {
         identity: declaration.identity,
         title: declaration.title,
@@ -92,18 +108,7 @@ export async function searchArchitecture(
         ...item,
         text: boundedEvidence(item.text, searchQuery),
       })),
-      rank: evidence[0].rank,
-    });
-  }
-
-  matches.sort((left, right) => left.rank - right.rank
-    || compareCodePoints(left.element.identity, right.element.identity));
-  const totalMatches = matches.length;
-  const limited = options.limit === undefined ? matches : matches.slice(0, options.limit);
-
-  return {
-    query: searchQuery,
-    matches: limited.map(({ rank: _rank, ...match }) => match),
+    })),
     totalMatches,
     diagnostics: [],
   };

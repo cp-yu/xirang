@@ -155,21 +155,37 @@ export async function impactArchitecture(
       else adjacency.set(endpoint, [relation]);
     }
   }
-  for (const adjacent of adjacency.values()) adjacent.sort(compareRelations);
+  // Every adjacency list is an ordered subsequence of globally sorted uniqueRelations.
 
   const reachableIds = new Set(focusElements);
   const relationPaths: ArchitectureRelationPath[] = [];
-  for (const focusElementId of focusElements) {
-    const paths = canonicalPaths(focusElementId, depth, adjacency);
-    for (const [relatedElementId, steps] of paths) {
-      reachableIds.add(relatedElementId);
-      if (relatedElementId !== focusElementId) {
-        relationPaths.push({ focusElementId, relatedElementId, steps });
+  if (options.paths) {
+    for (const focusElementId of focusElements) {
+      const paths = canonicalPaths(focusElementId, depth, adjacency);
+      for (const [relatedElementId, steps] of paths) {
+        reachableIds.add(relatedElementId);
+        if (relatedElementId !== focusElementId) {
+          relationPaths.push({ focusElementId, relatedElementId, steps });
+        }
       }
     }
+    relationPaths.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
+      || compareCodePoints(left.relatedElementId, right.relatedElementId));
+  } else {
+    let frontier = new Set(focusElements);
+    for (let currentDepth = 1; currentDepth <= depth; currentDepth += 1) {
+      const next = new Set<string>();
+      for (const current of frontier) {
+        for (const relation of adjacency.get(current) ?? []) {
+          const adjacent = relation.source === current ? relation.target : relation.source;
+          if (!reachableIds.has(adjacent)) next.add(adjacent);
+        }
+      }
+      if (next.size === 0) break;
+      for (const elementId of next) reachableIds.add(elementId);
+      frontier = next;
+    }
   }
-  relationPaths.sort((left, right) => compareCodePoints(left.focusElementId, right.focusElementId)
-    || compareCodePoints(left.relatedElementId, right.relatedElementId));
 
   const refinementContext: ArchitectureRefinementContext[] = [];
   const contextElementIds = new Set<string>();

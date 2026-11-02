@@ -73,13 +73,29 @@ describe('architecture search', () => {
 
   it('sorts by strongest match then stable identity and applies limit afterward', async () => {
     const exact = await searchArchitecture(root, 'cap.exact', { limit: 1 });
+    const exactUnlimited = await searchArchitecture(root, 'cap.exact');
+    expect(exact.matches).toEqual(exactUnlimited.matches.slice(0, 1));
     expect(exact.matches.map(match => match.element.identity)).toEqual(['cap.exact']);
     expect(exact.totalMatches).toBe(2);
+    expect(exact.totalMatches).toBe(exactUnlimited.totalMatches);
     expect(exact.matches[0].evidence[0]).toEqual({ field: 'elementId', text: 'cap.exact' });
 
     const stable = await searchArchitecture(root, 'Match', { limit: 1 });
+    const stableUnlimited = await searchArchitecture(root, 'Match');
+    expect(stable.matches).toEqual(stableUnlimited.matches.slice(0, 1));
     expect(stable.matches.map(match => match.element.identity)).toEqual(['cap.alpha']);
     expect(stable.totalMatches).toBe(2);
+    expect(stable.totalMatches).toBe(stableUnlimited.totalMatches);
+  });
+
+  it('keeps limited search projections as prefixes at limit boundaries', async () => {
+    const unlimited = await searchArchitecture(root, 'Match');
+
+    for (const limit of [1, unlimited.totalMatches, unlimited.totalMatches + 1]) {
+      const limited = await searchArchitecture(root, 'Match', { limit });
+      expect(limited.matches).toEqual(unlimited.matches.slice(0, limit));
+      expect(limited.totalMatches).toBe(unlimited.totalMatches);
+    }
   });
 
   it('searches Definitions with bounded evidence centered on the matching text', async () => {
