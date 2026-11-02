@@ -1,5 +1,18 @@
 # xirang
 
+## 0.2.2
+
+### Minor Changes
+
+- **BREAKING**：`xirang record` 设计记录升级为 schemaVersion 4：每条条目显式携带 `nature`（normative/informative）与 `decision`（pending/accepted/excluded），旧格式（schemaVersion 3 或缺失 decision）直接拒绝，不自动迁移、不创建兼容副本；`.xirang/framing/` 不再被发现为有效记录，`xirang framing` 按未知命令处理。新增按条目选择读取 `xirang record show <explorationId> --entry <identity>`（可重复）；`record coverage` 与 `record consume` 改为状态化门禁：pending 条目影响当前目标即拒绝、不影响须给理由，不适用须理由，consume 前强制存在绑定 sourceVersion 与目标指纹的有效覆盖结果并逐字段比对结构目标，历史快照仅作 history 与 digest 参与，不再按活动记录格式重解析。
+
+### Patch Changes
+
+- 新增 Experimenter 内部角色（`xirang-experimenter`）：Explore 可委托最小可行性实验并取回命令、实际输出与限制证据；Reviewer/Optimizer 仍为只读评估角色，三角色按 Claude Code/Pi/OpenCode/Codex 原生权限注册安装，用户自定义 model 值在 update 时保留。
+- Propose 交互化：按机制复杂度组织审阅（简单集中审阅、复杂按机制分段），允许小范围交互调整与必要实验回退 Explore；收尾按已采纳义务、待决问题、排除方案与说明材料分类，CLI 校验通过不替代语义就绪。
+- Contract 写作标准：保留 4+N 结构，按局部职责、直接表达、同层去重与沿用准确文本精简表达；共享 business-specification-standard 与 authoring-conventions 指导更新，父级需在本层独立承载目标承诺。
+- 性能：记录结构校验在单次调用内复用模型索引（模型集合遍历 12→4 次）；覆盖检查对同一 Element 位置只解析一次并复用文本做摘录匹配；记录概况改为单次遍历计数，不再分配筛选数组。
+
 ## 0.2.0
 
 ### Minor Changes
