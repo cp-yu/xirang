@@ -12,9 +12,9 @@ import type { SemanticModel } from '../../../src/core/model/types.js';
 const structure = (value: Partial<RecordStructure> = {}): RecordStructure => ({
   elements: [], relationships: [], elementKinds: [], relationshipKinds: [], ...value,
 });
-const entry = (identity: string, nature: 'normative' | 'informative' = 'normative') => ({ identity, nature, content: `${identity} 内容` });
+const entry = (identity: string, nature: 'normative' | 'informative' = 'normative') => ({ identity, nature, decision: 'accepted' as const, content: `${identity} 内容` });
 const payload = (value: Partial<DesignRecordPayload> = {}): DesignRecordPayload => ({
-  schemaVersion: 3, context: 'change', relatedIdentities: [], entries: [], structure: structure(), ...value,
+  schemaVersion: 4, context: 'change', relatedIdentities: [], entries: [], structure: structure(), ...value,
 });
 
 const element = (identity: string, kind: string, parent: string | null, definition = `${identity} 定义`) => ({
@@ -36,12 +36,36 @@ describe('按部分更新记录', () => {
 
   it('只 upsert 与修改提及的条目，其余逐字不变', () => {
     const next = applyRecordPatch(eighteen, {
-      entries: { upsert: [{ identity: 'e3', nature: 'normative', content: '修改后' }, { identity: 'new', nature: 'informative', content: '新增' }] },
+      entries: { upsert: [{ identity: 'e3', nature: 'normative', decision: 'accepted' as const, content: '修改后' }, { identity: 'new', nature: 'informative', decision: 'accepted' as const, content: '新增' }] },
     });
     expect(next.entries).toHaveLength(19);
     expect(next.entries.filter(item => !['e3', 'new'].includes(item.identity))).toEqual(eighteen.entries.filter(item => item.identity !== 'e3'));
-    expect(next.entries[3]).toEqual({ identity: 'e3', nature: 'normative', content: '修改后' });
-    expect(summarizeRecord(next)).toEqual({ entries: 19, normativeEntries: 18, elements: 0, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
+    expect(next.entries[3]).toEqual({ identity: 'e3', nature: 'normative', decision: 'accepted' as const, content: '修改后' });
+    expect(summarizeRecord(next)).toEqual({ entries: 19, normativeEntries: 18, decisions: { pending: 0, accepted: 19, excluded: 0 }, elements: 0, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
+  });
+
+  it('概况分别统计条目性质与决策，空条目仍报告结构且多次调用不改输入', () => {
+    const pending = { ...entry('pending'), decision: 'pending' as const };
+    const input = payload({
+      entries: [pending, entry('accepted'), { ...entry('excluded'), decision: 'excluded' },
+        { ...entry('info-pending', 'informative'), decision: 'pending' }, entry('info-accepted', 'informative'),
+        { ...entry('info-excluded', 'informative'), decision: 'excluded' }, pending],
+      structure: structure({
+        elements: [{ identity: 'x' }],
+        relationships: [{ source: 'x', kind: 'uses', target: 'y' }],
+        elementKinds: [{ identity: 'capability' }],
+        relationshipKinds: [{ identity: 'uses' }],
+      }),
+    });
+    const before = structuredClone(input);
+    const first = summarizeRecord(input);
+    expect(first).toEqual({ entries: 7, normativeEntries: 4, decisions: { pending: 3, accepted: 2, excluded: 2 }, elements: 1, relationships: 1, elementKinds: 1, relationshipKinds: 1 });
+    const second = summarizeRecord(input);
+    expect(second).toEqual(first);
+    expect(second).not.toBe(first);
+    expect(second.decisions).not.toBe(first.decisions);
+    expect(summarizeRecord({ ...input, entries: [] })).toEqual({ entries: 0, normativeEntries: 0, decisions: { pending: 0, accepted: 0, excluded: 0 }, elements: 1, relationships: 1, elementKinds: 1, relationshipKinds: 1 });
+    expect(input).toEqual(before);
   });
 
   it('结构对象按字段合并，clear 移除字段而 parent: null 表示 Project Root', () => {
@@ -154,6 +178,36 @@ describe('校验记录结构与上下文', () => {
       ['UNKNOWN_ELEMENT_KIND', 'module', 'parents'],
     ]);
     expect(diagnostics.every(item => item.severity === 'ERROR' && item.message)).toBe(true);
+  });
+
+  it('连续校验独立覆盖对象且不修改模型或记录', () => {
+    const first = structure({
+      elements: [{ identity: 'x', removed: true }, { identity: 'y', parent: 'x' }, { identity: 'root', kind: 'capability', parent: null }],
+      relationships: [{ source: 'd', kind: 'depends-on', target: 'x' }],
+      elementKinds: [{ identity: 'capability', root: true }],
+      relationshipKinds: [{ identity: 'depends-on', removed: true }],
+    });
+    const second = structure({
+      elements: [{ identity: 'd', parent: 'x' }, { identity: 'n', kind: 'capability', parent: null }],
+      relationships: [{ source: 'd', kind: 'depends-on', target: 'x' }],
+    });
+    const originalModel = structuredClone(model);
+    const originalFirst = structuredClone(first);
+    const originalSecond = structuredClone(second);
+    const firstDiagnostics = [
+      { severity: 'ERROR', code: 'UNRESOLVED_PARENT', message: 'Parent x is not in the current model or record', identity: 'y', field: 'parent' },
+      { severity: 'ERROR', code: 'UNRESOLVED_RELATIONSHIP_ENDPOINT', message: 'Endpoint x is not in the current model or record', identity: 'd -depends-on-> x', field: 'target' },
+      { severity: 'ERROR', code: 'UNKNOWN_RELATIONSHIP_KIND', message: 'Relationship Kind depends-on is not in the Metamodel or record', identity: 'd -depends-on-> x', field: 'kind' },
+    ];
+    expect(validateRecordStructure(first, model)).toEqual(firstDiagnostics);
+    expect(validateRecordStructure(second, model)).toEqual([
+      { severity: 'ERROR', code: 'UNRESOLVED_PARENT', message: 'Element Kind capability does not allow Project Root', identity: 'n', field: 'parent' },
+    ]);
+    expect(validateRecordStructure(first, model)).toEqual(firstDiagnostics);
+    expect(validateRecordStructure(structure(), model)).toEqual([]);
+    expect(model).toEqual(originalModel);
+    expect(first).toEqual(originalFirst);
+    expect(second).toEqual(originalSecond);
   });
 
   it('无正式模型时只按记录自身解析', () => {

@@ -37,7 +37,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
   - 生成 propose skill
   - 声明 PROPOSE 只写目标 Change 制品，禁止修改 implementation 或正式模型
-  - 仅允许 CLI-managed `xirang record coverage` 向目标 Change 记录覆盖结果，并在覆盖结果有效、结构比对一致与校验通过后以 `xirang record consume` 完成明确来源的交接及受控清理；不允许任意 change 目录外写入，也不允许创建、更新、重命名或丢弃记录
+  - 允许通过 CLI 维护共享设计记录，pending 可主动维护，accepted、excluded 及确认内容的实质修改须用户允许；允许 record coverage 记录覆盖结果，并在版本、覆盖、结构及校验门禁通过后 record consume。除此之外不得任意写入 Change 目录外文件，不将记录权限视为正式实现权限
 
 - **New change ID 冲突**
 
@@ -59,7 +59,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
 ### Section: Propose smart routing
 
-Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在不改变承诺或选择新行为、架构的前提下展开机制、案例和任务并修正表达或推导错误；新发现的决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。孤立缺口在 Propose 内确认，大幅重做设计或需要修订记录时返回 Explore；完成披露不能代替决策前确认。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和任务及修正表达或推导错误，不得自主大量扩写实质设计；新发现的决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
 - **复用 Design Summary**
 
@@ -303,3 +303,7 @@ Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环�
   - Propose 编写或修改 Acceptance Case
   - Acceptance Case SHALL 描述条件与可观察结果
   - SHALL NOT 把生成文档标题、段落顺序或完整例句当作行为，除非该精确 token 本身是对外协议
+
+### Section: 按复杂度组织交互审阅
+
+Workflow SHALL 指导简单变更先形成完整草稿并集中审阅具体差异与问题，复杂变更按一项机制或相关 Elements 分组编写、审阅，确认后继续；不按 Element 数量机械要求逐个确认。成文中提出新想法与用户讨论，明确细节自主权与重大决策确认边界，不以一次调用后无须交互为目标。

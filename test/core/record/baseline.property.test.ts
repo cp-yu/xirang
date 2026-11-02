@@ -5,8 +5,8 @@ import type { DesignRecordPayload } from '../../../src/core/record/types.js';
 import type { SemanticModel } from '../../../src/core/model/types.js';
 
 const payload: DesignRecordPayload = {
-  schemaVersion: 3, context: 'change', relatedIdentities: ['leaf'],
-  entries: [{ identity: 'limit', nature: 'normative', content: '必须保留叶节点确认。' }],
+  schemaVersion: 4, context: 'change', relatedIdentities: ['leaf'],
+  entries: [{ identity: 'limit', nature: 'normative', decision: 'accepted' as const, content: '必须保留叶节点确认。' }],
   structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
 };
 

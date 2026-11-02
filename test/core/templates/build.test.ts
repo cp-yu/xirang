@@ -19,9 +19,7 @@ describe('xirang-build workflow', () => {
     expect(instructions).toContain('Do not reuse a pre-handoff digest');
     expect(instructions).toContain('record-source.md');
     expect(instructions).toContain('record-coverage.json');
-    expect(instructions).toContain('with a quote copied from the current Candidate file at that location');
-    expect(instructions).toContain('shared **Record on confirmation**');
-    expect(instructions).toContain('shared **Writing rules**');
+    expect(instructions).toContain('**Writing rules**');
     expect(instructions).toContain('shared **Coverage gate** to current record → complete Candidate');
     expect(instructions).toContain('shared **Output and handoff** success and failure checks');
     expect(instructions).not.toMatch(/framing/i);

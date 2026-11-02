@@ -213,8 +213,7 @@ export function compareStructure(structure: RecordStructure, model: SemanticMode
   return result;
 }
 
-function available(type: StructureKey, structure: RecordStructure, model: SemanticModel | null): Map<string, Item> {
-  const objects = model ? modelObjects(model)[type] : new Map<string, Item>();
+function available(type: StructureKey, structure: RecordStructure, objects = new Map<string, Item>()): Map<string, Item> {
   for (const item of structure[type] as unknown as Item[]) {
     const key = structureKey(type, item);
     if (item.removed === true) objects.delete(key);
@@ -226,9 +225,10 @@ function available(type: StructureKey, structure: RecordStructure, model: Semant
 /** Deterministic reference checks against the current model plus non-removed record objects. */
 export function validateRecordStructure(structure: RecordStructure, model: SemanticModel | null): RecordStructureDiagnostic[] {
   const diagnostics: RecordStructureDiagnostic[] = [];
-  const elements = available('elements', structure, model);
-  const elementKinds = available('elementKinds', structure, model);
-  const relationshipKinds = available('relationshipKinds', structure, model);
+  const objects = model ? modelObjects(model) : null;
+  const elements = available('elements', structure, objects?.elements);
+  const elementKinds = available('elementKinds', structure, objects?.elementKinds);
+  const relationshipKinds = available('relationshipKinds', structure, objects?.relationshipKinds);
   const report = (type: StructureKey, item: Item, code: string, field: string, message: string) =>
     diagnostics.push({ severity: 'ERROR', code, message, identity: refLabel(type, item), field });
   for (const item of structure.elements as unknown as Item[]) {
@@ -269,9 +269,18 @@ export function assertRecordStructure(structure: RecordStructure, model: Semanti
 }
 
 export function summarizeRecord(payload: DesignRecordPayload): RecordSummary {
+  let normativeEntries = 0;
+  const decisions = { pending: 0, accepted: 0, excluded: 0 };
+  payload.entries.forEach(item => {
+    if (item.nature === 'normative') normativeEntries++;
+    if (item.decision === 'pending') decisions.pending++;
+    else if (item.decision === 'accepted') decisions.accepted++;
+    else if (item.decision === 'excluded') decisions.excluded++;
+  });
   return {
     entries: payload.entries.length,
-    normativeEntries: payload.entries.filter(item => item.nature === 'normative').length,
+    normativeEntries,
+    decisions,
     elements: payload.structure.elements.length,
     relationships: payload.structure.relationships.length,
     elementKinds: payload.structure.elementKinds.length,

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { diffRecordPayloads } from '../../../src/core/record/workspace.js';
 import type { DesignRecordPayload, RecordEntry } from '../../../src/core/record/types.js';
 
-const entry = (identity: string, content = identity): RecordEntry => ({ identity, nature: 'normative', content });
+const entry = (identity: string, content = identity): RecordEntry => ({ identity, nature: 'normative', decision: 'accepted' as const, content });
 const payload = (entries: RecordEntry[]): DesignRecordPayload => ({
-  schemaVersion: 3, context: 'change', relatedIdentities: [], entries,
+  schemaVersion: 4, context: 'change', relatedIdentities: [], entries,
   structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
 });
 const unchanged = { added: [], modified: [], withdrawn: [] };
@@ -24,9 +24,9 @@ describe('确认条目差异', () => {
     expect(diffRecordPayloads(before, payload([...before.entries].reverse()))).toEqual({ entries: { added: [], modified: [], removed: [] }, structure: unchanged });
   });
 
-  it('内容相同但性质改变也必须可见', () => {
+  it.each([{ nature: 'informative' }, { decision: 'excluded' }])('内容相同但性质或状态改变也必须可见 %j', change => {
     const before = payload([entry('a')]);
-    const after = payload([{ ...entry('a'), nature: 'informative' }]);
+    const after = payload([{ ...entry('a'), ...change } as RecordEntry]);
     expect(diffRecordPayloads(before, after).entries.modified).toEqual([{ identity: 'a', before: before.entries[0], after: after.entries[0] }]);
   });
 });

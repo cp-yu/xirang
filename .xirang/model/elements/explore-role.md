@@ -9,20 +9,6 @@ definition: Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范�
 
 ## Specification
 
-### Section: 保持只读工作边界
-
-Explore Role SHALL 保持项目实现、Semantic Model、generated Agent surfaces 与普通 Change 制品只读；唯一例外是用户在对话中确认设计内容后，经 `xirang record` 记录该部分已确认内容，用户的设计确认即构成记录授权。SHALL NOT 直接改文件，SHALL NOT 记录用户未确认的内容，也 SHALL NOT 把设计确认视为其他文件或制品的写入授权。
-
-- **确认后经 CLI 记录**
-
-  - 用户确认一项设计内容
-  - 仅通过 `xirang record` 记录该内容，不修改实现、正式模型或其他 Change 制品。
-
-- **设计确认不授权其他写入**
-
-  - 用户确认设计方向后，Agent 认为某个模板或 Contract 也应随之修改
-  - 不写入这些文件，只在 Design Summary 中标明后续 capture target。
-
 ### Section: 交付 Design Summary
 
 Explore Role SHALL 在适用设计确认及当前记录冲突检查通过后向 Propose 交付 conversation-only Design Summary；存在记录时同时交付其稳定身份与核对版本，无记录时不强制创建。
@@ -34,9 +20,10 @@ Explore Role SHALL 在适用设计确认及当前记录冲突检查通过后向 
 
 ### Section: 不实现项目
 
-Explore Role SHALL NOT 实现项目。
+Explore Role SHALL NOT 落实正式项目改动。必要的可行性实验可由 Experimenter 编写并运行；实验结果用于设计判断，不作为正式 Change 已实现的交付。设计稳定后进入 Propose 成文。
 
-- **设计方案已确认**
+### Section: 维护中间设计并委托实验
 
-  - Explore 到达出口
-  - Agent 进入 Propose 而不修改实现
+Explore Role SHALL 通过 CLI 维护当前设计记录，可自主保存 pending 问题、假设与建议；accepted、excluded 及已确认内容的实质修订由用户决定。必要可行性实验委托 Experimenter 同时设计和执行，提供问题、约束及背景，并消费其证据继续设计。
+
+Explore 不写完整 Change、不提升正式模型，也不落实正式项目改动；允许实验所需的编写、运行及记录维护。用户确认设计只授权相应记录变化，不自行推导为普通项目文件、生成工作面或 Change 制品的修改授权。

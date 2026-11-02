@@ -4,10 +4,10 @@ import type { DesignRecordDocument, DesignRecordPayload } from '../../../src/cor
 
 const emptyStructure = { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] };
 const payload: DesignRecordPayload = {
-  schemaVersion: 3, context: 'build', relatedIdentities: [],
+  schemaVersion: 4, context: 'build', relatedIdentities: [],
   entries: [
-    { identity: 'loan-limit', nature: 'normative', content: '最多借阅 5 本；闭馆日顺延。\n当前画像为 A、C 时，事件 ABC、ACD 可以入选；事件 AB 不行（缺少 C）。' },
-    { identity: 'rationale', nature: 'informative', content: '用户要求保留的方案说明。' },
+    { identity: 'loan-limit', nature: 'normative', decision: 'accepted' as const, content: '最多借阅 5 本；闭馆日顺延。\n当前画像为 A、C 时，事件 ABC、ACD 可以入选；事件 AB 不行（缺少 C）。' },
+    { identity: 'rationale', nature: 'informative', decision: 'accepted' as const, content: '用户要求保留的方案说明。' },
   ],
   structure: {
     elements: [
@@ -35,17 +35,19 @@ describe('已确认设计记录', () => {
   });
 
   it('只有条目或只有结构都可表达确认内容，缺省部分规范化为空', () => {
-    expect(normalizeRecordPayload({ schemaVersion: 3, context: 'build', entries: payload.entries }))
+    expect(normalizeRecordPayload({ schemaVersion: 4, context: 'build', entries: payload.entries }))
       .toEqual({ ...payload, structure: emptyStructure });
-    expect(normalizeRecordPayload({ schemaVersion: 3, context: 'build', structure: { elements: [{ identity: 'a', parent: null }] } }))
-      .toEqual({ schemaVersion: 3, context: 'build', relatedIdentities: [], entries: [], structure: { ...emptyStructure, elements: [{ identity: 'a', parent: null }] } });
+    expect(normalizeRecordPayload({ schemaVersion: 4, context: 'build', structure: { elements: [{ identity: 'a', parent: null }] } }))
+      .toEqual({ schemaVersion: 4, context: 'build', relatedIdentities: [], entries: [], structure: { ...emptyStructure, elements: [{ identity: 'a', parent: null }] } });
   });
 
   it.each([
     { ...payload, entries: [], structure: emptyStructure },
     { ...payload, context: 'unknown' },
-    { ...payload, entries: [{ identity: 'a', nature: 'normative', content: ' ' }] },
-    { ...payload, entries: [{ identity: '../a', nature: 'normative', content: '内容' }] },
+    { ...payload, entries: [{ identity: 'a', nature: 'normative', content: '内容' }] },
+    { ...payload, entries: [{ ...payload.entries[0], decision: 'unknown' }] },
+    { ...payload, entries: [{ identity: 'a', nature: 'normative', decision: 'accepted' as const, content: ' ' }] },
+    { ...payload, entries: [{ identity: '../a', nature: 'normative', decision: 'accepted' as const, content: '内容' }] },
     { ...payload, entries: [payload.entries[0], payload.entries[0]] },
     { ...payload, entries: [{ ...payload.entries[0], operation: 'REMOVED' }] },
     { ...payload, relatedIdentities: ['root', 'root'] },
@@ -68,6 +70,7 @@ describe('已确认设计记录', () => {
     for (const value of [
       { elementKinds: [], relationshipKinds: [], elements: [], relationships: [] },
       { ...payload, schemaVersion: 1 },
+      { ...payload, schemaVersion: 3 },
       { schemaVersion: 2, context: 'build', relatedIdentities: [], entries: payload.entries },
     ]) {
       expect(() => normalizeRecordPayload(value)).toThrow(expect.objectContaining({ code: 'UNSUPPORTED_RECORD_VERSION' }));

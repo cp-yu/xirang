@@ -1,3 +1,8 @@
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { createRecord, updateRecord } from '../../src/core/record/workspace.js';
+import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -50,6 +55,47 @@ describe('Record JSON envelope', () => {
       diagnostics: [],
       error: { code: 'COMMAND_ARGUMENT_ERROR' },
     });
+  });
+
+  it('选择读取只返回所选完整条目及整记录版本，未知条目拒绝且读取不写入', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-record-select-'));
+    const previousCwd = process.cwd();
+    const previousExitCode = process.exitCode;
+    const output = vi.spyOn(console, 'log').mockImplementation(() => {});
+    try {
+      const context = await readRecordSemanticContext(root, 'build');
+      const entries = ['A', 'B', 'C'].map((identity, index) => ({
+        identity, nature: 'normative' as const,
+        decision: (['accepted', 'excluded', 'pending'] as const)[index], content: `${identity} 第一行\n第二行`,
+      }));
+      const record = await createRecord(root, 'selection', { schemaVersion: 4, context: 'build', entries }, context);
+      const id = record.document.metadata.explorationId;
+      process.chdir(root);
+      const show = async (...selectors: string[]) => {
+        const program = new Command();
+        registerRecordCommand(program);
+        await program.parseAsync(['record', 'show', id, ...selectors, '--json'], { from: 'user' });
+        return JSON.parse(output.mock.calls.at(-1)![0]);
+      };
+      const selected = await show('--entry', 'A', '--entry', 'C');
+      expect(selected).toMatchObject({ status: 'ok', result: {
+        explorationId: id, sourceVersion: record.sourceVersion, entries: [entries[0], entries[2]],
+      } });
+      expect(Object.keys(selected.result).sort()).toEqual(['entries', 'explorationId', 'path', 'slug', 'sourceVersion']);
+      expect(await show('--entry', 'missing')).toMatchObject({ status: 'error', error: { code: 'RECORD_ENTRY_NOT_FOUND' } });
+      expect((await show()).result).toEqual({ path: record.path, sourceVersion: record.sourceVersion, document: record.document });
+      expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
+      const updated = await updateRecord(root, id, { entries: { upsert: [{ ...entries[1], content: 'B changed' }] } }, record.sourceVersion, context);
+      expect((await show('--entry', 'A')).result).toMatchObject({ entries: [entries[0]], sourceVersion: updated.record.sourceVersion });
+      await expect(updateRecord(root, id, { entries: { remove: ['A'] } }, selected.result.sourceVersion, context))
+        .rejects.toMatchObject({ code: 'SOURCE_VERSION_STALE' });
+      expect(await fs.readFile(record.absolutePath)).toEqual(updated.record.bytes);
+    } finally {
+      output.mockRestore();
+      process.chdir(previousCwd);
+      process.exitCode = previousExitCode;
+      await fs.rm(root, { recursive: true, force: true });
+    }
   });
 
   it('requires stable diagnostic severity values', () => {

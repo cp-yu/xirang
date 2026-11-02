@@ -11,7 +11,7 @@ definition: Authoring Conventions 定义契约与变更写作规范：Section �
 
 ### Section: Behavior-First Specification Boundary
 
-Element Contracts SHALL 表达其 owner Element 在对应 abstraction level 的可验证 intent、guarantees、constraints、Sections 与 Acceptance Cases。Contract SHALL 避免实现、refactor 与 process detail；parent Contract MUST NOT 复制 child contracts，跨 element collaboration SHALL 由 Semantic Relationships 表达。
+Element Contracts SHALL 表达其 owner Element 在对应 abstraction level 的可验证 intent、guarantees、constraints、Sections 与 Acceptance Cases。Contract SHALL 避免实现、refactor 与 process detail；parent Contract MUST NOT 逐条复制 child contracts，但 SHALL 在自身抽象层级独立表达完整承诺，不为去重遗漏父级语义，跨 element collaboration SHALL 由 Semantic Relationships 表达。
 
 - **Capability-like contract 表达行为**
   - element kind 的 contract schema 定义 observable behavior
@@ -38,6 +38,7 @@ Element Contracts SHALL 表达其 owner Element 在对应 abstraction level 的�
   - SHALL 拆分为独立 Sections
 
 ### Section: Progressive Rigor
+
 息壤 conventions SHALL 默认保持轻量，只在风险或协调复杂度要求时按比例提升严谨度。
 
 - **Routine change specification**
@@ -125,7 +126,9 @@ Change `elements/` 分区的 delta 单元 SHALL：
 - 以 normalized header 匹配 Section identity
 - ADDED 与 MODIFIED 的 Section 携带完整目标内容
 - 每个 Section 的修改语明确
+
 ### Section: semantic-model instruction 区分结构 token 和填充 prose
+
 Semantic-model artifact instructions SHALL 明确 parse-sensitive 结构 token 保持 canonical，agent 填充的新写或改写 prose 跟随 `proseLanguage`。
 
 - **specs instruction 标注 Section 与 Acceptance Case 标题语言**
@@ -138,6 +141,7 @@ Semantic-model artifact instructions SHALL 明确 parse-sensitive 结构 token �
   - agent 创建 `tasks.md`
   - instructions SHALL 指出 `### Task N:`、`Goal`、`Files`、`Sections`、`Checks`、`Verifies:`、`Command:`、`Evidence:` 与 `Expect:` 等结构标签保持 canonical
   - task titles、check names、Sections bullet prose、`Evidence:` 与 `Expect:` descriptions SHALL 跟随 `proseLanguage`
+
 ### Section: Proposal 格式
 
 Proposal SHALL 显式记录全部变化，并提供清晰的 from/to 对比。
@@ -160,6 +164,7 @@ Proposal SHALL 显式记录全部变化，并提供清晰的 from/to 对比。
   - CLI、JSON 与 Web SHALL 使用一致的 identities、operations、counts 与 diagnostics
 
 ### Section: Verb–Noun CLI Command Structure
+
 Xirang CLI SHALL 优先使用动作明确的顶层 commands，但 MAY 为具有内聚 lifecycle 的 durable resource 提供稳定 noun namespace。
 
 - **Setup 使用动词 command**
@@ -176,3 +181,15 @@ Xirang CLI SHALL 优先使用动作明确的顶层 commands，但 MAY 为具有�
   - 用户请求退役命令
   - CLI SHALL 报告 command 不存在
   - SHALL NOT 自动转发到其他命令
+
+### Section: 精简 Contract 表达
+
+Contract SHALL 只写宿主 Element 在自身层级的职责、保证、约束与行为。Scope 写本 Element 的职责边界，Non-goals 只澄清必要职责排除，不罗列所有不负责的事情；整个 Change 范围属于 proposal，实现取舍与影响设计理解的理由属于 design。
+
+- pi-native-markdown-preview 的“自研 HTTP 预览服务”是实现方案排除，应放 design.md，放入该 Element Contract 的 Scope and Non-goals 属于错误路由。
+
+SHALL 直接写条件、行为和结果，删除不增加含义的解释。表达对照：“系统 MUST 对提交的来源版本进行严格校验，以确保更新始终基于最新记录，避免过期操作对现有内容造成覆盖。”可精简为“来源版本过期时，MUST 拒绝更新，记录保持不变。”
+
+同层同一规则 SHALL 集中表达，其他位置补充不同信息：Scope 不复述完整管线，Business Logic 讲机制，异常部分补异常条件与结果，验收用具体输入和结果验证，不换措辞重复正文。父子 Contract 在不同抽象层级的必要覆盖保持完整，不为去重使父级依赖 children 才能理解承诺。
+
+已有表达准确时 SHALL 尽量沿用，只改受影响行为，不顺带润色整段；用户已确认且清楚的表达不为正式文档化重新包装，条件、数值、例外与时序完整保留。

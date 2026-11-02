@@ -29,9 +29,11 @@ Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary，以完
 
 ### Section: 查缺补漏与决策确认
 
-Propose MAY 将已确认机制展开为完整正文、图示、验收案例及任务和验证安排，并修正遗漏、重复、表达或推导错误。合理推导的细节与配套保证，只要不改变已确认承诺、不超出既定范围与方案，且不实质改变业务结果、用户义务或架构权衡，MAY 无需逐项确认而直接编写，在完成时披露其依据与制品位置；不要求这些细节能够唯一推导。编写时补出的分支结果、默认值、错误结果与限制条件 SHALL 对照已确认对话与设计，包括“否则”等兜底分支。改变已确认承诺、扩大范围或需要裁决重大业务及架构权衡时，Propose SHALL 说明缺口、选项及推荐理由，一次询问一个问题并等待确认后再写成确定内容；此类重大决策不能仅以完成时告知代替事先确认。
+Propose SHALL 思考并与用户交互，组织实际 Change 草稿，提出想法并讨论成文时发现的问题。MAY 自主处理既定范围和方案内的细枝末节、案例组织与表达或推导修正；不得以合理补充为名自主大量扩写或替用户形成实质设计。补出的分支、默认值、错误结果及限制 SHALL 对照确认来源，不能静默改变承诺。
 
-孤立缺口 MAY 在 Propose 内确认；大幅重做设计或修订已持久化记录时 SHALL 返回 Explore，并遵循已有记录授权与交接协议。直接 Propose、要求不追问或 override 就绪建议不构成缺失决策的答案；无法获得所需确认时 SHALL 报告阻碍。
+改变已确认承诺、扩大范围或涉及重大业务及架构权衡时，先说明缺口、选项与推荐理由，一次一问等待确认。小范围内容或方案调整可在 Propose 内讨论确认并继续，不因任何设计讨论或记录修订都切回 Explore。需要设计实验重新判断可行性、重选方向或大幅重做设计时，SHALL 返回 Explore 完成实验与设计调整，再继续 Propose。
+
+用户说“细枝末节的内容点的话，我觉得可以放权”时，Agent 可处理局部细节，但不能自行写很多实质内容；允许交互不等于无需确认。直接要求 Propose、不追问或 override 就绪建议都不提供缺失决策，无法确认时报告阻碍。
 
 ### Section: 编写完整 Semantic Delta
 
@@ -53,12 +55,9 @@ Propose SHALL 以 Change Plan 解释意图与实现路径。
 
 ### Section: 完成 Formation 审查与确认
 
-Propose SHALL 在 Change Formation 内完成必要审查与确认，对照已确认来源检查完整机制与制品一致性，以适用的边界或竞争序列检验规范承诺，不能仅依赖制品之间一致或 CLI 通过。新确认的决策与推导补充的可观察保证 SHALL 贯穿相关 Delta 与 Plan；推导补充不回写为来源记录中的用户确认。
+Propose SHALL 根据复杂度安排用户审阅：简单变更先写完整草稿，再集中呈现具体差异及待决问题；复杂变更围绕一项机制或一组相关 Elements 分段编写、审阅，确认后继续，不机械地逐个 Element 请求确认。
 
-- **Change 仍有未决内容**
-
-  - 目标语义或实现路径尚未确认
-  - Propose 不得完成
+Formation 内 SHALL 对照确认来源检查完整机制、制品一致性和适用边界/竞争序列，不以制品互相一致或 CLI 通过替代语义判断。新确认的决策及允许自主处理的可观察细节 SHALL 贯穿 Delta 与 Plan；推导内容不得写回为用户确认。影响当前目标的未决问题阻塞完成。
 
 ### Section: 完成时披露文档化补充
 
@@ -109,69 +108,21 @@ Propose SHALL 为每个 ADDED 或 MODIFIED Element Declaration 编写完整目�
 
 ### Section: 处理已确认设计记录
 
-Propose SHALL 在入口读取共享 Design Record reference 并通过 `xirang record` 主动发现记录，不以 Summary 是否提及记录为前提。SHALL 完整读取可用记录并检查来源版本、上下文及与 Summary 的一致性，自编写开始将其作为确认依据。SHALL 按 Design Record 的写作规则把 normative 条目编译为完整 Semantic Delta：用户确认的例子写成 Acceptance Case 或对应 Section 的具体情形，数值、时序与例外写进宿主 Contract 而不泛化；记录结构部分的对象编成对应 Delta 条目，或在正式模型已一致时作为 no-op。说明性材料按性质进入 Plan 或 provenance。精简记录不等于完整结构目标。Propose SHALL NOT 创建、更新、重命名或丢弃记录；需要修订记录时退回 Explore。无记录时，Propose SHALL 要求 Design Summary 或当前输入声明记录决策——用户明确授予的豁免，或本次无 normative 内容的声明——SHALL NOT 将未声明的缺失当作已覆盖的默认路径，SHALL NOT 将其视为隐式豁免；两者皆未声明时 SHALL 停止 Formation 并退回 Explore 取得该决策。
+Propose SHALL 在入口读取共享 Design Record reference，通过 xirang record 主动发现相关记录，不以 Summary 是否提及为前提。开始编写时完整读取最新记录，核对 sourceVersion、上下文与 Summary；收尾覆盖验证时再完整读取最新记录，不依赖早前长对话记忆。编写相关部分确需核对时 MAY 按条目选择读取；不要求每段或每次调整重读全文。
 
-- **Propose 接收精简记录**
+Propose 与 Explore 共用记录。MAY 自主写入和维护 pending 问题、假设、建议；accepted、excluded 及既有确认的实质修改 SHALL 获用户允许，再经 CLI 局部更新，不将自行推导写成用户确认。只编译已采纳、适用的规范内容，保留原样条件、数值、时序、例外与具体例子；结构部分编成匹配 Delta 或确认 no-op，不按实现关系重新派生。记录非完整结构目标，说明材料按性质进入 Plan 或 provenance。
 
-  - 记录只覆盖部分设计而 Summary 已确认
-  - 按已确认内容编译 Delta，不把精简记录当作完整结构目标
-
-- **确认的例子写成验收情形**
-
-  - 记录条目含“当前画像为 A、C 时，事件 ABC、ACD 可以入选；事件 AB 不行”
-  - Delta 中出现使用这些具体标签与结果的 Acceptance Case，而非概括性描述
-
-- **结构对象编成 Delta**
-
-  - 记录结构部分确认 Element D 的 parent 为 X
-  - Delta 中 D 的 Declaration 以 X 为 parent，不按实现关系改写
-
-- **无记录且已声明豁免**
-
-  - Design Summary 明确声明用户已授予豁免
-  - 按当前输入照常形成 Change，不建立空记录
-
-- **无记录且未声明任何决策**
-
-  - 来源既无记录也未声明豁免或无 normative 内容
-  - 停止 Formation 并退回 Explore 取得记录决策
-  - 不将其当作隐式豁免，也不以默认覆盖继续编译
+无记录时 SHALL 核对用户明确豁免或本次无 normative 内容声明；未声明不得当作隐式豁免或默认已覆盖，先取得记录决策，不建立空记录。记录维护本身不要求返回 Explore；方案需要重新实验或方向重探时返回 Explore。
 
 ### Section: 验证确认内容到目标语义的覆盖
 
-存在记录时 Propose SHALL 对记录的规范性条目逐条核对落位，将每条标记为已落位于 Declaration、Contract、Relationship、Metamodel 或 Authored View 目标，或报告为未覆盖并说明理由；未标记的条目 SHALL 计为未覆盖并阻塞 ready-for-apply。每条核对 SHALL 给出目标位置及保留条件、例外和时序的简明语义判断，不能只列位置或复述原文。SHALL 明确说明已核对条目数与未覆盖条目身份；来源为豁免或无 normative 内容时 SHALL 显式声明该事实，不得以沉默表示核对通过。已满足内容可确认 no-op，说明材料不强造规范义务。CLI validation、结构相等或文本引用存在 SHALL NOT 替代此语义检查。缺少语义时补充适当 Contract，意图未决时请求用户裁决。
+Propose 收尾 SHALL 完整读取最新记录，按内容性质、决策状态及当前 Change 适用性执行共享覆盖检查。已采纳且需落实的规范内容逐项保留条件、例外、数值、时序及正反例，并给出具体位置与当前位置摘录；无落位或摘录只含泛化规则仍算未覆盖。既有语义满足可确认 no-op，不制造 Delta。
 
-- **记录细节不能被共同遗漏**
-
-  - 记录含多条规范条目且其中一条未落入任何目标
-  - 该条目标为未覆盖并阻塞 ready-for-apply
-  - 说明未覆盖身份，补足语义或请求裁决
-
-- **Authored View 条目有合法落位**
-
-  - 记录条目描述一个 Authored View 的目标状态
-  - 标记其落位于 `views/<view identity>.md`
-  - 不因落位清单遗漏 View 而阻塞该条目
-
-- **说明材料保持非规范性质**
-
-  - 条目属于理由、备选或实施计划
-  - 不强造规范义务，按性质进入 Plan 或 provenance
-
-- **已经满足的语义可无操作**
-
-  - 某条规范确认在当前语义中已完整表达
-  - 确认其 no-op 并记录该判断，不重复声明
-
-- **无条目可核对时显式声明**
-
-  - 来源为已授权豁免或本次无 normative 内容
-  - 显式声明没有条目需要核对
-  - 不将无条目等同于核对通过
+影响当前 Change 的 pending 问题须解决，不能忽略后宣布就绪；不影响当前目标时记录理由。excluded 仅保留必要理由，informative 进入 Plan 或来源历史，不强写为 Contract 承诺。输出简明语义判断与未覆盖身份，不以位置存在或 CLI 通过证明语义完整；缺义务先补 Contract，缺决策先询问用户。豁免或无 normative 内容时显式声明无条目需覆盖。
 
 ### Section: 交接已确认设计来源
 
-存在记录时，完整 Change 通过确定性 validation 后，Propose SHALL 对记录每条 normative 条目按原子细节执行覆盖检查，并通过 `xirang record coverage` 记录结果；CLI 拒绝时 SHALL 先把缺失细节补进目标 Contract 或 Delta，再重新检查并记录，不得以笼统描述代替逐项结果。覆盖结果有效后 SHALL 通过 `xirang record consume` 向该 Change 交接；consume 因覆盖过期、结构不一致或其他前置失败而拒绝时，保留来源且不声明 Formation 完成。检查后若再修改 Delta，SHALL 重新检查并记录。豁免或无记录时 SHALL 跳过覆盖记录与消费，同时保留已声明的记录决策，不建立空记录。来源快照与覆盖结果不参与 Expected Semantic Model。
+存在记录时，完整 Change 通过确定性 validation 后，Propose SHALL 按共享规则区分性质、决策状态与适用性，对需落实的已采纳规范条目执行原子细节覆盖，并检查 pending 问题对就绪的影响，并通过 `xirang record coverage` 记录结果；CLI 拒绝时 SHALL 先把缺失细节补进目标 Contract 或 Delta，再重新检查并记录，不得以笼统描述代替逐项结果。覆盖结果有效后 SHALL 通过 `xirang record consume` 向该 Change 交接；consume 因覆盖过期、结构不一致或其他前置失败而拒绝时，保留来源且不声明 Formation 完成。检查后若再修改 Delta，SHALL 重新检查并记录。豁免或无记录时 SHALL 跳过覆盖记录与消费，同时保留已声明的记录决策，不建立空记录。来源快照与覆盖结果不参与 Expected Semantic Model。
 
 - **交接成功才完成 Formation**
 

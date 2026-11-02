@@ -7,6 +7,7 @@
 import { getOptimizerSubagentTemplate } from '../templates/workflows/optimizer.js';
 import { getReviewerSubagentTemplate } from '../templates/workflows/reviewer.js';
 import type { SkillReferenceFile } from '../templates/types.js';
+import { getExperimenterSubagentTemplate } from '../templates/workflows/experimenter.js';
 
 export type SubagentArtifactFormat = 'markdown' | 'toml';
 
@@ -25,6 +26,7 @@ export interface SubagentTemplate {
 export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
   getReviewerSubagentTemplate(),
   getOptimizerSubagentTemplate(),
+  getExperimenterSubagentTemplate(),
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
@@ -75,6 +77,8 @@ function toClaudeTools(template: SubagentTemplate): string {
     find: 'Glob',
     glob: 'Glob',
     bash: 'Bash',
+    write: 'Write',
+    edit: 'Edit',
   };
 
   return toolList(template)
@@ -126,7 +130,7 @@ function renderOpenCodeMarkdown(template: SubagentTemplate): string {
         ? [`model: ${escapeYamlString(template.model)}`]
         : []),
       'permission:',
-      '  edit: deny',
+      `  edit: ${toolList(template).some(tool => tool === 'write' || tool === 'edit') ? 'allow' : 'deny'}`,
       '  bash: ask',
       '',
     ].join('\n'),

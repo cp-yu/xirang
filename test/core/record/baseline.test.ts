@@ -27,8 +27,8 @@ function model(): SemanticModel {
 }
 
 const payload: DesignRecordPayload = {
-  schemaVersion: 3, context: 'change', relatedIdentities: ['a'],
-  entries: [{ identity: 'limit', nature: 'normative', content: '最多 5 本，闭馆日顺延。' }],
+  schemaVersion: 4, context: 'change', relatedIdentities: ['a'],
+  entries: [{ identity: 'limit', nature: 'normative', decision: 'accepted' as const, content: '最多 5 本，闭馆日顺延。' }],
   structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
 };
 

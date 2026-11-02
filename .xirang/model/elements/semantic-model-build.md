@@ -336,30 +336,11 @@ Semantic Model Build SHALL 在 Modeling Decision Gate 与首次 Candidate hierar
 
 ### Section: 复用确认记录形成 Candidate
 
-Semantic Model Build SHALL 使用统一 Design Record 随用户确认记录已确认设计：用户的设计确认即授权记录，写入后只报告变更，实例与 Change 形成记录隔离，并遵循相同的条目写入标准与结构部分。存在记录时 SHALL 重载、调和冲突，按 Design Record 的写作规则编写 Candidate，并对记录每条 normative 条目按原子细节执行覆盖检查：每个细节给出其在 Candidate 中的位置（Declaration、Section、Acceptance Case、Relationship、Metamodel 或 Authored View），结果经 `xirang record coverage --candidate` 记录；任一条目缺结果或细节无位置 SHALL 阻塞 source handoff。用户确认的例子写成验收内容，条件、数值、例外、时序进入适当 Contract 而不泛化；记录结构部分由 CLI 与 Candidate 逐字段比对；说明材料进入构建依据或 provenance。无记录时 SHALL 要求授权范围在 `build.md` 上携带记录决策——用户明确授予的豁免或本次无 normative 内容的声明——未声明即阻塞 promotion readiness；SHALL NOT 自行建立空记录。本流程 SHALL 保持 Candidate review / digest / promotion，不增加 Design Summary 门禁。
+Semantic Model Build SHALL 使用统一中间设计记录格式及共享写作、确认权和覆盖规则，实例与 Change 记录隔离。用户确认即授权记录，只报告局部变更；记录容纳当前设计及显式决策状态，不将旧格式或 pending 当作确认。
 
-- **记录驱动完整 Candidate**
+存在记录时重载、调和冲突，仅将已采纳且适用的规范内容编写为 Candidate；拆出条件、数值、例外、时序与原样正反例的原子细节，给出 Candidate 中的位置与摘录，经 xirang record coverage --candidate 记录。影响目标的 pending 问题先解决，不适用项说明理由；excluded 与 informative 保留必要依据，不强造义务。结构部分与 Candidate 逐字段比对。用户例子写为具体验收内容，不能泛化。
 
-  - 存在记录且其 normative 条目的每个原子细节都在 Candidate 中有位置
-  - 按记录形成完整 Candidate
-  - 覆盖结果经 CLI 记录，结构部分与 Candidate 逐字段一致
-
-- **无记录但已声明决策**
-
-  - 授权范围在 `build.md` 上声明豁免或本次无 normative 内容
-  - 沿用既有 Build 门禁继续，不建立空记录
-  - promotion readiness 以该声明为前提
-
-- **无记录且未声明决策**
-
-  - 授权范围既无记录也未在 `build.md` 上声明记录决策
-  - 阻塞 promotion readiness 并向用户请求该决策
-  - 不将未声明当作默认覆盖
-
-- **规范细节遗漏阻止确认**
-
-  - 记录某条目中用户确认的例子未落入任何 Candidate 目标
-  - CLI 拒绝记录覆盖结果并阻塞 source handoff
+无记录时 build.md 的授权范围须声明用户豁免或本次无 normative 内容，未声明阻塞 promotion readiness，不创建空记录。沿用 Candidate review、digest、promotion 与 history，不增加 Design Summary 门禁；覆盖及结构门禁通过后才允许来源交接。
 
 ### Section: 交接记录后确认精确 Candidate
 

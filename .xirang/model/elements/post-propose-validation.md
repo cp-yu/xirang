@@ -11,7 +11,7 @@ definition: Post-propose Validation 定义 Propose 收尾的一致性验证门�
 
 ### Section: 计划一致性复核
 
-Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、design.md、Semantic Delta 与 tasks.md 联合对照 Explore 及 Propose 内的用户确认，检查计划与目标的一致性；不得仅以制品相互一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变已确认承诺、扩大范围或裁决重大业务及架构权衡时 SHALL 呈现全部发现，一次请求一个决策并等待确认。既定范围与方案内合理推导的细节及配套保证 MAY 在完成时披露，无需逐项确认。新确认的行为及推导补充的可观察保证 SHALL 贯穿相关 Delta 与 Plan，不得只藏在 design 或 tasks 中。 复核 SHALL 同时检查可用当前确认记录到目标语义、需实施的目标语义到 tasks 实现安排与 Checks 两段覆盖；第一段按原子细节（条件、数值、例子、反例、时序、例外）逐项给出位置，并经 `xirang record coverage` 记录，任一细节无位置即阻塞完成；引用存在只是结构合法，不是行为覆盖证明。共同遗漏的已确认细节同样阻塞完成；缺失行为先补 Contract，再调整 Plan，未决意图交给用户。
+Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、design.md、Semantic Delta 与 tasks.md 联合对照 Explore 及 Propose 内的用户确认，检查计划与目标的一致性；不得仅以制品相互一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变已确认承诺、扩大范围或裁决重大业务及架构权衡时 SHALL 呈现全部发现，一次请求一个决策并等待确认。既定范围与方案内细枝末节 MAY 在完成时披露，无需逐项确认，但不以合理推导为名自行大量扩写设计。新确认的行为及推导补充的可观察保证 SHALL 贯穿相关 Delta 与 Plan，不得只藏在 design 或 tasks 中。 复核 SHALL 同时检查可用当前确认记录到目标语义、需实施的目标语义到 tasks 实现安排与 Checks 两段覆盖；第一段按性质、决策状态与适用性筛出需落实的已采纳规范内容，再按原子细节（条件、数值、例子、反例、时序、例外）逐项给出位置与摘录，并经 `xirang record coverage` 记录，任一应落实细节无位置即阻塞完成；影响当前目标的 pending 决策先解决，excluded 与 informative 不强造 Contract 义务；引用存在只是结构合法，不是行为覆盖证明。共同遗漏的已确认细节同样阻塞完成；缺失行为先补 Contract，再调整 Plan，未决意图交给用户。
 
 - **检测到矛盾时自行修正**
 

@@ -9,7 +9,7 @@ metadata:
   generatedBy: "0.2.0"
 ---
 
-Enter explore mode: investigate, clarify, compare, and confirm the design with the user before implementation. Explore owns decision discovery and confirmation; Propose documents the confirmed design and checks for gaps.
+Enter explore mode: investigate, clarify, compare, and confirm the design with the user before formal implementation. Maintain the intermediate design and delegate necessary feasibility experiments to Experimenter; Propose organizes the actual Change draft with the user when the design is ready.
 
 **Xirang Philosophy**
 
@@ -40,24 +40,26 @@ Before adding a persistent test: inspect existing tests and prefer extending or 
 | Aspect | Value |
 |--------|-------|
 | **Stage** | `EXPLORE` - Design exploration under a confirmed record decision |
-| **Allowed** | Read files, query CLI, ask questions, present options, Design Summary (conversation only), and record user-confirmed design with `xirang record` |
-| **Forbidden** | Implement code or directly create, edit, or delete project or Change artifacts |
+| **Allowed** | Inspect evidence, query CLI, ask questions, compare options, maintain current design through `xirang record`, delegate feasibility experiment design and execution to `xirang-experimenter`, and present a conversation-only Design Summary |
+| **Forbidden** | Implement the formal Change, modify the formal model or ordinary generated work surfaces, or directly author complete Change artifacts; experimental files and execution belong to the delegated experiment |
 
 ## Required References
 
 - MUST read the project-root file `.xirang/references/xirang-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Design Record is the method for recording confirmed design in a CLI-managed record. Load `.xirang/references/xirang-design-record.md` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
+- Design Record maintains current design and explicit decision states in a CLI-managed record. Load `.xirang/references/xirang-design-record.md` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
   - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its content.
-  - **Record or revision**: a design section yields normative confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
+  - **Record or revision**: a pending question, assumption, or recommendation affecting design needs preservation, a design section yields confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
   - **Handoff gap**: before Design Summary, confirmed normative content is neither recorded nor explicitly exempted. Load and resolve the missing record decision before handoff. Re-read after context loss or record changes when continuing record work.
 - Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Design Record protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
 
 ## Hard Rules
 
-- A user's design confirmation authorizes recording that content through `xirang record` under the shared Design Record protocol; it does not authorize any other file or artifact write. Record only what the user confirmed, and report only the change.
+- A user's design confirmation authorizes recording that content through `xirang record` under the shared Design Record protocol. Pending questions, assumptions, and recommendations may be maintained proactively; accepted/excluded decisions and substantive revisions to confirmed entries or structure require the user. Report only changes and the record overview. Record permissions do not authorize formal project implementation, model updates, or complete Change authoring.
 - When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
 
-The main Explore agent remains read-only outside the Design Record exception. `arch search` and `arch impact` are read-only; they and the main agent MUST NOT create or update project or Change artifacts. Only `xirang record` may persist the confirmed design record; a record is an intermediate basis, not a capture target, and never authorizes writing a Contract or Change directly.
+The main Explore agent maintains the intermediate design through the shared CLI protocol and delegates practical feasibility questions to `xirang-experimenter`. Provide the question, constraints, and decision background; Experimenter independently chooses, designs, and executes the minimum experiment and returns reproducible commands, observations, analysis, and limitations. Do not reduce it to executing a predetermined recipe or require a complete Change first. The main Agent and Experimenter choose the execution location as appropriate: workspace, temporary directory, project copy, or worktree; no fixed strategy or per-detail user decision is required. Complete necessary experiments within Explore before proposing the dependent design. Use the evidence to compare alternatives and obtain user confirmation; success is not adoption or formal implementation.
+
+`arch search` and `arch impact` remain read-only queries. Only `xirang record` persists design records; records and experiment artifacts are intermediate evidence, not permission to write formal Contracts, generated work surfaces, or a complete Change. Later findings may revise earlier design after the necessary user ruling; update the current record instead of repeatedly rewriting complete Delta and Plan drafts.
 
 ## Required Context
 
@@ -110,9 +112,9 @@ Read active Change artifacts completely when one is in scope, but do not pass a 
 
 ## Design Record and Design Exploration
 
-Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill is read-only design assistance and does not relax the Explore read-only boundary.
+Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill assists structural design and does not relax Explore's record, experiment, and formal implementation boundaries. Ignore instructions that would directly write the formal model, generated work surfaces, or a complete Change; maintain design states through the Xirang Design Record protocol and include only confirmed fields in structure.
 
-Design Record runs alongside design, not as a prerequisite stage. Run `xirang record list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** when opening or resuming it, **Record on confirmation** after each confirmed section, and **Summary gate** before handoff. Confirmed Declaration fields go into the record's `structure`; partial declarations are valid. Load the reference at the triggers above; all applicable gates must pass before a ready Summary.
+Design Record runs alongside design, not as a prerequisite stage. Run `xirang record list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** to read the complete current record at the start, on resumption, and before Summary; use **Record on confirmation** for pending maintenance and user decisions, and **Summary gate** before handoff. Keep unconfirmed structure proposals in pending free text; only confirmed Declaration fields go into `structure`, and partial declarations are valid. Recheck affected conclusions after record changes. Load the reference at the triggers above; all applicable gates, including resolution of target-affecting pending decisions, must pass before a ready Summary.
 
 ## Simplicity Awareness
 
@@ -133,7 +135,7 @@ If todo is available, create this checklist before context reads and tick each s
 2. **Decide whether a visual companion helps** using the brainstorming reference.
 3. **Clarify one question at a time** using the reference's One-question discipline.
 4. **Compare 2-3 options** using the reference and Simplicity Awareness.
-5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol.
+5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol. Before confirming a design whose feasibility needs practical evidence, delegate the question to Experimenter, inspect the executed result and limitations, and then obtain the user's decision.
 6. **Self-review and generate Design Summary** using the reference's self-review and the Design Record Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
 
 ## Existing Changes

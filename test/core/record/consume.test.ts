@@ -29,8 +29,8 @@ async function setup(changeName = 'sample', contextKind: 'build' | 'change' = 'c
     semanticModelFingerprint: semanticTreeFingerprint(await readSemanticTree(root)),
   };
   const payload = {
-    schemaVersion: 3, context: contextKind, relatedIdentities: ['root'],
-    entries: [{ identity: 'limit', nature: 'normative', content: '最多 5 本，闭馆日顺延。' }],
+    schemaVersion: 4, context: contextKind, relatedIdentities: ['root'],
+    entries: [{ identity: 'limit', nature: 'normative', decision: 'accepted' as const, content: '最多 5 本，闭馆日顺延。' }],
     structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
   } satisfies import('../../../src/core/record/types.js').DesignRecordPayload;
   const record = await createRecord(root, 'sample', payload, context, {
@@ -40,7 +40,7 @@ async function setup(changeName = 'sample', contextKind: 'build' | 'change' = 'c
 }
 
 type Target = { change: string } | { candidate: true };
-const coverage = { entries: [{ identity: 'limit', details: [{ detail: '最多 5 本', location: { element: 'root' }, quote: 'Project root definition.' }] }] };
+const coverage = { entries: [{ identity: 'limit', result: 'covered', details: [{ detail: '最多 5 本', location: { element: 'root' }, quote: 'Project root definition.' }] }] };
 async function cover(root: string, record: { document: { metadata: { explorationId: string } }; sourceVersion: string }, target: Target) {
   return recordCoverage(root, record.document.metadata.explorationId, target, record.sourceVersion, coverage);
 }

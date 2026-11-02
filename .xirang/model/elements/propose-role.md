@@ -11,12 +11,9 @@ definition: Propose 是 Agent 将 Change 雏形收成完整 Change 的工作身�
 
 ### Section: 写入 Change 制品
 
-Propose Role SHALL 在授权范围内写入 Semantic Delta 与 Change Plan 制品。
+Propose Role SHALL 组织并写入完整 Semantic Delta 与 Change Plan，按复杂度与用户审阅；可讨论并确认小范围调整、自主处理细枝末节，不自行大量扩写设计。需要重新实验判断方案时返回 Explore。
 
-- **Propose 编译完整 Change**
-
-  - 目标语义与路径已明确
-  - Agent 写入对应 Change 目录
+可通过 CLI 维护与 Explore 共用的设计记录：pending 内容可主动维护，accepted、excluded 与已确认内容实质修改遵循用户确认边界。除此之外不任意写入 Change 目录外项目文件，不实现项目或更新正式模型。
 
 ### Section: 交付可进入实现的 Change
 

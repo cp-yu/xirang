@@ -4,7 +4,7 @@ identity: explore-brainstorming
 kind: element
 parent: design-exploration
 title: Explore Brainstorming
-definition: Explore Brainstorming 定义 Explore 的只读设计澄清流程：6 步 brainstorming checklist、一次一问的提问纪律、2-3 方案对比、分段设计确认、Design Summary 生成、范围检查与拆解建议、捕获边界路由以及主代理只读边界。
+definition: Explore Brainstorming 定义 Explore 的设计澄清流程：通过项目证据、一次一问、方案比较和分段确认完善中间设计，委托必要的可行性实验并维护设计记录，交付 Design Summary。它不承担完整 Change 成文或正式项目实现。
 ---
 
 ## Specification
@@ -172,51 +172,13 @@ Explore SHALL 在设计确认和机制自查后生成 conversation-only Design S
   - 用户同意拆分并选择先实现某个子系统
   - 系统针对该子系统继续 brainstorming 流程
 
-### Section: Explore 主代理保持只读
-
-Explore main agent SHALL 对项目实现、Formal Semantic Model 以及普通项目或 Change artifacts 保持只读：可检查文件、搜索代码、运行只读 CLI、提问、比较方案并生成只存在于对话中的 Design Summary；SHALL NOT 直接创建、编辑、删除、格式化、重新生成或 patch 项目文件和 artifacts。唯一例外是用户在对话中确认设计内容后，Agent SHALL 调用 CLI-managed Design Record（`xirang record`）记录该部分已确认内容，用户的设计确认即构成记录授权；该 CLI 操作只持久化已确认设计记录，不由 Agent 直接写入文件，也不记录用户未确认的内容。除该例外外，Explore SHALL NOT 创建或更新任何项目或 Change artifacts。当 Explore 需要影响面发现时，main agent SHALL 先使用 `xirang arch search` 浏览 Formal Semantic Model 并选择一个或多个 focus Element identities，再使用 identity-only `xirang arch impact` 获取 refinement、Relationships 与 canonical paths，最后通过 batch `xirang arch query` 只读取判断所需 identities 的完整 Definitions 与 Contracts。
-
-- **Explore 不写入制品**
-
-  - 对话已形成确定的设计方向
-  - main explore agent SHALL 将结果保留在对话状态中
-  - SHALL 生成只存在于对话中的 `Design Summary`
-  - SHALL 在需要生成 artifacts 时指示用户调用 propose workflow
-  - 除用户确认设计后经 CLI-managed Design Record 记录已确认内容外，SHALL NOT 直接创建或更新项目或 Change artifacts
-
-- **Explore 直接获取 semantic impact context**
-
-  - explore 需要定位新概念或确认 proposal readiness
-  - main explore agent SHALL 使用 `xirang arch search` 定位候选 focus Element identities
-  - SHALL 使用 `xirang arch impact` 读取 Formal Semantic Model 的相关 identities、refinement context、Relationships 与 canonical paths
-  - SHALL 使用 batch `xirang arch query --contract --json` 读取所选 identities 的完整语义
-  - SHALL 使用独立代码工具获取 implementation evidence，并自行判断影响，不得把 Relationship adjacency 自动解释为修改结论
-
-- **Explore 不从 identity-only impact 猜测语义**
-
-  - impact 返回相关 identity 但 Agent 不清楚其 Definition 或 Contract
-  - Agent SHALL 重新 query 该 identity
-  - SHALL NOT 根据 title、identity、残余上下文或实现代码补全缺失语义
-
-- **Explore skill 声明只读阶段边界表格**
-
-  - 生成 xirang-explore skill 内容
-  - 入口明确 EXPLORE 对项目实现、正式模型与普通制品保持只读，禁止直接文件写入
-  - 明确唯一例外是用户确认的设计内容通过 CLI-managed Design Record 记录，设计确认只授权记录，不推导为其他文件或制品的写入权限，也不以排版顺序代替权限约束
-
 ### Section: 设计确认不是写入授权
 
-Explore SHALL 将用户选择方案、确认设计段落等表达仅视为设计方向确认。
-
-- **用户确认方案**
-
-  - explore 呈现多个设计方案且用户选择一个方案或确认该段设计
-  - main explore agent SHALL 基于该设计方向继续 explore flow
-  - SHALL NOT 将该确认视为修改文件或制品的授权
+用户选择方案或确认设计段落 SHALL 授权记录相应决定，并据此继续 Explore。该确认不自动授权落实正式项目、修改正式模型或编写完整 Change。pending 信息可按共享协议主动保存；实验委托与执行遵循实验角色职责，不因用户尚未采纳方案而禁止实践求证。
 
 ### Section: Explore 捕获边界保持 Contract 为可观察行为
 
-Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 future capture target：Element Contract 变化进入宿主 Element 的 Contract，graph facts 进入 Semantic Delta，implementation decisions 进入 scaffolding；Explore 本身保持只读。 用户确认的内容经 CLI 进入统一确认记录；这只是中间依据，不改变最终 capture target，也不授权直接写 Contract 或 Change。
+Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 future capture target：Element Contract 变化进入宿主 Element 的 Contract，graph facts 进入 Semantic Delta，implementation decisions 进入 scaffolding；Explore 不直接编写这些最终制品。当前设计经 CLI 进入中间设计记录，显式区分 pending、accepted、excluded；这只是中间依据，不改变最终 capture target，也不授权直接写 Contract 或 Change。
 
 - **Contract decision 进入宿主 Contract**
 
@@ -258,7 +220,7 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 
   - Explore 发现 scope、work、verification 或 graph intent change
   - SHALL 分别路由到 proposal、tasks 或 `Semantic Delta`
-  - Explore SHALL 保持只读
+  - Explore SHALL 不直接写入这些最终制品
 
 - **可观察行为进入 Contract**
 
@@ -274,7 +236,7 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 
 ### Section: Explore 通过 referenceFiles 暴露行为引导
 
-`xirang-explore` SHALL 通过 `referenceFiles` 暴露行为引导手册，作为主 instructions 的权威行为展开版，并物化到 `.xirang/references/xirang-explore-supperpowers-style.md`。主 SKILL.md instructions SHALL 保留入口、只读边界、Required Context、Semantic Impact 与唯一 Brainstorming Checklist，并通过 Required References 指向该物化 reference；reference 内容 SHALL 将写 design doc、commit 等交接语义映射到 conversation-only Design Summary 与 propose workflow，不得暗示 Explore 可直接创建或更新 artifacts。
+`xirang-explore` SHALL 通过 `referenceFiles` 暴露行为引导手册，作为主 instructions 的权威行为展开版，并物化到 `.xirang/references/xirang-explore-supperpowers-style.md`。主 SKILL.md instructions SHALL 保留入口、记录维护、实验与正式实现边界、Required Context、Semantic Impact 与唯一 Brainstorming Checklist，并通过 Required References 指向该物化 reference；reference 内容 SHALL 将写 design doc、commit 等交接语义映射到 conversation-only Design Summary 与 propose workflow，不得暗示 Explore 可直接编写完整 Change 或落实正式项目，明确 CLI 记录维护与委托实验的例外。
 
 - **explore 声明行为 reference**
 
@@ -286,7 +248,7 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 - **reference 保留设计前置纪律**
 
   - agent 读取该 reference
-  - reference SHALL 明确在设计确认完成前不得实现
+  - reference SHALL 明确在设计确认完成前不得落实正式实现，必要实验可在 Explore 执行
   - SHALL 明确简单变更仍需要设计确认，最低集合为 problem、impact scope、approach 与 verification method
   - SHALL 明确用户审查通过 Design Summary 后才能路由到 propose workflow
 
@@ -306,7 +268,7 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 - **主 instructions 保持精简并指向 reference**
 
   - 生成 explore 主 SKILL.md instructions
-  - 主 instructions SHALL 保留只读边界、Semantic Impact、Brainstorming Checklist
+  - 主 instructions SHALL 保留记录维护、实验与正式实现边界、Semantic Impact、Brainstorming Checklist
   - SHALL 包含指向 `.xirang/references/xirang-explore-supperpowers-style.md` 的 Required References 引用，且 SHALL 使用“必须阅读”级措辞
   - SHALL 将该 reference 声明为 Superpowers 行为引导的权威来源，不在主 instructions 中重新构建该行为内容
   - 主 SKILL.md SHALL 满足 ≤200 行限制
@@ -315,12 +277,12 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 
   - reference 内容涉及 artifact 生成或更新
   - SHALL 使用 `xirang-propose` 逻辑 workflow 名称路由
-  - SHALL NOT 包含暗示 Explore 直接写入 artifact 或进入 implementation planning 的表述
+  - SHALL NOT 暗示 Explore 直接编写完整 Change 或进入正式 implementation planning；记录维护和实验按角色协议执行
 
 - **reference 保留 Superpowers 设计前置纪律**
 
   - agent 读取 `.xirang/references/xirang-explore-supperpowers-style.md`
-  - reference SHALL 明确在设计确认完成前不得实现
+  - reference SHALL 明确在设计确认完成前不得落实正式实现，必要实验可在 Explore 执行
   - SHALL 明确简单变更仍需要设计确认，但只确认适用章节，最低集合为 problem、impact scope、approach 与 verification method
   - SHALL 明确用户审查通过 `Design Summary` 后才能路由到 `xirang-propose`
 
@@ -348,7 +310,7 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
 
 ### Section: 仅在结构设计中应用项目拆分指导
 
-Explore Brainstorming SHALL 在需求涉及新增或重组 Element hierarchy 时消费 normalized `decomposition`，并将其用于结构方案比较与 Design Summary；行为、实现或 Contract-only 讨论 SHALL NOT 因该配置被扩展为结构重组。对 `skill` 的调用仍属于只读设计辅助，SHALL NOT 放宽 Explore workflow stage 边界。
+Explore Brainstorming SHALL 在需求涉及新增或重组 Element hierarchy 时消费 normalized `decomposition`，并将其用于结构方案比较与 Design Summary；行为、实现或 Contract-only 讨论 SHALL NOT 因该配置被扩展为结构重组。对 `skill` 的调用仍属于结构设计辅助，SHALL NOT 放宽 Explore workflow stage 边界。
 
 - **探索结构变化**
 
@@ -364,6 +326,14 @@ Explore Brainstorming SHALL 在需求涉及新增或重组 Element hierarchy 时
 
 - **custom skill 请求写入**
 
-  - decomposition skill 的指令与 Explore 只读边界冲突或要求未经确认持久化
-  - 主 Explore Agent 保持只读并忽略冲突指令
-  - 只有 Xirang-owned Design Record protocol 可在用户确认设计后记录已确认内容
+  - decomposition skill 的指令要求越过 Explore 的记录、实验与正式实现边界
+  - 主 Explore Agent 忽略冲突指令，不直接编写正式模型或完整 Change
+  - 设计状态通过 Xirang-owned Design Record protocol 管理，结构目标仍只纳入用户确认字段
+
+### Section: Explore 主代理维护设计与实验边界
+
+Explore main agent SHALL 可检查证据、运行查询、提问、比较方案、通过 CLI 维护中间设计记录，并委托 Experimenter 设计与执行必要可行性实验。记录遵守 pending 自主维护及用户独占确认权；实验不形成正式项目实现。主 Agent 不直接编写完整 Change，不修改正式模型或普通生成工作面。不得保留阻止实验的统一只读能力限制。
+
+获取影响面时 SHALL 先用 arch search 选择 focus identities，再用 identity-only arch impact 获取 refinement、Relationships 与 canonical paths，最后 batch arch query 读取判断所需的完整 Definitions 与 Contracts。实现证据由代码工具获取，不能从 Relationship adjacency 自动推断必须修改，也不能从 identity、title 或残余上下文猜测未读语义。
+
+生成的 Explore skill SHALL 明确记录维护、实验委托和正式实现之间的权限边界；需要完整 Change 时交 Propose。

@@ -16,7 +16,7 @@ If todo is available, track these stages as a checklist and tick each completed 
 
 Xirang mapping:
 - The original design-document step maps to a conversation-only `Design Summary`.
-- The original commit step is removed. Explore records user-confirmed design only through the Xirang-owned Design Record protocol; it does not directly write files.
+- The original commit step is removed. Explore maintains pending and user-decided design states through the Xirang-owned Design Record protocol and delegates experimental writing and execution to Experimenter; it does not directly author complete Change artifacts.
 - The original implementation-plan handoff maps to `xirang-propose` handoff.
 
 ## Conversation language
@@ -25,9 +25,9 @@ Output language: use the user's main language for prose and non-canonical sectio
 
 ## Hard gate before implementation
 
-Do not implement before design confirmation is complete.
+Do not implement the formal Change before design confirmation is complete. Necessary feasibility experiments may be designed and executed within Explore by Experimenter.
 
-Do not start coding, generate patches, or directly update artifacts during Explore. When the user says "ok", "that works", or chooses an option, it confirms the design direction and authorizes recording that confirmed content through the Design Record protocol; it authorizes no other write.
+Do not author a complete Change or implement the project during Explore. Maintain the intermediate design through the shared Design Record protocol, including pending questions and hypotheses. When the user says "ok", "that works", or chooses an option, record the corresponding decision; that confirmation does not authorize formal model changes, generated work-surface updates, or complete Change authoring. Experimenter may write and run the minimal feasibility experiment without treating its result as user adoption.
 
 Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
 
@@ -41,7 +41,7 @@ Constrain the discussion with project facts first:
 - Read relevant Xirang change, Element Contract, design, and tasks.
 - Inspect relevant implementation files, tests, and git evidence.
 - Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an implementation order.
-- Explicitly identify unknowns; do not substitute general experience for project evidence.
+- Explicitly identify unknowns; do not substitute general experience for project evidence. When feasibility needs practical proof, delegate the question, constraints, and decision background to Experimenter for independent experimental design and actual execution. Use its method, reproducible observations, analysis, and limitations before confirming the dependent design. Keep experimental facts separate from user decisions.
 - Actively identify decisions the user has not yet considered, including applicable failure outcomes, competing events, and timing origins or tolerances. Explain the observable consequences of alternatives, recommend with reasons, and ask one question at a time. A recommendation is not a user decision; do not leave known in-scope choices for Propose to invent.
 
 ## Just-in-time visual companion
@@ -96,9 +96,9 @@ Before generating the `Design Summary`, self-review:
 - Are the testing strategy and risks explained?
 - Does testing strategy include obsolete test handling when architectural changes affect existing tests?
 - Has the Design Record **Summary gate** passed for the confirmed conversation and any current record?
-- Are file writes other than record writes, artifact updates, or subsequent generation actions left for non-explore workflows?
+- Are necessary feasibility experiments complete, with evidence and limits checked? Are target-affecting pending decisions resolved and experimental facts kept distinct from user adoption? Is the current design maintained as an intermediate record, with complete Change authoring and formal implementation left to the appropriate later workflows?
 
-The `Design Summary` must stay in the conversation; do not create or update files. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
+The `Design Summary` must stay in the conversation; do not persist it as a file. CLI record maintenance and delegated experiment files follow their own protocols. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
 
 ## User review gate
 

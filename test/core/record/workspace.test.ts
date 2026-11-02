@@ -25,8 +25,8 @@ async function workspace(): Promise<string> {
 
 function payload(identity = 'a'): DesignRecordPayload {
   return {
-    schemaVersion: 3, context: 'build', relatedIdentities: [],
-    entries: [{ identity, nature: 'normative', content: `${identity} 的确认内容` }],
+    schemaVersion: 4, context: 'build', relatedIdentities: [],
+    entries: [{ identity, nature: 'normative', decision: 'accepted' as const, content: `${identity} 的确认内容` }],
     structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
   };
 }
@@ -45,14 +45,14 @@ describe('record workspace', () => {
     expect((await listRecords(root)).map(item => item.document.metadata.slug)).toEqual(['first']);
 
     const updated = await updateRecord(root, identity, {
-      entries: { upsert: [{ identity: 'b', nature: 'informative', content: 'b 的确认内容' }] },
+      entries: { upsert: [{ identity: 'b', nature: 'informative', decision: 'accepted' as const, content: 'b 的确认内容' }] },
       structure: { upsert: { elements: [{ identity: 'root', parent: null }] } },
     }, created.sourceVersion, context);
-    expect(updated.record.document.payload.entries).toEqual([...created.document.payload.entries, { identity: 'b', nature: 'informative', content: 'b 的确认内容' }]);
+    expect(updated.record.document.payload.entries).toEqual([...created.document.payload.entries, { identity: 'b', nature: 'informative', decision: 'accepted' as const, content: 'b 的确认内容' }]);
     expect(updated.diff.entries).toEqual({ added: [expect.objectContaining({ identity: 'b' })], modified: [], removed: [] });
     expect(updated.diff.structure.added).toEqual([{ ref: { element: 'root' }, after: { identity: 'root', parent: null } }]);
     expect(updated.derived).toEqual([{ ref: { element: 'root' }, status: 'added' }]);
-    expect(updated.summary).toEqual({ entries: 2, normativeEntries: 1, elements: 1, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
+    expect(updated.summary).toEqual({ entries: 2, normativeEntries: 1, decisions: { pending: 0, accepted: 2, excluded: 0 }, elements: 1, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
 
     const renamed = await renameRecord(root, identity, 'renamed');
     expect(renamed.document.metadata.explorationId).toBe(identity);
@@ -69,7 +69,7 @@ describe('record workspace', () => {
   it('rejects stale source versions and invalid structure without changing the record', async () => {
     const root = await workspace();
     const created = await createRecord(root, 'first', payload(), context, generation);
-    const patch = { entries: { upsert: [{ identity: 'b', nature: 'normative' as const, content: 'b' }] } };
+    const patch = { entries: { upsert: [{ identity: 'b', nature: 'normative' as const, decision: 'accepted' as const, content: 'b' }] } };
     await expect(updateRecord(root, identity, patch, 'e'.repeat(64), context)).rejects.toMatchObject({
       code: 'SOURCE_VERSION_STALE', details: { currentSourceVersion: created.sourceVersion },
     });

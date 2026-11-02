@@ -116,10 +116,19 @@ async function runList(projectRoot: string): Promise<RecordEnvelope> {
   ));
 }
 
-async function runShow(projectRoot: string, explorationId: string): Promise<RecordEnvelope> {
-  return envelope('record show', async () => recordOkEnvelope(
-    'record show', publicRecord(await showRecord(projectRoot, explorationId)),
-  ));
+async function runShow(projectRoot: string, explorationId: string, selected?: string[]): Promise<RecordEnvelope> {
+  return envelope('record show', async () => {
+    const record = await showRecord(projectRoot, explorationId);
+    if (!selected?.length) return recordOkEnvelope('record show', publicRecord(record));
+    const entries = [...new Set(selected)].map(identity => {
+      const entry = record.document.payload.entries.find(item => item.identity === identity);
+      if (!entry) throw Object.assign(new Error(`Record entry not found: ${identity}`), { code: 'RECORD_ENTRY_NOT_FOUND' });
+      return entry;
+    });
+    return recordOkEnvelope('record show', {
+      path: record.path, explorationId, slug: record.document.metadata.slug, sourceVersion: record.sourceVersion, entries,
+    });
+  });
 }
 
 async function drift(projectRoot: string, explorationId: string) {
@@ -243,9 +252,11 @@ export function registerRecordCommand(program: Command): void {
       dispatch(() => runCreate(process.cwd(), options.slug, options.from), options.json === true));
   record.command('list').option('--json', 'Output one JSON envelope')
     .action((options: { json?: boolean }) => dispatch(() => runList(process.cwd()), options.json === true));
-  record.command('show <explorationId>').option('--json', 'Output one JSON envelope')
-    .action((explorationId: string, options: { json?: boolean }) =>
-      dispatch(() => runShow(process.cwd(), explorationId), options.json === true));
+  record.command('show <explorationId>')
+    .option('--entry <identity>', 'Read only the selected entry; repeat to select multiple entries', (value: string, previous: string[]) => [...previous, value], [])
+    .option('--json', 'Output one JSON envelope')
+    .action((explorationId: string, options: { entry: string[]; json?: boolean }) =>
+      dispatch(() => runShow(process.cwd(), explorationId, options.entry), options.json === true));
   record.command('status <explorationId>').option('--json', 'Output one JSON envelope')
     .action((explorationId: string, options: { json?: boolean }) =>
       dispatch(() => runStatus(process.cwd(), explorationId), options.json === true));
