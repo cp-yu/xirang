@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.0"
+  generatedBy: "0.2.2"
 ---
 
 Enter explore mode: investigate, clarify, compare, and confirm the design with the user before formal implementation. Maintain the intermediate design and delegate necessary feasibility experiments to Experimenter; Propose organizes the actual Change draft with the user when the design is ready.

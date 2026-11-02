@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.0"
+  generatedBy: "0.2.2"
 ---
 
 Propose a new change or update an existing change by organizing the actual draft with the user. Reuse the confirmed design, discuss ideas and gaps discovered while writing, and complete the Semantic Delta and Change Plan for implementation. Explore maintains the intermediate design and feasibility evidence; Propose writes and reviews the complete Change without inventing material decisions.
