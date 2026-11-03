@@ -1,113 +1,51 @@
-# Apply Step 4: Optimization
+# Apply Step 4: Delegated Optimization
 
-**Quality State Machine**:
-```
-dirty   no recorded review conclusion matches the current code evidence
-  |
-  v
-xirang quality review <change-name> --input '<json>' --json
-  |-- FAIL_NEEDS_CORRECTIONS --> fix the code and review again (state stays dirty)
-  |-- PASS | PASS_WITH_WARNINGS --> clean
-                                     |
-                                     v
-xirang quality optimize <change-name> --input '<json>' --json
-  |   one round per call; accepted only while clean and not finalized
-  |-- new directions ------> the CLI assigns OPT-… IDs and selects the highest priority eligible direction
-  |                          the master implements the selected direction, then reviews it again
-  |-- attempt verified ----> direction verified; the next round judges the remaining directions
-  |-- attempt failed ------> failure count +1; rejected at optimization.directionRetries
-  |-- stopReason ----------> the loop is finalized with a terminal state
-                                     |
-                                     v
-xirang quality seal <change-name> --json
-      requires clean + a finalized ledger + a terminal other than ABORTED_UNSAFE
+Main owns delegation scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to make those judgments. Opt discovers, groups, merges, implements and locally tests within the delegation; Reviewer independently inspects required scopes; CLI records deterministic associations and checks declared completion conditions.
 
-stopReason -> terminal:  USER_DECLINED -> SKIPPED
-                         NO_ACTIONABLE -> NOT_NEEDED
-                         DIRECTION_REJECTED | DIRECTION_LIMIT_REACHED -> IMPROVED when a direction is verified, otherwise DEGRADED
-                         UNSAFE -> ABORTED_UNSAFE
+Read `.xirang/references/xirang-quality-cli.md` for generated input schemas, options, state diagram, checkpoint requirements and diagnostics. Commands below run from the validated projectRoot and use actual IDs and the latest reconciled response version. Use an external JSON payload file with --from or safely quoted --input; never both. CLI owns identities, versions, times and manifests.
 
-Archive accepts: SKIPPED | NOT_NEEDED | IMPROVED | DEGRADED
-Archive rejects: an unfinalized ledger (NOT_FINALIZED) | ABORTED_UNSAFE
-```
+## Establish the reviewed, recoverable start
 
-Use git commits as checkpoints; never use stash or tags. Ordinary implementation rounds create no commits. Each round follows the state machine above.
+Require the valid independent baseline Review from Step 3. That Review applies to the pre-optimization implementation, not later optimization changes. Validate isolation and immutable baseCommit. Save the intended reviewed code in a real commit or reuse an already matching commit; do not create an empty checkpoint commit. Do not overwrite isolation identity or discard unrelated work.
 
-1. Skip optimization only through `optimization.enabled: false` or an explicit user decline, then finalize with `{"directions":[],"stopReason":"USER_DECLINED","summary":"<reason>"}` (terminal `SKIPPED`).
-2. Read `optimization.directionLimit` (selected directions per run), `optimization.directionRetries` (failures of one direction), and `optimization.minImpactLevel` (lowest impact level worth selecting, defaulting to `low` when unset) from the project config projection. A verified direction consumes neither budget, and a successful round never consumes the failure budget. The impact threshold is enforced by the CLI when it selects the eligible direction, so a direction below it is never selected; a round that reports only sub-threshold directions returns `NO_ACTIONABLE` and finalizes the loop rather than consuming a direction slot.
-3. Establish the baseline. If the workspace contains this Apply's changes, save them as the first Apply commit:
-   ```bash
-   git add -A
-   git commit -m "wip: opt-checkpoint-r0 (baseline)"
-   ```
-   Do not use an empty commit. If the workspace is clean, reuse only an already verified baseline or an explicitly recorded user-owned complete implementation commit; otherwise stop. Persist its SHA as `optimizationBaselineCommit` in `.apply-isolation.json`.
-4. Delegate to a fresh `xirang-optimizer` with `context: "fresh"` and pass only changeName, absolute changeDir, and absolute projectRoot; the optimizer reads the recorded review conclusion, failed directions, optimization config and base scope itself, so never pass file contents and never reuse an earlier conclusion. Wait for the complete round ledger before validating it: A slow subagent is not a failed subagent — keep waiting, and ask the user before terminating it. Submit the ledger:
-   ```bash
-   xirang quality optimize "<change-name>" --input '<json>' --json
-   ```
-   The CLI assigns every new direction ID, echoes the assigned IDs and `selected`, and rejects a selection that skips the highest priority eligible direction. Do not author IDs, counters, or selections.
-5. If the optimizer reports a correctness, spec, or artifact conflict, finalize with `{"directions":[],"stopReason":"UNSAFE","summary":"<conflict>"}`, preserve the conflict and CLI diagnostics, and hard-stop for manual recovery (terminal `ABORTED_UNSAFE`). Do not return to implementation, rerun Review, seal, or archive automatically. When the optimizer reports no conflict, implement only the direction the CLI selected.
-6. If project evidence contradicts the selected direction or its `keyDesign`, revoke it inside the round ledger with `reason` and `evidence`, then judge the remaining directions with a fresh optimizer. Do not skip or reject a direction silently.
-7. Implement the selected direction with TDD, preserving its `preservationConstraints`, and record any non-substantive implementation difference from `keyDesign`.
-8. Delegate to a fresh `xirang-reviewer` with `context: "fresh"` to verify the specs and the selected direction's `preservationConstraints`, not the optimization value. Record that verdict with the same `xirang quality review` call as Step 3; a passing review marks the direction `implemented` and refreshes the evidence fingerprint.
-9. If the round Review failed, before any next optimization call copy `.quality-state.json`, `.quality-log.jsonl`, `.apply-isolation.json`, and the whole `changeDir/.quality-history/` directory (when present) to repository-external temporary files, recording a manifest with each file's SHA-256. Confirm the workspace matches the selected isolation and that `HEAD` is the latest successful checkpoint, discard only speculative code with `git reset --hard HEAD` and `git clean -fd`, then restore all saved files including untracked history (`git clean` removes the untracked log and untracked history) and verify each hash plus the complete file set. Stop if restoration or hash verification fails, if a history file is missing or extra, or if speculative files remain. Run `xirang quality status "<change-name>" --json` and require `state: clean` before proceeding; otherwise stop for manual recovery. Preserve the failed Review and existing ledger, and do not rerun Review on speculative code to bypass the gate.
-10. Report the round outcome on the next optimization call with `attempt`: `{"directionId":"<direction-id>","status":"verified"}` after a passing review, or `"failed"` only after the failed round has been restored and checked in Step 9. Carry the pending attempt with the fresh optimizer's next ledger or finalizing payload, not a separate fabricated optimizer conclusion. The CLI then updates the failure count; a direction reaching `optimization.directionRetries` becomes `rejected`. An unreported attempt is not a successful landing.
-11. On `verified`, save the successful checkpoint and judge the remaining directions:
-    ```bash
-    git add -A
-    git commit -m "wip: opt-r${N} (${directionId}: ${description})"
-    ```
-12. Finalize the loop with `{"directions":[],"attempt":{"directionId":"<direction-id>","status":"verified|failed"},"stopReason":"...","summary":"<optimizer conclusion>"}` when the optimizer finds no eligible direction (`NO_ACTIONABLE`), the direction limit blocks a new selection (`DIRECTION_LIMIT_REACHED`), the user declines (`USER_DECLINED`), or the workspace is unsafe (`UNSAFE`).
-    When the loop closes right after a round finished, the finalizing call MUST carry that round's `attempt` in the same payload: `implemented` cannot be distinguished from a round whose review failed, so an unreported round makes the terminal `DEGRADED` instead of `IMPROVED`. Finalize with only a `stopReason` when no round is awaiting a report.
-    Keep all `wip: opt-*` commits.
+Record `xirang quality checkpoint "<change-name>" --kind baseline --commit <actual-sha> --review <baseline-review-id> --version <current-version> --json` before any optimization edits. The commit must match current code and the passing baseline Review. If a valid baseline checkpoint already exists, reuse it rather than recording a second baseline. Commits needed later are by recovery/final-success need, not per direction.
 
-[Mode: Checkpoint]
+Read normalized `optimization.enabled` from `xirang config project --json`. If disabled or the user explicitly refuses, use `xirang quality delegation "<change-name>" --version <current-version> --from <external-payload-file> --json` with action=skip, basis=disabled or user_refusal as applicable and the actual reason. Skip does not invent a delivery or waive baseline Review, applicable successful tests, final conclusion or successful checkpoint. Retired directionLimit, directionRetries and minImpactLevel are diagnosed, not interpreted.
 
-| State | Trigger condition | Git operation |
-| --- | --- | --- |
-| CREATED | Optimization starts and the workspace carries this Apply's changes | `git add -A && git commit -m "wip: opt-checkpoint-r0 (baseline)"`; persist the SHA as `optimizationBaselineCommit` |
-| BASELINE_RESTORED_FOR_RETRY | A round review returned FAIL_NEEDS_CORRECTIONS | `git reset --hard HEAD` and `git clean -fd` back to the latest successful checkpoint |
-| TERMINAL_ACCEPTED | The ledger is finalized and the last round passed review | keep every `wip: opt-*` commit |
-| TERMINAL_RESTORED | The ledger is finalized after a failed round | keep the restored checkpoint together with the recorded failure history |
+Otherwise persist action=start through the same delegation command with scope, optional constraints, established baselineReviewId and recoveryCommit. First start requires that matching recorded baseline checkpoint; later starts reuse the original baseline Review and can use a matching current commit or the original baseline recovery commit. Start captures actual current code and returns delegation.delegationId. Start MUST precede any Opt implementation or test edit.
 
-**Hard rules**:
-- Never use `--allow-empty` for the baseline or for a direction checkpoint; never use stash or tags.
-- A successful direction checkpoint is `git commit -m "wip: opt-r${N} (${directionId}: ${description})"` after the round review passes.
-- Snapshot and restore `.quality-state.json`, `.quality-log.jsonl`, `.apply-isolation.json`, and the whole `changeDir/.quality-history/` directory when present: record a manifest with a SHA-256 per file before `git reset --hard HEAD` and `git clean -fd`, restore every file (tracked or untracked), and treat a missing, extra, or mismatched history file as a failure (fail-closed). `git clean -fd` removes the untracked log and untracked history, and a snapshot without its log line is treated as `dirty`.
-- Rollback only discards speculative code; preserve the failed Review and existing direction history. After restoring all saved current and history files and verifying their hashes, require `quality status` to report `clean`, then carry the failed `attempt` on the next `optimize` call. Do not submit it while `dirty`; stop if the restored checkpoint has no matching passing Review.
-- Keep the isolation metadata authoritative: confirm `HEAD` is the latest successful checkpoint before discarding work, and stop if restoration or hash verification fails.
-**Quality CLI JSON Schema Reference**:
+## Delegate and inspect real delivery
 
-| CLI call | `--input` JSON |
-| --- | --- |
-| Review | `{"result":"PASS","issues":[],"evidenceFiles":["src/..."]}` |
-| Optimization round | `{"directions":[{"location":{"files":["src/a.ts"]},"opportunity":"...","impact":"...","evidence":["..."],"recommendation":"...","keyDesign":"...","preservationConstraints":["..."],"implementationOutline":["..."],"validation":["..."],"impactLevel":"high","confidence":"high","risk":"low","cost":"low","dependencies":[],"priorityReason":"..."}],"attempt":{"directionId":"OPT-…","status":"verified"}}` |
-| Revoke a direction | `{"directions":[{"id":"OPT-…","status":"rejected","reason":"...","evidence":["..."]}]}` |
-| Finalize the loop | `{"directions":[],"attempt":{"directionId":"OPT-…","status":"verified"},"stopReason":"NO_ACTIONABLE","summary":"optimizer conclusion"}` |
-| Read the state | `xirang quality status "<change-name>" --json` (no `--input`) |
+Launch `xirang-optimizer` in fresh context for a new exploration with changeName, absolute changeDir/projectRoot and delegationId. Honor user budgets, scope and stop conditions. Opt reads current model/Change/code/impacts, baseline, reports and failure history independently. Initial file locations are navigation, not a fixed edit list or one-hop boundary. Shared helpers require checking other callers; unrelated systems remain excluded.
 
-- The review `result` is PASS | PASS_WITH_WARNINGS | FAIL_NEEDS_CORRECTIONS; `issues` and `evidenceFiles` are required arrays.
-- A new direction carries `location.files`, `opportunity`, `impact`, `evidence`, `recommendation`, `keyDesign`, `preservationConstraints`, `implementationOutline`, `validation`, `impactLevel`, `confidence`, `risk`, `cost`, `dependencies`, `priorityReason`; omit `id` so the CLI can assign it and echo it back.
-- `impactLevel`, `confidence`, `risk`, and `cost` are high | medium | low.
-- Direction statuses are pending | selected | implemented | verified | failed | rejected | deferred; the CLI owns selection, implementation, and verification, and an optimizer may only revoke a direction as `rejected` or `deferred` with `reason` and `evidence`.
-- Stop reasons are USER_DECLINED | NO_ACTIONABLE | DIRECTION_REJECTED | DIRECTION_LIMIT_REACHED | UNSAFE; a round that sets one also carries `summary` with the optimizer conclusion.
-- Depend on another direction of the same round with `{"actionIndex": n}`; the CLI replaces it with the assigned ID.
-**Quality CLI Error Recovery Guide** (decide from `code`, `diagnostics`, and `allowedNextOperations` only):
-- exit 2 `INVALID_INPUT`: read every `diagnostics[]` entry and follow its `path`, `expected`, `actual`, and `fix` before resubmitting.
-- exit 2 `UNKNOWN_DIRECTION`, `DIRECTION_ORDER_VIOLATION`, `ILLEGAL_DIRECTION_TRANSITION`: use only direction IDs the CLI echoed, omit `selected` so the CLI selects, and move a direction only along its published transitions.
-- exit 1 `REVIEW_REQUIRED`: the current code has no matching passing record; run `xirang quality review` before the next optimization round.
-- exit 1 `REVIEW_NOT_REQUIRED`: the recorded review still matches; continue with `optimize` or `seal`.
-- exit 1 `DIRECTION_LIMIT_REACHED`: finalize with `{"directions":[],"stopReason":"DIRECTION_LIMIT_REACHED","summary":"..."}` or raise `optimization.directionLimit`.
-- exit 1 `OPTIMIZATION_DISABLED`: only `{"directions":[],"stopReason":"USER_DECLINED","summary":"..."}` is accepted while `optimization.enabled` is false.
-- exit 1 `OPTIMIZATION_FINALIZED`: seal and archive; a new optimization requires a new change. Other finalized terminals also accept an explicit user-requested re-verification through `.xirang/references/xirang-quality-recovery.md`.
-- exit 1 `ABORTED_UNSAFE`: stop automatic advancement. Restoring code or recording a new Review never lifts the terminal. With explicit user authorization to restart verification and a fully stopped original flow, follow the controlled rotation in `.xirang/references/xirang-quality-recovery.md` and re-verify from a fresh Review.
-- A `stopReason` always travels with `summary`; a finalize payload without it is rejected with exit 2.
-- exit 1 `SEAL_NOT_READY`: read the listed conditions and record the missing review conclusion or stop reason first.
-- Never edit `.quality-state.json` or `.quality-log.jsonl` by hand outside the authorized rotation in `.xirang/references/xirang-quality-recovery.md`, and never infer the code state when no record exists.
-- An empty `allowedNextOperations` is a stop, and never requires creating a successor change.
-- Fail closed when isolation metadata (`baseCommit`, `optimizationBaselineCommit`) is missing or invalid.
-**Simple Change Fast Path**:
-- Spawn a fresh optimizer for every round while `optimization.enabled` is true and the user has not declined, including changes that only delete, rename, or remove parameters.
-- Master MUST NOT generate, skip, or revoke a direction on its own; it may revoke one only by submitting a reason and evidence inside the round ledger.
-- Only an optimizer round may produce `NO_ACTIONABLE`; record the optimizer's actual conclusion in the round `summary`.
-- The master MUST NOT read or inline the generated `xirang-reviewer` or `xirang-optimizer` agent artifacts.
+Opt may combine several improvements, add missing behavior tests BEFORE changing implementation, reuse existing tests and run relevant local tests. Preservation tests may pass before edits; do not demand fake RED. Ordinary Apply interface-first advice and task failure counters do not govern this phase. Tests remain mandatory. Opt's own tests and opinions are not independent Review.
+
+Opt captures actual tests through `xirang quality verification "<change-name>" --delegation <delegation-id> --scope verification --json -- <executable> <args...>` and saves report/evidenceIds via delegation action=save. No fake-result --input exists for verification. Save abandonment at the time it occurs, and progress/tests/issues at pause/handoff/delivery. Intermediate saves/checkpoints are by need. A partial response or interrupted run is not a completed delegation. Follow shared recovery after confirming the old writer stopped; normally retain the same delegationId.
+
+Inspect the report and actual code/outputs. Require all four content classes: retained changes/benefit/scope/preservation; tested behavior/results/evidence; abandoned or unfinished attempts/reversal/issues or explicit none; follow-up optimization/validation advice and reasons. Several changes may share concise explanations and test evidence. CLI does not score prose adequacy; you assess it.
+
+Return concrete corrections to the same delegation and require updated delivery, without restarting candidate discovery. After delivery decide whether further work is worthwhile from achieved benefit, covered scope, potential opportunities and additional cost. You may commission another fresh-context Opt without first naming a new direction; only deliberate new exploration creates a new delegation. Neither every item nor every delivery forces another fresh scan, fixed rounds or exhaustion proof. Stop repetitions without new evidence or substantive progress. Final verification may cover several cumulative deliveries.
+
+## Decide and execute final verification
+
+Assess cumulative retained changes, preservation, dependencies and actual test coverage. Tests are required. Decide whether relevant local tests suffice, whether broader/full tests are needed and whether incremental independent Review is needed; briefly explain reasons. No additional risk-approval role is required. Two local optimizations with adequate corresponding tests may finish without full tests or extra Review when your scope/risk judgment supports it. Record that judgment as your decision, not Reviewer PASS; the baseline Review did not review the optimized code.
+
+Run needed tests with quality verification and inspect real outputs/IDs. Obtain every required independent incremental Review using Step 3's begin/delegate/submit mechanism; its delegationIds may be the actual affected subset rather than every delegation. Any required Review that is missing, failing or invalid blocks completion. Address concrete risks promptly instead of postponing known problems merely for batch validation.
+
+For a confirmed correctness defect of this Change missed by baseline Review, arrange repair directly or through Opt, obtain actual repair tests with --scope defect-repair, and require independent scope=defect-repair Review of that problem and impact. Its assignment must exactly match the plan's repairScope and its delegationIds must equal the actual repair-test delegation set (empty if main performed the repair without a delegation). Do not treat such a defect as optional abandonment or use main's judgment to waive its Review.
+
+An A test passed at S1 may remain applicable after independent B at S2. Inspect the actual differences and dependencies. If unaffected, record applicability separately in the plan with its original evidenceId or reviewId, scope, concrete differenceBasis, reason and affected=false. This does not rerun or rebind the original result. A changed shared helper requires inspecting impact and rerunning affected validation. Failure, missing evidence or known affected validation cannot be waived. There is no blanket requirement to rerun an unaffected A at S2.
+
+## Record the plan, conclusion and final checkpoint
+
+After obtaining the evidence, use `xirang quality conclusion "<change-name>" --version <current-version> --from <external-plan-json-file> --json` with action=plan. Follow the generated completionPlan schema. Include every cumulative delegationId, a nonempty verificationPlan of scopes/reasons, reasons for your decisions, requiredEvidenceIds, requiredReviewIds for incremental Reviews, confirmed baselineDefects and any justified applicability. Repair evidence also belongs in requiredEvidenceIds; defect-repair Review IDs belong in baselineDefects, not requiredReviewIds. Latest delegation saves must be delivered with unresolved=false. An explicit skip can have no delegations but still needs successful actual test evidence.
+
+Set recoveryConfirmed only when recovery is reliable and list unresolvedIssues honestly. CLI records the plan, state association and delivery versions; it does not decide semantic adequacy. A plan is not proof of success. When required verification is actually passing and applicable and no correctness/recovery problem remains, submit conclusion action=complete with the returned planId and final reasons using the current global --version. Do not send evidence IDs again in complete; they are in the plan. If code or delivery changes, reassess affected verification and record a new plan before completion.
+
+After complete, save or reuse a real commit matching current code and run `xirang quality checkpoint "<change-name>" --kind successful --commit <actual-sha> --version <current-version> --json`. Do not make an empty commit or one per optimization merely for naming. A successful conclusion without this final checkpoint is incomplete. Run status and proceed to Seal only when status=all_done and gaps is empty. Later code changes require renewed applicability and completion assessment; old success is not proof.
+
+## Handle failure and recovery without losing valid work
+
+Use `.xirang/references/xirang-optimization-failure-diagnosis.md` as optional methods. Repair/reverse implicated optimization work locally and verify while preserving reliable changes. If local recovery is uncertain, restore a confirmable baseline while retaining history and unrelated work; if reliability remains unclear, stop dependent completion and resolve the evidence gap. Fixable defects are not permanent unsafe locks.
+
+An optional attempt may be abandoned. Save item/reason/treatment immediately through delegation action=save, retain restored-state tests and disclose it to the user. Do not label the entire result degraded because one attempt failed. Keep genuine baseline defects, unrelated historical problems and contract conflicts distinct; main owns repair, scope and user decisions where needed. Read `.xirang/references/xirang-quality-recovery.md` for interrupted execution and unsupported records. Never migrate or delete old records/commits/history to obtain a fresh completion.

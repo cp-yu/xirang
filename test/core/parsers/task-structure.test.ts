@@ -340,6 +340,34 @@ describe('validateTaskStructure', () => {
     }
   });
 
+  it('does not parse top-level Required Corrections as coarse task Checks', () => {
+    const result = validateTaskStructure(`### Task 1: Implement behavior
+
+**Goal**: Deliver behavior.
+
+**Files**:
+- Modify: \`src/feature.ts\`
+
+**Sections**:
+- Implement behavior
+
+#### Checks
+
+- [x] C1 Verify behavior
+  - Verifies: manual verification
+  - Test action: one-time
+  - Evidence: implementation evidence
+
+## Required Corrections
+- [x] [code_fix] Repair the implementation.
+`);
+
+    expect(result.valid).toBe(true);
+    expect(result.checks).toEqual(['C1']);
+    expect(result.issues.map((issue) => issue.code)).toEqual(['verifies-cross-check-skipped']);
+  });
+
+
   it('reports missing coarse Task fields and excessive sections', () => {
     const result = validateTaskStructure(`### Task 1: Missing fields
 

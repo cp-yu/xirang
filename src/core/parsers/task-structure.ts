@@ -534,8 +534,12 @@ function parseContractSections(content: string): Map<string, ContractSection> {
 
 function parseCoarseTasks(lines: string[], mask: boolean[]): CoarseTask[] {
   const tasks: CoarseTask[] = [];
+  const requiredCorrectionsStart = lines.findIndex((line, index) =>
+    !mask[index] && /^##\s+Required Corrections\s*$/.test(line)
+  );
+  const contentEnd = requiredCorrectionsStart >= 0 ? requiredCorrectionsStart : lines.length;
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = 0; i < contentEnd; i++) {
     if (mask[i]) {
       continue;
     }
@@ -549,12 +553,12 @@ function parseCoarseTasks(lines: string[], mask: boolean[]): CoarseTask[] {
       id: match[1],
       title: match[2],
       line: i + 1,
-      range: { start: i + 1, end: lines.length },
+      range: { start: i + 1, end: contentEnd },
     });
   }
 
   for (let i = 0; i < tasks.length; i++) {
-    tasks[i].range.end = tasks[i + 1]?.line ? tasks[i + 1].line - 1 : lines.length;
+    tasks[i].range.end = tasks[i + 1]?.line ? tasks[i + 1].line - 1 : contentEnd;
   }
 
   return tasks;

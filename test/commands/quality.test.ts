@@ -1,915 +1,325 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
-import { promisify } from 'util';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { execFile } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import { runCLI } from '../helpers/run-cli.js';
-import {
-  DIRECTION_STATUS_VALUES,
-  DIRECTION_LEVEL_VALUES,
-  REVIEW_RESULT_VALUES,
-  STOP_REASON_VALUES,
-} from '../../src/core/quality/validators.js';
+import { readQualityStore } from '../../src/core/quality/engine.js';
 
 const execFileAsync = promisify(execFile);
+const logFile = '/tmp/xirang-public-cli-vitest.log';
 
-function reviewPayload(overrides: Record<string, unknown> = {}) {
-  return { result: 'PASS', issues: [], evidenceFiles: ['src/a.ts'], ...overrides };
-}
-
-function direction(overrides: Record<string, unknown> = {}) {
-  return {
-    location: { files: ['src/a.ts'], symbols: ['a'] },
-    opportunity: 'Repeated linear membership scan',
-    impact: 'Avoid repeated scans of the same list',
-    evidence: ['src/a.ts scans the list twice'],
-    recommendation: 'Build a lookup set once',
-    keyDesign: 'Build the set before the loop and keep output order',
-    preservationConstraints: ['Preserve inputs, outputs, ordering, and errors'],
-    implementationOutline: ['Build the lookup set', 'Replace repeated scans'],
-    validation: ['Run the focused behavior test'],
-    impactLevel: 'high',
-    confidence: 'high',
-    risk: 'low',
-    cost: 'low',
-    dependencies: [],
-    priorityReason: 'Highest impact and confidence at the lowest risk',
-    ...overrides,
-  };
-}
-
-describe('xirang quality command', () => {
-  let tempDir: string;
+describe('quality v2 public CLI', () => {
+  let root: string;
   let changeDir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-quality-cli-'));
-    changeDir = path.join(tempDir, '.xirang', 'changes', 'c1');
-    await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-public-cli-'));
+    changeDir = path.join(root, '.xirang', 'changes', 'c1');
+    await fs.mkdir(path.join(root, 'src'), { recursive: true });
     await fs.mkdir(changeDir, { recursive: true });
-    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] task\n', 'utf-8');
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 1;\n', 'utf-8');
-    await execFileAsync('git', ['init'], { cwd: tempDir });
-    await execFileAsync('git', ['config', 'user.name', 'Xirang Test'], { cwd: tempDir });
-    await execFileAsync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
-    // The documented rollback protocol assumes a byte-identical restore, but CI
-    // runners set global core.autocrlf=true, which rewrites LF to CRLF on
-    // `git reset --hard` and would break evidence fingerprints. Pin the fixture
-    // repo so fingerprints stay comparable on every OS.
-    await execFileAsync('git', ['config', 'core.autocrlf', 'false'], { cwd: tempDir });
-    await execFileAsync('git', ['add', '.'], { cwd: tempDir });
-    await execFileAsync('git', ['commit', '-m', 'init'], { cwd: tempDir });
+    await fs.writeFile(path.join(root, 'runner.mjs'), 'process.stdout.write(process.argv[2]);\n');
+    await fs.writeFile(path.join(root, 'runner-fail.mjs'), 'process.stdout.write("kept"); process.stderr.write("failure"); process.exitCode = 7;\n');
+    await fs.writeFile(path.join(root, 'src/app.ts'), 'export const value = 1;\n');
+    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] completed task\n');
+    await git('init', '-q');
+    await git('config', 'user.name', 'Quality Test');
+    await git('config', 'user.email', 'quality@example.com');
+    await git('config', 'core.autocrlf', 'false');
+    await commit('initial');
+    await fs.appendFile(logFile, `FIXTURE ${root}\n`);
   });
 
-  afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  });
+  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
-  async function writeConfig(optimization: Record<string, unknown>): Promise<void> {
-    await fs.writeFile(
-      path.join(tempDir, '.xirang', 'config.yaml'),
-      `optimization:\n${Object.entries(optimization).map(([key, value]) => `  ${key}: ${value}\n`).join('')}`,
-      'utf-8'
-    );
+  async function git(...args: string[]): Promise<string> {
+    return (await execFileAsync('git', args, { cwd: root })).stdout.trim();
+  }
+  async function commit(message: string): Promise<string> {
+    await git('add', '-A');
+    await git('commit', '--allow-empty', '-qm', message);
+    return git('rev-parse', 'HEAD');
+  }
+  async function cli(args: string[], input?: string) {
+    const result = await runCLI(['quality', ...args], { cwd: root, input });
+    await fs.appendFile(logFile, `${result.exitCode} ${result.stdout.trim()} ${result.stderr.trim()}\n`);
+    return result;
+  }
+  async function json(result: Awaited<ReturnType<typeof cli>>) {
+    expect(result.stdout, result.stderr).not.toBe('');
+    return JSON.parse(result.stdout.trim());
+  }
+  async function beginBaseline() {
+    const begin = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ assignment: 'Review complete change' })]);
+    expect(begin.exitCode, begin.stdout).toBe(0);
+    const review = (await json(begin)).review;
+    const submitted = await cli(['review', 'c1', '--review', review.reviewId, '--version', '1', '--json', '--input', JSON.stringify({
+      result: 'PASS', issues: [], evidenceFiles: ['src/app.ts'], summary: 'Baseline is acceptable.',
+    })]);
+    expect(submitted.exitCode, submitted.stdout).toBe(0);
+    return { review: (await json(submitted)).review, version: 2 };
   }
 
-  async function review(payload: Record<string, unknown> = reviewPayload()) {
-    return runCLI(['quality', 'review', 'c1', '--json', '--input', JSON.stringify(payload)], {
-      cwd: tempDir,
-    });
-  }
+  it('requires an explicit current version and valid baseline revalidation payload', async () => {
+    const ordinary = await cli(['review', 'c1', '--begin', '--version', '0', '--json', '--input', JSON.stringify({ assignment: 'ordinary review' })]);
+    expect(ordinary.exitCode).toBe(2);
+    expect((await json(ordinary)).code).toBe('INVALID_REVIEW_COMMAND');
 
-  async function optimize(payload: Record<string, unknown>) {
-    return runCLI(['quality', 'optimize', 'c1', '--json', '--input', JSON.stringify(payload)], {
-      cwd: tempDir,
-    });
-  }
+    const missingVersion = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ assignment: 'fresh review', revalidation: { reason: 'explicit request', previousFlowStopped: true } })]);
+    expect(missingVersion.exitCode).toBe(2);
+    expect((await json(missingVersion)).code).toBe('INVALID_QUALITY_VERSION');
 
-  async function snapshot(): Promise<Record<string, any>> {
-    return JSON.parse(await fs.readFile(path.join(changeDir, '.quality-state.json'), 'utf-8'));
-  }
-
-  async function directions(): Promise<Array<Record<string, any>>> {
-    return (await snapshot()).optimization?.directions ?? [];
-  }
-
-  async function assignDirection(overrides: Record<string, unknown> = {}): Promise<string> {
-    const round = await optimize({ directions: [direction(overrides)] });
-    expect(round.exitCode, round.stdout).toBe(0);
-    return JSON.parse(round.stdout).directions.at(-1).id;
-  }
-
-  it('records a review conclusion while the workspace is dirty', async () => {
-    const result = await review();
-
-    expect(result.exitCode, result.stdout).toBe(0);
-    const payload = JSON.parse(result.stdout);
-    expect(payload.ok).toBe(true);
-    expect(payload.state).toBe('clean');
-    expect(payload.allowedNextOperations).toContain('optimize');
-    expect((await snapshot()).result).toBe('PASS');
-    expect(
-      (await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8')).trim().split('\n')
-    ).toHaveLength(1);
+    const oldBegin = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ assignment: 'prior flow' })]);
+    expect(oldBegin.exitCode).toBe(0);
+    const invalid = await cli(['review', 'c1', '--begin', '--version', '1', '--json', '--input', JSON.stringify({ scope: 'incremental', assignment: 'fresh review', delegationIds: [], revalidation: { reason: 'explicit request', previousFlowStopped: false } })]);
+    expect(invalid.exitCode).toBe(2);
+    const valid = await cli(['review', 'c1', '--begin', '--version', '1', '--json', '--input', JSON.stringify({ scope: 'baseline', assignment: 'fresh review', revalidation: { reason: 'The earlier evidence is no longer trusted.', previousFlowStopped: true } })]);
+    expect(valid.exitCode, valid.stdout).toBe(0);
+    const begun = await json(valid);
+    expect(begun.review.associationId).toEqual(expect.any(String));
+    const status = await json(await cli(['status', 'c1', '--json']));
+    expect(status).toMatchObject({ status: 'needs_review', activeAssociationId: begun.review.associationId, reviews: [begun.review] });
+    expect(status.revalidationHistory).toHaveLength(1);
   });
 
-  it('rejects a second review while the recorded conclusion still matches the code', async () => {
-    await review();
-    const before = await fs.readFile(path.join(changeDir, '.quality-state.json'), 'utf-8');
-
-    const second = await review();
-
-    expect(second.exitCode, second.stdout).toBe(1);
-    const payload = JSON.parse(second.stdout);
-    expect(payload.ok).toBe(false);
-    expect(payload.code).toBe('REVIEW_NOT_REQUIRED');
-    expect(payload.allowedNextOperations).toContain('optimize');
-    expect(await fs.readFile(path.join(changeDir, '.quality-state.json'), 'utf-8')).toBe(before);
+  it('preserves global version and color options for unrelated commands', async () => {
+    const appVersion = await runCLI(['--version'], { cwd: root });
+    expect(appVersion.exitCode).toBe(0);
+    expect(appVersion.stdout.trim()).toBe('0.2.2');
+    const beforeCommand = await runCLI(['--no-color', 'schemas', '--json'], { cwd: root });
+    expect(beforeCommand.exitCode, beforeCommand.stderr).toBe(0);
+    expect(() => JSON.parse(beforeCommand.stdout)).not.toThrow();
+    const afterCommand = await runCLI(['schemas', '--json', '--no-color'], { cwd: root });
+    expect(afterCommand.exitCode, afterCommand.stderr).toBe(0);
+    expect(() => JSON.parse(afterCommand.stdout)).not.toThrow();
+    const qualityBeforeSubcommand = await runCLI(['quality', '--no-color', 'status', 'c1', '--json'], { cwd: root });
+    expect(qualityBeforeSubcommand.exitCode, qualityBeforeSubcommand.stderr).toBe(0);
+    expect(() => JSON.parse(qualityBeforeSubcommand.stdout)).not.toThrow();
+    const qualityAfterSubcommand = await runCLI(['quality', 'status', 'c1', '--no-color', '--json'], { cwd: root });
+    expect(qualityAfterSubcommand.exitCode, qualityAfterSubcommand.stderr).toBe(0);
+    expect(() => JSON.parse(qualityAfterSubcommand.stdout)).not.toThrow();
   });
 
-  it('reports invalid review input with actionable diagnostics', async () => {
-    const result = await review({ issues: [], evidenceFiles: [] });
-
-    expect(result.exitCode, result.stdout).toBe(2);
-    const payload = JSON.parse(result.stdout);
-    expect(payload.code).toBe('INVALID_INPUT');
-    expect(payload.diagnostics[0]).toEqual({
-      path: 'result',
-      expected: REVIEW_RESULT_VALUES.join(' | '),
-      actual: 'undefined',
-      fix: expect.any(String),
-    });
-    await expect(fs.access(path.join(changeDir, '.quality-state.json'))).rejects.toThrow();
+  it('accepts file-backed input and leaves WARNING writeback untouched', async () => {
+    const inputPath = path.join(root, 'review-input.json');
+    await fs.writeFile(inputPath, JSON.stringify({ assignment: 'Review current change' }));
+    const begin = await cli(['review', 'c1', '--begin', '--json', '--from', 'review-input.json']);
+    expect(begin.exitCode, begin.stdout).toBe(0);
+    const reviewId = (await json(begin)).review.reviewId;
+    const beforeTasks = await fs.readFile(path.join(changeDir, 'tasks.md'));
+    const payloadPath = path.join(root, 'review-submit.json');
+    await fs.writeFile(payloadPath, JSON.stringify({ result: 'PASS_WITH_WARNINGS', issues: [{ severity: 'WARNING', message: 'Non-blocking note.' }], evidenceFiles: ['src/app.ts'], summary: 'Current behavior is acceptable.', writeBackPlan: [] }));
+    const submitted = await cli(['review', 'c1', '--review', reviewId, '--version', '1', '--json', '--from', 'review-submit.json']);
+    expect(submitted.exitCode, submitted.stdout).toBe(0);
+    expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(beforeTasks);
   });
 
-  it('rejects CLI-managed fields in a review payload', async () => {
-    const result = await review({ ...reviewPayload(), tasksFileHash: 'f'.repeat(64) });
-
-    expect(result.exitCode, result.stdout).toBe(2);
-    const payload = JSON.parse(result.stdout);
-    expect(payload.diagnostics[0].path).toBe('tasksFileHash');
-    expect(payload.diagnostics[0].expected).toContain('CLI');
-  });
-
-  it('accepts the canonical reviewer payload unchanged', async () => {
-    const reviewerPayload = {
-      result: 'PASS_WITH_WARNINGS',
-      issues: [
-        {
-          severity: 'WARNING',
-          message: 'one section lacks a boundary test',
-          section: 'quality state',
-          task: 'Task 3',
-          recommendation: 'add a boundary case',
-          evidenceCitations: ['src/core/quality/state.ts:1-2'],
-        },
-      ],
-      summary: {
-        completeness: { tasksCompleted: 3, tasksTotal: 3, reqsCovered: 2, reqsTotal: 2 },
-        cleanliness: { checked: true, halfMigrationsFound: 0 },
-      },
-      writeBackPlan: [],
-      evidenceFiles: ['src/a.ts'],
-      gitDiffSummary: 'scope: src/core/quality/**',
-    };
-
-    const result = await review(reviewerPayload);
-
-    expect(result.exitCode, result.stdout).toBe(0);
-    const record = await snapshot();
-    expect(record.result).toBe('PASS_WITH_WARNINGS');
-    expect(record.issues).toHaveLength(1);
-    expect(record.verificationContext.gitDiffSummary).toBe('scope: src/core/quality/**');
-  });
-
-  it('records an optimization round and echoes the assigned direction id', async () => {
-    await review();
-
-    const round = await optimize({ directions: [direction()] });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.directions).toHaveLength(1);
-    expect(payload.directions[0].id).toMatch(/^OPT-/);
-    expect(payload.selected).toBe(payload.directions[0].id);
-    expect(payload.ledger.directionsUsed).toBe(1);
-    expect((await directions())[0].status).toBe('selected');
-  });
-
-  it('resolves same-batch dependencies to the assigned direction ids', async () => {
-    await review();
-
-    const round = await optimize({
-      directions: [
-        direction({ opportunity: 'Prerequisite' }),
-        direction({
-          opportunity: 'Dependent',
-          dependencies: [{ actionIndex: 0 }],
-        }),
-      ],
-    });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    const [prerequisite, dependent] = await directions();
-    expect(dependent.dependencies).toEqual([prerequisite.id]);
-    expect(JSON.stringify(await directions())).not.toContain('actionIndex');
-  });
-
-  it('rejects an agent-authored direction id', async () => {
-    await review();
-
-    const round = await optimize({ directions: [direction({ id: 'OPT-handmade' })] });
-
-    expect(round.exitCode, round.stdout).toBe(2);
-    expect(JSON.parse(round.stdout).diagnostics[0].path).toBe('directions[0].id');
-  });
-
-  it('rejects a selection that skips the highest priority direction', async () => {
-    await review();
-    const low = await assignDirection({
-      opportunity: 'Low value cleanup',
-      impactLevel: 'low',
-      confidence: 'low',
-    });
-
-    const round = await optimize({
-      directions: [direction({ opportunity: 'High value cleanup' })],
-      selected: low,
-    });
-
-    expect(round.exitCode, round.stdout).toBe(2);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.code).toBe('DIRECTION_ORDER_VIOLATION');
-    expect(payload.diagnostics[0].path).toBe('selected');
-  });
-
-  it('rejects optimizer-authored status changes beyond revocation', async () => {
-    await review();
-    const id = await assignDirection();
-
-    for (const status of ['selected', 'implemented', 'verified', 'failed', 'pending']) {
-      const round = await optimize({ directions: [{ id, status }] });
-      expect(round.exitCode, `${status}: ${round.stdout}`).toBe(2);
-      const payload = JSON.parse(round.stdout);
-      expect(payload.code).toBe('INVALID_INPUT');
-      expect(payload.diagnostics[0].path).toBe('directions[0].status');
-      expect(payload.diagnostics[0].expected).toBe('rejected | deferred');
-    }
-  });
-
-  it('accepts an optimizer revocation and keeps a single selected direction', async () => {
-    await review();
-    const first = await assignDirection({ opportunity: 'First direction' });
-
-    const round = await optimize({
-      directions: [
-        { id: first, status: 'deferred', reason: 'blocked by an unrelated migration', evidence: ['migration PR pending'] },
-        direction({ opportunity: 'Second direction' }),
-      ],
-    });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.selected).not.toBe(first);
-    const selected = (await directions()).filter((item) => item.status === 'selected');
-    expect(selected).toHaveLength(1);
-    const stored = (await directions()).find((item) => item.id === first);
-    expect(stored).toEqual(
-      expect.objectContaining({
-        status: 'deferred',
-        reason: 'blocked by an unrelated migration',
-        revocationEvidence: ['migration PR pending'],
-      })
-    );
-  });
-
-  it('rejects an unknown direction reference', async () => {
-    await review();
-
-    const round = await optimize({ directions: [direction({ id: 'OPT-20200101T000000000Z-01', status: 'rejected', reason: 'no', evidence: ['e'] })] });
-
-    expect(round.exitCode, round.stdout).toBe(2);
-    expect(JSON.parse(round.stdout).diagnostics[0].path).toBe('directions[0].id');
-  });
-
-  it('records a failing conclusion with exit 0 and reports the dirty state', async () => {
-    const result = await review({
-      result: 'FAIL_NEEDS_CORRECTIONS',
-      issues: [{ severity: 'CRITICAL', message: 'required behavior is missing' }],
-      evidenceFiles: ['src/a.ts'],
-    });
-
-    expect(result.exitCode, result.stdout).toBe(0);
-    const payload = JSON.parse(result.stdout);
-    expect(payload.ok).toBe(true);
-    expect(payload.state).toBe('dirty');
-    expect(payload.review.result).toBe('FAIL_NEEDS_CORRECTIONS');
-    expect(payload.allowedNextOperations).toEqual(['review']);
-    expect((await snapshot()).result).toBe('FAIL_NEEDS_CORRECTIONS');
-  });
-
-  it('preserves failure evidence across rollback before accepting the failed attempt', async () => {
-    await review();
-    const directionId = await assignDirection({ opportunity: 'Risky direction' });
-    const { stdout: head } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir });
-    const isolationPath = path.join(changeDir, '.apply-isolation.json');
-    await fs.writeFile(isolationPath, JSON.stringify({
-      method: 'none', baseCommit: head.trim(), optimizationBaselineCommit: head.trim(),
-    }));
-
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    const failed = await review({
-      result: 'FAIL_NEEDS_CORRECTIONS',
-      issues: [{ severity: 'CRITICAL', message: 'preservation constraints broke' }],
-      evidenceFiles: ['src/a.ts'],
-    });
-    expect(failed.exitCode, failed.stdout).toBe(0);
-    expect(JSON.parse(failed.stdout).state).toBe('dirty');
-
-    const files = ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json'];
-    const snapshots = await Promise.all(files.map((file) => fs.readFile(path.join(changeDir, file))));
-    const attempt = { directionId, status: 'failed', summary: 'preservation constraints broke' };
-    const premature = await optimize({ directions: [], attempt });
-    expect(premature.exitCode, premature.stdout).toBe(1);
-    expect(JSON.parse(premature.stdout).code).toBe('REVIEW_REQUIRED');
-    for (const [index, file] of files.entries()) {
-      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
-    }
-
-    await execFileAsync('git', ['reset', '--hard', 'HEAD'], { cwd: tempDir });
-    await execFileAsync('git', ['clean', '-fd'], { cwd: tempDir });
-    expect((await fs.readdir(changeDir)).includes('.quality-log.jsonl')).toBe(false);
-    for (const [index, file] of files.entries()) {
-      await fs.writeFile(path.join(changeDir, file), snapshots[index]);
-      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
-    }
-    expect(await fs.readFile(path.join(tempDir, 'src', 'a.ts'), 'utf-8')).toBe('const a = 1;\n');
-    const restored = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
-    expect(restored.exitCode, restored.stdout).toBe(0);
-    expect(JSON.parse(restored.stdout).state).toBe('clean');
-    expect((await snapshot()).result).toBe('FAIL_NEEDS_CORRECTIONS');
-    for (const [index, file] of files.entries()) {
-      expect(await fs.readFile(path.join(changeDir, file))).toEqual(snapshots[index]);
-    }
-
-    const failedRound = await optimize({ directions: [], attempt });
-    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
-    expect(JSON.parse(failedRound.stdout).state).toBe('clean');
-    expect((await directions()).find((item) => item.id === directionId)).toEqual(
-      expect.objectContaining({ status: 'failed', failureCount: 1 })
-    );
-    expect(await fs.readFile(isolationPath)).toEqual(snapshots[2]);
-    const log = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'));
-    expect(log.subarray(0, snapshots[1].length)).toEqual(snapshots[1]);
-    expect(log.toString().trim().split('\n')).toHaveLength(4);
-  });
-
-  it('reports REVIEW_REQUIRED when a rollback restores the snapshot without its log line', async () => {
-    await review();
-    const directionId = await assignDirection({ opportunity: 'Risky direction' });
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review({
-      result: 'FAIL_NEEDS_CORRECTIONS',
-      issues: [{ severity: 'CRITICAL', message: 'preservation constraints broke' }],
-      evidenceFiles: ['src/a.ts'],
-    });
-    const statePath = path.join(changeDir, '.quality-state.json');
-    const stateSnapshot = await fs.readFile(statePath, 'utf-8');
-    await execFileAsync('git', ['reset', '--hard', 'HEAD'], { cwd: tempDir });
-    await execFileAsync('git', ['clean', '-fd'], { cwd: tempDir });
-    await fs.writeFile(statePath, stateSnapshot, 'utf-8');
-
-    const blocked = await optimize({ directions: [], attempt: { directionId, status: 'failed' } });
-
-    expect(blocked.exitCode, blocked.stdout).toBe(1);
-    const blockedPayload = JSON.parse(blocked.stdout);
-    expect(blockedPayload.code).toBe('REVIEW_REQUIRED');
-    expect(blockedPayload.diagnostics[0].actual).toBe('dirty');
-
-    // The recovery review keeps the recorded ledger, so the failed round is still reportable.
-    const recovery = await review();
-    expect(recovery.exitCode, recovery.stdout).toBe(0);
-    expect(JSON.parse(recovery.stdout).state).toBe('clean');
-
-    const failedRound = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'failed', summary: 'preservation constraints broke' },
-    });
-
-    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
-    expect((await directions()).find((item) => item.id === directionId)).toEqual(
-      expect.objectContaining({ status: 'failed', failureCount: 1 })
-    );
-  });
-
-  it('keeps the latest ledger and unsafe terminal when a rollback matches an earlier passing review', async () => {
-    await writeConfig({ directionLimit: 3, directionRetries: 1 });
-    await review();
-    const directionId = await assignDirection({ opportunity: 'Fragile direction' });
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    const failed = await review({
-      result: 'FAIL_NEEDS_CORRECTIONS',
-      issues: [{ severity: 'CRITICAL', message: 'preservation constraints broke' }],
-      evidenceFiles: ['src/a.ts'],
-    });
-    expect(failed.exitCode, failed.stdout).toBe(0);
-    const recovered = await review();
-    expect(recovered.exitCode, recovered.stdout).toBe(0);
-    const failedRound = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'failed', summary: 'preservation constraints broke' },
-    });
-    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
-    const unsafe = await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });
-    expect(unsafe.exitCode, unsafe.stdout).toBe(0);
-
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 1;\n', 'utf-8');
-    const logBefore = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8');
-
-    const restored = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
-    expect(restored.exitCode, restored.stdout).toBe(0);
-    const payload = JSON.parse(restored.stdout);
-    expect(payload.state).toBe('clean');
-    expect(payload.review.result).toBe('PASS');
-    expect(payload.optimization.terminal).toBe('ABORTED_UNSAFE');
-    expect(payload.optimization.directionsUsed).toBe(1);
-    expect(payload.optimization.directions).toEqual([
-      expect.objectContaining({ id: directionId, status: 'rejected', failureCount: 1 }),
-    ]);
-    expect(payload.allowedNextOperations).toEqual([]);
-
-    const blocked = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'failed', summary: 'retry after rollback' },
-    });
-    expect(blocked.exitCode, blocked.stdout).toBe(1);
-    expect(JSON.parse(blocked.stdout).code).toBe('ABORTED_UNSAFE');
-
-    const log = await fs.readFile(path.join(changeDir, '.quality-log.jsonl'), 'utf-8');
-    expect(log.startsWith(logBefore)).toBe(true);
-    expect(log.trim().split('\n')).toHaveLength(6);
-  });
-
-  it('requires a clean state before optimization', async () => {
-    const round = await optimize({ directions: [direction()] });
-
-    expect(round.exitCode, round.stdout).toBe(1);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.code).toBe('REVIEW_REQUIRED');
-    expect(payload.allowedNextOperations).toContain('review');
-  });
-
-  it('marks the selected direction implemented once the review passes', async () => {
-    await review();
-    await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-
-    await review();
-
-    expect((await directions())[0].status).toBe('implemented');
-  });
-
-  it('derives IMPROVED when the direction limit is reached after a verified direction', async () => {
-    await writeConfig({ directionLimit: 1, directionRetries: 2 });
-    await review();
-    const first = await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const round = await optimize({
-      directions: [],
-      attempt: { directionId: first, status: 'verified' },
-      stopReason: 'DIRECTION_LIMIT_REACHED',
-      summary: 'direction limit reached',
-    });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.ledger.terminal).toBe('IMPROVED');
-    expect(payload.ledger.stopReason).toBe('DIRECTION_LIMIT_REACHED');
-  });
-
-  it('derives DEGRADED when only rejected directions were submitted', async () => {
-    await writeConfig({ directionLimit: 3, directionRetries: 2 });
-    await review();
-    const first = await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const round = await optimize({
-      directions: [{ id: first, status: 'rejected', reason: 'preservation constraints failed', evidence: ['round failed'] }],
-      attempt: { directionId: first, status: 'failed' },
-      stopReason: 'DIRECTION_REJECTED',
-      summary: 'no direction survived review',
-    });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    expect(JSON.parse(round.stdout).ledger.terminal).toBe('DEGRADED');
-  });
-
-  it('derives NOT_NEEDED when the optimizer finds no actionable direction', async () => {
-    await review();
-
-    const round = await optimize({ directions: [], stopReason: 'NO_ACTIONABLE', summary: 'optimizer found no eligible direction' });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    expect(JSON.parse(round.stdout).ledger.terminal).toBe('NOT_NEEDED');
-  });
-
-  it('records SKIPPED when optimization is disabled', async () => {
-    await writeConfig({ enabled: false });
-    await review();
-
-    const blocked = await optimize({ directions: [direction()] });
-    expect(blocked.exitCode, blocked.stdout).toBe(1);
-    expect(JSON.parse(blocked.stdout).code).toBe('OPTIMIZATION_DISABLED');
-
-    const skipped = await optimize({ directions: [], stopReason: 'USER_DECLINED', summary: 'user declined optimization' });
-
+  it('accepts explicit user refusal when optimization is enabled', async () => {
+    const missingVersion = await cli(['delegation', 'c1', '--json', '--input', JSON.stringify({ action: 'skip', basis: 'user_refusal', reason: 'The user declined an optimization delegation.' })]);
+    expect(missingVersion.exitCode).toBe(2);
+    expect((await json(missingVersion)).code).toBe('INVALID_QUALITY_VERSION');
+    const skipped = await cli(['delegation', 'c1', '--version', '0', '--json', '--input', JSON.stringify({ action: 'skip', basis: 'user_refusal', reason: 'The user declined an optimization delegation.' })]);
     expect(skipped.exitCode, skipped.stdout).toBe(0);
-    const payload = JSON.parse(skipped.stdout);
-    expect(payload.ledger.terminal).toBe('SKIPPED');
-    expect(payload.ledger.stopReason).toBe('USER_DECLINED');
+    const snapshot = await readQualityStore(changeDir);
+    expect(snapshot.snapshot.state.skip?.reason).toContain('user_refusal:');
   });
 
-  it('refuses to re-finalize an already finalized optimization', async () => {
-    await review();
-    await optimize({ directions: [], stopReason: 'NO_ACTIONABLE', summary: 'optimizer found no eligible direction' });
-
-    const again = await optimize({ directions: [], stopReason: 'USER_DECLINED', summary: 'user declined optimization' });
-
-    expect(again.exitCode, again.stdout).toBe(1);
-    expect(JSON.parse(again.stdout).code).toBe('OPTIMIZATION_FINALIZED');
-  });
-
-  it('refuses a new direction once the limit is reached but still accepts finalization', async () => {
-    await writeConfig({ directionLimit: 1, directionRetries: 2 });
-    await review();
-    const first = await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const blocked = await optimize({
-      directions: [direction({ opportunity: 'Another direction' })],
-      attempt: { directionId: first, status: 'verified' },
-    });
-
-    expect(blocked.exitCode, blocked.stdout).toBe(1);
-    const blockedPayload = JSON.parse(blocked.stdout);
-    expect(blockedPayload.code).toBe('DIRECTION_LIMIT_REACHED');
-    expect(blockedPayload.allowedNextOperations).toEqual(['optimize']);
-
-    const finalized = await optimize({ directions: [], stopReason: 'DIRECTION_LIMIT_REACHED', summary: 'direction limit reached' });
-    expect(finalized.exitCode, finalized.stdout).toBe(0);
-  });
-
-  it('does not consume the failure budget for verified directions', async () => {
-    await writeConfig({ directionLimit: 3, directionRetries: 1 });
-    await review();
-
-    const ids: string[] = [];
-    let attempt: Record<string, unknown> | undefined;
-    for (const opportunity of ['first', 'second', 'third']) {
-      const round = await optimize({
-        directions: [direction({ opportunity })],
-        ...(attempt ? { attempt } : {}),
-      });
-      expect(round.exitCode, round.stdout).toBe(0);
-      const payload = JSON.parse(round.stdout);
-      ids.push(payload.selected);
-      expect(payload.directions.some((item: Record<string, any>) => item.status === 'rejected')).toBe(false);
-      attempt = { directionId: payload.selected, status: 'verified' };
-      await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), `const a = ${ids.length + 1};\n`, 'utf-8');
-      await review();
-    }
-
-    expect(ids).toHaveLength(3);
-    expect((await directions()).map((item) => item.status)).toEqual([
-      'verified',
-      'verified',
-      'implemented',
-    ]);
-  });
-
-  it('requires a summary when a round finalizes the loop', async () => {
-    await review();
-
-    const missing = await optimize({ directions: [], stopReason: 'NO_ACTIONABLE' });
-
-    expect(missing.exitCode, missing.stdout).toBe(2);
-    const payload = JSON.parse(missing.stdout);
-    expect(payload.code).toBe('INVALID_INPUT');
-    expect(payload.diagnostics[0].path).toBe('summary');
-
-    const accepted = await optimize({
-      directions: [],
-      stopReason: 'NO_ACTIONABLE',
-      summary: 'optimizer found no eligible direction',
-    });
-
-    expect(accepted.exitCode, accepted.stdout).toBe(0);
-    const record = await snapshot();
-    expect(record.optimization.histories.at(-1).reason).toBe(
-      'optimizer found no eligible direction'
-    );
-  });
-
-  it('auto-rejects a direction that reaches the failure limit', async () => {
-    await writeConfig({ directionLimit: 3, directionRetries: 1 });
-    await review();
-    const failing = await assignDirection({ opportunity: 'Fragile direction' });
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const failedRound = await optimize({
-      directions: [],
-      attempt: { directionId: failing, status: 'failed', summary: 'preservation constraints broke' },
-    });
-
-    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
-    const rejected = (await directions()).find((item) => item.id === failing);
-    expect(rejected.status).toBe('rejected');
-    expect(rejected.failureCount).toBe(1);
-    expect(rejected.reason).toBe('preservation constraints broke');
-
-    const next = await optimize({ directions: [direction({ opportunity: 'Another direction' })] });
-    expect(next.exitCode, next.stdout).toBe(0);
-    expect(JSON.parse(next.stdout).selected).not.toBe(failing);
-
-    const reSelect = await optimize({ directions: [], selected: failing });
-    expect(reSelect.exitCode, reSelect.stdout).toBe(2);
-    expect(JSON.parse(reSelect.stdout).code).toBe('DIRECTION_ORDER_VIOLATION');
-  });
-
-  it('reopens a failed direction while the retry budget remains', async () => {
-    await writeConfig({ directionLimit: 3, directionRetries: 2 });
-    await review();
-    const directionId = await assignDirection({ opportunity: 'Retryable direction' });
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const failedRound = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'failed', summary: 'first attempt failed' },
-    });
-    expect(failedRound.exitCode, failedRound.stdout).toBe(0);
-    expect((await directions()).find((item) => item.id === directionId)?.status).toBe('failed');
-
-    const nextRound = await optimize({ directions: [] });
-
-    expect(nextRound.exitCode, nextRound.stdout).toBe(0);
-    const reopened = (await directions()).find((item) => item.id === directionId);
-    expect(reopened).toEqual(expect.objectContaining({ status: 'selected', failureCount: 1 }));
-    expect(JSON.parse(nextRound.stdout).ledger.directionsUsed).toBe(1);
-  });
-
-  it('rejects a review without evidence paths', async () => {
-    const result = await review({ result: 'PASS', issues: [], evidenceFiles: [] });
-
-    expect(result.exitCode, result.stdout).toBe(2);
-    const payload = JSON.parse(result.stdout);
-    expect(payload.code).toBe('INVALID_INPUT');
-    expect(payload.diagnostics[0].path).toBe('evidenceFiles');
-  });
-
-  it('reads a legacy optimization record without crashing review or optimize', async () => {
-    await review();
-    const statePath = path.join(changeDir, '.quality-state.json');
-    const logPath = path.join(changeDir, '.quality-log.jsonl');
-    const record = JSON.parse(await fs.readFile(statePath, 'utf-8'));
-    record.optimization = { directionsUsed: 0 };
-    await fs.writeFile(statePath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
-    await fs.writeFile(logPath, `${JSON.stringify(record)}\n`, 'utf-8');
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-
-    const legacyReview = await review();
-    expect(legacyReview.exitCode, legacyReview.stdout).toBe(0);
-
-    const round = await optimize({ directions: [direction()] });
-
-    expect(round.exitCode, round.stdout).toBe(0);
-    expect(JSON.parse(round.stdout).directions).toHaveLength(1);
-    const stored = await snapshot();
-    expect(stored.optimization.histories).toHaveLength(1);
-  });
-
-  it('documents the finalize summary in every actionable diagnostic', async () => {
-    const assertSummaryGuidance = (result: { exitCode: number | null; stdout: string }): void => {
-      expect(result.exitCode, result.stdout).toBe(1);
-      for (const diagnostic of JSON.parse(result.stdout).diagnostics) {
-        if (diagnostic.fix.includes('stopReason')) {
-          expect(diagnostic.fix, diagnostic.fix).toContain('summary');
-        }
-      }
-    };
-
-    const disabled = await (async () => {
-      await writeConfig({ enabled: false });
-      await review();
-      return optimize({ directions: [direction()] });
-    })();
-    assertSummaryGuidance(disabled);
-
-    const limited = await (async () => {
-      await writeConfig({ directionLimit: 1, directionRetries: 2 });
-      await review();
-      const first = await assignDirection();
-      await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-      await review();
-      return optimize({
-        directions: [direction({ opportunity: 'Beyond the limit' })],
-        attempt: { directionId: first, status: 'verified' },
-      });
-    })();
-    assertSummaryGuidance(limited);
-
-    const notReady = await (async () => {
-      await writeConfig({ directionLimit: 3, directionRetries: 2 });
-      await review();
-      return runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
-    })();
-    assertSummaryGuidance(notReady);
-  });
-
-  it('reports the last round outcome in the finalizing call', async () => {
-    await writeConfig({ directionLimit: 1, directionRetries: 2 });
-    await review();
-    const directionId = await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const finalized = await optimize({
-      directions: [],
-      attempt: { directionId, status: 'verified', summary: 'round review PASS' },
-      stopReason: 'DIRECTION_LIMIT_REACHED',
-      summary: 'direction limit reached after this round',
-    });
-
-    expect(finalized.exitCode, finalized.stdout).toBe(0);
-    const payload = JSON.parse(finalized.stdout);
-    expect(payload.ledger.terminal).toBe('IMPROVED');
-    expect(payload.directions).toEqual([
-      expect.objectContaining({ id: directionId, status: 'verified' }),
-    ]);
-    const record = await snapshot();
-    expect(record.optimization.directions[0]).toEqual(
-      expect.objectContaining({ status: 'verified', failureCount: 0 })
-    );
-    expect(record.optimization.histories.at(-1)).toEqual(
-      expect.objectContaining({
-        outcome: 'verified',
-        stopReason: 'DIRECTION_LIMIT_REACHED',
-        reason: 'direction limit reached after this round',
-      })
-    );
-  });
-
-  it('derives DEGRADED when the finalizing call omits the last round outcome', async () => {
-    await writeConfig({ directionLimit: 1, directionRetries: 2 });
-    await review();
-    const directionId = await assignDirection();
-    await fs.writeFile(path.join(tempDir, 'src', 'a.ts'), 'const a = 2;\n', 'utf-8');
-    await review();
-
-    const finalized = await optimize({
-      directions: [],
-      stopReason: 'DIRECTION_LIMIT_REACHED',
-      summary: 'stopped without reporting the round',
-    });
-
-    expect(finalized.exitCode, finalized.stdout).toBe(0);
-    const payload = JSON.parse(finalized.stdout);
-    expect(payload.ledger.terminal).toBe('DEGRADED');
-    expect(payload.directions).toEqual([
-      expect.objectContaining({ id: directionId, status: 'implemented' }),
-    ]);
-    const record = await snapshot();
-    expect(record.optimization.histories.at(-1)).toEqual(
-      expect.objectContaining({ outcome: 'none', stopReason: 'DIRECTION_LIMIT_REACHED' })
-    );
-  });
-
-  it('rejects further optimization rounds after an unsafe abort', async () => {
-    await review();
-    await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });
-
-    const round = await optimize({ directions: [direction()] });
-
-    expect(round.exitCode, round.stdout).toBe(1);
-    const payload = JSON.parse(round.stdout);
-    expect(payload.code).toBe('ABORTED_UNSAFE');
-    expect(payload.diagnostics[0].fix).toContain('xirang-quality-recovery.md');
-    expect(payload.diagnostics[0].fix).toContain('authorization');
-    expect(payload.diagnostics[0].fix).not.toContain('Restore the workspace to the recorded baseline');
-  });
-
-  it('moves to reviewed-but-not-finalized status after a passing review', async () => {
-    await review();
-
-    const status = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
-
-    expect(status.exitCode, status.stdout).toBe(0);
-    const payload = JSON.parse(status.stdout);
-    expect(payload.state).toBe('clean');
-    expect(payload.review.result).toBe('PASS');
-    expect(payload.optimization.terminal).toBeUndefined();
-    expect(payload.allowedNextOperations).toEqual(['optimize']);
-    expect(payload.nextCommands).toEqual([
-      'xirang quality optimize c1 --input \'<round json>\' --json',
-      'xirang quality seal c1 --json   # requires a finalized optimization ledger',
-    ]);
-  });
-
-  it('gives the review command template while the state is dirty', async () => {
-    const status = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
-
-    expect(status.exitCode, status.stdout).toBe(0);
-    const payload = JSON.parse(status.stdout);
-    expect(payload.state).toBe('dirty');
-    expect(payload.allowedNextOperations).toEqual(['review']);
-    expect(payload.nextCommands).toEqual(["xirang quality review c1 --input '<review json>' --json"]);
-  });
-
-  it('lists the seal and archive commands once the ledger is finalized', async () => {
-    await review();
-    await optimize({ directions: [], stopReason: 'NO_ACTIONABLE', summary: 'nothing to do' });
-
-    const status = await runCLI(['quality', 'status', 'c1', '--json'], { cwd: tempDir });
-
-    const payload = JSON.parse(status.stdout);
-    expect(payload.allowedNextOperations).toEqual(['seal', 'archive']);
-    expect(payload.nextCommands).toEqual(['xirang quality seal c1 --json', 'xirang archive c1']);
-  });
-
-  it('keeps status and help read-only', async () => {
-    await review();
-    const statePath = path.join(changeDir, '.quality-state.json');
-    const logPath = path.join(changeDir, '.quality-log.jsonl');
-    const before = await Promise.all([fs.stat(statePath), fs.stat(logPath)]);
-
-    await runCLI(['quality', 'status', 'c1'], { cwd: tempDir });
-    await runCLI(['quality', '--help'], { cwd: tempDir });
-    await runCLI(['quality', 'optimize', '--help'], { cwd: tempDir });
-
-    const after = await Promise.all([fs.stat(statePath), fs.stat(logPath)]);
-    expect(after.map((stat) => stat.mtimeMs)).toEqual(before.map((stat) => stat.mtimeMs));
-    expect(after.map((stat) => stat.size)).toEqual(before.map((stat) => stat.size));
-  });
-
-  it('seals a finalized change and lists unmet conditions otherwise', async () => {
-    await review();
-    const notReady = await runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
-
-    expect(notReady.exitCode, notReady.stdout).toBe(1);
-    const blocked = JSON.parse(notReady.stdout);
-    expect(blocked.code).toBe('SEAL_NOT_READY');
-    expect(blocked.diagnostics.map((item: Record<string, string>) => item.path)).toContain(
-      'optimization.terminal'
-    );
-
-    await optimize({ directions: [], stopReason: 'NO_ACTIONABLE', summary: 'optimizer found no eligible direction' });
-    const sealed = await runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
-
-    expect(sealed.exitCode, sealed.stdout).toBe(0);
-    const payload = JSON.parse(sealed.stdout);
-    expect(payload.ok).toBe(true);
-    expect(payload.sealHash).toMatch(/^[a-f0-9]{64}$/);
-    expect(payload.allowedNextOperations).toContain('archive');
-  });
-
-  it('points the unsafe seal gate at the shared recovery reference', async () => {
-    await review();
-    await optimize({ directions: [], stopReason: 'UNSAFE', summary: 'workspace unsafe' });
-
-    const unsafe = await runCLI(['quality', 'seal', 'c1', '--json'], { cwd: tempDir });
-
-    expect(unsafe.exitCode, unsafe.stdout).toBe(1);
-    const unsafeBlocked = JSON.parse(unsafe.stdout);
-    expect(unsafeBlocked.code).toBe('SEAL_NOT_READY');
-    const terminalDiagnostic = unsafeBlocked.diagnostics.find(
-      (item: Record<string, string>) => item.path === 'optimization.terminal'
-    );
-    expect(terminalDiagnostic.actual).toBe('ABORTED_UNSAFE');
-    expect(terminalDiagnostic.fix).toContain('xirang-quality-recovery.md');
-    expect(terminalDiagnostic.fix).toContain('authorization');
-    expect(terminalDiagnostic.fix).not.toContain('Restore the workspace to the recorded baseline');
-  });
-
-  it('renders protocol help from the shared constants', async () => {
-    const result = await runCLI(['quality', 'optimize', '--help'], { cwd: tempDir });
-
+  it('status on a missing record is read-only and reports needs_review', async () => {
+    const before = await fs.readdir(changeDir);
+    const result = await cli(['status', 'c1', '--json']);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('directionLimit');
-    expect(result.stdout).toContain('stopReason');
-    for (const value of STOP_REASON_VALUES) {
-      expect(result.stdout, `missing stop reason ${value}`).toContain(value);
+    const payload = await json(result);
+    expect(payload).toMatchObject({ ok: true, code: 'QUALITY_STATUS', status: 'needs_review', version: 0 });
+    expect(payload.gaps).toContain('BASELINE_REVIEW_AND_CHECKPOINT_REQUIRED');
+    expect(await fs.readdir(changeDir)).toEqual(before);
+  });
+
+  it('runs baseline, delegation, real verification, conclusion, successful checkpoint, status and seal', async () => {
+    const baseline = await beginBaseline();
+    const baselineCommit = await commit('reviewed baseline');
+    const checkpoint = await cli(['checkpoint', 'c1', '--kind', 'baseline', '--commit', baselineCommit, '--review', baseline.review.reviewId, '--version', '2', '--json']);
+    expect(checkpoint.exitCode, checkpoint.stdout).toBe(0);
+    const started = await cli(['delegation', 'c1', '--version', '3', '--json', '--input', JSON.stringify({
+      action: 'start', scope: 'Optimize local lookup', baselineReviewId: baseline.review.reviewId, recoveryCommit: baselineCommit,
+    })]);
+    expect(started.exitCode, started.stdout).toBe(0);
+    const delegationId = (await json(started)).delegation.delegationId;
+    await fs.writeFile(path.join(root, 'runner-flags.mjs'), 'process.stdout.write(JSON.stringify(process.argv.slice(2)));\n');
+    const verified = await cli(['verification', 'c1', '--json', '--delegation', delegationId, '--scope', 'focused tests', '--', process.execPath, 'runner-flags.mjs', '--no-color', '--version', '--json']);
+    expect(verified.exitCode, verified.stdout).toBe(0);
+    const evidence = (await json(verified)).verification;
+    expect(evidence.argv.slice(-3)).toEqual(['--no-color', '--version', '--json']);
+    expect(JSON.parse(evidence.stdout)).toEqual(['--no-color', '--version', '--json']);
+    const saved = await cli(['delegation', 'c1', '--version', '5', '--json', '--input', JSON.stringify({
+      action: 'save', delegationId, report: 'Implementation delivered with no unresolved issues.', evidenceIds: [evidence.evidenceId], delivery: 'delivered', unresolved: false,
+    })]);
+    expect(saved.exitCode, saved.stdout).toBe(0);
+    const plan = await cli(['conclusion', 'c1', '--version', '6', '--json', '--input', JSON.stringify({
+      action: 'plan', delegationIds: [delegationId], verificationPlan: [{ scope: 'focused tests', reason: 'Covers modified lookup behavior.' }],
+      reasons: 'The local change is covered and recovery is confirmed.', requiredEvidenceIds: [evidence.evidenceId], requiredReviewIds: [],
+      baselineDefects: [], applicability: [], recoveryConfirmed: true, unresolvedIssues: [],
+    })]);
+    expect(plan.exitCode, plan.stdout).toBe(0);
+    const planId = (await json(plan)).plan.planId;
+    const completed = await cli(['conclusion', 'c1', '--version', '7', '--json', '--input', JSON.stringify({ action: 'complete', planId, reasons: 'The required evidence is current.' })]);
+    expect(completed.exitCode, completed.stdout).toBe(0);
+    const finalCommit = await commit('final implementation');
+    const successful = await cli(['checkpoint', 'c1', '--kind', 'successful', '--commit', finalCommit, '--version', '8', '--json']);
+    expect(successful.exitCode, successful.stdout).toBe(0);
+    const status = await cli(['status', 'c1', '--json']);
+    expect((await json(status)).status).toBe('all_done');
+    const seal = await cli(['seal', 'c1', '--json']);
+    expect(seal.exitCode, seal.stdout).toBe(0);
+    expect((await json(seal)).code).toBe('SEALED');
+  });
+
+  it('retains nonzero verification output as failed evidence', async () => {
+    const failed = await cli(['verification', 'c1', '--json', '--', process.execPath, 'runner-fail.mjs']);
+    expect(failed.exitCode).toBe(1);
+    const payload = await json(failed);
+    expect(payload.verification).toMatchObject({ exitCode: 7, stdout: 'kept', stderr: 'failure', success: false });
+    await expect(fs.access(path.join(root, payload.verification.evidenceFile))).resolves.toBeUndefined();
+  });
+
+  it('writes CRITICAL task corrections before storing Review and records final hash', async () => {
+    const begin = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ scope: 'baseline', assignment: 'Review current change' })]);
+    const reviewId = (await json(begin)).review.reviewId;
+    const tasksPath = path.join(changeDir, 'tasks.md');
+    const payload = { result: 'FAIL_NEEDS_CORRECTIONS', issues: [{ severity: 'CRITICAL', message: 'Missing correction.' }], evidenceFiles: ['src/app.ts'], summary: { correctness: 'needs correction' }, writeBackPlan: [
+      { taskLine: '- [x] completed task', action: 'unmark', correctionType: 'code_fix', summary: 'Missing behavior', nextAction: 'Implement missing behavior' },
+      { taskLine: null, action: 'append_correction', correctionType: 'code_fix', summary: 'Fix missing behavior', nextAction: 'Implement the missing behavior' },
+    ] };
+    const submitted = await cli(['review', 'c1', '--review', reviewId, '--version', '1', '--json', '--input', JSON.stringify(payload)]);
+    expect(submitted.exitCode, submitted.stdout).toBe(0);
+    const tasks = await fs.readFile(tasksPath, 'utf8');
+    expect(tasks).toContain('- [ ] completed task');
+    expect(tasks).toContain('## Required Corrections');
+    expect(tasks).toContain('- [ ] [code_fix] Fix missing behavior');
+    const snapshot = await readQualityStore(changeDir);
+    expect(snapshot.snapshot.state.reviews[0].tasksFileHash).toBe((await import('node:crypto')).createHash('sha256').update(await fs.readFile(tasksPath)).digest('hex'));
+    expect(snapshot.snapshot.state.reviews[0].result).toBe('FAIL_NEEDS_CORRECTIONS');
+  });
+
+  it('routes a stale baseline review back to review before the baseline checkpoint', async () => {
+    await beginBaseline();
+    const currentStatus = await cli(['status', 'c1', '--json']);
+    expect((await json(currentStatus)).allowedNextOperations).toEqual(['checkpoint', 'status']);
+
+    await fs.writeFile(path.join(root, 'src/app.ts'), 'export const value = 2;\n');
+
+    const status = await cli(['status', 'c1', '--json']);
+    const payload = await json(status);
+    expect(payload.allowedNextOperations).toEqual(['review', 'status']);
+    expect(payload.allowedNextOperations).not.toContain('checkpoint');
+  });
+
+  it('keeps optimization routing after a baseline checkpoint despite later code changes', async () => {
+    const baseline = await beginBaseline();
+    const baselineCommit = await commit('reviewed baseline');
+    const checkpoint = await cli(['checkpoint', 'c1', '--kind', 'baseline', '--commit', baselineCommit, '--review', baseline.review.reviewId, '--version', '2', '--json']);
+    expect(checkpoint.exitCode, checkpoint.stdout).toBe(0);
+    await fs.writeFile(path.join(root, 'src/app.ts'), 'export const value = 2;\n');
+
+    const status = await cli(['status', 'c1', '--json']);
+    const payload = await json(status);
+    expect(payload.allowedNextOperations).toContain('delegation');
+    expect(payload.allowedNextOperations).not.toContain('review');
+  });
+
+  it('rejects stale and ambiguous unmark entries atomically before Review writeback', async () => {
+    const cases = [
+      { taskLine: '- [x] stale task', tasks: '- [x] completed task\n' },
+      { taskLine: '- [x] duplicated task', tasks: '- [x] completed task\n- [x] duplicated task\n- [x] duplicated task\n' },
+    ];
+    for (const [index, testCase] of cases.entries()) {
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), testCase.tasks);
+      const begin = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ assignment: `Review stale writeback ${index}` })]);
+      const reviewId = (await json(begin)).review.reviewId;
+      const snapshotPath = path.join(changeDir, '.quality-state.json');
+      const logPath = path.join(changeDir, '.quality-log.jsonl');
+      const beforeTasks = await fs.readFile(path.join(changeDir, 'tasks.md'));
+      const beforeSnapshot = await fs.readFile(snapshotPath);
+      const beforeLog = await fs.readFile(logPath);
+      const payload = {
+        result: 'FAIL_NEEDS_CORRECTIONS',
+        issues: [{ severity: 'CRITICAL', message: 'Required correction was not applied.' }],
+        evidenceFiles: ['src/app.ts'], summary: 'Required correction remains.',
+        writeBackPlan: [
+          { taskLine: '- [x] completed task', action: 'unmark', correctionType: 'code_fix', summary: 'Unmark the valid item first.' },
+          { taskLine: testCase.taskLine, action: 'unmark', correctionType: 'code_fix', summary: 'Reject the stale or ambiguous item.' },
+          { taskLine: null, action: 'append_correction', correctionType: 'code_fix', summary: 'Do not append after an invalid unmark.' },
+        ],
+      };
+      const submitted = await cli(['review', 'c1', '--review', reviewId, '--version', String(index + 1), '--json', '--input', JSON.stringify(payload)]);
+      expect(submitted.exitCode).not.toBe(0);
+      expect((await json(submitted)).code).toBe('INVALID_WRITEBACK_PLAN');
+      expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(beforeTasks);
+      expect(await fs.readFile(snapshotPath)).toEqual(beforeSnapshot);
+      expect(await fs.readFile(logPath)).toEqual(beforeLog);
     }
-    for (const value of DIRECTION_STATUS_VALUES) {
-      expect(result.stdout, `missing direction status ${value}`).toContain(value);
-    }
-    for (const value of DIRECTION_LEVEL_VALUES) {
-      expect(result.stdout, `missing level ${value}`).toContain(value);
-    }
+  });
+
+  it('preserves snapshot and log bytes on stale submissions and rejects old payloads', async () => {
+    const baseline = await beginBaseline();
+    const snapshotPath = path.join(changeDir, '.quality-state.json');
+    const logPath = path.join(changeDir, '.quality-log.jsonl');
+    const beforeSnapshot = await fs.readFile(snapshotPath);
+    const beforeLog = await fs.readFile(logPath);
+    const beforeTasks = await fs.readFile(path.join(changeDir, 'tasks.md'));
+    const stale = await cli(['review', 'c1', '--review', baseline.review.reviewId, '--version', '1', '--json', '--input', JSON.stringify({ result: 'PASS', issues: [], evidenceFiles: ['src/app.ts'], summary: 'stale' })]);
+    expect(stale.exitCode).toBe(2);
+    expect(await fs.readFile(snapshotPath)).toEqual(beforeSnapshot);
+    expect(await fs.readFile(logPath)).toEqual(beforeLog);
+    expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(beforeTasks);
+    const staleCritical = await cli(['review', 'c1', '--review', baseline.review.reviewId, '--version', '1', '--json', '--input', JSON.stringify({
+      result: 'FAIL_NEEDS_CORRECTIONS', issues: [{ severity: 'CRITICAL', message: 'stale correction' }], evidenceFiles: ['src/app.ts'], summary: 'stale',
+      writeBackPlan: [{ taskLine: null, action: 'append_correction', correctionType: 'code_fix', summary: 'Must not apply stale correction' }],
+    })]);
+    expect(staleCritical.exitCode).toBe(2);
+    expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(beforeTasks);
+    const oldPayload = await cli(['review', 'c1', '--begin', '--json', '--input', JSON.stringify({ directions: [] })]);
+    expect(oldPayload.exitCode).toBe(2);
+    expect(await fs.readFile(snapshotPath)).toEqual(beforeSnapshot);
+    expect(await fs.readFile(logPath)).toEqual(beforeLog);
+  });
+
+  it('rejects old optimize payload and unsupported state without migration', async () => {
+    const old = await cli(['optimize', 'c1', '--json', '--input', JSON.stringify({ directions: [] })]);
+    expect(old.exitCode).toBe(2);
+    expect((await json(old)).code).toBe('UNSUPPORTED_OPTIMIZATION_PROTOCOL');
+    const snapshotPath = path.join(changeDir, '.quality-state.json');
+    const logPath = path.join(changeDir, '.quality-log.jsonl');
+    const oldState = Buffer.from(JSON.stringify({ contractVersion: 1, record: { kind: 'review' } }));
+    const oldLog = Buffer.from('legacy log bytes\n');
+    await fs.writeFile(snapshotPath, oldState);
+    await fs.writeFile(logPath, oldLog);
+    const result = await cli(['status', 'c1', '--json']);
+    expect(result.exitCode).toBe(2);
+    expect((await json(result)).code).toBe('UNSUPPORTED_QUALITY_VERSION');
+    expect(await fs.readFile(snapshotPath)).toEqual(oldState);
+    expect(await fs.readFile(logPath)).toEqual(oldLog);
+  });
+
+  it('blocks delegation when disabled but permits explicit skip', async () => {
+    await fs.writeFile(path.join(root, '.xirang/config.yaml'), 'schema: semantic-model\noptimization:\n  enabled: false\n');
+    const denied = await cli(['delegation', 'c1', '--version', '0', '--json', '--input', JSON.stringify({
+      action: 'start', scope: 'optimization', baselineReviewId: 'REV-unknown', recoveryCommit: '0000000000000000000000000000000000000000',
+    })]);
+    expect(denied.exitCode).toBe(1);
+    expect((await json(denied)).code).toBe('OPTIMIZATION_DISABLED');
+    const skipped = await cli(['delegation', 'c1', '--version', '0', '--json', '--input', JSON.stringify({ action: 'skip', basis: 'disabled', reason: 'User declined optimization.' })]);
+    expect(skipped.exitCode, skipped.stdout).toBe(0);
+  });
+
+  it('requires the full completion gate and rejects malformed checkpoint kinds', async () => {
+    const missing = await cli(['seal', 'c1', '--json']);
+    expect(missing.exitCode).toBe(1);
+    expect((await json(missing)).gaps).toContain('BASELINE_REVIEW_AND_CHECKPOINT_REQUIRED');
+    const missingFields = await cli(['checkpoint', 'c1', '--json']);
+    expect(missingFields.exitCode).toBe(2);
+    expect((await json(missingFields)).code).toBe('INVALID_CHECKPOINT_INPUT');
+    const bad = await cli(['checkpoint', 'c1', '--kind', 'old-direction', '--commit', '0000000000000000000000000000000000000000', '--json']);
+    expect(bad.exitCode).toBe(2);
   });
 });

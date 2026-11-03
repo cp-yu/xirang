@@ -3,9 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
-import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/quality/state.js';
-import type { OptimizationLedger, ReviewResultStatus } from '../../src/core/quality/types.js';
-import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
+import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/engine.js';
+import { createBaselineOnlyQualityFixture, createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { validateTaskStructure } from '../../src/core/parsers/task-structure.js';
 
 describe('artifact-workflow CLI commands', () => {
@@ -29,13 +28,6 @@ describe('artifact-workflow CLI commands', () => {
    */
   function getOutput(result: { stdout: string; stderr: string }): string {
     return result.stdout + result.stderr;
-  }
-
-  /**
-   * Normalizes path separators to forward slashes for cross-platform assertions.
-   */
-  function normalizePaths(str: string): string {
-    return str.replace(/\\/g, '/');
   }
 
   /**
@@ -88,66 +80,6 @@ describe('artifact-workflow CLI commands', () => {
     return changeDir;
   }
 
-  async function collectChangeFiles(changeDir: string): Promise<string[]> {
-    const collected: string[] = [];
-
-    async function walk(dir: string): Promise<void> {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          await walk(fullPath);
-          continue;
-        }
-        if (entry.name !== QUALITY_STATE_FILE && entry.name !== QUALITY_LOG_FILE) {
-          collected.push(fullPath);
-        }
-      }
-    }
-
-    await walk(changeDir);
-    return collected.sort();
-  }
-
-  async function writeQualityRecord(
-    changeDir: string,
-    options: {
-      result?: ReviewResultStatus;
-      optimization?: Partial<OptimizationLedger>;
-    } = {}
-  ): Promise<void> {
-    const evidenceFiles = (await collectChangeFiles(changeDir)).map((filePath) =>
-      normalizePaths(path.relative(tempDir, filePath))
-    );
-    const fingerprint = await computeEvidenceFingerprint(evidenceFiles, tempDir);
-    const tasksFileHash = await computeTasksFileHash(path.join(changeDir, 'tasks.md'));
-
-    const record = {
-      kind: 'review',
-      timestamp: '2026-05-19T00:00:00.000Z',
-      result: options.result ?? 'PASS',
-      issues: [],
-      tasksFileHash: tasksFileHash ?? '',
-      verificationContext: {
-        contractVersion: '1.0',
-        evidenceFiles,
-        evidenceFingerprint: fingerprint.hash,
-        evidenceFingerprintEntries: fingerprint.entries,
-      },
-      optimization: {
-        directions: [],
-        histories: [],
-        directionsUsed: 0,
-        ...(options.optimization ?? {}),
-      },
-    };
-
-    await fs.writeFile(
-      path.join(changeDir, QUALITY_STATE_FILE),
-      `${JSON.stringify(record, null, 2)}\n`
-    );
-    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`);
-  }
 
   describe('status command', () => {
     it('shows status for scaffolded change without proposal.md', async () => {
@@ -771,7 +703,7 @@ rules: {}
       });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Review Required');
-      expect(result.stdout).toContain('xirang quality review');
+      expect(result.stdout).toContain('independent baseline Review');
     });
 
     it('outputs needs_review state in JSON when all tasks are complete but no review is recorded', async () => {
@@ -791,7 +723,7 @@ rules: {}
 
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_review');
-      expect(json.instruction).toContain('xirang quality review');
+      expect(json.instruction).toContain('independent baseline Review');
     });
 
     it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {
@@ -802,7 +734,7 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeQualityRecord(changeDir);
+      await createBaselineOnlyQualityFixture(tempDir, changeDir);
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'needs-seal-apply', '--json'],
@@ -812,57 +744,7 @@ rules: {}
 
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_optimize');
-      expect(json.instruction).toContain('xirang quality optimize');
-    });
-
-    it('outputs needs_optimize state in JSON when optimization aborted unsafe', async () => {
-      const changeDir = await createTestChange('aborted-unsafe-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeQualityRecord(changeDir, {
-        optimization: { terminal: 'ABORTED_UNSAFE', stopReason: 'UNSAFE' },
-      });
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'aborted-unsafe-apply', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_optimize');
-      expect(json.instruction).toContain('aborted as unsafe');
-      expect(json.instruction).toContain('xirang-quality-recovery.md');
-      expect(json.instruction).toContain('explicit user authorization');
-    });
-
-    it('does not route a dirty unsafe state into a plain review', async () => {
-      const changeDir = await createTestChange('aborted-unsafe-dirty', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeQualityRecord(changeDir, {
-        optimization: { terminal: 'ABORTED_UNSAFE', stopReason: 'UNSAFE' },
-      });
-      await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nChanged after the unsafe abort.\n## What Changes\n- more');
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'aborted-unsafe-dirty', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).not.toBe('all_done');
-      expect(json.instruction).toContain('xirang-quality-recovery.md');
-      expect(json.instruction).toContain('explicit user authorization');
+      expect(json.instruction).toContain('shared Apply Step 4 optimization');
     });
 
     it('reports needs_review after rotation even when history holds a matching pass', async () => {
@@ -873,7 +755,7 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeQualityRecord(changeDir);
+      await createCompleteQualityFixture(tempDir, changeDir);
 
       const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
       await fs.mkdir(historyDir, { recursive: true });
@@ -899,7 +781,7 @@ rules: {}
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
-      await writeQualityRecord(changeDir, { optimization: { terminal: 'NOT_NEEDED', stopReason: 'NO_ACTIONABLE' } });
+      await createCompleteQualityFixture(tempDir, changeDir);
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'all-done-apply', '--json'],

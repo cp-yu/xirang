@@ -15,7 +15,7 @@ import {
   type PreparedSyncManifestEntry,
   type SyncTransactionFileSystem,
 } from './model/transaction.js';
-import { refreshQualityEvidenceAfterSync } from './quality/state.js';
+import { captureSyncAssociation, persistSyncAssociation, type SyncAssociationAttempt } from './quality/sync-association.js';
 
 export type PartitionCounts = Record<Partition, number>;
 
@@ -142,9 +142,14 @@ export async function applyPreparedChangeSync(
   options: {
     silent?: boolean;
     filesystem?: Partial<SyncTransactionFileSystem>;
-    refreshEvidence?: typeof refreshQualityEvidenceAfterSync;
+    refreshEvidence?: (changeDir: string, projectRoot: string, syncedFiles: string[]) => Promise<void>;
   } = {},
 ): Promise<AppliedChangeSyncSummary> {
+  const associationAttempt: SyncAssociationAttempt = await captureSyncAssociation(
+    prepared.state.changeDir,
+    projectRoot,
+    prepared.manifest,
+  );
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
     postWrite: () => pruneEmptyDirectories(projectRoot, prepared.manifest),
@@ -156,14 +161,14 @@ export async function applyPreparedChangeSync(
   }
 
   try {
-    await (options.refreshEvidence ?? refreshQualityEvidenceAfterSync)(
-      prepared.state.changeDir,
-      projectRoot,
-      files,
-    );
+    if (options.refreshEvidence) {
+      await options.refreshEvidence(prepared.state.changeDir, projectRoot, files);
+    } else {
+      await persistSyncAssociation(associationAttempt);
+    }
   } catch (error) {
     throw new Error(
-      `Semantic sync committed, but evidence refresh failed; run xirang quality review to refresh evidence: ${(error as Error).message}`,
+      `SYNC_COMMITTED_QUALITY_ASSOCIATION_FAILED: Semantic Model changes are committed, but the quality completion association was not recorded: ${(error as Error).message}`,
       { cause: error },
     );
   }

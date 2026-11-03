@@ -8,8 +8,7 @@ import {
   getPendingChangeSync,
 } from './change-sync.js';
 import {
-  checkArchiveCompatibility,
-  checkQualityState,
+  readQualityCompletion,
   formatQualityGateFailure,
 } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -194,16 +193,15 @@ export class ArchiveCommand {
       return true;
     }
 
-    const state = await checkQualityState(changeDir, targetPath);
-    const compatibility = state.record ? checkArchiveCompatibility(state.record) : undefined;
+    const state = await readQualityCompletion(changeDir, targetPath);
     const failures: string[] = [];
 
-    if (state.status !== 'clean' || !compatibility?.compatible) {
+    if (state.status !== 'all_done' || state.gaps.length > 0 || state.unsupported) {
       failures.push(
-        formatQualityGateFailure(state, compatibility, {
+        formatQualityGateFailure({ status: 'dirty', changedFiles: state.changedFiles, details: state.gaps, information: {} }, undefined, {
           changeName,
           command: 'archive',
-        }),
+        }) + (state.diagnostic ? `\n${state.diagnostic}` : ''),
       );
     }
 

@@ -108,7 +108,12 @@ describe('subagent generation', () => {
   it.each(['xirang-reviewer', 'xirang-optimizer', 'xirang-experimenter'])('按 %s 能力渲染四工具权限和模型', name => {
     const template = INTERNAL_SUBAGENT_TEMPLATES.find(item => item.name === name)!;
     expect(template).toBeDefined();
-    const writable = name === 'xirang-experimenter';
+    const writable = name !== 'xirang-reviewer';
+    if (name === 'xirang-optimizer') {
+      expect(template.tools).toEqual(['read', 'grep', 'find', 'bash', 'write', 'edit']);
+      expect(template.disallowedTools ?? []).not.toContain('write');
+      expect(template.disallowedTools ?? []).not.toContain('edit');
+    }
     const claude = markdownFrontmatter(generateSubagentContent(template, 'claude', 'TEST'));
     const pi = markdownFrontmatter(generateSubagentContent(template, 'pi', 'TEST'));
     for (const [metadata, write, edit] of [[claude, 'Write', 'Edit'], [pi, 'write', 'edit']] as const) {

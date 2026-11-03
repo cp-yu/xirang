@@ -113,7 +113,7 @@ describe('workflow installation planning', () => {
       path.join(testDir, '.xirang', 'references', 'xirang-apply-step-4-optimization.md')
     );
     expect(artifacts.skillFiles).toContain(
-      path.join(testDir, '.xirang', 'references', 'xirang-output-protocol.md')
+      path.join(testDir, '.xirang', 'references', 'xirang-quality-cli.md')
     );
     expect(artifacts.agentFiles).toContain(
       path.join(testDir, '.claude', 'agents', 'xirang-reviewer.md')

@@ -142,7 +142,10 @@ describe('introspect', () => {
     expect(quality).toBeDefined();
     expect(quality?.subcommands?.map((command) => command.name)).toEqual([
       'review',
-      'optimize',
+      'delegation',
+      'verification',
+      'conclusion',
+      'checkpoint',
       'status',
       'seal',
     ]);

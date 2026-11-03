@@ -25,11 +25,7 @@ import {
   QUALITY_SIMPLE_CHANGE_FAST_PATH,
   QUALITY_STATE_MACHINE_DIAGRAM,
 } from '../../../../src/core/templates/fragments/xirang-fragments.js';
-import {
-  DIRECTION_LEVEL_VALUES,
-  DIRECTION_STATUS_VALUES,
-  STOP_REASON_VALUES,
-} from '../../../../src/core/quality/validators.js';
+
 
 const RETIRED_QUALITY_TOKENS = [
   'xirang verify',
@@ -57,35 +53,6 @@ describe('current CLI documentation', () => {
       totals: { items: 1, passed: 1, failed: 0 },
       byType: { change: { items: 1, passed: 1, failed: 0 } },
     });
-  });
-
-  it('describes the quality gate with the current command surface', () => {
-    const cli = readFileSync(path.join(process.cwd(), 'docs', 'cli.md'), 'utf8');
-
-    for (const command of ['review', 'optimize', 'status', 'seal']) {
-      expect(cli).toContain(`xirang quality ${command}`);
-    }
-    for (const token of RETIRED_QUALITY_TOKENS) {
-      expect(cli, `docs/cli.md still references ${token}`).not.toContain(token);
-    }
-    expect(cli).not.toContain('two-phase');
-  });
-
-  it('pairs every documented finalize example with a summary', () => {
-    const docs = readFileSync(path.join(process.cwd(), 'docs', 'cli.md'), 'utf8');
-    const applyReference = readFileSync(
-      path.join(process.cwd(), '.xirang', 'references', 'xirang-apply-step-4-optimization.md'),
-      'utf8'
-    );
-
-    for (const surface of [docs, applyReference]) {
-      for (const line of surface.split('\n')) {
-        if (!line.includes('"stopReason":"')) {
-          continue;
-        }
-        expect(line, `finalize example without summary: ${line}`).toContain('summary');
-      }
-    }
   });
 
   it('keeps every active surface free of retired quality tokens', () => {
@@ -141,95 +108,6 @@ describe('quality gate shared fragments', () => {
       expect(fragment).toBeTypeOf('string');
       expect(fragment.length).toBeGreaterThan(0);
     }
-  });
-
-  it('covers every quality CLI call input shape', () => {
-    for (const token of [
-      'Review',
-      'Optimization round',
-      'Finalize the loop',
-      '"result":"PASS"',
-      '"stopReason":"NO_ACTIONABLE"',
-      'xirang quality status',
-      'attempt',
-      'dependencies',
-      'priorityReason',
-    ]) {
-      expect(QUALITY_CLI_JSON_SCHEMA_REFERENCE).toContain(token);
-    }
-    for (const value of [...STOP_REASON_VALUES, ...DIRECTION_STATUS_VALUES, ...DIRECTION_LEVEL_VALUES]) {
-      expect(
-        QUALITY_CLI_JSON_SCHEMA_REFERENCE,
-        `missing shared enum value ${value}`
-      ).toContain(value);
-    }
-  });
-
-  it('covers all terminal and archive gate states', () => {
-    for (const token of [
-      'SKIPPED',
-      'NOT_NEEDED',
-      'IMPROVED',
-      'DEGRADED',
-      'ABORTED_UNSAFE',
-      'NOT_FINALIZED',
-      'Archive accepts',
-      'Archive rejects',
-    ]) {
-      expect(QUALITY_STATE_MACHINE_DIAGRAM).toContain(token);
-    }
-    expect(QUALITY_STATE_MACHINE_DIAGRAM).not.toContain('PENDING_VERIFICATION');
-  });
-
-  it('shows the full code-state transition path', () => {
-    const diagram = QUALITY_STATE_MACHINE_DIAGRAM;
-    const dirtyIndex = diagram.indexOf('dirty');
-    const reviewIndex = diagram.indexOf('xirang quality review');
-    const cleanIndex = diagram.indexOf('clean');
-    const optimizeIndex = diagram.indexOf('xirang quality optimize');
-    const sealIndex = diagram.indexOf('xirang quality seal');
-
-    expect(dirtyIndex).toBeGreaterThanOrEqual(0);
-    expect(reviewIndex).toBeGreaterThan(dirtyIndex);
-    expect(cleanIndex).toBeGreaterThan(reviewIndex);
-    expect(optimizeIndex).toBeGreaterThan(cleanIndex);
-    expect(sealIndex).toBeGreaterThan(optimizeIndex);
-  });
-
-  it('documents recovery from code and exit status only', () => {
-    for (const token of [
-      'INVALID_INPUT',
-      'diagnostics',
-      'allowedNextOperations',
-      'REVIEW_REQUIRED',
-      'REVIEW_NOT_REQUIRED',
-      'DIRECTION_LIMIT_REACHED',
-      'OPTIMIZATION_FINALIZED',
-      'ABORTED_UNSAFE',
-      'SEAL_NOT_READY',
-      'never infer the code state when no record exists',
-      'Fail closed when isolation metadata',
-    ]) {
-      expect(QUALITY_ERROR_RECOVERY_GUIDE).toContain(token);
-    }
-  });
-
-  it('documents the checkpoint table and its hard rules', () => {
-    const fragment = QUALITY_CHECKPOINT_STATE_MACHINE;
-
-    expect(fragment).toContain('[Mode: Checkpoint]');
-    for (const state of ['CREATED', 'BASELINE_RESTORED_FOR_RETRY', 'TERMINAL_ACCEPTED', 'TERMINAL_RESTORED']) {
-      expect(fragment).toContain(state);
-    }
-    expect(fragment.indexOf('| State | Trigger condition | Git operation |')).toBeLessThan(
-      fragment.indexOf('**Hard rules**')
-    );
-  });
-
-  it('keeps the mandatory optimizer delegation fast path', () => {
-    expect(QUALITY_SIMPLE_CHANGE_FAST_PATH).toContain('Spawn a fresh optimizer for every round');
-    expect(QUALITY_SIMPLE_CHANGE_FAST_PATH).toContain('MUST NOT generate, skip, or revoke a direction');
-    expect(QUALITY_SIMPLE_CHANGE_FAST_PATH).toContain('NO_ACTIONABLE');
   });
 });
 

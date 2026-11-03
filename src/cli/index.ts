@@ -73,8 +73,8 @@ program.option('--no-color', 'Disable color output');
 // Note: preAction receives (thisCommand, actionCommand) where:
 // - thisCommand: the command where hook was added (root program)
 // - actionCommand: the command actually being executed (subcommand)
-program.hook('preAction', async (thisCommand, actionCommand) => {
-  const opts = thisCommand.opts();
+program.hook('preAction', async (_thisCommand, actionCommand) => {
+  const opts = actionCommand.optsWithGlobals();
   if (opts.color === false) {
     process.env.NO_COLOR = '1';
   }
@@ -425,7 +425,15 @@ newCmd
   });
 
 export async function runCli(argv: string[] = process.argv): Promise<void> {
-  await program.parseAsync(argv);
+  const args = argv.slice(2);
+  const firstCommand = args.find((argument) => !argument.startsWith('-'));
+  const qualityInvocation = firstCommand === 'quality';
+  if (qualityInvocation) program.enablePositionalOptions(true);
+  try {
+    await program.parseAsync(argv);
+  } finally {
+    if (qualityInvocation) program.enablePositionalOptions(false);
+  }
 }
 
 const currentFile = fileURLToPath(import.meta.url);

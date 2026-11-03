@@ -62,25 +62,14 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
 
   // Optimization section with comments
   lines.push('# Optimization policy (optional)');
-  lines.push('# Set enabled: false to record SKIPPED without running the optimization loop.');
+  lines.push('# Set enabled: false to skip optimization; record the disabled reason through quality delegation.');
+  lines.push('# Independent baseline Review, applicable tests and final completion evidence are still required.');
   lines.push('# Example:');
   lines.push('#   optimization:');
   lines.push('#     enabled: true');
-  lines.push('#     directionLimit: 3');
-  lines.push('#     directionRetries: 2');
-  lines.push('#     minImpactLevel: low');
   if (materialized.optimization) {
     lines.push('optimization:');
     lines.push(`  enabled: ${materialized.optimization.enabled !== false}`);
-    if (materialized.optimization.directionLimit !== undefined) {
-      lines.push(`  directionLimit: ${materialized.optimization.directionLimit}`);
-    }
-    if (materialized.optimization.directionRetries !== undefined) {
-      lines.push(`  directionRetries: ${materialized.optimization.directionRetries}`);
-    }
-    if (materialized.optimization.minImpactLevel !== undefined) {
-      lines.push(`  minImpactLevel: ${materialized.optimization.minImpactLevel}`);
-    }
   }
   lines.push('');
 

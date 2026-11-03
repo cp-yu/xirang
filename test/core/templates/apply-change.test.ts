@@ -23,47 +23,10 @@ const applyReference = (path: string) => {
 describe('apply change workflow template', () => {
   it('keeps the generated apply reference set complete', () => {
     const references = getApplyChangeSkillTemplate().referenceFiles ?? [];
-    expect(references).toHaveLength(9);
+    expect(references).toHaveLength(11);
     for (const reference of references) {
       expect(reference.content.length).toBeGreaterThan(0);
     }
-  });
-
-  it('declares the coordinator role and delegates judgment to the subagents', () => {
-    const instructions = getApplyChangeSkillTemplate().instructions;
-    const coordinator = instructions
-      .split('## Quality Coordinator\n\n')[1]
-      .split('\n\n## Implementation Discipline')[0];
-
-    expect(coordinator).toContain('You are the apply coordinator, not a judge');
-    for (const role of ['Coordinator (you)', '`xirang-reviewer` subagent', '`xirang-optimizer` subagent', 'CLI (`xirang quality`)']) {
-      expect(coordinator).toContain(role);
-    }
-    expect(coordinator).toContain(
-      'MUST NOT substitute your own completeness, correctness, or coherence judgments for the reviewer\'s'
-    );
-    expect(coordinator).toContain('only determine');
-    expect(coordinator).toContain('the subagents read candidate files, git evidence, and change artifacts themselves');
-    expect(coordinator).toContain('Wait for a complete subagent payload');
-    expect(coordinator).toContain('A subagent that is slow is not a failed subagent');
-  });
-
-  it('labels stage switches with mode labels and states the delegation waiting rules', () => {
-    const instructions = getApplyChangeSkillTemplate().instructions;
-    const review = applyReference('references/apply-step-3-review.md');
-    const optimization = applyReference('references/apply-step-4-optimization.md');
-
-    expect(instructions).toContain('[Mode: Delegate Review] Step 3: Review');
-    expect(instructions).toContain('[Mode: Checkpoint] Step 4: Optimization');
-    expect(review).toContain('[Mode: Delegate Review]');
-    expect(optimization).toContain('[Mode: Checkpoint]');
-    for (const reference of [review, optimization]) {
-      expect(reference).toMatch(/wait for the complete/i);
-      expect(reference).toContain('A slow subagent is not a failed subagent');
-      expect(reference).toContain('ask the user before terminating it');
-    }
-    expect(review).toContain('passing only the three locating strings');
-    expect(review).not.toContain('findings');
   });
 
   it('queries the Semantic Model by identity before implementation', () => {
@@ -110,6 +73,8 @@ describe('apply change workflow template', () => {
       'references/apply-step-2-worktree-isolation.md',
       'references/apply-step-2-current-branch.md',
       'references/quality-recovery.md',
+      'references/quality-cli.md',
+      'references/optimization-failure-diagnosis.md',
       'references/apply-step-3-review.md',
       'references/apply-step-4-optimization.md',
       'references/apply-step-5-seal.md',
@@ -119,7 +84,7 @@ describe('apply change workflow template', () => {
     for (const reference of template.referenceFiles?.filter((file) => !file.path.includes('apply-step-2-')) ?? []) {
       const sharedPath = `.xirang/references/xirang-${reference.path.replace('references/', '')}`;
 
-      expect(template.instructions).toContain(sharedPath);
+      expect([template.instructions, ...template.referenceFiles!.map(file => file.content)].join('\n')).toContain(sharedPath);
     }
   });
 
@@ -212,34 +177,6 @@ describe('apply change workflow template', () => {
     expect(instructions).not.toContain('Pocock');
   });
 
-  it('runs task-level TDD before one change-level Review', () => {
-    const instructions = getApplyChangeSkillTemplate().instructions;
-
-    expect(instructions).toContain('Each task is one TDD loop');
-    expect(instructions).toContain('completing one task does not leave the loop');
-    expect(instructions).toContain('Completing one ordinary task MUST NOT trigger a change-level Review');
-    expect(instructions).toContain('Only after every pending task and Required Correction is complete');
-    expect(instructions).toContain('one change-level review of that completed state');
-    expect(instructions).toContain('require another change-level Review after recovery completes');
-  });
-
-  it('keeps apply optimization checkpoint commands in the optimization reference', () => {
-    const reference = applyReference('references/apply-step-4-optimization.md');
-
-    expect(reference).toContain('git commit -m "wip: opt-checkpoint-r0 (baseline)"');
-    expect(reference).toContain('git commit -m "wip: opt-r${N} (${directionId}: ${description})"');
-    expect(reference).toContain('git reset --hard HEAD');
-    expect(reference).toContain('git clean -fd');
-    expect(reference).toContain('judge the remaining directions');
-    expect(reference).toContain('xirang quality optimize');
-    expect(reference).toContain('xirang quality seal');
-    expect(reference).not.toContain('git stash push');
-    expect(reference).not.toContain('git stash apply');
-    expect(reference).not.toContain('git tag apply-opt-checkpoint');
-    expect(reference).not.toContain('verify phase1');
-    expect(reference).not.toContain('--type=');
-  });
-
   it('defines native git isolation and keeps dirty-state routing out of method references', () => {
     const preparation = applyReference('references/apply-step-1-preparation.md');
     const branch = applyReference('references/apply-step-2-branch-isolation.md');
@@ -305,44 +242,6 @@ describe('apply change workflow template', () => {
     }
   });
 
-  it('hard-stops unsafe quality states before recovery or implementation', () => {
-    const preparation = applyReference('references/apply-step-1-preparation.md');
-    const optimization = applyReference('references/apply-step-4-optimization.md');
-
-    expect(preparation).toContain('xirang quality status');
-    expect(preparation).toContain('`ABORTED_UNSAFE`');
-    expect(preparation.indexOf('`ABORTED_UNSAFE`')).toBeLessThan(preparation.indexOf('`state: "needs_review"`'));
-    expect(preparation).toContain('hard-stop for manual recovery');
-    expect(optimization).toContain('hard-stop for manual recovery');
-    expect(optimization).toContain('Do not return to implementation, rerun Review, seal, or archive automatically');
-    expect(optimization).not.toContain('then return to the implementation loop with Required Corrections');
-  });
-
-  it('reaches the shared recovery reference only after an explicit authorization gate', () => {
-    const optimization = applyReference('references/apply-step-4-optimization.md');
-    const recovery = applyReference('references/quality-recovery.md');
-    const instructions = getApplyChangeSkillTemplate().instructions;
-
-    expect(instructions).toContain('.xirang/references/xirang-quality-recovery.md');
-    expect(instructions).toContain('explicit user authorization');
-    expect(optimization).toContain('.xirang/references/xirang-quality-recovery.md');
-    expect(optimization).not.toContain('Otherwise implement only the direction');
-    expect(instructions.indexOf('ABORTED_UNSAFE')).toBeGreaterThan(-1);
-
-    const saveIndex = recovery.indexOf('Copy the raw bytes');
-    const verifyIndex = recovery.indexOf('Verify both saved copies');
-    const rotateIndex = recovery.indexOf('remove the active files');
-    expect(saveIndex).toBeGreaterThan(-1);
-    expect(verifyIndex).toBeGreaterThan(saveIndex);
-    expect(rotateIndex).toBeGreaterThan(verifyIndex);
-    expect(recovery).toContain('SHA-256');
-    expect(recovery).toContain('.quality-history');
-    expect(recovery).toContain('recovery.json');
-    expect(recovery).toContain('Do not treat a missing root record as a fresh start');
-    expect(recovery).toContain('directionsUsed');
-    expect(recovery).toContain('baseCommit');
-  });
-
   it('persists separate navigation and immutable evidence baselines', () => {
     const isolationReferences = [
       applyReference('references/apply-step-2-branch-isolation.md'),
@@ -356,80 +255,8 @@ describe('apply change workflow template', () => {
     expect(isolationReferences).toContain('git status --short');
   });
 
-  it('applies critical review writeback before recording the reviewer payload', () => {
-    const reference = applyReference('references/apply-step-3-review.md');
-    const validationIndex = reference.indexOf('Validate the reviewer payload');
-    const writebackIndex = reference.indexOf('Apply only CRITICAL `writeBackPlan` entries');
-    const recordIndex = reference.indexOf('xirang quality review "<change-name>"');
-
-    expect(validationIndex).toBeGreaterThan(-1);
-    expect(writebackIndex).toBeGreaterThan(validationIndex);
-    expect(recordIndex).toBeGreaterThan(writebackIndex);
-    expect(reference).toContain('tasksFileHash');
-  });
-
-  it('restores reviewed code before reporting a failed optimization attempt', () => {
-    const reference = applyReference('references/apply-step-4-optimization.md');
-    const snapshotIndex = reference.indexOf('repository-external temporary files');
-    const rollbackIndex = reference.indexOf('git reset --hard HEAD');
-    const restoreIndex = reference.indexOf('restore all saved files including untracked history');
-    const stateIndex = reference.indexOf('xirang quality status', restoreIndex);
-    const reportIndex = reference.indexOf('Report the round outcome');
-
-    expect(snapshotIndex).toBeGreaterThan(-1);
-    expect(rollbackIndex).toBeGreaterThan(snapshotIndex);
-    expect(restoreIndex).toBeGreaterThan(rollbackIndex);
-    expect(stateIndex).toBeGreaterThan(restoreIndex);
-    expect(reportIndex).toBeGreaterThan(stateIndex);
-    expect(reference).toContain('SHA-256');
-    expect(reference).toContain('.quality-history');
-    for (const file of ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json']) {
-      expect(reference).toContain(file);
-    }
-    expect(reference).toContain('Stop if restoration or hash verification fails');
-  });
-
-  it('orders the optimizer round, CLI selection, implementation, and round review', () => {
-    const content = applyReference('references/apply-step-4-optimization.md');
-
-    const delegateIndex = content.indexOf('Delegate to a fresh `xirang-optimizer`');
-    const submitIndex = content.indexOf('xirang quality optimize "<change-name>"');
-    const implementationIndex = content.indexOf('Implement the selected direction with TDD');
-    const verificationIndex = content.indexOf('Delegate to a fresh `xirang-reviewer`');
-    const outcomeIndex = content.indexOf('Report the round outcome on the next optimization call');
-
-    expect(delegateIndex).toBeGreaterThan(-1);
-    expect(submitIndex).toBeGreaterThan(delegateIndex);
-    expect(implementationIndex).toBeGreaterThan(submitIndex);
-    expect(verificationIndex).toBeGreaterThan(implementationIndex);
-    expect(outcomeIndex).toBeGreaterThan(verificationIndex);
-    expect(content.indexOf('judge the remaining directions', outcomeIndex)).toBeGreaterThan(outcomeIndex);
-    expect(content).toContain('optimization.directionLimit');
-    expect(content).toContain('optimization.directionRetries');
-    expect(content).toContain('a successful round never consumes the failure budget');
-    expect(content).toContain('preservationConstraints');
-    expect(content).not.toContain('Search/Replace');
-    expect(content).not.toContain('delete/stdlib/native/yagni/shrink');
-  });
-
-  it('documents the apply quality workflow through outline and step references', () => {
-    const instructions = getApplyChangeSkillTemplate().instructions;
-
-    expect(instructions).toContain('Step 3: Review');
-    expect(instructions).toContain('Step 4: Optimization');
-    expect(instructions).toContain('Step 5: Seal');
-    expect(instructions).toContain('delegate to the clean-context `xirang-reviewer` agent');
-    expect(instructions).toContain('delegate to the clean-context `xirang-optimizer` agent');
-    expect(instructions).not.toContain('invoke the `xirang-reviewer` skill');
-    expect(instructions).not.toContain('invoke the `xirang-optimizer` skill');
-
-    expect(applyReference('references/apply-step-3-review.md')).toContain('xirang quality review "<change-name>"');
-    expect(applyReference('references/apply-step-4-optimization.md')).toContain('xirang quality optimize');
-    expect(applyReference('references/apply-step-5-seal.md')).toContain('xirang quality seal "<change-name>"');
-  });
-
   it('renders the shared quality fragments only through the shared constants', () => {
-    const reference = applyReference('references/apply-step-4-optimization.md');
+    const reference = applyReference('references/quality-cli.md');
 
     expect(reference).toContain(QUALITY_STATE_MACHINE_DIAGRAM);
     expect(reference).toContain(QUALITY_CHECKPOINT_STATE_MACHINE);
@@ -438,41 +265,11 @@ describe('apply change workflow template', () => {
     expect(reference).toContain(QUALITY_SIMPLE_CHANGE_FAST_PATH);
   });
 
-  it('places the state diagram before the checkpoint table and the hard rules after it', () => {
-    const reference = applyReference('references/apply-step-4-optimization.md');
-
-    expect(reference.indexOf(QUALITY_STATE_MACHINE_DIAGRAM)).toBeLessThan(
-      reference.indexOf('| State | Trigger condition | Git operation |')
-    );
-    expect(reference.indexOf('| State | Trigger condition | Git operation |')).toBeLessThan(
-      reference.indexOf('**Hard rules**')
-    );
-  });
-
-  it('routes seal failure into Required Corrections and recovery in the seal reference', () => {
-    const reference = applyReference('references/apply-step-5-seal.md');
-
-    expect(reference).toContain('If seal fails, preserve');
-    expect(reference).toContain('convert them into Required Corrections context');
-    expect(reference).toContain('map the corrections to the affected task');
-    expect(reference).toContain('return to the implementation loop');
-    expect(reference).toContain('Do not pause on the first seal failure');
-  });
-
   it('uses canonical archive source reference for archive-ready handoff', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
     expect(instructions).toContain('Archive ready. Run /xirang:archive <change-name> to complete the workflow.');
     expect(instructions).not.toContain('Archive ready. Run /xirang-archive');
-  });
-
-  it('leaves branch and worktree cleanup to archive in the active apply workspace', () => {
-    const output = applyReference('references/apply-step-6-output.md');
-
-    expect(output).toContain('same Apply workspace');
-    expect(output).toContain('MUST NOT switch branches');
-    expect(output).toContain('MUST NOT remove the worktree');
-    expect(output).toContain('Archive workflow');
   });
 
   it('allows archive-ready handoff to be adapted per tool', () => {

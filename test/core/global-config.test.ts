@@ -113,9 +113,7 @@ describe('global-config', () => {
       expect(config).not.toHaveProperty('propose');
       expect(config.featureFlags).toEqual({});
       expect(config.apply).toHaveProperty('defaultIsolation');
-      expect(config.optimization).toHaveProperty('enabled');
-      expect(config.optimization).toHaveProperty('directionLimit');
-      expect(config.optimization).toHaveProperty('directionRetries');
+      expect(config.optimization).toEqual({ enabled: true });
     });
 
     it('should not create directory when reading non-existent config', () => {
@@ -161,9 +159,7 @@ describe('global-config', () => {
       expect(config).not.toHaveProperty('delivery');
       expect(config.featureFlags).toEqual({});
       expect(config.apply).toHaveProperty('defaultIsolation');
-      expect(config.optimization).toHaveProperty('enabled');
-      expect(config.optimization).toHaveProperty('directionLimit');
-      expect(config.optimization).toHaveProperty('directionRetries');
+      expect(config.optimization).toEqual({ enabled: true });
     });
 
     it('should log warning for invalid JSON', () => {
@@ -197,6 +193,23 @@ describe('global-config', () => {
 
       expect((config as any).unknownField).toBe('preserved');
       expect((config as any).futureOption).toBe(123);
+    });
+
+    it('warns about retired optimization fields without changing the legacy file', () => {
+      process.env.XDG_CONFIG_HOME = tempDir;
+      const configDir = path.join(tempDir, 'xirang');
+      const configPath = path.join(configDir, 'config.json');
+      const source = JSON.stringify({ optimization: { enabled: false, directionLimit: 4, directionRetries: 2, minImpactLevel: 'high' } });
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(configPath, source);
+
+      const config = getGlobalConfig();
+      const warnings = consoleWarnSpy.mock.calls.flat().join('\\n');
+
+      expect(config.optimization).toEqual({ enabled: false });
+      expect(warnings).toContain('optimization.directionLimit is retired and ignored');
+      expect(warnings).toContain('optimization.minImpactLevel is retired and ignored');
+      expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
     });
 
     it('should silently filter retired propose config while preserving other unknown fields', () => {

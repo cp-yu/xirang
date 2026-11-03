@@ -5,15 +5,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
-import { runCLI } from '../helpers/run-cli.js';
-import {
-  checkQualityState,
-  computeEvidenceFingerprint,
-  computeTasksFileHash,
-} from '../../src/core/quality/state.js';
-import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
-import type { QualityRecord } from '../../src/core/quality/types.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
+import { createCompleteQualityFixture, createBaselineOnlyQualityFixture } from '../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -64,34 +57,7 @@ describe('ArchiveCommand', () => {
   }
 
   async function writeFreshQualityRecord(changeDir: string): Promise<void> {
-    await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] verified\n', 'utf-8');
-    await fs.mkdir(path.join(tempDir, 'src'), { recursive: true });
-    await fs.writeFile(path.join(tempDir, 'src', 'archive-evidence.ts'), 'export const ok = true;\n', 'utf-8');
-    const result: QualityRecord = {
-      kind: 'review',
-      timestamp: new Date().toISOString(),
-      result: 'PASS',
-      issues: [],
-      tasksFileHash: (await computeTasksFileHash(path.join(changeDir, 'tasks.md')))!,
-      verificationContext: {
-        contractVersion: '1.0',
-        evidenceFiles: ['src/archive-evidence.ts'],
-        evidenceFingerprint: (await computeEvidenceFingerprint(['src/archive-evidence.ts'], tempDir)).hash,
-      },
-      optimization: {
-        directions: [],
-        histories: [],
-        directionsUsed: 0,
-        terminal: 'NOT_NEEDED',
-        stopReason: 'NO_ACTIONABLE',
-      },
-    };
-    await fs.writeFile(
-      path.join(changeDir, QUALITY_STATE_FILE),
-      `${JSON.stringify(result, null, 2)}\n`,
-      'utf-8'
-    );
-    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(result)}\n`, 'utf-8');
+    await createCompleteQualityFixture(tempDir, changeDir);
   }
 
   afterEach(async () => {
@@ -210,41 +176,17 @@ git:
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', changeName), { recursive: true });
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'xirang quality review missing-quality'
-      );
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'xirang archive missing-quality --no-verify'
+        'QUALITY_RECORD_UNSUPPORTED_OR_INVALID'
       );
     });
 
-    it('should block archive while the optimization loop is not finalized', async () => {
-      const changeName = 'unfinalized-quality';
+    it('blocks archive while v2 completion is incomplete', async () => {
+      const changeName = 'incomplete-quality';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      await writeFreshQualityRecord(changeDir);
-      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
-      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8'));
-      delete record.optimization.terminal;
-      delete record.optimization.stopReason;
-      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
-      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
+      await createBaselineOnlyQualityFixture(tempDir, changeDir);
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/NOT_FINALIZED/);
-    });
-
-    it('should block archive when optimization was aborted unsafe', async () => {
-      const changeName = 'aborted-quality';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
-      await writeFreshQualityRecord(changeDir);
-      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
-      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8'));
-      record.optimization.terminal = 'ABORTED_UNSAFE';
-      record.optimization.stopReason = 'UNSAFE';
-      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
-      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
-
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/ABORTED_UNSAFE/);
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/COMPLETION_PLAN_REQUIRED/);
     });
 
     it('should archive when the quality record is clean and no sync is required', async () => {
@@ -271,21 +213,7 @@ git:
       await execFileAsync('git', ['add', '.'], { cwd: tempDir });
       await execFileAsync('git', ['commit', '-m', 'verified'], { cwd: tempDir });
 
-      const recordPath = path.join(changeDir, QUALITY_STATE_FILE);
-      const record = JSON.parse(await fs.readFile(recordPath, 'utf-8')) as QualityRecord;
-      record.verificationContext.gitHeadCommit = (
-        await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: tempDir })
-      ).stdout.trim();
-      await fs.writeFile(recordPath, `${JSON.stringify(record, null, 2)}\n`, 'utf-8');
-      await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`, 'utf-8');
-
-      await fs.writeFile(path.join(tempDir, 'checkpoint.txt'), 'phase 2 checkpoint\n', 'utf-8');
-      await execFileAsync('git', ['add', 'checkpoint.txt'], { cwd: tempDir });
-      await execFileAsync('git', ['commit', '-m', 'checkpoint'], { cwd: tempDir });
-
-      const qualityState = await checkQualityState(changeDir, tempDir);
-      expect(qualityState.status).toBe('clean');
-      expect(qualityState.information.gitHeadCommit?.matches).toBe(false);
+      await execFileAsync('git', ['commit', '--allow-empty', '-m', 'checkpoint'], { cwd: tempDir });
 
       await archiveCommand.execute(changeName, { yes: true });
 

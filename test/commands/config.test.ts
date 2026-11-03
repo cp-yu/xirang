@@ -190,9 +190,6 @@ rules:
       },
       optimization: {
         enabled: false,
-        directionLimit: 2,
-        directionRetries: 1,
-        minImpactLevel: 'low',
       },
       apply: {
         defaultIsolation: 'branch',
@@ -292,10 +289,10 @@ describe('config key validation', () => {
     expect(validateConfigKeyPath('optimization.enabled').valid).toBe(true);
   });
 
-  it('allows optimization.directionLimit and optimization.directionRetries keys', async () => {
+  it('rejects retired optimization direction limit keys', async () => {
     const { validateConfigKeyPath } = await import('../../src/core/config-schema.js');
-    expect(validateConfigKeyPath('optimization.directionLimit').valid).toBe(true);
-    expect(validateConfigKeyPath('optimization.directionRetries').valid).toBe(true);
+    expect(validateConfigKeyPath('optimization.directionLimit')).toMatchObject({ valid: false, retired: true });
+    expect(validateConfigKeyPath('optimization.directionRetries')).toMatchObject({ valid: false, retired: true });
   });
 
   it('rejects unsupported optimization nesting', async () => {

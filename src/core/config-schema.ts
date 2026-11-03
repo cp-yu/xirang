@@ -53,13 +53,9 @@ export const GlobalConfigSchema = z
       .optional()
       .default({}),
     optimization: z
-      .object({
-        enabled: z.boolean().optional().default(true),
-        directionLimit: z.number().int().min(1).max(50).optional().default(3),
-        directionRetries: z.number().int().min(0).max(10).optional().default(2),
-      })
+      .object({ enabled: z.boolean().optional().default(true) })
       .optional()
-      .default({ enabled: true, directionLimit: 3, directionRetries: 2 }),
+      .default({ enabled: true }),
     apply: z
       .object({
         defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
@@ -80,8 +76,6 @@ export const DEFAULT_CONFIG: GlobalConfigType = {
   featureFlags: {},
   optimization: {
     enabled: true,
-    directionLimit: 3,
-    directionRetries: 2,
   },
   apply: {
     defaultIsolation: 'ask',
@@ -128,15 +122,13 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
     if (rawKeys.length === 1) {
       return { valid: true };
     }
-    if (
-      rawKeys.length === 2 &&
-      (rawKeys[1] === 'enabled' || rawKeys[1] === 'directionLimit' || rawKeys[1] === 'directionRetries')
-    ) {
+    if (rawKeys.length === 2 && rawKeys[1] === 'enabled') {
       return { valid: true };
     }
     return {
       valid: false,
-      reason: 'optimization only supports the nested keys "enabled", "directionLimit", and "directionRetries"',
+      retired: rawKeys.length === 2 && ['directionLimit', 'directionRetries', 'minImpactLevel'].includes(rawKeys[1]),
+      reason: 'optimization only supports "enabled"; directionLimit, directionRetries, and minImpactLevel are retired',
     };
   }
 
