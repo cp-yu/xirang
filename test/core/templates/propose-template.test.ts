@@ -103,8 +103,8 @@ describe('propose template post-validation flow', () => {
   it('navigates the formal Semantic Model before authoring', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
-    expect(instructions).toContain('xirang arch search <query> --limit 20 --json');
-    expect(instructions).toContain('xirang arch impact <identities...> --depth 2 --json');
+    expect(instructions).toContain('xirang arch search <query> --limit <n>');
+    expect(instructions).toContain('xirang arch impact <identity> --depth <n> --json');
     expect(instructions).toContain('xirang arch query <identity> --json');
     expect(instructions).toContain('--contract');
     expect(instructions).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
@@ -116,14 +116,14 @@ describe('propose template post-validation flow', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     for (const token of [
       'xirang arch outline --format json',
-      'xirang arch impact <identities...> --depth 2 --json',
+      'xirang arch impact <identity> --depth <n> --json',
       'xirang arch query <identity> --json',
       'xirang arch snapshot --format json',
     ]) expect(instructions).toContain(token);
     expect(instructions).toContain(XIRANG_SHARED_CONTEXT);
 
     const outline = instructions.indexOf('xirang arch outline --format json');
-    const impact = instructions.indexOf('xirang arch impact <identities...> --depth 2 --json', outline);
+    const impact = instructions.indexOf('xirang arch impact <identity> --depth <n> --json', outline);
     const query = instructions.indexOf('xirang arch query <identity> --json', impact);
     expect(outline).toBeGreaterThan(-1);
     expect(impact).toBeGreaterThan(outline);
@@ -309,12 +309,9 @@ describe('propose template post-validation flow', () => {
   it('gates exact-version record handoff on CLI-recorded atomic coverage after final validation', () => {
     const body = getXirangProposeSkillTemplate().instructions;
     expect(body).toContain('xirang record list --json');
-    expect(body).toContain('shared **Inputs and authority** reload gate immediately before handoff');
+    expect(body).toContain('.xirang/references/xirang-design-record.md');
     expect(body).toContain('shared **Coverage gate**');
     expect(body).toContain('shared **Writing rules**');
-    expect(body).toContain('shared **Output and handoff** success and failure checks');
-    expect(body).toContain('discover records through the CLI even when the handoff does not mention one');
-    expect(body).toContain('record-source.md');
     const validate = body.indexOf('xirang validate --change "<name>" --json');
     const coverage = body.indexOf('xirang record coverage <explorationId> --change "<name>" --source-version <sourceVersion> --from <file> --json');
     const consume = body.indexOf('xirang record consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');

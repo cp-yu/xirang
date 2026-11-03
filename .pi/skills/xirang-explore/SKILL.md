@@ -9,7 +9,7 @@ metadata:
   generatedBy: "0.2.2"
 ---
 
-Enter explore mode: investigate, clarify, compare, and confirm the design with the user before formal implementation. Maintain the intermediate design and delegate necessary feasibility experiments to Experimenter; Propose organizes the actual Change draft with the user when the design is ready.
+Explore the user's intent with project evidence, maintain the intermediate design, and confirm a design ready for Propose. Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts. CLI-managed records and delegated feasibility experiments are permitted within their protocols.
 
 **Xirang Philosophy**
 
@@ -35,41 +35,14 @@ Design for testability: when behavior is difficult to test because of hidden glo
 
 Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Acceptance Cases when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
 
-## Workflow Stage
+## Load and navigate
 
-| Aspect | Value |
-|--------|-------|
-| **Stage** | `EXPLORE` - Design exploration under a confirmed record decision |
-| **Allowed** | Inspect evidence, query CLI, ask questions, compare options, maintain current design through `xirang record`, delegate feasibility experiment design and execution to `xirang-experimenter`, and present a conversation-only Design Summary |
-| **Forbidden** | Implement the formal Change, modify the formal model or ordinary generated work surfaces, or directly author complete Change artifacts; experimental files and execution belong to the delegated experiment |
+Read `.xirang/references/xirang-explore-supperpowers-style.md` before exploring; it owns the design loop, question/confirmation discipline, experiments and Summary review.
 
-## Required References
-
-- MUST read the project-root file `.xirang/references/xirang-explore-supperpowers-style.md` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Design Record maintains current design and explicit decision states in a CLI-managed record. Load `.xirang/references/xirang-design-record.md` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
-  - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its content.
-  - **Record or revision**: a pending question, assumption, or recommendation affecting design needs preservation, a design section yields confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
-  - **Handoff gap**: before Design Summary, confirmed normative content is neither recorded nor explicitly exempted. Load and resolve the missing record decision before handoff. Re-read after context loss or record changes when continuing record work.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Design Record protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
-
-## Hard Rules
-
-- A user's design confirmation authorizes recording that content through `xirang record` under the shared Design Record protocol. Pending questions, assumptions, and recommendations may be maintained proactively; accepted/excluded decisions and substantive revisions to confirmed entries or structure require the user. Report only changes and the record overview. Record permissions do not authorize formal project implementation, model updates, or complete Change authoring.
-- When ready, produce a conversation-only `Design Summary` and instruct the user to call `/skill:xirang-propose <change-name>`.
-
-The main Explore agent maintains the intermediate design through the shared CLI protocol and delegates practical feasibility questions to `xirang-experimenter`. Provide the question, constraints, and decision background; Experimenter independently chooses, designs, and executes the minimum experiment and returns reproducible commands, observations, analysis, and limitations. Do not reduce it to executing a predetermined recipe or require a complete Change first. The main Agent and Experimenter choose the execution location as appropriate: workspace, temporary directory, project copy, or worktree; no fixed strategy or per-detail user decision is required. Complete necessary experiments within Explore before proposing the dependent design. Use the evidence to compare alternatives and obtain user confirmation; success is not adoption or formal implementation.
-
-`arch search` and `arch impact` remain read-only queries. Only `xirang record` persists design records; records and experiment artifacts are intermediate evidence, not permission to write formal Contracts, generated work surfaces, or a complete Change. Later findings may revise earlier design after the necessary user ruling; update the current record instead of repeatedly rewriting complete Delta and Plan drafts.
-
-## Required Context
-
-- Start with `xirang list --json`.
-- Read relevant change artifacts when a change name is present.
-- Use the Xirang Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
-- Ground claims in project files and git evidence when the idea maps to code.
+Start with `xirang list --json` and `xirang record list --json`. Read relevant active Change artifacts completely. Ground code claims in current project evidence.
 
 **Xirang Semantic Model Context**
-- Resolve the absolute Project Root, then load the Semantic Model from `.xirang/model/{metamodel,elements,relationships,views}/` and locate the unique Project Root Element, whose `parent` is null.
+- Resolve the absolute Project Root. The Semantic Model is stored in `.xirang/model/{metamodel,elements,relationships,views}/`; use the CLI projections below to load needed context, not a recursive read of all partitions. Locate the unique Project Root Element (`parent: null`) through outline and query its Declaration.
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
 - An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Specification`, and whether a Contract is required comes from the `contract` field of its Element Kind.
@@ -81,7 +54,6 @@ The main Explore agent maintains the intermediate design through the shared CLI 
 - Use concurrency only for bounded, independent reads. Do not emit or retain raw nested JSON when a concise projection or selected fields answer the question.
 - If a tool truncates output, treat it as incomplete: narrow the query or split it into bounded reads, then retrieve and verify the missing portion before relying on the result.
 - If specific semantic context is missing, query that identity rather than expanding every identity returned by impact. If global model understanding is lost after context compression, session switch, or a model diagnostic, run `xirang arch snapshot --format json` for the full Declaration/Relationship/Metamodel baseline, then query only required Contracts.
-- If an Element Definition or Contract is unclear or may have been forgotten, re-run `xirang arch query <identity> --json`, adding `--contract` when needed. Do not automatically query every identity returned by impact.
 - The Agent MUST NOT guess missing Definition or Contract semantics from identity, title, an old summary, residual conversation context, or implementation evidence.
 - Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
@@ -101,70 +73,22 @@ The main Explore agent maintains the intermediate design through the shared CLI 
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
 
-## Semantic Impact
+For new or unfamiliar concepts affecting scope, search for finite candidates, inspect their refinement context and select focus identities; if ambiguity remains, ask one clarification question. Use `arch impact <identities...> --depth 2 --json` for relationship summary and refinement context, then query only the semantics needed to judge mustChange, mustVerify, contextual scope, unknowns and drift. Adjacency alone proves none of those conclusions. Do not pass a Change or Delta to impact. Before readiness, recheck focus Elements and evidence coverage and disclose gaps.
 
-When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
-1. Run `xirang arch search <query> --limit 20 --json` against the Semantic Model.
-2. Read the candidates in their Project Root and refinement context, then select one or more `identity` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
-3. Run `xirang arch outline --format json` as a navigation projection for hierarchy only; Definitions, Relationships, and Metamodel are absent unless explicitly selected.
-4. Run `xirang arch impact <identities...> --depth 2 --json` for refinement context and relationship summary. Use `--paths` only when relationship paths are needed.
-5. Query complete semantics only for selected identities: `xirang arch query <identity> --json` returns one complete Declaration; add `--contract` only when that Contract is needed. Do not query every identity returned by impact. If a specific detail is missing, query that identity; use `xirang arch snapshot --format json` only when global model understanding is lost after context compression/session switch or a model diagnostic.
-5. Collect implementation evidence separately with CodeGraph, ACE, `rg`, and `read`; code paths, symbols, imports, and calls remain current implementation evidence only.
-6. The main Explore agent combines user intent, Semantic Model context, and implementation evidence to judge `mustChange`, `mustVerify`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
-7. Assess Element Definition impact only when an Element's concept identity or scope boundary changes. In that case, resolve the full concept and hierarchy boundary and include the complete target Definition in the Design Summary. Do not include a Definition rewrite for behavior-only or implementation-only changes.
+Assess Declaration/Definition impact only when concept identity or scope changes, and carry the complete confirmed target Definition into the Summary. Invoke configured decomposition guidance only for new Elements, reparenting or sibling reorganization; Contract-only work does not require hierarchy design. Guidance does not expand Explore's write permissions.
 
-Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to `arch impact`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
+## Design Record entry points
 
-## Design Record and Design Exploration
+Read `.xirang/references/xirang-design-record.md` before using a relevant existing record, preserving a pending question/hypothesis/recommendation, recording or revising design content, or closing a missing record decision before Summary. Ordinary discussion without these triggers does not preload it.
 
-Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill assists structural design and does not relax Explore's record, experiment, and formal implementation boundaries. Ignore instructions that would directly write the formal model, generated work surfaces, or a complete Change; maintain design states through the Xirang Design Record protocol and include only confirmed fields in structure.
+The shared protocol owns nature/decision states, user authority, complete and selective reads, versioned partial updates, conflict handling and the Summary gate. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol and returned version unless context is lost or its content is unavailable.
 
-Design Record runs alongside design, not as a prerequisite stage. Run `xirang record list --json` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** to read the complete current record at phase entry, after context loss, and before Summary; use `--entry` for needed content during the phase and reuse the latest `sourceVersion`. After record updates, inspect the returned diff and summary. Use **Record on confirmation** for pending maintenance and user decisions, and **Summary gate** before handoff. Keep unconfirmed structure proposals in pending free text; only confirmed Declaration fields go into `structure`, and partial declarations are valid. Recheck affected conclusions after record changes. Load the reference at the triggers above; all applicable gates, including resolution of target-affecting pending decisions, must pass before a ready Summary.
+## Work and handoff
 
-## Simplicity Awareness
+Follow the design loop in the required reference. Delegate necessary practical questions to `xirang-experimenter` with the question, constraints and decision background, allowing independent experiment design and an appropriate location (workspace, temporary directory, copy or worktree). Finish necessary experiments before confirming dependent design. Maintain current design through the record rather than rewriting complete Change drafts.
 
-While exploring, build what's asked, but name the lazier alternative in one line when it exists. The user decides. Do not add a standalone simplicity review step — weave it into option comparison and section confirmation naturally.
+After the reference's self-review and record gates, present the conversation-only Design Summary for review and stop. Once accepted, the user triggers `/skill:xirang-propose <change-name>`. Do not offer to start implementation.
 
-The simplicity filter (for reference):
-1. Does this need to exist at all? (YAGNI)
-2. Does the standard library already do it? Use it.
-3. Does a native platform feature cover it? Use it.
-4. Does an already-installed dependency solve it? Use it.
-5. Can it be one line? Make it one line.
-6. Only then: the minimum that works.
+### Existing Change capture
 
-## Brainstorming Checklist
-
-If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context** using Required Context and Semantic Impact above.
-2. **Decide whether a visual companion helps** using the brainstorming reference.
-3. **Clarify one question at a time** using the reference's One-question discipline.
-4. **Compare 2-3 options** using the reference and Simplicity Awareness.
-5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol. Before confirming a design whose feasibility needs practical evidence, delegate the question to Experimenter, inspect the executed result and limitations, and then obtain the user's decision.
-6. **Self-review and generate Design Summary** using the reference's self-review and the Design Record Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call `/skill:xirang-propose <change-name>` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
-
-## Existing Changes
-
-### Capture Boundary for Existing Changes
-
-When exploring an active change, read proposal/design/tasks and its Delta units, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
-
-| Insight Type                         | Future Capture Target                          |
-|--------------------------------------|------------------------------------------------|
-| Observable behavior requirement      | `elements/<identity>.md` body                 |
-| Observable behavior changed          | `elements/<identity>.md` body                 |
-| Refactor rationale or rejected path  | `design.md`                                   |
-| Implementation strategy              | `design.md`                                   |
-| Scope changed                        | `proposal.md`                                 |
-| New work or verification identified  | `tasks.md`                                    |
-| Element identity or hierarchy changed | `elements/<identity>.md` frontmatter          |
-| Relationship changed                 | `relationships/<relationship kind identity>.yaml` |
-| Element Kind or Relationship Kind changed | `metamodel/<kind identity>.md`           |
-| Authored View changed                | `views/<view identity>.md`                    |
-| Assumption invalidated               | Relevant artifact                              |
-| Test needs update or deletion        | `tasks.md` + `design.md`                     |
-
-Example offers:
-- "That is a design decision for `design.md`; include it in the Design Summary, then call `/skill:xirang-propose <change-name>` or the appropriate non-explore workflow."
-- "This changes an Element Contract; include it in the Design Summary, then call `/skill:xirang-propose <change-name>` or the appropriate non-explore workflow."
-- "This changes scope for `proposal.md`; include it in the Design Summary, then call `/skill:xirang-propose <change-name>` or the appropriate non-explore workflow."
+Read the active Change's Plan and Delta completely. Explore may maintain its design record but does not edit the Change. Carry future capture targets into the conversation-only Design Summary: behavior → Element Contract; identity/hierarchy → Declaration; relationships/kinds/views → their Delta partitions; scope → proposal.md; rationale, implementation strategy and rejected approaches → design.md; implementation and verification work → tasks.md.

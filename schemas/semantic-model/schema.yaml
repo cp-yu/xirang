@@ -73,6 +73,7 @@ artifacts:
       - Declaration, Kind, and View entries add `operation: ADDED|MODIFIED|REMOVED`; ADDED and MODIFIED carry complete target content, while REMOVED carries only identity.
       - Element Contract target content is `## Specification`; Delta Section entries factor operation into `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` sections.
       - ADDED and MODIFIED Sections contain the complete target Section with a canonical `### Section:` header and a free body; REMOVED names only the Section.
+      - Each ADDED or MODIFIED Section must contain the uppercase keyword `SHALL` or `MUST` in its own body, before any Acceptance Case headers; keywords only inside case bodies do not satisfy this format check. Restate the confirmed commitment without adding a new restriction.
       - Existing titles under MODIFIED Sections stay exact; new Section titles follow `proseLanguage` except the four fixed English business-specification titles.
       - Agent MUST NOT author Acceptance Case operation labels.
       - When only Contract entries change, declaration frontmatter locates the Element without `operation`; when only the Declaration changes, leave the body empty.

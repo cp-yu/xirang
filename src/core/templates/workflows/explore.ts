@@ -17,147 +17,34 @@ import {
 
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged.`;
 
-const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Capture Boundary for Existing Changes
+const ACTIVE_CHANGE_CAPTURE_GUIDANCE = `### Existing Change capture
 
-When exploring an active change, read proposal/design/tasks and its Delta units, reference them naturally, and classify insights by where a future workflow should capture them. Do not update those artifacts in explore.
+Read the active Change's Plan and Delta completely. Explore may maintain its design record but does not edit the Change. Carry future capture targets into the conversation-only Design Summary: behavior → Element Contract; identity/hierarchy → Declaration; relationships/kinds/views → their Delta partitions; scope → proposal.md; rationale, implementation strategy and rejected approaches → design.md; implementation and verification work → tasks.md.`;
 
-| Insight Type                         | Future Capture Target                          |
-|--------------------------------------|------------------------------------------------|
-| Observable behavior requirement      | \`elements/<identity>.md\` body                 |
-| Observable behavior changed          | \`elements/<identity>.md\` body                 |
-| Refactor rationale or rejected path  | \`design.md\`                                   |
-| Implementation strategy              | \`design.md\`                                   |
-| Scope changed                        | \`proposal.md\`                                 |
-| New work or verification identified  | \`tasks.md\`                                    |
-| Element identity or hierarchy changed | \`elements/<identity>.md\` frontmatter          |
-| Relationship changed                 | \`relationships/<relationship kind identity>.yaml\` |
-| Element Kind or Relationship Kind changed | \`metamodel/<kind identity>.md\`           |
-| Authored View changed                | \`views/<view identity>.md\`                    |
-| Assumption invalidated               | Relevant artifact                              |
-| Test needs update or deletion        | \`tasks.md\` + \`design.md\`                     |
-
-Example offers:
-- "That is a design decision for \`design.md\`; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."
-- "This changes an Element Contract; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."
-- "This changes scope for \`proposal.md\`; include it in the Design Summary, then call \`/xirang:propose <change-name>\` or the appropriate non-explore workflow."`;
-
-const EXPLORE_SUPPERPOWERS_STYLE_REFERENCE = `# Superpowers-Style Explore Behavior Guide
-
-This reference is the Xirang explore adaptation of Superpowers brainstorming. It restores design-first discipline but does not restore original Superpowers file writing, committing, or implementation planning permissions.
-
-## Superpowers brainstorming source
-
-The core of Superpowers brainstorming is not free-form discussion, but compressing vague ideas into user-confirmed designs before implementation:
-- Read project context first, then determine problem boundaries.
-- Ask exactly one clarification question at a time.
-- For key choices, present 2-3 approaches with trade-offs and a recommendation.
-- Present design section by section; wait for user confirmation on each.
-- Self-review the design, then hand off for user review.
-- Enter the next workflow through explicit handoff.
-
-If todo is available, track these stages as a checklist and tick each completed stage.
-
-Xirang mapping:
-- The original design-document step maps to a conversation-only \`Design Summary\`.
-- The original commit step is removed. Explore maintains pending and user-decided design states through the Xirang-owned Design Record protocol and delegates experimental writing and execution to Experimenter; it does not directly author complete Change artifacts.
-- The original implementation-plan handoff maps to \`xirang-propose\` handoff.
-
-## Conversation language
+const EXPLORE_SUPPERPOWERS_STYLE_REFERENCE = `# Explore design guide
 
 ${CONVERSATION_LANGUAGE_GUIDANCE}
 
-## Hard gate before implementation
+## Design loop
 
-Do not implement the formal Change before design confirmation is complete. Necessary feasibility experiments may be designed and executed within Explore by Experimenter.
+Use a todo checklist when available: evidence → applicable decisions → confirmation → self-review → Summary review. Scale each stage to the actual decisions; a narrow change still needs a clear, confirmed problem, scope, approach and verification method. Reuse confirmations already supplied instead of asking for them again.
 
-Do not author a complete Change or implement the project during Explore. Maintain the intermediate design through the shared Design Record protocol, including pending questions and hypotheses. When the user says "ok", "that works", or chooses an option, record the corresponding decision; that confirmation does not authorize formal model changes, generated work-surface updates, or complete Change authoring. Experimenter may write and run the minimal feasibility experiment without treating its result as user adoption.
+1. Ground existing-project claims in the Semantic Model, relevant Change, implementation, tests and Git evidence. Identify unknowns and affected subsystem boundaries before design. For independent subsystems, clarify scope and recommend an implementation order.
+2. Ask one design-changing question per turn and wait. Resolve terminology before dependent choices. For a key choice, compare 2–3 viable approaches with trade-offs, fit and a reasoned recommendation; include a simpler alternative when useful. Do not manufacture alternatives for settled decisions. Use diagrams only when they clarify architecture, state, flow or dependencies; concise text or tables suffice for routine CLI or field decisions. Do not introduce a browser/server companion for these.
+3. Confirm applicable mechanisms or design sections incrementally: behavior and acceptance outcomes, architecture/components, data flow, technology, testing and risks. Preserve conditions, numbers, exceptions, event order and timing. Actively surface consequential failure, boundary and competing-event choices instead of leaving them for Propose to invent. After a revision, recheck dependent decisions. Apply the Design Record protocol immediately to each confirmation.
+4. If a design depends on practical feasibility, delegate the question, constraints and decision background to Experimenter before confirming it. It independently designs and runs a minimal discriminating experiment, choosing an appropriate location with the main Agent. Inspect reproducible observations and limitations; experimental success is evidence, not user adoption. Experiment files are not formal implementation.
+5. For verification, use Test Quality Guidance: identify the behavior at risk and existing coverage, then choose reuse/modify/add/delete/one-time with reasons. Name the authoritative suite when several exist. Include obsolete-test handling when needed and a One-time Verification subsection for evidence-only checks. Complete Contracts, Acceptance Cases and tasks belong to Propose.
 
-Simple changes still require design confirmation. For a narrow change, confirm only the applicable design sections, but do not skip the process: at minimum confirm the problem, impact scope, approach, and verification method.
+## Summary gate and handoff
 
-## Project context exploration
+Before a ready Summary:
+- Resolve contradictions, vague boundaries, and target-affecting pending choices. User agreement is required to exclude or defer in-scope behavior. Correct source-determined expression or reasoning errors yourself; ask for new or changed decisions.
+- Exercise relevant boundary/competing-event sequences against the design, and check necessary experimental evidence, testing strategy, risks and semantic impact coverage.
+- Pass the shared Design Record **Record decision and Summary gate**. It owns complete latest-record reload, capture completeness, conflicts and version binding.
 
-**Evidence-first discipline**: All claims about existing code, architecture, or technical decisions must be grounded in project evidence. Do not substitute general knowledge for project facts.
+Present the Design Summary in the conversation only. Preserve confirmed scope, behavior, rationale, conditions, numbers, exceptions, timing and acceptance outcomes, with applicable architecture, technology, testing and risks. Distinguish confirmed decisions, recommendations, unresolved items and user-approved exclusions. When record-backed, identify explorationId and checked sourceVersion instead of copying the record. Do not create a separate decision ledger.
 
-Before context reads, create the todo checklist: context, visual decision, one question, options, section approvals, self-review, handoff.
-
-Constrain the discussion with project facts first:
-- Read relevant Xirang change, Element Contract, design, and tasks.
-- Inspect relevant implementation files, tests, and git evidence.
-- Identify affected subsystems; if the request spans multiple independent subsystems, first clarify boundaries and recommend an implementation order.
-- Explicitly identify unknowns; do not substitute general experience for project evidence. When feasibility needs practical proof, delegate the question, constraints, and decision background to Experimenter for independent experimental design and actual execution. Use its method, reproducible observations, analysis, and limitations before confirming the dependent design. Keep experimental facts separate from user decisions.
-- Actively identify decisions the user has not yet considered, including applicable failure outcomes, competing events, and timing origins or tolerances. Explain the observable consequences of alternatives, recommend with reasons, and ask one question at a time. A recommendation is not a user decision; do not leave known in-scope choices for Propose to invent.
-
-## Just-in-time visual companion
-
-Use visual expression only when it reduces complexity. Suitable scenarios:
-- Architectural boundaries, state machines, data flow, dependency relationships.
-- Multi-option comparison.
-- When the user is stuck on abstract relationships.
-
-For routine CLI behavior, narrow fixes, field naming, or test selection, use concise text or tables; do not introduce a browser or server companion.
-
-## One-question discipline
-
-Ask only one design-changing question per turn, then wait for the answer; resolve terminology before impact and design questions. Do not bundle scope, API, data model, and testing strategy into a string of questions.
-
-If the choice set is clear, prefer presenting 2-3 options with differences explained; if unclear, first ask one question that narrows the problem space.
-
-## 2-3 approaches
-
-Provide 2-3 approaches for key design decisions. Each option includes:
-- Description.
-- Strengths.
-- Weaknesses or risks.
-- Best-fit scenario.
-
-When giving a recommendation, explain why and tie it to project constraints, not personal preference.
-
-## Section-by-section design approval
-
-Advance the design by section; do not dump a complete solution all at once. Common sections:
-- Observable behavior, responsibility boundaries, and key acceptance outcomes。
-- Architecture。
-- Core components。
-- Data flow。
-- Technology stack。
-- Testing strategy。
-- Risks and trade-offs。
-
-Confirm only the applicable design sections; narrow changes may omit sections that have no decision to make, but still require problem, impact scope, approach, and verification confirmation. Wait for user confirmation at the end of each section. When the user requests changes, revise that section and recheck dependent decisions before reconfirming.
-
-For the current target, confirm key conditions, actions, and observable expected outcomes, not just a test tool or method. Preserve applicable numerical limits, failure behavior, ordering and timing boundaries. Propose writes the complete Sections, Acceptance Cases, and tasks; Explore need not draft those artifacts or exhaustively enumerate tests.
-
-After each confirmed section, record it under the shared Design Record protocol before moving on.
-
-**Testing Strategy**: Apply Test Quality Guidance before classifying work. Identify the observable behavior at risk, inspect existing coverage, then choose reuse, modify, add, delete, or one-time verification. Do not plan one persistent test per Acceptance Case. Classify remaining items as persistent (test suite) or one-time verification (no persistent test file). When architecture or API change affects existing tests, list reuse/modify/delete/add/one-time items with reasons and note the authoritative suite if multiple suites exist. When one-time items exist, add a \`One-time Verification\` subsection.
-
-## Design Summary self-review
-
-Before generating the \`Design Summary\`, self-review:
-- Are there unresolved decisions affecting the current target? Ask the user before a ready handoff. Deferral requires user agreement on the excluded scope and its boundary, not an Agent decision to postpone required behavior.
-- Are there placeholders, vague boundaries, or contradictory decisions? To challenge the mechanism, try relevant boundary or competing-event sequences. Correct reasoning or expression errors when the confirmed design determines the answer; ask when resolution requires a new or changed decision.
-- Are the testing strategy and risks explained?
-- Does testing strategy include obsolete test handling when architectural changes affect existing tests?
-- Has the Design Record **Summary gate** passed for the confirmed conversation and any current record?
-- Are necessary feasibility experiments complete, with evidence and limits checked? Are target-affecting pending decisions resolved and experimental facts kept distinct from user adoption? Is the current design maintained as an intermediate record, with complete Change authoring and formal implementation left to the appropriate later workflows?
-
-The \`Design Summary\` must stay in the conversation; do not persist it as a file. CLI record maintenance and delegated experiment files follow their own protocols. Preserve confirmed behavior, scope, decisions and rationale, including conditions, numbers, exceptions, timing, and key acceptance outcomes, alongside applicable architecture, technology, testing strategy and risks. Keep recommendations and unselected alternatives distinct from confirmed decisions. Identify unresolved items and user-confirmed exclusions without implying they were implemented or approved. Unresolved decisions affecting the current target block a ready handoff. Use the record decision and handoff fields required by the Design Record **Summary gate**; do not create a separate decision ledger. Propose may still discover gaps while documenting this handoff.
-
-## User review gate
-
-After showing the \`Design Summary\` to the user, stop advancing; let the user review. When the user requests changes, return to the corresponding section and reconfirm.
-
-Only route to xirang-propose after the user reviews and accepts the Design Summary.
-
-## xirang-propose handoff
-
-After the user confirms the \`Design Summary\`, hand off using tool-neutral workflow names:
-
-\`\`\`
-Design Summary complete. Review the above design. If confirmed, use xirang-propose to generate artifacts.
-\`\`\`
-
-Do not use tool-specific call syntax in references. Do not imply that explore can create proposals, update designs, modify Element Contracts, commit files, or directly enter implementation.`;
+Stop after presenting the Summary for user review. User changes return to the affected design section and dependent checks. Only after the user accepts the Summary may they trigger xirang-propose; Explore does not author a complete Change, update formal model/generated work surfaces, commit or implement. Design Record operations and delegated experimental writes follow their own permissions.`;
 
 const DESIGN_RECORD_REFERENCE = `# Design Record Protocol
 
@@ -286,7 +173,7 @@ export function getExploreSkillTemplate(): SkillTemplate {
         content: DESIGN_RECORD_REFERENCE,
       },
     ],
-    instructions: `Enter explore mode: investigate, clarify, compare, and confirm the design with the user before formal implementation. Maintain the intermediate design and delegate necessary feasibility experiments to Experimenter; Propose organizes the actual Change draft with the user when the design is ready.
+    instructions: `Explore the user's intent with project evidence, maintain the intermediate design, and confirm a design ready for Propose. Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts. CLI-managed records and delegated feasibility experiments are permitted within their protocols.
 
 ${XIRANG_PHILOSOPHY}
 
@@ -294,38 +181,11 @@ ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${TEST_QUALITY_GUIDANCE}
 
-## Workflow Stage
+## Load and navigate
 
-| Aspect | Value |
-|--------|-------|
-| **Stage** | \`EXPLORE\` - Design exploration under a confirmed record decision |
-| **Allowed** | Inspect evidence, query CLI, ask questions, compare options, maintain current design through \`xirang record\`, delegate feasibility experiment design and execution to \`xirang-experimenter\`, and present a conversation-only Design Summary |
-| **Forbidden** | Implement the formal Change, modify the formal model or ordinary generated work surfaces, or directly author complete Change artifacts; experimental files and execution belong to the delegated experiment |
+Read \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring; it owns the design loop, question/confirmation discipline, experiments and Summary review.
 
-## Required References
-
-- MUST read the project-root file \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring. DO NOT proceed without reading it first. It is the authoritative Superpowers brainstorming behavior guide for hard gate, context exploration, visual companion judgment, one-question discipline, options comparison, section approval, Design Summary review, and propose handoff.
-- Design Record maintains current design and explicit decision states in a CLI-managed record. Load \`.xirang/references/xirang-design-record.md\` when a trigger below applies, before using the method; do not preload it for ordinary discussion with no trigger. It owns recording, the entry writing standard, reload and handoff.
-  - **Existing record**: a relevant record is discovered or supplied, including when resuming its exploration. Load before reading or relying on its content.
-  - **Record or revision**: a pending question, assumption, or recommendation affecting design needs preservation, a design section yields confirmations not covered by an explicit exemption, or the user requests recording or revising design material. Load before writing to the record; do not wait for the user to name the tool.
-  - **Handoff gap**: before Design Summary, confirmed normative content is neither recorded nor explicitly exempted. Load and resolve the missing record decision before handoff. Re-read after context loss or record changes when continuing record work.
-- Do not reconstruct or duplicate Superpowers behavior from this prompt. Do not reconstruct or duplicate the Design Record protocol either. This prompt defines boundaries, context loading, semantic impact navigation, and proposal routing only.
-
-## Hard Rules
-
-- A user's design confirmation authorizes recording that content through \`xirang record\` under the shared Design Record protocol. Pending questions, assumptions, and recommendations may be maintained proactively; accepted/excluded decisions and substantive revisions to confirmed entries or structure require the user. Report only changes and the record overview. Record permissions do not authorize formal project implementation, model updates, or complete Change authoring.
-- When ready, produce a conversation-only \`Design Summary\` and instruct the user to call \`/xirang:propose <change-name>\`.
-
-The main Explore agent maintains the intermediate design through the shared CLI protocol and delegates practical feasibility questions to \`xirang-experimenter\`. Provide the question, constraints, and decision background; Experimenter independently chooses, designs, and executes the minimum experiment and returns reproducible commands, observations, analysis, and limitations. Do not reduce it to executing a predetermined recipe or require a complete Change first. The main Agent and Experimenter choose the execution location as appropriate: workspace, temporary directory, project copy, or worktree; no fixed strategy or per-detail user decision is required. Complete necessary experiments within Explore before proposing the dependent design. Use the evidence to compare alternatives and obtain user confirmation; success is not adoption or formal implementation.
-
-\`arch search\` and \`arch impact\` remain read-only queries. Only \`xirang record\` persists design records; records and experiment artifacts are intermediate evidence, not permission to write formal Contracts, generated work surfaces, or a complete Change. Later findings may revise earlier design after the necessary user ruling; update the current record instead of repeatedly rewriting complete Delta and Plan drafts.
-
-## Required Context
-
-- Start with \`xirang list --json\`.
-- Read relevant change artifacts when a change name is present.
-- Use the Xirang Semantic Model for Project Root intent, refinement, Element Contracts, and semantic relationships; use live repository tools for code evidence.
-- Ground claims in project files and git evidence when the idea maps to code.
+Start with \`xirang list --json\` and \`xirang record list --json\`. Read relevant active Change artifacts completely. Ground code claims in current project evidence.
 
 ${XIRANG_SHARED_CONTEXT}
 
@@ -333,49 +193,21 @@ ${ELEMENT_DEFINITION_SEMANTICS}
 
 ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
-## Semantic Impact
+For new or unfamiliar concepts affecting scope, search for finite candidates, inspect their refinement context and select focus identities; if ambiguity remains, ask one clarification question. Use \`arch impact <identities...> --depth 2 --json\` for relationship summary and refinement context, then query only the semantics needed to judge mustChange, mustVerify, contextual scope, unknowns and drift. Adjacency alone proves none of those conclusions. Do not pass a Change or Delta to impact. Before readiness, recheck focus Elements and evidence coverage and disclose gaps.
 
-When a new module, workflow, command, configuration key, project concept, or unfamiliar domain term affects scope:
-1. Run \`xirang arch search <query> --limit 20 --json\` against the Semantic Model.
-2. Read the candidates in their Project Root and refinement context, then select one or more \`identity\` values as focus Elements. If no candidate or multiple plausible candidates remain, ask one clarification question instead of guessing.
-3. Run \`xirang arch outline --format json\` as a navigation projection for hierarchy only; Definitions, Relationships, and Metamodel are absent unless explicitly selected.
-4. Run \`xirang arch impact <identities...> --depth 2 --json\` for refinement context and relationship summary. Use \`--paths\` only when relationship paths are needed.
-5. Query complete semantics only for selected identities: \`xirang arch query <identity> --json\` returns one complete Declaration; add \`--contract\` only when that Contract is needed. Do not query every identity returned by impact. If a specific detail is missing, query that identity; use \`xirang arch snapshot --format json\` only when global model understanding is lost after context compression/session switch or a model diagnostic.
-5. Collect implementation evidence separately with CodeGraph, ACE, \`rg\`, and \`read\`; code paths, symbols, imports, and calls remain current implementation evidence only.
-6. The main Explore agent combines user intent, Semantic Model context, and implementation evidence to judge \`mustChange\`, \`mustVerify\`, contextual scope, unknowns, and architecture drift. Relationship adjacency does not by itself prove a modification or verification conclusion.
-7. Assess Element Definition impact only when an Element's concept identity or scope boundary changes. In that case, resolve the full concept and hierarchy boundary and include the complete target Definition in the Design Summary. Do not include a Definition rewrite for behavior-only or implementation-only changes.
+Assess Declaration/Definition impact only when concept identity or scope changes, and carry the complete confirmed target Definition into the Summary. Invoke configured decomposition guidance only for new Elements, reparenting or sibling reorganization; Contract-only work does not require hierarchy design. Guidance does not expand Explore's write permissions.
 
-Read active Change artifacts completely when one is in scope, but do not pass a Change or Semantic Delta to \`arch impact\`. Before proposal readiness, recheck the selected focus Elements and evidence coverage; disclose gaps instead of inferring missing evidence.
+## Design Record entry points
 
-## Design Record and Design Exploration
+Read \`.xirang/references/xirang-design-record.md\` before using a relevant existing record, preserving a pending question/hypothesis/recommendation, recording or revising design content, or closing a missing record decision before Summary. Ordinary discussion without these triggers does not preload it.
 
-Apply decomposition guidance before comparing structural options only when the confirmed intent adds Elements, changes a parent, or reorganizes a sibling set. For Contract-only, behavior-only, or implementation-only exploration, do not invoke the decomposition skill or invent hierarchy work. Invoking a custom decomposition skill assists structural design and does not relax Explore's record, experiment, and formal implementation boundaries. Ignore instructions that would directly write the formal model, generated work surfaces, or a complete Change; maintain design states through the Xirang Design Record protocol and include only confirmed fields in structure.
+The shared protocol owns nature/decision states, user authority, complete and selective reads, versioned partial updates, conflict handling and the Summary gate. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol and returned version unless context is lost or its content is unavailable.
 
-Design Record runs alongside design, not as a prerequisite stage. Run \`xirang record list --json\` to discover an applicable Change-context record. Use the shared protocol's **Inputs and authority** to read the complete current record at phase entry, after context loss, and before Summary; use \`--entry\` for needed content during the phase and reuse the latest \`sourceVersion\`. After record updates, inspect the returned diff and summary. Use **Record on confirmation** for pending maintenance and user decisions, and **Summary gate** before handoff. Keep unconfirmed structure proposals in pending free text; only confirmed Declaration fields go into \`structure\`, and partial declarations are valid. Recheck affected conclusions after record changes. Load the reference at the triggers above; all applicable gates, including resolution of target-affecting pending decisions, must pass before a ready Summary.
+## Work and handoff
 
-## Simplicity Awareness
+Follow the design loop in the required reference. Delegate necessary practical questions to \`xirang-experimenter\` with the question, constraints and decision background, allowing independent experiment design and an appropriate location (workspace, temporary directory, copy or worktree). Finish necessary experiments before confirming dependent design. Maintain current design through the record rather than rewriting complete Change drafts.
 
-While exploring, build what's asked, but name the lazier alternative in one line when it exists. The user decides. Do not add a standalone simplicity review step — weave it into option comparison and section confirmation naturally.
-
-The simplicity filter (for reference):
-1. Does this need to exist at all? (YAGNI)
-2. Does the standard library already do it? Use it.
-3. Does a native platform feature cover it? Use it.
-4. Does an already-installed dependency solve it? Use it.
-5. Can it be one line? Make it one line.
-6. Only then: the minimum that works.
-
-## Brainstorming Checklist
-
-If todo is available, create this checklist before context reads and tick each stage as completed. Explore MUST run this sequence before saying a proposal is ready:
-1. **Explore project context** using Required Context and Semantic Impact above.
-2. **Decide whether a visual companion helps** using the brainstorming reference.
-3. **Clarify one question at a time** using the reference's One-question discipline.
-4. **Compare 2-3 options** using the reference and Simplicity Awareness.
-5. **Confirm the applicable design sections** using the reference's Section-by-section design approval, including its Testing Strategy and the shared Design Record protocol. Before confirming a design whose feasibility needs practical evidence, delegate the question to Experimenter, inspect the executed result and limitations, and then obtain the user's decision.
-6. **Self-review and generate Design Summary** using the reference's self-review and the Design Record Summary gate. Recheck selected focus Elements and evidence coverage. Present the Design Summary, then end with: "Design Summary complete. Review the above design. If confirmed, call \`/xirang:propose <change-name>\` generate artifacts." After presenting the Design Summary, STOP — do not offer to run a workflow or ask follow-up questions. Only the user triggers the next workflow.
-
-## Existing Changes
+After the reference's self-review and record gates, present the conversation-only Design Summary for review and stop. Once accepted, the user triggers \`/xirang:propose <change-name>\`. Do not offer to start implementation.
 
 ${ACTIVE_CHANGE_CAPTURE_GUIDANCE}`,
     license: 'MIT',
