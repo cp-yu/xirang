@@ -1,0 +1,41 @@
+---
+operation: "MODIFIED"
+entity: "element-declaration"
+identity: "optimizer"
+kind: "element"
+parent: "internal-agents"
+title: "Optimizer"
+definition: "Optimizer 是接受主 Agent 委托、在保持目标语义与行为的范围内完成优化的 Internal Agent，独立建模以明确受托写入与证据交付责任。它独立读取当前依据，发现、分组或合并机会，修改相关实现与测试，执行局部验证并保存必要进展和恢复状态；最终验证范围、后续委托和 Change 收尾由主 Agent 判断，独立 Review 由 Reviewer 承担。"
+---
+
+## MODIFIED Sections
+
+### Section: 独立取得 Optimization 依据
+
+Optimizer SHALL 独立读取 Semantic Model、Change、当前代码、已通过的基线 Review、委托范围及恢复位置、项目证据和相关历史。新探索使用 fresh context，恢复可由原 Opt 或接手者继续原委托；不继承主 Agent 的实现判断作为事实。
+
+### Section: 交付结构化 Optimization 结论
+
+Optimizer SHALL 交付实际保留改动、改善与影响范围和行为保持依据，测试覆盖行为、实际结果与证据位置，未完成/放弃事项及原因和撤销结果、遗留问题（无则明确说明），以及后续优化和验证建议及理由。多项小优化可共享简短说明与测试证据，不要求固定标题或逐方向表单；CLI 生成机械关联。交付仅表示本次委托完成，主 Agent 决定是否继续及最终验证。
+
+## ADDED Sections
+
+### Section: 在委托范围内修改并测试
+
+Optimizer SHALL 自主发现、分组、合并并实现相关优化，可修改、新增、删除、移动必要实现与测试文件；范围按当前 Change 目标与实际影响判断，按需追踪依赖和公共调用方。没有对应测试时 SHALL 先补测试再改实现，修改后运行局部测试并真实记录测试时状态。Opt 可按需保存中间恢复状态，不自行宣布整个 Change 完成或将自测作为独立 Review。发现实际影响超出预期时 SHALL 向主 Agent 交付该情况及依据，由主 Agent 调整验证范围或处理越界。
+
+### Section: 保存进展并可靠恢复
+
+Optimizer SHALL 在修改前确认已保存委托范围、起始状态、基线 Review 与可恢复位置；在放弃已尝试优化时保存事项、原因与处理结果；交付、主动暂停或交回主 Agent 时保存进展、测试结果及遗留问题。其余进度和中间快照按需保存，不要求每个小动作或方向 commit。中断后主 Agent 确认旧写入者停止，Opt 核对记录与磁盘，默认继续同一委托。记录 A 已完成而磁盘仍有半成品 B 时 SHALL 检查 B 和相互影响再继续、修正或撤销，不认定 B 已完成，也不自动丢弃 A/B。无法确认归属或恢复可靠时停止并交回主 Agent。
+
+### Section: 负责问题分流与取舍
+
+Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。
+
+优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。
+
+Opt MAY 放弃不能完成的可选优化，但 SHALL 在放弃时保存原因和处理结果并交付恢复后的测试证据，以供主 Agent 最终告知用户。Opt 与主 Agent 均可按收益、成本、风险与进展判断继续或停止，遵守用户和委托约束；没有新证据或实质进展的重复尝试 SHALL 停止并记录。
+
+## REMOVED Sections
+
+### Section: 保持只读且不推进 Checkpoint

@@ -1,0 +1,1212 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261103T031501Z-1c618bb0",
+  "sourceVersion": "725c09f70054886338cc60b22da54d8bb62499c701b3debbb5eb812e1873d5b3",
+  "targetFingerprint": "559c74ee07c36d4f9a30606a9201f18f0a0279bf6f50c220a4fd91527286a1c3",
+  "recordedAt": "2026-11-03T06:57:04.321Z",
+  "entries": [
+    {
+      "identity": "exploration-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "只调整 Optimization 及必要集成，普通 Apply 任务实现和其他阶段不扩展",
+          "location": {
+            "element": "apply-quality-integration"
+          },
+          "quote": "Apply Quality Integration 是 Apply 对基线独立审查、受托优化、恢复和最终验证的集成协议，独立承载 CRITICAL 写回顺序、角色分工、共享 references 和质量诊断消费。它让主 Agent 编排可写 Opt 及所需 Reviewer，保持普通 Apply 任务纪律；不定义 CLI 方向台账或重复 Quality 的判定引擎。"
+        }
+      ]
+    },
+    {
+      "identity": "risk-based-validation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "是否需要独立 Review/全量测试按实际风险决定，不固定每项优化执行全量测试或独立 Review",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "局部修改后运行对应局部测试验证",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "先补测试再修改实现"
+          },
+          "quote": "Opt SHALL 先检查行为所属现有测试；有对应测试时复用，缺失时在实现改动前补充或扩展，然后修改实现并运行相关局部测试。行为保持测试可以在原实现上通过，不人为制造 RED。多项小优化可共享测试，公共调用方或组合影响按实际需要验证，并将扩大验证建议与证据交给主 Agent。"
+        },
+        {
+          "detail": "没有对应测试时在修改实现前补充对应测试",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "依然需要测试（低风险也必须测试）",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "正例：合并两项局部优化且对应测试通过时，主 Agent 可判断无需全量测试或增量 Review",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        }
+      ]
+    },
+    {
+      "identity": "validation-decision-owner",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主 Agent 收尾时确定最终验证范围并简短说明依据",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "不增加固定的独立风险审批环节",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "主 Agent 确定优化委托范围、处理越界与契约问题",
+          "location": {
+            "element": "agent",
+            "section": "负责优化范围与最终验证"
+          },
+          "quote": "主 Agent SHALL 确定优化委托范围、处理越界与契约问题，可读取实际代码与证据，依据收益、成本、风险、已覆盖范围及潜在机会判断是否继续。每次交付后可交回修正或启动 fresh-context 新探索，无需自行先找新方向，也不固定轮数或要求穷尽证明。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n主 Agent SHALL 在收尾告知放弃优化的事项、原因及处理结果；中断更换写入者前确认旧 Opt 停止，不能确认归属或恢复可靠时不继续完成。"
+        },
+        {
+          "detail": "Opt 承担发现、分组、修改、补充和运行局部测试",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "Opt 交付结果、需要保持的行为、实际改动、测试结果与证据及建议验证范围",
+          "location": {
+            "element": "optimizer",
+            "section": "交付结构化 Optimization 结论"
+          },
+          "quote": "Optimizer SHALL 交付实际保留改动、改善与影响范围和行为保持依据，测试覆盖行为、实际结果与证据位置，未完成/放弃事项及原因和撤销结果、遗留问题（无则明确说明），以及后续优化和验证建议及理由。多项小优化可共享简短说明与测试证据，不要求固定标题或逐方向表单；CLI 生成机械关联。交付仅表示本次委托完成，主 Agent 决定是否继续及最终验证。"
+        },
+        {
+          "detail": "发现影响超出预期时向主 Agent 交付该情况及依据，由主 Agent 调整验证范围",
+          "location": {
+            "element": "optimizer",
+            "section": "在委托范围内修改并测试"
+          },
+          "quote": "Optimizer SHALL 自主发现、分组、合并并实现相关优化，可修改、新增、删除、移动必要实现与测试文件；范围按当前 Change 目标与实际影响判断，按需追踪依赖和公共调用方。没有对应测试时 SHALL 先补测试再改实现，修改后运行局部测试并真实记录测试时状态。Opt 可按需保存中间恢复状态，不自行宣布整个 Change 完成或将自测作为独立 Review。发现实际影响超出预期时 SHALL 向主 Agent 交付该情况及依据，由主 Agent 调整验证范围或处理越界。"
+        },
+        {
+          "detail": "Opt 自身的测试与判断不作为独立 Review",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "允许多个优化合并",
+          "location": {
+            "element": "internal-agents",
+            "section": "按角色限定操作能力"
+          },
+          "quote": "Reviewer SHALL 保持只读，不通过 Bash 绕过写入限制。Optimizer SHALL 在委托范围内实际具有修改实现与相关测试的权限，自主分组、合并、补充及运行局部测试；缺少对应测试时先补测试再改实现。Experimenter MAY 编写并执行实验所需代码与文件。所有角色均不承担用户确认、正式模型提升或 Change 关闭；Opt 中间恢复状态不自动成为最终成功，最终验证由主 Agent 负责。"
+        },
+        {
+          "detail": "收尾判断基于 Opt 的累计交付与证据",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "记录主 Agent 最终结论"
+          },
+          "quote": "CLI SHALL 接受主 Agent 对累计交付的最终验证范围与理由，区分所需测试、增量 Review、基线缺陷修复 Review 和无需追加 Review 的判断。记录最终结论时检查必需结果和当前状态关联；主 Agent 对未受影响的原成功证据可明确记录适用范围、所依据实际差异与理由，单独关联当前状态并保留原运行状态，不把它记为新测试或 Reviewer PASS。失败、缺失或已确认受影响却未补齐的验证不得通过此关联绕过。允许多委托共享最终验证，不强制每次交付新 Review 或全量测试。CLI 不判断范围选择或自然语言依据是否充分。"
+        }
+      ]
+    },
+    {
+      "identity": "on-demand-optimizer-reassessment",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "按需重评：建议仍有效时无需重新 fresh 扫描、读取全部上下文和排序",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "再次调用须有实际评估需要：假设失效、建议不适用或新机会",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "一次委托可连续处理多个优化，不要求每项完成后返回主 Agent 重新委托",
+          "location": {
+            "element": "optimization",
+            "section": "委托内执行与局部验证"
+          },
+          "quote": "Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。"
+        },
+        {
+          "detail": "已知候选处理完且交付后可收尾，不强制再次调用 Optimizer 证明没有更多优化",
+          "location": {
+            "element": "quality",
+            "section": "按阶段与证据缺口推进"
+          },
+          "quote": "Quality SHALL 先完成普通实现的独立 Review，再进入委托式 Optimization。优化开始后，不以每次代码变化强制回到整条 Review 流程；主 Agent 可读取实际代码与证据，按累计改动判断后续委托和最终验证，必要时追加独立 Review。已知候选处理完且结果交付后可收尾，无需再次调用 Opt 证明不存在更多机会。"
+        },
+        {
+          "detail": "不固定轮数、不要求证明已无任何机会",
+          "location": {
+            "element": "optimization",
+            "section": "无需继续优化时完成"
+          },
+          "quote": "每次 Opt 完整交付后，主 Agent SHALL 判断是否值得继续。可交回具体问题修正，也可委托 fresh-context Opt 独立探索新机会，不要求主 Agent 先找到新方向。新 Opt 可读取前轮结果和失败记录，无需继承完整推理上下文。无新发现或收益很小时可停止，不固定轮数、不要求证明已无任何机会。最终验证 MAY 覆盖多次委托累计改动，具体风险应及时验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过时，主 Agent SHALL 根据改动范围、行为保持依据与覆盖判断是否需要全量测试或增量 Review；判断无需追加时保存依据即可完成所需验证并保存成功 checkpoint，不记为 Reviewer PASS。若判断需要增量 Review，SHALL 等待该 Review 通过才可完成。"
+        }
+      ]
+    },
+    {
+      "identity": "optimizer-write-responsibility",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Opt 是受托执行者，在委托范围内实际具有修改实现与相关测试的权限",
+          "location": {
+            "element": "internal-agents",
+            "section": "按角色限定操作能力"
+          },
+          "quote": "Reviewer SHALL 保持只读，不通过 Bash 绕过写入限制。Optimizer SHALL 在委托范围内实际具有修改实现与相关测试的权限，自主分组、合并、补充及运行局部测试；缺少对应测试时先补测试再改实现。Experimenter MAY 编写并执行实验所需代码与文件。所有角色均不承担用户确认、正式模型提升或 Change 关闭；Opt 中间恢复状态不自动成为最终成功，最终验证由主 Agent 负责。"
+        },
+        {
+          "detail": "可合并多个优化，不强制逐项交接",
+          "location": {
+            "element": "optimizer",
+            "section": "在委托范围内修改并测试"
+          },
+          "quote": "Optimizer SHALL 自主发现、分组、合并并实现相关优化，可修改、新增、删除、移动必要实现与测试文件；范围按当前 Change 目标与实际影响判断，按需追踪依赖和公共调用方。没有对应测试时 SHALL 先补测试再改实现，修改后运行局部测试并真实记录测试时状态。Opt 可按需保存中间恢复状态，不自行宣布整个 Change 完成或将自测作为独立 Review。发现实际影响超出预期时 SHALL 向主 Agent 交付该情况及依据，由主 Agent 调整验证范围或处理越界。"
+        },
+        {
+          "detail": "Opt 向主 Agent 交付结果与证据，主 Agent 保留最终验证范围判断",
+          "location": {
+            "element": "optimizer",
+            "section": "交付结构化 Optimization 结论"
+          },
+          "quote": "Optimizer SHALL 交付实际保留改动、改善与影响范围和行为保持依据，测试覆盖行为、实际结果与证据位置，未完成/放弃事项及原因和撤销结果、遗留问题（无则明确说明），以及后续优化和验证建议及理由。多项小优化可共享简短说明与测试证据，不要求固定标题或逐方向表单；CLI 生成机械关联。交付仅表示本次委托完成，主 Agent 决定是否继续及最终验证。"
+        },
+        {
+          "detail": "需要时由 Reviewer 独立检查优化结果（按风险增量/缺陷修复 Review）",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "普通 Apply 实现与其 Review 修正完成后 SHALL 执行 Change 级独立 Review，作为优化前基线。优化开始后，主 Agent 按实际风险决定是否追加增量 Review；修复基线遗漏的当前 Change 正确性缺陷后 SHALL 追加针对该问题及其影响的独立 Review。"
+        },
+        {
+          "detail": "原生权限必须实际可写，不得仅在 prompt 宣称可写而被权限阻止",
+          "location": {
+            "element": "subagent-self-read",
+            "section": "Subagent 工具权限定义"
+          },
+          "quote": "Reviewer SHALL 拥有读取、搜索与只读 Bash 验证能力，不允许 Edit/Write，也不通过 Bash 绕过。Optimizer SHALL 在主 Agent 委托范围内拥有实际读取、搜索、修改实现及测试、运行测试和保存必要进度的能力，可新增、删除或移动必要文件；不得仅在 prompt 宣称可写而由原生权限阻止。两者独立读取实际依据，不依赖主 Agent 转述内容。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-failure-diagnosis",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "失败优先按实际证据局部修正或撤销并验证，不固定整批回滚",
+          "location": {
+            "element": "quality",
+            "section": "失败优化恢复 Checkpoint"
+          },
+          "quote": "优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。"
+        },
+        {
+          "detail": "合并后无法直接定位时可拆分、二分或采用更合适方法（非强制顺序算法）",
+          "location": {
+            "element": "quality",
+            "section": "失败优化恢复 Checkpoint"
+          },
+          "quote": "优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。"
+        },
+        {
+          "detail": "多项优化相互作用时各部分单测通过但组合失败需检查组合影响",
+          "location": {
+            "element": "quality",
+            "section": "失败优化恢复 Checkpoint"
+          },
+          "quote": "优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。"
+        },
+        {
+          "detail": "失败定位方法放入新的共享 reference 文档供实际排查参考",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        },
+        {
+          "detail": "局部测试失败且原因明确时可直接定位、修正并重新验证",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        },
+        {
+          "detail": "最终测试/增量 Review 定位到某项改动时，针对该改动修正或撤销，保留其他有效工作",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        },
+        {
+          "detail": "允许更合适方法，不强制二分，不强制每次失败完整回滚重跑",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-checkpoints",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "优化开始前保留可恢复基线，确保能撤销本次优化并保留原实现",
+          "location": {
+            "element": "checkpoint",
+            "section": "Checkpoint 隔离状态"
+          },
+          "quote": "Quality SHALL 在优化修改前保留通过独立 Review 的可恢复基线，保存原实现与恢复位置。Opt MAY 按需要保存中间状态，例如完成一组相对独立优化或即将较大调整时；不强制每方向 Git commit。中间局部测试通过只支持排查恢复，不自动表示最终验证完成。最终状态完成主 Agent 确定的所需验证后 SHALL 保存 successful checkpoint。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n恢复 SHALL 保留既有代码、commits/checkpoints、当前质量记录和全部历史，不能用猜测性清理丢弃不明改动或失败原因。最终成功后代码再次变化 SHALL 重新判断受影响验证，旧成功 checkpoint 不证明新状态。"
+        },
+        {
+          "detail": "Opt 按需保存中间状态，例如完成一组相对独立优化或较大调整前",
+          "location": {
+            "element": "checkpoint",
+            "section": "Checkpoint 隔离状态"
+          },
+          "quote": "Quality SHALL 在优化修改前保留通过独立 Review 的可恢复基线，保存原实现与恢复位置。Opt MAY 按需要保存中间状态，例如完成一组相对独立优化或即将较大调整时；不强制每方向 Git commit。中间局部测试通过只支持排查恢复，不自动表示最终验证完成。最终状态完成主 Agent 确定的所需验证后 SHALL 保存 successful checkpoint。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n恢复 SHALL 保留既有代码、commits/checkpoints、当前质量记录和全部历史，不能用猜测性清理丢弃不明改动或失败原因。最终成功后代码再次变化 SHALL 重新判断受影响验证，旧成功 checkpoint 不证明新状态。"
+        },
+        {
+          "detail": "不强制每个优化方向创建 Git commit",
+          "location": {
+            "element": "checkpoint",
+            "section": "Checkpoint 隔离状态"
+          },
+          "quote": "Quality SHALL 在优化修改前保留通过独立 Review 的可恢复基线，保存原实现与恢复位置。Opt MAY 按需要保存中间状态，例如完成一组相对独立优化或即将较大调整时；不强制每方向 Git commit。中间局部测试通过只支持排查恢复，不自动表示最终验证完成。最终状态完成主 Agent 确定的所需验证后 SHALL 保存 successful checkpoint。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n恢复 SHALL 保留既有代码、commits/checkpoints、当前质量记录和全部历史，不能用猜测性清理丢弃不明改动或失败原因。最终成功后代码再次变化 SHALL 重新判断受影响验证，旧成功 checkpoint 不证明新状态。"
+        },
+        {
+          "detail": "最终状态完成主 Agent 判定所需验证后保存成功 checkpoint",
+          "location": {
+            "element": "quality",
+            "section": "成功优化推进 Checkpoint"
+          },
+          "quote": "最终状态完成主 Agent 判断所需的全部验证且证据仍适用时，Quality SHALL 保存最终 successful checkpoint。优化中的中间状态按恢复需要保存；局部测试通过不自动构成最终成功，也不要求每个方向 commit 或 Review。"
+        },
+        {
+          "detail": "只通过局部测试的中间状态可用于排查和恢复，不自动等于最终验证通过",
+          "location": {
+            "element": "checkpoint",
+            "section": "Checkpoint 隔离状态"
+          },
+          "quote": "Quality SHALL 在优化修改前保留通过独立 Review 的可恢复基线，保存原实现与恢复位置。Opt MAY 按需要保存中间状态，例如完成一组相对独立优化或即将较大调整时；不强制每方向 Git commit。中间局部测试通过只支持排查恢复，不自动表示最终验证完成。最终状态完成主 Agent 确定的所需验证后 SHALL 保存 successful checkpoint。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n恢复 SHALL 保留既有代码、commits/checkpoints、当前质量记录和全部历史，不能用猜测性清理丢弃不明改动或失败原因。最终成功后代码再次变化 SHALL 重新判断受影响验证，旧成功 checkpoint 不证明新状态。"
+        },
+        {
+          "detail": "Git 提交和 Review 不再绑定到每个优化方向",
+          "location": {
+            "element": "quality",
+            "section": "成功优化推进 Checkpoint"
+          },
+          "quote": "最终状态完成主 Agent 判断所需的全部验证且证据仍适用时，Quality SHALL 保存最终 successful checkpoint。优化中的中间状态按恢复需要保存；局部测试通过不自动构成最终成功，也不要求每个方向 commit 或 Review。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-completion-gate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Change 必须有独立 Review：优化前实现先通过独立 Review 作为基线",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "普通实现及基线 Review 修正后执行 Change 级独立 Review，该基线 Review 满足流程必需的 Review",
+          "location": {
+            "element": "change-implementation",
+            "section": "实现并独立验证目标状态"
+          },
+          "quote": "Change Implementation SHALL 由 Apply 依据 Expected Semantic Model 落实项目，并由 Verify 使用独立判断与可复现证据确认完整性、正确性和一致性。普通实现及基线 Review 修正完成后 SHALL 接受 Change 级独立 Review；优化由受托 Opt 执行，主 Agent 负责范围、后续投入及最终验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。"
+        },
+        {
+          "detail": "收尾门禁：所需验证全部完成且通过、证据对应当前状态、交付完整、无未解决正确性或恢复问题",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "正例：两项合并局部优化+测试通过，判断无需追加即可完成并保存成功 checkpoint",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "判断需要增量 Review 时必须等该 Review 通过才可完成",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "记录区分'执行 Review 并通过'与'判断无需追加 Review'，后者不记为 Reviewer PASS",
+          "location": {
+            "element": "review",
+            "section": "结论绑定被评估状态"
+          },
+          "quote": "Review 结论 SHALL 绑定实际被评估状态与范围，不因稍后保存记录而重绑当前代码。基线 PASS 不证明后续优化已被独立审查；主 Agent 判断无需追加 Review 不构成 Reviewer PASS。"
+        },
+        {
+          "detail": "不声称优化前的基线 Review 独立审查过优化后改动",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "系统 SHALL 分别判断基线 Review 的被审查状态、各测试/Review 的执行状态、当前委托交付和最终验证结论的适用性，不以最新一次通过 Review 的指纹作为唯一活动路由。测试 SHALL 在实际运行时捕获状态与真实结果，记录开始/结束状态不一致或非零退出时保留其事实，不当作成功当前验证。稍后报告只引用原证据，不将旧通过结果重新绑定当前代码。\n\n- **测试 S1、报告 S2**：在 S1 测试通过，代码改为 S2 后提交报告；证据仍指向 S1，不能据此声称 S2 已通过，需要主 Agent 重新判断受影响验证。\n- **验证适用性重判**：后续改动 SHALL 触发差异检查和主 Agent 对受影响验证的判断，不自动要求重跑未受影响的全部测试。主 Agent 可基于实际差异、验证范围和依赖影响，明确记录原成功测试或 scoped Review 对当前状态仍适用的范围与理由；该判断单独关联当前状态，不改写原执行指纹，也不声称重新运行过测试或 Review。失败结果、缺失结果或已经确认受影响而未补齐的验证不能因此满足完成条件。\n- **A 在 S1、B 在 S2**：A 在 S1 的局部测试通过，随后独立改动 B 并在 S2 测试通过；主 Agent 根据实际差异和依赖证据确认 B 不影响 A 的验证，可保留 A 的原运行证据并记录其对 S2 的适用判断，不强制重跑 A。若 B 修改 A 依赖的公共辅助函数，则须检查实际影响、补齐受影响验证后才能据此完成。\n- **失败或未交付**：保留失败/过期结果与未完成进度，但它们不能满足成功测试或完整交付条件。\n- **恢复历史代码**：旧匹配证据可按实际范围供判断，当前报告、放弃记录及最终结论不回退成旧版本；历史 PASS 不自动满足新声明验证。\n\n完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。"
+        },
+        {
+          "detail": "此后代码再次改变需重新判断受影响验证，不沿用失效结论",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        }
+      ]
+    },
+    {
+      "identity": "abandon-unsuccessful-optimization",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "无法修好的优化允许放弃并继续其他优化，不阻塞已正确的原始实现",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        },
+        {
+          "detail": "撤销问题改动、保留其他有效优化，交付失败原因及恢复后的测试证据",
+          "location": {
+            "element": "optimization-execution",
+            "section": "失败尝试与正确性缺陷分流"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n可选优化无法修好时 MAY 放弃；Opt SHALL 撤销问题改动、保留可靠结果，并交付原因和恢复后的测试证据。放弃记录当时保存，最终告知用户，未完成优化不阻塞正确且满足验证要求的 Change。"
+        },
+        {
+          "detail": "无法确认局部撤销可靠时恢复到可确认基线；恢复也无法确认时停止交回主 Agent，不带入最终结果",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        },
+        {
+          "detail": "无法完成的优化保留事项、原因与处理结果记录，最终交付时告知用户",
+          "location": {
+            "element": "quality",
+            "section": "保留失败方向与优化历史"
+          },
+          "quote": "Quality SHALL 保留已尝试但放弃的优化事项、原因、处理结果、实际测试证据及历史，在放弃时保存并在最终交付告知用户。失败尝试与保留的有效结果分开，不因一项可选优化未成功阻塞正确且满足验证要求的 Change。"
+        },
+        {
+          "detail": "失败记录与已保留的有效优化结果明确区分",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "保留未完成事项与历史"
+          },
+          "quote": "已尝试优化被放弃时 SHALL 保存事项、无法完成原因及处理结果，最终告知用户；交付/主动暂停/交回时保存进展、实际测试与遗留问题。失败尝试与有效保留结果分开，历史可供后续 Opt 读取，不能因可选尝试失败将整体结果笼统判为下降。中断未交付状态 SHALL NOT 当作完成。"
+        }
+      ]
+    },
+    {
+      "identity": "model-owned-optimization-budget",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "取消 directionLimit/directionRetries 逐方向硬限制，继续/放弃/停止由 Opt 与主 Agent 判断",
+          "location": {
+            "element": "optimization-execution",
+            "section": "模型判断继续与停止"
+          },
+          "quote": "Opt 与主 Agent SHALL 按收益、成本、风险、实际进展及明确委托约束判断继续、放弃或停止，无固定方向数量、失败次数或收益分级门槛。没有新证据或实质进展的重复尝试 SHALL 停止并记录。交付后主 Agent 可返回具体修正或启动 fresh-context 新探索，也可判断最终验证并收尾；不强制每批重评、固定轮数或无机会证明。"
+        },
+        {
+          "detail": "CLI 不按逐方向计数控制执行",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "系统 SHALL 提供优化委托起点、进度及交付的记录操作，保留范围、约束、起始状态、基线 Review 与恢复位置，关联实际报告与测试证据，由 CLI 生成委托身份、时间、版本及指纹。交付包含实际结果、验证、未完成/遗留及后续建议四类信息，允许自然语言灵活表达，不要求逐方向表单。过期版本或无效关联 SHALL 拒绝写入且保留原记录；CLI 不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。"
+        },
+        {
+          "detail": "退役配置键不进入有效配置、默认值或投影，残留值字段级诊断",
+          "location": {
+            "element": "project-config-loading",
+            "section": "诊断退役优化配置"
+          },
+          "quote": "optimization.directionLimit、optimization.directionRetries 与 optimization.minImpactLevel SHALL 不进入有效配置、默认值或投影；读取残留值时给出字段级明确退役诊断，不静默解释为新控制、不改写磁盘配置或自动迁移，其余有效字段按既有规则处理。optimization.enabled 保留默认 true。\n\n- **旧项目 YAML**：包含任一退役键时报告其路径，投影不包含该值，用户文件字节不变；新 setup/update 默认物化只添加 enabled，不自动删除已有键。Windows、macOS、Linux 的 .yaml/.yml 使用同一诊断规则。"
+        },
+        {
+          "detail": "主 Agent 可给预算/停止条件，Opt 在委托约束内执行；用户明确约束仍须遵守",
+          "location": {
+            "element": "optimization",
+            "section": "只选择有价值且可验证的事项"
+          },
+          "quote": "选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。\n\n- **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。"
+        },
+        {
+          "detail": "没有新证据或实质进展的重复尝试停止并记录",
+          "location": {
+            "element": "optimization",
+            "section": "只选择有价值且可验证的事项"
+          },
+          "quote": "选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。\n\n- **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。"
+        },
+        {
+          "detail": "主 Agent 对最终验证范围的判断责任保持不变",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        }
+      ]
+    },
+    {
+      "identity": "breaking-protocol-change",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "允许 breaking change，可重新设计协议、命令输入输出、台账与配置，不以旧形式兼容为前提（旧方向协议退役并诊断）",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。"
+        },
+        {
+          "detail": "不为旧 Change 增加向后兼容或自动迁移；旧活动质量记录不自动转换为新完成结论",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。"
+        },
+        {
+          "detail": "已归档记录原样保留为历史证据",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。"
+        },
+        {
+          "detail": "保留已有代码、commits/checkpoints 与历史记录，不自行清理或重写旧制品",
+          "location": {
+            "element": "checkpoint",
+            "section": "Checkpoint 隔离状态"
+          },
+          "quote": "Quality SHALL 在优化修改前保留通过独立 Review 的可恢复基线，保存原实现与恢复位置。Opt MAY 按需要保存中间状态，例如完成一组相对独立优化或即将较大调整时；不强制每方向 Git commit。中间局部测试通过只支持排查恢复，不自动表示最终验证完成。最终状态完成主 Agent 确定的所需验证后 SHALL 保存 successful checkpoint。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n恢复 SHALL 保留既有代码、commits/checkpoints、当前质量记录和全部历史，不能用猜测性清理丢弃不明改动或失败原因。最终成功后代码再次变化 SHALL 重新判断受影响验证，旧成功 checkpoint 不证明新状态。"
+        },
+        {
+          "detail": "旧项目 YAML 退役键：报告路径、投影排除、用户文件字节不变、不自动删除已有键",
+          "location": {
+            "element": "project-config-loading",
+            "section": "诊断退役优化配置"
+          },
+          "quote": "optimization.directionLimit、optimization.directionRetries 与 optimization.minImpactLevel SHALL 不进入有效配置、默认值或投影；读取残留值时给出字段级明确退役诊断，不静默解释为新控制、不改写磁盘配置或自动迁移，其余有效字段按既有规则处理。optimization.enabled 保留默认 true。\n\n- **旧项目 YAML**：包含任一退役键时报告其路径，投影不包含该值，用户文件字节不变；新 setup/update 默认物化只添加 enabled，不自动删除已有键。Windows、macOS、Linux 的 .yaml/.yml 使用同一诊断规则。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-delivery-form",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "以一次委托及实际交付为单位；取消逐方向选择、排序、依赖调度和状态迁移控制",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "系统 SHALL 提供优化委托起点、进度及交付的记录操作，保留范围、约束、起始状态、基线 Review 与恢复位置，关联实际报告与测试证据，由 CLI 生成委托身份、时间、版本及指纹。交付包含实际结果、验证、未完成/遗留及后续建议四类信息，允许自然语言灵活表达，不要求逐方向表单。过期版本或无效关联 SHALL 拒绝写入且保留原记录；CLI 不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。"
+        },
+        {
+          "detail": "基线 Review、Opt 执行报告、主 Agent 最终验证结论三类证据可区分且不必三个文件；不维护重复机器台账与人类报告",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "证据分工与机械关联"
+          },
+          "quote": "基线独立 Review、Opt 执行报告、主 Agent 最终验证结论 SHALL 可区分，不要求分别三个文件，也不维护重复机器台账和人类报告。代码状态、时间、委托标识、记录版本 SHALL 由 CLI 生成；Opt 不手工维护哈希。测试关联执行时状态，稍后提交报告不能改绑。内部未实施想法不强制预先登记、永久 ID、排序或重复字段。"
+        },
+        {
+          "detail": "报告围绕实际保留改动及收益/行为保持、实际测试与证据、未完成或撤销事项及原因、遗留问题与验证建议组织",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "Opt 报告 SHALL 包含四类必要信息：实际保留改动、改善及影响范围与行为保持依据；测试覆盖行为、实际结果及证据位置；放弃事项及原因、是否撤销、遗留问题，无此类事项时明确说明；是否值得继续及是否扩大测试或追加 Review 的建议与理由。表达形式、标题与详略按复杂度自主决定，多项小优化可共享简短说明及测试证据，复杂算法按实际行为约束展开。CLI 只检查必要信息和关联，不评价自然语言充分性。"
+        },
+        {
+          "detail": "不要求内部想法预先成为正式候选，不强制永久 ID、排序分值、重复字段或逐项登记",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "证据分工与机械关联"
+          },
+          "quote": "基线独立 Review、Opt 执行报告、主 Agent 最终验证结论 SHALL 可区分，不要求分别三个文件，也不维护重复机器台账和人类报告。代码状态、时间、委托标识、记录版本 SHALL 由 CLI 生成；Opt 不手工维护哈希。测试关联执行时状态，稍后提交报告不能改绑。内部未实施想法不强制预先登记、永久 ID、排序或重复字段。"
+        },
+        {
+          "detail": "报告详略随复杂度变化，须足以支持主 Agent 判断",
+          "location": {
+            "element": "internal-agents",
+            "section": "输出结构化结论"
+          },
+          "quote": "Internal Agents SHALL 向主 Agent 返回足以支持后续编排的证据与结果。Reviewer 返回所评估范围的独立结论与修正事项；Opt 返回实际保留改动、行为保持依据、测试与证据、放弃及遗留问题、后续建议；Experimenter 返回方法、观察结果与限制。Opt 的交付不决定整个 Optimization 完成，其自测不作为独立 Review；主 Agent 决定后续投入与最终验证，不替用户确认设计。"
+        },
+        {
+          "detail": "中间按需保存进度；未交付的中断状态不得作为完成",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        },
+        {
+          "detail": "主 Agent 结合报告、实际代码和证据决定追加验证；可交回 Opt 更新交付，不要求重走候选发现排序选择",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付不代替最终判断"
+          },
+          "quote": "Opt MAY 交付本次委托完成且无遗留问题，但主 Agent SHALL 判断继续投入或最终验证，可交回修正后更新交付，不要求重走全部候选发现排序。主 Agent 可启动 fresh-context 新探索而无需先提出具体方向；最终验证可覆盖多次交付累计改动，CLI 不选择下一项工作。"
+        },
+        {
+          "detail": "CLI 关联基线、报告、结论及对应代码状态并校验完成条件",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "quality seal SHALL 以同一声明完成条件检查当前结果，通过时输出 seal hash，否则逐项报告缺口。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 后续代码变化 SHALL 重新判断受影响验证，旧 seal 不证明新状态。"
+        },
+        {
+          "detail": "已撤销的失败优化记录在报告中，不将整个最终结果笼统认定为质量下降",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "保留未完成事项与历史"
+          },
+          "quote": "已尝试优化被放弃时 SHALL 保存事项、无法完成原因及处理结果，最终告知用户；交付/主动暂停/交回时保存进展、实际测试与遗留问题。失败尝试与有效保留结果分开，历史可供后续 Opt 读取，不能因可选尝试失败将整体结果笼统判为下降。中断未交付状态 SHALL NOT 当作完成。"
+        },
+        {
+          "detail": "以实际优化委托及交付为单位而非逐方向选择状态迁移",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "以委托交付推进优化"
+          },
+          "quote": "Apply SHALL 读取共享优化 reference，在普通实现通过基线独立 Review 后保存可恢复起点并委托 Opt；Opt 在一次委托内可连续分组实施和测试。交付后主 Agent 可返回具体修正或启动 fresh-context 新探索，不要求每项交接、重新扫描或固定轮数，最终验证可覆盖累计改动。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。"
+        }
+      ]
+    },
+    {
+      "identity": "fresh-optimizer-followup",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每次交付后由主 Agent 判断是否继续；交付只表示本次工作已交付",
+          "location": {
+            "element": "optimizer",
+            "section": "交付结构化 Optimization 结论"
+          },
+          "quote": "Optimizer SHALL 交付实际保留改动、改善与影响范围和行为保持依据，测试覆盖行为、实际结果与证据位置，未完成/放弃事项及原因和撤销结果、遗留问题（无则明确说明），以及后续优化和验证建议及理由。多项小优化可共享简短说明与测试证据，不要求固定标题或逐方向表单；CLI 生成机械关联。交付仅表示本次委托完成，主 Agent 决定是否继续及最终验证。"
+        },
+        {
+          "detail": "可交回修正或委托 fresh-context 新探索，无需先自行发现新方向；不固定轮数或穷尽证明",
+          "location": {
+            "element": "agent",
+            "section": "负责优化范围与最终验证"
+          },
+          "quote": "主 Agent SHALL 确定优化委托范围、处理越界与契约问题，可读取实际代码与证据，依据收益、成本、风险、已覆盖范围及潜在机会判断是否继续。每次交付后可交回修正或启动 fresh-context 新探索，无需自行先找新方向，也不固定轮数或要求穷尽证明。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n主 Agent SHALL 在收尾告知放弃优化的事项、原因及处理结果；中断更换写入者前确认旧 Opt 停止，不能确认归属或恢复可靠时不继续完成。"
+        },
+        {
+          "detail": "新 Opt 独立读取当前代码与前轮结果、失败记录，无需继承前轮完整推理上下文",
+          "location": {
+            "element": "optimization",
+            "section": "无需继续优化时完成"
+          },
+          "quote": "每次 Opt 完整交付后，主 Agent SHALL 判断是否值得继续。可交回具体问题修正，也可委托 fresh-context Opt 独立探索新机会，不要求主 Agent 先找到新方向。新 Opt 可读取前轮结果和失败记录，无需继承完整推理上下文。无新发现或收益很小时可停止，不固定轮数、不要求证明已无任何机会。最终验证 MAY 覆盖多次委托累计改动，具体风险应及时验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过时，主 Agent SHALL 根据改动范围、行为保持依据与覆盖判断是否需要全量测试或增量 Review；判断无需追加时保存依据即可完成所需验证并保存成功 checkpoint，不记为 Reviewer PASS。若判断需要增量 Review，SHALL 等待该 Review 通过才可完成。"
+        },
+        {
+          "detail": "读取历史失败避免重复已证伪尝试",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "保留失败依据并停止无进展尝试"
+          },
+          "quote": "Opt SHALL 读取相关历史失败及已放弃事项，避免重复已证伪尝试。是否继续依据新证据与实质进展判断，不使用固定失败计数、方向永久 ID 或等级筛选；无进展重复 SHALL 停止并记录。Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。"
+        },
+        {
+          "detail": "最终验证可覆盖多次委托累计改动，不要求每次交付全量测试或增量 Review",
+          "location": {
+            "element": "optimization",
+            "section": "无需继续优化时完成"
+          },
+          "quote": "每次 Opt 完整交付后，主 Agent SHALL 判断是否值得继续。可交回具体问题修正，也可委托 fresh-context Opt 独立探索新机会，不要求主 Agent 先找到新方向。新 Opt 可读取前轮结果和失败记录，无需继承完整推理上下文。无新发现或收益很小时可停止，不固定轮数、不要求证明已无任何机会。最终验证 MAY 覆盖多次委托累计改动，具体风险应及时验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过时，主 Agent SHALL 根据改动范围、行为保持依据与覆盖判断是否需要全量测试或增量 Review；判断无需追加时保存依据即可完成所需验证并保存成功 checkpoint，不记为 Reviewer PASS。若判断需要增量 Review，SHALL 等待该 Review 通过才可完成。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-persistence-boundaries",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "开始修改前保存委托起点：范围、起始代码状态、关联基线 Review、可恢复位置",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        },
+        {
+          "detail": "放弃已尝试优化时保存事项、原因与处理结果",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        },
+        {
+          "detail": "交付、主动暂停或交回主 Agent 时保存进展、实际测试结果与遗留问题",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        },
+        {
+          "detail": "最终完成时保存主 Agent 验证结论",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        },
+        {
+          "detail": "放弃记录当时立即保存，不推迟至最终交付",
+          "location": {
+            "element": "optimization-execution",
+            "section": "优化结果持久化"
+          },
+          "quote": "开始修改前 SHALL 保存委托起点（范围、起始代码状态、基线 Review、恢复位置）；放弃已尝试优化时 SHALL 立即保存事项、原因与处理结果；交付、主动暂停或交回主 Agent 时 SHALL 保存进度、实际测试结果及遗留问题；完成时 SHALL 保存主 Agent 最终验证结论。其余进度按实际恢复和交接需要保存，例如工作较长、较大调整前或上下文将耗尽时，不要求每个小动作登记或每次保存 commit。"
+        },
+        {
+          "detail": "其余中间进度按需保存（工作较长、较大调整前、上下文将耗尽），不强制每个小动作登记",
+          "location": {
+            "element": "optimization-execution",
+            "section": "优化结果持久化"
+          },
+          "quote": "开始修改前 SHALL 保存委托起点（范围、起始代码状态、基线 Review、恢复位置）；放弃已尝试优化时 SHALL 立即保存事项、原因与处理结果；交付、主动暂停或交回主 Agent 时 SHALL 保存进度、实际测试结果及遗留问题；完成时 SHALL 保存主 Agent 最终验证结论。其余进度按实际恢复和交接需要保存，例如工作较长、较大调整前或上下文将耗尽时，不要求每个小动作登记或每次保存 commit。"
+        },
+        {
+          "detail": "保存进度不要求同时创建 Git commit；可恢复代码状态按 checkpoint 机制",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-record-and-recovery-design",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "中断后默认核对现场并继续原委托，不固定重启整个流程",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        },
+        {
+          "detail": "主 Agent 先确认前一 Opt 停止，避免两个执行者同时写入",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        },
+        {
+          "detail": "更换执行者不新建委托；主 Agent 主动新探索才建立新委托",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        },
+        {
+          "detail": "正例：A 已记录完成而磁盘有半成品 B——检查 B 再处理，不当完成也不自动丢弃 A/B",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        },
+        {
+          "detail": "无法辨明归属或恢复可靠时交回主 Agent",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        },
+        {
+          "detail": "意外中断可能来不及保存最新进度，不假设退出前必有完整报告",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "Checkpoint 协议使用有序执行步骤"
+          },
+          "quote": "共享 reference SHALL 说明优化前独立 Review 和可恢复基线、按需中间保存、所需验证全部通过后的最终成功状态。失败可局部修正或撤销并保留可靠工作，不要求每方向 commit 或失败整批 reset/clean。恢复 SHALL 保留代码、commits/checkpoints、当前记录及全部历史；不能确认局部恢复则恢复可确认基线，再不能确认则停止。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。"
+        },
+        {
+          "detail": "中断本身不固定触发整批回滚、重新 Review 或重新发现全部优化方向",
+          "location": {
+            "element": "optimization-execution",
+            "section": "核对现场继续原委托"
+          },
+          "quote": "中断后主 Agent SHALL 先确认旧 Opt 停止；原 Opt 或接手者读取原委托、最近进度和磁盘差异，检查未记录、未验证或证据过期的改动，再继续、修正或撤销。更换执行者不新建委托，主 Agent 主动新探索才建立新委托；意外中断不得假设退出前必有完整报告。\n\n- **A 已完成、B 未记录**：记录显示 A 已完成，磁盘另有改到一半的 B；接手者检查 B 后决定处理，不把 B 当完成，也不自动丢弃 A 和 B。无法辨明归属或恢复可靠时交回主 Agent。\n- **中断本身**：不固定整批回滚、再执行 Review 或重新发现全部候选，根据实际证据判断恢复和验证。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-report-content",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "报告四类必要信息：实际结果、验证证据、未完成与遗留事项、后续建议",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "Opt 报告 SHALL 包含四类必要信息：实际保留改动、改善及影响范围与行为保持依据；测试覆盖行为、实际结果及证据位置；放弃事项及原因、是否撤销、遗留问题，无此类事项时明确说明；是否值得继续及是否扩大测试或追加 Review 的建议与理由。表达形式、标题与详略按复杂度自主决定，多项小优化可共享简短说明及测试证据，复杂算法按实际行为约束展开。CLI 只检查必要信息和关联，不评价自然语言充分性。"
+        },
+        {
+          "detail": "形式与详略自主决定，不规定固定标题、逐项表单或每方向重复填写",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "Opt 报告 SHALL 包含四类必要信息：实际保留改动、改善及影响范围与行为保持依据；测试覆盖行为、实际结果及证据位置；放弃事项及原因、是否撤销、遗留问题，无此类事项时明确说明；是否值得继续及是否扩大测试或追加 Review 的建议与理由。表达形式、标题与详略按复杂度自主决定，多项小优化可共享简短说明及测试证据，复杂算法按实际行为约束展开。CLI 只检查必要信息和关联，不评价自然语言充分性。"
+        },
+        {
+          "detail": "多项小优化合并简短说明与共享测试证据；复杂算法替换按实际行为约束展开",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "Opt 报告 SHALL 包含四类必要信息：实际保留改动、改善及影响范围与行为保持依据；测试覆盖行为、实际结果及证据位置；放弃事项及原因、是否撤销、遗留问题，无此类事项时明确说明；是否值得继续及是否扩大测试或追加 Review 的建议与理由。表达形式、标题与详略按复杂度自主决定，多项小优化可共享简短说明及测试证据，复杂算法按实际行为约束展开。CLI 只检查必要信息和关联，不评价自然语言充分性。"
+        },
+        {
+          "detail": "代码状态、时间、委托标识、记录版本等机械信息由 CLI 生成，Opt 不手工维护哈希",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "证据分工与机械关联"
+          },
+          "quote": "基线独立 Review、Opt 执行报告、主 Agent 最终验证结论 SHALL 可区分，不要求分别三个文件，也不维护重复机器台账和人类报告。代码状态、时间、委托标识、记录版本 SHALL 由 CLI 生成；Opt 不手工维护哈希。测试关联执行时状态，稍后提交报告不能改绑。内部未实施想法不强制预先登记、永久 ID、排序或重复字段。"
+        },
+        {
+          "detail": "测试证据准确关联运行时验证的代码状态，报告时状态不能替代测试时状态",
+          "location": {
+            "element": "quality-freshness",
+            "section": "记录匹配与状态判定"
+          },
+          "quote": "系统 SHALL 分别判断基线 Review 的被审查状态、各测试/Review 的执行状态、当前委托交付和最终验证结论的适用性，不以最新一次通过 Review 的指纹作为唯一活动路由。测试 SHALL 在实际运行时捕获状态与真实结果，记录开始/结束状态不一致或非零退出时保留其事实，不当作成功当前验证。稍后报告只引用原证据，不将旧通过结果重新绑定当前代码。\n\n- **测试 S1、报告 S2**：在 S1 测试通过，代码改为 S2 后提交报告；证据仍指向 S1，不能据此声称 S2 已通过，需要主 Agent 重新判断受影响验证。\n- **验证适用性重判**：后续改动 SHALL 触发差异检查和主 Agent 对受影响验证的判断，不自动要求重跑未受影响的全部测试。主 Agent 可基于实际差异、验证范围和依赖影响，明确记录原成功测试或 scoped Review 对当前状态仍适用的范围与理由；该判断单独关联当前状态，不改写原执行指纹，也不声称重新运行过测试或 Review。失败结果、缺失结果或已经确认受影响而未补齐的验证不能因此满足完成条件。\n- **A 在 S1、B 在 S2**：A 在 S1 的局部测试通过，随后独立改动 B 并在 S2 测试通过；主 Agent 根据实际差异和依赖证据确认 B 不影响 A 的验证，可保留 A 的原运行证据并记录其对 S2 的适用判断，不强制重跑 A。若 B 修改 A 依赖的公共辅助函数，则须检查实际影响、补齐受影响验证后才能据此完成。\n- **失败或未交付**：保留失败/过期结果与未完成进度，但它们不能满足成功测试或完整交付条件。\n- **恢复历史代码**：旧匹配证据可按实际范围供判断，当前报告、放弃记录及最终结论不回退成旧版本；历史 PASS 不自动满足新声明验证。\n\n完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。"
+        },
+        {
+          "detail": "Opt 可报告本次委托完成且无遗留问题；是否继续新一轮及是否满足收尾由主 Agent 判断",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付不代替最终判断"
+          },
+          "quote": "Opt MAY 交付本次委托完成且无遗留问题，但主 Agent SHALL 判断继续投入或最终验证，可交回修正后更新交付，不要求重走全部候选发现排序。主 Agent 可启动 fresh-context 新探索而无需先提出具体方向；最终验证可覆盖多次交付累计改动，CLI 不选择下一项工作。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-agent-cli-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "排序、分组、继续/放弃取舍与验证范围判断从 CLI 转交模型，按 Opt 与主 Agent 已确认分工",
+          "location": {
+            "element": "quality-execution-model",
+            "section": "Quality 模板选择遵循执行模型"
+          },
+          "quote": "系统 SHALL 对所有工具使用 subagent-orchestrated 模板骨架，通过显式 lookup 解析，不通过工具名称、路径或字符串模式推断支持能力，也不使用 current-agent-reread fallback。主 Agent 负责委托范围、越界处理、后续投入和最终风险验证，可读取代码与证据；Opt 独立读取并执行优化与局部测试，Reviewer 独立只读审查，CLI 负责确定性记录和门禁。主 Agent 不替代必需基线 Review 或基线缺陷修复的独立 Review。"
+        },
+        {
+          "detail": "CLI 保留确定性记录、关联、版本与代码状态校验",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "系统 SHALL 提供优化委托起点、进度及交付的记录操作，保留范围、约束、起始状态、基线 Review 与恢复位置，关联实际报告与测试证据，由 CLI 生成委托身份、时间、版本及指纹。交付包含实际结果、验证、未完成/遗留及后续建议四类信息，允许自然语言灵活表达，不要求逐方向表单。过期版本或无效关联 SHALL 拒绝写入且保留原记录；CLI 不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。"
+        },
+        {
+          "detail": "CLI 不判断自然语言证据是否足够或优化是否值得",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "记录主 Agent 最终结论"
+          },
+          "quote": "CLI SHALL 接受主 Agent 对累计交付的最终验证范围与理由，区分所需测试、增量 Review、基线缺陷修复 Review 和无需追加 Review 的判断。记录最终结论时检查必需结果和当前状态关联；主 Agent 对未受影响的原成功证据可明确记录适用范围、所依据实际差异与理由，单独关联当前状态并保留原运行状态，不把它记为新测试或 Reviewer PASS。失败、缺失或已确认受影响却未补齐的验证不得通过此关联绕过。允许多委托共享最终验证，不强制每次交付新 Review 或全量测试。CLI 不判断范围选择或自然语言依据是否充分。"
+        },
+        {
+          "detail": "CLI 不选择下一项工作",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付不代替最终判断"
+          },
+          "quote": "Opt MAY 交付本次委托完成且无遗留问题，但主 Agent SHALL 判断继续投入或最终验证，可交回修正后更新交付，不要求重走全部候选发现排序。主 Agent 可启动 fresh-context 新探索而无需先提出具体方向；最终验证可覆盖多次交付累计改动，CLI 不选择下一项工作。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-evidence-based-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "以当前 Change 优化目标和证据化影响为界，不限制固定文件列表或一层依赖",
+          "location": {
+            "element": "optimization",
+            "section": "按实际影响确定文件范围"
+          },
+          "quote": "Opt SHALL 以当前 Change 目标和证据化影响为界，按需追踪调用、依赖及其他调用方，允许必要的实现/测试文件新增、删除或移动，不固定为原文件列表或一层依赖。\n\n- **公共辅助函数**：优化当前 Change 新增的查询逻辑需要调整其调用的公共辅助函数，可以纳入，但必须检查其他调用方；顺便重构另一套无关查询系统超出本次委托。"
+        },
+        {
+          "detail": "可按需追踪调用和依赖，新增、删除或移动必要实现及测试文件",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "依据影响追踪执行范围"
+          },
+          "quote": "Opt SHALL 以当前 Change 优化目标和实际影响范围为界，不限制为原实现文件清单或一层依赖。可以按需追踪调用和依赖，新增、删除或移动必要实现及测试文件；公共辅助函数须检查其他调用方。\n\n- **共享辅助函数与无关系统**：优化当前 Change 新增查询逻辑所调用的公共辅助函数可以纳入，必须检查其他调用方；顺便重构另一套无关查询系统不纳入，记录给主 Agent。"
+        },
+        {
+          "detail": "正例：调整当前 Change 查询逻辑调用的公共辅助函数可纳入，但必须检查其他调用方",
+          "location": {
+            "element": "optimization",
+            "section": "按实际影响确定文件范围"
+          },
+          "quote": "Opt SHALL 以当前 Change 目标和证据化影响为界，按需追踪调用、依赖及其他调用方，允许必要的实现/测试文件新增、删除或移动，不固定为原文件列表或一层依赖。\n\n- **公共辅助函数**：优化当前 Change 新增的查询逻辑需要调整其调用的公共辅助函数，可以纳入，但必须检查其他调用方；顺便重构另一套无关查询系统超出本次委托。"
+        },
+        {
+          "detail": "反例：顺便重构另一套无关查询系统超出本次委托",
+          "location": {
+            "element": "optimization",
+            "section": "按实际影响确定文件范围"
+          },
+          "quote": "Opt SHALL 以当前 Change 目标和证据化影响为界，按需追踪调用、依赖及其他调用方，允许必要的实现/测试文件新增、删除或移动，不固定为原文件列表或一层依赖。\n\n- **公共辅助函数**：优化当前 Change 新增的查询逻辑需要调整其调用的公共辅助函数，可以纳入，但必须检查其他调用方；顺便重构另一套无关查询系统超出本次委托。"
+        },
+        {
+          "detail": "Reviewer 不因文件未列原 tasks Files 或超过一层依赖判规格外",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "规格外改动检测"
+          },
+          "quote": "Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 task 的规格外改动。普通实现的归因宇宙 SHALL 由各 task Files 声明的条目、各 Check Command 涉及的测试与证据文件、change 制品自身的并集构成（显式列表查找，不使用模式匹配推断）。优化工作 SHALL 同时读取委托、实际报告及代码证据，根据当前 Change 目标与实际影响判断归属；必要的新建、删除、移动文件及多层依赖公共辅助函数不因未列原 tasks Files 而自动成为规格外改动。公共辅助函数须检查其他调用方，另一套无关查询系统重构仍不被本委托授权。\n\n- **无法归因的行为代码升级为 CRITICAL**\n\n  - git diff 中存在归因宇宙之外的文件\n  - reviewer 读取该文件后判定其包含行为代码改动\n  - reviewer SHALL 判定为 CRITICAL \"Unaccounted change\"\n  - recommendation SHALL 提供两种出口：补充 task 呈现（artifact_fix）或移除该改动（code_fix）\n\n- **机械性良性改动降级**\n\n  - git diff 中存在归因宇宙之外的文件\n  - reviewer 读取后判定其为机械性良性改动（lockfile、纯生成物、纯格式化）\n  - reviewer SHALL 判定为 WARNING 或 SUGGESTION（而非 CRITICAL）\n\n- **生成面以目录粒度归因**\n\n  - 某 task 的 `Files` 以目录条目声明生成面\n  - git diff 包含该目录下的多个再生成文件\n  - 这些文件 SHALL 全部归因到该 task\n  - SHALL NOT 被报告为规格外改动\n\n- **跨平台路径归因**\n\n  - 归因宇宙的条目与 git diff 文件路径做匹配\n  - 实现 SHALL 将两侧路径规范化为 POSIX 相对路径后比较\n  - Windows 反斜杠路径 SHALL 在规范化后正确归因\n\n- **判定不确定时升级**\n\n  - 某个归因宇宙之外的文件无法确定是否包含行为改动\n  - reviewer SHALL 判定为 CRITICAL（维持 strict 姿态）\n  - SHALL 引用该文件路径与不确定原因"
+        },
+        {
+          "detail": "无关历史问题记录交主 Agent，契约冲突交主 Agent 澄清，不自行扩大范围",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-correctness-discoveries",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "区分优化引入问题、基线漏掉的当前 Change 缺陷、无关历史问题与需求契约冲突",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        },
+        {
+          "detail": "基线缺陷证据交主 Agent 判断并安排修复，可继续委托 Opt 或自行处理",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        },
+        {
+          "detail": "已确认缺陷解决并完成针对性独立 Review 前不得收尾",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "普通 Apply 实现与其 Review 修正完成后 SHALL 执行 Change 级独立 Review，作为优化前基线。优化开始后，主 Agent 按实际风险决定是否追加增量 Review；修复基线遗漏的当前 Change 正确性缺陷后 SHALL 追加针对该问题及其影响的独立 Review。"
+        },
+        {
+          "detail": "可修复缺陷不造成永久 unsafe 锁定，不要求用户手工重启",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        },
+        {
+          "detail": "真实缺陷不得作为可放弃优化处理",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 与 Optimizer 的职责边界"
+          },
+          "quote": "Review SHALL 判断实际审查范围中的工作是否完整、正确和清洁；Optimization SHALL 在独立审查基线上判断并实施有实际收益且保持语义行为的改进。本次 Change 的真实正确性或清理缺陷不能作为可放弃优化：优化前已存在而被基线漏掉的缺陷由主 Agent 判断并安排修复，修复后必须针对问题及影响独立 Review。优化引入的问题可局部修正或撤销并验证；其他优化后 Review 按主 Agent 风险判断决定，不强制每方向复核。\n\n- **应清理旧 API 仍保留**：Reviewer 独立报告当前 Change 的 completeness/cleanliness 问题；Opt 不以非阻塞可选优化掩盖该缺陷。\n- **正确代码的算法机会**：Opt 可在委托范围内实施有证据的复杂度改进并局部测试，主 Agent 决定是否需要增量 Review。"
+        },
+        {
+          "detail": "无关历史问题记录并告知；需求契约冲突需用户决策时询问用户，不擅改目标语义",
+          "location": {
+            "element": "optimization",
+            "section": "按证据处理问题"
+          },
+          "quote": "Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。\n\n优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。\n\n可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。"
+        }
+      ]
+    },
+    {
+      "identity": "agent-responsibility-over-rigid-flow",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "流程表达必需保障，不将每种情境固化为程序步骤或审批链",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "共享 quality gate 指引片段"
+          },
+          "quote": "系统 SHALL 从同一实现协议源向 Apply/Archive 生成委托、交付、测试捕获、独立 Review、主 Agent 结论、status/seal 指引，提供最小合法输入和确定性失败语义，不保留并行方向队列协议。阶段指引表达必需保障而非将每种情境固定为审批链或执行算法。"
+        },
+        {
+          "detail": "已确认的测试义务仍成立",
+          "location": {
+            "element": "optimization-execution",
+            "section": "主 Agent 决定最终验证"
+          },
+          "quote": "优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。\n\n- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过；主 Agent 按改动范围、保持依据及覆盖判断无需全量测试或增量 Review，保存判断即可完成所需验证并保存成功 checkpoint。需要增量 Review 时必须等其通过。最终验证可覆盖多次委托累计改动。"
+        },
+        {
+          "detail": "基线独立 Review 义务仍成立",
+          "location": {
+            "element": "change-implementation",
+            "section": "实现并独立验证目标状态"
+          },
+          "quote": "Change Implementation SHALL 由 Apply 依据 Expected Semantic Model 落实项目，并由 Verify 使用独立判断与可复现证据确认完整性、正确性和一致性。普通实现及基线 Review 修正完成后 SHALL 接受 Change 级独立 Review；优化由受托 Opt 执行，主 Agent 负责范围、后续投入及最终验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。"
+        },
+        {
+          "detail": "证据真实性仍成立：报告不能替换测试/Review 时状态",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "系统 SHALL 保存当前质量快照，将基线 Review、委托/交付、实际测试及主 Agent 最终验证结论分别关联。CLI 生成身份、记录版本、时间与代码状态，Agent 不手写哈希；提交 SHALL 检查所依据版本并拒绝过期覆盖。报告与实际执行证据保持关联，不能以后来报告时状态替换测试/Review 时状态。使用平台 path API，Windows 带空格路径与 POSIX 具有相同保护。"
+        },
+        {
+          "detail": "方法指导经 reference 表达为可选实践，允许更合适方法",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        }
+      ]
+    },
+    {
+      "identity": "optimization-integration-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "工具原生权限同步调整：Opt 实际可写，Reviewer 只读且不得借 Bash 绕过",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "按角色编码工具原生权限"
+          },
+          "quote": "生成制品 SHALL 在工具原生字段编码角色权限。Reviewer 允许 read/search/bash、拒绝 edit/write 或等价 read-only sandbox，禁止借 Bash 绕过。Optimizer 在委托范围内允许读取、搜索、编写、编辑与测试；Experimenter 允许实验所需读写执行。\n\n- Claude 的 Optimizer/Experimenter tools 包含 Read、Grep、Glob、Bash、Write、Edit；Pi 包含 read、grep、find、bash、write、edit。\n- OpenCode Reviewer edit 为 deny，Optimizer/Experimenter edit 为 allow；bash 沿用工具执行授权配置。\n- Codex Reviewer 为 read-only，Optimizer/Experimenter 为 workspace-write。\n- 保持 Pi-only foreground 提示、用户 model 保留和 TOML 转义规则。\n- 生成/更新通过既有显式注册及受管清单处理，相关引用可达；不按名称模式覆盖用户文件。"
+        },
+        {
+          "detail": "主 Agent 可读取实际代码与证据判断继续优化及最终验证，不替代必需基线/缺陷修复 Review",
+          "location": {
+            "element": "quality-execution-model",
+            "section": "Quality 模板选择遵循执行模型"
+          },
+          "quote": "系统 SHALL 对所有工具使用 subagent-orchestrated 模板骨架，通过显式 lookup 解析，不通过工具名称、路径或字符串模式推断支持能力，也不使用 current-agent-reread fallback。主 Agent 负责委托范围、越界处理、后续投入和最终风险验证，可读取代码与证据；Opt 独立读取并执行优化与局部测试，Reviewer 独立只读审查，CLI 负责确定性记录和门禁。主 Agent 不替代必需基线 Review 或基线缺陷修复的独立 Review。"
+        },
+        {
+          "detail": "移除 CLI 逐方向排序、选择、重试计数与过时执行状态约束",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "系统 SHALL 提供优化委托起点、进度及交付的记录操作，保留范围、约束、起始状态、基线 Review 与恢复位置，关联实际报告与测试证据，由 CLI 生成委托身份、时间、版本及指纹。交付包含实际结果、验证、未完成/遗留及后续建议四类信息，允许自然语言灵活表达，不要求逐方向表单。过期版本或无效关联 SHALL 拒绝写入且保留原记录；CLI 不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。"
+        },
+        {
+          "detail": "保留证据关联、新鲜度和已声明完成条件校验",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "quality seal SHALL 以同一声明完成条件检查当前结果，通过时输出 seal hash，否则逐项报告缺口。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 后续代码变化 SHALL 重新判断受影响验证，旧 seal 不证明新状态。"
+        },
+        {
+          "detail": "方法指导在 reference 中表达为可选实践",
+          "location": {
+            "element": "agent-prompt-guidance",
+            "section": "提供可选失败诊断 reference"
+          },
+          "quote": "系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。"
+        },
+        {
+          "detail": "普通 Apply 行为保留，不相关框架能力不扩展改造",
+          "location": {
+            "element": "apply-workflow",
+            "section": "Apply Phase 0 SHALL 执行 pending Checks"
+          },
+          "quote": "`xirang-apply-change` workflow SHALL 在 Phase 0 处理 `tasks.md` 中的 pending Checks，并为行为或代码 Check 执行严格 TDD：先检查已有测试并选择适用的 reuse、modify、add 或 delete 动作，再运行声明的 Check 确认目标行为尚未满足，完成最小实现后重跑同一 Check 确认通过。Workflow SHALL 只在对应证据通过后更新 Check 或 Required Corrections 状态。\n\n- **行为或代码 Check 完成 TDD 闭环**\n\n  - `xirang instructions apply --change \"<name>\" --json` 返回行为或代码 Check\n  - Apply SHALL 先依据已有测试选择适用的测试动作\n  - SHALL 在实现前运行声明的 Check 并确认目标行为缺失导致的失败\n  - SHALL 完成最小实现后重跑同一 Check 并确认通过\n  - SHALL NOT 通过语法错误、错误路径或损坏 fixture 人为制造 RED\n\n- **非运行时制品使用最终证据**\n\n  - pending Check 只修改非运行时文本或非运行时制品\n  - Apply SHALL 运行声明的验证命令或检查 `Evidence:` / `Expect:`\n  - SHALL 不要求人为制造失败测试\n  - SHALL 只在最终证据通过后更新 checkbox\n\n- **Config、Schema 与模板默认按行为变更处理**\n\n  - pending Check 修改 config、schema、generated template、workflow template 或 agent instruction template\n  - Apply SHALL 默认将其归类为行为或代码 Check\n  - 只有 Check 明确证明编辑内容不存在运行时或生成 surface consumer 时，才 SHALL 按非运行时文本处理"
+        },
+        {
+          "detail": "Sync/Archive 收尾使用同一完成条件（基线、交付/跳过、成功测试、结论、必需 Review、成功 checkpoint）",
+          "location": {
+            "element": "change-closure",
+            "section": "仅接受有效验证结果"
+          },
+          "quote": "Change Closure SHALL 以仍然有效的 Change Implementation 验证结果为入口，不基于未验证或过期状态同步归档。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 任一证据缺口 SHALL 按实际义务补齐，不将每次优化变化都解释为必须重新执行整 Change Review。"
+        }
+      ]
+    },
+    {
+      "identity": "remove-minimum-impact-level",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "取消 minImpactLevel 及固定收益分级门槛，无逐项收益等级或 CLI 按等级筛选",
+          "location": {
+            "element": "optimization",
+            "section": "只选择有价值且可验证的事项"
+          },
+          "quote": "选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。\n\n- **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。"
+        },
+        {
+          "detail": "保留实际收益须有证据、语义与行为保持、成本风险相称及可执行验证要求",
+          "location": {
+            "element": "optimization",
+            "section": "只选择有价值且可验证的事项"
+          },
+          "quote": "选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。\n\n- **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。"
+        },
+        {
+          "detail": "项目配置退役键不进入有效配置、默认值或投影，残留值字段级诊断、不改写磁盘",
+          "location": {
+            "element": "project-config-loading",
+            "section": "诊断退役优化配置"
+          },
+          "quote": "optimization.directionLimit、optimization.directionRetries 与 optimization.minImpactLevel SHALL 不进入有效配置、默认值或投影；读取残留值时给出字段级明确退役诊断，不静默解释为新控制、不改写磁盘配置或自动迁移，其余有效字段按既有规则处理。optimization.enabled 保留默认 true。\n\n- **旧项目 YAML**：包含任一退役键时报告其路径，投影不包含该值，用户文件字节不变；新 setup/update 默认物化只添加 enabled，不自动删除已有键。Windows、macOS、Linux 的 .yaml/.yml 使用同一诊断规则。"
+        },
+        {
+          "detail": "materialized defaults SHALL NOT 包含三个退役键",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Materialize functional project config defaults"
+          },
+          "quote": "项目配置层 SHALL 暴露共享的 functional default materialization contract 供磁盘写入使用，使 `xirang setup` 与 `xirang update` 使用相同的项目配置功能性默认值。\n\n- **Default materialization includes decomposition, optimization, apply, and git**\n\n  - project config defaults 被 materialize 用于磁盘输出\n  - materialized defaults SHALL 包含 `decomposition: xirang-semantic-refinement.md`、`optimization.enabled: true`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`\n  - SHALL NOT 包含 `optimization.directionLimit`、`optimization.directionRetries`、`optimization.minImpactLevel`、`optimization.optRetries`、`git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`\n\n- **Default materialization excludes non-functional optional fields**\n\n  - project config defaults 被 materialize 用于磁盘输出\n  - materialized defaults SHALL NOT 添加 `docLanguage`、`context` 或 `rules`\n  - SHALL NOT 添加 `propose` 节点\n\n- **Missing-only merge preserves user values**\n\n  - materialized defaults 被合并进既有 YAML config 文档\n  - merge SHALL 只添加缺失的 mapping keys\n  - SHALL NOT 替换既有 `decomposition` 值（scalar 或 mapping）或其他 nested mapping 值\n  - SHALL 保留未知顶层与嵌套用户字段\n\n- **Cross-platform config path handling**\n\n  - default materialization reads or writes project config files\n  - it SHALL build paths with Node.js path utilities\n  - SHALL preserve the `.yaml` preference and `.yml` fallback behavior consistently across Windows, macOS, and Linux"
+        },
+        {
+          "detail": "全局默认仅 enabled: true，不产生退役键",
+          "location": {
+            "element": "global-config",
+            "section": "Default Configuration"
+          },
+          "quote": "系统 SHALL 提供无配置文件时使用的默认配置。\n\n- **Default config structure**\n  - 不存在配置文件\n  - 默认配置包含空的 `featureFlags` 对象\n\n- **默认配置值**\n  - 首次创建全局配置\n  - 默认值 SHALL 包含 `featureFlags: {}`\n  - 默认值 SHALL NOT 包含 `delivery`\n\n全局 optimization 默认 SHALL 仅包含 enabled: true，不产生 directionLimit、directionRetries 或 minImpactLevel。"
+        },
+        {
+          "detail": "全局读取退役键不按未知字段保留为有效配置，输出字段级诊断、不改写磁盘",
+          "location": {
+            "element": "global-config",
+            "section": "Config Schema Evolution"
+          },
+          "quote": "系统 SHALL 将加载的配置与默认值合并，确保加载旧配置文件时新字段可用。\n\n- **Config file missing new fields**\n  - 配置文件存在但缺少当前 schema 的新字段\n  - `getGlobalConfig()` 返回合并默认值后的配置\n  - 已存在字段的加载值优先于默认值\n\n- **Config file has extra unknown fields**\n  - 配置文件包含当前 schema 之外的字段\n  - 未知字段被保留在返回配置中且不报错\n\n已明确退役的 optimization.directionLimit、optimization.directionRetries、optimization.minImpactLevel SHALL 不按未知字段保留为有效配置；读取时输出字段级明确诊断，不静默作为新控制，不自动改写磁盘，其余字段保持既有合并规则。"
+        },
+        {
+          "detail": "设置退役键返回明确诊断，不写入或迁移",
+          "location": {
+            "element": "global-config",
+            "section": "诊断退役优化配置"
+          },
+          "quote": "optimization.directionLimit、optimization.directionRetries 与 optimization.minImpactLevel SHALL 不进入有效配置、默认值或投影；读取残留值时给出字段级明确退役诊断，不静默解释为新控制、不改写磁盘配置或自动迁移，其余有效字段按既有规则处理。optimization.enabled 保留默认 true。 config 设置退役键 SHALL 返回明确诊断，不写入或自动迁移为其他控制。"
+        },
+        {
+          "detail": "配置投影只保留 enabled 控制",
+          "location": {
+            "element": "project-config-management",
+            "section": "排除退役配置表面"
+          },
+          "quote": "全局与项目配置 SHALL NOT 包含 profile、workflows、delivery 或 Propose routing 等已退役配置节点。\n\n- **读取包含过时字段的配置**\n\n  - 配置文件包含 `profile`、`workflows`、`delivery` 或 `propose` 字段\n  - 系统忽略这些字段并输出可操作警告（Propose 节点静默忽略）\n\n优化配置 SHALL 只保留 enabled 控制；directionLimit、directionRetries、minImpactLevel 不进入有效配置、默认值或投影，残留键给出明确诊断，不静默解释或自动迁移/删除用户配置。该规则不改变其他节点既有回退或静默忽略语义。"
+        },
+        {
+          "detail": "用户可在委托中直接提出收益与范围约束",
+          "location": {
+            "element": "apply-quality-integration",
+            "section": "配置驱动优化控制"
+          },
+          "quote": "optimization.enabled SHALL 控制是否启动优化；配置禁用或用户明确拒绝时记录明确跳过。Opt 与主 Agent 按证据、收益、成本、风险和进展判断继续或停止，遵守用户和委托预算；无新证据或实质进展的重复尝试 SHALL 停止并记录。directionLimit、directionRetries、minImpactLevel 等退役输入给出明确诊断，不继续参与控制。"
+        }
+      ]
+    }
+  ]
+}
