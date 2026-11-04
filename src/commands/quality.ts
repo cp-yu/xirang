@@ -1,838 +1,387 @@
-import path from 'path';
+import { createHash } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import type { Command } from 'commander';
+import { z } from 'zod';
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import { readProjectConfig } from '../core/project-config.js';
-import { readQualitySnapshot, writeQualityRecord } from '../core/quality/log.js';
-import { formatDiagnostics } from '../core/quality/diagnostics.js';
 import {
-  CONTRACT_VERSION,
-  ARCHIVE_COMPATIBLE_TERMINALS,
-  checkQualityState,
-  computeEvidenceFingerprint,
-  computeTasksFileHash,
-  getCurrentGitHead,
-  normalizeLedger,
-} from '../core/quality/state.js';
+  beginReview,
+  executeVerification,
+  QualityEngineError,
+  readQualityStore,
+  readQualityVersion,
+  saveDelegation,
+  skipDelegation,
+  startDelegation,
+  submitReview,
+  type ReviewIssue,
+  type ReviewWriteBackOptions,
+} from '../core/quality/engine.js';
 import {
-  allocateDirectionIds,
-  deriveTerminal,
-  diagnostic,
-  generateSealHash,
-  isDirectionId,
-  selectEligibleDirection,
-  validateDirectionTransition,
-  validateOptimizeInput,
-  validateQualityRecord,
-  validateReviewInput,
-} from '../core/quality/validators.js';
+  completeOptimization,
+  evaluateCompletion,
+  planCompletion,
+  recordCheckpoint,
+} from '../core/quality/completion.js';
 import {
-  QUALITY_RECOVERY_REFERENCE,
-  renderOptimizeHelp,
-  renderQualityOverview,
-  renderReviewHelp,
-} from '../core/quality/protocol.js';
-import type {
-  DirectionLevel,
-  DirectionUpdatePayload,
-  Diagnostic,
-  NewDirectionPayload,
-  OptimizationDirection,
-  OptimizationLedger,
-  OptimizeInput,
-  QualityRecord,
-  QualityState,
-} from '../core/quality/types.js';
+  commandSchemas,
+  qualityOptionMetadata,
+} from '../core/quality/command-schema.js';
 import { validateChangeExists } from './workflow/shared.js';
+import { renderQualityOverview, renderReviewHelp, renderDelegationHelp, renderVerificationHelp, renderConclusionHelp, renderQualityCheckpointStateMachine, renderQualityErrorRecovery } from '../core/quality/protocol.js';
 
-const QUALITY_CODES = {
-  invalidInput: 'INVALID_INPUT',
-  reviewNotRequired: 'REVIEW_NOT_REQUIRED',
-  reviewRequired: 'REVIEW_REQUIRED',
-  optimizationDisabled: 'OPTIMIZATION_DISABLED',
-  optimizationFinalized: 'OPTIMIZATION_FINALIZED',
-  abortedUnsafe: 'ABORTED_UNSAFE',
-  directionLimitReached: 'DIRECTION_LIMIT_REACHED',
-  unknownDirection: 'UNKNOWN_DIRECTION',
-  directionOrderViolation: 'DIRECTION_ORDER_VIOLATION',
-  illegalDirectionTransition: 'ILLEGAL_DIRECTION_TRANSITION',
-  sealNotReady: 'SEAL_NOT_READY',
-} as const;
+const QUALITY_VERSION = 2;
+const retiredOptimizeCode = 'UNSUPPORTED_OPTIMIZATION_PROTOCOL';
 
-const DEFAULT_DIRECTION_LIMIT = 3;
-const DEFAULT_DIRECTION_RETRIES = 2;
-const DEFAULT_MIN_IMPACT_LEVEL: DirectionLevel = 'low';
-
-interface QualityCommandOptions {
+type QualityOptions = {
   input?: string;
+  from?: string;
   json?: boolean;
-}
+  version?: string;
+  begin?: boolean;
+  review?: string;
+  delegation?: string;
+  scope?: string;
+  commit?: string;
+  kind?: string;
+};
 
-interface DirectionLimits {
-  enabled: boolean;
-  directionLimit: number;
-  directionRetries: number;
-  minImpactLevel: DirectionLevel;
-}
+type QualityEnvelope = {
+  ok: boolean;
+  code: string;
+  diagnostics: Array<{ code: string; path?: string; message: string }>;
+  allowedNextOperations: string[];
+  contractVersion?: number;
+  version?: number;
+  [key: string]: unknown;
+};
 
 export function registerQualityCommand(program: Command): void {
-  const quality = program
-    .command('quality')
-    .description('Record review and optimization conclusions for a change');
+  const quality = program.command('quality').description('Record Review, delegated optimization, actual verification and completion evidence')
+    .option('--no-color', 'Disable color output')
+    .addHelpText('after', () => `\n${renderQualityOverview()}\n${renderQualityErrorRecovery()}`);
 
-  quality
-    .command('review <change-name>')
-    .description('Record the review conclusion for the current code state')
-    .option('--input <json>', 'JSON payload; falls back to stdin when omitted')
-    .option('--json', 'Output as JSON')
+  quality.command('review <change-name>')
     .addHelpText('after', () => `\n${renderReviewHelp()}`)
-    .action(async (changeName: string, options: QualityCommandOptions) => {
-      await runWithExitCode(() => runQualityReview(changeName, options));
-    });
+    .option(qualityOptionMetadata.begin.flags, qualityOptionMetadata.begin.label)
+    .option(qualityOptionMetadata.review.flags, qualityOptionMetadata.review.label)
+    .option(qualityOptionMetadata.version.flags, qualityOptionMetadata.version.label)
+    .option(qualityOptionMetadata.input.flags, qualityOptionMetadata.input.label)
+    .option(qualityOptionMetadata.from.flags, qualityOptionMetadata.from.label)
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runReview(changeName, options)));
 
-  quality
-    .command('optimize <change-name>')
-    .description('Record one optimization round or stop the optimization loop')
-    .option('--input <json>', 'JSON payload; falls back to stdin when omitted')
-    .option('--json', 'Output as JSON')
-    .addHelpText('after', () => `\n${renderOptimizeHelp()}`)
-    .action(async (changeName: string, options: QualityCommandOptions) => {
-      await runWithExitCode(() => runQualityOptimize(changeName, options));
-    });
+  quality.command('delegation <change-name>')
+    .addHelpText('after', () => `\n${renderDelegationHelp()}`)
+    .option(qualityOptionMetadata.version.flags, qualityOptionMetadata.version.label)
+    .option(qualityOptionMetadata.input.flags, qualityOptionMetadata.input.label)
+    .option(qualityOptionMetadata.from.flags, qualityOptionMetadata.from.label)
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runDelegation(changeName, options)));
 
-  quality
-    .command('status <change-name>')
-    .description('Report the recorded quality state and the operations still available')
-    .option('--json', 'Output as JSON')
-    .addHelpText('after', () => `\n${renderQualityOverview()}`)
-    .action(async (changeName: string, options: QualityCommandOptions) => {
-      await runWithExitCode(() => runQualityStatus(changeName, options));
-    });
+  quality.command('optimize <change-name>', { hidden: true }).allowUnknownOption(true).allowExcessArguments(true)
+    .option('--json', 'Output JSON')
+    .option('--input <json>', 'JSON payload')
+    .option('--from <file>', 'Read JSON payload from a file')
+    .action(async () => runWithExitCode(async () => invalid(retiredOptimizeCode, 'The direction-ledger optimization protocol is retired.')));
 
-  quality
-    .command('seal <change-name>')
-    .description('Verify the recorded conclusion and print a seal hash')
-    .option('--json', 'Output as JSON')
-    .addHelpText('after', () => `\n${renderQualityOverview()}`)
-    .action(async (changeName: string, options: QualityCommandOptions) => {
-      await runWithExitCode(() => runQualitySeal(changeName, options));
-    });
+  const verification = quality.command('verification <change-name> [command...]')
+    .addHelpText('after', () => `\n${renderVerificationHelp()}`)
+    .option(qualityOptionMetadata.delegation.flags, qualityOptionMetadata.delegation.label)
+    .option(qualityOptionMetadata.scope.flags, qualityOptionMetadata.scope.label)
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label);
+  verification.action(async (changeName: string, argv: string[], options: QualityOptions) =>
+    runWithExitCode(() => runVerification(changeName, options, argv)));
 
-  quality.addHelpText('after', () => `\n${renderQualityOverview()}`);
+  quality.command('conclusion <change-name>')
+    .addHelpText('after', () => `\n${renderConclusionHelp()}`)
+    .option(qualityOptionMetadata.version.flags, qualityOptionMetadata.version.label)
+    .option(qualityOptionMetadata.input.flags, qualityOptionMetadata.input.label)
+    .option(qualityOptionMetadata.from.flags, qualityOptionMetadata.from.label)
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runConclusion(changeName, options)));
+
+  quality.command('checkpoint <change-name>')
+    .addHelpText('after', () => `\n${renderQualityCheckpointStateMachine()}`)
+    .option(qualityOptionMetadata.kind.flags, qualityOptionMetadata.kind.label)
+    .option(qualityOptionMetadata.commit.flags, qualityOptionMetadata.commit.label)
+    .option(qualityOptionMetadata.review.flags, qualityOptionMetadata.review.label)
+    .option(qualityOptionMetadata.version.flags, qualityOptionMetadata.version.label)
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runCheckpoint(changeName, options)));
+
+  quality.command('status <change-name>')
+    .addHelpText('after', '\nRead baseline, delegations, execution evidence, final conclusion, checkpoints and every completion gap. HEAD-only information is not a freshness failure.')
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runStatus(changeName, options)));
+
+  quality.command('seal <change-name>')
+    .addHelpText('after', '\nRequire the same full completion gate as status: all_done and no gaps, including final conclusion and successful checkpoint. A baseline PASS alone is insufficient.')
+    .option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
+    .action(async (changeName: string, options: QualityOptions) => runWithExitCode(() => runSeal(changeName, options)));
+
+  for (const command of quality.commands) {
+    command.option('--no-color', 'Disable color output');
+  }
 }
 
-async function runQualityReview(changeName: string, options: QualityCommandOptions): Promise<number> {
-  const projectRoot = process.cwd();
-  const changeDir = await resolveChangeDir(changeName, projectRoot);
-  const state = await checkQualityState(changeDir, projectRoot);
-  const limits = readDirectionLimits(projectRoot);
-
-  if (state.status === 'clean') {
-    return emitFailure(options, {
-      code: QUALITY_CODES.reviewNotRequired,
-      exitCode: 1,
-      state: state.status,
-      allowedNextOperations: allowedNextOperations(state.status, state.record?.optimization),
-      diagnostics: [
-        diagnostic(
-          'state',
-          'dirty',
-          'clean',
-          'The recorded review still matches the current code; run `xirang quality optimize` or record an optimization stop instead.'
-        ),
-      ],
-      summary: 'The recorded review still matches the current code.',
+async function runReview(changeName: string, options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  const input = await readPayload(options);
+  if (options.begin) {
+    if (options.review) return invalid('INVALID_REVIEW_COMMAND', 'Begin cannot be combined with --review.');
+    const payload = parse(commandSchemas.reviewBegin, input);
+    if (options.version !== undefined && !payload.revalidation) return invalid('INVALID_REVIEW_COMMAND', 'Begin cannot be combined with --review. --version on begin is reserved for explicit revalidation.');
+    const expectedVersion = payload.revalidation ? requiredVersion(options.version) : undefined;
+    const result = await beginReview({
+      changeDir: context.changeDir, projectRoot: context.projectRoot, scope: payload.scope,
+      assignment: payload.assignment, delegationIds: payload.delegationIds, revalidation: payload.revalidation,
+      expectedVersion,
     });
+    return success('REVIEW_STARTED', result.snapshot.version, { review: result.review });
   }
+  if (!options.review) return invalid('INVALID_REVIEW_COMMAND', 'Review requires --begin or --review <id>.');
+  const expectedVersion = requiredVersion(options.version);
+  const payload = parse(commandSchemas.reviewSubmit, input);
+  const writeBackPlan = payload.writeBackPlan ?? [];
+  const writeBack: ReviewWriteBackOptions = { writeBack: async (tasksPath, plan) => applyTaskWriteBack(tasksPath, plan) };
+  const result = await submitReview({
+    changeDir: context.changeDir, projectRoot: context.projectRoot, reviewId: options.review,
+    expectedVersion, result: payload.result, issues: payload.issues as ReviewIssue[], evidenceFiles: payload.evidenceFiles,
+    summary: payload.summary ?? 'Review submitted.', writeBackPlan,
+  }, writeBack);
+  return success('REVIEW_SUBMITTED', result.snapshot.version, { review: result.review });
+}
 
-  const input = await readInput(options.input);
-  if (!input.ok) {
-    return emitFailure(options, invalidInput(input.error));
+async function runDelegation(changeName: string, options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  const version = requiredVersion(options.version);
+  const payload = readPayloadSchema(await readPayload(options), [commandSchemas.delegationStart, commandSchemas.delegationSave, commandSchemas.delegationSkip]);
+  if (payload.action === 'start') {
+    const config = readProjectConfig(context.projectRoot);
+    if (config?.optimization?.enabled === false) return blocked('OPTIMIZATION_DISABLED', 'Optimization delegation is disabled; use an explicit skip.');
+    const result = await startDelegation({
+      changeDir: context.changeDir, projectRoot: context.projectRoot, expectedVersion: version,
+      scope: payload.scope, constraints: payload.constraints, baselineReviewId: payload.baselineReviewId,
+      recoveryCommit: payload.recoveryCommit,
+    });
+    return success('DELEGATION_STARTED', result.snapshot.version, { delegation: result.delegation });
   }
-  const validation = validateReviewInput(input.value);
-  if (!validation.ok || !validation.value) {
-    return emitFailure(options, invalidInput(validation.diagnostics));
+  if (payload.action === 'save') {
+    const result = await saveDelegation({
+      changeDir: context.changeDir, expectedVersion: version, delegationId: payload.delegationId,
+      report: payload.report, evidenceIds: payload.evidenceIds, delivery: payload.delivery, unresolved: payload.unresolved,
+    });
+    return success('DELEGATION_SAVED', result.snapshot.version, { delegation: result.delegation });
   }
+  const config = readProjectConfig(context.projectRoot);
+  if (payload.basis === 'disabled' && config?.optimization?.enabled !== false) return invalid('INVALID_SKIP_BASIS', 'Disabled skip requires optimization.enabled=false.');
+  if (payload.basis === 'user_refusal' && config?.optimization?.enabled === false) return invalid('INVALID_SKIP_BASIS', 'Use disabled skip when optimization.enabled=false.');
+  const result = await skipDelegation(context.changeDir, `${payload.basis}: ${payload.reason}`, version);
+  return success('DELEGATION_SKIPPED', result.version, { skip: result.state.skip });
+}
 
-  const review = validation.value;
-  const timestamp = new Date().toISOString();
-  const evidenceFiles = [...review.evidenceFiles].sort();
-  const fingerprint = await computeEvidenceFingerprint(evidenceFiles, projectRoot);
-  const optimization = carryLedgerThroughReview(state.record?.optimization);
-  const record: QualityRecord = {
-    kind: 'review',
-    timestamp,
-    result: review.result,
-    issues: review.issues,
-    tasksFileHash: await computeTasksFileHash(path.join(changeDir, 'tasks.md')),
-    verificationContext: {
-      contractVersion: CONTRACT_VERSION,
-      evidenceFiles,
-      evidenceFingerprint: fingerprint.hash,
-      evidenceFingerprintEntries: fingerprint.entries,
-      skippedEvidenceFiles: fingerprint.skippedFiles,
-      gitHeadCommit: await getCurrentGitHead(projectRoot),
-      ...(review.gitDiffSummary ? { gitDiffSummary: review.gitDiffSummary } : {}),
-      timestamp,
-    },
-    ...(optimization ? { optimization } : {}),
-  };
-
-  await writeQualityRecord(changeDir, record);
-  const nextState = await checkQualityState(changeDir, projectRoot);
-  const summary = `Review recorded (${review.result}). State: ${nextState.status}.`;
-  emit(options, summary, {
-    ok: true,
-    state: nextState.status,
-    review: { result: record.result, timestamp },
-    directions: summarizeDirections(optimization?.directions ?? []),
-    ledger: summarizeLedger(optimization, limits),
-    allowedNextOperations: allowedNextOperations(nextState.status, optimization),
+async function runVerification(changeName: string, options: QualityOptions, argv: string[]): Promise<number> {
+  const context = await resolveContext(changeName);
+  if (options.input || options.from) return invalid('INVALID_VERIFICATION_COMMAND', 'Verification accepts executable argv after --, not a JSON payload.');
+  if (argv.length === 0) return invalid('INVALID_EXECUTABLE_ARGV', 'Verification requires an executable after --.');
+  const result = await executeVerification({
+    changeDir: context.changeDir, projectRoot: context.projectRoot, argv,
+    delegationId: options.delegation, scope: options.scope, expectedVersion: await readQualityVersion(context.changeDir),
   });
-  return 0;
+  const exitCode = result.verification.success ? 0 : 1;
+  return emit({ ok: result.verification.success, code: result.verification.success ? 'VERIFICATION_RECORDED' : 'VERIFICATION_FAILED', diagnostics: result.verification.success ? [] : [{ code: 'VERIFICATION_FAILED', message: 'The captured command did not produce a successful current-state verification.' }], allowedNextOperations: ['delegation', 'conclusion'], version: result.snapshot.version, verification: result.verification }, exitCode);
 }
 
-async function runQualityOptimize(changeName: string, options: QualityCommandOptions): Promise<number> {
-  const projectRoot = process.cwd();
-  const changeDir = await resolveChangeDir(changeName, projectRoot);
-  const state = await checkQualityState(changeDir, projectRoot);
-  const limits = readDirectionLimits(projectRoot);
-  const previous = state.record;
-
-  const input = await readInput(options.input);
-  if (!input.ok) {
-    return emitFailure(options, invalidInput(input.error));
-  }
-  const validation = validateOptimizeInput(input.value);
-  if (!validation.ok || !validation.value) {
-    return emitFailure(options, invalidInput(validation.diagnostics));
-  }
-  const round = validation.value;
-
-  if (state.status !== 'clean') {
-    return emitFailure(options, {
-      code: QUALITY_CODES.reviewRequired,
-      exitCode: 1,
-      state: state.status,
-      allowedNextOperations: allowedNextOperations(state.status, previous?.optimization),
-      diagnostics: [
-        diagnostic(
-          'state',
-          'clean',
-          state.status,
-          'Record the current code state with `xirang quality review` before starting the next optimization round.'
-        ),
-      ],
-      summary: 'Optimization requires code that already passed review.',
+async function runConclusion(changeName: string, options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  const expectedVersion = requiredVersion(options.version);
+  const input = await readPayload(options);
+  const payload = readPayloadSchema(input, [commandSchemas.completionPlan, commandSchemas.completionComplete]);
+  if (payload.action === 'plan') {
+    const result = await planCompletion({
+      changeDir: context.changeDir, projectRoot: context.projectRoot, expectedVersion,
+      delegationIds: payload.delegationIds, verificationPlan: payload.verificationPlan, reasons: payload.reasons,
+      requiredEvidenceIds: payload.requiredEvidenceIds, requiredReviewIds: payload.requiredReviewIds,
+      baselineDefects: payload.baselineDefects, applicability: payload.applicability,
+      recoveryConfirmed: payload.recoveryConfirmed, unresolvedIssues: payload.unresolvedIssues,
     });
+    return success('CONCLUSION_PLANNED', result.snapshot.version, { plan: result.plan });
   }
+  const result = await completeOptimization({ changeDir: context.changeDir, projectRoot: context.projectRoot, expectedVersion, planId: payload.planId, reasons: payload.reasons });
+  return success('CONCLUSION_COMPLETED', result.snapshot.version, { conclusion: result.conclusion });
+}
 
-  if (previous?.optimization?.terminal === 'ABORTED_UNSAFE') {
-    return emitFailure(options, {
-      code: QUALITY_CODES.abortedUnsafe,
-      exitCode: 1,
-      state: state.status,
-      allowedNextOperations: [],
-      diagnostics: [
-        diagnostic(
-          'optimization.terminal',
-          'a user-authorized controlled rotation followed by a fresh Review',
-          'ABORTED_UNSAFE',
-          `Restoring code or recording a new Review does not lift this terminal. With explicit user authorization and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to save, verify, and rotate the active records, then re-verify from a fresh Review.`
-        ),
-      ],
-      summary: 'Optimization was aborted as unsafe.',
-    });
-  }
-
-  if (previous?.optimization?.terminal) {
-    return emitFailure(options, {
-      code: QUALITY_CODES.optimizationFinalized,
-      exitCode: 1,
-      state: state.status,
-      allowedNextOperations: allowedNextOperations(state.status, previous.optimization),
-      diagnostics: [
-        diagnostic(
-          'optimization.terminal',
-          'an unterminated ledger',
-          previous.optimization.terminal,
-          'Seal and archive the change; a new optimization requires a new change.'
-        ),
-      ],
-      summary: 'Optimization is already finalized.',
-    });
-  }
-
-  if (limits.enabled === false) {
-    const declined = round.stopReason === 'USER_DECLINED' && round.directions.length === 0;
-    if (!declined || round.selected || round.attempt) {
-      return emitFailure(options, {
-        code: QUALITY_CODES.optimizationDisabled,
-        exitCode: 1,
-        state: state.status,
-        allowedNextOperations: allowedNextOperations(state.status, previous?.optimization),
-        diagnostics: [
-          diagnostic(
-            'stopReason',
-            'USER_DECLINED',
-            round.stopReason ?? 'undefined',
-            'optimization.enabled is false, so only { "directions": [], "stopReason": "USER_DECLINED", "summary": "<reason>" } is accepted.'
-          ),
-        ],
-        summary: 'optimization.enabled is false.',
-      });
-    }
-  }
-
-  const ledger = cloneLedger(previous?.optimization);
-  const transition = applyRound(ledger, round, limits);
-  if (!transition.ok) {
-    return emitFailure(options, transition.failure);
-  }
-
-  const record: QualityRecord = {
-    ...(previous as QualityRecord),
-    kind: 'optimize',
-    timestamp: new Date().toISOString(),
-    optimization: ledger,
-  };
-  await writeQualityRecord(changeDir, record);
-  const nextState = await checkQualityState(changeDir, projectRoot);
-  const summary = transition.selected
-    ? `Direction ${transition.selected} selected for round ${transition.nextRound}.`
-    : ledger.terminal
-      ? `Optimization finalized as ${ledger.terminal}.`
-      : `Round ${transition.nextRound} recorded with no actionable direction.`;
-  emit(options, summary, {
-    ok: true,
-    state: nextState.status,
-    round: transition.nextRound,
-    ...(transition.selected ? { selected: transition.selected } : {}),
-    directions: summarizeDirections(ledger.directions),
-    ledger: summarizeLedger(ledger, limits),
-    allowedNextOperations: allowedNextOperations(nextState.status, ledger),
+async function runCheckpoint(changeName: string, options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  if (!options.kind || !options.commit) throw new QualityEngineError('INVALID_CHECKPOINT_INPUT', 'Checkpoint requires --kind and --commit.');
+  const result = await recordCheckpoint({
+    changeDir: context.changeDir, projectRoot: context.projectRoot,
+    expectedVersion: options.version === undefined ? await readQualityVersion(context.changeDir) : requiredVersion(options.version),
+    kind: options.kind as 'baseline' | 'intermediate' | 'successful', commit: options.commit, reviewId: options.review,
   });
-  return 0;
+  return success('CHECKPOINT_RECORDED', result.snapshot.version, { checkpoint: result.checkpoint });
 }
 
-async function runQualityStatus(changeName: string, options: QualityCommandOptions): Promise<number> {
-  const projectRoot = process.cwd();
-  const changeDir = await resolveChangeDir(changeName, projectRoot);
-  const state = await checkQualityState(changeDir, projectRoot);
-  const limits = readDirectionLimits(projectRoot);
-  const ledger = state.record?.optimization;
-
-  const nextOperations = allowedNextOperations(state.status, ledger);
-  const commands = nextCommands(changeName, state.status, ledger);
-  emit(options, renderStatus(state, ledger, limits, commands), {
-    ok: true,
-    state: state.status,
-    ...(state.changedFiles.length > 0 ? { changedFiles: state.changedFiles } : {}),
-    ...(state.status === 'clean' && state.record
-      ? { review: { result: state.record.result, timestamp: state.record.timestamp } }
-      : {}),
-    optimization: summarizeLedger(ledger, limits),
-    allowedNextOperations: nextOperations,
-    nextCommands: commands,
-    information: state.information,
-  });
-  return 0;
-}
-
-async function runQualitySeal(changeName: string, options: QualityCommandOptions): Promise<number> {
-  const projectRoot = process.cwd();
-  const changeDir = await resolveChangeDir(changeName, projectRoot);
-  const snapshot = await readQualitySnapshot(changeDir);
-  const state = await checkQualityState(changeDir, projectRoot);
-  const validation = validateQualityRecord(snapshot);
-  const diagnostics: Diagnostic[] = [...validation.diagnostics];
-
-  if (state.status !== 'clean') {
-    diagnostics.push(
-      diagnostic(
-        'state',
-        'clean',
-        state.status,
-        'Record a passing conclusion for the current code with `xirang quality review`.'
-      )
-    );
-  }
-  const terminal = snapshot?.optimization?.terminal;
-  if (!terminal) {
-    diagnostics.push(
-      diagnostic(
-        'optimization.terminal',
-        [...ARCHIVE_COMPATIBLE_TERMINALS].join(' | '),
-        'MISSING',
-        'Record the optimization stop with `xirang quality optimize <change-name> --input \'{"directions":[],"stopReason":"...","summary":"..."}\'`.'
-      )
-    );
-  } else if (!ARCHIVE_COMPATIBLE_TERMINALS.has(terminal)) {
-    diagnostics.push(
-      diagnostic(
-        'optimization.terminal',
-        [...ARCHIVE_COMPATIBLE_TERMINALS].join(' | '),
-        terminal,
-        `Restoring code alone never lifts this terminal. With explicit user authorization and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to rotate the records and re-verify from a fresh Review before sealing.`
-      )
-    );
-  }
-
-  if (diagnostics.length > 0 || !snapshot) {
-    return emitFailure(options, {
-      code: QUALITY_CODES.sealNotReady,
-      exitCode: 1,
-      state: state.status,
-      allowedNextOperations: allowedNextOperations(state.status, snapshot?.optimization),
-      diagnostics,
-      summary: 'The recorded conclusion is not ready for seal.',
-    });
-  }
-
-  const sealHash = generateSealHash(snapshot);
-  console.log(options.json ? JSON.stringify({ ok: true, sealHash, allowedNextOperations: ['archive'] }, null, 2) : `sealHash: ${sealHash}`);
-  return 0;
-}
-
-function applyRound(
-  ledger: OptimizationLedger,
-  round: OptimizeInput,
-  limits: DirectionLimits
-): { ok: true; nextRound: number; selected?: string } | { ok: false; failure: FailureInput } {
-  const byId = new Map(ledger.directions.map((direction) => [direction.id, direction]));
-
-  if (round.attempt) {
-    const target = byId.get(round.attempt.directionId);
-    if (!target) {
-      return {
-        ok: false,
-        failure: unknownDirectionFailure(`attempt.directionId`, round.attempt.directionId),
-      };
-    }
-    if (target.status === 'selected') {
-      target.status = 'implemented';
-    }
-    if (target.status === 'verified' && round.attempt.status === 'verified') {
-      // already recorded; keep the round idempotent
-    } else if (target.status !== 'implemented' && target.status !== 'failed') {
-      return {
-        ok: false,
-        failure: {
-          code: QUALITY_CODES.illegalDirectionTransition,
-          exitCode: 2,
-          diagnostics: [
-            diagnostic(
-              'attempt.status',
-              'a direction that is selected, implemented, or failed',
-              target.status,
-              `Direction ${target.id} cannot report a round outcome from status ${target.status}.`
-            ),
-          ],
-          summary: 'The reported round outcome does not match the recorded direction.',
-        },
-      };
-    } else {
-      target.failureCount += round.attempt.status === 'failed' ? 1 : 0;
-      if (round.attempt.status === 'failed' && target.failureCount >= limits.directionRetries) {
-        target.status = 'rejected';
-        target.reason = round.attempt.summary ?? target.reason ?? 'failure limit reached';
-      } else {
-        target.status = round.attempt.status;
-      }
-    }
-  }
-
-  const reportedDirectionId = round.attempt?.directionId;
-  for (const direction of ledger.directions) {
-    if (direction.id === reportedDirectionId) {
-      continue;
-    }
-    if (direction.status === 'selected') {
-      direction.status = 'pending';
-      continue;
-    }
-    if (direction.status === 'failed' && direction.failureCount < limits.directionRetries) {
-      direction.status = 'pending';
-    }
-  }
-
-  const newPayloads: Array<{ index: number; payload: NewDirectionPayload }> = [];
-  for (const [index, entry] of round.directions.entries()) {
-    const update = entry as DirectionUpdatePayload;
-    if (!isDirectionId(update.id)) {
-      newPayloads.push({ index, payload: entry as NewDirectionPayload });
-      continue;
-    }
-    const target = byId.get(update.id);
-    if (!target) {
-      return { ok: false, failure: unknownDirectionFailure(`directions[${index}].id`, update.id) };
-    }
-    if (target.status !== update.status) {
-      const transition = validateDirectionTransition(target.status, update.status);
-      if (transition) {
-        return {
-          ok: false,
-          failure: {
-            code: QUALITY_CODES.illegalDirectionTransition,
-            exitCode: 2,
-            diagnostics: [
-              diagnostic(
-                `directions[${index}].status`,
-                transition.expected,
-                `${target.status} -> ${update.status}`,
-                transition.fix
-              ),
-            ],
-            summary: `Direction ${update.id} cannot move to ${update.status}.`,
-          },
-        };
-      }
-      target.status = update.status;
-    }
-    if (update.reason) {
-      target.reason = update.reason;
-    }
-    if (update.evidence) {
-      target.revocationEvidence = update.evidence;
-    }
-  }
-
-  const assignedDirectionIds = allocateDirectionIds(newPayloads.length);
-  for (const [batchIndex, entry] of newPayloads.entries()) {
-    const id = assignedDirectionIds[batchIndex];
-    const dependencies: string[] = [];
-    for (const [dependencyIndex, dependency] of entry.payload.dependencies.entries()) {
-      if (typeof dependency === 'string') {
-        dependencies.push(dependency);
-        continue;
-      }
-      const target = assignedDirectionIds[dependency.actionIndex];
-      if (!target) {
-        return {
-          ok: false,
-          failure: {
-            code: QUALITY_CODES.invalidInput,
-            exitCode: 2,
-            diagnostics: [
-              diagnostic(
-                `directions[${entry.index}].dependencies[${dependencyIndex}]`,
-                `an actionIndex of a new direction in this request (0 - ${newPayloads.length - 1})`,
-                String(dependency.actionIndex),
-                'actionIndex addresses the new directions of this request in order.'
-              ),
-            ],
-            summary: 'A dependency actionIndex does not reference a new direction of this request.',
-          },
-        };
-      }
-      dependencies.push(target);
-    }
-    const direction: OptimizationDirection = {
-      ...entry.payload,
-      id,
-      status: 'pending',
-      failureCount: 0,
-      dependencies,
-    };
-    ledger.directions.push(direction);
-    byId.set(id, direction);
-  }
-
-  const priorSelections = collectSelectedIds(ledger.histories);
-  const eligible = selectEligibleDirection(ledger.directions, limits.minImpactLevel);
-  const wantsSelection = Boolean(eligible) && !round.stopReason;
-
-  if (wantsSelection && priorSelections.size >= limits.directionLimit) {
-    return {
-      ok: false,
-      failure: {
-        code: QUALITY_CODES.directionLimitReached,
-        exitCode: 1,
-        allowedNextOperations: ['optimize'],
-        diagnostics: [
-          diagnostic(
-            'directions',
-            `at most ${limits.directionLimit} selected direction(s)`,
-            `${priorSelections.size} selected`,
-            `Finalize the loop with { "directions": [], "stopReason": "DIRECTION_LIMIT_REACHED", "summary": "<conclusion>" } or raise optimization.directionLimit.`
-          ),
-        ],
-        summary: 'The direction limit is reached; only finalization is accepted.',
-      },
-    };
-  }
-
-  if (round.selected && round.selected !== eligible?.id) {
-    return {
-      ok: false,
-      failure: {
-        code: QUALITY_CODES.directionOrderViolation,
-        exitCode: 2,
-        diagnostics: [
-          diagnostic(
-            'selected',
-            eligible?.id ?? 'no selection for this round',
-            round.selected,
-            'Select the highest priority pending direction whose dependencies are verified, or omit selected.'
-          ),
-        ],
-        summary: 'The requested direction is not the highest priority eligible direction.',
-      },
-    };
-  }
-
-  let selected: string | undefined;
-  if (wantsSelection && eligible) {
-    eligible.status = 'selected';
-    selected = eligible.id;
-    ledger.selected = eligible.id;
-  }
-
-  const nextRound = ledger.histories.length + 1;
-  ledger.histories.push({
-    round: nextRound,
-    timestamp: new Date().toISOString(),
-    directions: assignedDirectionIds,
-    ...(selected ? { selected } : {}),
-    outcome: round.attempt?.status ?? 'none',
-    ...(round.stopReason ? { stopReason: round.stopReason } : {}),
-    ...(round.summary ?? round.attempt?.summary
-      ? { reason: round.summary ?? round.attempt?.summary }
-      : {}),
-    ...(round.attempt?.evidence ? { evidence: round.attempt.evidence } : {}),
-  });
-
-  if (round.stopReason) {
-    ledger.stopReason = round.stopReason;
-    ledger.terminal = deriveTerminal(
-      round.stopReason,
-      ledger.directions.some((direction) => direction.status === 'verified')
-    );
-    delete ledger.selected;
-  }
-
-  ledger.directionsUsed = collectSelectedIds(ledger.histories).size;
-  return { ok: true, nextRound, ...(selected ? { selected } : {}) };
-}
-
-interface FailureInput {
-  code: string;
-  exitCode: number;
-  diagnostics: Diagnostic[];
-  summary: string;
-  state?: QualityState['status'];
-  allowedNextOperations?: string[];
-}
-
-function unknownDirectionFailure(fieldPath: string, value: string): FailureInput {
-  return {
-    code: QUALITY_CODES.unknownDirection,
-    exitCode: 2,
-    diagnostics: [
-      diagnostic(
-        fieldPath,
-        'a direction ID echoed by this CLI',
-        value,
-        'Read the recorded directions with `xirang quality status <change-name> --json`.'
-      ),
-    ],
-    summary: `Unknown direction ${value}.`,
-  };
-}
-
-function invalidInput(diagnosticsOrMessage: Diagnostic[] | string): FailureInput {
-  const diagnostics = Array.isArray(diagnosticsOrMessage)
-    ? diagnosticsOrMessage
-    : [diagnostic('$', 'a JSON object', String(diagnosticsOrMessage), 'Read `xirang quality --help` for the accepted payload.')];
-  return {
-    code: QUALITY_CODES.invalidInput,
-    exitCode: 2,
-    diagnostics,
-    summary: 'The payload shape is invalid.',
-  };
-}
-
-function emitFailure(options: QualityCommandOptions, failure: FailureInput): number {
-  const payload = {
-    ok: false,
-    code: failure.code,
-    diagnostics: failure.diagnostics,
-    allowedNextOperations: failure.allowedNextOperations ?? [],
-    ...(failure.state ? { state: failure.state } : {}),
-  };
-  emit(
-    options,
-    [`✗ ${failure.code} — ${failure.summary}`, formatDiagnostics(failure.diagnostics)].join('\n'),
-    payload
+async function runStatus(changeName: string, _options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  const evaluation = await evaluateCompletion(context.changeDir, context.projectRoot);
+  const store = await readQualityStore(context.changeDir);
+  const hasCurrentPassingBaseline = store.snapshot.state.reviews.some(review =>
+    review.scope === 'baseline'
+    && review.valid
+    && ['PASS', 'PASS_WITH_WARNINGS'].includes(review.result ?? '')
+    && review.afterManifest?.hash === evaluation.manifest.hash,
   );
-  return failure.exitCode;
+  const allowedNextOperations = evaluation.status === 'all_done'
+    ? ['archive']
+    : evaluation.baseline
+      ? ['delegation', 'verification', 'conclusion', 'checkpoint', 'status']
+      : hasCurrentPassingBaseline
+        ? ['checkpoint', 'status']
+        : ['review', 'status'];
+  return success('QUALITY_STATUS', store.snapshot.version, {
+    status: evaluation.status, baseline: evaluation.baseline, delegations: store.snapshot.state.delegations,
+    activeAssociationId: store.snapshot.state.activeAssociationId, revalidationHistory: store.snapshot.state.revalidationHistory ?? [],
+    verifications: evaluation.verifications, plans: evaluation.plans, conclusion: evaluation.conclusion,
+    checkpoints: evaluation.checkpoints, reviews: store.snapshot.state.reviews,
+    baselineReview: evaluation.baseline ? store.snapshot.state.reviews.find(review => review.reviewId === evaluation.baseline!.reviewId) : undefined,
+    gaps: evaluation.gaps, changedFiles: evaluation.changedFiles,
+    information: { headDifference: evaluation.headDifference, head: evaluation.manifest.head },
+    allowedNextOperations,
+  });
 }
 
-function emit(options: QualityCommandOptions, text: string, payload: unknown): void {
-  console.log(options.json ? JSON.stringify(payload, null, 2) : text);
+async function runSeal(changeName: string, _options: QualityOptions): Promise<number> {
+  const context = await resolveContext(changeName);
+  const evaluation = await evaluateCompletion(context.changeDir, context.projectRoot);
+  const store = await readQualityStore(context.changeDir);
+  if (evaluation.status !== 'all_done' || evaluation.gaps.length > 0) {
+    return emit({ ok: false, code: 'SEAL_NOT_READY', diagnostics: evaluation.gaps.map(code => ({ code, message: code })), allowedNextOperations: ['status'], version: store.snapshot.version, status: evaluation.status, gaps: evaluation.gaps }, 1);
+  }
+    const sealHash = hashSeal({ status: evaluation.status, gaps: evaluation.gaps, state: store.snapshot.state, manifest: evaluation.manifest });
+  return success('SEALED', store.snapshot.version, { sealHash, status: evaluation.status, gaps: evaluation.gaps });
 }
 
-function nextCommands(
-  changeName: string,
-  status: QualityState['status'],
-  ledger?: OptimizationLedger
-): string[] {
-  if (status !== 'clean') {
-    return [`xirang quality review ${changeName} --input '<review json>' --json`];
-  }
-  if (!ledger?.terminal) {
-    return [
-      `xirang quality optimize ${changeName} --input '<round json>' --json`,
-      `xirang quality seal ${changeName} --json   # requires a finalized optimization ledger`,
-    ];
-  }
-  if (ledger.terminal === 'ABORTED_UNSAFE') {
-    return [];
-  }
-  return [`xirang quality seal ${changeName} --json`, `xirang archive ${changeName}`];
+async function resolveContext(changeName: string): Promise<{ projectRoot: string; changeDir: string }> {
+  const projectRoot = process.cwd();
+  let validated: string;
+  try { validated = await validateChangeExists(changeName, projectRoot); }
+  catch (cause) { throw new QualityEngineError('INVALID_CHANGE', cause instanceof Error ? cause.message : String(cause)); }
+  return { projectRoot, changeDir: path.join(projectRoot, XIRANG_DIR_NAME, 'changes', validated) };
 }
 
-function renderStatus(
-  state: QualityState,
-  ledger: OptimizationLedger | undefined,
-  limits: DirectionLimits,
-  commands: string[]
-): string {
-  const lines = [`State: ${state.status}`];
-  if (state.changedFiles.length > 0) {
-    lines.push('Changed files:', ...state.changedFiles.map((file) => `  - ${file}`));
+async function readPayload(options: QualityOptions): Promise<unknown> {
+  if (options.input && options.from) throw new QualityEngineError('INVALID_INPUT_SOURCE', '--input and --from are mutually exclusive.');
+  let raw = options.input;
+  if (options.from) {
+    try { raw = await fs.readFile(path.resolve(process.cwd(), options.from), 'utf8'); }
+    catch (cause) { throw new QualityEngineError('INVALID_INPUT_SOURCE', cause instanceof Error ? cause.message : String(cause)); }
   }
-  if (state.status === 'clean' && state.record) {
-    lines.push(`Review: ${state.record.result} at ${state.record.timestamp}`);
-  }
-  lines.push(
-    `Directions: ${ledger?.directionsUsed ?? 0}/${limits.directionLimit} selected, ${limits.directionRetries} retry budget per direction`,
-    `Min impact level: ${limits.minImpactLevel}`,
-    `Optimization: ${ledger?.terminal ?? 'not finalized'}`
-  );
-  const next = allowedNextOperations(state.status, ledger);
-  lines.push(next.length > 0 ? `Next: ${next.join(', ')}` : 'Next: none — further operations are blocked');
-  if (ledger?.terminal === 'ABORTED_UNSAFE') {
-    lines.push(
-      `Recovery: ${QUALITY_RECOVERY_REFERENCE} — with explicit user authorization and a fully stopped original flow, save, verify, and rotate the active records there, then re-verify from a fresh Review. Restoring code alone does not lift the terminal.`
-    );
-  }
-  lines.push(...commands.map((command) => `  ${command}`));
-  return lines.join('\n');
+  if (raw === undefined) raw = await readStdin();
+  if (!raw || raw.trim() === '') throw new QualityEngineError('INVALID_INPUT', 'A JSON payload is required.');
+  try { return JSON.parse(raw); } catch { throw new QualityEngineError('INVALID_INPUT', 'Input is not valid JSON.'); }
 }
 
-function allowedNextOperations(status: QualityState['status'], ledger?: OptimizationLedger): string[] {
-  if (status !== 'clean') {
-    return ['review'];
-  }
-  if (!ledger?.terminal) {
-    return ['optimize'];
-  }
-  if (ledger.terminal === 'ABORTED_UNSAFE') {
-    return [];
-  }
-  return ['seal', 'archive'];
-}
-
-function summarizeLedger(ledger: OptimizationLedger | undefined, limits: DirectionLimits) {
-  return {
-    ...(ledger?.terminal ? { terminal: ledger.terminal } : {}),
-    ...(ledger?.stopReason ? { stopReason: ledger.stopReason } : {}),
-    directionsUsed: ledger?.directionsUsed ?? 0,
-    directionLimit: limits.directionLimit,
-    directionRetries: limits.directionRetries,
-    minImpactLevel: limits.minImpactLevel,
-    directions: summarizeDirections(ledger?.directions ?? []),
-  };
-}
-
-function summarizeDirections(directions: OptimizationDirection[]) {
-  return directions.map((direction) => ({
-    id: direction.id,
-    status: direction.status,
-    failureCount: direction.failureCount,
-    opportunity: direction.opportunity,
-  }));
-}
-
-function collectSelectedIds(histories: OptimizationLedger['histories']): Set<string> {
-  const ids = new Set<string>();
-  for (const round of histories) {
-    if (round.selected) {
-      ids.add(round.selected);
-    }
-  }
-  return ids;
-}
-
-function cloneLedger(ledger?: OptimizationLedger): OptimizationLedger {
-  if (!ledger) {
-    return { directions: [], histories: [], directionsUsed: 0 };
-  }
-  return normalizeLedger(structuredClone(ledger));
-}
-
-function carryLedgerThroughReview(ledger?: OptimizationLedger): OptimizationLedger | undefined {
-  if (!ledger) {
-    return undefined;
-  }
-  const next = normalizeLedger(structuredClone(ledger));
-  const target = next.directions.find((direction) => direction.status === 'selected');
-  if (target) {
-    target.status = 'implemented';
-  }
-  return next;
-}
-
-function readDirectionLimits(projectRoot: string): DirectionLimits {
-  const optimization = readProjectConfig(projectRoot)?.optimization;
-  return {
-    enabled: optimization?.enabled ?? true,
-    directionLimit: optimization?.directionLimit ?? DEFAULT_DIRECTION_LIMIT,
-    directionRetries: optimization?.directionRetries ?? DEFAULT_DIRECTION_RETRIES,
-    minImpactLevel: optimization?.minImpactLevel ?? DEFAULT_MIN_IMPACT_LEVEL,
-  };
-}
-
-async function resolveChangeDir(changeName: string, projectRoot: string): Promise<string> {
-  const validated = await validateChangeExists(changeName, projectRoot);
-  return path.join(projectRoot, XIRANG_DIR_NAME, 'changes', validated);
-}
-
-async function readInput(input?: string): Promise<{ ok: true; value: unknown } | { ok: false; error: string }> {
-  try {
-    return { ok: true, value: await parseInput(input) };
-  } catch (error) {
-    return { ok: false, error: `Invalid JSON input: ${(error as Error).message}` };
-  }
-}
-
-async function parseInput(input?: string): Promise<unknown> {
-  const raw = input ?? (await readStdinIfAvailable());
-  if (!raw) {
-    return {};
-  }
-  return JSON.parse(raw);
-}
-
-async function readStdinIfAvailable(): Promise<string> {
-  if (process.stdin.isTTY) {
-    return '';
-  }
+async function readStdin(): Promise<string> {
+  if (process.stdin.isTTY) return '';
   const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+  for await (const chunk of process.stdin) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
+  return Buffer.concat(chunks).toString('utf8').trim();
+}
+
+function parse<T>(schema: z.ZodType<T>, value: unknown): T {
+  const result = schema.safeParse(value);
+  if (!result.success) throw new QualityEngineError('INVALID_INPUT', result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; '));
+  return result.data;
+}
+
+function readPayloadSchema(value: unknown, schemas: z.ZodType[]): any {
+  const parsed = schemas.map(schema => schema.safeParse(value)).find(result => result.success);
+  if (!parsed || !parsed.success) throw new QualityEngineError('INVALID_INPUT', 'Payload does not match a supported strict command shape.');
+  return parsed.data;
+}
+
+function requiredVersion(value: string | undefined): number {
+  if (value === undefined || !/^\d+$/.test(value)) throw new QualityEngineError('INVALID_QUALITY_VERSION', 'A non-negative --version is required.');
+  return Number(value);
+}
+
+async function applyTaskWriteBack(tasksPath: string, plan: Array<{ taskLine?: string | null; action?: string; correctionType?: string; summary?: string; nextAction?: string }>): Promise<void> {
+  let content = '';
+  try { content = await fs.readFile(tasksPath, 'utf8'); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+  let updated = content;
+  const correctionItems: string[] = [];
+  for (const entry of plan) {
+    if (entry.action === 'unmark') {
+      if (!entry.taskLine?.trim()) throw new QualityEngineError('INVALID_WRITEBACK_PLAN', 'Review result is inconsistent.');
+      const matchingLines = updated.split('\n').filter(line => line.trim() === entry.taskLine!.trim());
+      if (matchingLines.length !== 1 || !/\[[xX]\]/.test(matchingLines[0])) {
+        throw new QualityEngineError('INVALID_WRITEBACK_PLAN', 'Review result is inconsistent.');
+      }
+      updated = updated.split('\n').map(line => line.trim() === entry.taskLine!.trim() ? line.replace(/\[[xX]\]/, '[ ]') : line).join('\n');
+    } else if (entry.action === 'append_correction') {
+      const text = (entry.summary ?? entry.nextAction ?? 'Address the required correction.').replace(/[\r\n]+/g, ' ').trim();
+      correctionItems.push(`- [ ] [${entry.correctionType}] ${text}`);
+    }
   }
-  return Buffer.concat(chunks).toString('utf-8').trim();
+  if (correctionItems.length > 0) updated = appendRequiredCorrections(updated, correctionItems);
+  if (updated !== content) await fs.writeFile(tasksPath, updated, 'utf8');
+}
+
+function appendRequiredCorrections(content: string, items: string[]): string {
+  const heading = /^## Required Corrections\s*$/m;
+  const match = heading.exec(content);
+  if (!match || match.index === undefined) {
+    return `${content}${content && !content.endsWith('\n') ? '\n' : ''}\n## Required Corrections\n${items.join('\n')}\n`;
+  }
+  const sectionStart = match.index + match[0].length;
+  const nextHeading = /^## (?!Required Corrections\s*$).+$/m;
+  nextHeading.lastIndex = sectionStart;
+  const next = nextHeading.exec(content.slice(sectionStart));
+  const insertAt = next ? sectionStart + next.index : content.length;
+  const prefix = content.slice(0, insertAt);
+  const suffix = content.slice(insertAt);
+  const separator = prefix.endsWith('\n') ? '' : '\n';
+  return `${prefix}${separator}${items.join('\n')}\n${suffix}`;
+}
+
+
+function hashSeal(value: unknown): string {
+  return createHash('sha256').update(stableJson(value, true)).digest('hex');
+}
+function stableJson(value: unknown, omitInformational = false): string {
+  if (Array.isArray(value)) return `[${value.map(item => stableJson(item, omitInformational)).join(',')}]`;
+  if (value && typeof value === 'object') return `{${Object.keys(value as Record<string, unknown>).filter(key => !omitInformational || !['head', 'root'].includes(key)).sort().map(key => `${JSON.stringify(key)}:${stableJson((value as Record<string, unknown>)[key], omitInformational)}`).join(',')}}`;
+  return JSON.stringify(value);
+}
+
+function success(code: string, version: number, data: Record<string, unknown>): number {
+  return emit({ ok: true, code, diagnostics: [], allowedNextOperations: [], version, ...data }, 0);
+}
+function invalid(code: string, message: string): number {
+  return emit({ ok: false, code, diagnostics: [{ code, message }], allowedNextOperations: [] }, 2);
+}
+function blocked(code: string, message: string): number {
+  return emit({ ok: false, code, diagnostics: [{ code, message }], allowedNextOperations: ['delegation'] }, 1);
+}
+function emit(payload: QualityEnvelope, exitCode: number): number {
+  console.log(JSON.stringify({ contractVersion: QUALITY_VERSION, ...payload }));
+  return exitCode;
 }
 
 async function runWithExitCode(handler: () => Promise<number>): Promise<void> {
   try {
     const code = await handler();
-    if (code !== 0) {
-      process.exitCode = code;
-    }
-  } catch (error) {
-    console.error(`Error: ${(error as Error).message}`);
-    process.exitCode = 1;
+    if (code !== 0) process.exitCode = code;
+  } catch (cause) {
+    const error = cause instanceof QualityEngineError ? cause : new QualityEngineError('QUALITY_OPERATION_FAILED', cause instanceof Error ? cause.message : String(cause));
+    const invalidPayload = error.code.startsWith('INVALID_') || error.code.startsWith('UNSAFE_') || error.code.startsWith('UNSUPPORTED_') || error.code.startsWith('UNKNOWN_') || error.code.startsWith('MALFORMED_') || error.code === 'STALE_QUALITY_VERSION' || error.code === 'GIT_COMMAND_FAILED';
+    const exitCode = invalidPayload ? 2 : 1;
+    process.exitCode = exitCode;
+    emit({ ok: false, code: error.code, diagnostics: error.diagnostics, allowedNextOperations: [], ...(error.code === retiredOptimizeCode ? { retired: true } : {}) }, exitCode);
   }
 }
+
+void retiredOptimizeCode;

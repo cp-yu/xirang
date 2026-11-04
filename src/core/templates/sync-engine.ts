@@ -30,6 +30,7 @@ import {
   type WorkflowId,
 } from '../workflow-surface.js';
 import { ToolProfileRegistry } from './tool-profile/index.js';
+import { getApplyChangeSkillTemplate } from './workflows/apply-change.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -202,14 +203,17 @@ const STALE_SHARED_REFERENCE_FILES = [
   'xirang-relation-authoring.md',
 ] as const;
 
-const RETIRED_SWEEPER_REFERENCE_HASHES: Readonly<Record<string, string>> = {
+const RETIRED_MANAGED_REFERENCE_HASHES: Readonly<Record<string, string>> = {
+  'xirang-self-read-protocol.md': '60441cc8f4477c03c9eb89fbd3c18aeb5959d7cf5a25ddf8264cff77eaced901',
+  'xirang-decision-rules.md': 'f6f5364e560aa9bf22b88c72734f9dcb9188db21832b3c0301b028e484449ae9',
+  'xirang-output-protocol.md': 'c840a954078cc0a5dc8c1932d2efb78fe4d0223dec8c8b7ba32bcfd4677e1932',
   'xirang-evidence-protocol.md': '0908fc37927b9cf418ef1c7339559100168d0acbee880ccc728cd7a59bf4ed86',
   'xirang-terminology-awareness.md': 'c6a0cca37dd18bb74196204012e50a3919ee375393b9fb968aa5b7a142692218',
   'xirang-report-schema.md': 'ec1c8fb035345bd57bf08beb8cc0823eb4f75921568b9ce6ba5c9274fbf7c623',
 };
 
-async function removeRetiredSweeperReferences(referencesDir: string): Promise<void> {
-  for (const [fileName, expectedHash] of Object.entries(RETIRED_SWEEPER_REFERENCE_HASHES)) {
+async function removeRetiredManagedReferences(referencesDir: string): Promise<void> {
+  for (const [fileName, expectedHash] of Object.entries(RETIRED_MANAGED_REFERENCE_HASHES)) {
     const filePath = path.join(referencesDir, fileName);
     try {
       const content = await fs.promises.readFile(filePath);
@@ -230,7 +234,7 @@ async function writeSharedReferences(
   for (const fileName of STALE_SHARED_REFERENCE_FILES) {
     await fs.promises.rm(path.join(referencesDir, fileName), { force: true });
   }
-  await removeRetiredSweeperReferences(referencesDir);
+  await removeRetiredManagedReferences(referencesDir);
 
   for (const referenceFile of references) {
     if (!referenceFile.fileName.startsWith('xirang-')) {
@@ -379,9 +383,10 @@ async function writeSubagents(
   const extension = agentFormat === 'toml' ? 'toml' : 'md';
   const baseDir = path.join(projectPath, agentsDir, 'agents');
   await removeRetiredSweeperAgents(baseDir, extension);
-  const sharedReferenceFiles = collectSharedReferenceFiles(
-    entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name }))
-  );
+  const sharedReferenceFiles = collectSharedReferenceFiles([
+    ...entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name })),
+    { template: getApplyChangeSkillTemplate(), workflowId: 'apply-quality' },
+  ]);
   await writeSharedReferences(projectPath, sharedReferenceFiles);
 
   let written = 0;

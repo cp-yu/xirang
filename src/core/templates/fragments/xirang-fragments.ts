@@ -194,8 +194,9 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
  * Fragment: Quality protocol guidance
  * Used in: apply-change, archive-change
  *
- * Every block is rendered by `src/core/quality/protocol.ts`, which also renders the
- * `xirang quality` help, so the reference projection and the CLI help share one source.
+ * Rendered by `src/core/quality/protocol.ts` from the CLI's commandSchemas and
+ * qualityOptionMetadata. Apply registers the shared quality-cli reference;
+ * these projections describe delegation, actual evidence and full completion.
  */
 export const QUALITY_STATE_MACHINE_DIAGRAM = renderQualityStateDiagram();
 export const QUALITY_CLI_JSON_SCHEMA_REFERENCE = renderQualityCliReference();

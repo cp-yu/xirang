@@ -333,8 +333,8 @@ definition: Project Config Loading 定义 `.xirang/config.yaml` 的发现、解�
 - **Default materialization includes decomposition, optimization, apply, and git**
 
   - project config defaults 被 materialize 用于磁盘输出
-  - materialized defaults SHALL 包含 `decomposition: xirang-semantic-refinement.md`、`optimization.enabled: true`、`optimization.directionLimit: 3`、`optimization.directionRetries: 2`、`optimization.minImpactLevel: low`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
-  - SHALL NOT 包含 `optimization.optRetries`、`git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`
+  - materialized defaults SHALL 包含 `decomposition: xirang-semantic-refinement.md`、`optimization.enabled: true`、`apply.defaultIsolation: ask`、`git.merge.strategy: no-ff` 与 `git.branch.deleteAfterArchive: false`
+  - SHALL NOT 包含 `optimization.directionLimit`、`optimization.directionRetries`、`optimization.minImpactLevel`、`optimization.optRetries`、`git.autoCommit`、退役 convention 字段、`git.commitMessage` 路径默认值或 `git.merge.messageFrom`
 
 - **Default materialization excludes non-functional optional fields**
 
@@ -412,3 +412,9 @@ Project config loader SHALL 将顶层 `propose` routing 节点视为退役配置
 
   - 项目在 Windows、macOS 或 Linux 上从 `.xirang/config.yaml` 或其 `.yml` alias 加载有效 `decomposition`
   - 加载器通过现有 Node.js path 解析规则返回相同指导文件路径
+
+### Section: 诊断退役优化配置
+
+optimization.directionLimit、optimization.directionRetries 与 optimization.minImpactLevel SHALL 不进入有效配置、默认值或投影；读取残留值时给出字段级明确退役诊断，不静默解释为新控制、不改写磁盘配置或自动迁移，其余有效字段按既有规则处理。optimization.enabled 保留默认 true。
+
+- **旧项目 YAML**：包含任一退役键时报告其路径，投影不包含该值，用户文件字节不变；新 setup/update 默认物化只添加 enabled，不自动删除已有键。Windows、macOS、Linux 的 .yaml/.yml 使用同一诊断规则。

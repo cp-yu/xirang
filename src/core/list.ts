@@ -2,8 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { compileChange, readFormalSemanticModel } from './change-compiler.js';
 import { XIRANG_DIR_NAME } from './config.js';
-import { checkQualityState } from './quality/state.js';
-import { readQualitySnapshot } from './quality/log.js';
+import { readQualityStore } from './quality/engine.js';
+import { readQualityCompletion } from './quality/state.js';
 import { formatTaskStatus, getTaskProgressForChange } from '../utils/task-progress.js';
 
 interface ChangeInfo {
@@ -26,10 +26,10 @@ async function readQualityStatus(
   changeDir: string,
   projectRoot: string
 ): Promise<NonNullable<ChangeInfo['qualityStatus']>> {
-  if (!(await readQualitySnapshot(changeDir))) {
-    return 'MISSING';
-  }
-  return (await checkQualityState(changeDir, projectRoot)).status;
+  const store = await readQualityStore(changeDir);
+  if (store.snapshot.version === 0) return 'MISSING';
+  const status = await readQualityCompletion(changeDir, projectRoot);
+  return status.status === 'all_done' ? 'clean' : 'dirty';
 }
 
 async function getLastModified(dirPath: string): Promise<Date> {

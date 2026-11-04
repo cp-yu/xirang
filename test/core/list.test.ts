@@ -3,8 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { ListCommand } from '../../src/core/list.js';
-import { computeEvidenceFingerprint, computeTasksFileHash } from '../../src/core/quality/state.js';
-import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/log.js';
+import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 
 describe('ListCommand', () => {
@@ -33,57 +32,8 @@ describe('ListCommand', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  async function collectChangeFiles(changeDir: string): Promise<string[]> {
-    const files: string[] = [];
-
-    async function walk(dir: string): Promise<void> {
-      const entries = await fs.readdir(dir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          await walk(fullPath);
-        } else if (entry.name !== '.verify-result.json') {
-          files.push(fullPath);
-        }
-      }
-    }
-
-    await walk(changeDir);
-    return files.sort();
-  }
-
   async function writeFreshQualityRecord(changeDir: string): Promise<void> {
-    const evidenceFiles = (await collectChangeFiles(changeDir)).map((filePath) =>
-      path.relative(tempDir, filePath).split(path.sep).join('/')
-    );
-    const fingerprint = await computeEvidenceFingerprint(evidenceFiles, tempDir);
-    const tasksFileHash = await computeTasksFileHash(path.join(changeDir, 'tasks.md'));
-    const record = {
-      kind: 'review',
-      timestamp: '2026-05-19T00:00:00.000Z',
-      result: 'PASS',
-      issues: [],
-      tasksFileHash: tasksFileHash ?? '',
-      verificationContext: {
-        contractVersion: '1.0',
-        evidenceFiles,
-        evidenceFingerprint: fingerprint.hash,
-        evidenceFingerprintEntries: fingerprint.entries,
-      },
-      optimization: {
-        directions: [],
-        histories: [],
-        directionsUsed: 0,
-        terminal: 'NOT_NEEDED',
-        stopReason: 'NO_ACTIONABLE',
-      },
-    };
-
-    await fs.writeFile(
-      path.join(changeDir, QUALITY_STATE_FILE),
-      `${JSON.stringify(record, null, 2)}\n`
-    );
-    await fs.appendFile(path.join(changeDir, QUALITY_LOG_FILE), `${JSON.stringify(record)}\n`);
+    await createCompleteQualityFixture(tempDir, changeDir);
   }
 
   describe('execute', () => {
@@ -261,12 +211,6 @@ Regular text that should be ignored
     it('should include qualityStatus in JSON output', async () => {
       const changesDir = path.join(tempDir, '.xirang', 'changes');
 
-      const freshDir = path.join(changesDir, 'fresh-change');
-      await fs.mkdir(freshDir, { recursive: true });
-      await fs.writeFile(path.join(freshDir, 'proposal.md'), '## Why\nfresh\n\n## What Changes\n- ok');
-      await fs.writeFile(path.join(freshDir, 'tasks.md'), '- [x] Task 1\n');
-      await writeFreshQualityRecord(freshDir);
-
       const staleDir = path.join(changesDir, 'stale-change');
       await fs.mkdir(staleDir, { recursive: true });
       await fs.writeFile(path.join(staleDir, 'proposal.md'), '## Why\nstale\n\n## What Changes\n- ok');
@@ -278,6 +222,12 @@ Regular text that should be ignored
       await fs.mkdir(missingDir, { recursive: true });
       await fs.writeFile(path.join(missingDir, 'proposal.md'), '## Why\nmissing\n\n## What Changes\n- ok');
       await fs.writeFile(path.join(missingDir, 'tasks.md'), '- [ ] Task 1\n');
+
+      const freshDir = path.join(changesDir, 'fresh-change');
+      await fs.mkdir(freshDir, { recursive: true });
+      await fs.writeFile(path.join(freshDir, 'proposal.md'), '## Why\nfresh\n\n## What Changes\n- ok');
+      await fs.writeFile(path.join(freshDir, 'tasks.md'), '- [x] Task 1\n');
+      await writeFreshQualityRecord(freshDir);
 
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, { json: true });

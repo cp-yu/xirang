@@ -12,8 +12,6 @@ export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
   optimization?: {
     enabled?: boolean;
-    directionLimit?: number;
-    directionRetries?: number;
   };
   apply?: {
     defaultIsolation?: 'ask' | 'branch' | 'worktree' | 'none';
@@ -24,8 +22,6 @@ const DEFAULT_CONFIG: GlobalConfig = {
   featureFlags: {},
   optimization: {
     enabled: true,
-    directionLimit: 3,
-    directionRetries: 2,
   },
   apply: {
     defaultIsolation: 'ask',
@@ -115,6 +111,11 @@ export function getGlobalConfig(): GlobalConfig {
 
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
+    if (parsed.optimization && typeof parsed.optimization === 'object') {
+      for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
+        if (key in parsed.optimization) console.warn(`Warning: ${configPath}: optimization.${key} is retired and ignored.`);
+      }
+    }
     const {
       propose: _retiredPropose,
       profile: _retiredProfile,
@@ -138,8 +139,7 @@ export function getGlobalConfig(): GlobalConfig {
         ...(parsed.featureFlags || {})
       },
       optimization: {
-        ...DEFAULT_CONFIG.optimization,
-        ...(parsed.optimization || {})
+        enabled: typeof parsed.optimization?.enabled === 'boolean' ? parsed.optimization.enabled : true,
       },
       apply: {
         ...DEFAULT_CONFIG.apply,

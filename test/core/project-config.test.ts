@@ -69,9 +69,6 @@ describe('project-config', () => {
         },
         optimization: {
           enabled: true,
-          directionLimit: 3,
-          directionRetries: 2,
-          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'ask',
@@ -123,9 +120,6 @@ describe('project-config', () => {
         },
         optimization: {
           enabled: true,
-          directionLimit: 3,
-          directionRetries: 2,
-          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'ask',
@@ -159,9 +153,7 @@ context: keep me
       });
       expect(parsed.schema).toBe('custom-schema');
       expect(parsed.context).toBe('keep me');
-      expect(parsed.optimization.enabled).toBe(false);
-      expect(parsed.optimization.directionLimit).toBe(3);
-      expect(parsed.optimization.directionRetries).toBe(2);
+      expect(parsed.optimization).toEqual({ enabled: false });
       expect(parsed.git.merge.strategy).toBe('squash');
       expect(parsed.git.branch.deleteAfterArchive).toBe(false);
       expect(parsed.git).not.toHaveProperty('autoCommit');
@@ -193,9 +185,6 @@ git:
       });
       expect(parsed.optimization).toEqual({
         enabled: true,
-        directionLimit: 3,
-        directionRetries: 2,
-        minImpactLevel: 'low',
       });
       expect(parsed.apply).toEqual({
         defaultIsolation: 'ask',
@@ -312,9 +301,6 @@ decomposition: project-modeling.md
 
       expect(config?.optimization).toEqual({
         enabled: true,
-        directionLimit: 3,
-        directionRetries: 2,
-        minImpactLevel: 'low',
       });
       expect(runtime.git).toEqual(gitConfig());
       expect(config).not.toHaveProperty('propose');
@@ -527,12 +513,30 @@ optimization:
           decomposition: 'xirang-semantic-refinement.md',
           optimization: {
             enabled: false,
-            directionLimit: 3,
-            directionRetries: 2,
-            minImpactLevel: 'low',
           },
           git: gitConfig(),
         });
+      });
+
+      it('warns about retired optimization fields without rewriting the project file', () => {
+        const configDir = path.join(tempDir, '.xirang');
+        const configPath = path.join(configDir, 'config.yaml');
+        const source = `schema: semantic-model
+optimization:
+  enabled: false
+  directionLimit: 3
+  directionRetries: 2
+  minImpactLevel: low
+`;
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(configPath, source);
+
+        const config = readProjectConfig(tempDir);
+
+        expect(config?.optimization).toEqual({ enabled: false });
+        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization.directionLimit is retired and ignored');
+        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization.minImpactLevel is retired and ignored');
+        expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
       });
 
       it('should silently ignore retired propose policy without rewriting the file', () => {
@@ -1256,15 +1260,13 @@ rules:
       );
     });
 
-    it('normalizes whitespace while preserving whitelist fields', () => {
+    it('normalizes whitespace while preserving supported fields', () => {
       const normalized = normalizeProjectConfig({
         schema: ' semantic-model ',
         proseLanguage: ' 中文 ',
         context: '  Team context  ',
         optimization: {
           enabled: false,
-          directionLimit: 3,
-          directionRetries: 2,
         },
         propose: {
           smartRouting: false,
@@ -1300,9 +1302,6 @@ rules:
         },
         optimization: {
           enabled: false,
-          directionLimit: 3,
-          directionRetries: 2,
-          minImpactLevel: 'low',
         },
         apply: {
           defaultIsolation: 'worktree',

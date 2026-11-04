@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "feat/optimization-flow",
+  "originalBranch": "main",
+  "baseCommit": "d5c417de856f54c38ba8ec2f5b067ad121e6ba1e"
+}

@@ -11,40 +11,8 @@ definition: Quality-aware Instructions 定义 `xirang instructions apply` 集成
 
 ### Section: Apply 指令依据 quality 状态判定 state
 
-`xirang instructions apply` 命令在判定 change 的 `state` 时 SHALL 集成 quality 状态检查，而非仅依赖 task checkbox 完成度。
+instructions apply SHALL 联合任务完成度与质量证据缺口给出状态。全部 tasks 完成但缺少必需基线 Review 时为 needs_review；已有基线而优化未交付、最终验证待定或过期时为 needs_optimize，并指向共享优化/恢复 reference，不因为优化代码变化自动要求整 Change Review。只有当前完整完成条件通过时为 all_done。无 apply.tracks 且 required artifacts 完整时保留 ready 行为。
 
-- **全部 tasks 完成但尚无 Review 记录**
+完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。
 
-  - `tasks.md` 中所有 checkbox 均为 `[x]`
-  - change 目录中没有 quality 状态记录
-  - `state` SHALL 为 `'needs_review'`
-  - `instruction` SHALL 包含引导执行 `xirang quality review` 的文本
-
-- **全部 tasks 完成但存在未检测的代码变更**
-
-  - `tasks.md` 中所有 checkbox 均为 `[x]`
-  - 当前代码与最近一条通过的 Review 记录不一致
-  - `state` SHALL 为 `'needs_review'`
-
-- **已通过 Review 但 Optimization 尚未收口**
-
-  - 当前代码已通过 Review
-  - 还没有收口记录
-  - `state` SHALL 为 `'needs_optimize'`
-  - `instruction` SHALL 包含引导继续 Optimization 与 seal 的文本
-
-- **全部 tasks 完成且已收口**
-
-  - `tasks.md` 中所有 checkbox 均为 `[x]`
-  - 当前代码已通过 Review
-  - Optimization 已收口且 archive compatibility 为 `{ compatible: true }`
-  - `state` SHALL 为 `'all_done'`
-
-- **非 semantic-model schema 无 tracksFile**
-
-  - schema 未配置 `apply.tracks`（`tracksFile` 为 null）
-  - required artifacts 全部存在
-  - 保持现有行为，`state` 为 `'ready'`
-
-- **unsafe 恢复指引优先**：当前活动台账为 `ABORTED_UNSAFE` 时，不得报告 `all_done`；instruction SHALL 指向共享恢复 reference，要求先停止自动推进、取得重启授权并确认串行条件，不因代码为 `dirty` 就绕过该恢复前提。
-- **轮换后重新 Review**：受控轮换完成、全部 tasks 已完成且根目录没有活动质量记录时，state SHALL 为 `needs_review`；即使历史目录保存匹配当前代码的 PASS，也不得投影为 `all_done` 或复用旧结论。新 Review 通过后才按新活动台账进入 `needs_optimize`，沿用其他既有路由。
+恢复可靠性不明或不支持旧格式时 SHALL 说明具体阻塞，不报 all_done，也不引导删除历史或自动迁移。明确新验证请求需要新基线时为 needs_review，历史 PASS 不满足该请求。

@@ -9,11 +9,7 @@ import {
   applyPreparedChangeSync,
   prepareChangeSync,
 } from '../core/change-sync.js';
-import {
-  checkArchiveCompatibility,
-  checkQualityState,
-  formatQualityGateFailure,
-} from '../core/quality/state.js';
+import { readQualityCompletion, formatQualityGateFailure } from '../core/quality/state.js';
 import { PARTITIONS } from '../core/model/types.js';
 import { validateChangeExists } from './workflow/shared.js';
 
@@ -53,14 +49,13 @@ export async function syncCommand(
   const skipVerify = options.verify === false || options.noVerify === true;
   if (!skipVerify) {
     const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', validatedChangeName);
-    const state = await checkQualityState(changeDir, projectRoot);
-    const compatibility = state.record ? checkArchiveCompatibility(state.record) : undefined;
-    if (state.status !== 'clean' || !compatibility?.compatible) {
+    const state = await readQualityCompletion(changeDir, projectRoot);
+    if (state.status !== 'all_done' || state.gaps.length > 0 || state.unsupported) {
       throw new Error(
-        formatQualityGateFailure(state, compatibility, {
+        formatQualityGateFailure({ status: 'dirty', changedFiles: state.changedFiles, details: state.gaps, information: {} }, undefined, {
           changeName: validatedChangeName,
           command: 'sync',
-        })
+        }) + (state.diagnostic ? `\n${state.diagnostic}` : '')
       );
     }
   }

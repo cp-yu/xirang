@@ -55,6 +55,8 @@ definition: 项目配置管理是 CLI 中读取和管理息壤项目配置的能
   - 配置文件包含 `profile`、`workflows`、`delivery` 或 `propose` 字段
   - 系统忽略这些字段并输出可操作警告（Propose 节点静默忽略）
 
+优化配置 SHALL 只保留 enabled 控制；directionLimit、directionRetries、minImpactLevel 不进入有效配置、默认值或投影，残留键给出明确诊断，不静默解释或自动迁移/删除用户配置。该规则不改变其他节点既有回退或静默忽略语义。
+
 ### Section: 编译配置投影
 
 系统 SHALL 将项目配置编译为 prompt/runtime projections，供所有会创建或改写制品的工作流 surface 共享同一份 normalized config、compiled fragments 与 canonical token policy。

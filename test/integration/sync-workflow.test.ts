@@ -128,7 +128,7 @@ describe('Semantic Model sync workflow', () => {
 
     await expect(applyPreparedChangeSync(root, prepared, {
       refreshEvidence: async () => { throw new Error('evidence write failed'); },
-    })).rejects.toThrow(/Semantic sync committed, but evidence refresh failed/);
+    })).rejects.toThrow(/SYNC_COMMITTED_QUALITY_ASSOCIATION_FAILED: Semantic Model changes are committed/);
 
     await expect(fs.access(path.join(modelRoot(root), 'elements', 'cap.added.md'))).resolves.toBeUndefined();
   });

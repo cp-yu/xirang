@@ -1,25 +1,21 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
+import { commandSchemas, qualityOptionMetadata } from '../../../src/core/quality/command-schema.js';
 import {
-  renderOptimizeHelp,
-  renderQualityCliReference,
-  renderQualityCheckpointStateMachine,
-  renderQualityErrorRecovery,
-  renderQualityFastPath,
-  renderQualityStateDiagram,
-  renderReviewHelp,
+  renderQualityPayloadSchema, renderQualityCliReference, renderQualityOverview,
+  renderQualityStateDiagram, renderQualityErrorRecovery, renderQualityFastPath, renderReviewHelp,
 } from '../../../src/core/quality/protocol.js';
 import {
-  QUALITY_CLI_JSON_SCHEMA_REFERENCE,
-  QUALITY_ERROR_RECOVERY_GUIDE,
-  QUALITY_SIMPLE_CHANGE_FAST_PATH,
-  QUALITY_STATE_MACHINE_DIAGRAM,
+  QUALITY_CLI_JSON_SCHEMA_REFERENCE, QUALITY_STATE_MACHINE_DIAGRAM,
+  QUALITY_ERROR_RECOVERY_GUIDE, QUALITY_SIMPLE_CHANGE_FAST_PATH,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
-import {
-  DIRECTION_LEVEL_VALUES,
-  DIRECTION_STATUS_VALUES,
-  REVIEW_RESULT_VALUES,
-  STOP_REASON_VALUES,
-} from '../../../src/core/quality/validators.js';
+import { runCLI } from '../../helpers/run-cli.js';
+
+function renderedSchema(name: keyof typeof commandSchemas) {
+  const block = renderQualityPayloadSchema(name).match(/```json\n([^]*?)\n```/);
+  expect(block).not.toBeNull();
+  return JSON.parse(block![1]);
+}
 
 describe('quality protocol projection', () => {
   it('derives every reference fragment from the shared protocol renderers', () => {
@@ -29,63 +25,35 @@ describe('quality protocol projection', () => {
     expect(QUALITY_SIMPLE_CHANGE_FAST_PATH).toBe(renderQualityFastPath());
   });
 
-  it('projects the same validator constants into help and reference output', () => {
-    const help = [renderReviewHelp(), renderOptimizeHelp()].join('\n');
-    const reference = [renderQualityCliReference(), renderQualityErrorRecovery()].join('\n');
+  it.each(Object.keys(commandSchemas) as Array<keyof typeof commandSchemas>)('renders the runtime input schema for %s including refinements without throwing', name => {
+    const schema = renderedSchema(name);
+    expect(schema).toEqual(z.toJSONSchema(commandSchemas[name], { io: 'input' }));
+    expect(schema.type).toBe('object');
+    expect(schema.additionalProperties).toBe(false);
+    expect(Object.keys(schema.properties)).toEqual(Object.keys(commandSchemas[name].shape));
+    expect(renderQualityCliReference()).toContain(renderQualityPayloadSchema(name));
+  });
 
-    for (const value of [...REVIEW_RESULT_VALUES, ...STOP_REASON_VALUES, ...DIRECTION_STATUS_VALUES, ...DIRECTION_LEVEL_VALUES]) {
-      expect(help, `help is missing ${value}`).toContain(value);
-      expect(reference, `reference is missing ${value}`).toContain(value);
+  it('uses the runtime option metadata and projects the same schemas into public help', async () => {
+    for (const option of Object.values(qualityOptionMetadata)) {
+      expect(renderQualityOverview()).toContain(option.flags);
+    }
+    for (const [command, names] of [
+      ['review', ['reviewBegin', 'reviewSubmit']],
+      ['delegation', ['delegationStart', 'delegationSave', 'delegationSkip']],
+      ['conclusion', ['completionPlan', 'completionComplete']],
+    ] as const) {
+      const result = await runCLI(['quality', command, '--help']);
+      expect(result.exitCode, result.stderr).toBe(0);
+      for (const name of names) expect(result.stdout).toContain(renderQualityPayloadSchema(name));
     }
   });
 
-  it('pairs every documented finalize payload with a summary', () => {
-    const surfaces = [
-      renderOptimizeHelp(),
-      renderQualityCliReference(),
-      renderQualityErrorRecovery(),
-      renderQualityFastPath(),
-    ];
-
-    for (const surface of surfaces) {
-      for (const line of surface.split('\n')) {
-        if (!line.includes('"stopReason":"')) {
-          continue;
-        }
-        expect(line, `finalize payload without summary: ${line}`).toContain('"summary"');
-      }
-    }
-  });
-
-  it('documents the rollback record set for every record file', () => {
-    const surfaces = [renderQualityErrorRecovery(), renderQualityCheckpointStateMachine()].join('\n');
-
-    for (const file of ['.quality-state.json', '.quality-log.jsonl', '.apply-isolation.json']) {
-      expect(surfaces).toContain(file);
-    }
-    expect(surfaces).toContain('.quality-history');
-  });
-
-  it('routes ABORTED_UNSAFE to the shared recovery reference without lifting the gate', () => {
-    const recovery = renderQualityErrorRecovery();
-
-    expect(recovery).toContain('ABORTED_UNSAFE');
-    expect(recovery).toContain('xirang-quality-recovery.md');
-    expect(recovery).toContain('authorization');
-    expect(recovery).toContain('fresh Review');
-    expect(recovery).not.toContain('no automatic recovery');
-    expect(recovery).toContain(
-      'Never edit `.quality-state.json` or `.quality-log.jsonl` by hand outside the authorized rotation'
-    );
-    expect(recovery).toContain('never requires creating a successor change');
-  });
-
-  it('keeps the help payload field list limited to agent-authored fields', () => {
-    for (const field of ['"result"', '"issues"', '"evidenceFiles"', '"directions"', '"stopReason"', '"summary"']) {
-      expect(renderReviewHelp() + renderOptimizeHelp()).toContain(field);
-    }
-    for (const field of ['"verificationContext"', '"tasksFileHash"', '"histories"', '"directionsUsed"']) {
-      expect(renderReviewHelp() + renderOptimizeHelp()).not.toContain(field);
-    }
+  it('publishes a minimal begin payload accepted by the strict runtime parser', () => {
+    const exampleLine = renderReviewHelp().split('\n').find(line => line.startsWith('{"scope"'));
+    expect(exampleLine).toBeDefined();
+    const example = JSON.parse(exampleLine!);
+    expect(commandSchemas.reviewBegin.parse(example)).toEqual(example);
+    expect(commandSchemas.reviewBegin.safeParse({ ...example, version: 0 }).success).toBe(false);
   });
 });

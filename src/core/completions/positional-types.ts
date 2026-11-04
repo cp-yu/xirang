@@ -56,7 +56,10 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
 
   // quality subcommands
   'quality.review': 'change-id',
-  'quality.optimize': 'change-id',
+  'quality.delegation': 'change-id',
+  'quality.verification': 'change-id',
+  'quality.conclusion': 'change-id',
+  'quality.checkpoint': 'change-id',
   'quality.seal': 'change-id',
   'quality.status': 'change-id',
 } as const;

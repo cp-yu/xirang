@@ -1,3 +1,7 @@
 # Apply Step 5: Seal
 
-Run `xirang quality seal "<change-name>" --json`. If seal fails, preserve `diagnostics`, convert them into Required Corrections context, map the corrections to the affected task, and return to the implementation loop. Do not pause on the first seal failure.
+Run `xirang quality seal "<change-name>" --json`. Seal uses the same full completion conditions as status; require status=all_done and no gaps, including the current final conclusion and matching successful checkpoint. A baseline PASS or delivered report alone is insufficient.
+
+On rejection preserve diagnostics and address the specific missing obligation. For interrupted delegation, stale evidence, missing required verification/plan/conclusion/checkpoint or uncertain recovery, follow the shared optimization and recovery references. Do not translate every quality gap into reimplementation or whole-Change Review. A passing baseline with only a missing baseline checkpoint needs its matching checkpoint, not another automatic Review.
+
+Actual ordinary implementation corrections return to their task-level loop with Required Corrections context and require the ordinary change-level Review afterward. Optimization edits/recovery follow Step 4's final risk-based verification and mandatory targeted Review for repaired baseline defects. Reassess affected evidence after any code change before retrying seal. Do not pause on the first routine seal failure; stop when the diagnosed recovery/authority gap cannot be safely resolved.

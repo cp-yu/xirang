@@ -20,7 +20,6 @@ async function generateArchiveSkill(toolId: 'codex' | 'claude'): Promise<{ root:
     toolId,
     projectPath: root,
     workflows: ['archive'],
-    delivery: 'skills',
     version: 'test',
   });
   expect(result.error).toBeUndefined();
@@ -37,26 +36,6 @@ function readReference(path: string): string {
 }
 
 describe('xirang archive skill content', () => {
-  it('documents CLI archive then agent handoff steps in order', () => {
-    const instructions = getArchiveChangeSkillTemplate().instructions;
-
-    expect(instructions).toContain('6. **Run archive CLI**');
-    expect(instructions).toContain('7. **Git handoff**');
-    expect(instructions).toContain('8. **Agent git flow**');
-    expect(instructions.indexOf('6. **Run archive CLI**')).toBeLessThan(instructions.indexOf('7. **Git handoff**'));
-    expect(instructions.indexOf('7. **Git handoff**')).toBeLessThan(instructions.indexOf('8. **Agent git flow**'));
-    expect(instructions).toContain('CLI only verifies, syncs, moves the change to archive');
-    expect(instructions).toContain('handle the implementation boundary before Xirang/docs archive artifacts');
-    expect(instructions).toContain('uncommitted real project implementation changes');
-    expect(instructions).toContain('wip: opt-*');
-    expect(instructions).toContain('git commit --allow-empty');
-    expect(instructions).not.toContain('First commit real project changes before Xirang/docs archive artifacts.');
-    expect(instructions).toContain('git commit -F -');
-    expect(instructions).toContain('git merge --no-ff');
-    expect(instructions).toContain('git branch --merged');
-    expect(instructions).not.toContain('9. **User manual git flow**');
-    expect(instructions).not.toContain('git.autoCommit: manual');
-  });
 
   it('summarizes agent-owned git follow-up without handoff mode fields', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;

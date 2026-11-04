@@ -11,14 +11,14 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 ### Section: Reviewer 角色与硬约束
 
-`xirang-reviewer` skill SHALL 将 subagent 定义为 quality Review 的审查者，拥有所有 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：不引用或依赖任何实现对话历史；自主读取文件并基于读取内容做判断；为每个判断引用具体文件路径和行范围；在判定严重性级别前执行完整的 6 步验证循环；不修改任何文件；通过 Bash 只执行测试命令和 git 只读命令。
+`xirang-reviewer` skill SHALL 将 subagent 定义为 quality Review 的审查者，拥有实际受托审查范围内的独立 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：不引用或依赖任何实现对话历史；自主读取文件并基于读取内容做判断；为每个判断引用具体文件路径和行范围；在判定严重性级别前执行完整的 6 步验证循环；不修改任何文件；通过 Bash 只执行测试命令和 git 只读命令。
 
 - **Subagent invoke reviewer skill**
 
   - 顶层 agent spawn reviewer subagent 并 invoke `xirang-reviewer` skill
   - subagent SHALL 加载完整 skill 指令
   - SHALL 使用 Read 和 Bash 工具自主获取验证所需信息
-  - SHALL 将其角色认定为拥有所有验证判定权的 clean-context 审查者
+  - SHALL 将其角色认定为拥有实际受托范围内独立验证判定权的 clean-context 审查者
 
 - **Reviewer 拒绝基于记忆的判断**
 
@@ -29,7 +29,7 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 ### Section: Reviewer 输入合约
 
-`xirang-reviewer` skill SHALL 定义顶层 agent MUST 传入的轻量定位信息：changeName、changeDir 与 projectRoot。Reviewer SHALL 自主完成 changeArtifacts、scopeFiles、finalFileContents、priorQualityRecord 与语义上下文的信息获取；Reviewer MUST NOT 把 `git diff` 的内容级输出作为判断证据；缺失定位信息时 fail closed。
+`xirang-reviewer` skill SHALL 定义顶层 agent MUST 传入的轻量定位信息：changeName、changeDir 与 projectRoot，并可定位由 CLI 关联实际状态的审查任务及范围。Reviewer SHALL 自主完成 changeArtifacts、scopeFiles、finalFileContents、priorQualityRecord 与语义上下文的信息获取；Reviewer MUST NOT 把 `git diff` 的内容级输出作为判断证据；缺失定位信息时 fail closed。
 
 - **所有定位信息完整传入**
 
@@ -70,9 +70,11 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 - **读取重启历史**：当前 Change 存在受控轮换保存的质量历史时，Reviewer SHALL 按共享恢复 reference 自主读取旧快照、日志、失败原因与重启原因，作为问题与候选文件导航参考；历史 PASS 不构成本轮通过依据。即使代码未变，也 SHALL 在 fresh context 重新读取当前模型、Change、最终实现与证据并形成新结论。根目录尚无新活动记录时，priorQualityRecord 仍为 null，历史只作为独立参考。
 
+优化期间 Reviewer SHALL 读取关联委托、实际交付、累计改动、测试及失败历史；基线 Review 为完整 Change，增量 Review 为主 Agent 指定累计范围，基线缺陷修复 Review 为该问题及其影响。不把历史 PASS、未交付进度或局部测试快照当最终通过，也不使用主 Agent 的风险判断代替独立结论。
+
 ### Section: 6 步验证协议
 
-`xirang-reviewer` skill SHALL 为每个 delta Section 定义并强制执行 6 步客观验证循环：Locate（识别候选文件）、Read（检查最终磁盘内容）、Analyze（对比 Section 语义与其可观察行为）、Cite（记录文件路径与行范围）、Judge（分配 PASS/WARNING/CRITICAL）、Explain（准确说明缺失、偏离或不确定内容）。覆盖按可观察行为与可信证据判断，不按 Acceptance Case 与测试文件 1:1 映射。
+`xirang-reviewer` skill SHALL 为基线 Review 的每个 delta Section，以及增量/基线缺陷修复 Review 实际委托范围内的语义与受影响行为 定义并强制执行 6 步客观验证循环：Locate（识别候选文件）、Read（检查最终磁盘内容）、Analyze（对比 Section 语义与其可观察行为）、Cite（记录文件路径与行范围）、Judge（分配 PASS/WARNING/CRITICAL）、Explain（准确说明缺失、偏离或不确定内容）。覆盖按可观察行为与可信证据判断，不按 Acceptance Case 与测试文件 1:1 映射。
 
 - **需求被实现证据清晰满足**
 
@@ -192,6 +194,8 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
   - reviewer SHALL 判定为 CRITICAL（新旧实现并存即半迁移）
   - SHALL NOT 仅凭测试通过判定该 Check 完成
 
+优化工作 SHALL 结合委托、实际报告和代码判断归属，允许当前 Change 目标所需新增/删除/移动文件和多层依赖上的公共辅助函数；不只因不在原 tasks Files 或超过一层依赖而判 CRITICAL。公共函数检查其他调用方，另一套无关查询系统重构仍超出授权。增量或基线缺陷修复 Review SHALL 仅报告实际检查范围，不声称未检查部分已被重新审查。
+
 ### Section: 结构化输出合约
 
 `xirang-reviewer` skill SHALL 定义 reviewer MUST 返回的精确 JSON 输出 schema：result（PASS/PASS_WITH_WARNINGS/FAIL_NEEDS_CORRECTIONS）、issues、summary（四维度）、writeBackPlan（仅 CRITICAL 时存在）、evidenceFiles、gitDiffSummary。规格外改动发现的 writeBackPlan 条目 taskLine SHALL 为 `null` 且 action SHALL 为 `append_correction`。
@@ -214,6 +218,8 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
   - 对应 writeBackPlan 条目的 taskLine SHALL 为 `null`
   - action SHALL 为 `append_correction`
   - correctionType SHALL 为 `artifact_fix`（改动合理）或 `code_fix`（改动不应存在）
+
+输出 SHALL 通过 CLI 审查任务关联实际 scope 与被审查代码状态；针对性 Review 的 summary 只描述所审查范围，不填入未检查的整 Change 覆盖声明。后续保存不能把结论改绑另一状态。主 Agent 无需追加 Review 的决定不生成 Reviewer PASS。
 
 ### Section: 跨工具 skill 路径兼容
 

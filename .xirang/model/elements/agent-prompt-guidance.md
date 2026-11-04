@@ -4,103 +4,27 @@ identity: agent-prompt-guidance
 kind: element
 parent: agent-workbench-projection
 title: Agent Prompt Guidance
-definition: Agent Prompt Guidance 定义共享 quality gate 指引片段的契约：代码状态流程图、JSON 结构速查表与错误恢复决策树，供 archive、quality、apply 三个 skill 模板复用，并包含未收口恢复路径与简单变更快速路径的强制委托语义。
+definition: Agent Prompt Guidance 是 Apply、Quality 与 Archive 共用的质量协议呈现，独立承载委托、证据、完成条件及恢复诊断的共享指引，并提供可选失败定位方法。它从实现协议投影机械信息，不维护重复 schema，不将模型的优化取舍固化为逐方向状态机。
 ---
 
 ## Specification
 
 ### Section: 简单变更快速路径识别
 
-三个 skill 模板（archive/quality/apply）SHALL 包含 Optimization 强制委托指引：master agent MUST 始终 spawn optimizer subagent，由 optimizer subagent 决定是否存在优化方向。
-
-- **optimizer subagent 返回无优化方向**
-
-  - Agent 进入 Optimization
-  - optimizer subagent 分析后返回无满足条件的方向
-  - master agent SHALL 以 `stopReason: NO_ACTIONABLE` 收口
-  - summary 字段 SHALL 包含 optimizer subagent 的实际结论文本
-
-- **master agent 不得自行判断跳过**
-
-  - Agent 进入 Optimization
-  - `optimization.enabled` 为 `true`
-  - 用户未显式拒绝优化
-  - master agent MUST NOT 自行收口而不 spawn optimizer subagent
-  - 唯一允许跳过 optimizer subagent 的条件为 `optimization.enabled: false` 或用户显式拒绝
-
-- **所有 change 类型均强制调用 optimizer**
-
-  - 代码已通过 Review
-  - `optimization.enabled` 为 `true`
-  - 系统 SHALL 始终 spawn optimizer subagent，无论 change 类型（包括纯删除、重命名）
-
-- **简单变更也调用 optimizer**
-
-  - 变更仅删除、重命名或移除参数
-  - optimization 未被禁用且用户未拒绝
-  - prompt SHALL 要求 spawn optimizer
-  - SHALL 仅在台账确认无满足条件的方向时记录 `NOT_NEEDED`
+Optimization 启用且用户未明确拒绝时，提示词 SHALL 委托 Opt 进行初次优化，即使是纯删除或重命名也不由主 Agent 虚构无优化结论。Opt 可以交付无保留改动及依据；交付后主 Agent 判断是否继续，不强制再启动 fresh Opt 或证明全部机会耗尽。配置禁用/用户拒绝时明确记录跳过。
 
 ### Section: 共享 quality gate 指引片段
 
-系统 SHALL 在共享片段常量中提供 quality gate 指引常量，供 archive、quality、apply 三个 skill 模板复用。指引片段 SHALL 包含三个组件：代码状态流程图（`dirty` → Review → `clean` → Optimization → 收口的完整流转）、JSON 结构速查表（`review` 与 `optimize` 的输入形状）、错误恢复决策树（Agent 在 CLI 返回非零退出码时如何恢复）。指引片段 SHALL 与命令实现共用同一批导出常量，MUST NOT 手写一套并行维护的协议描述。
-
-- **模板引用共享片段**
-
-  - archive、quality 或 apply 模板需要输出 quality 指引
-  - 模板 SHALL 引用共享片段常量
-  - SHALL NOT 在各模板中各自内联 CLI 调用格式
-
-- **状态图覆盖代码状态转换**
-
-  - 状态图常量被渲染到模板中
-  - 流程图 SHALL 展示 `dirty` → Review → `clean` → Optimization → 收口的完整转换路径
-  - SHALL 标注 archive gate 接受的终态与拒绝的终态
-
-- **速查表覆盖所有 CLI 调用**
-
-  - JSON 结构速查表被渲染
-  - 速查表 SHALL 包含 `review` 与 `optimize`（含收口）各 CLI 调用及其 `--input` JSON 格式
-  - 枚举取值 SHALL 与命令实现使用同一常量
+系统 SHALL 从同一实现协议源向 Apply/Archive 生成委托、交付、测试捕获、独立 Review、主 Agent 结论、status/seal 指引，提供最小合法输入和确定性失败语义，不保留并行方向队列协议。阶段指引表达必需保障而非将每种情境固定为审批链或执行算法。
 
 ### Section: Archive 模板未收口恢复路径
 
-archive skill 模板 SHALL 在检测到 Optimization 尚未收口时提供具体的恢复指引而非仅输出 STOP。
-
-- **尚未收口且存在可优化方向**
-
-  - `xirang quality status` 报告 Optimization 尚未收口
-  - 已记录的方向数未达 `optimization.directionLimit`
-  - 模板 SHALL 指导 Agent 执行 Optimization 分析
-  - 若无满足条件的方向，SHALL 以 `stopReason: NO_ACTIONABLE` 收口
-  - 收口后终态变为 `NOT_NEEDED` 或 `IMPROVED`，archive 门禁通过
-
-- **ABORTED_UNSAFE 保持 STOP**
-
-  - `xirang quality status` 报告 Optimization 终态为 `ABORTED_UNSAFE`
-  - 模板 SHALL 停止自动推进并指向 Apply、Archive 共享的恢复 reference
-  - 未获用户明确重启授权时 SHALL 保持停止；用户已明确要求重启且原流程停止时，按该 reference 受控轮换后重新执行 fresh Review
+Archive SHALL 对未完成优化给出可执行恢复指引，复用共享委托与恢复协议；缺基线、未交付、过期验证和恢复不确定分别处理。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 可修复问题不固定永久锁定；恢复仍无法确认时停止完成。
 
 ### Section: Quality 模板 CLI 错误恢复指南
 
-quality skill 模板 SHALL 包含显式的 CLI 错误恢复指南，指导 Agent 在 CLI 返回非零退出码时如何诊断和恢复。
+提示词 SHALL 根据 CLI code、diagnostics、allowedNextOperations 修正输入或补齐真实证据，不伪造输入、删除历史或把测试失败输出改为成功。记录缺失不得推断通过，baseCommit 无效不得猜测；不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
 
-- **入口条件不满足时按 allowedNextOperations 恢复**
+### Section: 提供可选失败诊断 reference
 
-  - Agent 调用 `review` 或 `optimize` 且 CLI 以 exit 1 返回
-  - 错误恢复指南 SHALL 要求读取输出中的 `code` 与 `allowedNextOperations`
-  - SHALL 指导 Agent 执行其中声明的下一步操作，而不是改写输入重试
-
-- **输入形状非法时按诊断修正**
-
-  - CLI 以 exit 2 返回 `code: INVALID_INPUT`
-  - 错误恢复指南 SHALL 要求按 `diagnostics` 中的字段路径、期待值与修正方式修改输入
-  - SHALL NOT 要求 Agent 阅读实现源码推断字段
-
-- **保留 fail-closed 条目**
-
-  - 错误恢复指南被渲染
-  - SHALL 保留"记录缺失时不得推断代码状态"与"baseCommit 缺失或无效时 fail closed"等条目
-
-- **终态需要重新验证**：对 `ABORTED_UNSAFE` 保持当前台账的优化与 Closure 阻塞，指向共享恢复 reference；对其他终态保留正常 seal/archive 路径，同时说明用户明确重验可按同一 reference 处理。`allowedNextOperations` 为空不表示必须创建接续 Change。
-- **受控轮换边界**：指引 SHALL 禁止任意改写、截断或删除质量记录，但允许用户授权且流程串行时按恢复 reference 完整保存、校验和轮换整组记录。普通失败修正与续跑不适用该例外；恢复不通过伪造 CLI 输入或修改终态来完成。
+系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。

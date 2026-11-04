@@ -4,132 +4,26 @@ identity: quality-cli-gate
 kind: element
 parent: quality
 title: Quality CLI Gate
-definition: Quality CLI Gate 定义 `xirang quality` 命令面的门禁与协议契约：`review`、`optimize`、`status`、`seal` 四个入口各自的输入形状、入口条件与收口条件，以及统一输出、结构化诊断、退出码语义和机器可读协议说明的投影。它不定义各入口背后的判断标准（属于 Review 与 Optimization），也不定义记录载体的持久化细节（属于 Quality Writeback）。
+definition: Quality CLI Gate 是质量操作的确定性接口与完成门禁，独立承载独立 Review、优化委托/交付、真实验证证据、主 Agent 结论、status 和 seal 的关联校验及诊断。它管理身份、版本、状态和已声明条件，不承担优化排序、分组、继续投入或自然语言充分性判断；持久化细节属于 Quality Writeback。
 ---
 
 ## Specification
 
 ### Section: Review 记录入口
 
-系统 SHALL 提供 `xirang quality review <change-name>` 命令，在校验入口条件后接受一次 Review 结论。入口条件为当前代码存在未经 Review 的变更；不满足时 MUST NOT 写入任何记录，并 SHALL 回报当前状态与合法后续操作。接受时 SHALL 校验 `result`、`issues`、`evidenceFiles` 结构，计算 `tasksFileHash` 与 `evidenceFingerprint`，持久化结论与指纹，并输出当前状态与 `allowedNextOperations`。
-
-- **入口条件通过并记录结论**
-
-  - agent 执行 `xirang quality review <change-name> --input '<json>'`
-  - 当前代码存在未经 Review 的变更
-  - 系统 SHALL 校验输入结构并计算 `tasksFileHash` 与 `evidenceFingerprint`
-  - SHALL 持久化该结论与指纹
-  - SHALL 输出 `state` 与 `allowedNextOperations`
-  - 以 exit 0 退出
-
-- **代码未变更时拒绝重复记录**
-
-  - 当前代码与最近一条通过的 Review 记录一致
-  - 系统 SHALL 以 exit 1 拒绝
-  - SHALL 说明现有结论仍然有效，并给出 `allowedNextOperations`
-  - MUST NOT 修改任何记录
-
-- **输入结构非法**
-
-  - 输入缺少 `result`、`issues`、`evidenceFiles` 或取值不合法
-  - 系统 SHALL 以 exit 2 拒绝
-  - SHALL 以结构化诊断指出字段路径、期待值与当前值
-  - MUST NOT 修改任何记录
+系统 SHALL 提供独立 Review 的记录入口，关联实际审查范围和被审查状态，支持基线 Change 级、优化累计增量和基线缺陷修复 Review。校验结果、issues、证据和关联版本；后写记录不重绑更晚代码。失败结论亦保存为实际证据，不能满足通过条件。主 Agent 无需追加 Review 的判断不得通过此入口记为 PASS。
 
 ### Section: Optimization 记录入口
 
-系统 SHALL 提供 `xirang quality optimize <change-name>` 命令，以一轮为单位接受一份优化判断台账。入口条件为当前代码已通过 Review、Optimization 尚未收口、终态不是 `ABORTED_UNSAFE`、且已选方向数未达 `optimization.directionLimit`。系统 SHALL 为台账中省略 `id` 的新方向分配稳定 ID 并在输出中回显，校验方向 ID 引用与状态迁移，按方向数与同方向失败次数更新两级计数，并按 `optimization.minImpactLevel` 过滤低于门槛的方向，并持久化该轮台账。
-
-- **已选方向数达到上限**
-
-  - 已选方向数达到 `optimization.directionLimit`
-  - 系统 SHALL 拒绝选择新方向并要求收口
-
-- **门槛过滤在选择阶段生效**
-
-  - 台账中存在 `impactLevel` 低于 `optimization.minImpactLevel` 的待选方向
-  - 该方向 SHALL 不被选取，也不消耗方向额度
-  - 当全部待选方向均低于门槛时该轮不选取任何方向
-
-### Section: 收口终态由 stopReason 推导
-
-Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER_DECLINED` 对应 `SKIPPED`；`NO_ACTIONABLE` 对应 `NOT_NEEDED`；`DIRECTION_REJECTED` 与 `DIRECTION_LIMIT_REACHED` 在有成功落地方向时对应 `IMPROVED`，否则对应 `DEGRADED`；`UNSAFE` 对应 `ABORTED_UNSAFE`。全部待选方向低于 `optimization.minImpactLevel` 时 SHALL 以 `NO_ACTIONABLE` 收口，并据此推导为 `NOT_NEEDED`。
-
-- **被方向数上限截断但已有成功方向**
-
-  - 收口输入的 `stopReason` 为 `DIRECTION_LIMIT_REACHED`
-  - 台账中存在已验证的方向
-  - 终态 SHALL 为 `IMPROVED`
-  - `stopReason` SHALL 保留为 `DIRECTION_LIMIT_REACHED`
-
-- **仅有被否决方向**
-
-  - 收口输入的 `stopReason` 为 `DIRECTION_REJECTED`
-  - 台账中不存在已验证的方向
-  - 终态 SHALL 为 `DEGRADED`
-
-- **全部方向低于门槛**
-
-  - 台账中所有待选方向的 `impactLevel` 均低于 `minImpactLevel`
-  - 收口输入 SHALL 使用 `stopReason: NO_ACTIONABLE`
-  - 终态 SHALL 为 `NOT_NEEDED`
-
-- **unsafe 中止**
-
-  - 收口输入的 `stopReason` 为 `UNSAFE`
-  - 终态 SHALL 为 `ABORTED_UNSAFE`
-  - 当前活动台账仍为该终态时后续 optimize 入口 SHALL 被拒绝；恢复代码或重新记录 Review 不解除该终态。诊断 SHALL 指向共享恢复 reference，只有按用户授权完成受控轮换并重新通过 Review，才可在新活动台账开始优化
+系统 SHALL 提供优化委托起点、进度及交付的记录操作，保留范围、约束、起始状态、基线 Review 与恢复位置，关联实际报告与测试证据，由 CLI 生成委托身份、时间、版本及指纹。交付包含实际结果、验证、未完成/遗留及后续建议四类信息，允许自然语言灵活表达，不要求逐方向表单。过期版本或无效关联 SHALL 拒绝写入且保留原记录；CLI 不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。
 
 ### Section: Seal 校验
 
-系统 SHALL 提供 `xirang quality seal <change-name>` 命令，校验当前记录的结构完整性、当前代码已通过 Review、以及 Optimization 已收口且终态不是 `ABORTED_UNSAFE`。通过时 SHALL 输出 seal hash。
-
-- **Seal 校验通过**
-
-  - agent 执行 `xirang quality seal <change-name>`
-  - 当前代码已通过 Review 且 Optimization 已收口
-  - 系统 SHALL 输出 seal hash
-  - 以 exit 0 退出
-
-- **Seal 校验失败**
-
-  - 记录缺失必需字段、当前代码未通过 Review，或 Optimization 尚未收口
-  - 系统 SHALL 列出未满足的条件
-  - 以 exit 1 退出
+quality seal SHALL 以同一声明完成条件检查当前结果，通过时输出 seal hash，否则逐项报告缺口。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 后续代码变化 SHALL 重新判断受影响验证，旧 seal 不证明新状态。
 
 ### Section: Status 输出语义
 
-系统 SHALL 提供 `xirang quality status <change-name>` 命令，只读地报告当前代码状态、Review 结论、已用方向数与各方向失败次数、剩余方向额度，以及 `allowedNextOperations`。它 SHALL 区分阻塞条件与非阻塞 informational 诊断，并把 Git HEAD 差异作为 informational 输出。
-
-- **存在未检测的代码变更**
-
-  - 当前代码与最近一条通过的 Review 记录不一致
-  - 输出 SHALL 将状态设为 `dirty`
-  - `allowedNextOperations` SHALL 包含 `review`
-  - SHALL 给出对应的命令模板
-
-- **已通过 Review 但尚未收口**
-
-  - 当前代码已通过 Review 且还没有收口记录
-  - 输出 SHALL 将状态设为 `clean`
-  - `allowedNextOperations` SHALL 包含 `optimize` 与 `seal` 的适用条件
-
-- **JSON status 单独暴露 Git HEAD 信息**
-
-  - agent 执行 `xirang quality status <change-name> --json`
-  - 记录的 Git HEAD 与当前 HEAD 不一致
-  - 其他硬条件均通过
-  - 输出 SHALL 把该差异放在 informational 字段中
-  - SHALL NOT 因此改变代码状态判定
-
-- **status 为只读命令**
-
-  - agent 执行 `xirang quality status <change-name>` 或任意 help
-  - 系统 MUST NOT 创建、修改或删除任何记录文件
-
-- **Review 证据与台账分离**：回滚匹配历史 PASS 时，status SHALL 显示匹配的 Review 结论与最新活动台账中的计数、方向状态和终态，不显示旧台账作为当前进度。
-- **恢复路径可发现**：当前活动台账为 `ABORTED_UNSAFE` 时，status 的人类可读指引 SHALL 引用共享恢复 reference，说明需用户授权且原流程停止后才能轮换；不得宣称仅恢复代码即可解除终态，或展示可直接 optimize/seal/archive 的操作。完成轮换后，无当前记录的状态 SHALL 为 `dirty`，后续操作为 `review`，历史目录中的 PASS 不改变该结果。
-- **优化已收口**：当前台账已为其他终态时，正常操作仍为 seal/archive；用户明确要求重新验证时，可按同一恢复 reference 开始新轮次，不增加 reset 命令。
+quality status SHALL 只读报告基线 Review、委托/交付、验证结果及其当前适用性、主 Agent 声明要求与结论、checkpoint 和未满足完成条件，给出合法后续操作。HEAD 差异单独作为 informational；缺失基线、未交付、过期测试、需 Review 和恢复不确定分别诊断，不把优化后代码变化一律判为必须整条 Review 重跑。status/help SHALL 不创建或修改文件。
 
 ### Section: 统一输出与诊断结构
 
@@ -149,16 +43,16 @@ Optimization 收口时 SHALL 要求 `stopReason`，并据此推导终态：`USER
 
 ### Section: 协议说明的单一来源与投影
 
-系统 SHALL 从同一批实现常量派生 quality 协议说明，并投影到 `xirang quality` 命令的 help 与 apply/archive skill 的 reference 文档。投影 SHALL 覆盖各入口的输入字段、枚举取值、最小合法示例、退出码，以及静态结构无法表达的状态约束。系统 MUST NOT 在 help 与 reference 中各自维护一套与实现并行的协议描述。
+系统 SHALL 从实现使用的同一批协议常量和字段定义生成 help 及 Apply/Archive references，覆盖入口、关联版本、必要信息、执行时证据与完成条件、最小合法示例和退出语义，不维护并行手写 schema 或退役方向指令。CLI 校验结构和已声明条件，不评分自然语言或选择下一项工作。
 
-- **help 与 reference 具有同一来源**
+### Section: 记录实际测试证据
 
-  - 协议说明被渲染到 help 或 reference
-  - 两者 SHALL 由同一批导出常量生成
-  - 枚举取值 SHALL 与校验实现使用同一常量
+CLI SHALL 在测试执行时关联代码状态和实际结果，记录非零退出、运行中状态变化及证据不新鲜的事实，不能用报告时状态接受旧通过结果。测试输出和引用须可供主 Agent 检查。过期/失败记录可保存，但不能满足最终成功条件。
 
-- **静态结构无法表达的约束单独说明**
+### Section: 记录主 Agent 最终结论
 
-  - 渲染协议说明
-  - SHALL 说明入口条件、收口推导、两级计数与记录匹配规则
-  - SHALL NOT 重复描述可机械展开的字段定义
+CLI SHALL 接受主 Agent 对累计交付的最终验证范围与理由，区分所需测试、增量 Review、基线缺陷修复 Review 和无需追加 Review 的判断。记录最终结论时检查必需结果和当前状态关联；主 Agent 对未受影响的原成功证据可明确记录适用范围、所依据实际差异与理由，单独关联当前状态并保留原运行状态，不把它记为新测试或 Reviewer PASS。失败、缺失或已确认受影响却未补齐的验证不得通过此关联绕过。允许多委托共享最终验证，不强制每次交付新 Review 或全量测试。CLI 不判断范围选择或自然语言依据是否充分。
+
+### Section: 拒绝退役协议
+
+不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。

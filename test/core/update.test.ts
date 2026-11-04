@@ -105,7 +105,6 @@ describe('UpdateCommand', () => {
 
     it('should report no configured tools when none exist', async () => {
       const consoleSpy = vi.spyOn(console, 'log');
-
       await updateCommand.execute(testDir);
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -115,9 +114,7 @@ describe('UpdateCommand', () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
       expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization.enabled).toBe(true);
-      expect(config.optimization.directionLimit).toBe(3);
-      expect(config.optimization.directionRetries).toBe(2);
+      expect(config.optimization).toEqual({ enabled: true });
       expect(config.apply.defaultIsolation).toBe('ask');
       expect(config.git.merge.strategy).toBe('no-ff');
       expect(config.git.branch.deleteAfterArchive).toBe(false);
@@ -149,9 +146,7 @@ rules:
       expect(config.context).toBe('keep me');
       expect(config.rules.proposal).toEqual(['keep this rule']);
       expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization.enabled).toBe(true);
-      expect(config.optimization.directionLimit).toBe(3);
-      expect(config.optimization.directionRetries).toBe(2);
+      expect(config.optimization).toEqual({ enabled: true });
       expect(config.apply.defaultIsolation).toBe('ask');
       expect(config.git.merge.strategy).toBe('no-ff');
       expect(config.git.branch.deleteAfterArchive).toBe(false);
@@ -189,8 +184,7 @@ git:
       expect(config.schema).toBe('custom-schema');
       expect(config.decomposition).toBe('project-modeling.md');
       expect(config.optimization.enabled).toBe(false);
-      expect(config.optimization.directionLimit).toBe(3);
-      expect(config.optimization.directionRetries).toBe(1);
+      expect(config.optimization).toMatchObject({ directionRetries: 1 });
       expect(config.apply.defaultIsolation).toBe('worktree');
       expect(config.git.commitMessage.archive).toBe('docs/archive.md');
       expect(config.git.merge.strategy).toBe('squash');

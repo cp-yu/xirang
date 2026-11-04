@@ -4,7 +4,7 @@ identity: quality-writeback
 kind: element
 parent: quality
 title: Quality Writeback
-definition: Quality Writeback 定义 quality 如何把关键诊断结果回写到 change 工件，以及如何持久化自己的记录：CRITICAL 级不一致触发 `tasks.md` 任务 unmark、Required Corrections 清单生成、状态快照 `.quality-state.json` 的覆盖写与 append-only 历史日志 `.quality-log.jsonl` 的追加。它不定义状态判定规则（属于 Quality Freshness），也不定义命令面的输出形状。
+definition: Quality Writeback 是 Quality 的修正回写与证据持久化能力，独立维护 CRITICAL 修正、当前快照、追加历史及必要保存边界。它关联基线 Review、优化委托与实际交付、执行时证据及主 Agent 结论，保护版本和历史完整性；适用性判断属于 Quality Freshness，命令输入属于 Quality CLI Gate。
 ---
 
 ## Specification
@@ -55,41 +55,11 @@ definition: Quality Writeback 定义 quality 如何把关键诊断结果回写�
 
 ### Section: 状态快照持久化
 
-系统 SHALL 把当前状态持久化到 change 目录下的 `.quality-state.json`，供 gate 与 archive 读取。快照 SHALL 包含 record 类型、时间戳、`result`、`issues`、`tasksFileHash`、验证上下文，以及已收口时的 Optimization 终态与 `stopReason`。
-
-- **持久化当前状态**
-
-  - `xirang quality review` 或 `xirang quality optimize` 成功
-  - 系统 SHALL 写入 `.xirang/changes/<name>/.quality-state.json`
-  - 写入 SHALL 使用跨平台路径处理（`path.join`、`path.resolve`）
-  - SHALL NOT 硬编码路径分隔符
-
-- **记录验证上下文**
-
-  - 系统写入状态快照
-  - 验证上下文 SHALL 包含 `contractVersion`、`evidenceFiles`、`evidenceFingerprint`、`evidenceFingerprintEntries`、`gitHeadCommit` 与时间戳
-  - 指纹 entries 的排序 JSON 哈希 SHALL 等于整体 `evidenceFingerprint`
+系统 SHALL 保存当前质量快照，将基线 Review、委托/交付、实际测试及主 Agent 最终验证结论分别关联。CLI 生成身份、记录版本、时间与代码状态，Agent 不手写哈希；提交 SHALL 检查所依据版本并拒绝过期覆盖。报告与实际执行证据保持关联，不能以后来报告时状态替换测试/Review 时状态。使用平台 path API，Windows 带空格路径与 POSIX 具有相同保护。
 
 ### Section: append-only 历史日志
 
-系统 SHALL 把每次记录追加到 change 目录下的 `.quality-log.jsonl`，每行一条 JSON 记录。每组活动日志 SHALL 只追加，既有行 MUST NOT 被改写或删除；轮次判断、失败方向与被否决方向的记录 SHALL 保留。用户授权并按共享恢复 reference 完整保存、校验后，允许将整组快照与日志原样轮换到当前 Change 的质量历史目录，再由现有 Review 命令建立新的活动记录。该受控轮换是记录位置的变化，不允许截断日志、改写旧行、仅删终态或丢弃失败证据。
-
-- **每次记录追加一行**
-
-  - `review` 或 `optimize` 成功写入记录
-  - 系统 SHALL 向 `.quality-log.jsonl` 追加一行 JSON
-  - 既有行 SHALL 保持不变
-
-- **快照与日志的写入顺序**
-
-  - 系统持久化一轮记录
-  - SHALL 先追加历史日志，再写入状态快照
-  - 两者不一致时后续状态判定 SHALL 按保守方向判为 `dirty`
-
-- **失败方向可从日志恢复**
-
-  - 需要判断某方向是否已被否决或其失败原因
-  - 系统 SHALL 能从日志中的历史记录得到该结论
+质量历史 SHALL 只追加，保存过去 Review、委托、实际失败/过期测试、放弃事项及主 Agent 结论，不改写或删除已有历史。先追加记录再更新当前快照；日志与快照不一致时不得声明完成，应给出可恢复诊断并保留两者。回滚代码不回退记录进度或复活旧完成结论。
 
 ### Section: 回写内容遵循 runtime projection
 
@@ -104,13 +74,8 @@ definition: Quality Writeback 定义 quality 如何把关键诊断结果回写�
 
 ### Section: 质量记录的受控轮换
 
-Agent SHALL 在共享恢复 reference 规定的授权和串行前提下，先完整保存 `.quality-state.json`、`.quality-log.jsonl` 的原始字节和重启原因，再校验保存内容，最后才移走根目录的活动记录。每次历史保存 SHALL 关联原轮次，使用当前 Change 内独立且不覆盖已有历史的位置；路径 SHALL 使用平台 path API，macOS、Linux、Windows 遵循相同完整性规则。
+显式重新验证 SHALL 在原流程停止后保留原代码、commits/checkpoints、全部旧记录及原因，以新的验证关联隔离旧结论，不通过删除终态或篡改日志重启。普通修正和中断恢复不触发记录轮换。无法确认写入或恢复边界时保留所有材料并报告证据缺口，不猜测应删除哪份。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
 
-保存、校验或轮换不完整时 SHALL 停止，不启动新 Review、不伪造通过记录。再次执行 SHALL 检查已有备份与活动文件；一致的保存可用于继续完成该次轮换，不得覆盖已有历史或把新产生的活动记录误当作旧记录移走。内容冲突或无法确认轮换边界时 SHALL 保留全部现有文件并报告具体证据缺口，不猜测哪份应被删除。
+### Section: 必要持久化边界
 
-轮换后的旧质量快照、日志、失败原因及重启原因 SHALL 保持可读，并在后续优化失败回滚及最终原样归档时完整保留。新活动日志与历史日志 SHALL 分开保存，不把旧 PASS 或旧台账复制进新活动记录。
-
-- **保存失败**：第二个文件保存或内容校验失败时，旧原件与已保存副本仍可用，不进入 fresh Review。
-- **轮换中断**：两个原始文件均已完整保存并校验，活动快照已移走而日志尚在；重入时检查字节和关联信息后完成剩余轮换，不覆盖历史，再启动新 Review。
-- **备份冲突**：已有历史位置包含不同内容时，不覆盖或删除任一版本，不继续轮换或启动验证。
-- **Windows 路径**：Change 位于带空格的 Windows 路径时，以平台 path API 定位两份记录和历史目录；原始文件字节与 POSIX 平台相同地受保护。
+系统 SHALL 在优化修改前保存委托范围、起始代码状态、关联基线 Review 与可恢复位置；放弃已尝试优化时保存事项、原因及处理结果；交付、主动暂停或交回主 Agent 时保存进度、实际测试和遗留问题；最终完成时保存主 Agent 验证结论。其他进度按恢复/交接需要保存，不要求每个小动作或每次保存创建 commit。未交付中断不能记为完成。

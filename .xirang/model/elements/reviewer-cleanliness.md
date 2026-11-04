@@ -95,30 +95,14 @@ Reviewer 输出的 summary 对象 SHALL 在 coherence 字段之后增加 cleanli
 
 ### Section: Cleanliness 与 Optimizer 的职责边界
 
-Review SHALL 判断本次 change 声称的工作是否完整、正确和清洁；Optimization SHALL 只判断已经正确的实现是否存在有实际收益、静态可证明且行为保持的改进。本次变更引入的遗留物 SHALL 由 reviewer 报告并阻塞 Optimization；optimizer 发现正确性冲突时 SHALL 返回阻塞观察。
+Review SHALL 判断实际审查范围中的工作是否完整、正确和清洁；Optimization SHALL 在独立审查基线上判断并实施有实际收益且保持语义行为的改进。本次 Change 的真实正确性或清理缺陷不能作为可放弃优化：优化前已存在而被基线漏掉的缺陷由主 Agent 判断并安排修复，修复后必须针对问题及影响独立 Review。优化引入的问题可局部修正或撤销并验证；其他优化后 Review 按主 Agent 风险判断决定，不强制每方向复核。
 
-- **本次变更遗留物由 reviewer 阻塞**
-
-  - 本次 diff 的重构任务保留了应删除的旧 API
-  - reviewer SHALL 报告 completeness/cleanliness issue
-  - optimizer SHALL NOT 将其作为非阻塞优化建议
-
-- **optimizer 发现 spec 冲突**
-
-  - optimizer 读取代码时发现实现违反 Section 语义
-  - SHALL 返回阻塞观察
-  - 系统 SHALL 路由回 Required Corrections
-
-- **正确实现中的算法机会由 optimizer 判断**
-
-  - 当前代码已通过 Review
-  - 当前实现正确但存在静态可证明的复杂度改进
-  - optimizer MAY 生成方向
-  - reviewer SHALL 在该轮实现后验证 preservation constraints
+- **应清理旧 API 仍保留**：Reviewer 独立报告当前 Change 的 completeness/cleanliness 问题；Opt 不以非阻塞可选优化掩盖该缺陷。
+- **正确代码的算法机会**：Opt 可在委托范围内实施有证据的复杂度改进并局部测试，主 Agent 决定是否需要增量 Review。
 
 ### Section: 规格外改动检测
 
-Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 task 的规格外改动。归因宇宙 SHALL 由各 task Files 声明的条目、各 Check Command 涉及的测试与证据文件、change 制品自身的并集构成（显式列表查找，不使用模式匹配推断）。
+Reviewer SHALL 在 Cleanliness 维度内检测 diff 中无法归因到任何 task 的规格外改动。普通实现的归因宇宙 SHALL 由各 task Files 声明的条目、各 Check Command 涉及的测试与证据文件、change 制品自身的并集构成（显式列表查找，不使用模式匹配推断）。优化工作 SHALL 同时读取委托、实际报告及代码证据，根据当前 Change 目标与实际影响判断归属；必要的新建、删除、移动文件及多层依赖公共辅助函数不因未列原 tasks Files 而自动成为规格外改动。公共辅助函数须检查其他调用方，另一套无关查询系统重构仍不被本委托授权。
 
 - **无法归因的行为代码升级为 CRITICAL**
 

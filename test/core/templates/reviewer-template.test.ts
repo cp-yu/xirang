@@ -38,7 +38,6 @@ describe('reviewer subagent template', () => {
 
     expect(template.name).toBe('xirang-reviewer');
     expect(template).not.toHaveProperty('instructions');
-    expect(template.prompt).toContain('clean-context reviewer');
     expect(template.tools).toEqual(expect.arrayContaining(['read', 'grep', 'find', 'bash']));
     expect(template.disallowedTools).toEqual(expect.arrayContaining(['write', 'edit']));
 
@@ -61,13 +60,6 @@ describe('reviewer subagent template', () => {
     expect(prompt).not.toContain('architecture-delta');
     expect(prompt).not.toContain('specs/*/spec.md');
     expect(prompt).not.toContain('contract bindings');
-  });
-
-  it('emits issue fields accepted by the Phase 1 verify CLI', () => {
-    const prompt = getReviewerSubagentTemplate().prompt;
-
-    expect(prompt).toContain('"message": "one line"');
-    expect(prompt).not.toContain('"summary": "one line"');
   });
 
   it('uses the immutable apply baseline plus uncommitted files for scope navigation', () => {

@@ -170,6 +170,8 @@ archive 命令 SHALL 提供清晰的 gate 状态反馈。
   - SHALL NOT 声称 CLI 执行了 merge
   - SHALL NOT 声称 CLI 删除了 feature branch
 
+质量摘要 SHALL 区分基线 Review、实际追加 Review 及经主 Agent 判断无需追加 Review，报告最终所需验证和成功 checkpoint；有放弃优化时告知事项、原因及处理结果，不伪造未执行的 Review PASS。
+
 ### Section: Archive Validation
 
 Archive SHALL 在移动 change 前执行完整 change compiler validation。`--no-validate` MAY 跳过一般 validation gate，但 MUST NOT 将未验证结果标记为 Passed。
@@ -364,25 +366,4 @@ archive 流程 SHALL 在用户显式要求时允许向 archive CLI 传递 `--no-
 
 ### Section: Archive quality freshness routing
 
-archive 流程 SHALL 根据 `xirang quality status` 命令返回的代码状态路由 Review 执行。
-
-- **clean 结果包含 informational HEAD 差异**
-
-  - 代码状态为 `clean`
-  - `archiveCompatibility.compatible` 为 `true`
-  - 记录的 Git HEAD 与当前 HEAD 不一致
-  - 流程 SHALL 复用已有 Review 记录
-  - SHALL NOT 仅因 Git HEAD 信息差异重新执行 reviewer
-
-- **记录缺失或状态为 dirty**
-
-  - 代码状态为 `MISSING` 或 `dirty`
-  - 流程 SHALL 在继续 archive 前执行 full quality 流程
-  - SHALL 在完成后重新执行 status gate
-
-- **Informational 字段不覆盖 compatibility**
-
-  - 代码状态为 `clean`
-  - `archiveCompatibility.compatible` 为 `false`
-  - skill SHALL 独立处理不兼容的 Optimization 状态
-  - SHALL NOT 将 informational Git HEAD 字段视为状态不一致的证据
+Archive SHALL 根据 quality status 的实际证据关联和缺口路由：缺基线则委托独立 Review；已有基线而委托未完或中断则按共享恢复协议继续原委托；最终验证缺失或过期则由主 Agent 重判并补足。优化后的代码变化不自动意味着整 Change Review 重跑。内容及证据关联不变时，HEAD informational 差异不触发重审。明确不支持旧格式时保留历史并报告，不自动迁移或删除。

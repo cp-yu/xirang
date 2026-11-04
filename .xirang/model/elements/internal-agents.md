@@ -4,14 +4,14 @@ identity: internal-agents
 kind: element
 parent: agents
 title: Internal Agents
-definition: Internal Agents 是在与主 Agent 隔离的上下文中接受委托、提供独立判断或实验结果的执行主体。它们包含 Reviewer、Optimizer 与 Experimenter，各角色定义自己的操作能力；不承担用户设计确认、Change 关闭或 Semantic Model 提升。
+definition: Internal Agents 是在与主 Agent 隔离的上下文中接受委托、独立取得依据并交付结果的执行主体，独立区分于端到端编排身份。它们包含只读 Reviewer、可写受托 Optimizer 与 Experimenter，各角色按职责执行审查、优化或实验；不承担用户设计确认、Change 关闭或 Semantic Model 提升。
 ---
 
 ## Specification
 
 ### Section: 在 Clean Context 中判断
 
-Internal Agents SHALL 在与主 Agent 隔离的上下文中接受委托并独立工作。Reviewer 与 Optimizer 在不受 Apply 过程判断影响的 clean context 中评估；Experimenter 独立设计与执行所委托实验。
+Internal Agents SHALL 在与主 Agent 隔离的上下文中接受委托并独立工作。Reviewer 在不受实现过程判断影响的 clean context 中评估；新的 Optimization 探索由 fresh-context Opt 独立读取并执行，中断恢复可在旧执行者停止后由原 Opt 或接手者继续同一委托；Experimenter 独立设计与执行所委托实验。
 
 ### Section: 独立读取判断依据
 
@@ -19,7 +19,7 @@ Internal Agents SHALL 按角色与委托问题独立读取所需依据。Reviewe
 
 ### Section: 输出结构化结论
 
-Internal Agents SHALL 向主 Agent 返回结构化判断或实验结果。评估角色返回证据及所需修正或优化事项，Experimenter 返回方法、观察结果与限制；由主 Agent 编排后续过程，不替用户确认设计。
+Internal Agents SHALL 向主 Agent 返回足以支持后续编排的证据与结果。Reviewer 返回所评估范围的独立结论与修正事项；Opt 返回实际保留改动、行为保持依据、测试与证据、放弃及遗留问题、后续建议；Experimenter 返回方法、观察结果与限制。Opt 的交付不决定整个 Optimization 完成，其自测不作为独立 Review；主 Agent 决定后续投入与最终验证，不替用户确认设计。
 
 ### Section: 不关闭 Change
 
@@ -50,4 +50,4 @@ Internal Agents SHALL NOT 提升 Semantic Model。
 
 ### Section: 按角色限定操作能力
 
-Reviewer 与 Optimizer SHALL 保持只读，只返回事项，不通过 Bash 绕过编辑/写入限制。Experimenter MAY 编写并执行实验所需代码与文件，其能力限制由实验职责决定；不得以内部 Agent 统一只读禁止实验。所有角色都不承担用户确认、正式模型提升或 Change 关闭。
+Reviewer SHALL 保持只读，不通过 Bash 绕过写入限制。Optimizer SHALL 在委托范围内实际具有修改实现与相关测试的权限，自主分组、合并、补充及运行局部测试；缺少对应测试时先补测试再改实现。Experimenter MAY 编写并执行实验所需代码与文件。所有角色均不承担用户确认、正式模型提升或 Change 关闭；Opt 中间恢复状态不自动成为最终成功，最终验证由主 Agent 负责。

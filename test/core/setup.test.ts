@@ -122,8 +122,9 @@ describe('SetupCommand', () => {
       expect(content).toContain('decomposition: xirang-semantic-refinement.md');
       expect(content).toContain('optimization:');
       expect(content).toContain('  enabled: true');
-      expect(content).toContain('  directionLimit: 3');
-      expect(content).toContain('  directionRetries: 2');
+      expect(content).not.toContain('directionLimit:');
+      expect(content).not.toContain('directionRetries:');
+      expect(parsed.optimization).toEqual({ enabled: true });
       expect(content).toContain('apply:');
       expect(content).toContain('  defaultIsolation: ask  # ask / branch / worktree / none');
       expect(content).toContain('git:');

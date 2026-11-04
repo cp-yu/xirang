@@ -21,8 +21,7 @@ import {
   type TaskItem,
   type ApplyInstructions,
 } from './shared.js';
-import { checkArchiveCompatibility, checkQualityState } from '../../core/quality/state.js';
-import { QUALITY_RECOVERY_REFERENCE } from '../../core/quality/protocol.js';
+import { readQualityCompletion } from '../../core/quality/state.js';
 import { readProjectConfig } from '../../core/project-config.js';
 import { projectConfigForInstructions } from '../../core/config-projection.js';
 
@@ -335,38 +334,28 @@ async function resolveCompletedApplyState(
   changeDir: string,
   projectRoot: string
 ): Promise<Pick<ApplyInstructions, 'state' | 'instruction'>> {
-  const qualityState = await checkQualityState(changeDir, projectRoot);
+  const qualityState = await readQualityCompletion(changeDir, projectRoot);
 
-  if (qualityState.record?.optimization?.terminal === 'ABORTED_UNSAFE') {
-    return {
-      state: qualityState.status === 'clean' ? 'needs_optimize' : 'needs_review',
-      instruction:
-        'All tasks are complete, but optimization aborted as unsafe (ABORTED_UNSAFE in the active ledger).\n'
-        + 'Stop automatic advancement: do not record a Review, continue Optimization, seal, or archive from this state, even when the code looks dirty or restored.\n'
-        + `With explicit user authorization to restart verification and a fully stopped original flow, follow ${QUALITY_RECOVERY_REFERENCE} to save, verify, and rotate the quality records, then re-verify from a fresh Review.`,
-    };
-  }
-
-  if (qualityState.status !== 'clean' || !qualityState.record) {
+  if (qualityState.status === 'needs_review' || qualityState.unsupported) {
     return {
       state: 'needs_review',
       instruction:
-        'All tasks are complete, but the current code has no matching passing review record.\nRun `xirang quality review` before archiving this change.',
+        'All tasks are complete, but baseline quality evidence is missing or unsupported.\nRead `xirang quality status` and its specific gaps. Obtain the independent baseline Review through the shared Apply Step 3 reference, or record its matching checkpoint through Step 4 if that is the only gap. Preserve unsupported records and follow the shared quality recovery reference.',
     };
   }
 
-  if (!checkArchiveCompatibility(qualityState.record).compatible) {
+  if (qualityState.status === 'needs_optimize' || qualityState.gaps.length > 0) {
     return {
       state: 'needs_optimize',
       instruction:
-        'All tasks are complete and the code passed review, but the optimization loop is not finalized.\nContinue `xirang quality optimize` and seal before archiving this change.',
+        'All tasks are complete, but delegation, final verification, conclusion or checkpoint evidence is incomplete.\nRead `xirang quality status` and follow the shared Apply Step 4 optimization and quality recovery references for the actual gaps. Continue the original interrupted delegation after its writer stops; reassess affected validation rather than automatically rerunning whole-Change Review. Seal only after all_done with no gaps.',
     };
   }
 
   return {
     state: 'all_done',
     instruction:
-      'All tasks are complete and quality is fresh.\nThis change is ready to be archived.',
+      'All tasks are complete and the full quality completion conditions pass without gaps: applicable required verification, main conclusion and final successful checkpoint are recorded.\nThis change is ready to be archived.',
   };
 }
 
