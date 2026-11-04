@@ -15,16 +15,16 @@ Optimization 启用且用户未明确拒绝时，提示词 SHALL 委托 Opt 进�
 
 ### Section: 共享 quality gate 指引片段
 
-系统 SHALL 从同一实现协议源向 Apply/Archive 生成委托、交付、测试捕获、独立 Review、主 Agent 结论、status/seal 指引，提供最小合法输入和确定性失败语义，不保留并行方向队列协议。阶段指引表达必需保障而非将每种情境固定为审批链或执行算法。
+系统 SHALL 从同一实现协议源向 Apply/Archive 生成 Review 委托、Opt opinion/显式不做 Opt 处置、Seal、status 与 Archive commit 检查指引，提供最小合法 JSON 示例和确定性失败语义。阶段指引表达基线 Review、主 Agent 决定的可选 Opt 与 Seal；不得保留独立 test-capture、checkpoint 或 freshness ledger 协议。
 
 ### Section: Archive 模板未收口恢复路径
 
-Archive SHALL 对未完成优化给出可执行恢复指引，复用共享委托与恢复协议；缺基线、未交付、过期验证和恢复不确定分别处理。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 可修复问题不固定永久锁定；恢复仍无法确认时停止完成。
+Archive SHALL 对缺失或不可解析的 Seal commit 提供具体诊断，并指引主 Agent 返回 Apply 补齐 Quality 意见/Seal。Opt 的进度与代码恢复从 Git 判断；Archive 不将中断推断为已完成 opinion 或明确 skip。Semantic Delta、Sync、validation 和 task gate 独立处理。
 
 ### Section: Quality 模板 CLI 错误恢复指南
 
-提示词 SHALL 根据 CLI code、diagnostics、allowedNextOperations 修正输入或补齐真实证据，不伪造输入、删除历史或把测试失败输出改为成功。记录缺失不得推断通过，baseCommit 无效不得猜测；不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
+提示词 SHALL 根据 CLI code、diagnostics 和 allowedNextOperations 修正输入或补齐真实 Review/Opt opinion 与 Seal commit，不伪造意见、不删除历史、不把测试失败输出改为成功。Commit identity 无效时不得猜测 HEAD 或 branch ref。新实现不读取、迁移或兼容旧 quality 格式与命令输入；旧记录保持原样且不作为新协议证据。Seal commit 存在不表示当前 HEAD 或工作区与之相同，提示词 SHALL NOT 作此声明。
 
 ### Section: 提供可选失败诊断 reference
 
-系统 SHALL 提供新的共享优化失败诊断 reference，供实际排查参考。局部测试原因明确可修正重验；最终测试/Review 定位某项改动时可修正或撤销并保留其他有效工作；合并无法定位时可拆分或二分，各部分通过而组合失败需检查相互作用。方法无强制顺序，允许更合适方法，不强制二分或每次整批回滚重跑。reference SHALL 经显式生成清单管理，不按模式扫描删除用户文件。
+系统 SHALL 提供共享的优化失败诊断 reference，供主 Agent 与 Opt 依据 Git history 和实际证据定位问题。局部原因明确时可修正或撤销并验证；合并问题无法定位时可拆分或采用更合适方法；恢复不可靠时停止并交回主 Agent。Reference 不要求 Quality checkpoint、整批 reset/clean 或持久化方向队列，并经显式生成清单管理。

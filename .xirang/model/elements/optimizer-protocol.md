@@ -15,7 +15,7 @@ xirang-optimizer SHALL 是受托优化执行者，在 fresh context 独立读取
 
 ### Section: Optimizer 输入合约
 
-主 Agent SHALL 提供合法 changeName、绝对 changeDir 与 projectRoot 以及委托定位信息。Opt 独立读取委托范围和约束、起始状态、关联基线 Review、恢复位置、当前代码、Change、Semantic Model、最近进度及相关历史。缺少有效基线 Review 或 `.apply-isolation.json.baseCommit` 无法解析时 SHALL fail closed，不用可移动 branch ref 猜测。后续委托与中断恢复不要求将累计改动重新伪装为基线 Review 覆盖范围。
+主 Agent SHALL 提供合法 `changeName`、绝对 `changeDir` 与 `projectRoot`、通过的基线 Review commit 以及委托定位信息。Opt 独立读取委托范围和约束、基线 Review、`.apply-isolation.json.baseCommit`（仅用于当前 Change scope 导航）、当前代码、Change、Semantic Model 与相关 Opt opinions。缺少通过的基线 Review 或不可解析的 scope baseCommit 时 SHALL fail closed；不得用 branch ref 猜测。Opt 结果以 `baseCommit` 与 `resultCommit` 标识，不将累计改动伪装成基线 Review 范围。
 
 ### Section: Optimizer scope 导航 SHALL 使用不可变证据基线
 
@@ -63,8 +63,8 @@ Opt SHALL 读取相关历史失败及已放弃事项，避免重复已证伪尝�
 
 ### Section: 执行并交付实际结果
 
-Opt SHALL 自主发现、分组、合并、实施及局部验证，报告实际保留改动与收益/保持依据、测试行为和实际结果及证据、放弃/撤销及遗留问题（无则明确说明）、后续建议及理由。表达形式与详略按复杂度决定，不固定标题或方向表单。CLI 生成身份、版本、时间及代码状态关联，测试证据绑定执行时状态，不能以后来报告状态替代。
+Opt SHALL 自主发现、分组、合并、实施及局部验证，并交付一条 opinion，绑定起始 `baseCommit` 和实际结果 `resultCommit`。Opinion SHALL 报告实际保留改动与收益/保持依据、测试行为和结果及证据位置、放弃/撤销及遗留问题（无则明确说明）、后续建议及理由。表达形式与详略按复杂度决定，不固定标题或方向表单。CLI 生成 opinion identity 与 revision，并验证 commit objects；它不生成内容 fingerprint 或测试执行证据。
 
 ### Section: 按必要边界保存并恢复
 
-Opt SHALL 在修改前确认委托起点和可恢复基线已保存，放弃时保存事项/原因/处理，交付或主动暂停时保存进展/测试/问题，其余按需。中断后须在主 Agent 确认旧写入者停止后核对现场并继续原委托：A 已记录完成而 B 在磁盘改到一半时，检查 B 再处理，不认定完成或自动丢弃 A/B。优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。
+代码改动、成功提交与恢复历史 SHALL 由 Git 承载；Opt SHALL 在交付时将意见关联 `baseCommit` 与 `resultCommit`。Quality SHALL NOT 持久化 Opt 进度、暂停记录、恢复位置或代码快照。Opt 可按恢复需要形成 Git commits；不要求逐优化方向 commit。中断时主 Agent 先确认旧写入者停止，再检查 Git history 和当前工作区，依据证据继续、修正或撤销；未完成工作不得作为 delivered opinion。优化引入的问题 SHALL 局部修正或撤销并验证、保留可靠工作；无法确认恢复可靠时停止并交回主 Agent，不以未解决状态完成。

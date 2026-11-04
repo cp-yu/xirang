@@ -82,24 +82,10 @@ definition: List Command 定义 `xirang list` 的行为：扫描活动 changes�
 
 ### Section: list --json 输出包含 quality 状态
 
-`xirang list --json` 命令的输出 SHALL 为每个 change 包含 `qualityStatus` 字段，指示其代码质量记录的状态。
+`xirang list --json` SHALL 为每个 Change 包含 `qualityStatus` 字段，该字段只反映新 Quality JSON 与 Seal 状态，不反映代码新鲜度。
 
-- **记录存在且与当前代码一致**
-
-  - change 目录中存在 quality 状态记录，且记录与当前代码一致
-  - JSON 输出中该 change 的 `qualityStatus` SHALL 为 `'clean'`
-
-- **记录存在但与当前代码不一致**
-
-  - change 目录中存在 quality 状态记录，但当前代码与任何通过的记录不一致
-  - JSON 输出中该 change 的 `qualityStatus` SHALL 为 `'dirty'`
-
-- **记录不存在**
-
-  - change 目录中不存在 quality 状态记录
-  - JSON 输出中该 change 的 `qualityStatus` SHALL 为 `'MISSING'`
-
-- **原 status 字段不变**
-
-  - `xirang list --json` 执行
-  - 输出的 `status` 字段 SHALL 保持与原有逻辑一致（基于 task count）
+- **Seal 有效**：新 JSON 中存在 Seal 且其 Git commit object 可解析时，`qualityStatus` SHALL 为 `clean`。
+- **记录存在但 Seal 不可用**：新 JSON 存在但缺少 Seal 或其 commit object 无法解析时，`qualityStatus` SHALL 为 `dirty`。
+- **新记录不存在**：`.quality.json` 不存在时 `qualityStatus` SHALL 为 `MISSING`；旧 snapshot/log/evidence 不作为新协议记录。
+- **不比较实现状态**：HEAD 或工作区内容与 Seal commit 不同、工作区非 clean，均不得单独改变 `qualityStatus`。
+- **原 status 字段不变**：输出的 `status` 字段 SHALL 保持与原有逻辑一致（基于 task count）。

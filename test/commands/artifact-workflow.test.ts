@@ -3,7 +3,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
-import { QUALITY_LOG_FILE, QUALITY_STATE_FILE } from '../../src/core/quality/engine.js';
 import { createBaselineOnlyQualityFixture, createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { validateTaskStructure } from '../../src/core/parsers/task-structure.js';
 
@@ -703,7 +702,7 @@ rules: {}
       });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Review Required');
-      expect(result.stdout).toContain('independent baseline Review');
+      expect(result.stdout).toContain('baseline Review');
     });
 
     it('outputs needs_review state in JSON when all tasks are complete but no review is recorded', async () => {
@@ -723,7 +722,7 @@ rules: {}
 
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_review');
-      expect(json.instruction).toContain('independent baseline Review');
+      expect(json.instruction).toContain('baseline Review');
     });
 
     it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {
@@ -744,7 +743,7 @@ rules: {}
 
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_optimize');
-      expect(json.instruction).toContain('shared Apply Step 4 optimization');
+      expect(json.instruction).toContain('Opt disposition or Seal');
     });
 
     it('reports needs_review after rotation even when history holds a matching pass', async () => {
@@ -759,7 +758,7 @@ rules: {}
 
       const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
       await fs.mkdir(historyDir, { recursive: true });
-      for (const file of [QUALITY_STATE_FILE, QUALITY_LOG_FILE]) {
+      for (const file of ['.quality.json']) {
         await fs.rename(path.join(changeDir, file), path.join(historyDir, file));
       }
 

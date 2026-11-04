@@ -235,7 +235,7 @@ Regular text that should be ignored
       const output = JSON.parse(logOutput[0]);
       const changes = Object.fromEntries(output.changes.map((change: any) => [change.name, change]));
       expect(changes['fresh-change'].qualityStatus).toBe('clean');
-      expect(changes['stale-change'].qualityStatus).toBe('dirty');
+      expect(changes['stale-change'].qualityStatus).toBe('clean');
       expect(changes['missing-change'].qualityStatus).toBe('MISSING');
       expect(changes['fresh-change'].status).toBe('complete');
       expect(changes['missing-change'].status).toBe('in-progress');

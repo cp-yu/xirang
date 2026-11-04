@@ -4,7 +4,7 @@ identity: archive-quality-gate
 kind: element
 parent: change-closure
 title: Archive Quality Gate
-definition: Archive Quality Gate 是 Change Closure 在归档前消费完整质量证据的门禁，独立验证基线 Review、优化交付或明确跳过、主 Agent 最终结论、所需通过验证与当前成功状态的关联。缺口恢复复用 Apply 的执行协议，不另行判断优化价值或将无需追加 Review 当 PASS；归档移动、Git 交接及 Sync 事务属于各自能力。
+definition: Archive Quality Gate 是 Change Closure 在归档前消费 Quality Seal 的门禁，只确认新 Quality JSON 中 Seal commit 对象仍存在。它不重新判断 Review/Opt 意见、不执行测试、不比较 HEAD 或工作区；归档移动、Sync、validation 与 task 门禁属于各自能力。
 ---
 
 ## Specification
@@ -19,42 +19,13 @@ Archive SHALL 基于实际测试与 Review 的状态、范围、结果、当前�
 
 ### Section: Archive rerun 使用 quality 执行模型
 
-Archive SHALL 复用 Apply 的 subagent-orchestrated 模型及同一优化/恢复 references，根据具体缺口补基线 Review、继续原委托或重新判断最终验证，不建立单独审查骨架，也不因任意优化修改强制 full quality 重跑。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 配置未禁用且用户未拒绝时，缺失的初次优化仍须委托 Opt，不因 archive-time 未提交改动自动跳过。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
+Archive SHALL 对 Quality gate 缺失或无效的 Seal 给出具体诊断并交回 Apply 处理，不建立 archive-only 审查或修复流程。Opt 未执行或中断不通过 Archive 自动推断为 skip 或已交付；Opt 的决定和意见由主 Agent 在 Seal 前处理。Archive Quality gate 不重跑测试、不重新评估 Review/Opt 自然语言、不比较当前工作区与 Seal commit。Unsupported old records SHALL 保留并报告，不读取或迁移。
 
 ### Section: Archive 与 Sync 双重门禁
 
-`xirang archive` 命令 SHALL 在执行归档前校验 quality 和 sync 状态。默认强制执行，`--no-verify` 标志提供显式用户授权绕过通道。
+`xirang archive` SHALL 在执行归档前校验 Quality Seal 与 Sync 状态。默认强制执行，`--no-verify` 仍提供显式用户授权绕过通道。
 
-- **双重门禁通过，继续 archive**
-
-  - agent 执行 `xirang archive <change-name>`
-  - quality gate 通过（基线、交付/明确跳过、主 Agent 结论、当前所需通过验证及最终 successful checkpoint 完整）
-  - sync 已完成
-  - 系统 SHALL 继续执行 archive 逻辑
-
-- **门禁不通过，合并询问**
-
-  - agent 执行 `xirang archive <change-name>`
-  - quality gate 或 sync gate 任一不通过
-  - 系统 SHALL 输出两个门禁的合并状态
-  - SHALL 以 exit 1 退出
-  - agent SHALL 向用户展示合并选项：先运行 quality+sync / 仅 sync / 强制继续 / 放弃
-
-- **用户显式授权绕过门禁**
-
-  - agent 执行 `xirang archive <change-name> --no-verify`
-  - 用户未同时使用 `--yes` 标志
-  - 系统 SHALL 显示风险警告并要求交互式确认
-  - 用户拒绝确认
-  - archive SHALL 取消并提示使用标准 quality gate
-  - 用户确认授权
-  - 系统 SHALL 记录 `[AUTHORIZED]` 审计日志
-  - SHALL 跳过 quality 和 sync 门禁检查
-  - SHALL 继续执行 archive 逻辑
-
-- **--yes 模式下的 --no-verify 静默绕过**
-
-  - agent 执行 `xirang archive <change-name> --no-verify --yes`
-  - 系统 SHALL 跳过交互式确认
-  - SHALL 记录 `[AUTHORIZED]` 审计日志
-  - SHALL 直接跳过 quality 和 sync 门禁检查
+- **Quality 与 Sync 均通过**：Quality JSON 中存在 Seal 且其 commit object 可解析，Sync 已完成；系统 SHALL 继续 validation 与 task gates。
+- **门禁不通过**：Seal 缺失/commit 不存在或 Sync 未完成时，系统 SHALL 输出门禁状态并以 exit 1 退出，不移动 Change directory。
+- **显式授权绕过**：现有 `--no-verify` 确认与授权行为保持不变；绕过不生成 Seal 或质量证据。
+- Quality gate SHALL NOT 比较工作区 clean、HEAD 或工作区内容与 Seal commit；Semantic Delta、validation 和 task gates 仍独立执行。

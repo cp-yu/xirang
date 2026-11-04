@@ -4,14 +4,14 @@ identity: optimization
 kind: element
 parent: quality
 title: Optimization
-definition: Optimization 是 Quality 中在独立审查基线上受托改进实现的活动，独立承载优化机会发现、分组合并、实施、局部验证和结果交付。Opt 在委托范围内执行，主 Agent 决定范围、继续投入及最终风险验证，Reviewer 提供所需独立审查。它保持 Expected Semantic Model 与项目行为，包含失败尝试的处理及可靠恢复，不承担新需求设计或 Change Closure。
+definition: Optimization 是 Quality 中在通过的独立基线 Review 后、由主 Agent 可选委托的实现改进活动，独立承载优化机会发现、分组合并、实施、局部验证和结果交付。Opt 在委托范围内执行并保持 Expected Semantic Model 与项目行为；主 Agent 决定是否进行 Opt、后续投入及最终风险判断，Reviewer 提供主 Agent 选择的独立审查。代码历史和恢复由 Git 承载，不由 Quality checkpoint 复制。
 ---
 
 ## Specification
 
 ### Section: 读取完整优化依据
 
-Optimization SHALL 读取 Semantic Model、Change、当前代码、基线 Review、恢复位置、项目证据及相关优化历史。后续委托基于累计改动后的实际状态，不能假定基线 Review 审查过这些改动。
+Optimization SHALL 读取 Semantic Model、Change、当前代码、通过的基线 Review 及其 commit、Opt 委托范围、项目证据与既有 Opt opinions。后续委托基于累计改动后的实际状态，不能假定基线 Review 审查过这些改动；代码恢复依据从 Git history 取得，不依赖 Quality checkpoint。
 
 ### Section: 优先消除不必要复杂度
 
@@ -33,7 +33,7 @@ Optimization SHALL 评估必要工作是否可通过更合适的算法、数据�
 
 ### Section: 只选择有价值且可验证的事项
 
-选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。
+选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止，并在交付 Opt opinion 时记录处理结果。
 
 - **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。
 
@@ -48,13 +48,11 @@ Optimization SHALL 评估必要工作是否可通过更合适的算法、数据�
 
 ### Section: 无需继续优化时完成
 
-每次 Opt 完整交付后，主 Agent SHALL 判断是否值得继续。可交回具体问题修正，也可委托 fresh-context Opt 独立探索新机会，不要求主 Agent 先找到新方向。新 Opt 可读取前轮结果和失败记录，无需继承完整推理上下文。无新发现或收益很小时可停止，不固定轮数、不要求证明已无任何机会。最终验证 MAY 覆盖多次委托累计改动，具体风险应及时验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。
-
-- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过时，主 Agent SHALL 根据改动范围、行为保持依据与覆盖判断是否需要全量测试或增量 Review；判断无需追加时保存依据即可完成所需验证并保存成功 checkpoint，不记为 Reviewer PASS。若判断需要增量 Review，SHALL 等待该 Review 通过才可完成。
+通过基线 Review 后，是否进行 Opt 由主 Agent 按实际情况决定；Opt 是可选阶段。执行 Opt 时，可交回具体问题修正或委托 fresh-context Opt 探索新机会，不要求主 Agent 先找到新方向。Opt opinion SHALL 汇总实际保留改动、收益和影响、行为保持依据、局部测试结果、失败/放弃事项及后续建议；不要求固定轮数或证明不存在更多机会。Opt 后是否追加 Review、是否扩大测试由主 Agent 按实际风险决定。适用的测试仍 SHALL 在执行过程中运行；Quality JSON 不保存测试输出或判断其客观成功。Seal 仅在基线 Review 通过且主 Agent 已明确记录 Opt opinion 或不做 Opt 的理由后成立。
 
 ### Section: 在独立审查基线后开始
 
-Optimization SHALL 在优化前实现通过独立 Review、且可恢复基线已保存后开始。配置禁用或用户明确拒绝时记录跳过，不伪造 Opt 交付，也不免除必需 Review 与适用测试。后续委托可基于累计优化状态，不单因前轮改动要求新基线 Review。
+实际 Opt 修改 SHALL 只在优化前实现通过独立基线 Review 后开始。若主 Agent 不执行 Opt，Seal 前 SHALL 记录 `not_performed` 处置与简短理由，不伪造 Opt opinion。后续 Opt 可基于累计优化状态，不单因前轮改动要求新的基线 Review。
 
 ### Section: 委托内执行与局部验证
 
@@ -62,11 +60,7 @@ Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、
 
 ### Section: 按证据处理问题
 
-Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。
-
-优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。
-
-可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。
+Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可依据 Git 中实际代码状态局部修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，修正必须形成不同 Git commit，并经针对问题及影响的独立 Review 后才能作为已处理。无关历史问题记录在 Opt opinion 并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。无法确认恢复可靠时停止并交回主 Agent，不以未解决状态完成。
 
 ### Section: 按实际影响确定文件范围
 

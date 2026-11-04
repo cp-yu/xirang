@@ -19,11 +19,8 @@ import {
   TEST_QUALITY_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
-  QUALITY_CHECKPOINT_STATE_MACHINE,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
   QUALITY_ERROR_RECOVERY_GUIDE,
-  QUALITY_SIMPLE_CHANGE_FAST_PATH,
-  QUALITY_STATE_MACHINE_DIAGRAM,
 } from '../../../../src/core/templates/fragments/xirang-fragments.js';
 
 
@@ -99,11 +96,8 @@ describe('current CLI documentation', () => {
 describe('quality gate shared fragments', () => {
   it('exports non-empty strings', () => {
     for (const fragment of [
-      QUALITY_STATE_MACHINE_DIAGRAM,
       QUALITY_CLI_JSON_SCHEMA_REFERENCE,
       QUALITY_ERROR_RECOVERY_GUIDE,
-      QUALITY_CHECKPOINT_STATE_MACHINE,
-      QUALITY_SIMPLE_CHANGE_FAST_PATH,
     ]) {
       expect(fragment).toBeTypeOf('string');
       expect(fragment.length).toBeGreaterThan(0);

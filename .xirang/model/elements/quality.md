@@ -4,14 +4,14 @@ identity: quality
 kind: element
 parent: change-implementation
 title: Quality
-definition: Quality 是 Change Implementation 中确认并改进项目实现质量的环节，独立承载基线独立审查、受托优化与基于风险的最终验证之间的协调。它包含进入条件、恢复状态、证据关联、最终成功状态及进入 Closure 的条件；Review 负责独立正确性判断，Optimization 负责在语义不变前提下改进实现。它不承担普通 Apply 的任务实现，也不执行模型同步或归档。
+definition: Quality 是 Change Implementation 中以 commit 绑定的 Review 意见、可选 Opt 意见与 Seal 声明协调项目实现判断并控制进入 Change Closure 的阶段。它确保每个 Change 具有通过的独立基线 Review、明确的 Opt 处置及主 Agent 对 Seal commit 的声明；Review 负责独立判断，Optimization 负责保持目标语义的改进，CLI 负责意见关联和记录门禁，不负责代码恢复或当前工作区新鲜度判定。
 ---
 
 ## Specification
 
 ### Section: Review 通过后建立 Baseline
 
-首次独立 Review 通过后，Quality SHALL 在优化修改前保留可恢复的基线，并关联被审查状态和恢复位置。基线保留原实现，不能以历史无关 PASS 替代。
+Quality SHALL 要求每个 Change 在可 Seal 前至少具有一条通过的独立基线 Review。Review opinion SHALL 绑定已提交且在审查期间保持不变的 Git commit；失败 Review 的修正 SHALL 形成不同的 Git commit，并在该 commit 上重新 Review，直至基线 Review 通过。通过的基线 Review 是 Opt 与 Seal 的必要前置条件；Quality 不为该 commit 创建或保存代码恢复状态。
 
 ### Section: 成功优化推进 Checkpoint
 
@@ -23,7 +23,7 @@ definition: Quality 是 Change Implementation 中确认并改进项目实现质�
 
 ### Section: 保留失败方向与优化历史
 
-Quality SHALL 保留已尝试但放弃的优化事项、原因、处理结果、实际测试证据及历史，在放弃时保存并在最终交付告知用户。失败尝试与保留的有效结果分开，不因一项可选优化未成功阻塞正确且满足验证要求的 Change。
+Quality SHALL 在唯一质量 JSON 中保留 Review opinion 历史及 Opt opinions，包含已放弃方向、原因和处理结果，以供主 Agent 后续判断并避免重复尝试。该记录保存意见，不保存代码快照、测试输出或恢复事件；Git 承载代码修改和恢复历史。
 
 ### Section: 仅以最新成功状态完成
 
@@ -31,7 +31,7 @@ Quality SHALL 保留已尝试但放弃的优化事项、原因、处理结果、
 
 ### Section: 收口后确认可进入 Change Closure
 
-Quality SHALL 关联基线独立 Review、每次优化委托及完整实际交付（或配置禁用/用户拒绝的明确跳过）、主 Agent 最终验证结论、当前所需验证结果及最终 successful checkpoint，只有这些完成条件成立时才允许进入 Change Closure。未交付中断、失败或过期验证、未解决基线缺陷及恢复不确定均阻塞。CLI 只检查声明条件与关联，不判断自然语言充分性。
+Quality SHALL 仅在基线 Review 已通过、Seal 前已有明确 Opt 处置、且主 Agent 已记录有效 Seal 声明时允许 Change 进入 Change Closure。已执行 Opt 的处置 SHALL 包含 opinion 及 `baseCommit`、`resultCommit`；未执行 Opt 的处置 SHALL 包含简短理由。Seal 声明 SHALL 绑定一个 Git commit，并由主 Agent 声明该版本可运行且预期通过适用测试。CLI 不执行测试、不保存测试输出、不要求工作区 clean、不要求 Seal commit 等于 HEAD 或工作区内容，也不要求在 Seal 或 Archive 前单独提交 Quality JSON。Archive 的 Quality 门禁只确认 Seal commit 对象仍存在。
 
 ### Section: 活动 Change 的显式重新验证
 
@@ -43,4 +43,8 @@ Quality SHALL 关联基线独立 Review、每次优化委托及完整实际交�
 
 ### Section: 按阶段与证据缺口推进
 
-Quality SHALL 先完成普通实现的独立 Review，再进入委托式 Optimization。优化开始后，不以每次代码变化强制回到整条 Review 流程；主 Agent 可读取实际代码与证据，按累计改动判断后续委托和最终验证，必要时追加独立 Review。已知候选处理完且结果交付后可收尾，无需再次调用 Opt 证明不存在更多机会。
+Quality SHALL 按基线 Review、主 Agent 决定的可选 Opt、Opt 处置和 Seal 顺序推进。Review findings 与 Required Corrections 交由主 Agent 判断和处理；Quality SHALL NOT 自动修改 `tasks.md`。没有 Seal 时不得进入 Change Closure；Opt 后是否追加 Review 由主 Agent 按实际风险决定，不由 CLI 推断或要求。
+
+### Section: 单一 Quality Record 承载意见与 Seal
+
+Quality SHALL 仅将 Review opinions、Opt opinions 或明确不做 Opt 的处置及当前 Seal 声明持久化在每个 Change 的一个 Git-tracked JSON 文档中。代码状态、执行过程、测试输出与恢复状态不复制进该文档；CLI 对更新执行原子写入与 revision compare-and-swap。

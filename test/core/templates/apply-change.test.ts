@@ -1,11 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  QUALITY_CHECKPOINT_STATE_MACHINE,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
   QUALITY_ERROR_RECOVERY_GUIDE,
-  QUALITY_SIMPLE_CHANGE_FAST_PATH,
-  QUALITY_STATE_MACHINE_DIAGRAM,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
@@ -258,11 +255,8 @@ describe('apply change workflow template', () => {
   it('renders the shared quality fragments only through the shared constants', () => {
     const reference = applyReference('references/quality-cli.md');
 
-    expect(reference).toContain(QUALITY_STATE_MACHINE_DIAGRAM);
-    expect(reference).toContain(QUALITY_CHECKPOINT_STATE_MACHINE);
     expect(reference).toContain(QUALITY_CLI_JSON_SCHEMA_REFERENCE);
     expect(reference).toContain(QUALITY_ERROR_RECOVERY_GUIDE);
-    expect(reference).toContain(QUALITY_SIMPLE_CHANGE_FAST_PATH);
   });
 
   it('uses canonical archive source reference for archive-ready handoff', () => {

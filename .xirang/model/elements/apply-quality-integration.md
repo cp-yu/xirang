@@ -4,7 +4,7 @@ identity: apply-quality-integration
 kind: element
 parent: apply
 title: Apply Quality Integration
-definition: Apply Quality Integration 是 Apply 对基线独立审查、受托优化、恢复和最终验证的集成协议，独立承载 CRITICAL 写回顺序、角色分工、共享 references 和质量诊断消费。它让主 Agent 编排可写 Opt 及所需 Reviewer，保持普通 Apply 任务纪律；不定义 CLI 方向台账或重复 Quality 的判定引擎。
+definition: Apply Quality Integration 是 Apply 对基线独立审查、可选受托优化、Git-based recovery 和 Seal 的集成协议，独立承载角色分工、共享 references 和 Quality opinion 诊断消费。它让主 Agent 编排可写 Opt 及所需 Reviewer，负责处理修正及任务状态；不定义自动 task writeback、Quality checkpoint 或逐方向台账。
 ---
 
 ## Specification
@@ -35,30 +35,7 @@ optimization.enabled SHALL 控制是否启动优化；配置禁用或用户明�
 
 ### Section: Apply 读取 Quality 诊断信息
 
-当 quality 状态记录存在时，apply SHALL 读取其中的诊断信息，把它作为修复上下文注入任务实现循环。
-
-- **检测到失败的 Review 记录**
-
-  - apply 检测到 `.xirang/changes/<name>/.quality-state.json` 存在且 result 为 `FAIL_NEEDS_CORRECTIONS`
-  - apply SHALL 读取该记录的 `issues` 数组
-  - 对每个被 unmark 的 task，将对应的 issue 作为修复指导注入上下文
-
-- **检测到 Required Corrections section**
-
-  - apply 读取 `tasks.md` 发现存在 `## Required Corrections` section
-  - apply SHALL 将修正事项条目视为优先修复项
-  - SHALL 在实现被 unmark 的 task 时引用对应条目作为修复方向
-
-- **artifact_fix 类型的修正事项处理**
-
-  - apply 遇到 `[artifact_fix]` 类型的修正事项条目
-  - apply SHALL 修改对应的 artifact 而非代码
-  - SHALL 标记该修正事项为完成
-
-- **记录通过或不存在**
-
-  - quality 状态记录不存在，或 result 为 `PASS` 或 `PASS_WITH_WARNINGS`
-  - apply SHALL 按原有逻辑执行，不注入额外修复上下文
+当新 Quality JSON 存在时，Apply SHALL 读取 Review opinions、Opt disposition/opinions、Seal 与具体诊断，将其作为修复或收口上下文。失败 Review 的 findings 交由主 Agent 判断并安排修正；主 Agent 可更新对应 task 与 Required Corrections，形成修正 commit 后重新 Review。Quality/CLI SHALL NOT 自动 unmark task 或追加 task section。没有新 Quality JSON 时，Apply SHALL 按新协议取得基线 Review，不得从旧 snapshot/log/evidence 推断已通过。
 
 ### Section: Apply reference 拥有 checkpoint 编排
 
@@ -66,16 +43,16 @@ Apply 的共享优化 reference SHALL 定义修改前可恢复基线、Opt 按�
 
 ### Section: 共享恢复 reference 编排重验
 
-Apply 与 Archive SHALL 使用同一共享恢复 reference。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 用户明确要求从头重新验证时，保留原工作区身份、baseCommit、代码、commits/checkpoints 和历史，原流程停止后取得新的独立基线 Review；不要求用户重复确认已给出的重验意图。普通失败或可处理缺陷不永久锁定，也不自动重启整个流程。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
+Apply 与 Archive SHALL 使用同一共享 Git recovery reference。Opt 中断后，主 Agent 确认旧写入者已停止，再通过 Git history、status 与当前代码核对结果并决定继续、修正或撤销；未交付状态不作为 Opt opinion。用户要求从头重新验证时，主 Agent 在原流程停止后追加新的 Review opinion，不重置或轮换 Quality JSON 历史。旧质量格式不读取、不迁移、不删除；旧文件和 commits 保持原样。
 
 ### Section: 恢复交付的验证证据
 
-恢复交付 SHALL 提供可复现的实际行为证据，包括磁盘未记录改动的处理、局部撤销保留有效工作、失败历史保留及测试与实际状态对应。持久测试验证 CLI 可观察门禁和文件保持，不锁解释性措辞；reference 操作和生成面通过临时工作区的一次性行为证据验证，覆盖 Windows 与 POSIX 路径。
+恢复交付 SHALL 以可复现的 Git commit 和项目测试/检查结果支持主 Agent 判断，包括局部撤销保留有效工作及失败历史可从 Git 读取。Quality JSON 只记录 Review/Opt opinions、Opt disposition 和 Seal，不记录测试输出、manifest 或恢复快照。持久测试验证 CLI commit 关联、JSON 原子 CAS 与门禁；路径使用 Node.js path API，并覆盖 Windows 与 POSIX。
 
 ### Section: 以委托交付推进优化
 
-Apply SHALL 读取共享优化 reference，在普通实现通过基线独立 Review 后保存可恢复起点并委托 Opt；Opt 在一次委托内可连续分组实施和测试。交付后主 Agent 可返回具体修正或启动 fresh-context 新探索，不要求每项交接、重新扫描或固定轮数，最终验证可覆盖累计改动。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。
+普通实现通过基线独立 Review 后，主 Agent SHALL 决定是否委托 Opt；不执行时在 Seal 前记录简短处置理由。Opt 在一次委托内可连续分组实施和测试，交付时记录 `baseCommit`、`resultCommit` 与 opinion。主 Agent 可返回具体修正或启动 fresh-context 新探索，不要求固定轮数。主 Agent 根据累计改动决定所需测试和是否追加独立 Review，随后用 Seal 声明绑定 commit 可运行且预期通过适用测试；CLI 不运行测试或比较当前工作区。
 
 ### Section: 记录失败尝试并告知
 
-放弃已尝试优化时 SHALL 保存事项、失败原因及处理结果，保留其他可靠优化，交付恢复后的测试证据并最终告知用户。失败尝试不使整个结果被笼统认定下降；当前 Change 原有正确性缺陷须交主 Agent 安排修复并针对性独立 Review，不能作为可选优化放弃。
+Opt 可选尝试失败时 SHALL 依据 Git 状态修正或撤销，保留可靠结果，并在交付 opinion 中记录尝试、原因、处理与遗留问题，最终由主 Agent 告知用户。未完成的中断工作不视为 Opt opinion；当前 Change 正确性缺陷由主 Agent 安排修复并针对性独立 Review。
