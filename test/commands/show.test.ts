@@ -35,6 +35,52 @@ describe('top-level show command', () => {
     expect(result.stderr).not.toContain('xirang change show');
   });
 
+  it('projects complete source-file model text and existing plan files for review', async () => {
+    await writeProjectModel(testDir, minimalModel({
+      relationshipKinds: [{ identity: 'invokes' }],
+      elements: [{ identity: 'old', kind: 'capability', parent: 'root' }],
+    }));
+    const changeDir = await writeChangeDelta(testDir, 'review', {
+      'elements/auth.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: auth\nkind: capability\nparent: root\ntitle: Auth\ndefinition: Authentication capability.\n---\n',
+      'elements/old.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: old\n---\n',
+      'relationships/custom-file.yaml': 'relationships:\n  - operation: ADDED\n    source: root\n    kind: invokes\n    target: auth\n  - operation: ADDED\n    source: auth\n    kind: invokes\n    target: root\n',
+    });
+    await fs.writeFile(path.join(changeDir, 'proposal.md'), '# Change: Review\n');
+    await fs.writeFile(path.join(changeDir, 'design.md'), 'Decision text.\n');
+
+    const result = await runCLI(['show', 'review', '--review', '--json'], { cwd: testDir });
+    expect(result.exitCode).toBe(0);
+    const json = JSON.parse(result.stdout);
+    expect(json).toMatchObject({ id: 'review', valid: true });
+    expect(json.sources).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'elements/auth.md', entries: expect.arrayContaining([
+        expect.objectContaining({ identity: 'auth', before: '', after: expect.stringContaining('identity: auth') }),
+      ]) }),
+      expect.objectContaining({ path: 'elements/old.md', entries: expect.arrayContaining([
+        expect.objectContaining({ identity: 'old', before: expect.stringContaining('identity: old'), after: '' }),
+      ]) }),
+      expect.objectContaining({ path: 'relationships/custom-file.yaml', entries: expect.arrayContaining([
+        expect.objectContaining({ identity: expect.any(String), after: expect.stringContaining('target: auth') }),
+        expect.objectContaining({ identity: expect.any(String), after: expect.stringContaining('source: auth') }),
+      ]) }),
+    ]));
+    expect(json.plans).toEqual([
+      { path: 'proposal.md', content: '# Change: Review\n' },
+      { path: 'design.md', content: 'Decision text.\n' },
+    ]);
+  });
+
+  it('does not expose partial model content for invalid review projections', async () => {
+    const changeDir = await writeChangeDelta(testDir, 'invalid-review', {
+      'elements/ghost.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost\n---\n',
+    });
+    await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nInvalid.\n');
+    const result = await runCLI(['show', 'invalid-review', '--review', '--json'], { cwd: testDir });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ valid: false, diagnostics: expect.any(Array) });
+    expect(JSON.parse(result.stdout)).not.toHaveProperty('sources');
+  });
+
   it('auto-detects change id and supports --json', async () => {
     const result = await runCLI(['show', 'demo', '--json'], { cwd: testDir });
     expect(result.exitCode).toBe(0);

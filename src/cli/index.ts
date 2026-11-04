@@ -241,8 +241,9 @@ program
   .command('show [item-name]')
   .description('Show a change')
   .option('--json', 'Output as JSON')
+  .option('--review', 'Output the read-only editor review projection')
   .option('--no-interactive', 'Disable interactive prompts')
-  .action(async (itemName?: string, options?: { json?: boolean; noInteractive?: boolean; [k: string]: any }) => {
+  .action(async (itemName?: string, options?: { json?: boolean; review?: boolean; noInteractive?: boolean; [k: string]: any }) => {
     try {
       const showCommand = new ShowCommand();
       await showCommand.execute(itemName, options ?? {});

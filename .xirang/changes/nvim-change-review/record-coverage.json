@@ -1,0 +1,366 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261104T090056Z-81c040ca",
+  "sourceVersion": "ee611ace19269ac7bc57e7d876eeb219943f844a8713a8ab3df10b8a4edac0ba",
+  "targetFingerprint": "53cd4d80fc54f917ed73e507ad1c87989ea862b3c26060c9f2b3be83ba7bd07b",
+  "recordedAt": "2026-11-04T19:27:37.240Z",
+  "entries": [
+    {
+      "identity": "preserve-change-format",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Neovim reads and presents existing Delta sources without writing a new semantic representation into Change or model storage",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "该模式 SHALL 返回有效性与诊断，且 SHALL NOT 写入模型、Change 或临时文件。"
+        }
+      ]
+    },
+    {
+      "identity": "plugin-managed-comparison",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "The plugin compares the current Semantic Model with the Expected Semantic Model in a read-only view",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Neovim SHALL 将 Delta 文件的模型对比只读呈现为左右两栏：左侧是当前 Semantic Model 对应的完整内容，右侧是应用整个 Change 后 Expected Semantic Model 对应的完整内容，并自动执行文本 diff。"
+        },
+        {
+          "detail": "Temporary comparison contents are read-only and not persisted as authored Change content",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "临时对比内容 SHALL 只用于只读呈现，不接受写入。"
+        }
+      ]
+    },
+    {
+      "identity": "change-only-review",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "The review list contains the selected Change's Delta files and Plan files, not content from outside that Change",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "Plan 文件作为 Change 专属条目呈现，不混入全局 quickfix 或 Change 之外的内容。"
+        }
+      ]
+    },
+    {
+      "identity": "change-plan-reading",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Existing proposal.md, design.md, and tasks.md files are listed and readable as single-column content",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "列出 Change 中实际存在的全部 Delta 文件，并列出实际存在的 `proposal.md`、`design.md` 与 `tasks.md`。"
+        },
+        {
+          "detail": "Plan files are single-column and read-only rather than presented as a model diff",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Plan 文件 SHALL 单栏只读呈现。"
+        }
+      ]
+    },
+    {
+      "identity": "all-delta-coverage",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "List all actual Delta source files in all four partitions, without filtering by effective semantic change",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "列表 SHALL 按 Delta 分区分组且可展开，列出 Change 中实际存在的全部 Delta 文件，并列出实际存在的 `proposal.md`、`design.md` 与 `tasks.md`。"
+        },
+        {
+          "detail": "The four Delta partitions are elements, metamodel, relationships, and views",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "Delta 文件按 `elements/`、`metamodel/`、`relationships/` 与 `views/` 分组。"
+        }
+      ]
+    },
+    {
+      "identity": "isolated-review-list",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "The review uses an independent tab and list without changing the global quickfix list",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "Neovim SHALL 为一个活动 Change 提供独立审阅 tab 与不影响全局 quickfix 列表的左侧文件列表。"
+        },
+        {
+          "detail": "Tab and Shift-Tab navigate review entries",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "用户 SHALL 可通过 `<Tab>` 与 `<S-Tab>` 在列表条目间切换。"
+        }
+      ]
+    },
+    {
+      "identity": "grouped-delta-list",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Delta source files are grouped by partition and groups can be expanded",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "列表 SHALL 按 Delta 分区分组且可展开，列出 Change 中实际存在的全部 Delta 文件，并列出实际存在的 `proposal.md`、`design.md` 与 `tasks.md`。"
+        },
+        {
+          "detail": "Each actual Delta source file remains an individual list item",
+          "location": {
+            "element": "neovim",
+            "section": "浏览 Change 内容"
+          },
+          "quote": "列出 Change 中实际存在的全部 Delta 文件"
+        }
+      ]
+    },
+    {
+      "identity": "read-only-and-source-navigation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Model comparisons and Plan previews are read-only",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Neovim SHALL 将 Delta 文件的模型对比只读呈现为左右两栏"
+        },
+        {
+          "detail": "Users can jump from a review entry to the corresponding real Change source file for editing",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "用户 SHALL 能从审阅条目跳转至对应的真实 Change 源文件编辑。"
+        },
+        {
+          "detail": "Editing targets the real Delta or Plan source, not temporary display content",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "跳转编辑的目标是 Change 中对应的真实 Delta 或 Plan 文件，而非临时展示内容。"
+        }
+      ]
+    },
+    {
+      "identity": "invalid-change-rejection",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "An initially invalid Change does not create a review tab and reports invalidity in the Neovim message area",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "首次打开时 Change 无效，Neovim SHALL 不创建审阅 tab，仅在消息区域提示无效"
+        },
+        {
+          "detail": "An invalid refresh removes the stale comparison and reports invalidity",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "已打开的审阅在重新计算发现无效时 SHALL 撤下旧对比并提示无效，不得继续显示过期结果。"
+        }
+      ]
+    },
+    {
+      "identity": "refresh-after-save",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Saving a Change source automatically recalculates the projection and updates the list and comparison",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "Change 源文件保存或当前 Semantic Model 变化后，Neovim SHALL 自动重新取得审阅投影并更新文件列表与对比内容。"
+        },
+        {
+          "detail": "If recalculation becomes invalid, the stale diff is withdrawn and invalidity is reported",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "已打开的审阅在重新计算发现无效时 SHALL 撤下旧对比并提示无效，不得继续显示过期结果。"
+        }
+      ]
+    },
+    {
+      "identity": "whole-file-comparison",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "The left side is the complete current model content and the right side is the complete target after the entire Change is applied",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "左侧是当前 Semantic Model 对应的完整内容，右侧是应用整个 Change 后 Expected Semantic Model 对应的完整内容"
+        },
+        {
+          "detail": "The Delta payload is not mistaken for the complete expected model unit",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Delta 文件自身的差量内容 SHALL NOT 被误作完整目标模型内容。"
+        },
+        {
+          "detail": "Added content has an empty current side and removed content has an empty target side",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "ADDED 对象的当前侧为空，REMOVED 对象的目标侧为空。"
+        }
+      ]
+    },
+    {
+      "identity": "normalized-comparison",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Both model sides use the same display normalization before textual diff",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "两侧 SHALL 使用一致的展示规范化。"
+        },
+        {
+          "detail": "CLI serializes both model sides using the same deterministic method",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "模型两侧文本 SHALL 使用同一确定性序列化方式"
+        }
+      ]
+    },
+    {
+      "identity": "refresh-after-model-change",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "A current Semantic Model change automatically refreshes the list and comparison",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "Change 源文件保存或当前 Semantic Model 变化后，Neovim SHALL 自动重新取得审阅投影并更新文件列表与对比内容。"
+        },
+        {
+          "detail": "A stale asynchronous response cannot overwrite a newer projection",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "较早开始的异步投影结果 SHALL NOT 覆盖更新的结果。"
+        }
+      ]
+    },
+    {
+      "identity": "cli-projection-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "CLI provides a read-only structured projection with all Delta source files and corresponding complete before/after model contents",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "有效 Change 的投影 SHALL 包含该 Change 四分区中实际存在的全部 Delta 文件、每个 Delta 文件对应的当前模型与完整 Expected Semantic Model 文件文本"
+        },
+        {
+          "detail": "Neovim does not compile or apply Semantic Delta itself",
+          "location": {
+            "element": "neovim"
+          },
+          "quote": "不负责 Semantic Delta 编译"
+        }
+      ]
+    },
+    {
+      "identity": "neovim-surface-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Neovim is a distinct editor text interface for Change review, alongside CLI and Web",
+          "location": {
+            "element": "neovim"
+          },
+          "quote": "Neovim 是面向 Xirang 用户的编辑器内文本交互界面，独立建模以承载在 Neovim 中审阅活动 Change 的交互职责。"
+        },
+        {
+          "detail": "Neovim is not a normative semantic source",
+          "location": {
+            "element": "neovim"
+          },
+          "quote": "也不构成规范性语义来源。"
+        },
+        {
+          "detail": "The parent Interaction Surfaces includes CLI, Web, and Neovim",
+          "location": {
+            "element": "interaction-surfaces",
+            "section": "由 CLI、Web 与 Neovim 组成"
+          },
+          "quote": "Interaction Surfaces SHALL 由 CLI、Web 与 Neovim 三类交互界面共同支撑 Realization"
+        }
+      ]
+    },
+    {
+      "identity": "relationship-file-comparison",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Relationship Delta files use the same comparison approach and display the complete relationship container on both sides",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Relationship Delta 文件与其它 Delta 文件使用相同对比方式；关系文件包含多条操作时，两侧呈现对应的完整关系容器。"
+        },
+        {
+          "detail": "CLI provides the full relationship container for a Relationship Delta source",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "Relationship Delta 文件对应完整关系容器。"
+        }
+      ]
+    }
+  ]
+}

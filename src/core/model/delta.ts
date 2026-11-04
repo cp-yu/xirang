@@ -44,6 +44,7 @@ export interface SemanticDelta {
 
 export interface ParsedDelta {
   delta: SemanticDelta;
+  sources: Array<{ path: string; entities: Array<{ entity: DeltaEntityType; identity: string }> }>;
   diagnostics: ModelDiagnostic[];
 }
 
@@ -195,13 +196,17 @@ function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]):
 
 export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelta> {
   const entries: DeltaEntry[] = [];
+  const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
   for (const [file, content] of [...await readModelFiles(changeRoot)].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
+    const start = entries.length;
     if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics);
     else parseDeltaContainer(file, content, entries, diagnostics);
+    const entities = entries.slice(start).map(({ entity, identity }) => ({ entity, identity }));
+    if (entities.length > 0) sources.push({ path: file, entities });
   }
   detectConflicts(entries, diagnostics);
-  return { delta: { entries }, diagnostics };
+  return { delta: { entries }, sources, diagnostics };
 }
 
 interface ApplyState {
