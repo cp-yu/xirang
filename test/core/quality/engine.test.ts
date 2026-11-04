@@ -257,6 +257,8 @@ describe('quality v2 engine foundation', () => {
     await fs.writeFile(path.join(changeDir, '.quality-evidence', 'run.json'), 'runtime\n');
     const before = await buildCodeManifest(root);
     const paths = before.entries.map((entry) => entry.path);
+    expect(paths).toEqual([...paths].sort());
+    expect(await buildCodeManifest(root)).toEqual(before);
     expect(paths).toContain('src/.quality-state.json');
     expect(paths).toContain('src/with space.ts');
     expect(paths).not.toContain('ignored.ts');
