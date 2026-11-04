@@ -35,7 +35,7 @@ Apply SHALL 结合 Change Plan 与当前项目状态落实 Change 要求的全�
 
 ### Section: 处理 Required Corrections
 
-Verify 返回普通实现的 Required Corrections 时，Apply SHALL 完成相应修正并重新进入 Change 级 Review。优化中的问题按优化协议分流：局部优化回归由 Opt 修正或撤销；基线漏掉的当前 Change 缺陷由主 Agent 安排修复并追加针对性独立 Review。
+Verify 返回普通实现的 Required Corrections 时，主 Agent SHALL 判断并完成相应修正，按需更新 `tasks.md`，将修正形成新的 Git commit，并针对该 commit 重新执行 Change 级 Review。Opt 中的问题由 Opt 或主 Agent 依据实际证据修正或撤销；基线漏掉的当前 Change 缺陷由主 Agent 安排修复并追加针对性独立 Review。Reviewer 和 Quality CLI SHALL NOT 自动修改任务文件。
 
 ### Section: 产出可独立评估的项目状态
 
@@ -55,4 +55,4 @@ Apply SHALL 为当前项目状态提供可复现证据。
 
 ### Section: 集成受托优化执行
 
-Apply SHALL 在普通实现完成并通过独立 Review 后集成 Optimization。Opt 在委托范围内自主分组、修改与局部测试，主 Agent 负责范围、后续投入和基于累计改动的最终验证。优化修改不自动重复普通 Apply 任务循环或每项 Change 级 Review；最终所需验证通过后形成成功 checkpoint。
+普通实现完成并通过独立 Review 后，主 Agent MAY 选择委托 Optimization。Opt 在委托范围内自主分组、修改与局部测试，交付关联 `baseCommit`/`resultCommit` 的 opinion；主 Agent 决定是否继续、是否追加 Review 以及 Seal 的最终声明。优化修改不自动重复普通 Apply 任务循环或每项 Change 级 Review。代码历史与恢复由 Git 承载，Quality SHALL NOT 创建代码 checkpoint。

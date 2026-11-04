@@ -4,73 +4,22 @@ identity: reviewer-protocol
 kind: element
 parent: review
 title: Reviewer Protocol
-definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约、6 步验证协议、严重性阈值与证据标准、三个验证维度、结构化输出合约与跨工具 skill 路径兼容。
+definition: Reviewer Protocol 定义 Reviewer 角色与只读约束、commit-bound 输入合约、6 步验证协议、严重性阈值与证据标准、验证维度、结构化 Review opinion 输出合约及跨工具 skill 路径兼容。
 ---
 
 ## Specification
 
 ### Section: Reviewer 角色与硬约束
 
-`xirang-reviewer` skill SHALL 将 subagent 定义为 quality Review 的审查者，拥有实际受托审查范围内的独立 completeness、correctness、coherence 判定权，且 MUST 遵循以下硬约束：不引用或依赖任何实现对话历史；自主读取文件并基于读取内容做判断；为每个判断引用具体文件路径和行范围；在判定严重性级别前执行完整的 6 步验证循环；不修改任何文件；通过 Bash 只执行测试命令和 git 只读命令。
-
-- **Subagent invoke reviewer skill**
-
-  - 顶层 agent spawn reviewer subagent 并 invoke `xirang-reviewer` skill
-  - subagent SHALL 加载完整 skill 指令
-  - SHALL 使用 Read 和 Bash 工具自主获取验证所需信息
-  - SHALL 将其角色认定为拥有实际受托范围内独立验证判定权的 clean-context 审查者
-
-- **Reviewer 拒绝基于记忆的判断**
-
-  - reviewer 读取候选文件后某需求未找到实现证据
-  - reviewer 自己的训练数据中可能有相关知识
-  - reviewer MUST NOT 基于训练数据推测实现存在
-  - SHALL 将缺失的证据报告为 CRITICAL（经彻底搜索后）或证据缺口
+`xirang-reviewer` skill SHALL 将 subagent 定义为 clean-context、只读 Review Agent。它拥有实际受托范围内独立 completeness、correctness、coherence 判定权，MUST 自主读取证据、为判断引用具体文件路径和行范围、先完成完整验证再判严重性，且 MUST NOT 依赖实现对话历史或修改任何文件、任务状态、Quality JSON 与 Git history。Review opinion SHALL 绑定调用方指定的 Git commit；Required Corrections 交由主 Agent 处理。
 
 ### Section: Reviewer 输入合约
 
-`xirang-reviewer` skill SHALL 定义顶层 agent MUST 传入的轻量定位信息：changeName、changeDir 与 projectRoot，并可定位由 CLI 关联实际状态的审查任务及范围。Reviewer SHALL 自主完成 changeArtifacts、scopeFiles、finalFileContents、priorQualityRecord 与语义上下文的信息获取；Reviewer MUST NOT 把 `git diff` 的内容级输出作为判断证据；缺失定位信息时 fail closed。
+`xirang-reviewer` skill SHALL 要求顶层 Agent 传入 `changeName`、`changeDir`、`projectRoot`、审查范围与被审查 Git commit identity。Reviewer SHALL 只针对该 commit 和实际范围形成 opinion；不得将 `git diff` hunks 或未提交工作区内容作为该 commit 的实现证据。缺失或无法读取指定 commit 时 SHALL fail closed。Reviewer 可读取同一新 Quality JSON 中已有意见作为上下文，但历史 PASS 不能代替本次读取与判断；不得读取旧 snapshot/log/evidence 并将其当作新协议依据。
 
-- **所有定位信息完整传入**
-
-  - 顶层 agent 传入 changeName、changeDir 和 projectRoot
-  - reviewer SHALL 自行读取所有必要文件并继续执行验证协议
-  - SHALL NOT 要求 master 传入文件内容
-
-- **缺少定位信息**
-
-  - changeDir 未传入或路径不存在
-  - reviewer SHALL 返回 FAIL_NEEDS_CORRECTIONS 和 CRITICAL issue "Missing required input: changeDir"
-  - SHALL 停止，不执行进一步验证
-
-- **不依赖 diff 内容判断行为**
-
-  - reviewer 评估某 Section 语义是否实现
-  - SHALL 仅以 Read 到的最终文件内容作为证据
-  - SHALL NOT 引用 `git diff` hunk 或某次 commit 的局部变化作为判断依据
-
-- **baseCommit 缺失或无效时关闭验证**
-
-  - `.apply-isolation.json` 缺少 `baseCommit` 或 Git 无法解析该 SHA
-  - reviewer SHALL 返回包含 CRITICAL issue 的 `FAIL_NEEDS_CORRECTIONS`
-  - SHALL NOT 以可移动 branch ref 猜测证据基线
-
-- **首次 Review 无 prior record**
-
-  - `changeDir/.quality-state.json` 不存在
-  - reviewer SHALL 通过 `git diff <baseCommit>...HEAD --name-only`、`git status --short` 与 change artifacts 关键词推断候选实现文件
-  - SHALL Read 推断出的候选文件最终内容
-  - SHALL 将 priorQualityRecord 视为 null 继续验证
-
-- **利用 quality 记录作为导航 manifest**
-
-  - `.quality-state.json` 存在且包含 `evidenceFiles`
-  - reviewer SHALL Read evidenceFiles 列表中的每个文件最终内容作为候选
-  - SHALL 结合 `git diff` 与 `git status` 补充列表中未覆盖的文件
-
-- **读取重启历史**：当前 Change 存在受控轮换保存的质量历史时，Reviewer SHALL 按共享恢复 reference 自主读取旧快照、日志、失败原因与重启原因，作为问题与候选文件导航参考；历史 PASS 不构成本轮通过依据。即使代码未变，也 SHALL 在 fresh context 重新读取当前模型、Change、最终实现与证据并形成新结论。根目录尚无新活动记录时，priorQualityRecord 仍为 null，历史只作为独立参考。
-
-优化期间 Reviewer SHALL 读取关联委托、实际交付、累计改动、测试及失败历史；基线 Review 为完整 Change，增量 Review 为主 Agent 指定累计范围，基线缺陷修复 Review 为该问题及其影响。不把历史 PASS、未交付进度或局部测试快照当最终通过，也不使用主 Agent 的风险判断代替独立结论。
+- **定位信息完整**：收到 changeName、changeDir、projectRoot、scope 与 commit 后，Reviewer 自行读取必要的 Change、Semantic Model 和 commit 内容。
+- **缺少 commit identity**：Reviewer SHALL 返回证据缺口，不猜测 HEAD 或 branch ref。
+- **意见与 commit 绑定**：输出 commit identity 必须与调用方指定值相同；后续提交不得重绑该 Review。
 
 ### Section: 6 步验证协议
 
@@ -198,28 +147,11 @@ definition: Reviewer Protocol 定义 Reviewer 角色与硬约束、输入合约�
 
 ### Section: 结构化输出合约
 
-`xirang-reviewer` skill SHALL 定义 reviewer MUST 返回的精确 JSON 输出 schema：result（PASS/PASS_WITH_WARNINGS/FAIL_NEEDS_CORRECTIONS）、issues、summary（四维度）、writeBackPlan（仅 CRITICAL 时存在）、evidenceFiles、gitDiffSummary。规格外改动发现的 writeBackPlan 条目 taskLine SHALL 为 `null` 且 action SHALL 为 `append_correction`。
+`xirang-reviewer` skill SHALL 定义单个结构化 JSON opinion，至少包含 `commit`、`scope`、`result`（`PASS`、`PASS_WITH_WARNINGS` 或 `FAIL_NEEDS_CORRECTIONS`）、`issues`、`summary` 与 `evidenceFiles`。`issues` SHALL 具体描述证据、偏离或 Required Corrections；可选 `gitDiffSummary` 只作上下文，不替代最终内容证据。输出 SHALL NOT 包含 `writeBackPlan`、task checkbox 修改指令或要求 Reviewer 编辑 `tasks.md` 的字段。CLI 负责在保存时验证 commit identity 并追加到 Quality JSON；主 Agent 决定如何处理 opinion。
 
-- **Reviewer 产出完整评估**
-
-  - reviewer 完成验证
-  - SHALL 返回符合定义 schema 的单个结构化 JSON 对象
-  - SHALL NOT 包含散文式前言或对话性填充
-
-- **无 CRITICAL issue 时 writeBackPlan 为空**
-
-  - 评估中所有 issue 严重性 ≤ WARNING
-  - writeBackPlan SHALL 为空数组
-  - result SHALL 为 PASS 或 PASS_WITH_WARNINGS
-
-- **规格外发现的 writeBackPlan 条目**
-
-  - reviewer 将某个规格外改动判定为 CRITICAL
-  - 对应 writeBackPlan 条目的 taskLine SHALL 为 `null`
-  - action SHALL 为 `append_correction`
-  - correctionType SHALL 为 `artifact_fix`（改动合理）或 `code_fix`（改动不应存在）
-
-输出 SHALL 通过 CLI 审查任务关联实际 scope 与被审查代码状态；针对性 Review 的 summary 只描述所审查范围，不填入未检查的整 Change 覆盖声明。后续保存不能把结论改绑另一状态。主 Agent 无需追加 Review 的决定不生成 Reviewer PASS。
+- **Opinion 结构完整**：Reviewer 完成验证后返回符合该 JSON schema 的单个对象，不添加对话前言。
+- **没有阻塞问题**：result 为 PASS 或 PASS_WITH_WARNINGS，opinion 仍绑定实际 commit 与审查范围。
+- **发现阻塞问题**：result 为 FAIL_NEEDS_CORRECTIONS，并返回足以让主 Agent 修正的 findings；Reviewer 不直接写入任务文件。
 
 ### Section: 跨工具 skill 路径兼容
 

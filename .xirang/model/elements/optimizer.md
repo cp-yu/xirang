@@ -4,18 +4,18 @@ identity: optimizer
 kind: element
 parent: internal-agents
 title: Optimizer
-definition: Optimizer 是接受主 Agent 委托、在保持目标语义与行为的范围内完成优化的 Internal Agent，独立建模以明确受托写入与证据交付责任。它独立读取当前依据，发现、分组或合并机会，修改相关实现与测试，执行局部验证并保存必要进展和恢复状态；最终验证范围、后续委托和 Change 收尾由主 Agent 判断，独立 Review 由 Reviewer 承担。
+definition: Optimizer 是接受主 Agent 委托、在保持目标语义与行为的范围内完成可选优化的 Internal Agent，独立建模以明确受托写入与 commit-bound 意见交付责任。它独立读取当前依据，发现、分组或合并机会，修改相关实现与测试，执行局部验证并在交付时关联 base 与 result Git commits；代码历史和恢复由 Git 承载。最终验证范围、后续委托和 Change 收尾由主 Agent 判断，独立 Review 由 Reviewer 承担。
 ---
 
 ## Specification
 
 ### Section: 独立取得 Optimization 依据
 
-Optimizer SHALL 独立读取 Semantic Model、Change、当前代码、已通过的基线 Review、委托范围及恢复位置、项目证据和相关历史。新探索使用 fresh context，恢复可由原 Opt 或接手者继续原委托；不继承主 Agent 的实现判断作为事实。
+Optimizer SHALL 独立读取 Semantic Model、Change、当前代码、已通过的基线 Review 及其 commit、委托范围、项目证据和既有 Opt opinions。新探索使用 fresh context；恢复时主 Agent 确认旧写入者已停止后，由原 Opt 或接手者检查 Git history 与当前状态。Optimizer 不把主 Agent 的实现判断当作事实，也不依赖 Quality checkpoint。
 
 ### Section: 交付结构化 Optimization 结论
 
-Optimizer SHALL 交付实际保留改动、改善与影响范围和行为保持依据，测试覆盖行为、实际结果与证据位置，未完成/放弃事项及原因和撤销结果、遗留问题（无则明确说明），以及后续优化和验证建议及理由。多项小优化可共享简短说明与测试证据，不要求固定标题或逐方向表单；CLI 生成机械关联。交付仅表示本次委托完成，主 Agent 决定是否继续及最终验证。
+Optimizer SHALL 交付 `baseCommit`、`resultCommit` 与 Opt opinion。Opinion SHALL 说明实际保留改动、改善及影响范围与行为保持依据，测试覆盖行为、结果与证据位置，放弃事项及原因、是否撤销、遗留问题（无则明确说明），以及后续优化和验证建议与理由。CLI 生成 opinion identity 和 revision；Opt 不手工维护哈希或恢复记录。交付只表示本次意见已保存；主 Agent 决定是否继续、是否追加 Review 与最终验证。
 
 ### Section: 在委托范围内修改并测试
 
@@ -23,12 +23,8 @@ Optimizer SHALL 自主发现、分组、合并并实现相关优化，可修改�
 
 ### Section: 保存进展并可靠恢复
 
-Optimizer SHALL 在修改前确认已保存委托范围、起始状态、基线 Review 与可恢复位置；在放弃已尝试优化时保存事项、原因与处理结果；交付、主动暂停或交回主 Agent 时保存进展、测试结果及遗留问题。其余进度和中间快照按需保存，不要求每个小动作或方向 commit。中断后主 Agent 确认旧写入者停止，Opt 核对记录与磁盘，默认继续同一委托。记录 A 已完成而磁盘仍有半成品 B 时 SHALL 检查 B 和相互影响再继续、修正或撤销，不认定 B 已完成，也不自动丢弃 A/B。无法确认归属或恢复可靠时停止并交回主 Agent。
+Git SHALL 承载 Opt 形成的代码提交与恢复历史；Quality 不保存委托开始、暂停、进度或中间恢复位置。已交付 Opt opinion SHALL 关联起始 `baseCommit` 与交付 `resultCommit`。中断工作没有完成 opinion，主 Agent SHALL 在确认旧写入者停止后依据 Git history、working-tree status 和当前代码决定继续、修正或撤销；不得把未提交或未交付改动认定为已交付 Opt opinion。恢复不可靠时停止并交回主 Agent。
 
 ### Section: 负责问题分流与取舍
 
-Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。
-
-优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。
-
-Opt MAY 放弃不能完成的可选优化，但 SHALL 在放弃时保存原因和处理结果并交付恢复后的测试证据，以供主 Agent 最终告知用户。Opt 与主 Agent 均可按收益、成本、风险与进展判断继续或停止，遵守用户和委托约束；没有新证据或实质进展的重复尝试 SHALL 停止并记录。
+Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销并在 Opt opinion 中如实记录；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，修正形成不同 Git commit 后须通过针对问题及影响的独立 Review。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。恢复失败时按 Git 状态报告不确定性，不以未解决状态完成。

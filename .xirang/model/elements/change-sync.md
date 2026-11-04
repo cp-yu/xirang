@@ -4,7 +4,7 @@ identity: change-sync
 kind: element
 parent: change-closure
 title: Change Sync
-definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到正式 Semantic Model 的行为：从 immutable Formal snapshot 物化完整 Target Semantic Model、联合验证、原子写入与回滚、幂等判定、同步输出与原验证证据的确定性关联，以及 `xirang sync` 命令面的选择与门禁行为。它保留原始测试与 Review 的执行状态，不以模型同步改写既有验证结果。
+definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到正式 Semantic Model 的行为：从 immutable Formal snapshot 物化完整 Target Semantic Model、联合验证、原子写入与回滚、幂等判定及 `xirang sync` 命令面的选择与门禁行为。Sync 的 Quality 前置条件是已记录且 commit 对象仍存在的 Seal；Sync 不写 Quality record、不执行或关联测试，也不比较 Seal commit 与当前工作区。
 ---
 
 ## Specification
@@ -40,60 +40,13 @@ definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到�
 
 ### Section: 同步执行
 
-`xirang sync` SHALL 在 quality gate 通过后，从 immutable Formal snapshot 将 change-local 四分区 operations materialize 为一个完整 Target Semantic Model，执行 combined validation 与 fingerprint freshness check，再原子写入干净 formal modules。Sync SHALL NOT 生成 review metadata 或静默迁移记法版本。
+`xirang sync` SHALL 在 Quality Seal gate 通过后，从 immutable Formal snapshot 将 change-local 四分区 operations materialize 为一个完整 Target Semantic Model，执行 combined validation 与 Formal fingerprint freshness check，再原子写入干净 formal modules。Sync SHALL NOT 生成 Review metadata、改写 Quality JSON、执行测试或将测试和 Review 证据重新关联到同步后的代码。
 
-- **quality gate 失败输出指引**
-
-  - 基线 Review、委托交付/明确跳过、主 Agent 最终结论、当前所需通过验证或最终成功状态不满足
-  - SHALL 输出 changed files、针对实际缺口的恢复与验证指引与 `--no-verify` option
-  - exit code SHALL 非零
-
-- **quality gate 通过后执行同步**
-
-  - 当前完整质量完成条件通过且 archive compatible
-  - SHALL 构造 Target Semantic Model 与内部 Diff IR
-  - validation 与 Formal fingerprint recheck 通过后 SHALL 原子写入 formal 分区
-
-- **--no-verify 跳过 gate**
-
-  - 用户运行 `xirang sync <change> --no-verify`
-  - SHALL 跳过 quality gate
-  - MUST NOT 跳过 syntax、identity、integrity、fingerprint 与 target validation
-
-- **sync 不修改 change review source**
-
-  - sync prepares Semantic Delta
-  - MUST NOT 修改 change-local source
-  - MUST NOT 生成 review metadata
-
-- **同步后 evidence fingerprint 刷新**
-
-  - sync 成功写入 formal 单元
-  - SHALL 仅关联实际 outputs 的确定性模型转换，不改写测试或 Review 原始执行时证据
-  - SHALL 使用当前 `.xirang/model/` 路径
-
-- **sync 不生成持久化 review 输出**
-
-  - sync 成功写入 formal 单元
-  - SHALL NOT 创建、更新或删除任何持久化 review 输出
-  - effective diff 仅由只读 `xirang validate --change` 提供
-
-- **Review 记录与当前代码一致**
-
-  - archive sync 运行时存在关联当前状态的完整最终验证记录
-  - system SHALL continue sync logic
-
-- **--no-verify 开关**
-
-  - 用户执行 `xirang sync my-change --no-verify`
-  - `skipVerify` 设为 `true`
-  - 不调用质量记录判定
-  - 同步照常执行
-
-- **Review 记录缺失或状态为 dirty**
-
-  - archive sync 运行时不存在满足当前完整完成条件的验证记录
-  - 系统 SHALL 停止并要求补齐所诊断的质量义务
+- **Quality Seal gate 失败**：新格式 Quality JSON 缺失、没有 Seal 或 Seal commit 对象无法解析时，Sync SHALL 非零退出并给出具体诊断。Gate 不比较 HEAD、工作区 clean 状态或工作区内容与 Seal commit。
+- **Quality Seal gate 通过**：JSON 中存在 Seal 且其 Git commit 对象可解析时，Sync MAY 构造 Target Semantic Model 与内部 Diff IR；validation 与 Formal fingerprint recheck 通过后 SHALL 原子写入 formal 分区。
+- **`--no-verify` 跳过 Quality gate**：用户使用 `--no-verify` 时 SHALL 跳过 Quality Seal gate，但 MUST NOT 跳过 syntax、identity、integrity、Formal fingerprint 与 target validation。
+- **不修改 Change Quality record**：Sync SHALL NOT 更新、创建或删除 Change 的 `.quality.json`，也 SHALL NOT 写入 Review metadata、测试结果或 Sync association。
+- **Sync 不生成持久化 Review 输出**：effective diff 仅由只读 `xirang validate --change` 提供。
 
 ### Section: 不触发归档
 

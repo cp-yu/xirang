@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "quality-git-protocol",
+  "originalBranch": "main",
+  "baseCommit": "abf2827386c4e2193d408e6ed46a04ea93f47c03"
+}

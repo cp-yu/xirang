@@ -11,19 +11,19 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理 Apply 的�
 
 ### Section: Apply 模板 SHALL 处理中间验证状态
 
-`xirang-apply-change` 技能模板 SHALL 对 `needs_review` 和 `needs_optimize` 状态提供正确分支，无缝进入对应验证阶段。
+`xirang-apply-change` 技能模板 SHALL 对 `needs_review` 和 `needs_optimize` 状态提供正确分支，无缝进入相应 Quality 阶段。
 
 - **needs_review 状态进入 Review**
 
   - `instructions apply --json` 返回 `state: 'needs_review'`
-  - 模板 SHALL 指示 Agent 进入 Review 流程并启动 reviewer subagent
+  - 模板 SHALL 指示 Agent 委托 clean-context Reviewer，并保存 commit-bound opinion
   - SHALL NOT 中断流程或要求用户手动触发
 
-- **needs_optimize 状态进入 Optimization 与 seal**
+- **needs_optimize 状态进入 Opt 处置与 Seal**
 
   - `instructions apply --json` 返回 `state: 'needs_optimize'`
-  - 模板 SHALL 指示 Agent 进入 Optimization 与 seal 流程
-  - SHALL NOT 中断流程或要求用户手动触发
+  - 主 Agent SHALL 决定委托 Opt 或记录不做 Opt 的理由，之后完成 Seal
+  - SHALL NOT 将 Opt 设为必做，也 SHALL NOT 中断流程或要求用户手动触发
 
 - **Dashboard 分类标签不声称完成**
 
@@ -57,15 +57,7 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理 Apply 的�
 
 ### Section: Apply 完成时输出 archive 指引
 
-Apply 阶段在所有 task 完成且 seal 通过后，SHALL 显式输出下一步操作指引，引导用户进入归档。
-
-- **seal 通过后输出 call-to-action**
-
-  - seal 返回 valid
-  - apply SHALL 在汇总输出末尾显式给出 archive-ready call-to-action
-  - call-to-action SHALL 引用 archive workflow 的工具适配 invocation
-  - SHALL NOT 仅报告 sealed 状态而省略操作指引
-  - SHALL NOT 在 workflow 模板 source text 中硬编码特定工具的 archive 调用语法
+Apply 阶段在所有 task 完成且 Seal 通过后，SHALL 显式输出下一步操作指引，引导用户进入归档。Seal 返回有效且绑定 commit 对象存在时，apply SHALL 在汇总输出末尾给出 archive-ready call-to-action；指引 SHALL 引用 archive workflow 的工具适配 invocation，不在 workflow 模板 source text 中硬编码特定工具的 archive 调用语法。
 
 ### Section: Apply 完成全部 Tasks 后统一进入 Change 级 Review
 
