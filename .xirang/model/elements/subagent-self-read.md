@@ -4,44 +4,22 @@ identity: subagent-self-read
 kind: element
 parent: internal-agents
 title: Subagent Self-Read
-definition: Subagent Self-Read 定义 Reviewer/Optimizer subagent 的工具权限模型：允许 Read 与只读 Bash（测试、git 只读、搜索、构建验证），禁止 Edit/Write 及任何 Bash 文件修改绕行，并规定 L1 测试策略（默认静态判断、可疑时抽查）。
+definition: Subagent Self-Read 是 Reviewer 与 Optimizer 独立取证和角色工具能力的约束，独立区分只读审查与可写优化执行。Reviewer 读取和按需测试，不修改项目；Optimizer 在委托范围内读取、编辑和执行必需局部测试，缺失对应测试时先补后改。它不决定主 Agent 的最终验证范围或改变目标语义。
 ---
 
 ## Specification
 
 ### Section: Subagent 工具权限定义
-Reviewer 和 Optimizer subagent SHALL 拥有 Read 与 Bash（只读操作）能力，不允许 Edit/Write。Subagent MUST NOT 通过 Bash 绕过 Edit/Write 限制（如 `echo >`, `sed -i`, `rm`, `mv`）。
 
-- **Reviewer 使用 Read 读取实现文件**
-  - reviewer 需要检查某候选实现文件的内容
-  - reviewer SHALL 直接使用 Read 工具读取该文件
-  - SHALL NOT 依赖 master agent 传入的文件内容
-
-- **Reviewer 使用 Bash 跑测试**
-  - reviewer 对某 task 的测试覆盖存疑
-  - reviewer SHALL 使用 Bash 执行相关测试子集
-  - SHALL 将测试结果作为验证证据引用
-
-- **Subagent 尝试通过 Bash 修改文件**
-  - subagent 的 Bash 命令包含文件修改操作（echo >、sed -i、rm、mv、cp 覆盖）
-  - 该行为违反 hard constraint
-  - 用户审批层 SHALL 拒绝该命令
+Reviewer SHALL 拥有读取、搜索与只读 Bash 验证能力，不允许 Edit/Write，也不通过 Bash 绕过。Optimizer SHALL 在主 Agent 委托范围内拥有实际读取、搜索、修改实现及测试、运行测试和保存必要进度的能力，可新增、删除或移动必要文件；不得仅在 prompt 宣称可写而由原生权限阻止。两者独立读取实际依据，不依赖主 Agent 转述内容。
 
 ### Section: Subagent Bash 允许命令范围
-Reviewer 与 Optimizer 的 Bash 使用 SHALL 限定于：测试执行（`pnpm test`、`vitest run <path>`）、Git 只读（`git status`、`git diff`、`git log`、`git show`）、搜索（`grep`、`find` 只读搜索）与构建验证（`pnpm build`、`tsc --noEmit`）。Subagent MUST NOT 执行文件系统修改命令、网络请求命令、进程管理命令或包安装命令。
 
-- **Optimizer 使用 grep 定位代码模式**
-  - optimizer 需要确认某函数在多个文件中的重复出现
-  - optimizer SHALL 使用 `grep -rn "pattern" src/` 定位
-  - SHALL 基于搜索结果决定是否提议去重
-
-- **Reviewer 执行类型检查**
-  - reviewer 需要验证实现代码的类型正确性
-  - reviewer SHALL 使用 `tsc --noEmit` 或 `pnpm build` 验证
-  - SHALL 将编译错误作为 CRITICAL issue 的证据
+Reviewer 的 Bash SHALL 限于测试、Git 只读、只读搜索与构建验证，不执行文件修改、网络请求、进程管理或包安装。Optimizer MAY 在委托范围内使用实现、测试和可靠恢复所需的文件操作；不得借写入权限改变目标语义、执行无关工作或丢弃不明历史。
 
 ### Section: Subagent 测试策略（L1）
-Subagent SHALL 采用 L1 测试策略：默认静态判断，可疑时 Bash 抽查。Subagent MUST NOT 默认跑全量测试，仅在无法确定受影响的测试子集或 git diff 范围过大时跑全量。
+
+Reviewer SHALL 采用 L1 测试策略：默认静态判断，可疑时 Bash 抽查。Reviewer MUST NOT 默认跑全量测试，仅在无法确定受影响的测试子集或 git diff 范围过大时跑全量。
 
 - **Tasks 标记测试通过且覆盖充分**
   - tasks.md 中测试 task 标记为 [x]
@@ -60,3 +38,5 @@ Subagent SHALL 采用 L1 测试策略：默认静态判断，可疑时 Bash 抽�
   - reviewer SHALL 报告为 CRITICAL issue
   - SHALL 引用失败的测试输出作为证据
   - SHALL 在 writeBackPlan 中建议修复失败测试
+
+Optimizer SHALL 对优化运行相关局部测试；对应测试缺失时先补测试再修改实现。不得以默认静态判断免除测试，也不要求每项全量测试。主 Agent 根据累计风险决定最终全量测试与增量 Review；Opt 自测不是独立 Review。

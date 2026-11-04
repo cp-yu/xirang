@@ -4,7 +4,7 @@ identity: change-sync
 kind: element
 parent: change-closure
 title: Change Sync
-definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到正式 Semantic Model 的行为：从 immutable Formal snapshot 物化完整 Target Semantic Model、联合验证、原子写入与回滚、幂等判定、evidence fingerprint 增量刷新，以及 `xirang sync` 命令面的选择与门禁行为。
+definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到正式 Semantic Model 的行为：从 immutable Formal snapshot 物化完整 Target Semantic Model、联合验证、原子写入与回滚、幂等判定、同步输出与原验证证据的确定性关联，以及 `xirang sync` 命令面的选择与门禁行为。它保留原始测试与 Review 的执行状态，不以模型同步改写既有验证结果。
 ---
 
 ## Specification
@@ -44,13 +44,13 @@ definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到�
 
 - **quality gate 失败输出指引**
 
-  - 当前代码与通过的 Review 记录不一致，或 archive compatibility 不满足
-  - SHALL 输出 changed files、重新执行 Review 的命令与 `--no-verify` option
+  - 基线 Review、委托交付/明确跳过、主 Agent 最终结论、当前所需通过验证或最终成功状态不满足
+  - SHALL 输出 changed files、针对实际缺口的恢复与验证指引与 `--no-verify` option
   - exit code SHALL 非零
 
 - **quality gate 通过后执行同步**
 
-  - 代码状态为 `clean` 且 archive compatible
+  - 当前完整质量完成条件通过且 archive compatible
   - SHALL 构造 Target Semantic Model 与内部 Diff IR
   - validation 与 Formal fingerprint recheck 通过后 SHALL 原子写入 formal 分区
 
@@ -69,7 +69,7 @@ definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到�
 - **同步后 evidence fingerprint 刷新**
 
   - sync 成功写入 formal 单元
-  - SHALL 只刷新与实际 outputs 重叠的 evidence hashes
+  - SHALL 仅关联实际 outputs 的确定性模型转换，不改写测试或 Review 原始执行时证据
   - SHALL 使用当前 `.xirang/model/` 路径
 
 - **sync 不生成持久化 review 输出**
@@ -80,7 +80,7 @@ definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到�
 
 - **Review 记录与当前代码一致**
 
-  - archive sync 运行时存在与当前代码一致的 Review 记录
+  - archive sync 运行时存在关联当前状态的完整最终验证记录
   - system SHALL continue sync logic
 
 - **--no-verify 开关**
@@ -92,8 +92,8 @@ definition: Change Sync 定义将 Change 的四分区 Semantic Delta 同步到�
 
 - **Review 记录缺失或状态为 dirty**
 
-  - archive sync 运行时不存在与当前代码一致的通过记录
-  - system SHALL stop and require quality Review first
+  - archive sync 运行时不存在满足当前完整完成条件的验证记录
+  - 系统 SHALL 停止并要求补齐所诊断的质量义务
 
 ### Section: 不触发归档
 
@@ -515,56 +515,11 @@ Sync validation 失败 SHALL 标识 artifact、语义问题与受影响路径，
 
 ### Section: sync 完成后刷新 evidence fingerprint
 
-sync 完成所有文件写入后，系统 SHALL 检测 change 目录下是否存在 `.quality-state.json`；若存在，SHALL 对 evidenceFingerprintEntries 中路径与本次 sync 输出重叠的条目重算文件哈希，并更新 evidenceFingerprint。
+Sync 成功写入后 SHALL 关联本次实际输出与原完整验证结论之间的确定性模型转换，保留测试与 Review 原始执行时状态及结果，不把旧测试改绑为新状态。只处理实际输出重叠路径，无重叠或无质量记录不写无关记录。不支持旧格式时明确诊断，不自动转换；已提交模型事务后的关联失败须如实报告，不声称验证仍完整。
 
-- **evidence 中有 sync 输出文件时刷新**
-
-  - `.quality-state.json` 存在且包含与 sync 输出重叠的 evidence entries
-  - sync 完成写入
-  - 系统 SHALL 重算受影响条目的 SHA-256 哈希
-  - SHALL 重算整体 `evidenceFingerprint` 并写回 `.quality-state.json`
-
-- **evidence 中无 sync 输出文件时跳过**
-
-  - `.quality-state.json` 存在且无重叠路径
-  - sync 完成写入
-  - 系统 SHALL NOT 修改 `.quality-state.json`
-  - SHALL NOT 报错
-
-- **记录不存在时跳过**
-
-  - change 目录下不存在 `.quality-state.json`
-  - sync 完成写入
-  - 系统 SHALL 静默跳过刷新步骤
-
-- **刷新后证据文件再次被外部修改**
-
-  - sync 后 evidence fingerprint 已刷新为一致
-  - 外部进程再次修改该文件
-  - 后续状态判定 SHALL 变为 `dirty`
-  - details SHALL 列出该 normalized path 为变更文件
-
-- **刷新后状态判定为 clean**
-
-  - sync 前记录与当前代码一致
-  - sync 改写一个 recorded 单元
-  - sync 完成后已执行 evidence fingerprint 刷新
-  - 执行状态判定
-  - 结果 SHALL 为 `clean`
-
-- **无 evidenceFingerprintEntries 时跳过**
-
-  - `.quality-state.json` 存在但不包含 `evidenceFingerprintEntries` 字段（legacy 格式）
-  - `applyPreparedChangeSync` 完成写入
-  - 系统 SHALL 静默跳过刷新步骤
-
-- **change 级 delta 单元不受刷新影响**
-
-  - evidenceFingerprintEntries 中包含 `.xirang/changes/<name>/elements/<identity>.md`
-  - sync 不改写此路径（change-local delta 单元不在 sync 输出中）
-  - `applyPreparedChangeSync` 完成写入
-  - 该 entry 的 hash 保持不变
-  - 若此文件被外部修改，后续状态判定正常变为 `dirty`
+- **模型输出转换**：Sync 只修改已声明模型输出且关联完成，正常归档可识别该转换，不伪造新的测试通过。
+- **外部代码变化**：Sync 后外部改写文件或新增/删除代码，后续门禁显示不一致，不能借 Sync 关联免除受影响验证。
+- **跨平台与 Change 源**：Windows 反斜杠路径按同一项目相对 POSIX 路径关联，change-local Delta 未被 Sync 写入时其原证据不变。
 
 ### Section: 保持 Target 单元完整
 

@@ -4,7 +4,7 @@ identity: quality-freshness
 kind: element
 parent: quality
 title: Quality Freshness
-definition: Quality Freshness 定义 quality 的记录匹配与状态判定引擎：`tasksFileHash` 计算、`evidenceFingerprint` 计算、按当前代码匹配历史记录得到的 `clean`/`dirty` 判定、归档兼容判定、gate 失败输出格式，以及 sync 后的 evidence fingerprint 增量刷新。它不定义命令面的输入与诊断形状，也不定义记录的写入时序（属于 Quality Writeback）。
+definition: Quality Freshness 是质量证据适用性与完成状态的判定能力，独立关联实际验证时状态、当前代码文件集合和内容、委托交付及最终结论。它检测新增、删除、过期、失败和不完整证据，区分基线审查与优化后的验证，不以记录保存时状态代替执行状态；不判断自然语言证据是否充分或优化价值。
 ---
 
 ## Specification
@@ -25,86 +25,26 @@ definition: Quality Freshness 定义 quality 的记录匹配与状态判定引�
 
 ### Section: evidenceFingerprint 计算
 
-系统 SHALL 提供 `computeEvidenceFingerprint(evidenceFiles, projectRoot)`，按规范化相对 POSIX 路径排序并基于文件内容 SHA-256 生成整体指纹。quality 的状态快照与历史日志 SHALL 被排除在指纹之外。Windows 路径 SHALL 使用 Node.js path API 规范化。
+系统 SHALL 基于规范化项目相对 POSIX 路径及内容哈希关联验证时状态，文件集合变化也参与比较，包括新增、删除和移动；不能仅重读旧 evidenceFiles 列表而漏掉新代码。质量记录本身不参与代码指纹。mtime、仅 Git HEAD 改变不使相同内容过期；路径通过平台 path API 规范化。
 
-- **内容未变时 hash 稳定**
-
-  - 文件内容未变但 mtime 或 size 元数据变化
-  - evidence fingerprint SHALL 保持不变
-
-- **记录文件不参与指纹**
-
-  - 计算 evidence fingerprint
-  - `.quality-state.json` 与 `.quality-log.jsonl` SHALL 被排除
-  - SHALL NOT 因这些文件的写入而使指纹变化
+- **新建/删除代码文件**：测试后新增相关实现或删除已有文件，状态差异 SHALL 被发现，即使原 evidenceFiles 未列出新路径。
+- **Windows 路径**：同一逻辑路径使用反斜杠与正斜杠时得到一致关联；缺失文件不是静默跳过的有效证据。
 
 ### Section: 记录匹配与状态判定
 
-系统 SHALL 仅在当前 Change 根目录的活动质量快照及其配套日志中，按 evidence fingerprint 查找与当前代码一致的通过 Review 证据，而不是只读取最新一条 Review。存在当前格式、非空证据且 result 为 `PASS` 或 `PASS_WITH_WARNINGS`、fingerprint 与当前代码一致的记录时，状态 SHALL 为 `clean`；否则状态 SHALL 为 `dirty`。快照不存在或快照在配套日志中无对应记录时 SHALL 保守地为 `dirty`。
+系统 SHALL 分别判断基线 Review 的被审查状态、各测试/Review 的执行状态、当前委托交付和最终验证结论的适用性，不以最新一次通过 Review 的指纹作为唯一活动路由。测试 SHALL 在实际运行时捕获状态与真实结果，记录开始/结束状态不一致或非零退出时保留其事实，不当作成功当前验证。稍后报告只引用原证据，不将旧通过结果重新绑定当前代码。
 
-Review 证据匹配与当前 Optimization 台账 SHALL 独立取值。匹配到较早的通过记录时，当前方向状态、失败计数、已用方向额度、轮次判断、`stopReason` 与终态 SHALL 继续取自最新活动快照；不得回退到匹配 Review 附带的旧台账，也不得在最新快照无台账时从旧记录复活台账。status、后续 Review/Optimization 写入与 seal/Sync/Archive 门禁 SHALL 对同一当前台账作出一致判断。
+- **测试 S1、报告 S2**：在 S1 测试通过，代码改为 S2 后提交报告；证据仍指向 S1，不能据此声称 S2 已通过，需要主 Agent 重新判断受影响验证。
+- **验证适用性重判**：后续改动 SHALL 触发差异检查和主 Agent 对受影响验证的判断，不自动要求重跑未受影响的全部测试。主 Agent 可基于实际差异、验证范围和依赖影响，明确记录原成功测试或 scoped Review 对当前状态仍适用的范围与理由；该判断单独关联当前状态，不改写原执行指纹，也不声称重新运行过测试或 Review。失败结果、缺失结果或已经确认受影响而未补齐的验证不能因此满足完成条件。
+- **A 在 S1、B 在 S2**：A 在 S1 的局部测试通过，随后独立改动 B 并在 S2 测试通过；主 Agent 根据实际差异和依赖证据确认 B 不影响 A 的验证，可保留 A 的原运行证据并记录其对 S2 的适用判断，不强制重跑 A。若 B 修改 A 依赖的公共辅助函数，则须检查实际影响、补齐受影响验证后才能据此完成。
+- **失败或未交付**：保留失败/过期结果与未完成进度，但它们不能满足成功测试或完整交付条件。
+- **恢复历史代码**：旧匹配证据可按实际范围供判断，当前报告、放弃记录及最终结论不回退成旧版本；历史 PASS 不自动满足新声明验证。
 
-已轮换到质量历史目录的记录 SHALL 不参与 `clean` 判定或当前台账选择。当前快照和日志轮换完成后，即使历史目录含与代码匹配的 PASS，当前状态仍 SHALL 为 `dirty`；新 Review 建立活动记录后只匹配该组活动记录。历史目录不成为额外的 runtime quality store。
-
-- **记录匹配当前代码时为 clean**
-
-  - 历史中存在一条 result 为 `PASS` 或 `PASS_WITH_WARNINGS` 且 fingerprint 与当前代码一致的 Review 记录
-  - 状态 SHALL 为 `clean`
-
-- **无记录时为 dirty**
-
-  - change 目录中没有 Review 记录
-  - 状态 SHALL 为 `dirty`
-
-- **指纹不一致时为 dirty**
-
-  - 重新计算的 fingerprint 与所有 Review 记录均不一致
-  - 状态 SHALL 为 `dirty`
-  - 输出 SHALL 列出导致不一致的文件路径
-
-- **失败回滚后回到 clean**
-
-  - 最新一条 Review 记录为 `FAIL_NEEDS_CORRECTIONS`
-  - 工作区已回滚到更早一条通过的 Review 记录所对应的状态
-  - 状态 SHALL 为 `clean`
-  - SHALL NOT 因最新记录为失败而判为 `dirty`
-
-- **匹配到的记录为失败时为 dirty**
-
-  - 与当前代码 fingerprint 一致的记录 result 为 `FAIL_NEEDS_CORRECTIONS`
-  - 状态 SHALL 为 `dirty`
-
-- **Windows 路径正确匹配**
-
-  - evidence 路径使用反斜杠表示
-  - 系统 SHALL 将其规范化为相对 POSIX 路径后计算与比较指纹
-  - SHALL 与已持久化路径匹配
-
-- **恢复代码不恢复旧台账**：代码 A 的历史 PASS 台账已用方向数为 0，代码 B 后的最新活动台账已用方向数为 1 且终态为 `ABORTED_UNSAFE`；仅恢复代码 A 并完整保留活动记录后，状态 SHALL 为 `clean`，当前台账仍为已用方向数 1 和 `ABORTED_UNSAFE`，Optimization、seal、Sync 和 Archive 不得因此通过 unsafe 门禁。
-- **失败计数不回退**：最新活动台账中方向已失败 2 次并被 `rejected`；回滚匹配到首次 PASS 后，该方向仍 SHALL 为 `rejected` 且失败计数为 2，后续写入保留最新历史。
-- **台账独立于 Review 证据**：最新快照记录失败 Review、代码已恢复到历史 PASS 的状态时，SHALL 使用该 PASS 证明 `clean`，同时保留最新快照的优化进度；原始历史记录不得被改写。
+完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。
 
 ### Section: Archive Compatibility 判定
 
-`checkArchiveCompatibility` SHALL 将 `SKIPPED`、`NOT_NEEDED`、`IMPROVED` 与 `DEGRADED` 判定为 compatible，将 `ABORTED_UNSAFE` 判定为不兼容。尚未收口（不存在收口记录）SHALL 判定为不兼容。旧记录缺少 optimization 字段时 SHALL 保持向后兼容。
-
-- **已收口终态兼容**
-
-  - Optimization 终态为 `IMPROVED`
-  - 台账包含 `rejected` 或 `deferred` 方向
-  - archive compatibility SHALL 返回 compatible true
-
-- **尚未收口**
-
-  - 不存在 Optimization 收口记录
-  - archive compatibility SHALL 返回 compatible false
-  - blockReason SHALL 指明尚未收口
-
-- **legacy 记录无 optimization**
-
-  - 旧记录不包含 optimization 字段
-  - archive compatibility SHALL 判定为不兼容
-  - SHALL NOT 因字段缺失而崩溃
+Archive compatibility SHALL 消费与 seal 相同的完整完成条件。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 配置禁用或用户拒绝的明确跳过可以满足优化处置要求，不伪造交付或免除基线 Review。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
 
 ### Section: gate 失败输出格式
 
@@ -131,26 +71,6 @@ Review 证据匹配与当前 Optimization 台账 SHALL 独立取值。匹配到�
 
 ### Section: sync 后 evidence fingerprint 增量刷新
 
-系统 SHALL 提供 `refreshQualityEvidenceAfterSync(changeDir, projectRoot, syncedFiles)` 函数，在 sync 完成后增量更新状态快照中的 evidence fingerprint。对路径匹配 `syncedFiles` 的条目重算 SHA-256；若任何 entry 被更新，SHALL 重算整体 fingerprint 并写回。
+Sync 成功后 SHALL 只关联实际同步输出对应的确定性模型转换，保留测试与 Review 原始执行状态及结果；不得把执行时指纹改写为同步后代码状态。模型同步关联不能覆盖同时发生的实现修改或未列出的外部变化，后者 SHALL 使受影响最终证据不可复用。无记录或无重叠输出时不写无关记录；不支持格式给出明确诊断而不转换。
 
-- **正常刷新**
-
-  - 调用刷新函数且 `syncedFiles` 中的路径存在于 entries
-  - 系统 SHALL 重算该 entry 的 hash、重算整体 fingerprint 并写回状态快照
-
-- **无匹配路径或文件不存在**
-
-  - `syncedFiles` 中无路径匹配任何 entry，或状态快照不存在
-  - 系统 SHALL NOT 修改任何记录并静默返回
-
-- **跨平台路径匹配**
-
-  - 在 Windows 上比较 `syncedFiles` 与 evidence entries
-  - 路径比较 SHALL 使用 POSIX 正斜杠标准化并正确匹配同一文件
-
-- **刷新后外部修改再次触发 dirty**
-
-  - sync 后指纹已刷新为一致
-  - 外部进程再次修改该文件
-  - 后续状态判定 SHALL 变为 `dirty`
-  - 输出 SHALL 列出该规范化路径为变更文件
+- **同步后外部修改**：Sync 记录实际模型输出后外部修改同一路径，或新增/删除实现文件，状态比较显示差异并要求重新判断受影响验证。

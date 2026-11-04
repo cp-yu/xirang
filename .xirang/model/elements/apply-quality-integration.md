@@ -4,7 +4,7 @@ identity: apply-quality-integration
 kind: element
 parent: apply
 title: Apply Quality Integration
-definition: Apply Quality Integration 定义 Apply 与 Quality 的集成契约：Review 记录先写回再持久化、以轮为单位的优化循环、失败方向记录、主 agent 与 subagent 的角色分工、配置驱动的优化控制，以及 Apply reference 拥有的 checkpoint 编排。它不定义 Quality 自身的状态判定与命令面。
+definition: Apply Quality Integration 是 Apply 对基线独立审查、受托优化、恢复和最终验证的集成协议，独立承载 CRITICAL 写回顺序、角色分工、共享 references 和质量诊断消费。它让主 Agent 编排可写 Opt 及所需 Reviewer，保持普通 Apply 任务纪律；不定义 CLI 方向台账或重复 Quality 的判定引擎。
 ---
 
 ## Specification
@@ -25,88 +25,13 @@ definition: Apply Quality Integration 定义 Apply 与 Quality 的集成契约�
   - reviewer payload 只包含 WARNING 或 SUGGESTION
   - Apply SHALL NOT 将这些 finding 写入 `tasks.md`
 
-### Section: 优化循环以轮为单位
-
-`xirang-apply-change` SHALL 从生成 reference 读取优化循环协议。每轮 SHALL 创建非空 baseline commit、调用 fresh optimizer 取得方向台账、只实现本轮选中的方向、由 master 按 TDD 编码，再由 fresh reviewer 复核并通过 `xirang quality review` 记录该轮结论。普通实现轮次 SHALL NOT 创建 commit；Checkpoint 使用 git commit，失败回滚使用 `git reset --hard HEAD` 与 `git clean -fd`。
-
-- **方向驱动的优化循环**
-
-  - Optimization 开始
-  - apply SHALL 创建非空 baseline checkpoint，并将其 SHA 写入 `.apply-isolation.json.optimizationBaselineCommit`
-  - SHALL 委托 fresh optimizer 取得方向台账
-  - SHALL 只实现本轮唯一选中的方向
-  - SHALL 委托 fresh reviewer 复核该轮改动
-  - SHALL 在该轮结束后重新判断剩余方向
-
-- **成功 checkpoint 包含方向 ID**
-
-  - 选中的方向通过该轮复核
-  - apply SHALL 创建包含方向 ID 的增量 checkpoint commit
-  - SHALL 保留该 commit 供后续轮次作为最近成功状态
-
-- **失败回滚保留 quality 记录且不残留改动**
-
-  - 该轮复核返回 `FAIL_NEEDS_CORRECTIONS`
-  - CLI 已把失败事件与失败方向写入 quality 记录
-  - Apply SHALL 把三份当前状态文件 `.quality-state.json`、`.quality-log.jsonl`、`.apply-isolation.json` 与完整质量历史目录保存到 repository 外并记录清单与 SHA-256
-  - SHALL 在确认当前 `HEAD` 为最近成功 checkpoint 后执行 `git reset --hard HEAD` 和 `git clean -fd`
-  - SHALL 恢复三份当前状态文件与完整质量历史目录，并校验文件集合及各自 SHA-256
-  - 恢复失败、hash 不匹配或仍有未回滚文件时 SHALL 停止
-
-### Section: 失败方向记录
-
-系统 SHALL 以方向 ID、目标位置、关键设计边界与 reviewer 失败证据记录失败方向。未达 `optimization.directionRetries` 时 optimizer MAY 提供实质不同的方案；达到上限后该方向 SHALL 被否决，但系统 SHALL 继续评估其他方向。
-
-- **记录方向失败**
-
-  - 选中方向的该轮复核失败
-  - 系统 SHALL 追加该方向的失败事件与失败证据
-  - SHALL 在失败方向记录中写入该方向的设计边界与失败原因
-
-- **后续 optimizer 避免重复**
-
-  - optimizer 重新判断方向
-  - SHALL 读取失败方向记录
-  - SHALL NOT 通过换措辞重复已达上限的方向
-
 ### Section: 主 agent 和 subagent 角色分工
 
-系统 SHALL 区分三类职责：reviewer 判断行为是否正确；optimizer 判断正确实现是否值得及如何优化；master agent 负责 TDD 编码、证据收集与有证据的撤销。Master SHALL 按选中方向的 keyDesign 与 preservation constraints 实现，MUST NOT 自行生成、跳过或否决优化方向。要撤销某个方向时 SHALL 在台账中提交理由与证据。
-
-- **optimizer 提供判断与关键设计**
-
-  - 优化轮次执行
-  - 系统 SHALL 委托 fresh optimizer
-  - optimizer SHALL 输出方向、修改意见、keyDesign 与 validation
-  - SHALL NOT 修改文件或输出逐字补丁
-
-- **master 实现选中方向**
-
-  - CLI 已记录本轮选中方向
-  - master SHALL 按 TDD 修改代码与测试
-  - SHALL 记录方向 ID 及任何非实质实现细节差异
-
-- **reviewer 独立复核**
-
-  - master 完成选中方向
-  - 系统 SHALL 委托 fresh reviewer
-  - reviewer SHALL 判断 preservation constraints 是否保持
-  - SHALL NOT 重新判断该方向是否值得优化
+Apply SHALL 由主 Agent 负责委托范围、越界处理、继续投入及最终验证范围，允许读取实际代码与证据；Opt 负责发现、分组、合并、修改及局部测试并交付；Reviewer 只读独立审查。缺少对应测试时 Opt SHALL 先补测试再改实现。主 Agent 与 Opt 的判断不替代必需独立 Review。
 
 ### Section: 配置驱动优化控制
 
-`optimization.enabled` SHALL 控制 Optimization 是否运行；`optimization.directionLimit` SHALL 限制可选取的新方向数；`optimization.directionRetries` SHALL 只限制同一方向的失败次数，不限制成功轮次数；`optimization.minImpactLevel` SHALL 声明可选取的最低 `impactLevel`，未配置时视为 `low`。门槛由 CLI 在选择阶段确定性执行，低于门槛的方向永不被选中。
-
-- **方向数上限与失败额度互不消耗**
-
-  - `directionRetries` 为 2 且存在三个依次通过复核的方向
-  - 三个方向 SHALL 均允许完成，成功不消耗失败额度
-
-- **门槛由 CLI 确定性执行**
-
-  - 已配置 `minImpactLevel` 且某方向低于该值
-  - CLI 在选择阶段不选取该方向
-  - 当全部待选方向均低于门槛时该轮以 `NO_ACTIONABLE` 收口
+optimization.enabled SHALL 控制是否启动优化；配置禁用或用户明确拒绝时记录明确跳过。Opt 与主 Agent 按证据、收益、成本、风险和进展判断继续或停止，遵守用户和委托预算；无新证据或实质进展的重复尝试 SHALL 停止并记录。directionLimit、directionRetries、minImpactLevel 等退役输入给出明确诊断，不继续参与控制。
 
 ### Section: Apply 读取 Quality 诊断信息
 
@@ -137,43 +62,20 @@ definition: Apply Quality Integration 定义 Apply 与 Quality 的集成契约�
 
 ### Section: Apply reference 拥有 checkpoint 编排
 
-checkpoint 创建、成功提交、失败回滚与状态恢复 SHALL 由 Apply reference 定义。Reviewer 合约 SHALL 只负责该轮复核结论，不得创建、恢复或消费 git checkpoint。
-
-- **Reviewer 只返回复核结论**
-
-  - reviewer subagent 执行该轮复核
-  - reviewer SHALL 验证选中方向的 preservation constraints
-  - SHALL NOT 执行 git commit、reset、clean 或 worktree 操作
-
-- **Apply reference 编排 checkpoint**
-
-  - Apply 模板执行优化循环
-  - reference SHALL 定义非空 baseline commit 与成功方向 checkpoint commit
-  - SHALL 定义失败时对 quality 记录与 `.apply-isolation.json` 的 repository-external snapshot、实现回滚、原子恢复与 SHA-256 校验
-  - SHALL 保留失败历史、失败方向与 `optimizationBaselineCommit`
-
-失败回滚的 repository-external 保存范围 SHALL 包含三份当前状态文件 `.quality-state.json`、`.quality-log.jsonl`、`.apply-isolation.json` 和完整质量历史目录。Apply reference SHALL 先保存清单与 SHA-256，再回滚 speculative code，最后恢复并校验全部当前及历史文件；未跟踪的历史不得被 `git clean -fd` 永久清除。恢复不完整时停止，不进入后续优化判断。
+Apply 的共享优化 reference SHALL 定义修改前可恢复基线、Opt 按需中间保存、主 Agent 所需验证通过后最终 successful checkpoint；Reviewer 不创建、恢复 checkpoint 或写入项目。局部失败优先按证据修正或撤销并保留有效工作，必要时恢复可确认基线；无法确认恢复则停止。代码、commits/checkpoints、当前及历史记录保持可用，不强制逐方向 commit 或整批回滚。
 
 ### Section: 共享恢复 reference 编排重验
 
-Apply SHALL 提供共享恢复 reference，Archive SHALL 复用同一 reference；恢复使用现有 `quality review`、`quality optimize`、`quality status` 和 `quality seal`，不提供 `xirang quality reset` 子命令。
-
-遇到 `ABORTED_UNSAFE` 时，Agent SHALL 保留阻塞观察与 CLI 诊断，停止自动推进，并加载恢复 reference 说明后续行动。用户明确要求重新开始验证（例如“从头 review optimize”）即授权 Agent 保存历史、轮换当前质量记录并记录原因，无须用户手工执行或重复确认同一意图。其他优化终态后的显式重验使用同一流程。未获得重启授权时保持停止，不把普通修正、回滚或中断续跑自动升级为重启。
-
-恢复前 SHALL 确认原流程已停稳，无仍在运行的 Reviewer、Optimizer、实现任务或待处理结果、回写、提交、回滚。恢复 SHALL 沿用 `.apply-isolation.json` 的工作区身份与不可变 `baseCommit`，不重新初始化隔离，不自动回退或删除代码，也不删除已有 commits/checkpoints。Agent 依据已知任务与工作区信息遵守串行前提；CLI 不承担外部 subagent 进程检测或取消职责。
-
-Apply 的进入与中断续跑 SHALL 在依据根目录记录路由到 Review 前检查未完成的轮换；部分缺失不得被误当作可以新建活动记录的入口。
-
-Agent SHALL 按受控轮换规则保存并校验旧快照、日志与原因，轮换完成后检查 `quality status` 为 `dirty`，再委派 fresh Reviewer。新 Review 失败返回修正循环；通过后才按现有规则建立或验证本轮 checkpoint 并进入 Optimization。新台账不继承旧终态或计数，历史仅供判断参考。
-
-- **已有明确请求**：用户说“从头 review optimize”，原流程已结束；Agent 执行恢复 reference，不再次询问是否重启。
-- **未授权 unsafe**：Optimizer 报告冲突并记为 `ABORTED_UNSAFE`，用户尚未要求重启；Agent 展示问题与恢复路径，不轮换记录或自动修正后复审。
-- **保留原工作区**：原 Change 使用 worktree，已有 `baseCommit` 和多个 checkpoint；重启保留同一 worktree 身份、原证据基线、代码与 commits，新 Review 自主读取当前实现。
+Apply 与 Archive SHALL 使用同一共享恢复 reference。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 用户明确要求从头重新验证时，保留原工作区身份、baseCommit、代码、commits/checkpoints 和历史，原流程停止后取得新的独立基线 Review；不要求用户重复确认已给出的重验意图。普通失败或可处理缺陷不永久锁定，也不自动重启整个流程。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
 
 ### Section: 恢复交付的验证证据
 
-恢复实现的交付 SHALL 具有可复现的行为证据。既有状态引擎与 CLI 回滚测试 SHALL 保护历史 PASS 匹配后最新失败计数、方向状态和 unsafe 终态仍保留的行为；优先修改现有测试，不建立平行的重复套件。
+恢复交付 SHALL 提供可复现的实际行为证据，包括磁盘未记录改动的处理、局部撤销保留有效工作、失败历史保留及测试与实际状态对应。持久测试验证 CLI 可观察门禁和文件保持，不锁解释性措辞；reference 操作和生成面通过临时工作区的一次性行为证据验证，覆盖 Windows 与 POSIX 路径。
 
-reference 中的文件操作 SHALL 通过一次性临时 Change 与临时 Git 仓库流程验证，不为解释性文档措辞新增持久锁词测试。验证 SHALL 覆盖：代码未变时轮换后仍须新 Review，Optimization 新额度从零开始；保存或轮换中断不丢历史；后续失败优化回滚仍保留历史；Apply、Archive 生成结果可达同一恢复 reference，Reviewer 与 Optimizer 能读取历史。
+### Section: 以委托交付推进优化
 
-持久测试 SHALL 验证可观察状态或 CLI 门禁，可因真实行为变异而失败；构建、类型检查、平台路径与生成结果检查 SHALL 保留一次性证据。路径操作 SHALL 具有 Windows 与 POSIX 一致的验证结果。
+Apply SHALL 读取共享优化 reference，在普通实现通过基线独立 Review 后保存可恢复起点并委托 Opt；Opt 在一次委托内可连续分组实施和测试。交付后主 Agent 可返回具体修正或启动 fresh-context 新探索，不要求每项交接、重新扫描或固定轮数，最终验证可覆盖累计改动。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。
+
+### Section: 记录失败尝试并告知
+
+放弃已尝试优化时 SHALL 保存事项、失败原因及处理结果，保留其他可靠优化，交付恢复后的测试证据并最终告知用户。失败尝试不使整个结果被笼统认定下降；当前 Change 原有正确性缺陷须交主 Agent 安排修复并针对性独立 Review，不能作为可选优化放弃。

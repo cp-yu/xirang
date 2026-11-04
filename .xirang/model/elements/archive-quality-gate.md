@@ -4,98 +4,22 @@ identity: archive-quality-gate
 kind: element
 parent: change-closure
 title: Archive Quality Gate
-definition: Archive Quality Gate 定义归档前必须具备的质量记录门禁：必须先存在与当前代码一致且通过的 Review 记录，并且 Optimization 已收口且终态不是 ABORTED_UNSAFE；freshness 基于显式持久化的证据判定，archive rerun 复用与 standalone quality 一致的 subagent-orchestrated 执行模型。它不定义 Review 与 Optimization 自身的判断标准，也不定义归档移动、git 交接或 sync 的行为。
+definition: Archive Quality Gate 是 Change Closure 在归档前消费完整质量证据的门禁，独立验证基线 Review、优化交付或明确跳过、主 Agent 最终结论、所需通过验证与当前成功状态的关联。缺口恢复复用 Apply 的执行协议，不另行判断优化价值或将无需追加 Review 当 PASS；归档移动、Git 交接及 Sync 事务属于各自能力。
 ---
 
 ## Specification
 
 ### Section: 归档前必须具备新鲜的完整验证记录
 
-系统 SHALL 在归档任意活动 change 之前取得一份与当前代码一致且通过的 Review 记录，并通过 CLI 工具执行门禁校验。该 change SHALL 同时具备已收口的 Optimization 记录，其终态必须与 quality 生命周期语义一致。
-
-- **Archive 通过 CLI 校验 quality gate**
-
-  - agent 准备归档某个 change
-  - CLI 校验 quality 记录为 fresh 且 archive-compatible
-  - archive SHALL 复用该结果继续执行后续归档步骤
-  - SHALL NOT 退回到轻量 inline conformance check
-
-- **Review 记录缺失或状态为 dirty 时由 CLI 提示**
-
-  - agent 调用 archive 相关 CLI
-  - 不存在 quality 状态记录，或当前代码与通过的 Review 记录不一致
-  - CLI SHALL 以 exit 1 退出并输出具体原因
-  - agent SHALL 向用户展示选项：先运行 quality Review / 强制继续 / 放弃
-
-- **优化被跳过的记录仍然有效**
-
-  - Optimization 终态为 `SKIPPED`
-  - 跳过原因合理（config 禁用或用户显式拒绝）
-  - 结果 SHALL 被视为 archive-compatible
-
-- **尚未收口时不得归档复用**
-
-  - 还没有任何 Optimization 收口记录
-  - 该结果 SHALL NOT 被视为 archive-compatible
-  - CLI SHALL 输出未收口的具体原因
-
-- **ABORTED_UNSAFE 硬阻塞**
-
-  - Optimization 终态为 `ABORTED_UNSAFE`
-  - 即使 Review 记录为通过也不得复用
-  - CLI SHALL 输出恢复指示
-
-- **Seal 后仅 Git HEAD 推进时复用记录**
-
-  - Optimization 已收口且记录已通过 seal
-  - 当前工作区的 evidence fingerprint 未发生变化
-  - 当前 Git HEAD 与记录中的 HEAD 不一致
-  - 代码状态 SHALL 保持为 `clean`
-  - archive SHALL 复用 archive-compatible 的记录
-  - archive SHALL NOT 仅因 HEAD 差异重新执行 full quality 流程
+Archive SHALL 通过 CLI 校验当前完整质量证据后才能正常复用结果，不能退回 inline conformance check。完成条件 SHALL 关联优化前通过的独立基线 Review、已完整交付的委托或配置禁用/用户拒绝的明确跳过、实际成功测试、主 Agent 的最终验证范围与理由、所有已声明必需的增量 Review，以及当前 Change 基线缺陷修复后必需的针对性独立 Review；所需验证全部通过且证据适用当前状态、无未解决正确性或恢复问题，才可保存最终 successful checkpoint 并完成。未追加 Review 的风险判断不记为 Reviewer PASS，基线 PASS 不声称覆盖优化后代码。 缺口返回非零并说明具体所需行动；明确跳过可以满足优化处置，不免除基线或适用测试。仅 HEAD 推进且内容/证据关联不变时不重跑质量流程。
 
 ### Section: Freshness 基于显式验证证据判定
 
-系统 SHALL 基于显式持久化的验证证据判定 Review 记录是否可用于归档。Optimization 字段存在不影响 freshness 判定，但其终态会影响 archive 是否可复用该结果。
-
-- **Freshness 判定标准**
-
-  - archive 检查 Review 记录
-  - 系统 SHALL 判定为 fresh 当且仅当 ALL of:
-  - 记录的 `evidenceFingerprint` 匹配重新计算的 fingerprint
-  - 记录的 `contractVersion` 是当前版本
-  - result 为 `PASS` 或 `PASS_WITH_WARNINGS`
-  - `tasksFileHash` 不参与 fresh/`dirty` 判定
-  - `gitHeadCommit` 不匹配时 SHALL 作为 informational 报告，不单独改变状态判定
-
-- **Fresh 但 optimization 不可复用**
-
-  - Review 记录通过 freshness 判定
-  - Optimization 终态为 `ABORTED_UNSAFE`
-  - archive SHALL 仍然拒绝复用该结果
-  - SHALL 将其报告为"验证记录新鲜，但优化恢复状态不安全"
+Archive SHALL 基于实际测试与 Review 的状态、范围、结果、当前代码集合及主 Agent 结论判断适用性，不以记录时哈希冒充执行时状态。tasksFileHash 和仅 HEAD 差异不单独决定代码新鲜度；实现新增、删除或内容变化须进入比较。基线 Review 不覆盖后续优化；过期/失败测试、未交付和恢复不确定均不能完成。
 
 ### Section: Archive rerun 使用 quality 执行模型
 
-系统 SHALL 在 Review 记录缺失或不一致触发 full quality rerun 时，复用与 standalone quality 一致的 subagent-orchestrated execution model。
-
-- **archive rerun 复用 subagent orchestration**
-
-  - archive 检测到 Review 记录 missing 或 dirty
-  - archive SHALL 执行与 standalone quality 相同的 subagent-orchestrated full quality 合约
-  - SHALL 复用相同的 Optimization eligibility、checkpoint 与失败回滚语义
-
-- **archive-time full quality 不得私自跳过可执行的 Optimization**
-
-  - archive 因 Review 记录缺失或 dirty 而重新执行 full quality 流程
-  - 新的 Review result 为 `PASS` 或 `PASS_WITH_WARNINGS`
-  - `.xirang/config.yaml` 未禁用 optimization
-  - 用户未显式拒绝优化
-  - 该流程 SHALL 继续执行与 standalone quality 完全一致的 Optimization 合约
-  - SHALL NOT 仅因 archive-time 存在未提交改动风险而降级成 Review-only 流程
-  - 只有在 config 禁用或用户显式拒绝时，记录才可包含 `SKIPPED` 终态
-
-Archive Agent SHALL 与 Apply 使用同一共享恢复 reference。遇到当前 `ABORTED_UNSAFE` 时，SHALL 在常规 dirty/clean 路由前停止自动推进并展示该 reference；用户明确要求重新验证且原流程停止后，才可按 reference 保存并校验历史、轮换活动记录、重新执行 fresh Review 和从零开始的 Optimization。其他优化终态后的显式重验同样适用。未经新轮次有效 Review 和优化收口，不得复用历史目录中的旧 PASS 或终态进入正常归档；既有显式绕过门禁通道的授权规则不受影响。
+Archive SHALL 复用 Apply 的 subagent-orchestrated 模型及同一优化/恢复 references，根据具体缺口补基线 Review、继续原委托或重新判断最终验证，不建立单独审查骨架，也不因任意优化修改强制 full quality 重跑。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。 配置未禁用且用户未拒绝时，缺失的初次优化仍须委托 Opt，不因 archive-time 未提交改动自动跳过。不支持的旧质量格式、旧命令输入和退役优化配置 SHALL 给出明确诊断，不静默解释、自动迁移或启用兼容执行路径。旧活动记录不自动转换为新完成结论；既有代码、commits/checkpoints、归档和历史记录 SHALL 保留，由主 Agent 与用户判断旧 Change 如何继续。
 
 ### Section: Archive 与 Sync 双重门禁
 
@@ -104,7 +28,7 @@ Archive Agent SHALL 与 Apply 使用同一共享恢复 reference。遇到当前 
 - **双重门禁通过，继续 archive**
 
   - agent 执行 `xirang archive <change-name>`
-  - quality gate 通过（记录 fresh、result 可接受、Optimization 终态非 `ABORTED_UNSAFE`）
+  - quality gate 通过（基线、交付/明确跳过、主 Agent 结论、当前所需通过验证及最终 successful checkpoint 完整）
   - sync 已完成
   - 系统 SHALL 继续执行 archive 逻辑
 

@@ -4,28 +4,14 @@ identity: optimization
 kind: element
 parent: quality
 title: Optimization
-definition: Optimization 是 Quality 中，在代码已通过 Review 的状态上对实现进行优化评估的活动，以一轮为单位推进。它由 Optimizer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行，判断哪些不必要的复杂度可以通过删除或简化消除，以及必要工作是否可以通过更合适的方式提高效率；每个优化方向都必须具有可说明的实际收益、充分的代码证据，并保持 Expected Semantic Model 与项目行为不变。
+definition: Optimization 是 Quality 中在独立审查基线上受托改进实现的活动，独立承载优化机会发现、分组合并、实施、局部验证和结果交付。Opt 在委托范围内执行，主 Agent 决定范围、继续投入及最终风险验证，Reviewer 提供所需独立审查。它保持 Expected Semantic Model 与项目行为，包含失败尝试的处理及可靠恢复，不承担新需求设计或 Change Closure。
 ---
 
 ## Specification
 
-### Section: 仅在 Successful Checkpoint 上开始
-
-Optimization SHALL 仅在 Review 通过并保存 successful checkpoint 后执行。
-
-- **Review 尚未通过**
-
-  - 当前状态没有 successful checkpoint
-  - Optimization 不开始
-
 ### Section: 读取完整优化依据
 
-Optimization SHALL 读取 Semantic Model、Change、successful checkpoint 对应代码、项目证据与既有优化记录。
-
-- **Optimizer 评估当前状态**
-
-  - Optimization 开始
-  - 全部适用依据参与判断
+Optimization SHALL 读取 Semantic Model、Change、当前代码、基线 Review、恢复位置、项目证据及相关优化历史。后续委托基于累计改动后的实际状态，不能假定基线 Review 审查过这些改动。
 
 ### Section: 优先消除不必要复杂度
 
@@ -47,36 +33,9 @@ Optimization SHALL 评估必要工作是否可通过更合适的算法、数据�
 
 ### Section: 只选择有价值且可验证的事项
 
-每项选中优化 SHALL 有实际收益、充分代码证据、行为保持约束、相称成本风险与可执行验证方式，且其 `impactLevel` SHALL 不低于 `optimization.minImpactLevel`。低于门槛的方向 SHALL NOT 作为 actionable 报告、SHALL NOT 被标注为 deferred 以填充结果、SHALL NOT 通过抬高 `impactLevel` 越过门槛。`impactLevel` SHALL 度量改动价值而非实现难度：有真实可证效果的小改动仍可为 `high`，仅重排代码而无效果的大重构在任何规模下都低于门槛。
+选中的优化 SHALL 有可说明的实际收益、充分代码证据、目标语义与行为保持约束、相称的成本风险和可执行验证。Opt 与主 Agent 根据证据及委托约束判断价值，不要求固定收益等级或 CLI 门槛。用户给出的收益、范围、预算与停止条件 SHALL 遵守；没有新证据或实质进展的重复尝试 SHALL 停止并记录。
 
-- **建议无法证明收益**
-
-  - 候选事项不满足选择条件
-  - Optimization 延后或拒绝该事项
-
-- **方向低于收益门槛**
-
-  - 某个待选方向的 `impactLevel` 低于 `optimization.minImpactLevel`
-  - 该方向不报告为 actionable，也不标注为 deferred
-  - 不通过抬高其 `impactLevel` 使其越过门槛
-
-### Section: 将选中事项返回 Apply
-
-选中的 Optimization 事项 SHALL 返回 Apply 实现。
-
-- **优化事项被确认**
-
-  - Optimization 选择事项
-  - 当前 checkpoint 保持不变，事项交给 Apply
-
-### Section: 正确性问题返回 Review
-
-Optimization 发现正确性问题时 SHALL 停止并将问题返回 Review。
-
-- **当前实现不符合 Expected Model**
-
-  - Optimizer 识别行为缺陷
-  - 问题不作为优化事项处理
+- **收益无法证明**：仅重排代码而无效果或收益依赖未知条件时，不声称已证明收益；获得适用证据后再判断是否实施。
 
 ### Section: 语义变化形成新 Change
 
@@ -89,16 +48,28 @@ Optimization 发现正确性问题时 SHALL 停止并将问题返回 Review。
 
 ### Section: 无需继续优化时完成
 
-最新 successful checkpoint 不再存在需要执行的优化方向，或全部待选方向均低于 `optimization.minImpactLevel`，或方向数上限用尽，或用户拒绝继续优化时，Optimization SHALL 收口。全部方向低于门槛时 SHALL 以 `NO_ACTIONABLE` 收口并在 summary 中说明剩余机会低于门槛，该结论 SHALL 被视为正当结果而非未找到工作的失败。
+每次 Opt 完整交付后，主 Agent SHALL 判断是否值得继续。可交回具体问题修正，也可委托 fresh-context Opt 独立探索新机会，不要求主 Agent 先找到新方向。新 Opt 可读取前轮结果和失败记录，无需继承完整推理上下文。无新发现或收益很小时可停止，不固定轮数、不要求证明已无任何机会。最终验证 MAY 覆盖多次委托累计改动，具体风险应及时验证。优化前实现 SHALL 先通过独立 Review。主 Agent SHALL 根据累计优化改动、行为保持依据与测试覆盖确定最终验证范围并简短说明理由；测试必需，全量测试和优化后增量 Review 按实际风险决定，不增加固定风险审批。已确认的当前 Change 基线正确性缺陷 SHALL 修复并通过针对问题及其影响的独立 Review。只有所需验证全部完成且通过、证据对应当前状态、交付完整且无未解决的正确性或恢复问题时，才可保存最终 successful checkpoint 并完成。基线 Review 不证明后续改动经过独立审查；无需追加 Review 的判断不记为 Reviewer PASS。后续代码变化 SHALL 重新判断受影响的验证。
 
-- **没有满足方向**
+- **两项局部优化合并**：Opt 合并完成两项局部优化且对应测试通过时，主 Agent SHALL 根据改动范围、行为保持依据与覆盖判断是否需要全量测试或增量 Review；判断无需追加时保存依据即可完成所需验证并保存成功 checkpoint，不记为 Reviewer PASS。若判断需要增量 Review，SHALL 等待该 Review 通过才可完成。
 
-  - Optimizer 完成当前评估且不存在满足选择条件的方向
-  - Optimization SHALL 以 `NO_ACTIONABLE` 收口
-  - Quality 可判断 Optimization 已完成
+### Section: 在独立审查基线后开始
 
-- **全部方向低于门槛**
+Optimization SHALL 在优化前实现通过独立 Review、且可恢复基线已保存后开始。配置禁用或用户明确拒绝时记录跳过，不伪造 Opt 交付，也不免除必需 Review 与适用测试。后续委托可基于累计优化状态，不单因前轮改动要求新基线 Review。
 
-  - 该轮所有待选方向的 `impactLevel` 均低于 `optimization.minImpactLevel`
-  - Optimization SHALL 以 `NO_ACTIONABLE` 收口并在 summary 说明门槛
-  - 不消耗方向额度，也不报告任何 sub-threshold 方向
+### Section: 委托内执行与局部验证
+
+Opt SHALL 在主 Agent 确定的委托范围内自主发现、分组、合并、修改、补充并运行局部测试，可连续处理多个优化而不逐项交回。缺少对应测试时 SHALL 在修改实现前补充；低风险也必须测试。主 Agent 保留最终验证范围判断，Opt 自测不是独立 Review。建议仍有效时无需重新 fresh 扫描、排序；假设失效、建议不适用或有新机会时按需重评。
+
+### Section: 按证据处理问题
+
+Opt SHALL 区分优化引入的问题、优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷、无关历史问题及需求契约冲突。优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。无关历史问题记录并告知，不自动扩大范围；需求契约冲突交给主 Agent 澄清，需要用户决策时询问用户，不擅改目标语义。可修复缺陷不造成永久 unsafe 锁定或要求用户手工重启。
+
+优化引入的问题 SHALL 依据实际证据局部修正或撤销并验证，保留其他可靠优化，不因测试或 Review 失败固定整批回滚。合并后无法直接定位时 MAY 拆分、二分或采用更合适方法；各部分单测通过但组合失败时 SHALL 检查组合影响。无法确认局部恢复可靠时 SHALL 恢复到可确认基线；仍无法确认时停止并交回主 Agent，不以未解决状态完成。
+
+可选优化尝试仍无法修好时 MAY 放弃，保存事项、原因、撤销与恢复结果并最终告知用户；不能因此阻塞正确且已满足验证要求的原实现。
+
+### Section: 按实际影响确定文件范围
+
+Opt SHALL 以当前 Change 目标和证据化影响为界，按需追踪调用、依赖及其他调用方，允许必要的实现/测试文件新增、删除或移动，不固定为原文件列表或一层依赖。
+
+- **公共辅助函数**：优化当前 Change 新增的查询逻辑需要调整其调用的公共辅助函数，可以纳入，但必须检查其他调用方；顺便重构另一套无关查询系统超出本次委托。

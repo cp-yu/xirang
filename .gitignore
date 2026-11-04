@@ -179,3 +179,13 @@ opencode.json
 # Generated LikeC4 staging workspaces
 .xirang/.cache-likec4-staging-*/
 test/fixtures/contract-browser/.xirang/.cache-likec4-staging-*/
+
+# Xirang quality runtime records stay local (full manifests + captured outputs; can exceed git hosting limits)
+.xirang/changes/*/.quality-state.json
+.xirang/changes/*/.quality-log.jsonl
+.xirang/changes/*/.quality-lock
+.xirang/changes/*/.quality-evidence/
+.xirang/changes/archive/*/.quality-state.json
+.xirang/changes/archive/*/.quality-log.jsonl
+.xirang/changes/archive/*/.quality-lock
+.xirang/changes/archive/*/.quality-evidence/

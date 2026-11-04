@@ -4,46 +4,15 @@ identity: quality-execution-model
 kind: element
 parent: quality
 title: Quality Execution Model
-definition: Quality Execution Model 定义 quality 与 archive 复用的固定 subagent-orchestrated 执行模型：所有工具使用同一模板骨架，顶层 agent 只负责输入收集、subagent orchestration、write-back 应用、checkpoint 管理与结果持久化，且不存在 reread fallback。它不定义 reviewer 与 optimizer 自身的判断标准，也不定义命令面的输入形状。
+definition: Quality Execution Model 定义 Quality 与 Archive 共用的 subagent-orchestrated 协作模型，独立承载主 Agent、可写 Opt、只读 Reviewer 与确定性 CLI 的职责边界。主 Agent 负责范围、继续投入及最终验证判断，独立 Review 保留在 Reviewer；它不定义各角色具体评估方法或 CLI 输入形状。
 ---
 
 ## Specification
 
 ### Section: Quality 模板选择遵循执行模型
 
-系统 SHALL 使用 subagent-orchestrated quality 模板骨架，而不是按工具选择 execution model。
-
-- **所有工具使用 subagent 骨架**
-
-  - 系统生成 quality 工作流 skill
-  - 系统 SHALL 选择 subagent-orchestrated quality 模板骨架
-  - 该骨架中的顶层 agent SHALL 只负责输入收集、subagent orchestration、write-back 应用、checkpoint 管理与结果持久化
-  - 顶层模板 SHALL NOT 内嵌 completeness、correctness 或 coherence 的直接判断步骤
-
-- **不存在 reread fallback**
-
-  - 系统为任一受支持工具生成 quality 工作流 skill
-  - 系统 SHALL NOT 选择 current-agent-reread 模板骨架
-  - SHALL 使用 subagent-orchestrated 模板骨架
-
-- **选择逻辑使用显式 lookup**
-
-  - 系统解析 quality 模板骨架
-  - 系统 SHALL 返回 subagent-orchestrated execution model
-  - SHALL NOT 通过工具查找、字符串模式匹配、路径模式匹配或隐式约定推断 subagent 支持能力
+系统 SHALL 对所有工具使用 subagent-orchestrated 模板骨架，通过显式 lookup 解析，不通过工具名称、路径或字符串模式推断支持能力，也不使用 current-agent-reread fallback。主 Agent 负责委托范围、越界处理、后续投入和最终风险验证，可读取代码与证据；Opt 独立读取并执行优化与局部测试，Reviewer 独立只读审查，CLI 负责确定性记录和门禁。主 Agent 不替代必需基线 Review 或基线缺陷修复的独立 Review。
 
 ### Section: Archive 重跑复用同一执行模型骨架
 
-系统 SHALL 在 archive 需要重跑 full quality 流程时，复用与 standalone quality 相同的 subagent-orchestrated orchestration 合约。
-
-- **archive 复用 subagent 骨架**
-
-  - archive 因 Review 记录缺失或状态为 `dirty` 而需要执行 full quality 流程
-  - 系统 SHALL 复用与 standalone quality 相同的 subagent-orchestrated 模板骨架
-  - SHALL NOT 维护另一套 archive-only Review skeleton
-
-- **archive 不存在 reread fallback**
-
-  - archive 因 Review 记录缺失或状态为 `dirty` 而需要执行 full quality 流程
-  - 系统 SHALL NOT 使用 current-agent-reread skeleton
-  - SHALL 保持与 standalone quality 一致的 Optimization eligibility 语义
+Archive SHALL 复用 standalone Apply 的 subagent-orchestrated 合约和共享优化/恢复 references，按缺失基线 Review、未完成委托、最终验证过期或恢复问题分流，不维护 archive-only 审查骨架或 reread fallback，不将任何优化修改一律路由为全流程重验。

@@ -4,28 +4,14 @@ identity: quality-orchestration
 kind: element
 parent: quality
 title: Quality Orchestration
-definition: Quality Orchestration 定义 quality 工作流提示词的编排契约：Coordinator 角色声明、阶段模式标签、显式 subagent delegation 指令、subagent 超时与等待规则、checkpoint 有序执行步骤与语言一致性。它保证顶层 agent 只做编排与持久化，不替代 reviewer 与 optimizer 的判断，也不定义这两个角色自身的判断标准。
+definition: Quality Orchestration 是 Quality 的委托与收尾提示协议，独立承载主 Agent 的范围、等待、后续投入、恢复和最终验证编排。它区分实现、独立审查与确定性记录责任，供 Apply 和 Archive 共用；不替 Reviewer 作独立结论，不定义 CLI 自主优化决策。
 ---
 
 ## Specification
 
 ### Section: Coordinator 角色声明
 
-quality 工作流提示词 SHALL 以显式 coordinator 角色声明开头，把顶层 agent 定义为 quality coordinator，而不是 judge。角色声明 SHALL 定义 coordinator、Reviewer Subagent、Optimizer Subagent 与 CLI 四个互相独立的角色及其边界，并显式包含约束：顶层 agent MUST NOT 用自己的完整性、正确性或一致性判断替代 reviewer 的判断。
-
-- **Agent 理解自身是 coordinator**
-
-  - 顶层 agent 加载 quality prompt
-  - 第一个内容块 SHALL 声明 coordinator 角色
-  - SHALL 列出四个角色及其职责
-  - SHALL 显式禁止 coordinator 自行作出裁决
-
-- **Evidence 步骤不再读取文件内容**
-
-  - coordinator 进入证据准备步骤
-  - coordinator SHALL 仅确定 changeDir 与 projectRoot 路径
-  - SHALL NOT 读取候选实现文件的内容
-  - SHALL NOT 执行 git diff 或 git status（由 subagent 自行执行）
+Quality 提示词 SHALL 显式区分主 Agent、Optimizer、Reviewer 与 CLI。主 Agent 确定委托范围、处理越界、读取实际代码与证据、决定后续探索与最终验证；Opt 执行优化和局部测试；Reviewer 独立只读审查；CLI 保存和校验关联、版本、状态及已声明完成条件。主 Agent 不以自身判断或 Opt 自测替代必需独立 Review，CLI 不排序、选择、分级或判断自然语言充分性。
 
 ### Section: 阶段模式标签
 
@@ -45,23 +31,7 @@ quality 工作流提示词 SHALL 使用 mode label 标记主要阶段切换，�
 
 ### Section: 显式 subagent delegation 指令
 
-quality 工作流提示词 SHALL 提供明确的 subagent delegation 指令，用于启动 reviewer 与 optimizer subagent。提示词 SHALL NOT 写入任何工具专属 API 调用语法，只描述工作流意图、subagent 角色、输入信息与等待规则。
-
-- **委派 reviewer 时只传定位信息**
-
-  - coordinator 进入委派 reviewer 的步骤
-  - coordinator SHALL 传入 changeName、changeDir、projectRoot 三个字符串
-  - SHALL 指定 fresh context，确保 subagent 不继承对话历史
-  - SHALL NOT 传入文件内容、change artifacts 或 git 证据的完整文本
-  - SHALL 声明 reviewer 拥有 Read 与 Bash 工具能力
-
-- **委派 optimizer 时只传定位信息**
-
-  - coordinator 进入委派 optimizer 的步骤
-  - coordinator SHALL 传入 changeName、changeDir、projectRoot 三个字符串
-  - SHALL 指定 fresh context
-  - SHALL NOT 传入已有结论、文件内容或配置的完整文本
-  - SHALL 声明 optimizer 拥有 Read 与 Bash 工具能力
+提示词 SHALL 用工具中立方式说明委托角色、定位信息、范围/约束及等待规则，不写工具专属 API。Reviewer 与新探索 Opt 获得 changeName、绝对 changeDir/projectRoot 和可读取的审查任务或委托记录，自主读取语义和代码，不依赖主 Agent 传入的完整文件或结论。Reviewer 保持只读，Opt 实际拥有相关实现与测试的写入能力；缺测试时先补后改。恢复接手 SHALL 继续原委托，不因换执行者固定 fresh 重启整套流程。
 
 ### Section: Subagent 超时和等待规则
 
@@ -82,20 +52,7 @@ quality 工作流提示词 SHALL 为所有 subagent delegation 包含显式 time
 
 ### Section: Checkpoint 协议使用有序执行步骤
 
-quality 工作流提示词 SHALL 以有序步骤描述 checkpoint 与回滚边界：先创建非空 baseline commit；每个成功方向创建含方向 ID 的 commit；失败记录写入后把 quality 记录与 `.apply-isolation.json` 快照到 repository 外并记录 SHA-256；最后回滚该轮实现、原子恢复三份当前状态文件并校验 hash。协议 SHALL 明确禁止空 baseline、stash 与 tag，并要求状态恢复异常时停止。
-
-- **Agent 执行失败回滚**
-
-  - coordinator 处理某轮复核失败
-  - prompt SHALL 先指示持久化三份当前状态文件的 snapshot
-  - SHALL 再指示回滚该轮实现并原子恢复三份当前状态文件
-
-回滚保护 SHALL 覆盖当前 `.quality-state.json`、`.quality-log.jsonl`、`.apply-isolation.json` 及当前 Change 内的全部质量历史目录。执行 `git reset --hard HEAD` 和 `git clean -fd` 前，SHALL 将这些数据完整保存到 repository 外并记录文件清单与 SHA-256；之后恢复并逐项校验，包括历史中未被 Git 跟踪的文件，不因 HEAD 中没有这些文件而删除它们。历史目录原先不存在时 SHALL 保留该事实，不伪造旧轮次。
-
-恢复失败、校验不一致或历史文件缺失时 SHALL 停止，不提交新的优化结果。普通失败回滚 SHALL 保留当前台账的失败记录与预算，不调用重新验证的记录轮换流程。
-
-- **重启后的优化失败**：旧轮次历史已保存在 Change 内，新方向未通过 Review；回滚只丢弃本次 speculative code，三份当前状态文件和所有旧轮次历史均保持保存时的字节，状态匹配成功 checkpoint 后可按当前台账报告失败尝试。
-- **未跟踪的历史目录**：历史文件尚未被 Git 跟踪，`git clean -fd` 会清理它们；repository 外保存及恢复 SHALL 确保回滚后这些历史文件仍完整可读。
+共享 reference SHALL 说明优化前独立 Review 和可恢复基线、按需中间保存、所需验证全部通过后的最终成功状态。失败可局部修正或撤销并保留可靠工作，不要求每方向 commit 或失败整批 reset/clean。恢复 SHALL 保留代码、commits/checkpoints、当前记录及全部历史；不能确认局部恢复则恢复可确认基线，再不能确认则停止。优化中断后 SHALL 在主 Agent 确认旧写入者已停止后核对原委托、最近进度与磁盘差异，默认继续同一委托；意外中断可能没有最终保存。记录 A 已完成而磁盘有半成品 B 时，检查 B 和相互影响后继续、修正或撤销，不直接判 B 完成或自动丢弃 A/B。未记录、未验证或过期证据需补查；归属或恢复可靠性不明时停止并交回主 Agent。只有主 Agent 主动开始新探索才建新委托。
 
 ### Section: 语言一致性
 

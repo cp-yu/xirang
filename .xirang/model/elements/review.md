@@ -4,19 +4,14 @@ identity: review
 kind: element
 parent: quality
 title: Review
-definition: Review 是 Quality 中由代码状态反复触发的正确性门禁：只要存在未经 Review 的代码变更，就必须先执行 Review。它由 Reviewer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行，独立评估 Change 是否完整落实、项目行为是否正确、实现是否遵循决策与约束、必要清理是否完成，并判断当前结果是否符合 Expected Semantic Model。
+definition: Review 是 Quality 中独立评估实现正确性的活动，独立承载证据判断而不负责优化价值或最终验证范围决策。它由 clean-context Reviewer 审查基线完整 Change、主 Agent 要求的优化增量范围或基线遗漏缺陷的修复及影响，输出实际范围和状态上的结论与修正事项；不修改项目或管理 checkpoint。
 ---
 
 ## Specification
 
 ### Section: 在每次 Apply 修改后执行
 
-Review SHALL 在每次 Apply 修改项目后执行。
-
-- **项目状态被修改**
-
-  - Apply 完成一轮写入
-  - 最新状态进入 Review
+普通 Apply 实现与其 Review 修正完成后 SHALL 执行 Change 级独立 Review，作为优化前基线。优化开始后，主 Agent 按实际风险决定是否追加增量 Review；修复基线遗漏的当前 Change 正确性缺陷后 SHALL 追加针对该问题及其影响的独立 Review。
 
 ### Section: 在 Clean Context 中独立评估
 
@@ -38,12 +33,7 @@ Review SHALL 读取 Semantic Model、Change、当前项目状态与项目证据�
 
 ### Section: 评估目标实现质量
 
-Review SHALL 评估 Change 是否完整落实、行为是否正确、实现是否一致、项目约束是否遵循以及必要清理是否完成。
-
-- **检查当前状态**
-
-  - Reviewer 对照 Expected Semantic Model
-  - 逐项评估完整性、正确性、一致性与清理
+Review SHALL 对实际委托范围评估完整性、正确性、一致性、项目约束和必要清理。基线 Review 评估完整 Change；增量 Review 评估指定累计改动与影响；基线缺陷修复 Review 评估缺陷、修复及其影响。不得将局部评估声明为新整 Change 审查。
 
 ### Section: 先证据后结论
 
@@ -65,28 +55,12 @@ Review SHALL 只以当前项目状态中独立获得的充分证据判定通过�
 
 ### Section: 通过状态具备 Checkpoint 资格
 
-Review 通过时，当前项目状态 SHALL 有资格成为 baseline 或 successful checkpoint。
-
-- **当前状态通过 Review**
-
-  - 没有阻塞问题且证据充分
-  - Quality 可保存该状态为 Checkpoint
+基线 Review 通过后，项目状态 SHALL 具备 baseline checkpoint 资格。优化中的 Review 通过仅满足其实际范围内的独立验证要求，最终 successful checkpoint 仍以主 Agent 确定的全部验证通过且证据当前为条件。
 
 ### Section: 结论绑定被评估状态
 
-Review 结论 SHALL 只适用于被评估的项目状态。
-
-- **Review 后项目修改**
-
-  - 当前项目状态发生任何修改
-  - 旧 Review 结论不适用于新状态
+Review 结论 SHALL 绑定实际被评估状态与范围，不因稍后保存记录而重绑当前代码。基线 PASS 不证明后续优化已被独立审查；主 Agent 判断无需追加 Review 不构成 Reviewer PASS。
 
 ### Section: 修改后重新 Review
 
-任何项目修改 SHALL 要求修改后的状态重新执行 Review。
-
-- **Apply 实现修正或优化**
-
-  - 项目产生新状态
-  - 该状态成为 `dirty`
-  - Quality 再次进入 Review
+普通实现修正 SHALL 重新执行 Change 级 Review；优化修改 SHALL 由主 Agent 重新判断受影响验证，不强制每项追加 Review。已声明需要的增量 Review 和基线缺陷修复 Review 必须完成并通过才可收尾。
