@@ -311,7 +311,10 @@ describe('quality v2 engine foundation', () => {
     }
   });
 
-  it('records symlink identities without traversing targets and detects target or mode drift', async () => {
+  // Windows git does not roundtrip symlink blobs byte-identically with fs.readlink
+  // (core.symlinks=false ecosystems); coverage for symlink storage runs on POSIX.
+  const symlinkRoundtrip = process.platform === 'win32' ? it.skip : it;
+  symlinkRoundtrip('records symlink identities without traversing targets and detects target or mode drift', async () => {
     await fs.mkdir(path.join(root, 'outside'), { recursive: true });
     await fs.writeFile(path.join(root, 'outside', 'secret.ts'), 'secret\\n');
     await fs.symlink('outside/secret.ts', path.join(root, 'linked.ts'));

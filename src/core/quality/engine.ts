@@ -714,11 +714,10 @@ async function validateStorage(changeDir: string): Promise<void> {
   if (path.basename(path.dirname(resolved)) !== 'changes' || path.basename(path.dirname(path.dirname(resolved))) !== '.xirang') {
     throw error('UNSAFE_CHANGE_DIR', 'Quality storage requires a real .xirang/changes/<change> root.');
   }
-  const storageBase = await realAncestorBoundary(path.dirname(resolved));
-  await assertNoInteriorSymlinks(storageBase, resolved);
+  await assertNoInteriorSymlinks(path.dirname(resolved), resolved);
   for (const name of [QUALITY_STATE_FILE, QUALITY_LOG_FILE, QUALITY_LOCK_FILE]) {
     const file = path.join(resolved, name);
-    await assertNoInteriorSymlinks(storageBase, file);
+    await assertNoInteriorSymlinks(path.dirname(resolved), file);
     try { if (!(await fs.lstat(file)).isFile()) throw error('UNSAFE_PATH', 'Quality storage must be a regular file.', file); }
     catch (cause) { if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') throw cause; }
   }
