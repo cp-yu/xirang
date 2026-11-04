@@ -1,17 +1,27 @@
 local mode = vim.v.argv[#vim.v.argv] or 'list'
 local root = vim.fn.tempname()
-vim.fn.mkdir(root .. '/.xirang/model', 'p')
+vim.fn.mkdir(root .. '/.xirang/model/elements', 'p')
+vim.fn.mkdir(root .. '/.xirang/model/metamodel', 'p')
+vim.fn.mkdir(root .. '/.xirang/model/relationships', 'p')
+vim.fn.mkdir(root .. '/.xirang/model/views', 'p')
 vim.fn.mkdir(root .. '/.xirang/changes/demo/elements', 'p')
+vim.fn.mkdir(root .. '/.xirang/changes/demo/metamodel', 'p')
+vim.fn.mkdir(root .. '/.xirang/changes/demo/relationships', 'p')
+vim.fn.mkdir(root .. '/.xirang/changes/demo/views', 'p')
 local source = root .. '/.xirang/changes/demo/elements/item.md'
 local handle = io.open(source, 'w'); handle:write('delta'); handle:close()
-local state = { valid = true, after = 'target\n', pending = {} }
+local state = { valid = true, after = 'target\n', pending = {}, calls = 0 }
 local review = dofile('integrations/nvim/lua/xirang/review.lua')
 local function payload()
   return vim.json.encode({ valid = state.valid, diagnostics = {}, sources = state.valid and {
-    { path = 'elements/item.md', entries = {{ entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\n', after = state.after }} },
+    { path = 'elements/item.md', entries = {
+      { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\n', after = state.after },
+      { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED', before = 'current\n', after = state.after },
+    } },
   } or {}, plans = state.valid and {{ path = 'design.md', content = 'Plan text\n' }} or {} })
 end
 review.setup({ cwd = root, runner = function(_, _, callback)
+  state.calls = state.calls + 1
   state.pending[#state.pending + 1] = function() callback({ code = 0, stdout = payload() }) end
   state.pending[#state.pending]()
 end })
@@ -41,6 +51,7 @@ if mode == 'list' then
   assertContains(text, 'item.md')
   assertContains(text, 'Plan')
   assert(#session.items == 2)
+  assert(#session.groups.elements == 1)
   vim.api.nvim_set_current_win(session.listWin)
   vim.api.nvim_win_set_cursor(session.listWin, { 1, 0 })
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'xt', false)
@@ -80,8 +91,14 @@ elseif mode == 'refresh' then
   state.valid = true
   launch()
   local session = current()
+  local initialCalls = state.calls
   local sourceBuf = vim.fn.bufadd(source)
   state.after = 'new target\n'
+  local output = io.open(source, 'w'); output:write('external change'); output:close()
+  waitFor(function() return state.calls > initialCalls end)
+  local modelSource = root .. '/.xirang/model/elements/root.md'
+  local modelFile = io.open(modelSource, 'w'); modelFile:write('external model change'); modelFile:close()
+  waitFor(function() return state.calls > initialCalls + 1 end)
   vim.api.nvim_exec_autocmds('BufWritePost', { buffer = sourceBuf })
   waitFor(function() return table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n'):find('new target', 1, true) ~= nil end)
   state.valid = false
@@ -111,7 +128,7 @@ elseif mode == 'windows-paths' then
   local session = current()
   assert(session.cwd == root)
   assert(session.groups.elements[1].source == vim.fs.joinpath(root, '.xirang', 'changes', 'demo', 'elements/item.md'))
-  assert(#session.watchers == 2)
+  assert(#session.watchers == 10)
   vim.cmd('tabclose!')
   vim.wait(20)
   assert(session.closed)

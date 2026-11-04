@@ -4,6 +4,7 @@
 
 **Files**:
 - Modify: `src/core/model/delta.ts`
+- Modify: `src/core/change-compiler.ts`
 - Modify: `src/commands/show.ts`
 - Modify: `src/cli/index.ts`
 - Test: `test/core/model/delta.test.ts`

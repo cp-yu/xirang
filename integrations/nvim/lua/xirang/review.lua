@@ -7,14 +7,6 @@ local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO, { title = 'Xirang Review' })
 end
 
-local function file(path)
-  local handle = io.open(path, 'rb')
-  if not handle then return nil end
-  local value = handle:read('*a')
-  handle:close()
-  return value
-end
-
 local function lines(text)
   local result = {}
   for line in (text .. '\n'):gmatch('(.-)\n') do result[#result + 1] = line end
@@ -157,12 +149,16 @@ local function refresh(session, initial)
       local groups = { elements = {}, metamodel = {}, relationships = {}, views = {} }
       for _, source in ipairs(data.sources or {}) do
         local partition = source.path:match('^([^/]+)/')
+        local before, after = {}, {}
+        local seenBefore, seenAfter = {}, {}
         for _, entry in ipairs(source.entries) do
-          groups[partition][#groups[partition] + 1] = {
-            path = source.path, source = vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change, source.path),
-            before = entry.before, after = entry.after,
-          }
+          if not seenBefore[entry.before] then before[#before + 1] = entry.before; seenBefore[entry.before] = true end
+          if not seenAfter[entry.after] then after[#after + 1] = entry.after; seenAfter[entry.after] = true end
         end
+        groups[partition][#groups[partition] + 1] = {
+          path = source.path, source = vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change, source.path),
+          before = table.concat(before, '\n\n'), after = table.concat(after, '\n\n'),
+        }
       end
       session.groups, session.plans = groups, {}
       for _, plan in ipairs(data.plans or {}) do
@@ -238,9 +234,24 @@ local function open(change)
   map('e', function() sourceJump(session) end)
   map('r', function() refresh(session, false) end)
   vim.api.nvim_create_autocmd('BufWipeout', { buffer = list, once = true, callback = function() session.closed = true; stop(session); sessions[tab] = nil end })
-  for _, dir in ipairs({ vim.fs.joinpath(cwd, '.xirang', 'model'), vim.fs.joinpath(cwd, '.xirang', 'changes', change) }) do
-    local watcher = uv.new_fs_event()
-    if watcher then pcall(watcher.start, watcher, dir, { recursive = true }, function() vim.schedule(function() if not session.closed then refresh(session, false) end end) end); session.watchers[#session.watchers + 1] = watcher end
+  local xirang = vim.fs.joinpath(cwd, '.xirang')
+  local watchDirs = { vim.fs.joinpath(xirang, 'model'), vim.fs.joinpath(xirang, 'changes', change) }
+  for _, base in ipairs({ watchDirs[1], watchDirs[2] }) do
+    for _, partition in ipairs({ 'elements', 'metamodel', 'relationships', 'views' }) do
+      watchDirs[#watchDirs + 1] = vim.fs.joinpath(base, partition)
+    end
+  end
+  for _, dir in ipairs(watchDirs) do
+    local stat = uv.fs_stat(dir)
+    if stat and stat.type == 'directory' then
+      local watcher = uv.new_fs_event()
+      if watcher then
+        local ok = pcall(watcher.start, watcher, dir, {}, function()
+          vim.schedule(function() if not session.closed then refresh(session, false) end end)
+        end)
+        if ok then session.watchers[#session.watchers + 1] = watcher else watcher:close() end
+      end
+    end
   end
   refresh(session, true)
 end
