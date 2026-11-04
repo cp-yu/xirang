@@ -8,7 +8,6 @@ import { runCLI } from '../helpers/run-cli.js';
 import { readQualityStore } from '../../src/core/quality/engine.js';
 
 const execFileAsync = promisify(execFile);
-const logFile = '/tmp/xirang-public-cli-vitest.log';
 
 describe('quality v2 public CLI', () => {
   let root: string;
@@ -28,7 +27,6 @@ describe('quality v2 public CLI', () => {
     await git('config', 'user.email', 'quality@example.com');
     await git('config', 'core.autocrlf', 'false');
     await commit('initial');
-    await fs.appendFile(logFile, `FIXTURE ${root}\n`);
   });
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
@@ -43,7 +41,6 @@ describe('quality v2 public CLI', () => {
   }
   async function cli(args: string[], input?: string) {
     const result = await runCLI(['quality', ...args], { cwd: root, input });
-    await fs.appendFile(logFile, `${result.exitCode} ${result.stdout.trim()} ${result.stderr.trim()}\n`);
     return result;
   }
   async function json(result: Awaited<ReturnType<typeof cli>>) {
