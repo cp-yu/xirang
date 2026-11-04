@@ -6,6 +6,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { runCLI } from '../helpers/run-cli.js';
 import { readQualityStore } from '../../src/core/quality/engine.js';
+import { removeTempDir } from '../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -29,7 +30,7 @@ describe('quality v2 public CLI', () => {
     await commit('initial');
   });
 
-  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
+  afterEach(async () => removeTempDir(root));
 
   async function git(...args: string[]): Promise<string> {
     return (await execFileAsync('git', args, { cwd: root })).stdout.trim();

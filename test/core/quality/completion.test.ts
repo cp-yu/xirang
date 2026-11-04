@@ -8,6 +8,7 @@ import { beginReview, buildCodeManifest, executeVerification, readQualityStore, 
 import { completeOptimization, evaluateCompletion, planCompletion, recordCheckpoint } from '../../../src/core/quality/completion.js';
 import { readQualityCompletion } from '../../../src/core/quality/state.js';
 import { captureSyncAssociation, persistSyncAssociation } from '../../../src/core/quality/sync-association.js';
+import { removeTempDir } from '../../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -28,7 +29,7 @@ describe('optimization completion gate', () => {
     await commit('initial');
   });
 
-  afterEach(async () => fs.rm(root, { recursive: true, force: true }));
+  afterEach(async () => removeTempDir(root));
 
   async function commit(message: string): Promise<string> {
     await execFileAsync('git', ['add', '-A'], { cwd: root });

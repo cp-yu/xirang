@@ -7,6 +7,21 @@ import { beginReview, executeVerification, readQualityStore, skipDelegation, sub
 
 const execFileAsync = promisify(execFile);
 
+/** Windows file locks (Defender scans, handle release) make recursive temp removal flaky. */
+export async function removeTempDir(root: string): Promise<void> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await fs.rm(root, { recursive: true, force: true });
+      return;
+    } catch (cause) {
+      const code = (cause as NodeJS.ErrnoException).code;
+      if (code !== 'EBUSY' && code !== 'EPERM' && code !== 'ENOTEMPTY' && code !== 'EACCES') throw cause;
+      if (attempt >= 8) throw cause;
+      await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+    }
+  }
+}
+
 export async function createCompleteQualityFixture(root: string, changeDir: string): Promise<void> {
   await fs.mkdir(changeDir, { recursive: true });
   await fs.mkdir(path.join(root, 'src'), { recursive: true });

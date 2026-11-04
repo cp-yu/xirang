@@ -21,6 +21,7 @@ import {
   transactQuality,
 } from '../../../src/core/quality/engine.js';
 import { recordCheckpoint } from '../../../src/core/quality/completion.js';
+import { removeTempDir } from '../../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -43,9 +44,7 @@ describe('quality v2 engine foundation', () => {
     await execFileAsync('git', ['commit', '-qm', 'initial'], { cwd: root });
   });
 
-  afterEach(async () => {
-    await fs.rm(root, { recursive: true, force: true });
-  });
+  afterEach(async () => removeTempDir(root));
 
   async function head(): Promise<string> {
     const result = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root });
@@ -287,6 +286,31 @@ describe('quality v2 engine foundation', () => {
     expect(comparison.deleted).toContain('src/app.ts');
   });
 
+  it('allows OS-level symlink prefixes for roots while rejecting interior symlinked change roots', async () => {
+    const realBase = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-quality-real-'));
+    const linkedBase = path.join(os.tmpdir(), `xirang-quality-link-${path.basename(realBase)}`);
+    await fs.symlink(realBase, linkedBase);
+    try {
+      const project = path.join(linkedBase, 'project');
+      await fs.mkdir(path.join(project, 'src'), { recursive: true });
+      await fs.writeFile(path.join(project, 'src', 'app.ts'), 'export const value = 1;\n');
+      await execFileAsync('git', ['init', '-q'], { cwd: project });
+      await execFileAsync('git', ['config', 'user.name', 'Quality Test'], { cwd: project });
+      await execFileAsync('git', ['config', 'user.email', 'quality@example.com'], { cwd: project });
+      const manifest = await buildCodeManifest(project);
+      expect(manifest.entries.map(entry => entry.path)).toContain('src/app.ts');
+      const linkedChange = path.join(project, '.xirang', 'changes', 'linked');
+      await fs.mkdir(path.join(project, '.xirang', 'changes'), { recursive: true });
+      const outside = path.join(realBase, 'outside-store');
+      await fs.mkdir(outside, { recursive: true });
+      await fs.symlink(outside, linkedChange);
+      await expect(readQualityStore(linkedChange)).rejects.toMatchObject({ code: 'UNSAFE_SYMLINK' });
+    } finally {
+      await fs.rm(linkedBase, { force: true, recursive: true }).catch(() => {});
+      await fs.rm(realBase, { recursive: true, force: true });
+    }
+  });
+
   it('records symlink identities without traversing targets and detects target or mode drift', async () => {
     await fs.mkdir(path.join(root, 'outside'), { recursive: true });
     await fs.writeFile(path.join(root, 'outside', 'secret.ts'), 'secret\\n');
@@ -298,7 +322,8 @@ describe('quality v2 engine foundation', () => {
     const initial = await buildCodeManifest(root);
     expect(initial.entries.find(entry => entry.path === 'linked.ts')).toMatchObject({ mode: '120000', size: 'outside/secret.ts'.length });
     expect(initial.entries.find(entry => entry.path === 'dangling.ts')?.mode).toBe('120000');
-    expect((await compareRecoverableCommit(root, initialHead)).equal).toBe(true);
+    const initialComparison = await compareRecoverableCommit(root, initialHead);
+    expect(initialComparison.equal, `initial symlink drift: ${JSON.stringify({ added: initialComparison.added, deleted: initialComparison.deleted, changed: initialComparison.changed })}`).toBe(true);
 
     await fs.unlink(path.join(root, 'linked.ts'));
     await fs.symlink('outside/other.ts', path.join(root, 'linked.ts'));

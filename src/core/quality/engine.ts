@@ -381,18 +381,11 @@ function resolveInside(root: string, relative: string): string {
 async function assertNoSymlinkParents(root: string, relative: string): Promise<string> {
   const resolved = resolveInside(root, relative);
   const rootPath = path.resolve(root);
-  await assertSafeStoragePath(rootPath);
-  let rootStat;
-  try {
-    rootStat = await fs.lstat(rootPath);
-  } catch (cause) {
-    if ((cause as NodeJS.ErrnoException).code === 'ENOENT') throw error('PATH_NOT_FOUND', 'Project root does not exist.', rootPath);
-    throw cause;
-  }
-  if (rootStat.isSymbolicLink()) throw error('UNSAFE_SYMLINK', 'Project root must not be a symlink.', rootPath);
-  const parts = path.relative(rootPath, resolved).split(path.sep).filter(Boolean);
-  let current = rootPath;
-  for (const part of parts) {
+  // The OS-level prefix may traverse symlinks (macOS /var, /tmp links); only
+  // components below the resolved project root are required to be real.
+  const realRoot = await realAncestorBoundary(rootPath);
+  let current = realRoot;
+  for (const part of path.relative(rootPath, resolved).split(path.sep).filter(Boolean)) {
     current = path.join(current, part);
     let stat;
     try {
@@ -498,15 +491,12 @@ async function trackedWorkspacePaths(root: string): Promise<string[]> {
 
 export async function buildCodeManifest(projectRoot: string): Promise<CodeManifest> {
   const root = path.resolve(projectRoot);
-  let rootStat;
   try {
-    rootStat = await fs.lstat(root);
+    await fs.realpath(root);
   } catch (cause) {
     if ((cause as NodeJS.ErrnoException).code === 'ENOENT') throw error('PATH_NOT_FOUND', 'Project root does not exist.', root);
     throw cause;
   }
-  if (rootStat.isSymbolicLink()) throw error('UNSAFE_SYMLINK', 'Project root must not be a symlink.', root);
-  await assertSafeStoragePath(root);
   const unique = new Set(await trackedWorkspacePaths(root));
   const paths = [...unique].filter((relative) => !isQualityRuntimePath(relative)).sort();
   const entries: ManifestEntry[] = [];
@@ -684,17 +674,29 @@ function requireShape(schema: z.ZodType, value: unknown, code: string): void {
   if (!result.success) throw error(code, result.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join('; '));
 }
 
-// Reject existing symlinks in the entire parent chain, including runtime paths absent from Git.
-// Missing tail components are allowed so initialization never requires precreated runtime files.
-async function assertSafeStoragePath(file: string): Promise<void> {
-  const resolved = path.resolve(file);
-  const parsed = path.parse(resolved);
-  let current = parsed.root;
-  for (const part of resolved.slice(parsed.root.length).split(path.sep).filter(Boolean)) {
+// The OS-level path prefix may legitimately traverse symlinks (macOS /var, /tmp
+// links); symlink protection applies strictly below the deepest existing ancestor.
+// A missing tail is allowed so initialization never requires precreated runtime files.
+async function realAncestorBoundary(target: string): Promise<string> {
+  let current = path.resolve(target);
+  for (;;) {
+    try { return await fs.realpath(current); }
+    catch (cause) {
+      if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') throw cause;
+      const parent = path.dirname(current);
+      if (parent === current) throw error('PATH_NOT_FOUND', 'Path does not exist.', target);
+      current = parent;
+    }
+  }
+}
+
+async function assertNoInteriorSymlinks(base: string, target: string): Promise<void> {
+  const baseReal = await realAncestorBoundary(base);
+  let current = baseReal;
+  for (const part of path.relative(path.resolve(base), path.resolve(target)).split(path.sep).filter(Boolean)) {
     current = path.join(current, part);
     try {
-      const stat = await fs.lstat(current);
-      if (stat.isSymbolicLink()) throw error('UNSAFE_SYMLINK', 'Storage paths must not traverse symlinks.', current);
+      if ((await fs.lstat(current)).isSymbolicLink()) throw error('UNSAFE_SYMLINK', 'Storage paths must not traverse symlinks.', current);
     } catch (cause) {
       if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return;
       throw cause;
@@ -702,15 +704,21 @@ async function assertSafeStoragePath(file: string): Promise<void> {
   }
 }
 
+async function assertSafeStoragePath(file: string): Promise<void> {
+  const resolved = path.resolve(file);
+  await assertNoInteriorSymlinks(path.dirname(resolved), resolved);
+}
+
 async function validateStorage(changeDir: string): Promise<void> {
   const resolved = path.resolve(changeDir);
   if (path.basename(path.dirname(resolved)) !== 'changes' || path.basename(path.dirname(path.dirname(resolved))) !== '.xirang') {
     throw error('UNSAFE_CHANGE_DIR', 'Quality storage requires a real .xirang/changes/<change> root.');
   }
-  await assertSafeStoragePath(resolved);
+  const storageBase = await realAncestorBoundary(path.dirname(resolved));
+  await assertNoInteriorSymlinks(storageBase, resolved);
   for (const name of [QUALITY_STATE_FILE, QUALITY_LOG_FILE, QUALITY_LOCK_FILE]) {
     const file = path.join(resolved, name);
-    await assertSafeStoragePath(file);
+    await assertNoInteriorSymlinks(storageBase, file);
     try { if (!(await fs.lstat(file)).isFile()) throw error('UNSAFE_PATH', 'Quality storage must be a regular file.', file); }
     catch (cause) { if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') throw cause; }
   }
@@ -1039,8 +1047,6 @@ export async function executeVerification(input: VerificationInput): Promise<{ v
   const cwd = input.cwd ? (path.isAbsolute(input.cwd) ? path.resolve(input.cwd) : resolveInside(root, input.cwd)) : root;
   const relativeCwd = path.relative(root, cwd);
   if (relativeCwd === '..' || relativeCwd.startsWith(`..${path.sep}`) || path.isAbsolute(relativeCwd)) throw error('UNSAFE_CWD', 'Verification cwd must remain inside projectRoot.');
-  const rootStat = await fs.lstat(root);
-  if (rootStat.isSymbolicLink()) throw error('UNSAFE_CWD', 'Verification projectRoot must not be a symlink.');
   if (relativeCwd !== '') await assertNoSymlinkParents(root, relativeCwd.split(path.sep).join('/'));
   const cwdStat = await fs.lstat(cwd);
   if (!cwdStat.isDirectory() || cwdStat.isSymbolicLink()) throw error('UNSAFE_CWD', 'Verification cwd must be a real directory.');
