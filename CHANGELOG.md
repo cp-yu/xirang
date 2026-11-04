@@ -1,5 +1,14 @@
 # xirang
 
+## 0.2.3
+
+### Patch Changes
+
+- 优化流程从方向循环改为委托式执行：主 Agent 判断累计交付与验证范围，统一 `quality review/delegation/verification/conclusion/checkpoint/status/seal` 完成门禁；Opt 在受委托范围内实施、运行真实本地测试并按时点保存，同委托恢复不换 ID；失败与放弃尝试保留原因、处理与恢复证据。显式重新验证（revalidation）建立新活动关联并归档旧流程，历史记录、提交与 checkpoint 不重写、不静默迁移。
+- 退役 `optimization.directionLimit`、`optimization.directionRetries`、`optimization.minImpactLevel`：有效/默认/投影配置仅含 `optimization.enabled`（默认 `true`），退役键只产生明确诊断，不建立兼容路径。
+- Sync 仅把实际确定性模型输出关联到既有验证证据并保留原执行时 manifest；外部改动不能被该关联掩盖。Archive 前统一要求基线 Review、完整交付或显式 skip、适用验证、最终结论与 successful checkpoint。
+- 生成面（agent/skill/reference）改为按角色原生工具权限与运行时协议投影：可写 Opt、只读 Reviewer；CLI help、输入示例与恢复指引由同一协议渲染，不再附加固定方向协议。
+
 ## 0.2.2
 
 ### Minor Changes

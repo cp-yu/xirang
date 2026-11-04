@@ -86,7 +86,7 @@ describe('quality v2 public CLI', () => {
   it('preserves global version and color options for unrelated commands', async () => {
     const appVersion = await runCLI(['--version'], { cwd: root });
     expect(appVersion.exitCode).toBe(0);
-    expect(appVersion.stdout.trim()).toBe('0.2.2');
+    expect(appVersion.stdout.trim()).toBe('0.2.3');
     const beforeCommand = await runCLI(['--no-color', 'schemas', '--json'], { cwd: root });
     expect(beforeCommand.exitCode, beforeCommand.stderr).toBe(0);
     expect(() => JSON.parse(beforeCommand.stdout)).not.toThrow();
