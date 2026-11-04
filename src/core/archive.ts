@@ -7,10 +7,7 @@ import {
   assessChangeSyncState,
   getPendingChangeSync,
 } from './change-sync.js';
-import {
-  readQualityCompletion,
-  formatQualityGateFailure,
-} from './quality/state.js';
+import { readQualitySeal } from './quality/engine.js';
 import { selectActiveChange } from './change-utils.js';
 import { compileChange } from './change-compiler.js';
 
@@ -168,7 +165,7 @@ export class ArchiveCommand {
   private async runQualityGate(
     changeDir: string,
     targetPath: string,
-    changeName: string,
+    _changeName: string,
     options: ArchiveOptions,
   ): Promise<boolean> {
     const skipVerify = options.verify === false || options.noVerify === true;
@@ -193,17 +190,9 @@ export class ArchiveCommand {
       return true;
     }
 
-    const state = await readQualityCompletion(changeDir, targetPath);
     const failures: string[] = [];
-
-    if (state.status !== 'all_done' || state.gaps.length > 0 || state.unsupported) {
-      failures.push(
-        formatQualityGateFailure({ status: 'dirty', changedFiles: state.changedFiles, details: state.gaps, information: {} }, undefined, {
-          changeName,
-          command: 'archive',
-        }) + (state.diagnostic ? `\n${state.diagnostic}` : ''),
-      );
-    }
+    const seal = await readQualitySeal(changeDir, targetPath);
+    if (!seal.valid) failures.push('Quality gate failed: a valid Seal commit is required.');
 
     if (failures.length > 0) {
       throw new Error(failures.join('\n\n'));

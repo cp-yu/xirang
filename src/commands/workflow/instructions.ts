@@ -340,7 +340,7 @@ async function resolveCompletedApplyState(
     return {
       state: 'needs_review',
       instruction:
-        'All tasks are complete, but baseline quality evidence is missing or unsupported.\nRead `xirang quality status` and its specific gaps. Obtain the independent baseline Review through the shared Apply Step 3 reference, or record its matching checkpoint through Step 4 if that is the only gap. Preserve unsupported records and follow the shared quality recovery reference.',
+        'All tasks are complete, but baseline Review evidence is missing or invalid. Read `xirang quality status` and record an independent Review bound to an existing commit.',
     };
   }
 
@@ -348,14 +348,14 @@ async function resolveCompletedApplyState(
     return {
       state: 'needs_optimize',
       instruction:
-        'All tasks are complete, but delegation, final verification, conclusion or checkpoint evidence is incomplete.\nRead `xirang quality status` and follow the shared Apply Step 4 optimization and quality recovery references for the actual gaps. Continue the original interrupted delegation after its writer stops; reassess affected validation rather than automatically rerunning whole-Change Review. Seal only after all_done with no gaps.',
+        'All tasks are complete, but Opt disposition or Seal is missing. Read `xirang quality status`; record the main Agent\'s explicit Opt choice and Seal declaration for an existing commit.',
     };
   }
 
   return {
     state: 'all_done',
     instruction:
-      'All tasks are complete and the full quality completion conditions pass without gaps: applicable required verification, main conclusion and final successful checkpoint are recorded.\nThis change is ready to be archived.',
+      'All tasks are complete and the Quality record contains a passing commit-bound Review, explicit Opt disposition and valid Seal commit.\nThis change is ready to be archived.',
   };
 }
 

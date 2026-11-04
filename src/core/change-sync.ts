@@ -15,7 +15,6 @@ import {
   type PreparedSyncManifestEntry,
   type SyncTransactionFileSystem,
 } from './model/transaction.js';
-import { captureSyncAssociation, persistSyncAssociation, type SyncAssociationAttempt } from './quality/sync-association.js';
 
 export type PartitionCounts = Record<Partition, number>;
 
@@ -142,14 +141,8 @@ export async function applyPreparedChangeSync(
   options: {
     silent?: boolean;
     filesystem?: Partial<SyncTransactionFileSystem>;
-    refreshEvidence?: (changeDir: string, projectRoot: string, syncedFiles: string[]) => Promise<void>;
   } = {},
 ): Promise<AppliedChangeSyncSummary> {
-  const associationAttempt: SyncAssociationAttempt = await captureSyncAssociation(
-    prepared.state.changeDir,
-    projectRoot,
-    prepared.manifest,
-  );
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
     postWrite: () => pruneEmptyDirectories(projectRoot, prepared.manifest),
@@ -158,19 +151,6 @@ export async function applyPreparedChangeSync(
   const files = prepared.manifest.map(entry => entry.path);
   if (!(options.silent ?? false) && files.length > 0) {
     console.log('Semantic Model updated successfully.');
-  }
-
-  try {
-    if (options.refreshEvidence) {
-      await options.refreshEvidence(prepared.state.changeDir, projectRoot, files);
-    } else {
-      await persistSyncAssociation(associationAttempt);
-    }
-  } catch (error) {
-    throw new Error(
-      `SYNC_COMMITTED_QUALITY_ASSOCIATION_FAILED: Semantic Model changes are committed, but the quality completion association was not recorded: ${(error as Error).message}`,
-      { cause: error },
-    );
   }
 
   return { partitions: prepared.partitions, files };

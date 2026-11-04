@@ -122,14 +122,10 @@ describe('Semantic Model sync workflow', () => {
     expect((await getPendingChangeSync(root, state)).pending).toBe(0);
   });
 
-  it('reports evidence refresh failure after the semantic commit without claiming rollback', async () => {
+  it('does not perform a Quality writeback after semantic sync', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
     const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
-
-    await expect(applyPreparedChangeSync(root, prepared, {
-      refreshEvidence: async () => { throw new Error('evidence write failed'); },
-    })).rejects.toThrow(/SYNC_COMMITTED_QUALITY_ASSOCIATION_FAILED: Semantic Model changes are committed/);
-
+    await expect(applyPreparedChangeSync(root, prepared)).resolves.toMatchObject({ files: ['.xirang/model/elements/cap.added.md'] });
     await expect(fs.access(path.join(modelRoot(root), 'elements', 'cap.added.md'))).resolves.toBeUndefined();
   });
 });

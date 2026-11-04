@@ -142,12 +142,9 @@ describe('introspect', () => {
     expect(quality).toBeDefined();
     expect(quality?.subcommands?.map((command) => command.name)).toEqual([
       'review',
-      'delegation',
-      'verification',
-      'conclusion',
-      'checkpoint',
-      'status',
+      'opt',
       'seal',
+      'status',
     ]);
     expect(quality?.subcommands?.every((command) => command.positionalType === 'change-id')).toBe(true);
     expect(quality?.subcommands?.every((command) => command.flags.length > 0)).toBe(true);

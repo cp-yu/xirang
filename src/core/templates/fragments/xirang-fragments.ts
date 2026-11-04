@@ -1,11 +1,8 @@
 /** Shared architecture instruction fragments for workflow templates. */
 
 import {
-  renderQualityCheckpointStateMachine,
   renderQualityCliReference,
   renderQualityErrorRecovery,
-  renderQualityFastPath,
-  renderQualityStateDiagram,
 } from '../../quality/protocol.js';
 
 /**
@@ -195,14 +192,10 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
  * Used in: apply-change, archive-change
  *
  * Rendered by `src/core/quality/protocol.ts` from the CLI's commandSchemas and
- * qualityOptionMetadata. Apply registers the shared quality-cli reference;
- * these projections describe delegation, actual evidence and full completion.
+ * qualityOptionMetadata. Apply and Archive project the shared Review/Opt/Seal protocol.
  */
-export const QUALITY_STATE_MACHINE_DIAGRAM = renderQualityStateDiagram();
 export const QUALITY_CLI_JSON_SCHEMA_REFERENCE = renderQualityCliReference();
 export const QUALITY_ERROR_RECOVERY_GUIDE = renderQualityErrorRecovery();
-export const QUALITY_SIMPLE_CHANGE_FAST_PATH = renderQualityFastPath();
-export const QUALITY_CHECKPOINT_STATE_MACHINE = renderQualityCheckpointStateMachine();
 
 /**
  * Fragment: Apply proseLanguage only to natural-language prose

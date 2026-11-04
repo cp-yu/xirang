@@ -175,9 +175,7 @@ git:
       const changeName = 'missing-quality';
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', changeName), { recursive: true });
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(
-        'QUALITY_RECORD_UNSUPPORTED_OR_INVALID'
-      );
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('valid Seal commit');
     });
 
     it('blocks archive while v2 completion is incomplete', async () => {
@@ -186,7 +184,7 @@ git:
       await fs.mkdir(changeDir, { recursive: true });
       await createBaselineOnlyQualityFixture(tempDir, changeDir);
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/COMPLETION_PLAN_REQUIRED/);
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('valid Seal commit');
     });
 
     it('should archive when the quality record is clean and no sync is required', async () => {

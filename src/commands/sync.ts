@@ -9,7 +9,7 @@ import {
   applyPreparedChangeSync,
   prepareChangeSync,
 } from '../core/change-sync.js';
-import { readQualityCompletion, formatQualityGateFailure } from '../core/quality/state.js';
+import { readQualitySeal } from '../core/quality/engine.js';
 import { PARTITIONS } from '../core/model/types.js';
 import { validateChangeExists } from './workflow/shared.js';
 
@@ -49,15 +49,8 @@ export async function syncCommand(
   const skipVerify = options.verify === false || options.noVerify === true;
   if (!skipVerify) {
     const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', validatedChangeName);
-    const state = await readQualityCompletion(changeDir, projectRoot);
-    if (state.status !== 'all_done' || state.gaps.length > 0 || state.unsupported) {
-      throw new Error(
-        formatQualityGateFailure({ status: 'dirty', changedFiles: state.changedFiles, details: state.gaps, information: {} }, undefined, {
-          changeName: validatedChangeName,
-          command: 'sync',
-        }) + (state.diagnostic ? `\n${state.diagnostic}` : '')
-      );
-    }
+    const seal = await readQualitySeal(changeDir, projectRoot);
+    if (!seal.valid) throw new Error('Quality gate failed: a valid Seal commit is required.');
   }
 
   const syncState = await assessChangeSyncState(projectRoot, validatedChangeName);

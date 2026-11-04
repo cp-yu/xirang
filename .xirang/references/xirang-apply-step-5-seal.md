@@ -1,7 +1,5 @@
 # Apply Step 5: Seal
 
-Run `xirang quality seal "<change-name>" --json`. Seal uses the same full completion conditions as status; require status=all_done and no gaps, including the current final conclusion and matching successful checkpoint. A baseline PASS or delivered report alone is insufficient.
+Run xirang quality seal <change-name> using the generated Seal schema. Seal requires a passing latest baseline Review, no failing latest Review for any scope, an explicit Opt disposition and the main Agent's positive canRun/testsExpectedToPass declarations for an existing Git commit. Seal does not run tests or compare the commit with HEAD/workspace.
 
-On rejection preserve diagnostics and address the specific missing obligation. For interrupted delegation, stale evidence, missing required verification/plan/conclusion/checkpoint or uncertain recovery, follow the shared optimization and recovery references. Do not translate every quality gap into reimplementation or whole-Change Review. A passing baseline with only a missing baseline checkpoint needs its matching checkpoint, not another automatic Review.
-
-Actual ordinary implementation corrections return to their task-level loop with Required Corrections context and require the ordinary change-level Review afterward. Optimization edits/recovery follow Step 4's final risk-based verification and mandatory targeted Review for repaired baseline defects. Reassess affected evidence after any code change before retrying seal. Do not pause on the first routine seal failure; stop when the diagnosed recovery/authority gap cannot be safely resolved.
+After Seal succeeds, Archive may run its independent gates. Do not separately commit Quality JSON before Seal or Archive; include it in the normal Git handoff. A rejected payload or revision conflict requires reading status and reconciling before retry.

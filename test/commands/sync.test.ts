@@ -2,8 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { QUALITY_STATE_FILE } from '../../src/core/quality/engine.js';
-import { readQualityStore } from '../../src/core/quality/engine.js';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
 import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
@@ -145,16 +143,17 @@ describe('syncCommand', () => {
     expect(console.log).toHaveBeenCalledWith("Sync complete for 'quality-clean'.");
   });
 
-  it('allows explicit --no-verify model writes but reports that incomplete v2 quality was not associated', async () => {
+  it('allows explicit --no-verify model writes without mutating Quality JSON', async () => {
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('quality-bypass-incomplete');
     await writeChangeDelta(tempDir, 'quality-bypass-incomplete', { 'elements/auth.md': ADD_REQUIREMENT });
     await createBaselineOnlyQualityFixture(tempDir, changeDir);
+    const qualityPath = path.join(changeDir, '.quality.json');
+    const before = await fs.readFile(qualityPath);
 
-    await expect(syncCommand('quality-bypass-incomplete', { noVerify: true })).rejects.toThrow(/QUALITY_COMPLETION_NOT_CURRENT/);
+    await syncCommand('quality-bypass-incomplete', { noVerify: true });
     expect(await fs.readFile(elementUnit(), 'utf8')).toContain('### Section: Login');
-    const snapshot = JSON.parse(await fs.readFile(path.join(changeDir, QUALITY_STATE_FILE), 'utf8'));
-    expect(snapshot.state.syncAssociations ?? []).toEqual([]);
+    expect(await fs.readFile(qualityPath)).toEqual(before);
   });
 
   it('supports interactive change selection when no name is provided', async () => {
@@ -194,7 +193,7 @@ describe('syncCommand', () => {
     const syncCommand = await loadSyncCommand();
     const changeDir = await createChange('no-delta-change');
     await writeFreshQualityRecord(changeDir);
-    const verifyPath = path.join(changeDir, QUALITY_STATE_FILE);
+    const verifyPath = path.join(changeDir, '.quality.json');
     const before = await fs.readFile(verifyPath, 'utf-8');
 
     await syncCommand('no-delta-change', { noVerify: true });
@@ -215,38 +214,31 @@ describe('syncCommand', () => {
     expect(await fs.readFile(elementUnit())).toEqual(first);
   });
 
-  it('associates exact model writes without rewriting captured execution evidence', async () => {
+  it('does not associate or rewrite Quality JSON during Sync', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'refresh-evidence-sync';
     const changeDir = await createChange(changeName);
     await writeChangeDelta(tempDir, changeName, { 'elements/auth.md': ADD_REQUIREMENT });
     await writeFreshQualityRecord(changeDir);
-    const before = (await readQualityStore(changeDir)).snapshot.state;
+    const qualityPath = path.join(changeDir, '.quality.json');
+    const before = await fs.readFile(qualityPath);
 
     await syncCommand(changeName, {});
-
-    const after = (await readQualityStore(changeDir)).snapshot.state;
-    expect(after.syncAssociations).toHaveLength(1);
-    expect(after.verifications).toEqual(before.verifications);
-    expect(after.reviews).toEqual(before.reviews);
-    expect(after.syncAssociations![0].outputs.map(output => output.path)).toEqual(['.xirang/model/elements/auth.md']);
+    expect(await fs.readFile(qualityPath)).toEqual(before);
     await new ArchiveCommand().execute(changeName, { yes: true });
     expect(await fs.readdir(path.join(tempDir, '.xirang', 'changes', 'archive'))).toEqual(expect.arrayContaining([expect.stringContaining(changeName)]));
   });
 
-  it('records the model transformation mapping when Sync outputs change CODE paths', async () => {
+  it('does not record a Quality transformation mapping during Sync', async () => {
     const syncCommand = await loadSyncCommand();
     const changeName = 'disjoint-evidence';
     const changeDir = await createChange(changeName);
     await writeChangeDelta(tempDir, changeName, { 'elements/auth.md': ADD_REQUIREMENT });
     await writeFreshQualityRecord(changeDir);
-    const before = (await readQualityStore(changeDir)).snapshot.state.verifications;
-
+    const qualityPath = path.join(changeDir, '.quality.json');
+    const before = await fs.readFile(qualityPath);
     await syncCommand(changeName, { noVerify: true });
-
-    const after = await readQualityStore(changeDir);
-    expect(after.snapshot.state.syncAssociations).toHaveLength(1);
-    expect(after.snapshot.state.verifications).toEqual(before);
+    expect(await fs.readFile(qualityPath)).toEqual(before);
   });
 
 
@@ -256,7 +248,7 @@ describe('syncCommand', () => {
     await writeChangeDelta(tempDir, 'no-quality-record', { 'elements/auth.md': ADD_REQUIREMENT });
 
     await expect(syncCommand('no-quality-record', { noVerify: true })).resolves.toBeUndefined();
-    await expect(fs.access(path.join(tempDir, '.xirang', 'changes', 'no-quality-record', QUALITY_STATE_FILE)))
+    await expect(fs.access(path.join(tempDir, '.xirang', 'changes', 'no-quality-record', '.quality.json')))
       .rejects.toThrow();
   });
 });

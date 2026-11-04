@@ -9,11 +9,11 @@ describe('quality gate diagnostics', () => {
       { changeName: 'c1', command: 'sync' }
     );
 
-    expect(message).toContain('✗ Quality gate failed — CODE_CHANGED_AFTER_PLAN');
-    expect(message).toContain('    - src/app.ts');
+    expect(message).toContain('Quality gate failed: CODE_CHANGED_AFTER_PLAN');
+    expect(message).toContain('  - src/app.ts');
     expect(message).toContain('xirang quality status "c1" --json');
-    expect(message).toContain('Retry xirang sync "c1" after all_done with no gaps and a successful seal.');
-    expect(message).toContain('--no-verify is an explicit user-authorized bypass');
+    expect(message).toContain('Retry xirang sync "c1" after the Seal commit exists.');
+    expect(message).not.toContain('--no-verify');
   });
 
   it('includes archive compatibility diagnostics without inventing v1 commands', () => {
@@ -23,9 +23,9 @@ describe('quality gate diagnostics', () => {
       { changeName: 'c1', command: 'archive' }
     );
 
-    expect(message).toContain('Recorded compatibility diagnostic:');
+    expect(message).toContain('Seal diagnostic: QUALITY_RECORD_UNSUPPORTED_OR_INVALID');
     expect(message).toContain('QUALITY_RECORD_UNSUPPORTED_OR_INVALID');
-    expect(message).toContain('Retry xirang archive "c1" after all_done with no gaps and a successful seal.');
+    expect(message).toContain('Retry xirang archive "c1" after the Seal commit exists.');
     expect(message).not.toContain('xirang quality review');
   });
 });

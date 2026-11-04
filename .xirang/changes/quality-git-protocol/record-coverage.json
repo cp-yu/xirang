@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261104T070309Z-1ce7f18c",
+  "sourceVersion": "ed9c63669c0ffa9de52a548105b383bc640e690553ffc15650953e96e06ec19e",
+  "targetFingerprint": "4d64d42706dac6707b46b5dc0649cf3bf107175e100ddd6175c875a2dcbfb61a",
+  "recordedAt": "2026-11-04T09:25:24.030Z",
+  "entries": [
+    {
+      "identity": "persist-only-purposeful-quality-records",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "持久化边界仅包括 Review opinion 历史、Opt opinion 或明确不做 Opt 的理由、当前 Seal 与 CAS revision",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "Quality JSON SHALL 仅持久化 Review opinions 历史、Opt opinions 或明确不做 Opt 的理由，以及当前 Seal 声明和 CAS revision。"
+        },
+        {
+          "detail": "不持久化 Opt 进度、代码 manifest、恢复位置、测试输出、重复快照或泛化操作日志；代码修改与恢复由 Git 承载",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "CLI 不持久化委托进度、代码 manifest、恢复位置、测试输出、重复状态快照或泛化操作日志；代码修改、失败尝试和恢复由 Git 承载。"
+        },
+        {
+          "detail": "Review history 与 Opt opinions 中的失败方向、原因和处理结果供主 Agent 后续判断并避免重复尝试",
+          "location": {
+            "element": "quality",
+            "section": "保留失败方向与优化历史"
+          },
+          "quote": "Quality SHALL 在唯一质量 JSON 中保留 Review opinion 历史及 Opt opinions，包含已放弃方向、原因和处理结果，以供主 Agent 后续判断并避免重复尝试。"
+        }
+      ]
+    },
+    {
+      "identity": "quality-closure-gate-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每个 Change 必须先取得通过的独立基线 Review，且失败修正后需在不同 commit 上重新 Review",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "普通 Apply 实现完成后 SHALL 执行覆盖完整 Change 的独立基线 Review，且被审查代码在 Review 开始前已提交为 Git commit。Review 不通过时，主 Agent SHALL 处理 Required Corrections、形成不同的修正 commit，并针对该 commit 重新执行 Review，直至取得通过的基线 Review。"
+        },
+        {
+          "detail": "Opt 与 Opt 后 Review 是否发生由主 Agent 按实际情况或风险决定",
+          "location": {
+            "element": "quality",
+            "section": "按阶段与证据缺口推进"
+          },
+          "quote": "Quality SHALL 按基线 Review、主 Agent 决定的可选 Opt、Opt 处置和 Seal 顺序推进。Review findings 与 Required Corrections 交由主 Agent 判断和处理；Quality SHALL NOT 自动修改 `tasks.md`。没有 Seal 时不得进入 Change Closure；Opt 后是否追加 Review 由主 Agent 按实际风险决定，不由 CLI 推断或要求。"
+        },
+        {
+          "detail": "进入 Change Closure 需要通过基线 Review、明确 Opt disposition 和有效 Seal",
+          "location": {
+            "element": "quality",
+            "section": "收口后确认可进入 Change Closure"
+          },
+          "quote": "Quality SHALL 仅在基线 Review 已通过、Seal 前已有明确 Opt 处置、且主 Agent 已记录有效 Seal 声明时允许 Change 进入 Change Closure。"
+        },
+        {
+          "detail": "Review opinion 绑定其所评估 commit；Opt opinion 绑定 baseCommit 与 resultCommit；代码历史和恢复归 Git",
+          "location": {
+            "element": "optimization-execution",
+            "section": "仅持久化已交付意见"
+          },
+          "quote": "Quality SHALL 只持久化 Review opinions、Opt opinions/明确不做 Opt 的处置及当前 Seal，不保存 Opt 开始、进度、暂停、恢复或完整测试输出。Opt opinion SHALL 在完成交付时写入，并关联起始与结果 commit；被中断且未交付的 Opt 不视为已完成 opinion。后续恢复依据 Git history 与工作区状态，由主 Agent 负责编排。"
+        },
+        {
+          "detail": "CLI 只校验流程与关联，不替主 Agent 决定是否 Opt 或是否追加 Opt 后 Review",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "它不记录委托起点、进度、测试输出或恢复位置，不判断是否应执行 Opt、跳过理由或 opinion 文本是否充分，也不维护方向排序、选择、依赖队列、收益分级、重试或数量限制。"
+        },
+        {
+          "detail": "Review findings 与 Required Corrections 交由主 Agent 判断；Opt opinion 为后续决策和避免重复提供依据",
+          "location": {
+            "element": "quality",
+            "section": "保留失败方向与优化历史"
+          },
+          "quote": "Quality SHALL 在唯一质量 JSON 中保留 Review opinion 历史及 Opt opinions，包含已放弃方向、原因和处理结果，以供主 Agent 后续判断并避免重复尝试。"
+        }
+      ]
+    },
+    {
+      "identity": "seal-verification-requirement",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Seal 记录主 Agent 对绑定 commit 可运行且预期通过适用测试的声明及测试范围和 assessment",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "Seal SHALL 绑定一个 Git commit，并包含主 Agent 对该 commit 的 `canRun` 与 `testsExpectedToPass` 正向声明、适用测试范围和 assessment。"
+        },
+        {
+          "detail": "CLI 验证 commit object 并记录声明，但不执行测试、不定义客观成功标准或保存测试输出",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "CLI 验证 commit 对象存在并记录声明；不执行测试、不定义客观测试成功、不保存测试输出"
+        },
+        {
+          "detail": "Seal 不要求工作区 clean，也不要求 commit 等于 HEAD 或与工作区内容一致；后续变化不单独使 Seal 失效",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "不要求工作区 clean、不要求 commit 等于 HEAD 或与当前工作区匹配，也不要求在 Seal 或 Archive 前单独提交 Quality JSON。后续工作区或 HEAD 变化不单独使 Seal 失效。"
+        },
+        {
+          "detail": "Archive Quality gate 只检查 Seal commit object 存在，不检查 HEAD、工作区 clean 或当前实现匹配",
+          "location": {
+            "element": "archive-quality-gate",
+            "section": "Archive rerun 使用 quality 执行模型"
+          },
+          "quote": "Archive Quality gate 不重跑测试、不重新评估 Review/Opt 自然语言、不比较当前工作区与 Seal commit。Unsupported old records SHALL 保留并报告，不读取或迁移。"
+        },
+        {
+          "detail": "Seal 是主 Agent 判断，不伪装成 Review 或实际测试结果",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "证据分工与机械关联"
+          },
+          "quote": "Seal 是主 Agent 判断，不伪装成 Review 或实际测试记录。"
+        }
+      ]
+    },
+    {
+      "identity": "commit-bound-assessment-timing",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Review 开始前代码已提交，审查期间状态保持不变，意见保留原 commit identity 且不因后续修改重绑",
+          "location": {
+            "element": "review",
+            "section": "结论绑定被评估状态"
+          },
+          "quote": "每条 Review opinion SHALL 包含其实际评估的 Git commit identity、审查范围、结果、summary 与 findings。Review 开始前目标代码 SHALL 已提交，审查期间保持该代码状态不变；保存 opinion 时 SHALL 保留原 commit identity，不因之后的代码修改重绑结论。"
+        },
+        {
+          "detail": "Opt opinion 关联优化起点 commit 与实际交付结果 commit",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "Opinion SHALL 绑定 `baseCommit` 与 `resultCommit`；Quality JSON 保存意见，不保存测试输出或代码快照，CLI 不评价自然语言充分性。"
+        },
+        {
+          "detail": "Seal 不要求 commit 与 HEAD 或工作区匹配，Archive 不检验当前实现是否匹配 Seal commit",
+          "location": {
+            "element": "change-archive",
+            "section": "Archive Quality Seal routing"
+          },
+          "quote": "Archive Quality gate SHALL 只检查新 JSON 中存在 Seal 且其 commit 对象仍存在；不比较 HEAD、工作区 clean 状态或当前实现与 Seal commit 内容，不因工作区变化重跑 Quality。"
+        },
+        {
+          "detail": "代码修改、提交历史和恢复由 Git 承载，Quality 不存代码 checkpoint、manifest 或恢复位置",
+          "location": {
+            "element": "optimization-execution",
+            "section": "Git 管理优化代码状态与恢复"
+          },
+          "quote": "代码修改、提交历史与恢复 SHALL 由 Git 承载，Quality 不保存 baseline/intermediate/successful checkpoint、代码 manifest 或恢复位置。"
+        },
+        {
+          "detail": "Opinion 记录判断和交付信息，不保存代码快照或测试输出",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "CLI 不持久化委托进度、代码 manifest、恢复位置、测试输出、重复状态快照或泛化操作日志；代码修改、失败尝试和恢复由 Git 承载。"
+        }
+      ]
+    },
+    {
+      "identity": "passing-review-gates-optimization",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每个 Change 至少一次通过的独立基线 Review 是 Opt 和 Seal 的必要前置条件",
+          "location": {
+            "element": "quality",
+            "section": "Review 通过后建立 Baseline"
+          },
+          "quote": "Quality SHALL 要求每个 Change 在可 Seal 前至少具有一条通过的独立基线 Review。"
+        },
+        {
+          "detail": "基线 Review 失败时主 Agent 修正并提交不同 commit，在该 commit 上重复 Review 直到通过",
+          "location": {
+            "element": "review",
+            "section": "修改后重新 Review"
+          },
+          "quote": "基线 Review 失败后的修正 SHALL 提交为不同 Git commit，并针对该 commit 重新 Review；重复此过程直至基线通过。"
+        },
+        {
+          "detail": "只有通过的基线 Review 才允许 Opt 开始；Opt 后是否追加 Review 由主 Agent 按风险决定",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "只有通过的基线 Review 才允许 Opt 开始或 Seal；Opt 后是否追加增量 Review 由主 Agent 按风险决定。"
+        },
+        {
+          "detail": "新协议显式绑定 Review 与修正的 Git commit，但不改变已有的基线 Review 门槛",
+          "location": {
+            "element": "review",
+            "section": "结论绑定被评估状态"
+          },
+          "quote": "通过的基线 Review 是 Opt 和 Seal 的必要前置条件。"
+        }
+      ]
+    },
+    {
+      "identity": "explicit-opt-disposition-before-seal",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Seal 前必须记录至少一条带 baseCommit、resultCommit 和意见文本的交付 Opt opinion，或带非空简短理由的 not_performed",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "`xirang quality opt <change-name>` SHALL 接受并记录以下一种 Opt 处置：至少一条交付 opinion，每条绑定 `baseCommit`、`resultCommit` 与意见文本；或带非空简短理由的 `not_performed`。"
+        },
+        {
+          "detail": "CLI 检查 opinion identity 与 commit objects，但不判断是否值得执行 Opt 或不执行理由是否充分",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "CLI SHALL 校验 opinion identity 与两个 Git commit objects，追加 delivered opinions 并在并发 revision 冲突时拒绝写入且保留原 JSON。它不记录委托起点、进度、测试输出或恢复位置，不判断是否应执行 Opt、跳过理由或 opinion 文本是否充分"
+        },
+        {
+          "detail": "缺少 Opt disposition 不可被当作有意跳过，Seal 显式要求已有 disposition",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "`xirang quality seal` SHALL 要求至少一条通过的独立基线 Review、没有未解决的 Review failure、明确的 Opt 处置，以及 Seal payload。"
+        },
+        {
+          "detail": "Opt 是否执行由主 Agent 在通过基线 Review 后决定",
+          "location": {
+            "element": "optimization-execution",
+            "section": "最优性检验执行"
+          },
+          "quote": "通过独立基线 Review 后，主 Agent SHALL 决定是否委托 fresh-context Opt。"
+        }
+      ]
+    },
+    {
+      "identity": "single-authoritative-quality-record",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每个 Change 使用一个 Git-tracked JSON，包含 schemaVersion 3、Change identity、revision、Review/Opt 记录和当前 Seal",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "每个 Change SHALL 只使用 `.xirang/changes/<change>/.quality.json` 作为 Quality 的持久记录。文件 SHALL 含 `schemaVersion: 3`、Change identity、单调递增的 `revision`、Review opinions、Opt disposition/opinions 和当前 Seal。"
+        },
+        {
+          "detail": "新 JSON 使用不匹配旧 runtime ignore 规则的路径，且既有 .gitignore 与旧文件原样保留",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "既有 `.gitignore` 规则与旧文件保持原样。"
+        },
+        {
+          "detail": "Review/Opt opinions 只追加保留，不覆盖历史；当前 Seal 是单一声明字段；旧 revision 更新被拒绝",
+          "location": {
+            "element": "quality-writeback",
+            "section": "append-only 历史日志"
+          },
+          "quote": "Review opinion 与已记录的 Opt opinions SHALL 按追加历史保留在同一 JSON 中，不另建 append-only event log 或重复全量 snapshot。新 opinion 不得覆盖既有 opinion；当前 Seal 是单一声明字段。提交旧 revision 时 SHALL 拒绝更新，不得静默覆盖并发写入。"
+        },
+        {
+          "detail": "不另建重复全量 snapshot、event log、manifest、测试输出或泛化操作日志",
+          "location": {
+            "element": "quality-writeback",
+            "section": "必要持久化边界"
+          },
+          "quote": "CLI 不持久化委托进度、代码 manifest、恢复位置、测试输出、重复状态快照或泛化操作日志；代码修改、失败尝试和恢复由 Git 承载。"
+        },
+        {
+          "detail": "CLI 使用 expected revision compare-and-swap、同目录临时文件与原子 rename，冲突保留原文件",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "CLI SHALL 在同目录使用 Node.js `path` API 定位文件，以临时文件加原子 rename 写入，并用 expected revision 执行 compare-and-swap；版本冲突拒绝写入且保留原文件。"
+        }
+      ]
+    },
+    {
+      "identity": "tracked-quality-record-seal-choreography",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "质量 JSON 是 Git-tracked Change 内容，文件名不匹配旧运行时忽略规则",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "每个 Change SHALL 只使用 `.xirang/changes/<change>/.quality.json` 作为 Quality 的持久记录。"
+        },
+        {
+          "detail": "Seal 写入可以不单独提交 Quality JSON；Seal 或 Archive 前不要求 clean，Archive 后按既有 Git handoff 提交 Change 与 JSON",
+          "location": {
+            "element": "change-archive",
+            "section": "Display Output"
+          },
+          "quote": "Archive CLI 不创建 Git commit；Archive 完成后由 Agent 按既有 Git handoff 提交 Change 与 Quality JSON，Seal 或 Archive 前不要求单独提交质量记录。"
+        },
+        {
+          "detail": "Archive 的 Quality 子门禁只验证 Seal commit object 存在，不比较 HEAD、工作区或 clean 状态",
+          "location": {
+            "element": "change-archive",
+            "section": "Archive Quality Seal routing"
+          },
+          "quote": "Archive Quality gate SHALL 只检查新 JSON 中存在 Seal 且其 commit 对象仍存在；不比较 HEAD、工作区 clean 状态或当前实现与 Seal commit 内容，不因工作区变化重跑 Quality。"
+        },
+        {
+          "detail": "Sync 与 Archive 的 Semantic Delta、validation 和 task 门禁保持独立于 Quality Seal",
+          "location": {
+            "element": "change-closure",
+            "section": "先同步后归档"
+          },
+          "quote": "Sync 与 Archive 的 Semantic Delta、validation 和 task 门禁独立于 Quality Seal。"
+        },
+        {
+          "detail": "Sync 只保留原 Formal fingerprint 与 validation；不修改 Quality JSON 或重关联测试/Review 证据",
+          "location": {
+            "element": "change-sync",
+            "section": "同步执行"
+          },
+          "quote": "Sync SHALL NOT 生成 Review metadata、改写 Quality JSON、执行测试或将测试和 Review 证据重新关联到同步后的代码。"
+        }
+      ]
+    },
+    {
+      "identity": "new-protocol-is-breaking",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "新实现仅支持新单一 JSON，不读、迁移、重写或兼容旧 Quality 格式与命令 payload",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "新实现 SHALL 只读取新单一 JSON schema，不读取、迁移、重写或兼容旧 snapshot、event log、evidence 文件或旧质量命令 payload。"
+        },
+        {
+          "detail": "旧格式输入返回明确不支持诊断，不转换成 Review、Opt 或 Seal",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "发现旧输入时 SHALL 给出明确的不支持诊断；不得将其转换为 Review、Opt 或 Seal。"
+        },
+        {
+          "detail": "旧运行记录、ignore 规则与历史归档保持不变，不执行清理或批量转换",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "新协议 SHALL NOT 提供旧记录迁移或轮换：不读取、不转换、不重写、不删除 `.quality-state.json`、`.quality-log.jsonl`、`.quality-lock`、`.quality-evidence/` 或历史归档。既有 `.gitignore` 规则与旧文件保持原样。"
+        },
+        {
+          "detail": "没有新 JSON 时按记录缺失处理，不继承旧 Review、Opt、测试或 Checkpoint 作为新协议证据",
+          "location": {
+            "element": "quality-writeback",
+            "section": "质量记录的受控轮换"
+          },
+          "quote": "没有 `.quality.json` 时按新协议记录缺失处理，不把旧 Review、Opt、测试或 Checkpoint 记录解释为新协议证据。"
+        }
+      ]
+    },
+    {
+      "identity": "remove-superseded-quality-state-elements",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Quality 不再维护 checkpoint、代码 manifest 或恢复位置，代码恢复由 Git 承载",
+          "location": {
+            "element": "optimization-execution",
+            "section": "Git 管理优化代码状态与恢复"
+          },
+          "quote": "代码修改、提交历史与恢复 SHALL 由 Git 承载，Quality 不保存 baseline/intermediate/successful checkpoint、代码 manifest 或恢复位置。"
+        },
+        {
+          "detail": "Quality status 不计算 manifest freshness 或比较 HEAD/工作区，不因代码变化标记 dirty",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Status 输出语义"
+          },
+          "quote": "Status SHALL NOT 计算代码 manifest、比较 HEAD/工作区或因代码变化标记 dirty；无 JSON 时报告缺失，不从旧记录推断状态。"
+        },
+        {
+          "detail": "移除 checkpoint 与 quality-freshness Element 后，Seal commit object 存在性门禁仍由 Quality CLI 与 Archive 承载",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "CLI 验证 commit 对象存在并记录声明"
+        },
+        {
+          "detail": "Archive 只校验 Seal commit object 存在，不以已删除的 freshness 判定作门禁",
+          "location": {
+            "element": "archive-quality-gate",
+            "section": "Archive rerun 使用 quality 执行模型"
+          },
+          "quote": "Archive Quality gate 不重跑测试、不重新评估 Review/Opt 自然语言、不比较当前工作区与 Seal commit。"
+        }
+      ]
+    },
+    {
+      "identity": "review-corrections-owned-by-main-agent",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Reviewer 只读并返回绑定被审查 commit 的 opinion，不修改项目、tasks.md、Quality JSON、Git history 或代码状态",
+          "location": {
+            "element": "reviewer",
+            "section": "保持只读且不修改项目与任务"
+          },
+          "quote": "Reviewer SHALL NOT 修改项目文件、`tasks.md`、Quality JSON 或 Git history，也 SHALL NOT 创建或恢复代码状态。发现问题时只返回绑定被审查 commit 的 opinion；主 Agent 负责后续修正、任务状态与提交。"
+        },
+        {
+          "detail": "Review opinion 保留 findings 与 Required Corrections，主 Agent 决定是否更新 tasks.md，Quality/CLI 不根据 severity 自动改任务",
+          "location": {
+            "element": "quality-writeback",
+            "section": "Required Corrections 清单生成"
+          },
+          "quote": "Review opinion SHALL 保留结构化 findings 与 Required Corrections，供主 Agent 判断和处理。主 Agent SHALL 决定是否将修正加入或更新 `tasks.md`，并负责修复及其提交；Quality/CLI 不根据 severity 推断任务是否完成，不自动追加 task checkbox，也不替代主 Agent 判断 `artifact_fix` 或 `code_fix` 的实际处理。"
+        },
+        {
+          "detail": "Reviewer 输出结构化证据和修正意见，不包含 writeBackPlan 或 task checkbox 修改指令",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "输出 SHALL NOT 包含 `writeBackPlan`、task checkbox 修改指令或要求 Reviewer 编辑 `tasks.md` 的字段。CLI 负责在保存时验证 commit identity 并追加到 Quality JSON；主 Agent 决定如何处理 opinion。"
+        },
+        {
+          "detail": "主 Agent 判断并处理修正，按需更新任务，提交不同 commit 后重新 Review",
+          "location": {
+            "element": "apply",
+            "section": "处理 Required Corrections"
+          },
+          "quote": "Verify 返回普通实现的 Required Corrections 时，主 Agent SHALL 判断并完成相应修正，按需更新 `tasks.md`，将修正形成新的 Git commit，并针对该 commit 重新执行 Change 级 Review。"
+        }
+      ]
+    }
+  ]
+}

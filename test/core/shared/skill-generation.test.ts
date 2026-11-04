@@ -84,14 +84,14 @@ describe('skill-generation', () => {
       expect(filtered[0].dirName).toBe('xirang-propose');
     });
 
-    it('should always use subagent-orchestrated archive skeleton (skills-only)', () => {
+    it('keeps the archive Quality gate commit-bound and avoids a current-agent reread fallback', () => {
       const defaultArchive = getSkillTemplates(['archive'])[0];
       const claudeArchive = getSkillTemplates(['archive'], 'claude')[0];
       const codexArchive = getSkillTemplates(['archive'], 'codex')[0];
 
-      expect(defaultArchive.template.instructions).toContain('subagent-orchestrated');
-      expect(claudeArchive.template.instructions).toContain('subagent-orchestrated');
-      expect(codexArchive.template.instructions).toContain('subagent-orchestrated');
+      expect(defaultArchive.template.instructions).toContain('Seal commit must exist in Git');
+      expect(claudeArchive.template.instructions).toContain('Seal commit must exist in Git');
+      expect(codexArchive.template.instructions).toContain('Seal commit must exist in Git');
       // Skills-only surface: no tool falls back to current-agent-reread
       expect(defaultArchive.template.instructions).not.toContain('current-agent-reread');
     });
