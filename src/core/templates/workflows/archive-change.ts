@@ -48,7 +48,7 @@ Implementation: <base>..<head> (carried by <commits>)
 
 Rules:
 - Build \`## Why\` from the archived \`proposal.md\` and \`design.md\` (when present).
-- Build \`## Changes\` from \`git diff --name-only <base>..<head>\` file list cross-referenced with archived \`tasks.md\` Files/Goal and the archived Semantic Delta units.
+- Build \`## Changes\` from \`git diff --name-only <base>..<head>\` actual Git diff reconciled with archived \`tasks.md\` goal-level intent in Semantic Delta units.
 - List all files from the diff; if a file is not mentioned in archived artifacts, state that explicitly.
 - The \`<base>\` is the prior change boundary (prior archive/boundary commit); the agent infers it from git history.
 - The \`Implementation:\` footer lists the effective diff range and the commits carrying that diff (including \`wip: opt-*\` checkpoint commits and any just-created normal implementation commit).
@@ -151,7 +151,7 @@ ${buildArchiveFullQualityContract(executionModel)}
    Run \`xirang status --change "<name>" --json\`. Warn and confirm before proceeding if any artifact is not \`done\`.
 
 4. **Check task completion status**
-   Read \`tasks.md\`; warn and confirm before proceeding if incomplete checkboxes remain. Missing tasks are not a task-related blocker.
+   Read \`tasks.md\`; warn and confirm before proceeding if incomplete goal checkboxes remain. Missing goals are not a task-related blocker.
 
 5. **Assess delta sync state**
    If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261105T082910Z-4f5d25de",
+  "sourceVersion": "cc7e0161602a4984983b8285420e82117f93adbf59d562faf608d755bd81fdeb",
+  "targetFingerprint": "f89f151ee03c5ddfbbea42d58343f28a1c61815b445e0c5219bf489f97d1a741",
+  "recordedAt": "2026-11-05T08:30:28.881Z",
+  "entries": [
+    {
+      "identity": "tasks-format-breaking-change",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "不再迁移或兼容旧 Files/Checks 格式；仅支持目标级 tasks",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Instructions Command"
+          },
+          "quote": "CLI SHALL 只支持目标级 `tasks.md`；旧式任务文件不迁移且不受支持，需重写后继续使用。"
+        },
+        {
+          "detail": "旧格式任务经校验时明确拒绝而不尝试兼容解析",
+          "location": {
+            "element": "validation-commands",
+            "section": "Check 测试动作校验"
+          },
+          "quote": "旧式 coarse Tasks 与 Actions/Checks 布局不受支持，SHALL 报格式错误而非继续执行旧 Check 校验。"
+        }
+      ]
+    }
+  ]
+}

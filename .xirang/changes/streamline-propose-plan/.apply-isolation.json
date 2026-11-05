@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "streamline-propose-plan",
+  "originalBranch": "main",
+  "baseCommit": "374b881798b11ec453f2b7c39635a32a35332172"
+}

@@ -106,7 +106,7 @@ describe('apply change workflow template', () => {
 
     expect(instructions).toContain(TEST_QUALITY_GUIDANCE);
     expect(instructions).toContain('inspect existing tests');
-    expect(instructions).toContain('target behavior is missing');
+    expect(instructions).toContain('credible evidence of unmet behavior');
     expect(instructions).not.toContain('公共方法数量少于 5');
     expect(instructions).not.toContain('每个方法参数少于 4');
   });
@@ -156,18 +156,17 @@ describe('apply change workflow template', () => {
       .split('\n\nWhen the seal passes')[0];
 
     expect(instructions).toContain('## Implementation Discipline');
-    expect(instructions).toContain('Implementation loop — process all pending tasks and Required Corrections as task-level TDD loops');
-    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending tasks');
-    expect(discipline).toContain('Each task is one TDD loop');
-    expect(discipline).toContain('Assess interface testability before writing tests');
-    expect(discipline).toContain('Exercise public behavior; mock only injected system boundaries, never internal collaborators');
-    expect(discipline).toContain('honor the declared Test action');
+    expect(instructions).toContain('Implementation loop — process all pending goals and Required Corrections');
+    expect(discipline).toContain('unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending goals');
+    expect(discipline).toContain('A goal is complete only after implementation and credible evidence for its verification direction');
+    expect(discipline).toContain('Assess interface testability before changing behavior');
+    expect(discipline).toContain('For each pending goal, inspect existing tests and current behavior');
     expect(discipline).toContain('Do not manufacture RED');
-    expect(discipline).toContain('rerun the same Check and confirm GREEN');
-    expect(discipline).toContain('Non-runtime text or artifact Checks do not require an artificial RED');
-    expect(discipline).toContain('Update Check and Required Corrections checkboxes only after their declared evidence passes');
+    expect(discipline).toContain('verify the same observable behavior afterward');
+    expect(discipline).toContain('Non-runtime artifact changes require final-state evidence');
+    expect(discipline).toContain('Update goal and Required Corrections checkboxes');
     expect(discipline).toContain('two consecutive identical normalized errors');
-    expect(discipline).toContain('three failed fixes in one task');
+    expect(discipline).toContain('three failed fixes in one goal');
     expect(discipline).toContain('deletion, standard library, native platform support, installed dependencies, direct expressions');
     expect(instructions).not.toContain('Ponytail');
     expect(instructions).not.toContain('Superpowers');
@@ -199,9 +198,8 @@ describe('apply change workflow template', () => {
     expect(worktree).toContain('git worktree add');
     expect(worktree).toContain('current `HEAD`');
     expect(worktree).toContain('changed file set');
-    expect(worktree).toContain('task `Files`');
-    expect(worktree).toContain('Check-referenced paths');
-    expect(worktree).toContain('unfinished Required Corrections paths');
+    expect(worktree).not.toContain('task `Files`');
+    expect(worktree).toContain('actual Git diff/status scope');
     expect(worktree).toContain('user-confirmed paths');
     expect(worktree).toContain('SHA-256');
     expect(worktree).toContain('`sourceState: "deleted"` and `sourceHash: null`');

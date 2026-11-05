@@ -135,7 +135,7 @@ export class ListCommand {
         totalTasks: change.totalTasks,
         lastModified: change.lastModified.toISOString(),
         status: change.totalTasks === 0
-          ? 'no-tasks'
+          ? 'no-goals'
           : change.completedTasks === change.totalTasks ? 'complete' : 'in-progress',
         qualityStatus: change.qualityStatus ?? 'MISSING',
       }));
@@ -145,7 +145,7 @@ export class ListCommand {
 
     if (long) {
       for (const change of changes) {
-        console.log(`${change.name}: ${change.title} [deltas ${change.deltaCount}] [tasks ${change.completedTasks}/${change.totalTasks}]`);
+        console.log(`${change.name}: ${change.title} [deltas ${change.deltaCount}] [goals ${change.completedTasks}/${change.totalTasks}]`);
       }
       return;
     }

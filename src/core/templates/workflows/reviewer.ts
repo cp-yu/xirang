@@ -56,9 +56,9 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 ## Verification Dimensions
 
 ### Completeness
-- For baseline Review parse all tasks.md checkboxes; incomplete tasks or unimplemented Sections produce CRITICAL issues with concrete next actions. For scoped Review inspect relevant tasks/corrections and affected semantics without claiming whole-Change coverage.
+- For baseline Review, assess every goal-level task and Required Correction; incomplete goals or unimplemented target semantics produce CRITICAL issues with concrete next actions. For scoped Review inspect relevant goals/corrections and affected semantics without claiming whole-Change coverage.
 - For a Change containing only tasks and no Delta Contracts or design, baseline Review checks task completeness and explains why the other dimensions/alignment are not applicable.
-- For each task whose \`Files\` section contains a \`Delete:\` entry: inspect \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`, then confirm that the declared file was deleted. If the file still exists, issue CRITICAL "Declared deletion not completed" and add to writeBackPlan.
+- Goal checkboxes are progress markers, not deletion declarations. Confirm requested removals against actual Git changes and final repository contents.
 
 ### Correctness
 Judgment mode is dispatched by Check anchor type:
@@ -96,14 +96,7 @@ Judgment mode is dispatched by Check anchor type:
 
 **Unaccounted Changes Detection**:
 
-Attribution universe = union of the following sets (explicit list lookup; do not use pattern-matching inference):
-1. Entries declared in each task \`Files\` (including directory entries \u2014 directory entry covers all files under it)
-2. Test and evidence files referenced by each Check \`Command:\`
-3. Change artifacts themselves (all files under \`.xirang/changes/<name>/\`)
-
-For optimization work, read the delegation, actual report and final code to establish its connection to the Change goal. Necessary implementation/test additions, moves, deletions and shared helpers beyond one dependency hop can be accounted for without appearing in original tasks Files. Do not classify a path as CRITICAL merely for that absence. Verify the scope claim, preservation, protection tests and impact on other callers; a report is not unlimited authorization. An unrelated system refactor remains outside scope unless separately authorized.
-
-For each actually inspected file outside the applicable task/Check/delegation attribution universe:
+Change scope is established from the actual commit diff and working-tree status, then reconciled with the target goals, Semantic Delta, design decisions, and observed implementation/test relationships. Goal statements are not a file allowlist. Review every relevant changed file; report only changes shown by evidence to be unrelated or unauthorized.
 - Read the file, then determine its content nature.
 - Behavior code change → issue CRITICAL "Unaccounted change: <path>", offering two exits: supplement task/spec (artifact_fix) or remove the change (code_fix).
 - Mechanical benign changes (lockfile, pure generated artifacts, pure formatting) → WARNING or SUGGESTION, noting the classification reason.

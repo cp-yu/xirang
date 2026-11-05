@@ -71,81 +71,35 @@ describe('top-level validate command', () => {
   });
 
   it('reports task structure issues from tasks.md in change validation', async () => {
-    const tasksContent = [
-      '### Task 1: First',
-      '',
-      '**Goal**: Create a file.',
-      '',
-      '**Files**:',
-      '- Create: `src/shared.ts`',
-      '',
-      '**Sections**:',
-      '- Keep declarations consistent',
-      '',
-      '#### Checks',
-      '',
-      '- [ ] C1 Verify',
-      '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
-      '  - Test action: reuse',
-      '  - Command: `pnpm test`',
-      '',
-      '### Task 2: Second',
-      '',
-      '**Goal**: Create the same file.',
-      '',
-      '**Files**:',
-      '- Create: `src/shared.ts`',
-      '',
-      '**Sections**:',
-      '- Keep declarations consistent',
-      '',
-      '#### Checks',
-      '',
-      '- [ ] C2 Verify',
-      '  - Verifies: `elements/alpha.id.md` / Section "Validator SHALL support alpha change deltas" / AcceptanceCase "Apply alpha delta"',
-      '  - Test action: reuse',
-      '  - Command: `pnpm test`',
-    ].join('\n');
+    const tasksContent = `### Task 1: Legacy
+
+**Goal**: Create a file.
+
+**Files**:
+- Create: src/shared.ts
+
+#### Checks
+- [ ] C1 Verify
+  - Test action: reuse
+`;
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasksContent, 'utf-8');
 
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
     const json = JSON.parse(result.stdout.trim());
+    expect(result.exitCode).toBe(1);
     expect(json.items[0].valid).toBe(false);
-    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('task-file-conflict'))).toBe(true);
+    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
     expect(json.items[0].issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
   });
 
-  it.each([
-    ['', 'missing-test-action'],
-    ['  - Test action: update', 'invalid-test-action'],
-    ['  - Test action: one-time', undefined],
-  ])('validates Test action through the CLI: %j', async (declaration, code) => {
-    const tasks = `### Task 1: Verify alpha
-
-**Goal**: Verify the alpha change.
-**Files**:
-- Modify: \`src/alpha.ts\`
-**Sections**:
-- Verify target behavior
-
-#### Checks
-
-- [ ] C1 Verify alpha
-  - Verifies: \`elements/alpha.id.md\` / Section "Validator SHALL support alpha change deltas"
-${declaration}
-  - Command: \`pnpm test\`
-`;
+  it('rejects legacy Test action tasks through the CLI', async () => {
+    const tasks = `### Task 1: Verify alpha\n\n**Goal**: Verify the alpha change.\n**Files**:\n- Modify: src/alpha.ts\n**Sections**:\n- Verify target behavior\n\n#### Checks\n\n- [ ] C1 Verify alpha\n  - Verifies: elements/alpha.id.md / Section "Validator SHALL support alpha change deltas"\n  - Test action: one-time\n  - Command: pnpm test\n`;
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasks);
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
     const json = JSON.parse(result.stdout.trim());
-    expect(result.exitCode).toBe(code ? 1 : 0);
-    expect(json.items[0].valid).toBe(!code);
-    if (code) {
-      expect(json.items[0].issues).toContainEqual(expect.objectContaining({
-        level: 'ERROR', path: 'tasks.md', line: 11,
-        message: expect.stringContaining(`${code}: Check C1`),
-      }));
-    }
+    expect(result.exitCode).toBe(1);
+    expect(json.items[0].valid).toBe(false);
+    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
   });
 
   it('accepts a no-delta change carrying the .delta-noop marker', async () => {

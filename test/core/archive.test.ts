@@ -272,16 +272,28 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [x] Task 1\n- [ ] Task 2\n- [ ] Task 3';
+      const tasksContent = [
+        '## Goals',
+        '',
+        '- [x] G1: Completed goal',
+        '  - Contract: `feature` / Section "Core behavior"',
+        '  - Verify: The completed behavior is observable.',
+        '- [ ] G2: Pending goal',
+        '  - Contract: `feature` / Section "Core behavior"',
+        '  - Verify: The pending behavior is observable.',
+        '- [ ] G3: Another pending goal',
+        '  - Contract: `feature` / Section "Core behavior"',
+        '  - Verify: The second pending behavior is observable.',
+      ].join('\n');
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
+
       
       // Execute archive with --yes flag
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
       
       // Verify warning was logged
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Warning: 2 incomplete task(s) found')
+        expect.stringContaining('Warning: 2 incomplete goal(s) found')
       );
     });
 
@@ -353,7 +365,7 @@ git:
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
       
       expect(console.log).not.toHaveBeenCalledWith(
-        expect.stringContaining('incomplete task(s)')
+        expect.stringContaining('incomplete goal(s)')
       );
       
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
@@ -444,8 +456,13 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [ ] Task 1';
+      const tasksContent = [
+        '## Goals',
+        '',
+        '- [ ] G1: Pending goal',
+        '  - Contract: `feature` / Section "Core behavior"',
+        '  - Verify: The pending behavior is observable.',
+      ].join('\n');
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
       
       // Mock confirm to return true (proceed)
@@ -456,7 +473,7 @@ git:
       
       // Verify confirm was called
       expect(mockConfirm).toHaveBeenCalledWith({
-        message: 'Warning: 1 incomplete task(s) found. Continue?',
+        message: 'Warning: 1 incomplete goal(s) found. Continue?',
         default: false
       });
     });
@@ -469,8 +486,7 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
-      // Create tasks.md with incomplete tasks
-      const tasksContent = '- [ ] Task 1';
+      const tasksContent = '## Goals\n\n- [ ] G1: Pending goal\n  - Contract: `feature` / Section "Core behavior"\n  - Verify: The pending behavior is observable.';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
       
       // Mock confirm to return false (cancel) for validation skip

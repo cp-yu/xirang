@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261105T065935Z-64e887ec",
+  "sourceVersion": "c78085c6cc830d52f1aae9d9d08104b1d8cd3cf357bf49005a73032bb1be7ad8",
+  "targetFingerprint": "c695a6a0ef67890914713fdd22505a4ffd5567861b7c71ac57177fcf45e367bb",
+  "recordedAt": "2026-11-05T08:07:24.259Z",
+  "entries": [
+    {
+      "identity": "tasks-for-user-agreement",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Propose 仍生成 tasks 并与用户对齐实施目标和测试方向",
+          "location": {
+            "element": "change-plan",
+            "section": "Tasks 安排待执行工作"
+          },
+          "quote": "`tasks.md` SHALL 与用户对齐待完成的实施目标及需要覆盖的验证方向"
+        },
+        {
+          "detail": "不预列实现文件、测试命令或一般技术依赖",
+          "location": {
+            "element": "change-plan",
+            "section": "Tasks 安排待执行工作"
+          },
+          "quote": "不预先列举实施文件、测试命令或一般技术依赖"
+        },
+        {
+          "detail": "Apply 现场决定实施与验证方式",
+          "location": {
+            "element": "apply",
+            "section": "遵循现有 Tasks 安排"
+          },
+          "quote": "对未指定顺序的目标 SHALL 根据当前代码与测试现状安排实施顺序、文件、测试动作、层级、命令和具体操作"
+        }
+      ]
+    },
+    {
+      "identity": "tests-in-tasks-granularity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每目标验证行为、边界、可观察结果",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 安排执行与验证"
+          },
+          "quote": "要验证的行为、相关边界及预期可观察结果"
+        },
+        {
+          "detail": "语义由 Contract 承担，缺失先补 Contract",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 安排执行与验证"
+          },
+          "quote": "目标语义 SHALL 引用对应 Element Contract，而不是在任务中另写一套行为定义；行为缺失时先补 Contract"
+        },
+        {
+          "detail": "Propose 不指定测试层级、文件、动作、用例拆分和命令",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 安排执行与验证"
+          },
+          "quote": "SHALL NOT 要求 Propose 预列具体实现或测试文件、测试动作、测试层级、命令、用例拆分及细排的实施操作"
+        },
+        {
+          "detail": "Apply 选择适当测试",
+          "location": {
+            "element": "apply-workflow",
+            "section": "Apply Phase 0 SHALL 执行 pending Checks"
+          },
+          "quote": "结合目标 Contract、现有测试和代码选择具体测试动作、边界及验证命令"
+        }
+      ]
+    },
+    {
+      "identity": "task-sequencing-authority",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "通常技术实施顺序和依赖由 Apply 决定",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 按 TDD 闭环组织"
+          },
+          "quote": "通常的技术实施顺序和依赖 SHALL 由 Apply 决定"
+        },
+        {
+          "detail": "用户指定 A 在 B 前任务按此排列",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 按 TDD 闭环组织"
+          },
+          "quote": "tasks SHALL 将 A 排在 B 前面，Apply SHALL 遵守该约束"
+        },
+        {
+          "detail": "design 或 proposal 至少一处声明次序",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 按 TDD 闭环组织"
+          },
+          "quote": "该要求 SHALL 同时出现在 `proposal.md` 或 `design.md` 至少一处"
+        },
+        {
+          "detail": "行为或数据时序写入 Contract",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 按 TDD 闭环组织"
+          },
+          "quote": "若约束目标行为或数据状态也 SHALL 进入相应 Contract"
+        }
+      ]
+    },
+    {
+      "identity": "task-progress-without-execution-details",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "tasks 记录目标级完成状态",
+          "location": {
+            "element": "tasks-document",
+            "section": "Checks 按可观察行为组织"
+          },
+          "quote": "`tasks.md` SHALL 使用目标级完成状态记录进度"
+        },
+        {
+          "detail": "证据成立后才勾选",
+          "location": {
+            "element": "task-decomposition",
+            "section": "Checks 是任务进度源"
+          },
+          "quote": "目标的实现与适用验证证据均成立时 SHALL 勾选目标；证据不足时 SHALL 保持未完成"
+        },
+        {
+          "detail": "不回填文件命令结果或输出",
+          "location": {
+            "element": "task-decomposition",
+            "section": "Checks 是任务进度源"
+          },
+          "quote": "不把具体文件、命令、测试结果或执行日志回填 tasks"
+        }
+      ]
+    },
+    {
+      "identity": "execution-evidence-storage",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "不新增逐项持久测试日志",
+          "location": {
+            "element": "task-decomposition",
+            "section": "Checks 是任务进度源"
+          },
+          "quote": "本流程 SHALL NOT 新增持久化的逐项目标测试日志"
+        },
+        {
+          "detail": "Quality 只存 commit-bound 结论摘要，不当作原始输出",
+          "location": {
+            "element": "task-decomposition",
+            "section": "Checks 是任务进度源"
+          },
+          "quote": "现有 `.quality.json` SHALL 仅用于保存 commit-bound Review 意见、Opt 处置和 Seal 的验证范围/判断摘要，不作为测试输出日志"
+        },
+        {
+          "detail": "Apply 实际验证、Reviewer 独立取证",
+          "location": {
+            "element": "tasks-document",
+            "section": "Checks 按可观察行为组织"
+          },
+          "quote": "独立 Review SHALL 基于当前实现和可复现证据取证"
+        },
+        {
+          "detail": "只有可复现证据才算目标完成",
+          "location": {
+            "element": "tasks-document",
+            "section": "Checks 按可观察行为组织"
+          },
+          "quote": "只有目标的适用行为已实现、验证方向获得实际证据时 Apply 才 SHALL 标记完成"
+        }
+      ]
+    },
+    {
+      "identity": "propose-interaction-intent",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "默认批量成稿后审阅",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "Propose SHALL 默认连续编写完整 Change 后集中交用户审阅"
+        },
+        {
+          "detail": "用户要求才精细交互",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "用户明确要求交互推进时才 SHALL 按一项机制及其目标、验证方向分段展示实际草稿"
+        },
+        {
+          "detail": "重大缺口仍需裁决",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "无论模式，遇到影响当前目标的重大缺口 SHALL 先说明选项与理由、等待用户裁决"
+        }
+      ]
+    },
+    {
+      "identity": "propose-review-cadence",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "批量模式完整成稿并集中审阅",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "连续编写完整 Change 后集中审阅"
+        },
+        {
+          "detail": "用户要求交互才分段",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "只有用户明确要求交互推进时 SHALL 按一项机制或一组相关 Elements 的实际草稿及其目标、验证方向分段审阅"
+        },
+        {
+          "detail": "不按文件依赖机械增加轮次",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "不按 Element 数量或 artifact 写作顺序机械停顿"
+        },
+        {
+          "detail": "重大决策不可因批量模式被猜测",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "两种模式下，新发现的重大缺口都 SHALL 及时提出并等待裁决"
+        }
+      ]
+    },
+    {
+      "identity": "interactive-review-unit",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "以机制或相关 Element 和目标验证方向为一组",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "按一项机制或一组相关 Elements 的实际草稿及其目标、验证方向分段审阅"
+        },
+        {
+          "detail": "实际草稿反馈后继续，简单变更可一组",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "反馈后继续。简单变更可只有一组"
+        },
+        {
+          "detail": "重大缺口两种模式随时提问",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "两种模式下，新发现的重大缺口都 SHALL 及时提出并等待裁决"
+        }
+      ]
+    },
+    {
+      "identity": "plan-document-overlap",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "proposal 说明动机范围与语义来源影响",
+          "location": {
+            "element": "change-plan",
+            "section": "Change Plan 仅作辅助"
+          },
+          "quote": "`proposal.md` SHALL 说明动机、范围及语义来源影响"
+        },
+        {
+          "detail": "design 说明决策理由取舍",
+          "location": {
+            "element": "propose",
+            "section": "编写完整 Change Plan"
+          },
+          "quote": "`design.md` SHALL 表达关键决策、理由和取舍"
+        },
+        {
+          "detail": "tasks 保留目标验证但不重复规范",
+          "location": {
+            "element": "change-plan",
+            "section": "Change Plan 仅作辅助"
+          },
+          "quote": "`tasks.md` SHALL 记录待完成目标与验证方向；三者 SHALL 避免重复维护同一目标行为"
+        },
+        {
+          "detail": "不提前猜测代码测试文件清单",
+          "location": {
+            "element": "propose",
+            "section": "编写完整 Change Plan"
+          },
+          "quote": "Propose SHALL NOT 预先猜测具体待修改的代码或测试文件"
+        },
+        {
+          "detail": "design 可保留已确认的技术落点路径",
+          "location": {
+            "element": "change-plan",
+            "section": "Change Plan 仅作辅助"
+          },
+          "quote": "`design.md` MAY 保留用户已确认、构成方案约束的技术落点或路径"
+        },
+        {
+          "detail": "Source Impact 保持 Element identity",
+          "location": {
+            "element": "propose-workflow",
+            "section": "Proposal 分离 behavior 与 architecture source impact"
+          },
+          "quote": "Behavior Source SHALL 使用受影响 Element 的稳定 identity"
+        }
+      ]
+    }
+  ]
+}

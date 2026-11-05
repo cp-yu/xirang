@@ -277,14 +277,14 @@ export class ArchiveCommand {
     options: ArchiveOptions,
   ): Promise<boolean> {
     const progress = await getTaskProgressForChange(changesDir, changeName);
-    console.log(`Task status: ${formatTaskStatus(progress)}`);
+    console.log(`Goal status: ${formatTaskStatus(progress)}`);
 
-    const incompleteTasks = Math.max(progress.total - progress.completed, 0);
-    if (incompleteTasks > 0) {
+    const incompleteGoals = Math.max(progress.total - progress.completed, 0);
+    if (incompleteGoals > 0) {
       if (!options.yes) {
         const { confirm } = await import('@inquirer/prompts');
         const proceed = await confirm({
-          message: `Warning: ${incompleteTasks} incomplete task(s) found. Continue?`,
+          message: `Warning: ${incompleteGoals} incomplete goal(s) found. Continue?`,
           default: false,
         });
         if (!proceed) {
@@ -292,7 +292,7 @@ export class ArchiveCommand {
           return false;
         }
       } else {
-        console.log(`Warning: ${incompleteTasks} incomplete task(s) found. Continuing due to --yes flag.`);
+        console.log(`Warning: ${incompleteGoals} incomplete goal(s) found. Continuing due to --yes flag.`);
       }
     }
     return true;

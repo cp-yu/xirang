@@ -244,7 +244,7 @@ export class ValidateCommand {
       return { valid: true, issues: [], summary: { errors: 0, warnings: 0, info: 0 } };
     }
 
-    const result = validateTaskStructure(content, { changeDir });
+    const result = validateTaskStructure(content);
     const issues = result.issues.map((issue) => ({
       level: issue.severity === 'error' ? 'ERROR' as const : 'WARNING' as const,
       path: 'tasks.md',

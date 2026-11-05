@@ -1,0 +1,40 @@
+---
+entity: element-declaration
+identity: post-propose-validation
+kind: element
+parent: propose-workflow
+title: Post-propose Validation
+definition: Post-propose Validation 定义 Propose 收尾的一致性验证门禁：先执行计划一致性复核，对照 change-local Contracts、design.md 与 Semantic Delta 检测 tasks.md 的语义矛盾，发现矛盾时自行修正制品，仅当矛盾反映与用户意图或已确认决策不对齐时呈现给用户裁决；随后在最终制品上执行确定性校验作为收尾门禁，对完整 change 执行联合验证、生效差异审阅与任务结构校验，由确定性操作承担，报错阻塞 Apply 就绪声明，最多修复一轮、复检一次，警告只披露。
+---
+
+## MODIFIED Sections
+
+### Section: 计划一致性复核
+
+Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、`proposal.md`、`design.md`、Semantic Delta 与 `tasks.md` 联合对照 Explore 及 Propose 内的用户确认；不得仅以制品互相一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变已确认承诺、扩大范围或裁决重大业务及架构权衡时 SHALL 呈现全部发现，一次请求一个决策并等待确认。既定范围内细节 MAY 在完成时披露，但不得借此大量扩写设计。新确认的行为及推导补充的可观察保证 SHALL 贯穿 Delta 与 Plan，不只藏于 design 或 tasks。
+
+复核 SHALL 检查两段覆盖：已采纳且适用的记录内容到目标语义，以及需实施的目标语义到 `tasks.md` 的实施目标与验证方向。第一段 SHALL 按性质、决策状态与适用性筛选规范内容，逐项定位条件、数值、例子、反例、时序与例外的目标位置及摘录，并经 `xirang record coverage` 记录；影响目标的 pending 决策先解决，excluded 与 informative 不强造 Contract。第二段 SHALL 检查各目标行为与边界是否有相应实施目标和可观察验证方向，而非提前要求文件、命令、测试动作或逐项 executable Check。引用存在不证明行为被覆盖；双方共同遗漏的确认细节仍阻塞完成。缺失行为先补 Contract，再调整 Plan；未决意图交由用户裁决。
+
+- **检测到矛盾时自行修正**
+  - 任务目标或验证方向与 change-local 目标语义冲突
+  - 来源能确定修正方式时 SHALL 修正后继续复核，否则询问用户
+
+- **矛盾反映用户意图不对齐**
+  - 已确认来源不足以裁决
+  - SHALL 呈现发现并等待用户决定，不自行新增目标行为
+
+- **复核干净时无声继续**
+  - 未发现矛盾或覆盖缺口
+  - SHALL 进入确定性校验，不要求用户确认每一个制品
+
+- **复核由 Propose 完成**
+  - Apply 启动实施
+  - Apply SHALL NOT 重新执行 Formation 的计划一致性复核
+
+- **有效引用不代表实际覆盖**
+  - tasks 引用的 Section 存在，但没有对应的目标或可观察验证方向
+  - SHALL 补足计划，不能以引用存在宣称目标可验证
+
+- **目标到任务存在遗漏**
+  - 目标 Contract 已表达条件分支而任务没有安排实现目标或验证方向
+  - SHALL 补足相应目标与结果，不在任务内另造规范语义

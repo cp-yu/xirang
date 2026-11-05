@@ -283,7 +283,7 @@ describe('instruction-loader', () => {
         },
       });
       expect(tasks?.content.includes).toContain(
-        'Coarse work units, affected files, implementation constraints, executable checks, commands, and evidence anchors.'
+        'Goal-level implementation objectives, Contract references, verification directions, and target-level completion state.'
       );
       expect(tasks?.content.includes.join(' ')).not.toContain('owned files');
     });
@@ -406,39 +406,20 @@ describe('instruction-loader', () => {
       expect(instructions.template).toContain('## Why');
     });
 
-    it('should expose coarse Task guidance for tasks', () => {
+    it('should expose goal-level guidance for tasks', () => {
       const context = loadChangeContext(tempDir, 'my-change');
       const instructions = generateInstructions(context, 'tasks');
 
-      // Layer 2: Structure integrity - template format
-      expect(instructions.template).toContain('### Task 1:');
-      expect(instructions.template).toContain('**Goal**:');
-      expect(instructions.template).toContain('**Files**:');
-      expect(instructions.template).toContain('**Sections**:');
-      expect(instructions.template).toContain('#### Checks');
-      expect(instructions.template).toContain('- [ ] C1');
-      expect(instructions.template).toContain('Verifies: `elements/<identity>.md`');
-
-      // Layer 1: Core concepts - instruction content
-      expect(instructions.instruction).toMatch(/coarse.*task/i);
-      expect(instructions.instruction).toMatch(/task.*\d+/i);
-      expect(instructions.instruction).toMatch(/goal/i);
-      expect(instructions.instruction).toMatch(/files/i);
-      expect(instructions.instruction).toMatch(/sections/i);
-      expect(instructions.instruction).toMatch(/checks/i);
-      expect(instructions.instruction).toMatch(/verifies/i);
-      expect(instructions.instruction).toMatch(/elements.*identity.*\.md/i);
-      expect(instructions.instruction).toMatch(/section/i);
-      expect(instructions.instruction).toMatch(/acceptance case/i);
-      expect(instructions.instruction).toMatch(/paths/i);
-      expect(instructions.instruction).toContain('Task titles, check names');
-      expect(instructions.instruction).toContain("Derive dependencies from each Check's actual implementation, files and commands");
-      expect(instructions.instruction).toContain('existing implementation, earlier GREEN tasks and that task');
-      expect(instructions.instruction).toContain('referenced test files and commands exist or are provided by then');
-      expect(instructions.instruction).toContain('Evidence:/Expect:');
-      expect(instructions.instruction).toContain('exact Acceptance Case names');
-      expect(instructions.instruction).toContain('Acceptance Case "<name>"');
-      expect(instructions.instruction).toContain('proseLanguage');
+      expect(instructions.template).toContain('## Goals');
+      expect(instructions.template).toContain('G1:');
+      expect(instructions.template).toContain('Contract:');
+      expect(instructions.template).toContain('Verify:');
+      expect(instructions.template).not.toContain('**Files**:');
+      expect(instructions.template).not.toContain('#### Checks');
+      expect(instructions.instruction).toMatch(/goal-level/i);
+      expect(instructions.instruction).toMatch(/contract/i);
+      expect(instructions.instruction).toMatch(/verification direction/i);
+      expect(instructions.instruction).not.toMatch(/Actions\/Checks layout remains supported/i);
     });
 
     it('should expose prose language boundaries for specs', () => {

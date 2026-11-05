@@ -267,67 +267,22 @@ export function printInstructionsText(instructions: ArtifactInstructions, isBloc
 // Apply Instructions Command
 // -----------------------------------------------------------------------------
 
-/**
- * Parses tasks.md content and extracts task items with their completion status.
- */
 function parseTasksFile(content: string): TaskItem[] {
-  const coarseTasks = parseCoarseTasksFile(content);
-  if (coarseTasks.length > 0) {
-    return coarseTasks;
-  }
+  const lines = content.replace(/\r\n?/g, '\n').split('\n');
+  const goalsHeading = lines.findIndex((line) => /^##\s+Goals\s*$/.test(line));
+  if (goalsHeading < 0) return [];
 
   const tasks: TaskItem[] = [];
-  const lines = content.replace(/\r\n?/g, '\n').split('\n');
-  let taskIndex = 0;
-
-  for (const line of lines) {
-    // Match checkbox patterns: - [ ] or - [x] or - [X]
-    const checkboxMatch = line.match(/^[-*]\s*\[([ xX])\]\s*(.+)\s*$/);
-    if (checkboxMatch) {
-      taskIndex++;
-      const done = checkboxMatch[1].toLowerCase() === 'x';
-      const description = checkboxMatch[2].trim();
-      tasks.push({
-        id: `${taskIndex}`,
-        description,
-        done,
-      });
-    }
-  }
-
-  return tasks;
-}
-
-function parseCoarseTasksFile(content: string): TaskItem[] {
-  const lines = content.replace(/\r\n?/g, '\n').split('\n');
-  const headings: Array<{ id: string; description: string; line: number }> = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const match = lines[i].match(/^###\s+Task\s+(\d+):\s*(.+?)\s*$/);
-    if (!match) {
-      continue;
-    }
-
-    headings.push({
-      id: match[1],
-      description: match[2].trim(),
-      line: i,
+  for (let i = goalsHeading + 1; i < lines.length && !/^##\s+/.test(lines[i]); i++) {
+    const match = lines[i].match(/^\s*-\s+\[([ xX])\]\s+(G\d+):\s*(.+?)\s*$/);
+    if (!match) continue;
+    tasks.push({
+      id: match[2],
+      description: match[3],
+      done: match[1].toLowerCase() === 'x',
     });
   }
-
-  return headings.map((heading, index) => {
-    const end = headings[index + 1]?.line ?? lines.length;
-    const section = lines.slice(heading.line + 1, end);
-    const checkboxes = section
-      .map((line) => line.match(/^[-*]\s*\[([ xX])\]\s*(.+)\s*$/))
-      .filter((match): match is RegExpMatchArray => match !== null);
-
-    return {
-      id: heading.id,
-      description: heading.description,
-      done: checkboxes.length > 0 && checkboxes.every((match) => match[1].toLowerCase() === 'x'),
-    };
-  });
+  return tasks;
 }
 
 async function resolveCompletedApplyState(
