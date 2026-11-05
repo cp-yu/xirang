@@ -41,7 +41,7 @@ Before archiving, run `xirang config project --json` and consume git policy from
    Run `xirang status --change "<name>" --json`. Warn and confirm before proceeding if any artifact is not `done`.
 
 4. **Check task completion status**
-   Read `tasks.md`; warn and confirm before proceeding if incomplete checkboxes remain. Missing tasks are not a task-related blocker.
+   Read `tasks.md`; warn and confirm before proceeding if incomplete goal checkboxes remain. Missing goals are not a task-related blocker.
 
 5. **Assess delta sync state**
    If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.

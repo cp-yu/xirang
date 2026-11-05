@@ -27,22 +27,21 @@ describe('xirang reviewer skill content', () => {
     expect(instructions).toContain('absence');
   });
 
-  it('contains dual-branch equivalence check for Preserves anchors', () => {
+  it('judges behavior preservation from goal direction and evidence', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('Preserves');
-    expect(instructions).toContain('old form');
-    expect(instructions).toContain('half migration');
-    expect(instructions).toContain('coexist');
+    expect(instructions).toContain('behavior-preservation goal');
+    expect(instructions).toContain('goal\'s verification direction');
+    expect(instructions).toContain('old and new implementations coexist contrary to the goal');
   });
 
-  it('contains Delete declaration vs git diff cross-check in Completeness', () => {
+  it('treats goal checkboxes as progress and verifies removals against Git and final state', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('Delete:');
-    expect(instructions).toContain('git diff <baseCommit>...HEAD');
-    expect(instructions).toContain('git status --short');
-    expect(instructions).toContain('still exists');
+    expect(instructions).toContain('Goal checkboxes are progress markers, not deletion declarations');
+    expect(instructions).toContain('Confirm requested removals against actual Git changes and final repository contents');
+    expect(instructions).not.toContain('task `Files`');
+    expect(instructions).not.toContain('Check `Command:`');
   });
 
   it('uses immutable baseline and uncommitted name-only scope instead of diff content', () => {

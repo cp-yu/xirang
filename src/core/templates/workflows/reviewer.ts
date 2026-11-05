@@ -61,23 +61,23 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 - Goal checkboxes are progress markers, not deletion declarations. Confirm requested removals against actual Git changes and final repository contents.
 
 ### Correctness
-Judgment mode is dispatched by Check anchor type:
+Review each goal's Contract reference and verification direction against final code, tests, and other credible evidence:
 
-**Presence judgment** (\`Verifies\` anchor):
-- Compare each Section and its observable behavior against final code and tests.
-- If divergence detected: issue CRITICAL "Implementation contradicts spec".
+**Presence judgment**:
+- Compare the goal's target behavior with its observable result in the implementation and evidence.
+- If divergence is detected, issue CRITICAL "Implementation contradicts spec".
 - Downgrade to WARNING only when drift is cosmetic and does not affect observable behavior.
-- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Acceptance Cases and test cases. One test may cover multiple Acceptance Cases. one-time evidence is valid when the Change classifies it as such.
+- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Acceptance Cases and test cases. One test may cover multiple Acceptance Cases. One-time evidence is valid when the Change classifies it as such.
 - If required behavior has no credible evidence, or if an obvious behavior mutation would survive the claimed test (weak assertion), issue CRITICAL. Do not require a separate test file for each Acceptance Case. Tests that read formal \`.xirang/model/\` and lock Section or Acceptance Case wording are CRITICAL.
 
-**Absence judgment** (\`Verifies ... REMOVED Section\` anchor):
-- Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.
+**Absence judgment**:
+- When a goal verifies removal, use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.
 - Confirm absence: cite search commands and empty results as evidence for PASS.
 - When any residual reference is found, issue CRITICAL "REMOVED Section residue found" and cite the residue location.
 
-**Equivalence judgment** (\`Preserves\` anchor):
-- Dual verification: ① associated tests pass (behavior unchanged); ② the old form named by Check \`Expect:\` has disappeared from the final code.
-- When old and new implementations coexist, issue CRITICAL "Half migration: old and new form coexist".
+**Equivalence judgment**:
+- For a behavior-preservation goal, verify associated tests pass and confirm the old form named by the goal's verification direction has disappeared from final code when replacement is required.
+- When old and new implementations coexist contrary to the goal, issue CRITICAL "Half migration: old and new form coexist".
 - Do not judge equivalence solely by test passing.
 
 ### Coherence
