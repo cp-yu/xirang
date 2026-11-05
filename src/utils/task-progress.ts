@@ -1,61 +1,25 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const TASK_PATTERN = /^[-*]\s+\[[\sx]\]/i;
-const COMPLETED_TASK_PATTERN = /^[-*]\s+\[x\]/i;
-const COARSE_TASK_HEADING_PATTERN = /^###\s+Task\s+\d+:\s+.+\s*$/;
-
 export interface TaskProgress {
   total: number;
   completed: number;
 }
 
 export function countTasksFromContent(content: string): TaskProgress {
-  const normalized = content.replace(/\r\n?/g, '\n');
-  const coarse = countCoarseTasks(normalized);
-  if (coarse.total > 0) {
-    return coarse;
-  }
+  const lines = content.replace(/\r\n?/g, '\n').split('\n');
+  const goalsHeading = lines.findIndex((line) => /^##\s+Goals\s*$/.test(line));
+  if (goalsHeading < 0) return { total: 0, completed: 0 };
 
-  const lines = normalized.split('\n');
   let total = 0;
   let completed = 0;
-  for (const line of lines) {
-    if (line.match(TASK_PATTERN)) {
-      total++;
-      if (line.match(COMPLETED_TASK_PATTERN)) {
-        completed++;
-      }
-    }
+  for (let i = goalsHeading + 1; i < lines.length && !/^##\s+/.test(lines[i]); i++) {
+    const match = lines[i].match(/^\s*-\s+\[([ xX])\]\s+G\d+:\s+\S/);
+    if (!match) continue;
+    total++;
+    if (match[1].toLowerCase() === 'x') completed++;
   }
   return { total, completed };
-}
-
-function countCoarseTasks(content: string): TaskProgress {
-  const lines = content.split('\n');
-  const headings: number[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    if (COARSE_TASK_HEADING_PATTERN.test(lines[i])) {
-      headings.push(i);
-    }
-  }
-
-  if (headings.length === 0) {
-    return { total: 0, completed: 0 };
-  }
-
-  let completed = 0;
-  for (let i = 0; i < headings.length; i++) {
-    const start = headings[i] + 1;
-    const end = headings[i + 1] ?? lines.length;
-    const checks = lines.slice(start, end).filter((line) => TASK_PATTERN.test(line));
-    if (checks.length > 0 && checks.every((line) => COMPLETED_TASK_PATTERN.test(line))) {
-      completed++;
-    }
-  }
-
-  return { total: headings.length, completed };
 }
 
 export async function getTaskProgressForChange(changesDir: string, changeName: string): Promise<TaskProgress> {
@@ -69,8 +33,7 @@ export async function getTaskProgressForChange(changesDir: string, changeName: s
 }
 
 export function formatTaskStatus(progress: TaskProgress): string {
-  if (progress.total === 0) return 'No tasks';
+  if (progress.total === 0) return 'No goals';
   if (progress.completed === progress.total) return '✓ Complete';
-  return `${progress.completed}/${progress.total} tasks`;
+  return `${progress.completed}/${progress.total} goals`;
 }
-

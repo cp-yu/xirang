@@ -2,44 +2,27 @@ import { describe, expect, it } from 'vitest';
 
 import { countTasksFromContent } from '../../src/utils/task-progress.js';
 
+const content = `## Goals
+
+- [x] G1: Complete the first goal
+- [ ] G2: Complete the second goal
+
+## Required Corrections
+
+- [ ] [code_fix] Fix a discovered defect
+`;
+
 describe('countTasksFromContent', () => {
-  it('counts legacy checkbox tasks', () => {
-    expect(countTasksFromContent('- [x] Done\n- [ ] Todo\n')).toEqual({
-      total: 2,
-      completed: 1,
-    });
+  it('counts only target-level goal checkboxes', () => {
+    expect(countTasksFromContent(content)).toEqual({ total: 2, completed: 1 });
   });
 
-  it('counts coarse Task sections using nested check completion', () => {
-    expect(
-      countTasksFromContent(`### Task 1: First
-
-#### Checks
-
-- [x] C1 Done
-- [x] C2 Done
-
-### Task 2: Second
-
-#### Checks
-
-- [x] C3 Done
-- [ ] C4 Todo
-`)
-    ).toEqual({
-      total: 2,
-      completed: 1,
-    });
+  it('does not count legacy checkbox lists without a Goals section', () => {
+    expect(countTasksFromContent('- [x] Old action\n- [ ] Old check\n')).toEqual({ total: 0, completed: 0 });
   });
 
-  it('counts coarse Task sections with Windows line endings', () => {
-    expect(
-      countTasksFromContent(
-        '### Task 1: Windows\r\n\r\n#### Checks\r\n\r\n- [x] C1 Done\r\n\r\n### Task 2: Pending\r\n\r\n#### Checks\r\n\r\n- [ ] C2 Todo\r\n'
-      )
-    ).toEqual({
-      total: 2,
-      completed: 1,
-    });
+  it('does not count Required Corrections as goals', () => {
+    expect(countTasksFromContent(`## Goals\n\n- [x] G1: Done\n\n## Required Corrections\n\n- [ ] [artifact_fix] Repair artifact\n`))
+      .toEqual({ total: 1, completed: 1 });
   });
 });

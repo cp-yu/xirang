@@ -11,90 +11,48 @@ definition: Tasks Document 是 Change Plan 中安排执行步骤与验证检查�
 
 ### Section: Tasks 安排执行与验证
 
-tasks.md SHALL 安排执行步骤与验证检查。 Tasks SHALL 具体列出实施事项、依赖与验证安排，以稳定 Contract Section 引用目标语义，需要时引用其 Acceptance Case，不重复维护另一套行为定义。可观察行为缺失时先补 Contract；记录、Contract 与 Tasks 分别承担确认依据、完整规范与执行计划职责。
+`tasks.md` SHALL 在形成 Change 时列出与用户达成一致的实施目标与各目标需要覆盖的验证方向：要验证的行为、相关边界及预期可观察结果。目标语义 SHALL 引用对应 Element Contract，而不是在任务中另写一套行为定义；行为缺失时先补 Contract。`tasks.md` SHALL NOT 要求 Propose 预列具体实现或测试文件、测试动作、测试层级、命令、用例拆分及细排的实施操作；这些由 Apply 结合当前项目状态确定。`proposal.md`、`design.md` 与 `tasks.md` SHALL 分别承载范围、关键决策与目标验证，不机械重复目标描述。
 
-- **撰写 Tasks**
+- **目标已确认**
+  - Propose 形成 Change Plan
+  - tasks 标识待实现目标及应验证的结果，不把具体测试手段提前固定
 
-  - 形成 Change Plan
-  - tasks.md 安排执行步骤与验证检查
-
-- **Tasks 不定义目标语义**
-
-  - Change Plan 与 Semantic Delta 冲突
-  - 以 Semantic Delta 为准
-
-- **具体安排引用规范**
-
-  - 同一行为涉及 CLI、模板、生成面和测试
-  - 明确各实施事项与验证依赖，引用适当 Contract，而不复制完整要求作为第二份权威。
+- **目标语义不完整**
+  - tasks 的验证方向涉及尚未写入 Contract 的行为
+  - Propose SHALL 先修正目标 Contract，不以 tasks 补足规范
 
 ### Section: Tasks 按 TDD 闭环组织
 
-`tasks.md` 的每个 task SHALL 表达一个可独立实现、可独立验证的完整闭环：同一目标行为所需的生产代码、配置、生成面与测试 SHALL 归入同一 task；task 的 RED/GREEN 循环 SHALL NOT 依赖尚未完成的后续 task。 task 边界 SHALL 以独立端到端行为为准，不以文件、组件或条目数量机械分组；内部实施事项应足以发现遗漏，相关 LLM prompt 源、受管生成面及其行为检查 SHALL 与该行为同任务交付。
+`tasks.md` 的每个目标 SHALL 有可理解的完成边界和验证方向；多个实现面共同交付同一目标时 SHALL 作为一个目标呈现，不按文件、组件、Section 或 Acceptance Case 数量机械拆分。任务仅在用户明确要求先后次序时 SHALL 按该顺序排列；该要求 SHALL 同时出现在 `proposal.md` 或 `design.md` 至少一处，若约束目标行为或数据状态也 SHALL 进入相应 Contract。通常的技术实施顺序和依赖 SHALL 由 Apply 决定，不因任务排列被误认为用户要求。
 
-- **行为跨组件仍属同一 task**
+- **行为横跨多个实现面**
+  - 同一目标需要 CLI、提示词、生成面及测试共同完成
+  - tasks SHALL 将其作为一个目标；Apply 负责形成可验证的实施闭环
 
-  - 一个目标行为需要多个组件、模块或目录共同实现
-  - 这些工作 SHALL 位于同一 task 内
+- **用户明确要求先后次序**
+  - 目标 A 须先于目标 B
+  - tasks SHALL 将 A 排在 B 前面，Apply SHALL 遵守该约束
 
-- **仅独立验证或已 GREEN 依赖才拆分**
-
-  - 每个 task 可独立达成 GREEN，或仅依赖已 GREEN 的前置 task
-  - 才可拆分为多个 tasks
-
-- **task 不依赖后续 task**
-
-  - task A 的验证必须依赖尚未完成的 task B
-  - task 边界无效且 SHALL 重新划分
-
-- **Prompt 与行为同闭环**
-
-  - 一个确认门禁需要 CLI 与 workflow prompt 共同交付
-  - 将两者及受管生成面和验证安排放入同一行为闭环，不把 prompt 仅放到最后润色任务。
+- **无指定次序**
+  - tasks 列出多个目标而用户未要求顺序
+  - Apply MAY 根据代码和测试现状安排实施顺序
 
 ### Section: 任务粒度对齐规范容器
 
-`tasks.md` 的 task 边界 SHALL 与 Contract 的内容容器对齐：每个适用的 +N 大点、每条护甲层边界项、每个关键验收案例各自 SHALL 具有可独立验证的任务或 Check 单元。这样细节在生成 tasks 时即暴露为缺口，而不推迟到模型对齐才被发现。
+`tasks.md` SHALL 从目标 Contract 的 Sections、适用边界和关键验收案例核对实施目标及验证方向是否遗漏；多个规范细节同属一个可观察目标时 SHALL 合并说明，不为每个 Section、边界项或 Acceptance Case 机械创建任务或可执行 Check。引用 SHALL 帮助定位目标语义，不以引用数量代替语义覆盖检查。
 
-- **适用大点各自成单元**
-
-  - Contract 挂载了并发契约、状态生命周期或外部降级等 +N 大点
-  - tasks SHALL 为每个大点安排可独立验证的实施与检查
-
-- **护甲层项不遗漏**
-
-  - 业务规格列出了极值、资源枯竭或安全防御项
-  - tasks SHALL 覆盖这些边界项，不得只覆盖主流程
-
-- **验收案例可被引用**
-
-  - Contract 的关键验收案例大点包含 Acceptance Case
-  - tasks 的 Check MAY 通过 `Acceptance Case "<name>"` 引用它建立验证关系
-
-- **不按条目数量机械拆分**
-
-  - 多个容器项共享同一实现与验证闭环
-  - SHALL 归入同一 task，不按容器条数逐条拆任务
+- **目标包含边界与例外**
+  - Contract 明确条件、边界或例外
+  - 对应目标的验证方向 SHALL 覆盖这些结果，不遗漏关键分支
 
 ### Section: Checks 按可观察行为组织
 
-`tasks.md` 的 Check SHALL 作为证据单元验证一个可观察行为及其失败原因，SHALL NOT 机械对应每句规格或每个 Acceptance Case。Check SHALL 通过唯一的 `Test action:` 字段声明一个测试动作：`reuse`（原样运行已有测试）、`modify`（修改已有测试）、`add`（新增测试）、`delete`（删除过时测试并验证剩余行为或缺失）或 `one-time`（一次性证据）；该字段 SHALL NOT 替代 Command、Evidence 或 Expect 等验证证据；one-time Check SHALL NOT 要求创建 persistent test file。
+`tasks.md` SHALL 使用目标级完成状态记录进度：只有目标的适用行为已实现、验证方向获得实际证据时 Apply 才 SHALL 标记完成；不得以勾选代替证据，也不向 tasks 回填实施文件、测试动作、命令或输出。Apply SHALL 按当前测试选择复用、修改、新增、删除或一次性验证，采用能检验目标行为的适当测试边界；不把规格句数或 Acceptance Case 数量机械转换为测试数量。无需新增持久化逐项测试日志；独立 Review SHALL 基于当前实现和可复现证据取证，Quality 的结论摘要 SHALL NOT 冒充原始测试输出。
 
-Check 引用目标语义时 SHALL 使用 `Section "<title>"` 锚点；验证关键验收案例时 MAY 追加 `Acceptance Case "<name>"`。
+- **完成目标**
+  - 实施与适用验证实际通过
+  - Apply 勾选该目标，不在 tasks 中补写测试命令或执行日志
 
-- **同一行为共用一个 Check**
-
-  - 多条规格具体化同一可观察行为与同一失败原因
-  - 它们 SHALL 由同一个 Check 验证
-  - Check 的 `Verifies` 可引用这些 Section
-
-- **测试动作显式声明**
-
-  - Check 需要持久化测试证据
-  - Files 或 Check 正文 SHALL 标明 reuse、modify、add 或 delete 的测试路径
-  - Apply SHALL 按该动作执行，不得在已声明 modify 时默认新建文件
-
-- **one-time Check 不建测试文件**
-
-  - Check 验证 typecheck、build、一次性 grep 或制品文本
-  - Check SHALL 使用 Command 或 Evidence，且 Files SHALL NOT 新增 persistent test file
+- **证据不足**
+  - 只有完成声明或 Quality 摘要，无可复现的行为验证依据
+  - 目标 SHALL 保持未完成

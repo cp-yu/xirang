@@ -88,7 +88,7 @@ Snack SHALL 独立判断 Element Contract impact。Element 的 Contract 由该 E
 
   - code 只重构 implementation 且 Element Contract 不变
   - SHALL NOT 创建 delta Contract
-  - later Checks SHALL 使用 `Preserves:` 锚定 formal Contract
+  - later verification SHALL 对照该 formal Contract Section 给出可观察验证方向
 
 - **Required contract 缺失**
 

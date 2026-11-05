@@ -56,28 +56,28 @@ Default stance: Strict. When uncertain: Escalate to CRITICAL when claimed work h
 ## Verification Dimensions
 
 ### Completeness
-- For baseline Review parse all tasks.md checkboxes; incomplete tasks or unimplemented Sections produce CRITICAL issues with concrete next actions. For scoped Review inspect relevant tasks/corrections and affected semantics without claiming whole-Change coverage.
+- For baseline Review, assess every goal-level task and Required Correction; incomplete goals or unimplemented target semantics produce CRITICAL issues with concrete next actions. For scoped Review inspect relevant goals/corrections and affected semantics without claiming whole-Change coverage.
 - For a Change containing only tasks and no Delta Contracts or design, baseline Review checks task completeness and explains why the other dimensions/alignment are not applicable.
-- For each task whose \`Files\` section contains a \`Delete:\` entry: inspect \`git diff <baseCommit>...HEAD --name-only\` and \`git status --short\`, then confirm that the declared file was deleted. If the file still exists, issue CRITICAL "Declared deletion not completed" and add to writeBackPlan.
+- Goal checkboxes are progress markers, not deletion declarations. Confirm requested removals against actual Git changes and final repository contents.
 
 ### Correctness
-Judgment mode is dispatched by Check anchor type:
+Review each goal's Contract reference and verification direction against final code, tests, and other credible evidence:
 
-**Presence judgment** (\`Verifies\` anchor):
-- Compare each Section and its observable behavior against final code and tests.
-- If divergence detected: issue CRITICAL "Implementation contradicts spec".
+**Presence judgment**:
+- Compare the goal's target behavior with its observable result in the implementation and evidence.
+- If divergence is detected, issue CRITICAL "Implementation contradicts spec".
 - Downgrade to WARNING only when drift is cosmetic and does not affect observable behavior.
-- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Acceptance Cases and test cases. One test may cover multiple Acceptance Cases. one-time evidence is valid when the Change classifies it as such.
+- Judge coverage by observable behavior and credible evidence, not by a one-to-one mapping between Acceptance Cases and test cases. One test may cover multiple Acceptance Cases. One-time evidence is valid when the Change classifies it as such.
 - If required behavior has no credible evidence, or if an obvious behavior mutation would survive the claimed test (weak assertion), issue CRITICAL. Do not require a separate test file for each Acceptance Case. Tests that read formal \`.xirang/model/\` and lock Section or Acceptance Case wording are CRITICAL.
 
-**Absence judgment** (\`Verifies ... REMOVED Section\` anchor):
-- Use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.
+**Absence judgment**:
+- When a goal verifies removal, use multi-angle search: search code by symbol name, file path, and import reference; navigate model objects by \`identity\`, never by path.
 - Confirm absence: cite search commands and empty results as evidence for PASS.
 - When any residual reference is found, issue CRITICAL "REMOVED Section residue found" and cite the residue location.
 
-**Equivalence judgment** (\`Preserves\` anchor):
-- Dual verification: ① associated tests pass (behavior unchanged); ② the old form named by Check \`Expect:\` has disappeared from the final code.
-- When old and new implementations coexist, issue CRITICAL "Half migration: old and new form coexist".
+**Equivalence judgment**:
+- For a behavior-preservation goal, verify associated tests pass and confirm the old form named by the goal's verification direction has disappeared from final code when replacement is required.
+- When old and new implementations coexist contrary to the goal, issue CRITICAL "Half migration: old and new form coexist".
 - Do not judge equivalence solely by test passing.
 
 ### Coherence
@@ -96,14 +96,7 @@ Judgment mode is dispatched by Check anchor type:
 
 **Unaccounted Changes Detection**:
 
-Attribution universe = union of the following sets (explicit list lookup; do not use pattern-matching inference):
-1. Entries declared in each task \`Files\` (including directory entries \u2014 directory entry covers all files under it)
-2. Test and evidence files referenced by each Check \`Command:\`
-3. Change artifacts themselves (all files under \`.xirang/changes/<name>/\`)
-
-For optimization work, read the delegation, actual report and final code to establish its connection to the Change goal. Necessary implementation/test additions, moves, deletions and shared helpers beyond one dependency hop can be accounted for without appearing in original tasks Files. Do not classify a path as CRITICAL merely for that absence. Verify the scope claim, preservation, protection tests and impact on other callers; a report is not unlimited authorization. An unrelated system refactor remains outside scope unless separately authorized.
-
-For each actually inspected file outside the applicable task/Check/delegation attribution universe:
+Change scope is established from the actual commit diff and working-tree status, then reconciled with the target goals, Semantic Delta, design decisions, and observed implementation/test relationships. Goal statements are not a file allowlist. Review every relevant changed file; report only changes shown by evidence to be unrelated or unauthorized.
 - Read the file, then determine its content nature.
 - Behavior code change → issue CRITICAL "Unaccounted change: <path>", offering two exits: supplement task/spec (artifact_fix) or remove the change (code_fix).
 - Mechanical benign changes (lockfile, pure generated artifacts, pure formatting) → WARNING or SUGGESTION, noting the classification reason.

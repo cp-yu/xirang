@@ -27,11 +27,15 @@ Apply SHALL 结合 Change Plan 与当前项目状态落实 Change 要求的全�
 
 ### Section: 遵循现有 Tasks 安排
 
-当 `tasks.md` 存在时，Apply SHALL 按其中的执行与验证安排推进。
+当 `tasks.md` 存在时，Apply SHALL 以其中与用户对齐的目标和验证方向推进，遵守用户明确要求的先后次序；对未指定顺序的目标 SHALL 根据当前代码与测试现状安排实施顺序、文件、测试动作、层级、命令和具体操作。Apply SHALL 不以这些现场判断修改已确认的目标语义或业务时序。
 
-- **Change 具有任务清单**
+- **Change 具有目标任务**
   - Apply 开始执行
-  - 工作按适用任务安排推进
+  - 先读取目标 Contract 与 Plan，再确定实际实施与验证方法
+
+- **用户指定目标顺序**
+  - 任务排列及 Plan 明确目标 A 须先于 B
+  - Apply SHALL 在 A 完成后推进 B
 
 ### Section: 处理 Required Corrections
 

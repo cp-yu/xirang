@@ -4,7 +4,6 @@ import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
 import { createBaselineOnlyQualityFixture, createCompleteQualityFixture } from '../helpers/quality-fixture.js';
-import { validateTaskStructure } from '../../src/core/parsers/task-structure.js';
 
 describe('artifact-workflow CLI commands', () => {
   let tempDir: string;
@@ -72,7 +71,7 @@ describe('artifact-workflow CLI commands', () => {
     }
 
     if (artifacts.includes('tasks')) {
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [ ] Task 1');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [ ] G1: Complete the implementation goal\n  - Contract: `test-element` / Section "Implementation goal"\n  - Verify: Expected behavior is observable.');
     }
 
 
@@ -303,27 +302,13 @@ describe('artifact-workflow CLI commands', () => {
 
       const json = JSON.parse(result.stdout);
       expect(json.artifactId).toBe('tasks');
-      expect(json.template).toContain('### Task 1:');
-      expect(json.template).toContain('**Goal**:');
-      expect(json.template).toContain('**Files**:');
-      expect(json.template).toContain('**Sections**:');
-      expect(json.template).toContain('#### Checks');
-      expect(json.template).toContain('  - Test action: modify');
-      expect(json.template).toContain('  - Test action: one-time');
-      expect(json.template).toContain('  - Test action: reuse');
-      expect(json.instruction).toContain('Each check MUST declare exactly one `Test action:`');
-      expect(json.instruction).toContain('coarse-grained task list');
-      expect(json.instruction).toContain('executable Checks');
-      expect(json.instruction).toContain('non-runtime text or non-runtime artifact changes do not require artificial failing tests');
-      expect(json.instruction).toContain('config, schema, template, workflow template, and agent instruction template changes default to behavior Checks');
-      expect(json.instruction).toContain('independently implementable and verifiable end-to-end loop');
-      expect(json.instruction).toContain('MUST stay in one task');
-      expect(json.instruction).toContain('depend only on an earlier task that is already GREEN');
-      expect(json.instruction).toContain('MUST NOT depend on a later task');
-      expect(json.instruction).not.toContain('Generate one task from each major component');
-      expect(json.instruction).not.toContain('split complex work into multiple tasks');
-      expect(json.instruction).not.toContain('decompose into detailed TDD cycles');
-      expect(json.instruction).toContain('Design Summary');
+      expect(json.template).toContain('## Goals');
+      expect(json.template).toContain('Contract:');
+      expect(json.template).toContain('Verify:');
+      expect(json.template).not.toContain('**Files**:');
+      expect(json.template).not.toContain('#### Checks');
+      expect(json.instruction).toContain('goal-level');
+      expect(json.instruction).not.toContain('Test action:');
     });
 
     it('errors when artifact argument is missing', async () => {
@@ -535,124 +520,27 @@ rules: {}
       expect(result.stdout).toContain('apply.defaultIsolation: worktree');
     });
 
-    it('parses coarse tasks as apply progress and task items', async () => {
-      const changeDir = await createTestChange('coarse-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      const tasks = `### Task 1: Explore routing
-
-**Goal**: Add the explore-to-propose routing instruction.
-
-**Files**:
-- Modify: \`src/core/templates/workflows/propose.ts\`
-- Test: \`test/core/templates/propose-template.test.ts\`
-
-**Sections**:
-- Reuse a confirmed Design Summary when present
-
-#### Checks
-
-- [x] C1 Verify Design Summary reuse
-  - Verifies: \`elements/test-element.md\` / Section "Propose smart routing" / AcceptanceCase "复用 Design Summary"
-  - Test action: reuse
-  - Command: \`npm run test -- test/core/templates/propose-template.test.ts\`
-  - Expect: template mentions Design Summary reuse
-
-### Task 2: Apply decomposition
-
-**Goal**: Parse coarse tasks during apply.
-
-**Files**:
-- Modify: \`src/commands/workflow/instructions.ts\`
-- Test: \`test/commands/artifact-workflow.test.ts\`
-
-**Sections**:
-- Keep unfinished tasks visible to apply
-
-#### Checks
-
-- [ ] C2 Verify pending coarse task
-  - Verifies: \`elements/test-element.md\` / Section "Master agent 必须拆解粗粒度任务为 TDD 步骤" / AcceptanceCase "读取粗粒度任务"
-  - Test action: reuse
-  - Command: \`npm run test -- test/commands/artifact-workflow.test.ts\`
-  - Expect: apply progress reports one remaining task
-`;
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasks);
-      expect(validateTaskStructure(tasks, { changeDir }).valid).toBe(true);
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'coarse-apply', '--json'],
-        { cwd: tempDir }
-      );
+    it('rejects legacy task layouts during apply preparation', async () => {
+      const changeDir = await createTestChange('legacy-apply', ['proposal', 'design', 'specs', 'tasks']);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '### Task 1: Legacy\\n\\n**Files**:\\n- Modify: `src/example.ts`\\n');
+      const result = await runCLI(['instructions', 'apply', '--change', 'legacy-apply', '--json'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
+      const json = JSON.parse(result.stdout);
+      expect(json.progress).toEqual({ total: 0, complete: 0, remaining: 0 });
+      expect(json.state).toBe('blocked');
+    });
 
+    it('tracks target-level goals as apply progress', async () => {
+      const changeDir = await createTestChange('goal-apply', ['proposal', 'design', 'specs', 'tasks']);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Complete first goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: behavior is complete\n- [ ] G2: Complete second goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: behavior is complete\n');
+      const result = await runCLI(['instructions', 'apply', '--change', 'goal-apply', '--json'], { cwd: tempDir });
+      expect(result.exitCode).toBe(0);
       const json = JSON.parse(result.stdout);
       expect(json.progress).toEqual({ total: 2, complete: 1, remaining: 1 });
       expect(json.tasks).toEqual([
-        { id: '1', description: 'Explore routing', done: true },
-        { id: '2', description: 'Apply decomposition', done: false },
+        { id: 'G1', description: 'Complete first goal', done: true },
+        { id: 'G2', description: 'Complete second goal', done: false },
       ]);
-      expect(json.instruction).toContain('strict red/green TDD');
-      expect(json.instruction).toContain('confirm the expected failure before implementation');
-      expect(json.instruction).toContain('confirm pass before marking nested Checks complete');
-      expect(json.instruction).not.toContain('directly implement each pending task');
-    });
-
-    it('keeps the explore-to-propose-to-apply instruction path coherent', async () => {
-      const changeDir = await createTestChange('workflow-integration', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      const tasks = `### Task 1: Implement confirmed design
-
-**Goal**: Apply the design confirmed during explore.
-
-**Files**:
-- Modify: \`src/core/templates/workflows/apply-change.ts\`
-- Test: \`test/core/templates/apply-change.test.ts\`
-
-**Sections**:
-- Execute behavior Checks through strict red/green TDD
-- Mark checks complete after red/green evidence passes
-
-#### Checks
-
-- [ ] C1 Verify strict apply
-  - Verifies: \`elements/test-element.md\` / Section "Apply Phase 0 pending Checks" / AcceptanceCase "拆解为可执行工作"
-  - Test action: reuse
-  - Command: \`npm run test -- test/core/templates/apply-change.test.ts\`
-  - Expect: apply instructions include strict red/green TDD
-`;
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), tasks);
-      expect(validateTaskStructure(tasks, { changeDir }).valid).toBe(true);
-
-      const exploreResult = await runCLI(['instructions', 'proposal', '--change', 'workflow-integration', '--json'], {
-        cwd: tempDir,
-      });
-      const tasksResult = await runCLI(['instructions', 'tasks', '--change', 'workflow-integration', '--json'], {
-        cwd: tempDir,
-      });
-      const applyResult = await runCLI(['instructions', 'apply', '--change', 'workflow-integration', '--json'], {
-        cwd: tempDir,
-      });
-
-      expect(exploreResult.exitCode).toBe(0);
-      expect(tasksResult.exitCode).toBe(0);
-      expect(applyResult.exitCode).toBe(0);
-
-      const tasksJson = JSON.parse(tasksResult.stdout);
-      const applyJson = JSON.parse(applyResult.stdout);
-      expect(tasksJson.instruction).toContain('Design Summary');
-      expect(tasksJson.template).toContain('### Task 1:');
-      expect(applyJson.progress).toEqual({ total: 1, complete: 0, remaining: 1 });
-      expect(applyJson.tasks[0].description).toBe('Implement confirmed design');
-      expect(applyJson.instruction).toContain('strict red/green TDD');
-      expect(applyJson.instruction).not.toContain('directly implement each pending task');
     });
 
     it('rejects project-local schemas for apply instructions', async () => {
@@ -679,9 +567,9 @@ rules: {}
       });
       expect(result.exitCode).toBe(0);
       // Should show the instruction from semantic-model schema apply block
-      expect(result.stdout).toContain('strict red/green TDD');
-      expect(result.stdout).toContain('confirm the expected failure before implementation');
-      expect(result.stdout).not.toContain('directly implement each pending task');
+      expect(result.stdout).toContain('establish credible evidence that the behavior is unmet');
+      expect(result.stdout).toContain('Non-runtime artifact changes require final-state evidence');
+      expect(result.stdout).not.toContain('Test action:');
     });
 
     it('shows needs_review state when all tasks are complete but no review is recorded', async () => {
@@ -694,7 +582,7 @@ rules: {}
       // Overwrite tasks with all completed
       await fs.writeFile(
         path.join(changeDir, 'tasks.md'),
-        '## Tasks\n- [x] Task 1\n- [x] Task 2'
+        '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.'
       );
 
       const result = await runCLI(['instructions', 'apply', '--change', 'done-apply'], {
@@ -712,7 +600,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
 
       const result = await runCLI(
         ['instructions', 'apply', '--change', 'done-apply-json', '--json'],
@@ -732,7 +620,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
       await createBaselineOnlyQualityFixture(tempDir, changeDir);
 
       const result = await runCLI(
@@ -753,7 +641,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
       await createCompleteQualityFixture(tempDir, changeDir);
 
       const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
@@ -779,7 +667,7 @@ rules: {}
         'specs',
         'tasks',
       ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Tasks\n- [x] Task 1\n- [x] Task 2');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
       await createCompleteQualityFixture(tempDir, changeDir);
 
       const result = await runCLI(
@@ -1081,12 +969,9 @@ context: Updated context
       const json = JSON.parse(result.stdout);
       const instruction = json.instruction;
 
-      expect(instruction).toContain('REMOVED Section');
-      expect(instruction).toContain('Preserves');
-      expect(instruction).toContain('Delete:');
-      expect(instruction).toContain('Deletion work');
-      expect(instruction).toContain('Refactors map');
-      expect(instruction).toContain('absence assertion');
+      expect(instruction).toContain('Do not prescribe files, tests, test actions, commands');
+      expect(instruction).toContain('Use goal checkboxes as the only ordinary progress markers');
+      expect(instruction).toContain('Apply chooses and records no specific test arrangement');
     });
 
     it('describes non-runtime text fast path', async () => {
@@ -1100,9 +985,7 @@ context: Updated context
       const json = JSON.parse(result.stdout);
       const instruction = json.instruction;
 
-      expect(instruction).toContain('non-runtime text');
-      expect(instruction).toContain('do not require artificial failing tests');
-      expect(instruction).toContain('Absence assertions');
+      expect(instruction).toContain('Apply chooses and records no specific test arrangement');
     });
   });
 });

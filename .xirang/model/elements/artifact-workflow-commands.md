@@ -45,99 +45,50 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
   - user runs `xirang status --change unknown-id`
   - directory `.xirang/changes/unknown-id/` does not exist
   - the system displays an error listing all available change directories
+
 ### Section: Instructions Command
 
-系统 SHALL 输出创建 artifact 的 enriched instructions，包括 scaffolded changes。对于 semantic-model `tasks` artifact，生成的 instructions SHALL 要求 `tasks.md` 将实现目标与可执行验证 Checks 分离，并要求每个 Check 声明其验证锚点（`Verifies:` 或 `Preserves:`）。
+系统 SHALL 为 scaffolded 与已有 Changes 输出创建 artifact 的 enriched instructions。semantic-model 的 `tasks` instructions SHALL 只要求目标级任务、对应可观察验证方向及目标级完成 checkbox，不要求 Propose 提供 `Files`、`Sections`、nested executable `Checks`、`Test action`、命令或具体测试路径；需要验证的行为与边界 SHALL 指向相应目标 Contract，不以任务正文独立定义行为。Apply instructions SHALL 指导 Agent 现场选择测试并以实际证据判断目标完成。CLI SHALL 只支持目标级 `tasks.md`；旧式任务文件不迁移且不受支持，需重写后继续使用。
 
-- **Show enriched instructions**
-
+- **展示 enriched instructions**
   - 用户运行 `xirang instructions <artifact> --change <id>`
-  - 系统输出 artifact metadata、template content、dependency status 与 unlocked artifacts
+  - 输出 artifact metadata、template、依赖状态与可解锁 artifacts；JSON 模式输出结构化结果
 
-- **Instructions JSON output**
-
-  - 用户运行 `xirang instructions <artifact> --change <id> --json`
-  - 系统输出匹配 ArtifactInstructions interface 的 JSON
-
-- **Tasks instructions require coarse Tasks and Checks sections**
-
+- **Tasks instructions 是目标级**
   - 用户运行 `xirang instructions tasks --change <id> --json`
-  - 返回的 instruction SHALL 告诉 agent 用粗粒度 `### Task N:` sections 编写 `tasks.md`
-  - 每个 task 包含 `Goal`、`Files`、`Sections` 与嵌套 `Checks`
-  - 每个 Check 是带 `C` 前缀的可执行验证项
+  - SHALL 返回粗粒度 `### Task N:` 目标、目标级 checkbox 与验证方向的模板和指令
+  - SHALL NOT 强制 Propose 提前选择文件、测试动作、命令、用例数量或技术依赖
 
-- **Tasks instructions require Verifies fields**
+- **可观察目标而非空泛工作**
+  - 目标涉及错误输入、缺陷修复、行为保持或删除
+  - instructions SHALL 提示写出相应可观察结果与边界，并引用目标 Contract 或既有 Contract，不要求预置 executable Check
 
-  - 用户运行 `xirang instructions tasks --change <id> --json`
-  - instruction SHALL 要求每个 Check 必须包含 `Verifies:` 或 `Preserves:` 字段
-  - 普通 `Verifies:` 锚定一个完整 Section 名与一个或多个完整 Acceptance Case 名
-  - `Verifies:` SHALL NOT 使用 formal 路径、绝对路径或反斜杠分隔路径
+- **非运行时文本的验证方向**
+  - 目标只影响无运行时消费者的文本制品
+  - instructions SHALL 不要求人为失败测试；config、schema 与模板有消费者时仍须验证行为
 
-- **Tasks instructions convert vague work into testable goals**
-
-  - 用户运行 `xirang instructions tasks --change <id> --json`
-  - instruction SHALL 要求将 validation work 转为 invalid-input 行为 check、将 bug fixes 转为复现回归修复的 check、将 refactors 转为由 `Preserves:` 锚定的行为等价 check、将删除工作转为由 REMOVED 锚定的缺失断言 check
-  - 每个 task 至少包含一个 Check
-
-- **Apply instructions require strict TDD for behavior Checks**
-
+- **Apply instructions 的行为验证**
   - 用户运行 `xirang instructions apply --change <id> --json`
-  - instruction SHALL 要求行为与代码 Checks 通过严格 TDD 执行
-  - 要求实现前先新增或更新 targeted test 并确认预期失败
-  - 要求最小实现后重跑同一命令并确认通过后再标记进度
+  - SHALL 要求 Apply 依据现有测试选择合适动作，行为与代码目标通过实际 RED/GREEN 证据；目标完成状态不得先于证据
 
-- **REMOVED 锚定的结构校验**
-  - `tasks.md` 中某 Check 的 `Verifies:` 使用 `REMOVED Section "<name>"` 形式
-  - 结构校验 SHALL 接受该 Check 不含 Acceptance Case 名
-  - SHALL 交叉校验该 Section 名存在于所指 change-local delta 的 REMOVED section
-  - 普通 `Verifies:` 缺少 Acceptance Case 名时 SHALL 仍按现有规则报告校验错误
+- **未知 artifact 与阻塞依赖**
+  - 用户请求未知 artifact 或尚有未满足依赖的 artifact
+  - CLI SHALL 给出有效 IDs 或列明缺失依赖及警告
 
-- **Tasks instructions allow non-runtime text fast path**
-  - 用户运行 `xirang instructions tasks --change <id> --json`
-  - instruction SHALL 说明非运行时文本或制品变化不需要人为失败测试
-  - SHALL 仍要求至少一个带非空 `Verifies:` 的轻量 Check
-  - SHALL 说明 config/schema/template 变化默认按行为 Check 处理除非证明无 consumer
+- **Scaffolded change**
+  - 用户在只有 change 目录时请求 proposal instructions
+  - CLI SHALL 返回模板、定义与元数据，不要求现有制品
 
-- **Unknown artifact**
-  - user runs `xirang instructions unknown-artifact --change <id>`
-  - the system displays an error listing valid artifact IDs for the schema
+- **目标锚点**
+  - 任务的验证方向引用目标 Contract
+  - instructions SHALL 使用 Element identity 和 Section 名定位语义；不要求 Propose 构造文件路径式 `Verifies:` 或 `Preserves:`，不支持旧式 Check 路径锚点
 
-- **Checks are executable verification items**
-  - user runs `xirang instructions tasks --change <id> --json`
-  - the returned `instruction` SHALL tell the agent that each Check is executable verification work, not explanatory prose
-  - each Check SHALL include a command, evidence source, or observable expectation sufficient for an agent to run or inspect it
-  - each Check SHALL anchor that verification to a `Verifies:` or `Preserves:` target before implementation starts
+- **不预列删除文件**
+  - 目标涉及删除或替换行为
+  - instructions SHALL 写出要消失或被替换的行为，不预列 `Delete:` 文件清单；Apply SHALL 根据当前项目证据定位实际文件
 
-- **Artifact with unmet dependencies**
-  - user requests instructions for a blocked artifact
-  - the system displays instructions with a warning about missing dependencies
-
-- **Instructions on scaffolded change**
-  - user runs `xirang instructions proposal --change <id>` on a scaffolded change
-  - system outputs template and metadata for creating the proposal
-  - does not require any artifacts to already exist
-
-- **Verifies path remains change-local and cross-platform**
-  - 一个 `Verifies:` 字段命名一个 change-local Element Contract 单元路径（`elements/<identity>.md`）
-  - 该路径 SHALL 从 change directory 以相对 POSIX 路径书写
-  - 该路径 SHALL 携带完整 Section 名称与一个或多个 exact Acceptance Case 名称锚点
-  - the implementation SHALL resolve the path using Node path APIs such as `path.join(changeDir, verifiesPath)`
-  - tests SHALL cover rejection of `.xirang/contracts/...`, absolute paths, parent traversal, and backslash-separated paths
-
-- **Preserves 字段锚定 formal Element Contract 且跨平台解析**
-  - `tasks.md` 中某 Check 包含 `Preserves:` 字段
-  - 该字段 SHALL 使用 `.xirang/model/elements/<identity>.md` 形式的项目根相对 POSIX 路径
-  - SHALL identify one full `Section` name and one or more full `Acceptance Case` names
-  - the implementation SHALL resolve the path using Node path APIs such as `path.join(projectRoot, preservesPath)`
-  - 校验 SHALL 拒绝 change-local 路径、绝对路径、父目录穿越和反斜杠分隔路径
-  - `Preserves:` 的formal Element Contract 路径许可 SHALL NOT 放宽到 `Verifies:` 字段
-
-- **Files 支持 Delete 声明**
-  - user runs `xirang instructions tasks --change <id> --json`
-  - the returned `instruction` 列出的 Files 标签 SHALL 包含 `Delete:`，与 `Create:`、`Modify:`、`Test:` 并列
-  - SHALL 说明文件级删除（含移动、合并产生的删除）使用 `Delete:` 声明
-  - SHALL 说明生成面改动（如 skill 再生成目录）在 Files 中以目录粒度声明
 ### Section: Templates Command
+
 系统 SHALL 展示 schema 中所有 artifact 的 resolved template paths。
 
 - **List template paths with default schema**
@@ -157,7 +108,9 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
   - displaying template paths
   - the system SHALL 报告 package-only source（`semantic-model`）
   - 不存在 user override source
+
 ### Section: New Change Command
+
 系统 SHALL 创建新的 change 目录并进行校验。
 
 - **Create valid change**
@@ -175,6 +128,7 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
 - **Create with description**
   - user runs `xirang new change add-feature --description "Add new feature"`
   - the system creates the change directory with description in README.md
+
 ### Section: Schema Apply Block
 
 系统 SHALL 支持 schema definitions 中的 `apply` block，控制实现何时开始与如何开始。
@@ -190,6 +144,7 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
   - a schema has no `apply` block
   - the system requires all artifacts to exist before apply is available
   - uses default instruction: "All artifacts complete. Proceed with implementation."
+
 ### Section: Apply Instructions Command
 
 系统 SHALL 通过 `xirang instructions apply` 生成 schema-aware apply instructions。
@@ -216,6 +171,7 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
   - Apply state SHALL 为 blocked
   - instruction SHALL 指示返回 Propose workflow reconcile 缺失 prerequisite
   - MUST NOT 指示 `xirang-apply-change` 创建缺失 artifact
+
 ### Section: Next Artifact Discovery
 
 The workflow SHALL 使用 `xirang status` 输出来确定下一步可创建的 artifact，而非单独的 next-command surface。

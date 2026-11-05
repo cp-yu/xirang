@@ -99,6 +99,8 @@ describe('xirang archive skill content', () => {
     expect(boundaryReference).toContain('## Changes');
     expect(boundaryReference).toContain('Implementation:');
     expect(boundaryReference).toContain('git diff --name-only');
+    expect(boundaryReference).toContain('archived goal-level intent in `tasks.md`');
+    expect(boundaryReference).not.toContain('Files/Goal');
     expect(mergeReference).toContain('git.commitMessage.merge');
     expect(mergeReference).toContain('<type>(<scope>): <English subject>');
   });

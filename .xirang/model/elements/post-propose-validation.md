@@ -11,40 +11,33 @@ definition: Post-propose Validation 定义 Propose 收尾的一致性验证门�
 
 ### Section: 计划一致性复核
 
-Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、design.md、Semantic Delta 与 tasks.md 联合对照 Explore 及 Propose 内的用户确认，检查计划与目标的一致性；不得仅以制品相互一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变已确认承诺、扩大范围或裁决重大业务及架构权衡时 SHALL 呈现全部发现，一次请求一个决策并等待确认。既定范围与方案内细枝末节 MAY 在完成时披露，无需逐项确认，但不以合理推导为名自行大量扩写设计。新确认的行为及推导补充的可观察保证 SHALL 贯穿相关 Delta 与 Plan，不得只藏在 design 或 tasks 中。 复核 SHALL 同时检查可用当前确认记录到目标语义、需实施的目标语义到 tasks 实现安排与 Checks 两段覆盖；第一段按性质、决策状态与适用性筛出需落实的已采纳规范内容，再按原子细节（条件、数值、例子、反例、时序、例外）逐项给出位置与摘录，并经 `xirang record coverage` 记录，任一应落实细节无位置即阻塞完成；影响当前目标的 pending 决策先解决，excluded 与 informative 不强造 Contract 义务；引用存在只是结构合法，不是行为覆盖证明。共同遗漏的已确认细节同样阻塞完成；缺失行为先补 Contract，再调整 Plan，未决意图交给用户。
+Post-propose Validation SHALL 在确定性校验前将 change-local Contracts、`proposal.md`、`design.md`、Semantic Delta 与 `tasks.md` 联合对照 Explore 及 Propose 内的用户确认；不得仅以制品互相一致代替来源忠实性。已确认来源能确定修正方式时 SHALL 自行修正；需要改变已确认承诺、扩大范围或裁决重大业务及架构权衡时 SHALL 呈现全部发现，一次请求一个决策并等待确认。既定范围内细节 MAY 在完成时披露，但不得借此大量扩写设计。新确认的行为及推导补充的可观察保证 SHALL 贯穿 Delta 与 Plan，不只藏于 design 或 tasks。
+
+复核 SHALL 检查两段覆盖：已采纳且适用的记录内容到目标语义，以及需实施的目标语义到 `tasks.md` 的实施目标与验证方向。第一段 SHALL 按性质、决策状态与适用性筛选规范内容，逐项定位条件、数值、例子、反例、时序与例外的目标位置及摘录，并经 `xirang record coverage` 记录；影响目标的 pending 决策先解决，excluded 与 informative 不强造 Contract。第二段 SHALL 检查各目标行为与边界是否有相应实施目标和可观察验证方向，而非提前要求文件、命令、测试动作或逐项 executable Check。引用存在不证明行为被覆盖；双方共同遗漏的确认细节仍阻塞完成。缺失行为先补 Contract，再调整 Plan；未决意图交由用户裁决。
 
 - **检测到矛盾时自行修正**
-
-  - 复核发现 task 间声明矛盾或 task 与 change-local 目标语义冲突
-  - 已确认来源能确定修正方式时 SHALL 自行修正制品，否则先询问用户
-  - SHALL 修正后继续复核
+  - 任务目标或验证方向与 change-local 目标语义冲突
+  - 来源能确定修正方式时 SHALL 修正后继续复核，否则询问用户
 
 - **矛盾反映用户意图不对齐**
-
-  - 矛盾反映与用户意图或已确认决策不对齐
-  - SHALL 一次性呈现全部发现
-  - SHALL 等待用户裁决后再继续
+  - 已确认来源不足以裁决
+  - SHALL 呈现发现并等待用户决定，不自行新增目标行为
 
 - **复核干净时无声继续**
+  - 未发现矛盾或覆盖缺口
+  - SHALL 进入确定性校验，不要求用户确认每一个制品
 
-  - 复核未发现矛盾
-  - SHALL 无声继续进入确定性校验
-
-- **复核不再由 Apply 承担**
-
-  - apply workflow 启动实现
-  - apply SHALL NOT 执行计划一致性复核
-  - 复核 SHALL 由 Propose 收尾门禁在 Formation 内完成
+- **复核由 Propose 完成**
+  - Apply 启动实施
+  - Apply SHALL NOT 重新执行 Formation 的计划一致性复核
 
 - **有效引用不代表实际覆盖**
-
-  - Check 引用了存在的 Section 与 Acceptance Case，但命令或证据不能验证其行为
-  - 修正实现安排或验证方式后重新复核，不用引用校验通过替代语义覆盖。
+  - tasks 引用的 Section 存在，但没有对应的目标或可观察验证方向
+  - SHALL 补足计划，不能以引用存在宣称目标可验证
 
 - **目标到任务存在遗漏**
-
-  - 目标 Contract 已表达条件分支，但任务与检查没有安排实现或验证
-  - 补足相应行为闭环与检查，不在任务内另造规范语义。
+  - 目标 Contract 已表达条件分支而任务没有安排实现目标或验证方向
+  - SHALL 补足相应目标与结果，不在任务内另造规范语义
 
 ### Section: 完整机制自查
 

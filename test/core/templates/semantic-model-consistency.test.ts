@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { BUSINESS_SPECIFICATION_STANDARD_REFERENCE } from '../../../src/core/templates/fragments/business-specification-standard.js';
 import {
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
@@ -69,6 +70,13 @@ describe('generated Xirang Semantic Model guidance', () => {
       expect(guidance).not.toContain(reference);
       expect(guidance).not.toContain('Business Specification Standard (4+N)');
     }
+  });
+
+  it('uses goal-level verification guidance without task or Check traceability fields', () => {
+    const guidance = BUSINESS_SPECIFICATION_STANDARD_REFERENCE;
+    expect(guidance).toContain('Goal-level tasks reference the responsible Contract Section');
+    expect(guidance).not.toContain('Tasks and Checks trace back');
+    expect(guidance).not.toContain('change-local Element paths and Section anchors');
   });
 
   it('contains no active legacy identity, binding, ownership, or graph guidance', () => {

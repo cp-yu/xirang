@@ -4,7 +4,6 @@ import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   STRUCTURAL_DECOMPOSITION_GUIDANCE,
-  TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
@@ -38,8 +37,8 @@ describe('propose template post-validation flow', () => {
   it('checks authored decisions, executable dependencies and the basis of completion claims', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
-    expect(body).toContain('using only existing implementation, earlier GREEN tasks and that task');
-    expect(body).toContain('trace each Check to the implementation, files and commands it actually needs');
+    expect(body).toContain('Then read the current proposal, Delta, design and tasks back to their authority');
+    expect(body).toContain('For each target behavior needing implementation');
     expect(body).toContain('initial state, event order and expected outcome');
     expect(body).toContain('Separate observed CLI results, Agent semantic findings and remaining evidence gaps');
     expect(body).toContain('Formatting repairs may only restate existing commitments');
@@ -50,7 +49,7 @@ describe('propose template post-validation flow', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 
     expect(instructions).not.toContain('equivalent to `validateTaskStructure`');
-    expect(instructions).toContain('Task structure validation is owned by step 10');
+    expect(instructions).toContain('Validate that tasks use only the goal-level format');
   });
 
   it('authors and validates four-partition Semantic Delta units', () => {
@@ -165,42 +164,26 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('xirang instructions proposal --change "<name>" --json');
       expect(body).toContain('xirang instructions design --change "<name>" --json');
       expect(body).toContain('xirang instructions tasks --change "<name>" --json');
-      expect(body).toContain('Task structure validation is owned by step 10');
-      expect(body).toContain('Actions');
-      expect(body).toContain('### Task N:');
-      expect(body).toContain('Goal');
-      expect(body).toContain('Files');
-      expect(body).toContain('Sections');
-      expect(body).toContain('Checks');
-      expect(body).toContain('Covers:');
-      expect(body).toContain('Verifies:');
-      expect(body).toContain('change-local `Verifies:` Element unit paths');
-      expect(body).toContain('Section references');
-      expect(body).toContain('Command:');
-      expect(body).toContain('Evidence:');
-      expect(body).toContain('Expect:');
-      expect(body).toContain('Do NOT invent semantic lint rules beyond the current templates');
-      expect(body).toContain(TEST_QUALITY_GUIDANCE);
-      expect(body).not.toContain('Do NOT judge whether a check is semantically sufficient');
-      expect(body).toContain('Apply Test Quality Guidance when compiling verification work');
-      expect(body).toContain('Do not create Checks solely to match Acceptance Case count');
-      expect(body).toContain('Test action: reuse, modify, add, delete, or one-time');
+      expect(body).toContain('## Goals');
+      expect(body).toContain('G<n>');
+      expect(body).toContain('Contract Section reference');
+      expect(body).toContain('verification direction');
+      expect(body).toContain('Do not include implementation files, test actions, test layers, commands, or nested Checks');
+      expect(body).not.toContain('Actions and coarse');
+      expect(body).not.toContain('Files, Sections, Checks, Covers:');
     }
   });
 
   it('forms tasks around independently implementable and verifiable TDD loops', () => {
     const body = getXirangProposeSkillTemplate().instructions;
 
-    expect(body).toContain('independently implementable and verifiable end-to-end loop');
-    expect(body).toContain('Production code, configuration, generated surfaces, and tests');
-    expect(body).toContain('MUST remain in one task');
-    expect(body).toContain('each task reaches its own GREEN independently');
-    expect(body).toContain('cross-check Goals, Files, Sections, and Checks');
-    expect(body).toContain('persistent tests only lock wording');
-    expect(body).toContain('depends only on an earlier task that is already GREEN');
-    expect(body).toMatch(/a task's RED\/GREEN cycle MUST NOT depend on a later task/i);
-    expect(body).toContain('Do not split tasks by component, module, directory, or file type');
-    expect(body).toContain('reconcile those Checks and task boundaries before declaring the Change ready for Apply');
+    expect(body).toContain('each goal has a stable');
+    expect(body).toContain('Contract Section reference');
+    expect(body).toContain('verification direction');
+    expect(body).toContain('Merge implementation surfaces that jointly deliver one target');
+    expect(body).toContain('Encode ordering only when explicitly confirmed by the user');
+    expect(body).not.toContain('Files, Sections, and Checks as independently implementable');
+    expect(body).not.toContain('Test action: reuse');
   });
 
   it('uses Design Summary or semantic readiness without mechanical scoring', () => {
@@ -370,7 +353,7 @@ describe('propose template post-validation flow', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('**One-time Verification**');
       expect(body).toContain('no persistent test file');
-      expect(body).toContain('Verifies: <path> REMOVED Section');
+      expect(body).toContain('goal verification directions as evidence-only checks');
     }
   });
 });

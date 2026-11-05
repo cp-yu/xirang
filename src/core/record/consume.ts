@@ -43,7 +43,7 @@ async function validateChangeTarget(projectRoot: string, changeName: string): Pr
     if (error.code === 'ENOENT') return '';
     throw error;
   });
-  const taskErrors = tasks ? validateTaskStructure(tasks, { changeDir }).issues.filter(item => item.severity === 'error') : [];
+  const taskErrors = tasks ? validateTaskStructure(tasks).issues.filter(item => item.severity === 'error') : [];
   const errors = [...compiled.compiled.diagnostics.filter(item => item.level === 'ERROR'), ...notation.issues.filter(item => item.level === 'ERROR'), ...taskErrors];
   if (errors.length) fail('CHANGE_VALIDATION_FAILED', errors.map(item => item.message).join('; '));
 }

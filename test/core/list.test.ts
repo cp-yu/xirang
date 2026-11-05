@@ -74,18 +74,29 @@ describe('ListCommand', () => {
       expect(logOutput.some(line => line.includes('archive'))).toBe(false);
     });
 
-    it('should count tasks correctly', async () => {
+    it('should count goals correctly', async () => {
       const changesDir = path.join(tempDir, '.xirang', 'changes');
       await fs.mkdir(path.join(changesDir, 'test-change'), { recursive: true });
       
       await fs.writeFile(
         path.join(changesDir, 'test-change', 'tasks.md'),
-        `# Tasks
-- [x] Completed task 1
-- [x] Completed task 2
-- [ ] Incomplete task 1
-- [ ] Incomplete task 2
-- [ ] Incomplete task 3
+        `## Goals
+
+- [x] G1: Completed first goal
+  - Contract: \`feature\` / Section "Behavior"
+  - Verify: First behavior is observable.
+- [x] G2: Completed second goal
+  - Contract: \`feature\` / Section "Behavior"
+  - Verify: Second behavior is observable.
+- [ ] G3: Pending first goal
+  - Contract: \`feature\` / Section "Behavior"
+  - Verify: Third behavior is observable.
+- [ ] G4: Pending second goal
+  - Contract: \`feature\` / Section "Behavior"
+  - Verify: Fourth behavior is observable.
+- [ ] G5: Pending third goal
+  - Contract: \`feature\` / Section "Behavior"
+  - Verify: Fifth behavior is observable.
 Regular text that should be ignored
 `
       );
@@ -93,7 +104,7 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir);
 
-      expect(logOutput.some(line => line.includes('2/5 tasks'))).toBe(true);
+      expect(logOutput.some(line => line.includes('2/5 goals'))).toBe(true);
     });
 
     it('should show complete status for fully completed changes', async () => {
@@ -102,7 +113,7 @@ Regular text that should be ignored
       
       await fs.writeFile(
         path.join(changesDir, 'completed-change', 'tasks.md'),
-        '- [x] Task 1\n- [x] Task 2\n- [x] Task 3\n'
+        '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `feature` / Section "Behavior"\n  - Verify: Behavior is observable.\n- [x] G2: Second completed goal\n  - Contract: `feature` / Section "Behavior"\n  - Verify: Behavior is observable.\n- [x] G3: Third completed goal\n  - Contract: `feature` / Section "Behavior"\n  - Verify: Behavior is observable.\n'
       );
 
       const listCommand = new ListCommand();
@@ -118,7 +129,7 @@ Regular text that should be ignored
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir);
 
-      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No goals'))).toBe(true);
     });
 
     it('should sort changes alphabetically when sort=name', async () => {
@@ -142,21 +153,18 @@ Regular text that should be ignored
     it('should handle multiple changes with various states', async () => {
       const changesDir = path.join(tempDir, '.xirang', 'changes');
       
-      // Complete change
       await fs.mkdir(path.join(changesDir, 'completed'), { recursive: true });
       await fs.writeFile(
         path.join(changesDir, 'completed', 'tasks.md'),
-        '- [x] Task 1\n- [x] Task 2\n'
+        '## Goals\n\n- [x] G1: Completed first goal\n- [x] G2: Completed second goal\n'
       );
 
-      // Partial change
       await fs.mkdir(path.join(changesDir, 'partial'), { recursive: true });
       await fs.writeFile(
         path.join(changesDir, 'partial', 'tasks.md'),
-        '- [x] Done\n- [ ] Not done\n- [ ] Also not done\n'
+        '## Goals\n\n- [x] G1: Completed goal\n- [ ] G2: Pending first goal\n- [ ] G3: Pending second goal\n'
       );
 
-      // No tasks
       await fs.mkdir(path.join(changesDir, 'no-tasks'), { recursive: true });
 
       const listCommand = new ListCommand();
@@ -164,8 +172,8 @@ Regular text that should be ignored
 
       expect(logOutput).toContain('Changes:');
       expect(logOutput.some(line => line.includes('completed') && line.includes('✓ Complete'))).toBe(true);
-      expect(logOutput.some(line => line.includes('partial') && line.includes('1/3 tasks'))).toBe(true);
-      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No tasks'))).toBe(true);
+      expect(logOutput.some(line => line.includes('partial') && line.includes('1/3 goals'))).toBe(true);
+      expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No goals'))).toBe(true);
     });
 
     it('should include compiler-derived details in JSON and long output', async () => {
@@ -185,7 +193,7 @@ Regular text that should be ignored
         ].join('\n'),
       });
       await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nTest.\n\n## What Changes\nAdd auth.\n');
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n- [ ] Task 2\n');
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed goal\n- [ ] G2: Pending goal\n');
 
       const listCommand = new ListCommand();
       await listCommand.execute(tempDir, { json: true });
@@ -205,7 +213,7 @@ Regular text that should be ignored
       await listCommand.execute(tempDir, { long: true });
       expect(logOutput.some(line => line.includes('demo: demo'))).toBe(true);
       expect(logOutput.some(line => line.includes('[deltas 1]'))).toBe(true);
-      expect(logOutput.some(line => line.includes('[tasks 1/2]'))).toBe(true);
+      expect(logOutput.some(line => line.includes('[goals 1/2]'))).toBe(true);
     });
 
     it('should include qualityStatus in JSON output', async () => {
@@ -214,19 +222,19 @@ Regular text that should be ignored
       const staleDir = path.join(changesDir, 'stale-change');
       await fs.mkdir(staleDir, { recursive: true });
       await fs.writeFile(path.join(staleDir, 'proposal.md'), '## Why\nstale\n\n## What Changes\n- ok');
-      await fs.writeFile(path.join(staleDir, 'tasks.md'), '- [x] Task 1\n');
+      await fs.writeFile(path.join(staleDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed goal\n');
       await writeFreshQualityRecord(staleDir);
       await fs.writeFile(path.join(staleDir, 'proposal.md'), '## Why\nstale modified\n\n## What Changes\n- ok');
 
       const missingDir = path.join(changesDir, 'missing-change');
       await fs.mkdir(missingDir, { recursive: true });
       await fs.writeFile(path.join(missingDir, 'proposal.md'), '## Why\nmissing\n\n## What Changes\n- ok');
-      await fs.writeFile(path.join(missingDir, 'tasks.md'), '- [ ] Task 1\n');
+      await fs.writeFile(path.join(missingDir, 'tasks.md'), '## Goals\n\n- [ ] G1: Pending goal\n');
 
       const freshDir = path.join(changesDir, 'fresh-change');
       await fs.mkdir(freshDir, { recursive: true });
       await fs.writeFile(path.join(freshDir, 'proposal.md'), '## Why\nfresh\n\n## What Changes\n- ok');
-      await fs.writeFile(path.join(freshDir, 'tasks.md'), '- [x] Task 1\n');
+      await fs.writeFile(path.join(freshDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed goal\n');
       await writeFreshQualityRecord(freshDir);
 
       const listCommand = new ListCommand();

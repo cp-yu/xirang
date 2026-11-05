@@ -59,7 +59,7 @@ ${XIRANG_SHARED_CONTEXT}
    - Select only the candidate Element identities whose current Contracts are needed, then run one batch \`xirang arch query <selected-identities...> --contract --json\` and keep their current Sections.
    - Add an identity to **Modified Specs** only when the observable Sections of its Element Contract change. Add it to **New Specs** only for genuinely new observable behavior not governed by an existing Element Contract.
    - An optional-contract Element without a Contract does not by itself require a new one; mark missing coverage \`[REVIEW NEEDED]\`.
-   - Behavior-preserving refactors create no Contract delta; later Checks use \`Preserves:\` against formal Element Contracts.
+   - Behavior-preserving refactors create no Contract delta; later verification directions reference the responsible formal Contract Section.
 6. Determine structural impact.
    - Declare impact only when Element Declarations, refinement, Relationships, Kinds, or Views change.
    - Reconcile a Definition only when user intent, existing semantic artifacts, or other authoritative evidence establishes its complete concept identity and scope boundary. Do not infer a Definition from file names, symbols, imports, or call relationships; when the required conceptual boundary is unresolved, stop and ask one focused question instead of guessing.

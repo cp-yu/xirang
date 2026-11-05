@@ -42,7 +42,7 @@ All four base Section titles in the outline are canonical English tokens regardl
 
 Check applicable state/lifecycle, concurrency, timing and external-failure details within the existing base Sections first. Related details stay in Business Logic; exceptional outcomes belong in Edge Cases and Exception Handling. Place each diagram next to the mechanism it explains. Record unknown business decisions rather than making them normative to complete the structure.
 
-Tasks and Checks trace back to Sections or their Acceptance Cases using change-local Element paths and Section anchors, plus Acceptance Case anchors where relevant. A missing observable outcome is a specification gap to resolve before writing its test; do not derive the expected result from the implementation under test.
+Goal-level tasks reference the responsible Contract Section and state an observable verification direction. They do not prescribe implementation file paths, test actions, nested Checks, or Acceptance Case anchors. A missing observable outcome is a specification gap to resolve before implementation; do not derive the expected result from the implementation under test.
 
 ## Self-check
 

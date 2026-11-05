@@ -137,102 +137,44 @@ artifacts:
 
   - id: tasks
     generates: tasks.md
-    description: Coarse implementation tasks with verification checks
+    description: Goal-level implementation objectives and verification directions
     template: tasks.md
     definition:
       purpose: Decompose implementation into executable, evidence-gated work units.
-      compilationRole: Compilation scaffolding for sequencing and verification.
+      compilationRole: Goal-level implementation objectives and verification directions; goal checkboxes are progress markers, not file inventories or executable checks.
       content:
         includes:
-          - Coarse work units, affected files, implementation constraints, executable checks, commands, and evidence anchors.
+          - Goal-level implementation objectives, Contract references, verification directions, and target-level completion state.
         excludes:
           - New observable behavior, architecture semantics, repeated design rationale, and non-verifiable narration.
       writePolicy: agent-authored
       validation:
         - xirang validate --change <name> --json
     instruction: |
-      Create a coarse-grained task list with executable Checks that the apply phase can run through strict evidence gates.
+      Create a goal-level task list for Apply. Each goal identifies an intended outcome, references its Contract Section, and states behavior, relevant boundaries, and expected observable verification results. Do not prescribe files, tests, test actions, commands, implementation steps, or ordinary technical ordering; Apply derives these from current repository evidence.
 
-      **IMPORTANT: Follow the template below exactly.** The apply phase parses
-      `### Task N:` headings and nested checkboxes to track progress.
+      **Required structure:**
+      - Use one `## Goals` section with one or more `- [ ] G<n>: <goal>` entries.
+      - Each goal MUST include one nested `Contract: `<identity>` / Section "<title>"` reference and one `Verify: <behavior, boundary, observable result>` direction.
+      - Use goal checkboxes as the only ordinary progress markers. Keep Required Corrections in their separate section.
+      - Encode ordering only when explicitly confirmed by the user; ordinary technical dependency order belongs to Apply.
+      - Do not include Files, Sections, Checks, test actions, test layers, commands, or execution logs.
+      - If target behavior is absent from the Contract, repair the Contract before adding or changing a goal.
+      - Keep `proposal.md`, `design.md`, and `tasks.md` distinct: scope, key decisions, and goals with verification directions respectively.
 
-      Required structure:
-      - Create one `### Task N: <name>` section per independently implementable and verifiable end-to-end loop
-      - Each task MUST include `**Goal**:`, `**Files**:`, `**Sections**:`, and `#### Checks`
-      - `Files` MUST use POSIX project-relative paths and label each path as `Create:`, `Modify:`, `Delete:`, or `Test:`
-      - File-level deletions (including moves and merges that produce deletions) use `Delete:` declaration; generated-surface changes (such as skill regeneration directories) should be declared at directory granularity
-      - `Sections` MUST contain no more than 5 high-level implementation constraints per task; consolidate details or move verification detail into Checks rather than splitting one loop by count
-      - `Checks` are executable verification items and MUST use checkbox IDs prefixed with `C`: `- [ ] C1 Verify ...`
-      - Each check MUST include `Verifies:` or `Preserves:` before executable evidence fields
-      - `Verifies:` identifies the change-local target Section, and its Acceptance Case when the Check verifies a key acceptance case; for deletion deliverables, use `Verifies: ... / REMOVED Section "<name>"`
-      - `Preserves:` anchors behavior-equivalence checks to main Element Contract paths (`.xirang/model/elements/<identity>.md` / Section "<title>" / Acceptance Case "<name>"), naming old forms in `Expect:` and absence assertion in `Command:`
-      - Each check MUST declare exactly one `Test action:` with a single canonical value: `reuse`, `modify`, `add`, `delete`, or `one-time`; missing, empty, unknown, or duplicate declarations are errors
-      - `reuse` runs existing tests unchanged; `modify` updates existing tests; `add` creates new tests; `delete` removes obsolete tests and verifies the remaining behavior or absence; `one-time` collects evidence without creating a persistent test file
-      - Inspect existing tests before selecting the action; prefer reuse or modify when they cover the target behavior. Identify affected test paths in Files or the Check body for persistent test actions. Test action does not replace executable evidence
-      - Each check MUST include at least one executable evidence field: `Command:`, `Evidence:`, or `Expect:`
-      - When this change has local Delta units, `Verifies:` MUST use a change-local relative POSIX path from the change directory: `elements/<identity>.md`
-      - `Verifies:` MUST name the full Section title, plus one or more exact Acceptance Case names only when the Check verifies a key acceptance case; except for the REMOVED Section variant
-      - `Verifies:` MUST NOT use `.xirang/model/...`, project-root-relative paths, archived/main model paths, absolute paths, parent traversal, or backslash-separated paths
-      - `Preserves:` path whitelist is independent: only `.xirang/model/elements/<identity>.md` is allowed; it does not relax `Verifies:` constraints
-
-      Semantic coverage before handoff:
-      - Read the complete current confirmed design record when one exists; independently check normative confirmations against the Expected Semantic Model, including conditions, numbers, exceptions, and timing. Informative material belongs in Plan/provenance, not new obligations; already satisfied semantics may be no-op.
-      - Then check that each target behavior requiring implementation has concrete work and observable Checks. Valid references alone do not prove behavior coverage. If behavior is missing, repair its Contract before planning; unresolved intent requires a user decision. Do not maintain a second behavior specification in Tasks.
-      - State implementation actions and dependencies through Contract references. Prompt sources, managed generated surfaces, and behavioral verification belong in the same loop as the behavior they deliver, not a later polish task.
-
-      Conversion rules:
-      - Task titles, check names, requirements bullet prose, and Evidence:/Expect: descriptions follow `proseLanguage` when configured.
-      - Structural labels such as `### Task N:`, `Goal`, `Files`, `Sections`, `Checks`, `Verifies:`, `Preserves:`, `Test action:`, `Command:`, `Evidence:`, and `Expect:` remain canonical.
-      - Examples show structure only. When `proseLanguage` is configured, do not carry over ordinary English example prose into generated artifacts.
-      - For business-specification Contracts, derive test inputs and expected outcomes from Key Acceptance Cases and confirmed Contract commitments; do not invent expected business results from implementation.
-      - Derive end-to-end loops from the design or Design Summary, then form task boundaries by TDD closure rather than implementation topology: production code, configuration, generated surfaces, and tests that jointly deliver one behavior MUST stay in one task even when they span components, modules, directories, or file types
-      - Split work only when each task reaches its own GREEN independently, or when an explicit delivery sequence makes a task depend only on an earlier task that is already GREEN
-      - A task's RED/GREEN cycle MUST NOT depend on a later task; after drafting all tasks, cross-check Goals, Files, Sections, and Checks and reconcile task boundaries before declaring the Change ready for Apply
-      - Derive dependencies from each Check's actual implementation, files and commands. Walk tasks in execution order: each Check must be able to reach GREEN using only existing implementation, earlier GREEN tasks and that task. Reorder or regroup work if it needs a later task; ensure referenced test files and commands exist or are provided by then. Declared dependencies alone do not establish executability.
-      - Do not split tasks by component, module, directory, or file type; split by spec container when a Section, a safeguards item, or an acceptance case is itself an independently verifiable unit
-      - Put technical stack constraints and boundary conditions under Sections, not free-form prose
-      - Validation work maps to checks for invalid-input behavior
-      - Bug fixes map to a check that reproduces the failure and proves the regression fix
-      - Refactors map to a behavior-equivalence check: use `Preserves:` field anchoring a main spec Section, `Expect:` naming the old form (old symbol, old path, or old duplication), and `Command:` with corresponding absence assertion
-      - Deletion work maps to a check anchored by `Verifies: ... / REMOVED Section "<name>"` with an absence assertion command
-      - non-runtime text or non-runtime artifact changes do not require artificial failing tests, but still need at least one lightweight check with a non-empty `Verifies:` explaining how completion will be verified
-      - config, schema, template, workflow template, and agent instruction template changes default to behavior Checks unless the task proves there is no runtime or generated-surface consumer
-      - Absence assertions (such as grep empty assertions after deletion) are handled by the non-runtime text fast path: use `Command:` output as final evidence, do not require artificial red/green form
-      - The Actions/Checks layout remains supported for older changes, including the required Test action on every Check; new changes SHOULD use the Task/Goal/Files/Sections/Checks format
+      **Conversion rules:**
+      - Goal prose follows `proseLanguage` when configured; structural labels remain canonical.
+      - Derive goals from the confirmed target semantics. Merge details serving one observable goal; do not create one goal per Section or Acceptance Case.
+      - Apply chooses and records no specific test arrangement in tasks.md. Evidence is evaluated during Apply and independent Review.
 
       Example:
       ```
-      ### Task 1: User registration API
+      ## Goals
 
-      **Goal**: Implement email and password registration.
-
-      **Files**:
-      - Create: `src/routes/auth.ts`
-      - Modify: `src/app.ts`
-      - Test: `tests/auth.test.ts`
-
-      **Sections**:
-      - Accept `POST /auth/register`
-      - Validate email format
-      - Hash passwords before storage
-
-      #### Checks
-
-      - [ ] C1 Verify registration endpoint
-        - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Valid registration succeeds"
-        - Test action: add
-        - Command: `npm test`
-        - Expect: registration test passes
-
-      - [ ] C2 Verify invalid email rejection
-        - Verifies: `elements/auth.md` / Section "Key Acceptance Cases" / Acceptance Case "Invalid email is rejected"
-        - Test action: add
-        - Command: `npm test`
-        - Expect: invalid email test passes
+      - [ ] G1: Reject unsupported task layouts
+        - Contract: `task-decomposition` / Section "Checks 是任务进度源"
+        - Verify: Legacy layouts are rejected; goal-level tasks remain valid.
       ```
-
-      Reference specs for what needs to be built, design for how to build it.
-      Checks are executable verification work, not explanatory prose. The apply phase will execute each pending behavior/code Check through strict red/green TDD and mark checks complete only after red/green evidence or final non-runtime evidence passes.
     requires:
       - specs
       - design
@@ -241,7 +183,6 @@ apply:
   requires: [tasks]
   tracks: tasks.md
   instruction: |
-    Read context files and inspect existing tests first. Honor each declared Test action: reuse existing tests unchanged, modify them, add new tests, delete obsolete tests, or collect one-time evidence without a persistent test file. Execute each pending behavior/code Check through strict red/green TDD: prepare the targeted test according to its declared action, run the Check command or equivalent targeted command and confirm the expected failure before implementation, make the minimal implementation, then rerun and confirm pass before marking nested Checks complete.
-    For non-runtime text or artifact Checks, do not create artificial failing tests; use the declared Command, Evidence, or Expect fields as final evidence.
-    Config, schema, template, workflow template, and agent instruction template Checks default to behavior Checks unless the task proves there is no runtime or generated-surface consumer.
+    Read the target Contract and project evidence for each pending goal, then choose the implementation steps, files, tests, and commands needed to realize and verify it. For behavior changes, establish credible evidence that the behavior is unmet before implementation when applicable, then run the same behavioral check after implementation. Non-runtime artifact changes require final-state evidence, not artificial failing tests. Mark a goal complete only after implementation and its applicable verification are supported by evidence; do not write execution details back into tasks.md.
+    Process Required Corrections before ordinary goals. Technical ordering is selected from repository evidence; follow only ordering explicitly confirmed by the user.
     Pause if you hit blockers or need clarification.

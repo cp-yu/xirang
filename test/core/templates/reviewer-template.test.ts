@@ -28,7 +28,7 @@ describe('reviewer subagent template', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
     expect(prompt).toContain('observable behavior');
-    expect(prompt).toContain('one-time evidence');
+    expect(prompt).toContain('One-time evidence');
     expect(prompt).not.toContain('AcceptanceCase coverage gaps are not downgrade candidates');
     expect(prompt).toContain('weak assertion');
   });

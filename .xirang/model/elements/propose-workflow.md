@@ -59,60 +59,35 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
 ### Section: Propose smart routing
 
-Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和任务及修正表达或推导错误，不得自主大量扩写实质设计；新发现的决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有 summary 时，SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有 Summary 时 SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
 - **复用 Design Summary**
-
-  - conversation 包含已确认的 `Design Summary`
-  - propose SHALL 说明正在复用该 summary
-  - SHALL 将其中的 architecture、testing、risk 与 trade-off decisions 路由到对应 artifacts
+  - conversation 包含已确认的 Design Summary
+  - Propose 说明正在复用，向 proposal、Delta、design 与 tasks 分发适用的确认内容
   - SHALL NOT 重新执行字符数或 detail score 判断
 
 - **Semantic readiness 不完整**
-
-  - 任一 readiness 项缺失或 source decision 未决
-  - propose SHALL 在对话中列出具体缺口；孤立决策可就地询问，大幅设计工作建议 Explore
+  - 任一 readiness 项缺失或 Source decision 未决
+  - Propose 在对话中列出具体缺口；孤立决策可就地询问，大幅设计工作建议 Explore
   - readiness 通过或被明确 override 前 SHALL NOT 创建 change 或写入制品
-  - 新决策确认前 SHALL NOT 将依赖它的内容写成确定方案；routing decision 保留在会话
+  - 新决策确认前 SHALL NOT 将依赖它的内容写成确定方案
 
 - **用户显式 override**
+  - Propose 已报告 readiness 缺口且用户明确要求直接生成
+  - Propose 接受 override 但 SHALL NOT 猜测影响 behavior 或 architecture 的关键决策；必要确认无法取得时报告阻碍
 
-  - propose 已报告 readiness 缺口且用户明确要求直接生成
-  - propose SHALL 接受 override 并继续
-  - override SHALL NOT 授权 Agent 猜测影响 behavior 或 architecture 的关键决策
-  - 直接要求 propose 或不追问不提供缺失决策，必要确认无法取得时 SHALL 报告阻碍
+- **无 Summary 的最低就绪条件**
+  - problem、impact scope、approach 与 verification method 均明确且不存在影响 Source 的未决决策
+  - Propose 说明就绪并继续，不因涉及多个 subsystem 就强制返回 Explore
 
-- **Semantic readiness 完整**
-
-  - conversation 不包含已确认的 Design Summary
-  - problem、impact scope、approach 与 verification method 均明确
-  - 不存在会改变 Behavior Source 或 Architecture Source 的未决决策
-  - propose SHALL 说明 readiness 已满足并继续 artifact generation
-
-- **多 subsystem scope**
-
-  - 请求涉及多个 subsystem
-  - propose SHALL 将其作为 impact scope 证据
-  - 只有无法形成单一一致 change scope 时才 SHALL 报告 readiness 缺口
-  - MUST NOT 仅凭 subsystem 数量强制 Explore
-
-- **Test Maintenance 分发**
-
-  - Testing Strategy 包含过时测试信息
-  - 过时原因 SHALL 进入 `design.md`
-  - 具体更新或删除操作 SHALL 进入 `tasks.md`
-
-- **One-time Verification 分发**
-
-  - Testing Strategy 包含 `One-time Verification`
-  - 项目 SHALL 生成 evidence-only Check 且 SHALL NOT 创建 persistent test file
-  - absence assertion SHALL 锚定 REMOVED Section
+- **测试安排分发**
+  - 已确认测试策略含过时测试原因或一次性验证
+  - 过时原因写入 design；tasks 只记录对应目标与要验证的结果，包括删除后的缺失结果，不预定测试文件、动作或一次性命令
+  - Apply 在实施时判断具体测试更新、删除与一次性验证，不制造多余持久测试
 
 - **Routing decision 不污染 artifacts**
-
-  - propose 报告 readiness、缺失项或用户 override
-  - 这些运行过程信息 SHALL 仅保留在对话中
-  - SHALL NOT 写入 `proposal.md` comment 或其他 change artifacts
+  - Propose 报告 readiness、缺失项或 override
+  - 这些运行过程信息 SHALL 只保留在对话，不写入 Change 制品
 
 ### Section: Proposal 分离 behavior 与 architecture source impact
 
@@ -184,27 +159,22 @@ Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph 
 
 ### Section: Propose 状态输出保持收敛
 
-Propose SHALL 只在 readiness、blocker 与 final summary 节点输出状态；需要用户决定时一次询问一个问题。
+Propose SHALL 默认只在 readiness、blocker 与 final summary 节点输出流程状态；用户要求交互模式时 SHALL 在按机制展示草稿的审阅节点与用户讨论，而不逐制品播报进度。需要用户决定时 SHALL 一次询问一个问题。
 
 - **Readiness 状态**
-
-  - propose 完成 semantic readiness 判断
+  - Propose 完成 semantic readiness 判断
   - SHALL 报告 Design Summary reuse、readiness 或具体 gap
 
 - **最终总结**
-
-  - propose 完成 artifacts、validation 与 report generation
+  - Propose 完成 artifacts、validation 与 report generation
   - SHALL 汇总 artifacts、errors/warnings、effective diff review 与 ready-for-apply 状态
-  - SHALL 区分沿用的确认、Propose 合理推导的细节与配套保证及其依据与制品位置、在 Propose 内新确认的重大决策和未决事项；合理细节无需逐项确认，无补充或新决策时明确说明
-  - SHALL 不把补充声称为 Explore 原有确认，不新增永久补充台账
-  - SHALL 区分实际 CLI 结果、Agent 语义检查发现与剩余证据缺口，以具体检查发现及相关制品位置支持结论；不以产物数量或引用合法推断语义通过，也不要求完整自查过程或额外报告制品
-  - 制品完成与 CLI 通过不等于语义就绪，影响当前目标或实现方案的未决决策 SHALL 阻塞 ready-for-apply
+  - SHALL 区分沿用的确认、合理推导细节及依据和位置、Propose 内新确认决策与未决事项；无补充或新决策时明确说明
+  - SHALL 区分实际 CLI 结果、Agent 语义检查与证据缺口，不以制品数量或引用合法代替实际覆盖，不另建补充台账
+  - 影响目标或方案的未决决策 SHALL 阻塞 ready-for-apply
 
 - **Blocker 状态**
-
   - identity、source decision、validation 或 effective diff 阻塞流程
-  - SHALL 报告最小必要 blocker
-  - 需要用户决定时 SHALL 一次询问一个问题
+  - SHALL 报告必要 blocker，需用户决定时一次问一个问题
 
 ### Section: 仅在 Propose 形成结构目标时应用拆分指导
 
@@ -232,49 +202,23 @@ Propose Workflow SHALL 在需要形成尚未确认的新增或重组 hierarchy �
 
 ### Section: Propose 按 TDD 闭环划分 Tasks
 
-Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环划分 task 边界，SHALL NOT 按 component、module、directory、file type、Section 数量或 Acceptance Case 数量机械拆分；SHALL 按共享测试品质判断每个 Check 的语义价值，将同一可观察行为与同一失败原因的 Acceptance Case 归入一个 Check；声明 ready-for-apply 前 SHALL 交叉检查所有 task 边界与 Check 价值，并 reconcile 违反独立验证或制造低价值持久化测试的划分。 Tasks SHALL 以具体实施事项与完整 Contract 引用承接规范目标，不能把记录摘要直接当成完整行为定义；相关 prompt 与受管生成面须归入所属行为闭环。ready-for-apply 前 SHALL 执行记录到语义及语义到实施/Checks 的语义覆盖检查，不能只验证引用存在。
+Propose 生成 `tasks.md` 时 SHALL 按用户能审阅的目标行为而非代码文件、组件或规范条目数量组织任务；每个目标 SHALL 说明需要验证的行为、边界和预期可观察结果，并指向相应 Contract，而不复制完整规范或提前选择测试边界、动作、文件与命令。相关提示词、受管生成面及实现由 Apply 在同一目标下形成可验证闭环。Propose SHALL 对照已确认来源、目标 Contract 和任务目标/验证方向检查语义覆盖，不能仅核对引用存在；缺少目标行为时先修正 Contract。只有用户指定的实施次序 SHALL 排列为任务先后并在 design 或 proposal 至少一处说明；普通技术依赖由 Apply 在现场判断。
 
-- **按行为闭环而非组件划分**
+- **跨组件目标**
+  - 多个实现面交付同一行为
+  - Propose SHALL 作为同一目标与验证方向呈现，不按文件类型拆分
 
-  - 多个组件共同交付一个行为
-  - Propose SHALL 将它们放入同一 task
+- **边界与例外**
+  - 目标 Contract 含适用条件、例外或时序
+  - Propose SHALL 确认任务的验证方向包含相应可观察结果，不为每个 Acceptance Case 机械建立 Check
 
-- **Section 数量不构成拆分理由**
+- **用户指定先后次序**
+  - 用户要求 A 完成后才能推进 B
+  - tasks SHALL 把 A 放在 B 前，design 或 proposal 至少一处说明依据；业务时序或数据状态约束 SHALL 由 Delta Contract 表达
 
-  - 一个 task 的 Sections 超过上限
-  - Propose SHALL 合并细节或将验证细节下沉到 Checks
-  - SHALL NOT 仅因数量拆分 task
-
-- **Acceptance Case 数量不构成拆分理由**
-
-  - 一个 Section 含多个描述同一行为与同一失败原因的 Acceptance Case
-  - Propose SHALL 将它们编译进同一个 Check
-  - SHALL NOT 为每个 Acceptance Case 各创建一个 persistent test Check
-
-- **Propose 必须判断 Check 价值**
-
-  - Propose 编译 `tasks.md` Checks
-  - SHALL 应用共享测试品质：优先 reuse 或 modify 已有测试，只在现有测试无法保护该行为时 add
-  - SHALL 把不值得持久化的证据编译为 one-time Check
-  - SHALL NOT 以「不得判断 Check 是否语义足够」为由保留机械测试
-
-- **新增边界必须指向独特缺陷**
-
-  - Propose 为同一行为增加额外边界 Check 或测试
-  - SHALL 写明该边界能捕获、已有测试捕获不到的合理缺陷
-  - 无法指出独特缺陷时 SHALL 不创建该 Check
-
-- **ready-for-apply 前边界自检**
-
-  - Propose 准备声明 Change ready-for-apply
-  - SHALL 交叉检查 Goals、Files、Sections 与 Checks
-  - SHALL 按执行顺序从每个 Check 实际需要的实现、文件与命令反推依赖，确认仅用已有实现、此前 GREEN 的任务与当前任务即可达到 GREEN；若依赖后续任务则调整顺序或合并任务，引用的测试文件与命令须已存在或安排在此时提供，不能仅复述声明的依赖
-  - 发现 task 依赖后续 task、Check 按 Acceptance Case 1:1 机械拆分或假防护测试时 SHALL reconcile 后再声明
-
-- **确认细节贯穿执行安排**
-
-  - 用户确认的条件、例外与时序已经写入 Contract
-  - 任务安排其实现与检查并引用该 Contract，不复制规范文本；缺少安排时不声明 ready-for-apply。
+- **就绪复核**
+  - 目标语义已确定，Propose 准备声明可实施
+  - SHALL 检查每个待实现目标有可理解的任务与验证方向，未规定普通任务必须预先达成独立 GREEN 或列出全部实际依赖
 
 ### Section: Propose 使用制品定义先行写作
 
@@ -306,4 +250,4 @@ Propose 生成 `tasks.md` 时 SHALL 以可独立实现与验证的完整闭环�
 
 ### Section: 按复杂度组织交互审阅
 
-Workflow SHALL 指导简单变更先形成完整草稿并集中审阅具体差异与问题，复杂变更按一项机制或相关 Elements 分组编写、审阅，确认后继续；不按 Element 数量机械要求逐个确认。成文中提出新想法与用户讨论，明确细节自主权与重大决策确认边界，不以一次调用后无须交互为目标。
+Workflow SHALL 默认引导 Propose 在材料决策齐备时连续编写完整 Change 后集中审阅；只有用户明确要求交互推进时 SHALL 按一项机制或一组相关 Elements 的实际草稿及其目标、验证方向分段审阅，反馈后继续。简单变更可只有一组，不按 Element 数量或 artifact 写作顺序机械停顿。两种模式下，新发现的重大缺口都 SHALL 及时提出并等待裁决，批量模式不授予 Agent 猜测未确认决策的权力。
