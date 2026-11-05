@@ -26,6 +26,9 @@ relationships:
   - source: deterministic-operations
     kind: consumes
     target: semantic-model
+  - source: neovim
+    kind: consumes
+    target: cli
   - source: optimization
     kind: consumes
     target: change
