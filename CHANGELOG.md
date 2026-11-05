@@ -1,5 +1,16 @@
 # xirang
 
+## 0.2.4
+
+### Minor Changes
+
+- **BREAKING**：Quality 记录替换为单个 Git 跟踪的 JSON 文件（`.quality.json`）：仅保留 commit 绑定的 Review 意见、Opt 交付意见或显式 not_performed 处置、以及主 Agent 的 Seal 声明；`xirang quality` 只保留 `review/opt/seal/status` 子命令，0.2.3 的 delegation/verification/conclusion/checkpoint 命令不再存在。旧快照/日志/证据存储不读取、不迁移、不清理；Archive 仅校验 Seal 提交对象存在，不再比较工作区新鲜度。
+- 新增 Neovim Change 审阅：`xirang show <change> --review --json` 提供只读投影（每个 Delta source 的当前/目标完整模型文本、ADDED/REMOVED 空侧、实际存在的 Plan 原文、valid 与 diagnostics）；仓库新增可复制的 `integrations/nvim` 插件，提供独立 tab、四分区分组列表、双栏只读 diff、Plan 单栏呈现、真实源文件跳转、保存与文件系统变更自动刷新及 generation 防乱序；Windows CI 安装 Neovim 并执行四个 headless 检查。
+
+### Patch Changes
+
+- Quality 平台修复：兼容符号链接路径前缀；修正存储边界后缀计算并按平台跳过 Windows 符号链接往返；移除破坏 Windows CI 的硬编码 /tmp 调试日志。
+
 ## 0.2.3
 
 ### Patch Changes
