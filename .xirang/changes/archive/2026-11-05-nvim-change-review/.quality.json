@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 3,
+  "changeId": "nvim-change-review",
+  "revision": 4,
+  "reviews": [
+    {
+      "reviewId": "nvim-change-review-baseline-be08986db",
+      "scope": "baseline",
+      "commit": "be08986dbd991cfe31377dbfe247baae2f931f6c",
+      "result": "FAIL",
+      "summary": "The Change is implemented and its targeted Vitest and Neovim checks pass, but the Neovim list duplicates entries for multi-entity Delta files, nested filesystem changes are not detected on Linux, and an implementation file is outside the declared task scope. Cleanliness also has an unused helper.",
+      "findings": [
+        "CRITICAL: A Delta source file is added to the Neovim list once for every parsed entity, rather than once per source file. review.lua appends inside the entries loop; CLI/parser tests demonstrate multiple entities per source.",
+        "CRITICAL: Model and Change filesystem watchers do not refresh for nested file changes on Linux; recursive libuv events are unsupported for this use case.",
+        "CRITICAL: Unaccounted behavior change: src/core/change-compiler.ts adds compileChangeDelta but neither task Files list includes this file.",
+        "CRITICAL: Orphaned code: review.lua defines an unused file helper."
+      ]
+    },
+    {
+      "reviewId": "nvim-change-review-baseline-d044d28f1",
+      "scope": "baseline",
+      "commit": "d044d28f14a1203598c287fced201407c0d14d58",
+      "result": "PASS",
+      "summary": "The Change’s required tasks are checked complete. The Neovim list creates one item per source file while combining duplicate model text from multiple entries; Linux external-change refresh is supported by watchers on model and Change partition directories and exercised by external writes. src/core/change-compiler.ts is explicitly attributed in Task 1. The previously reported unused helper is absent. Targeted Vitest and all four Neovim checks passed.",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "No evidence-backed behavior-preserving optimization with meaningful benefit was identified after baseline Review. The implementation is a new, scoped integration with targeted tests, full-suite coverage, lint and typecheck passing; the baseline review also required correctness repairs, and further optimization now would add regression risk without a demonstrated cost or quality gain."
+  },
+  "seal": {
+    "commit": "d044d28f14a1203598c287fced201407c0d14d58",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "pnpm test (162 files, 2273 tests); pnpm exec vitest run test/core/model/delta.test.ts test/commands/show.test.ts; nvim --headless -u NONE -l integrations/nvim/tests/run.lua list, compare, refresh, windows-paths; pnpm exec tsc --noEmit; pnpm lint; pnpm build; node bin/xirang.js validate nvim-change-review --json; node bin/xirang.js show nvim-change-review --review --json. Windows CI execution remains pending.",
+    "assessment": "The built CLI returns a valid read-only projection with five Delta sources and the three existing Plan files. All local tests, typecheck, lint, build, and Change validation passed on the sealed commit. The Windows workflow installs Neovim and runs the path/lifecycle check; that hosted job was not available locally."
+  }
+}

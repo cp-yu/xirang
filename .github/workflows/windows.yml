@@ -21,6 +21,7 @@ jobs:
         with:
           node-version: '22.22.3'
           cache: pnpm
+      - run: choco install neovim --yes --no-progress
       - run: pnpm install --frozen-lockfile
       - name: Build root workspace
         run: pnpm run build
@@ -45,6 +46,13 @@ jobs:
           test/core/candidate-digest.test.ts
           test/core/candidate-history.test.ts
           test/commands/candidate-promote.test.ts
+      - name: Run Neovim Change review checks
+        shell: pwsh
+        run: |
+          nvim --headless -u NONE -l integrations/nvim/tests/run.lua list
+          nvim --headless -u NONE -l integrations/nvim/tests/run.lua compare
+          nvim --headless -u NONE -l integrations/nvim/tests/run.lua refresh
+          nvim --headless -u NONE -l integrations/nvim/tests/run.lua windows-paths
       - name: Run Windows Candidate Contract handler tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate

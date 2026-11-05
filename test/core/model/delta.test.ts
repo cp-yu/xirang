@@ -24,6 +24,26 @@ function base(): SemanticModel {
 }
 
 describe('parseSemanticDelta', () => {
+  it('tracks source files for multiple entity entries without changing entry identities', async () => {
+    const root = await createModelRoot({
+      'elements/cap.a.md': [
+        '---', 'operation: ADDED', 'entity: element-declaration', 'identity: a',
+        'kind: capability', 'parent: root', 'title: A', 'definition: A.', '---',
+        '## ADDED Sections', '', '### Section: One', '', 'SHALL hold.',
+      ].join('\n'),
+    });
+
+    const parsed = await parseSemanticDelta(root);
+    expect(parsed.sources).toEqual([
+      { path: 'elements/cap.a.md', entities: [
+        { entity: 'element-declaration', identity: 'a' },
+        { entity: 'section', identity: 'a#One' },
+      ] },
+    ]);
+    expect(parsed.delta.entries.map(entry => entry.identity)).toEqual(['a', 'a#One']);
+    expect(parsed.diagnostics).toEqual([]);
+  });
+
   it('produces a declaration entry and section entries from one element unit', async () => {
     const root = await createModelRoot({
       'elements/cap.a.md': [

@@ -2,6 +2,9 @@ relationships:
   - source: cli
     kind: supports-presentation
     target: text-presentation
+  - source: neovim
+    kind: supports-presentation
+    target: text-presentation
   - source: web
     kind: supports-presentation
     target: visual-presentation
