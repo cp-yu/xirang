@@ -21,7 +21,14 @@ jobs:
         with:
           node-version: '22.22.3'
           cache: pnpm
-      - run: choco install neovim --yes --no-progress
+      - name: Install Neovim
+        shell: pwsh
+        run: |
+          choco install neovim --yes --no-progress
+          $nvim = Get-ChildItem -Path @("$env:ProgramFiles\Neovim\bin", "$env:ChocolateyInstall\bin", "$env:ChocolateyInstall\lib\neovim") -Recurse -Filter nvim.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $nvim) { throw "nvim.exe not found after choco install" }
+          Add-Content $env:GITHUB_PATH $nvim.DirectoryName
+          Write-Host "nvim resolved to: $($nvim.FullName)"
       - run: pnpm install --frozen-lockfile
       - name: Build root workspace
         run: pnpm run build
