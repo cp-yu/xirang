@@ -10,13 +10,13 @@ vim.fn.mkdir(root .. '/.xirang/changes/demo/relationships', 'p')
 vim.fn.mkdir(root .. '/.xirang/changes/demo/views', 'p')
 local source = root .. '/.xirang/changes/demo/elements/item.md'
 local handle = io.open(source, 'w'); handle:write('delta'); handle:close()
-local state = { valid = true, after = 'target\n', pending = {}, calls = 0 }
+local state = { valid = true, after = 'target\nsecond\nthird\n', pending = {}, calls = 0 }
 local review = dofile('integrations/nvim/lua/xirang/review.lua')
 local function payload()
   return vim.json.encode({ valid = state.valid, diagnostics = {}, sources = state.valid and {
     { path = 'elements/item.md', entries = {
-      { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\n', after = state.after },
-      { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED', before = 'current\n', after = state.after },
+      { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
+      { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
     } },
   } or {}, plans = state.valid and {{ path = 'design.md', content = 'Plan text\n' }} or {} })
 end
@@ -49,15 +49,26 @@ if mode == 'list' then
   assertContains(text, 'relationships/')
   assertContains(text, 'views/')
   assertContains(text, 'item.md')
-  assertContains(text, 'Plan')
+  assertContains(text, '~ item.md')
+  assertContains(text, ' Plan')
   assert(#session.items == 2)
   assert(#session.groups.elements == 1)
+  local info = {}
+  for _, win in ipairs(vim.fn.getwininfo()) do info[win.winid] = win.wincol end
+  assert(info[session.listWin] < info[session.leftWin] and info[session.leftWin] < info[session.rightWin])
+  assert(vim.wo[session.leftWin].winbar:find('NOW', 1, true))
+  assert(vim.wo[session.rightWin].winbar:find('TARGET', 1, true))
+  local listWidth = vim.api.nvim_win_get_width(session.listWin)
+  local markerRows = vim.api.nvim_buf_get_lines(session.list, 0, -1, false)
+  assert(markerRows[2] == ' ~ item.md')
   vim.api.nvim_set_current_win(session.listWin)
   vim.api.nvim_win_set_cursor(session.listWin, { 1, 0 })
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'xt', false)
   assert(not table.concat(vim.api.nvim_buf_get_lines(session.list, 0, -1, false), '\n'):find('item.md', 1, true))
+  vim.api.nvim_win_set_cursor(session.listWin, { 1, 0 })
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'xt', false)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.list, 0, -1, false), '\n'):find('item.md', 1, true))
+  session.cursor = 1
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'xt', false)
   assert(session.cursor == 2)
   assert(session.cursor == 2)
@@ -66,18 +77,27 @@ if mode == 'list' then
 elseif mode == 'compare' then
   launch()
   local session = current()
-  assert(vim.bo[session.left].modifiable == false and vim.bo[session.right].modifiable == false)
-  assert(vim.wo[session.leftWin].diff and vim.wo[session.rightWin].diff)
-  assert(table.concat(vim.api.nvim_buf_get_lines(session.left, 0, -1, false), '\n'):find('current', 1, true))
-  assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n'):find('target', 1, true))
-  session.cursor = 2
+  local listWidth = vim.api.nvim_win_get_width(session.listWin)
+  local wins = vim.fn.getwininfo()
+  local cols = {}
+  for _, win in ipairs(wins) do cols[win.winid] = win.wincol end
+  assert(cols[session.listWin] < cols[session.leftWin] and cols[session.leftWin] < cols[session.rightWin])
+  local diffJMapping = vim.api.nvim_buf_call(session.right, function() return vim.fn.maparg('j', 'n') end)
+  assert(diffJMapping == '')
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'xt', false)
+  assert(session.cursor == 2)
+  local before = #vim.fn.getqflist()
   local item = session.items[session.cursor]
   assert(item.plan and item.content == 'Plan text\n')
   review._showSelected(session)
   assert(#vim.api.nvim_tabpage_list_wins(session.tab) == 2)
   assert(not vim.wo[session.rightWin].diff)
+  assert(vim.api.nvim_win_get_width(session.listWin) == listWidth)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n'):find('Plan text', 1, true))
   session.cursor = 1
+  review._showSelected(session)
+  assert(vim.api.nvim_win_get_width(session.listWin) == listWidth)
+  assert(vim.wo[session.leftWin].diff and vim.wo[session.rightWin].diff)
   review._sourceJump(session)
   assert(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()) == source)
 elseif mode == 'refresh' then

@@ -1,7 +1,15 @@
 local M = {}
 local uv = vim.uv or vim.loop
 local sessions = {}
+local bufferSerial = 0
 local defaults = { cli = { 'xirang' }, cwd = nil, runner = nil }
+local partitions = { 'elements', 'metamodel', 'relationships', 'views' }
+local highlightGroups = {
+  XirangReviewSelected = { link = 'CursorLine', default = true },
+  XirangReviewAdded = { link = 'DiagnosticOk', default = true },
+  XirangReviewModified = { link = 'DiagnosticWarn', default = true },
+  XirangReviewRemoved = { link = 'DiagnosticError', default = true },
+}
 
 local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO, { title = 'Xirang Review' })
@@ -15,11 +23,12 @@ local function lines(text)
 end
 
 local function buf(name, content, modifiable)
+  bufferSerial = bufferSerial + 1
   local b = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_name(b, name)
+  vim.api.nvim_buf_set_name(b, name .. '#' .. bufferSerial)
   vim.api.nvim_buf_set_lines(b, 0, -1, false, lines(content or ''))
   vim.bo[b].buftype = 'nofile'
-  vim.bo[b].bufhidden = 'wipe'
+  vim.bo[b].bufhidden = 'hide'
   vim.bo[b].swapfile = false
   vim.bo[b].modifiable = modifiable == true
   vim.bo[b].filetype = name:match('%.md$') and 'markdown' or 'yaml'
@@ -47,67 +56,151 @@ local function selected(session)
   return session.items[session.cursor]
 end
 
+local function setBufferText(buffer, text)
+  vim.bo[buffer].modifiable = true
+  vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines(text))
+  vim.bo[buffer].modifiable = false
+end
+
+local function restoreListWidth(session)
+  if session.listWin and vim.api.nvim_win_is_valid(session.listWin) then
+    pcall(vim.api.nvim_win_set_width, session.listWin, session.listWidth)
+  end
+end
+
+local function showPlan(session, item)
+  if session.rightWin and vim.api.nvim_win_is_valid(session.rightWin) then
+    pcall(vim.api.nvim_win_call, session.rightWin, function() vim.cmd('diffoff') end)
+  end
+  if session.leftWin and vim.api.nvim_win_is_valid(session.leftWin) then
+    pcall(vim.api.nvim_win_close, session.leftWin, true)
+    session.leftWin = nil
+    restoreListWidth(session)
+  end
+  setBufferText(session.right, item.content)
+  vim.wo[session.rightWin].winbar = ' PLAN | Change plan'
+end
+
+local function ensureDiffWindows(session)
+  if session.leftWin and vim.api.nvim_win_is_valid(session.leftWin) then return end
+  vim.api.nvim_set_current_win(session.rightWin)
+  vim.cmd('rightbelow vsplit')
+  session.leftWin = session.rightWin
+  session.rightWin = vim.api.nvim_get_current_win()
+  restoreListWidth(session)
+  vim.api.nvim_win_set_buf(session.leftWin, session.left)
+  vim.api.nvim_win_set_buf(session.rightWin, session.right)
+end
+
+local function showDelta(session, item)
+  ensureDiffWindows(session)
+  for _, win in ipairs({ session.leftWin, session.rightWin }) do
+    pcall(vim.api.nvim_win_call, win, function() vim.cmd('diffoff') end)
+  end
+  setBufferText(session.left, item.before)
+  setBufferText(session.right, item.after)
+  vim.api.nvim_set_current_win(session.leftWin)
+  vim.wo[session.leftWin].winbar = ' NOW | Current model'
+  vim.cmd('diffthis')
+  vim.api.nvim_set_current_win(session.rightWin)
+  vim.wo[session.rightWin].winbar = ' TARGET | Expected model'
+  vim.cmd('diffthis')
+  vim.api.nvim_set_current_win(session.listWin)
+end
+
 local function selectedText(session)
   local item = selected(session)
   if not item then return end
-  if item.plan then
-    if session.rightWin and vim.api.nvim_win_is_valid(session.rightWin) then
-      pcall(vim.api.nvim_win_call, session.rightWin, function() vim.cmd('diffoff') end)
-    end
-    if session.leftWin and vim.api.nvim_win_is_valid(session.leftWin) then
-      pcall(vim.api.nvim_win_close, session.leftWin, true)
-      session.leftWin = nil
-    end
-    vim.bo[session.right].modifiable = true
-    vim.api.nvim_buf_set_lines(session.right, 0, -1, false, lines(item.content))
-    vim.bo[session.right].modifiable = false
-    return
+  if item.plan then showPlan(session, item) else showDelta(session, item) end
+end
+
+local function setSelectedRow(session, row)
+  if session.selectedMark then
+    pcall(vim.api.nvim_buf_del_extmark, session.list, session.listNs, session.selectedMark)
   end
-  if not session.leftWin or not vim.api.nvim_win_is_valid(session.leftWin) then
-    vim.api.nvim_set_current_win(session.rightWin)
-    vim.cmd('vsplit')
-    session.leftWin = session.rightWin
-    session.rightWin = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(session.leftWin, session.left)
-    vim.api.nvim_win_set_buf(session.rightWin, session.right)
+  session.selectedMark = vim.api.nvim_buf_set_extmark(session.list, session.listNs, row - 1, 0,
+    { line_hl_group = 'XirangReviewSelected', priority = 150 })
+  vim.api.nvim_win_set_cursor(session.listWin, { row, 0 })
+end
+
+local function selectRow(session, direction)
+  if #session.items == 0 then return end
+  local nextItem = ((session.cursor - 1 + direction) % #session.items) + 1
+  local target
+  for line, index in pairs(session.itemRows) do if index == nextItem then target = line; break end end
+  if not target then return end
+  local focus = vim.api.nvim_get_current_win()
+  session.cursor = nextItem
+  setSelectedRow(session, target)
+  selectedText(session)
+  if vim.api.nvim_win_is_valid(focus) then vim.api.nvim_set_current_win(focus) end
+end
+
+local function operationForEntries(entries)
+  local operation
+  for _, entry in ipairs(entries) do
+    if operation and operation ~= entry.operation then return 'MIXED' end
+    operation = entry.operation
   end
-  for _, b in ipairs({ session.left, session.right }) do
-    if vim.api.nvim_buf_is_valid(b) then vim.bo[b].modifiable = true end
-  end
-  vim.api.nvim_buf_set_lines(session.left, 0, -1, false, lines(item.before))
-  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, lines(item.after))
-  vim.bo[session.left].modifiable = false
-  vim.bo[session.right].modifiable = false
-  vim.api.nvim_set_current_win(session.leftWin)
-  vim.cmd('diffthis')
-  vim.api.nvim_set_current_win(session.rightWin)
-  vim.cmd('diffthis')
+  return operation or 'MIXED'
+end
+
+local operationMarkers = {
+  ADDED = { '+', 'XirangReviewAdded' },
+  MODIFIED = { '~', 'XirangReviewModified' },
+  REMOVED = { '-', 'XirangReviewRemoved' },
+  MIXED = { '*', 'Comment' },
+}
+
+local function markerFor(item)
+  local marker = operationMarkers[item.operation]
+  return marker and marker[1] or ' ', marker and marker[2] or nil
 end
 
 local function renderList(session)
-  local result, items = {}, {}
-  local partitions = { 'elements', 'metamodel', 'relationships', 'views' }
+  local result, items, itemRows, markerMarks = {}, {}, {}, {}
+  local selectedNs = vim.api.nvim_create_namespace('XirangReviewSelected')
+  vim.api.nvim_buf_clear_namespace(session.list, selectedNs, 0, -1)
+  session.listNs = selectedNs
+  local function addEntry(item)
+    local marker, markerHighlight = markerFor(item)
+    local name = item.path:gsub('^[^/]+/', '', 1)
+    result[#result + 1] = item.plan and (' ' .. name) or (' ' .. marker .. ' ' .. name)
+    items[#items + 1] = item
+    itemRows[#result] = #items
+    if markerHighlight then markerMarks[#markerMarks + 1] = { row = #result - 1, hl = markerHighlight } end
+  end
   for _, partition in ipairs(partitions) do
     local group = session.groups[partition] or {}
     result[#result + 1] = (session.expanded[partition] and 'v ' or '> ') .. partition .. '/'
     if session.expanded[partition] then
       for _, item in ipairs(group) do
-        result[#result + 1] = '  ' .. item.path
-        items[#items + 1] = item
+        addEntry(item)
       end
     end
   end
   result[#result + 1] = (session.expanded.plan and 'v ' or '> ') .. 'Plan'
   if session.expanded.plan then
     for _, item in ipairs(session.plans or {}) do
-      result[#result + 1] = '  ' .. item.path
-      items[#items + 1] = item
+      addEntry(item)
     end
   end
   vim.bo[session.list].modifiable = true
   vim.api.nvim_buf_set_lines(session.list, 0, -1, false, result)
+  for _, marker in ipairs(markerMarks) do
+    vim.api.nvim_buf_set_extmark(session.list, selectedNs, marker.row, 1, { end_col = 2, hl_group = marker.hl })
+  end
   vim.bo[session.list].modifiable = false
-  session.items = items
+  session.items, session.itemRows = items, itemRows
+  if #items > 0 then
+    local row
+    for line, index in pairs(itemRows) do if index == session.cursor then row = line; break end end
+    if not row then
+      for line, index in pairs(itemRows) do if index == 1 then row = line; break end end
+      session.cursor = 1
+    end
+    if row and vim.api.nvim_win_is_valid(session.listWin) then setSelectedRow(session, row) end
+  end
 end
 
 local function refresh(session, initial)
@@ -158,6 +251,7 @@ local function refresh(session, initial)
         groups[partition][#groups[partition] + 1] = {
           path = source.path, source = vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change, source.path),
           before = table.concat(before, '\n\n'), after = table.concat(after, '\n\n'),
+          operation = operationForEntries(source.entries),
         }
       end
       session.groups, session.plans = groups, {}
@@ -197,37 +291,54 @@ local function open(change)
   end
   vim.cmd('tabnew')
   local tab = vim.api.nvim_get_current_tabpage()
-  vim.cmd('vsplit')
+  vim.cmd('rightbelow vsplit')
   local leftWin = vim.api.nvim_get_current_win()
   vim.cmd('wincmd h')
   local listWin = vim.api.nvim_get_current_win()
   local list = buf('xirang://' .. change .. '/files', '', false)
+  vim.bo[list].bufhidden = 'wipe'
   vim.api.nvim_win_set_buf(listWin, list)
+  vim.wo[listWin].cursorline = true
+  vim.api.nvim_win_set_width(listWin, math.min(34, math.max(24, math.floor(vim.o.columns * 0.24))))
   vim.cmd('wincmd l')
+  local leftWin = vim.api.nvim_get_current_win()
   local left = buf('xirang://' .. change .. '/current', '', false)
-  vim.api.nvim_win_set_buf(0, left)
-  vim.cmd('vsplit')
+  vim.api.nvim_win_set_buf(leftWin, left)
+  vim.cmd('rightbelow vsplit')
   local rightWin = vim.api.nvim_get_current_win()
   local right = buf('xirang://' .. change .. '/expected', '', false)
   vim.api.nvim_win_set_buf(0, right)
   local session = {
     change = change, cwd = cwd, tab = tab, list = list, listWin = listWin, left = left, right = right,
     leftWin = leftWin, rightWin = rightWin, buffers = { list, left, right }, watchers = {},
-    generation = 0, cursor = 1, groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
+    generation = 0, cursor = 1, listWidth = vim.api.nvim_win_get_width(listWin), groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
     expanded = { elements = true, metamodel = true, relationships = true, views = true, plan = true },
   }
   sessions[tab] = session
-  local function map(key, action) vim.keymap.set('n', key, action, { buffer = list, silent = true }) end
-  map('<Tab>', function() session.cursor = session.cursor % math.max(#session.items, 1) + 1; selectedText(session) end)
-  map('<S-Tab>', function() session.cursor = (session.cursor - 2) % math.max(#session.items, 1) + 1; selectedText(session) end)
+  local function map(key, action)
+    for _, target in ipairs({ list, left, right }) do
+      vim.keymap.set('n', key, action, { buffer = target, silent = true })
+    end
+  end
+  for _, key in ipairs({ 'j', '<Down>' }) do
+    vim.keymap.set('n', key, function() selectRow(session, 1) end, { buffer = list, silent = true })
+  end
+  for _, key in ipairs({ 'k', '<Up>' }) do
+    vim.keymap.set('n', key, function() selectRow(session, -1) end, { buffer = list, silent = true })
+  end
+  map('<Tab>', function() selectRow(session, 1) end)
+  map('<S-Tab>', function() selectRow(session, -1) end)
   map('<CR>', function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = vim.api.nvim_buf_get_lines(list, row - 1, row, false)[1] or ''
     local group = line:match('^[>v] (.+)/$') or (line:match('^[>v] Plan$') and 'plan')
-    if group then session.expanded[group] = not session.expanded[group]; renderList(session)
-    else
-      local item = selected(session)
-      if item and item.source then selectedText(session) end
+    if group then
+      session.expanded[group] = not session.expanded[group]
+      renderList(session)
+      selectRow(session, 1)
+    elseif session.itemRows[row] then
+      session.cursor = session.itemRows[row]
+      selectedText(session)
     end
   end)
   map('o', function() sourceJump(session) end)
@@ -258,6 +369,7 @@ end
 
 function M.setup(opts)
   opts = opts or {}
+  for name, definition in pairs(highlightGroups) do vim.api.nvim_set_hl(0, name, definition) end
   if opts.cli then defaults.cli = opts.cli end
   defaults.cwd = opts.cwd
   defaults.runner = opts.runner
