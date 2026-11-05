@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 3,
+  "changeId": "streamline-propose-plan",
+  "revision": 7,
+  "reviews": [
+    {
+      "reviewId": "baseline-streamline-propose-plan-ce78b5aae",
+      "scope": "baseline",
+      "commit": "ce78b5aaef1c60a47423cee8f8ea867fc56c057e",
+      "result": "FAIL",
+      "summary": "Independent baseline review found a stale worktree-isolation reference that still prescribed the retired Files/Checks inventory and conflicted with the goal-level source template.",
+      "findings": [
+        "P1: .xirang/references/xirang-apply-step-2-worktree-isolation.md:6,9 still required task Files and Check paths, unlike src/core/templates/workflows/apply-change.ts:99-101, leaving the active Apply workflow contradictory."
+      ]
+    },
+    {
+      "reviewId": "baseline-streamline-propose-plan-68730c24",
+      "scope": "baseline",
+      "commit": "68730c24af8664d91231e795cd6416a1d514e3be",
+      "result": "FAIL",
+      "summary": "The worktree-isolation stale reference is fixed, but independent review found active Propose and Archive references that still require retired task Files/Checks and Acceptance Case anchors.",
+      "findings": [
+        "P1: src/core/templates/workflows/propose.ts:28 injects business-specification guidance whose active projection .xirang/references/xirang-business-specification-standard.md:44 still requires task/check traceability through change-local Element paths and Acceptance Case anchors, conflicting with goal-level Contract/Section references.",
+        "P1: src/core/templates/workflows/archive-change.ts:21 renders the boundary-commit template, while .xirang/references/xirang-boundary-commit-message.md:30 still requires actual diff files to be cross-referenced with task Files/Goal, but goal-level tasks have no Files inventory."
+      ]
+    },
+    {
+      "reviewId": "baseline-streamline-propose-plan-13de588b",
+      "scope": "baseline",
+      "commit": "13de588bf2eb4e07c4171772d86813d485ae5a28",
+      "result": "FAIL",
+      "summary": "Canonical task and reference sources now use goal-level plans, but independent review found checked-in Propose and Reviewer managed projections still instruct consumers to use legacy Files/Checks layouts.",
+      "findings": [
+        "P1: .pi/skills/xirang-propose/SKILL.md:152-155,177 still instructs support for Actions/coarse Task layouts, nested Checks, Files/Sections/Checks cross-checking, and a Files section, contradicting .xirang/changes/streamline-propose-plan/elements/tasks-document.md:14,50 and the updated task instructions.",
+        "P1: .pi/agents/xirang-reviewer.md:84,122-131 still defines deletion checks and change attribution through task Files and Check commands, contradicting goal-level task requirements and the Reviewer Delta at .xirang/changes/streamline-propose-plan/elements/reviewer-protocol.md:14."
+      ]
+    },
+    {
+      "reviewId": "baseline-streamline-propose-plan-b912956d",
+      "scope": "baseline",
+      "commit": "b912956d068814ba67364278cd6c5838f77da9e1",
+      "result": "FAIL",
+      "summary": "All three prior findings verified fixed; independent review found one remaining retired Check-anchor instruction in the Snack workflow plus formal-model and wording follow-ups, and could not run tests itself.",
+      "findings": [
+        "P1: src/core/templates/workflows/snack.ts:62 and its managed projection .pi/skills/xirang-snack/SKILL.md:94 still prescribe the retired `Preserves:` Check anchor, contradicting this Change's validation-commands/artifact-workflow-commands Sections; the formal snack-workflow contract also keeps the retired norm and needs a MODIFIED Delta or explicit follow-up Change.",
+        "P2: .xirang/model/elements/reviewer-protocol.md retains severity rules keyed on retired task structures while this Change only ADDs a goal-level reviewer section; post-Sync the contract would mix retired and goal-level norms.",
+        "P2: src/core/templates/workflows/propose.ts:113 closing gate wording still says observable Check; should say observable verification direction to match goal-level semantics.",
+        "Evidence gap: reviewer ran read-only without shell; parent must run the named vitest suites to confirm committed tests pass."
+      ]
+    },
+    {
+      "reviewId": "baseline-streamline-propose-plan-e8a14deb",
+      "scope": "baseline",
+      "commit": "e8a14deb40901efc4d5cf05bb664d4ce53ceab4f",
+      "result": "PASS",
+      "summary": "Independent baseline review at e8a14deb4 verified all prior findings fixed: snack and propose templates plus managed projections use goal-level verification directions; formal reviewer-protocol and snack-workflow contracts were migrated with MODIFIED Delta units; a fresh sweep of active read paths found no retired task-format vocabulary outside intentional legacy-rejection messages; model alignment and goal-level pipeline verified coherent. Non-blocking P2 follow-ups noted for a future change: retired attribution/label norms remain in reviewer-cleanliness, authoring-conventions, business-specification-standard, and acceptance-case model units; reviewer-protocol Section title 三 vs body 四 count mismatch; reviewer-protocol ADDED Section applies at Sync.",
+      "findings": [
+        "P2 follow-up: .xirang/model/elements/reviewer-cleanliness.md:105,122 and authoring-conventions.md:141-143 (plus business-specification-standard.md:49, acceptance-case.md:35) keep retired Files/Checks/Verifies norms; register a follow-up Change before or after Closure.",
+        "P2 follow-up: Section identity 三个验证维度 vs body 四个验证维度 count mismatch; fix via REMOVED+ADDED rename in a follow-up Change.",
+        "Non-blocking: reviewer-protocol ADDED Section applies to the formal model at Sync during Closure; MODIFIED entries are Sync no-ops because the formal contracts already match the targets.",
+        "Evidence closed by parent: full vitest suite 162 files / 2217 tests passed at this commit."
+      ]
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "Change is a breaking format migration whose implementation already deleted the retired parser and consumers (~2400 lines); independent baseline Review passed at e8a14deb4 with no P0/P1, and the remaining findings are P2 formal-model content follow-ups (reviewer-cleanliness, authoring-conventions, business-specification-standard, acceptance-case residues plus a Section title count mismatch) that change target semantics and belong in a follow-up Change, not behavior-preserving optimization. Full suite (162 files / 2217 tests) passes; no optimization direction offers evidenced benefit without semantic changes."
+  },
+  "seal": {
+    "commit": "e8a14deb40901efc4d5cf05bb664d4ce53ceab4f",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "Full vitest suite (162 files, 2217 tests) plus pnpm exec tsc --noEmit, pnpm build, xirang validate --change streamline-propose-plan, xirang arch validate --change, and git diff --check, all passing at this commit.",
+    "assessment": "Goal-level task format is implemented across parser, progress, instructions, validate, record-consume, Propose/Apply/Reviewer/Archive/List surfaces, schema templates, managed projections, and this Change artifacts. Independent baseline Review PASS at e8a14deb4 after three FAIL rounds (stale worktree-isolation reference; business-specification/boundary-commit references; managed Propose/Reviewer projections; Snack Preserves anchor and formal reviewer-protocol dimensions). Opt not performed: breaking migration already removed retired consumers; remaining P2 model-layer residues are semantic follow-ups for a future change. Remaining known items are registered as follow-ups, none blocks Seal."
+  }
+}

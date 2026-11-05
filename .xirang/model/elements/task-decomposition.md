@@ -11,81 +11,56 @@ definition: Task Decomposition 定义 Apply Phase 0 如何依据 `tasks.md` 中�
 
 ### Section: Apply Phase 0 SHALL 依据 task-level TDD 处理 pending task
 
-Apply Phase 0 SHALL 读取 `tasks.md` 中的 pending task，并按每个 task 的独立 TDD 闭环执行 Check、收集证据和更新任务进度。对于 Specs 未覆盖的实现细节，Apply SHALL 依据 Semantic Model、Change Plan、项目约束和当前 implementation evidence 作出与目标语义一致的实现判断，且 SHALL NOT 以额外的编排规则替代 Change Contract。
+Apply Phase 0 SHALL 读取 `tasks.md` 中的未完成目标及验证方向，以目标 Semantic Model、Change Plan、项目约束和当前实现证据动态确定实施步骤、代码范围、测试动作与顺序。对用户明确要求的目标顺序 SHALL 遵守；通常的技术依赖由 Apply 根据现场决定，不以额外编排规则替代 Contract。每个目标 SHALL 形成适用的实现和验证闭环，只有验证证据充分才更新该目标完成状态。
 
-- **Apply 处理独立 task-level TDD loop**
+- **处理未完成目标**
+  - tasks.md 含待实现目标
+  - Apply SHALL 读取目标与验证方向，确定具体实现与验证方式并取得证据
 
-  - `tasks.md` 包含 pending task
-  - Apply SHALL 按该 task 的 Goal、Files、Sections 和 Checks 组织一个可独立验证的 TDD loop
-  - SHALL 在证据通过后更新对应 Check
-
-- **实现纪律保持为中性指导**
-
+- **实现纪律保持中性**
   - apply skill 被加载
-  - skill SHALL 以 `Implementation Discipline` 节提供适用于当前 Change 的执行指导
-  - 该指导 SHALL 使用中性术语，不把某一执行主体、调度方式或临时材料声明为规范要求
+  - skill SHALL 用 `Implementation Discipline` 提供不绑定执行主体、调度方式或临时材料的指导
 
 - **非隔离流程步骤指向 reference**
-
-  - Apply 执行到 Preparation、Review、Optimization 或 seal 步骤
-  - Apply SHALL 读取对应的 `.xirang/references/xirang-apply-step-<N>-<name>.md`
-  - skill body 中该步骤 SHALL 只提供一行描述和文件路径
+  - Apply 执行 Preparation、Review、Optimization 或 Seal
+  - SHALL 读取对应 `.xirang/references/xirang-apply-step-<N>-<name>.md`，skill body 只保留描述与路径
 
 - **隔离方法只读取一个 reference**
-
-  - Preparation 已选择 branch、worktree 或 current-branch 方法
-  - Apply SHALL 只读取所选方法的 Step 2 reference
-  - MUST NOT 读取另外两个互斥方法 reference
+  - 已选择 branch、worktree 或 current-branch
+  - Apply SHALL 只读取所选 Step 2 reference，不读另两个互斥方法
 
 ### Section: Checks 是任务进度源
 
-系统 SHALL 使用 `tasks.md` 的 Checks 和 Required Corrections 记录 Apply Phase 0 的进度与恢复工作。
+系统 SHALL 使用 `tasks.md` 的目标级 checkbox 和 Required Corrections 记录 Apply Phase 0 进度与恢复工作。目标的实现与适用验证证据均成立时 SHALL 勾选目标；证据不足时 SHALL 保持未完成，不把具体文件、命令、测试结果或执行日志回填 tasks。现有 `.quality.json` SHALL 仅用于保存 commit-bound Review 意见、Opt 处置和 Seal 的验证范围/判断摘要，不作为测试输出日志；本流程 SHALL NOT 新增持久化的逐项目标测试日志。Reviewer SHALL 从当前项目与可复现证据独立判断，而不是信任 checkbox 或摘要。
 
-- **完成 Check 后勾选**
-
-  - Check 的 red/green TDD 证据通过，或非运行时文本制品 Check 的最终证据通过
-  - 系统在 `tasks.md` 中勾选对应 Check
-  - 系统 SHALL NOT 在缺少完成证据时勾选
+- **完成目标后勾选**
+  - 实施已完成且适用验证实际通过
+  - 系统 SHALL 勾选该目标；无证据时不得勾选
 
 - **Required Corrections 优先**
-
-  - `tasks.md` 包含未完成的 `## Required Corrections` 项
-  - 系统优先处理相关 `[code_fix]` 或 `[artifact_fix]`
-  - 系统在证据通过后勾选已解决项
+  - tasks 包含未完成的 `## Required Corrections` 项
+  - 系统优先处理相关 `[code_fix]` 或 `[artifact_fix]`，证据通过后勾选
 
 - **跨平台命令兼容**
-
   - 系统执行或生成涉及路径的命令
-  - 路径 SHALL 使用 Node.js path 模块处理
-  - 系统 SHALL NOT 硬编码平台特定路径分隔符
+  - SHALL 使用 Node.js path 模块，不硬编码平台路径分隔符
 
 ### Section: 任务执行失败处理
 
-系统 SHALL 在 task 执行遇到非预期失败时先诊断再修复，每次修复只改变一个变量，并在同一 task 累计 3 次修复仍未解决时停止并呈现证据。连续 2 次相同 normalized error signature SHALL 保持快速 pause。补充上下文时，Apply SHALL 使用 change artifacts、formal Contracts、Semantic Model navigation 与当前 code evidence；MUST NOT 读取或要求 code-map，也 MUST NOT 使用已移除的 query navigation options。
+系统 SHALL 在目标执行遇到非预期失败时先诊断再修复，每次修复只改变一个变量，并在同一目标累计 3 次修复仍未解决时停止并呈现证据；连续 2 次相同 normalized error signature SHALL 快速 pause。补充上下文时，Apply SHALL 使用 Change artifacts、formal Contracts、Semantic Model navigation 与当前 code evidence；MUST NOT 读取或要求 code-map，也 MUST NOT 使用已移除的 query navigation options。
 
-- **任务需求不明确**
-
-  - Apply 发现 Goal 或 Sections 过于模糊
-  - SHALL 使用 proposal、design、delta Contracts、tasks、formal Contracts 与相关项目文件补足上下文
-  - SHALL 对已知 Element identities 使用 `xirang arch impact <element-id> --depth 1 --json` 获取 directed Relationships 与 refinement context
-  - SHALL 对需要完整语义的 identities 使用 batch `xirang arch query <identities...> --contract --json`
-  - SHALL NOT 仅因首次发现模糊点就询问用户
+- **目标或验证方向不明确**
+  - Apply 发现目标含糊
+  - SHALL 先读取 proposal、design、Delta Contracts、formal Contracts 与项目代码；使用 `xirang arch impact` 和针对性 `xirang arch query --contract` 查明语义，不因首次模糊立即询问用户
 
 - **项目上下文不足**
-
-  - Apply 无法找到相关现有代码或模式
-  - SHALL 使用语义边界定位 Element，并使用 CodeGraph 或 `rg`/`read` 获取当前 implementation evidence
-  - MUST NOT 从模型读取 code paths 或 code-map
-  - SHALL 将缺失上下文转化为当前 task 的可验证探索或检查步骤
+  - Apply 无法找到相关现有代码或测试
+  - SHALL 使用 CodeGraph 或 `rg`/`read` 获取实现证据，将探索转为当前目标的可验证步骤，不从模型猜 code paths
 
 - **同一错误重复失败快速暂停**
-
-  - 同一 task 的同一 normalized error signature 连续失败 2 次
-  - 系统 SHALL pause
-  - pause 输出 SHALL 包含 task、check、command、failure kind、error summary 与已尝试修正事项
+  - 同一目标的同一 normalized error signature 连续失败 2 次
+  - SHALL pause 并报告目标、实际检查、命令、失败类型、错误及已尝试修正
 
 - **累计修复次数达到上限**
-
-  - 同一 task 累计 3 次修复仍未解决
-  - 系统 SHALL 停止修复并呈现已尝试路径、根因判断与怀疑方向
-  - SHALL 等待用户指导
+  - 同一目标累计 3 次修复未解决
+  - SHALL 停止并报告已尝试路径、根因判断与怀疑方向，等待用户指导
