@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261106T085915Z-e92cd9c6",
+  "sourceVersion": "2d1fda76ef4b61167cbc5ce75d2314256454a4a68cef6692bd8b85d4ab22a500",
+  "targetFingerprint": "9202d34283e0adc8b4a5499c893bbebed0761f24cbeb75c4cd7ef5d12312820b",
+  "recordedAt": "2026-11-06T09:09:16.387Z",
+  "entries": [
+    {
+      "identity": "review-projection-source-grouping",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每个 Delta 源文件只返回一份完整 before 与 after 文档。",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "每个源文件 SHALL 恰有一份对应的完整当前模型文件文本与一份完整 Expected Semantic Model 文件文本"
+        },
+        {
+          "detail": "未参与变化的模型内容仍可见。",
+          "location": {
+            "element": "cli",
+            "section": "提供 Neovim Change 审阅投影"
+          },
+          "quote": "未变更的 Section 与其它文件内容继续包含在完整模型文件文本中"
+        }
+      ]
+    },
+    {
+      "identity": "expected-model-edit-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "左侧 Current 只读，右侧 Expected 可编辑。",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "左侧是当前 Semantic Model 对应的完整内容且只读，右侧是应用整个 Change 后 Expected Semantic Model 对应的完整内容且可编辑"
+        },
+        {
+          "detail": "只写回 Element definition 与 Contract Sections。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "该操作 SHALL 只应用 Element Declaration 的 `definition` 与其 Contract Sections 的变化"
+        },
+        {
+          "detail": "同名 Section 内容及 Acceptance Case 变化是 MODIFIED。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "Section 名称不变而正文或 Acceptance Cases 改变，包括删除其中一部分内容\n  - CLI 写入该 Section 的 `MODIFIED` Entry"
+        },
+        {
+          "detail": "新增 Section 是 ADDED，整节删除是 REMOVED，标题改名是旧 REMOVED 加新 ADDED。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "用户修改 Section 标题\n  - CLI 写入旧标题的 `REMOVED` 与新标题的完整 `ADDED` Section Entries"
+        },
+        {
+          "detail": "不支持字段忽略并报告，同次受支持修改仍保存。",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "CLI 保存支持的修改，忽略其它修改\n  - Neovim 在 status bar 提示被忽略的修改"
+        }
+      ]
+    },
+    {
+      "identity": "expected-model-delta-writeback",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "结构化写回更新 Change Delta，不覆盖模型投影原文也不修改 Formal Model。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "不得将模型投影原文直接覆盖 Delta 文件，也不得修改 Formal Semantic Model"
+        },
+        {
+          "detail": "完整校验成功后才原子替换；校验失败时 Delta 保持不变。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "只有目标内容通过校验后才可原子替换对应 Delta 源文件"
+        },
+        {
+          "detail": "不做并发冲突检查，多个成功写入以最后一次为准。",
+          "location": {
+            "element": "cli",
+            "section": "写回 Neovim 的目标模型微调"
+          },
+          "quote": "操作 SHALL 不执行并发版本冲突检查；多个成功写入以最后一次写入的受支持目标内容为准"
+        }
+      ]
+    },
+    {
+      "identity": "review-save-refresh-experience",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "保存成功后刷新现有审阅视图并保留文件、焦点、光标、视口和列表状态。",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "通过右侧 Expected Semantic Model 保存成功后，Neovim SHALL 在现有审阅 tab 内刷新投影，并保留当前 Delta 源文件、焦点窗格、左右光标与视口位置、列表展开状态及宽度"
+        },
+        {
+          "detail": "写回失败保留草稿。",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "写回失败时 SHALL 保留草稿供继续编辑或重试"
+        },
+        {
+          "detail": "使用内存缓冲区，不要求临时投影文件。",
+          "location": {
+            "element": "neovim",
+            "section": "对比 Semantic Delta 对应的完整模型内容"
+          },
+          "quote": "Expected Semantic Model 使用 Neovim 内存缓冲区承载编辑；临时投影不直接覆盖 Delta 源文件"
+        }
+      ]
+    }
+  ]
+}
