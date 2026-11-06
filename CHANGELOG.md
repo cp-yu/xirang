@@ -1,5 +1,12 @@
 # xirang
 
+## 0.2.5
+
+### Patch Changes
+
+- Propose 来源交接时序调整：审阅期间保持活动 Design Record，正式 `record coverage` 提前到用户接受最终 Change 之前；只有用户接受与当前覆盖结果对应的确切 Change 后才执行 `record consume`。consume 复核来源版本、目标指纹与结构，不重跑逐项覆盖，避免用户审阅报告后再修改时记录已被删除。
+- Change 的 `record coverage` 在写入结果前将记录 `structure` 与 Expected Semantic Model 逐字段比对，结构不一致时拒绝且不替换已有结果；Candidate/Build 的结构门禁仍保持在 consume 执行。
+
 ## 0.2.4
 
 ### Minor Changes
