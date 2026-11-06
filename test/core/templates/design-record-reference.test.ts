@@ -11,12 +11,33 @@ describe('Design Record reference projection', () => {
       'A user\'s design confirmation authorizes recording that content',
       'Do not ask for a separate persistence confirmation',
       'do not show the complete proposed record before writing',
-      'report only this write\'s changes and the record summary',
-      'Flag every modification of already-confirmed content',
+      'report only this write\'s content delta and decision-state changes',
+      'Do not re-present unchanged content or announce mechanical counts',
+      'separately flag every modification of already-confirmed content',
       'an empty record list is a starting state, not an exemption',
     ]) expect(reference).toContain(phrase);
     expect(reference).not.toContain('explicit persistence confirmation');
     expect(reference).not.toContain('complete proposed payload');
+  });
+
+  it('defines user-facing load, update, and error presentation without leaking mechanics', () => {
+    for (const phrase of [
+      '## User-facing record presentation',
+      'On the first complete load in a new conversation',
+      'all accepted and excluded design decisions and confirmed structure',
+      'every pending question or assumption',
+      'After a record write, report only the content added, changed, removed, or reclassified',
+      'invalid data, relevant drift, or a version conflict',
+      'what is inconsistent and what reconciliation is needed',
+      'Keep sourceVersion and CLI counts in CLI output',
+    ]) expect(reference).toContain(phrase);
+
+    for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate()]) {
+      expect(template.instructions).toContain('User-facing record presentation');
+    }
+
+    expect(reference).not.toContain('report only this write\'s changes and the record summary returned by the CLI');
+    expect(reference).not.toContain('identify `explorationId` and the checked `sourceVersion`');
   });
 
   it('defines the entry writing standard and the structure part', () => {
