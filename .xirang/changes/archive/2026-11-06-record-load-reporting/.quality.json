@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 3,
+  "changeId": "record-load-reporting",
+  "revision": 3,
+  "reviews": [
+    {
+      "reviewId": "06802118-1045-44dd-8c37-e33826088c85",
+      "scope": "baseline",
+      "commit": "ade059e68dd8d6bb4415fe6cd76a24b26cc08fb3",
+      "result": "PASS",
+      "summary": "Independent baseline review found the complete record-load-reporting Change implemented and aligned with its goal; no target-scope defects found. Reviewer verified the shared presentation protocol, Build/Explore/Propose projections, four Contract deltas, task direction, consumed record snapshot and coverage. Reported focused and full-suite checks passed.",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "The Change is a narrow workflow-prompt and generated-projection update. Its focused and full template suites, lint, build, and independent baseline Review all passed; no optimization direction has evidence of additional user-visible benefit sufficient to justify more scope."
+  },
+  "seal": {
+    "commit": "ade059e68dd8d6bb4415fe6cd76a24b26cc08fb3",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "pnpm exec vitest run test/core/templates (18 files, 229 tests); pnpm lint; pnpm build; xirang validate --change; git diff --check",
+    "assessment": "The reviewed implementation commit passed the complete template suite, lint, build, and Change validation. Independent baseline Review passed with no findings. Optimization was explicitly not performed because the prompt/projection scope has no evidence-backed optimization opportunity. A later commit updates only reviewer/apply workflow prompts to match this Quality CLI process; it does not alter the reviewed implementation or its test scope."
+  }
+}
