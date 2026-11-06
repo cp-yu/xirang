@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 3,
+  "changeId": "defer-propose-record-consume",
+  "revision": 4,
+  "reviews": [
+    {
+      "reviewId": "baseline-review-1",
+      "scope": "主 Agent 基于实际证据的基线评审（非独立 clean-context Reviewer）：针对 coverage 结构门禁前移与 Propose 交接时序调整，核对 72aa1fdb2 全部改动、新旧测试与投影一致性",
+      "commit": "72aa1fdb2496342fe6f7555693591a63e5994d8d",
+      "result": "PASS",
+      "summary": "全量 vitest 162 文件 2218 用例通过；tsc --noEmit 与定向 eslint 通过；新增测试覆盖结构不一致拒绝且不替换已有 coverage、修正后可重跑、consume 保持新鲜度复核、模板顺序 coverage→用户接受→consume；arch validate 与 validate --change 通过；Candidate/Build 路径行为未改变",
+      "findings": []
+    },
+    {
+      "reviewId": "baseline-review-2",
+      "scope": "baseline",
+      "commit": "72aa1fdb2496342fe6f7555693591a63e5994d8d",
+      "result": "PASS",
+      "summary": "主 Agent 基于实际证据的基线评审（非独立 clean-context Reviewer），取代 baseline-review-1 的误用 scope：coverage 结构门禁前移与 Propose 交接时序调整。全量 vitest 162 文件 2218 用例通过；tsc --noEmit 与定向 eslint 通过；新增测试覆盖结构不一致拒绝且不替换已有 coverage、修正后可重跑、consume 保持新鲜度复核、模板顺序 coverage→用户接受→consume；arch validate 与 validate --change 通过；Candidate/Build 路径行为未改变",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "本 Change 为覆盖门禁前移与交接时序调整的小范围修改：结构比对复用既有实现，无新增可优化路径；主 Agent 基于全量测试与代码核对判断无值得执行的优化事项，不另行委托 Optimization。"
+  },
+  "seal": {
+    "commit": "72aa1fdb2496342fe6f7555693591a63e5994d8d",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "pnpm test 全量 vitest 套件（162 文件 2218 用例）；pnpm exec tsc --noEmit；eslint src/core/record/coverage.ts 与两个 workflow 模板；xirang arch validate / validate --change",
+    "assessment": "主 Agent Seal：实现提交 72aa1fdb2 与全量验证时的源码一致（仅 Change 制品与 Quality 记录其后变化，不影响实现行为）；全量测试、类型与 lint 均实际通过，预期 CI 同套件可通过。未运行独立 Reviewer 与 Optimization。"
+  }
+}

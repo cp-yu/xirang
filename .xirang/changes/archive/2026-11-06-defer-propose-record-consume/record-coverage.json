@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261106T014152Z-1c790424",
+  "sourceVersion": "2031bde4668ebb336b56f22d54f51245f0dd4e350963af16e6a5bec55a3f5d0e",
+  "targetFingerprint": "f17e6af58070a9761f55ce197d8450131c3e2177d4e534c02090ea70f0d1b8b3",
+  "recordedAt": "2026-11-06T02:38:02.512Z",
+  "entries": [
+    {
+      "identity": "post-consume-revision-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Change 范围，不调整 Candidate/Build 的覆盖门禁",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "对 named Change，CLI SHALL 在写入 coverage 前将记录结构逐字段与 Expected Semantic Model 比对"
+        },
+        {
+          "detail": "Explore 与 Propose 共用记录并保留到用户接受",
+          "location": {
+            "element": "propose",
+            "section": "交接已确认设计来源"
+          },
+          "quote": "审阅期间保持记录活动；用户提出修改时 SHALL 调和适用的记录内容、Delta 与 Plan"
+        }
+      ]
+    },
+    {
+      "identity": "post-consume-current-version",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "接受前运行 coverage",
+          "location": {
+            "element": "propose",
+            "section": "交接已确认设计来源"
+          },
+          "quote": "Propose SHALL 在请求用户接受最终 Change 前完成 coverage"
+        },
+        {
+          "detail": "审阅期修改后重新校验覆盖",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "用户反馈改变记录或目标时重新校验并记录覆盖结果"
+        },
+        {
+          "detail": "接受后才 consume",
+          "location": {
+            "element": "propose",
+            "section": "交接已确认设计来源"
+          },
+          "quote": "只有用户接受与当前 coverage 对应的最终 Change 后，Propose SHALL 通过 `xirang record consume` 向该 Change 交接"
+        },
+        {
+          "detail": "consume 只复核版本目标和结构不重跑",
+          "location": {
+            "element": "propose",
+            "section": "交接已确认设计来源"
+          },
+          "quote": "consume 复核来源版本、目标指纹与结构，不重复执行覆盖检查"
+        }
+      ]
+    },
+    {
+      "identity": "propose-coverage-before-acceptance",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "使用正式 CLI coverage 作为接受前门禁",
+          "location": {
+            "element": "propose-workflow",
+            "section": "按复杂度组织交互审阅"
+          },
+          "quote": "Workflow SHALL 在最终校验后、请求用户接受 Change 前运行适用的 `record coverage`"
+        },
+        {
+          "detail": "条目位置摘录与 pending 检查",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "CLI SHALL 拒绝未知条目、缺失必需结果、空细节、未覆盖细节、无理由的不适用/不影响声明、仍影响目标的 pending 结果"
+        },
+        {
+          "detail": "Change 结构逐字段比对并拒绝不一致",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "结构对象缺失、已确认字段不一致或 `removed: true` 对象仍存在时拒绝并报告差异"
+        },
+        {
+          "detail": "来源版本与目标指纹绑定",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "全部通过才连同 sourceVersion 与目标指纹写入 record-coverage.json"
+        },
+        {
+          "detail": "CLI 不替代语义判断",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "Agent 判断适用性与理由是否成立，CLI 不推断自然语言语义或用户授权"
+        },
+        {
+          "detail": "接受后 consume 复核结构",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "随后 SHALL 将记录结构部分的每个对象与目标模型按语义 identity 逐字段比对"
+        }
+      ]
+    }
+  ]
+}
