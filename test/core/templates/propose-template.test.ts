@@ -300,6 +300,11 @@ describe('propose template post-validation flow', () => {
     const consume = body.indexOf('xirang record consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');
     expect(coverage).toBeGreaterThan(validate);
     expect(consume).toBeGreaterThan(coverage);
+    const acceptance = body.indexOf('Wait for the user to accept the final Change');
+    expect(acceptance).toBeGreaterThan(coverage);
+    expect(consume).toBeGreaterThan(acceptance);
+    expect(body).toContain('Keep the record active during user review');
+    expect(body).toContain('repeat coverage before asking for acceptance again');
     expect(body).not.toMatch(/framing|Change Structural Definition/i);
   });
 

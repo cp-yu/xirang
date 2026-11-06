@@ -49,6 +49,30 @@ describe('记录覆盖检查结果', () => {
     expect(saved).toMatchObject({ schemaVersion: 1, explorationId: id, sourceVersion: record.sourceVersion, targetFingerprint: result.targetFingerprint, entries: covered.entries });
   });
 
+  it('Change 结构不一致时拒绝覆盖且不替换已有结果，修正后可重新覆盖', async () => {
+    const { root, changeDir, record, id } = await changeSetup();
+    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, covered);
+    const destination = path.join(changeDir, 'record-coverage.json');
+    const before = await fs.readFile(destination);
+    const context = await readRecordSemanticContext(root, 'change');
+    const updated = await updateRecord(root, id, {
+      structure: { upsert: { elements: [{ identity: 'select', parent: 'root', title: 'Other' }], elementKinds: [{ identity: 'capability', removed: true }] } },
+    }, record.sourceVersion, context);
+    await expect(recordCoverage(root, id, { change: 'sample' }, updated.record.sourceVersion, covered)).rejects.toMatchObject({
+      code: 'STRUCTURE_MISMATCH',
+      diagnostics: [
+        expect.objectContaining({ identity: 'select', field: 'title' }),
+        expect.objectContaining({ identity: 'capability', field: 'removed' }),
+      ],
+    });
+    expect(await fs.readFile(destination)).toEqual(before);
+    const fixed = await updateRecord(root, id, {
+      structure: { upsert: { elements: [{ identity: 'select', title: 'select' }] }, withdraw: { elementKinds: ['capability'] } },
+    }, updated.record.sourceVersion, context);
+    const result = await recordCoverage(root, id, { change: 'sample' }, fixed.record.sourceVersion, covered);
+    expect(result.sourceVersion).toBe(fixed.record.sourceVersion);
+  });
+
   it('声明摘录忽略排版强调并保留提交的细节顺序', async () => {
     const { root, changeDir, record, id } = await changeSetup();
     const input = { entries: [

@@ -238,14 +238,13 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
     await expect(consumeRecord(root, id, { change: changeName }, record.sourceVersion)).resolves.toMatchObject({ recovered: false });
   });
 
-  it('结构部分与目标模型逐字段不一致时拒绝并逐项报告', async () => {
+  it('Change 结构不一致时在 coverage 阶段拒绝并逐项报告', async () => {
     const { root, changeName, record } = await setup('structure');
     await validChange(root, changeName);
     const id = record.document.metadata.explorationId;
     const context = await readRecordSemanticContext(root, 'change');
     const updated = await updateRecord(root, id, { structure: { upsert: { elements: [{ identity: 'new', parent: 'root', title: 'Other' }], elementKinds: [{ identity: 'domain', removed: true }] } } }, record.sourceVersion, context);
-    await cover(root, updated.record, { change: changeName });
-    await expect(consumeRecord(root, id, { change: changeName }, updated.record.sourceVersion)).rejects.toMatchObject({
+    await expect(cover(root, updated.record, { change: changeName })).rejects.toMatchObject({
       code: 'STRUCTURE_MISMATCH',
       diagnostics: [
         expect.objectContaining({ identity: 'new', field: 'title', message: expect.stringContaining('Other') }),
@@ -253,5 +252,6 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
       ],
     });
     await expect(fs.access(updated.record.absolutePath)).resolves.toBeUndefined();
+    await expect(fs.access(path.join(root, '.xirang', 'changes', changeName, 'record-coverage.json'))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });

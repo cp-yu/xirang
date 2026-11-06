@@ -267,6 +267,7 @@ export async function recordCoverage(
   const current = await readTargetModel(projectRoot, target);
   const { entries, diagnostics } = checkCoverage(source.document.payload, current.model, input);
   if (diagnostics.length) gateFail('INVALID_COVERAGE', 'Coverage result is incomplete or does not resolve against the target', diagnostics);
+  if (target.change !== undefined) assertStructureMatches(source.document.payload.structure, current.model);
   const destination = path.join(current.directory, RECORD_COVERAGE_FILE);
   await assertManagedFile(destination, target.candidate ? 'INVALID_CANDIDATE_PATH' : 'INVALID_CHANGE_PATH');
   const content = `${JSON.stringify({
@@ -291,6 +292,13 @@ function mismatch(item: DerivedStructureObject, label: string): RecordGateDiagno
   }));
 }
 
+function assertStructureMatches(structure: RecordStructure, model: SemanticModel): void {
+  const types: Array<keyof RecordStructure> = ['elements', 'relationships', 'elementKinds', 'relationshipKinds'];
+  const labels = types.flatMap(type => (structure[type] as unknown as Record<string, unknown>[]).map(item => refLabel(type, item)));
+  const diagnostics = compareStructure(structure, model).flatMap((item, index) => item.status === 'unchanged' ? [] : mismatch(item, labels[index]));
+  if (diagnostics.length) gateFail('STRUCTURE_MISMATCH', 'Recorded structure does not match the target', diagnostics);
+}
+
 /** Consume gate: fresh coverage bound to source version and target fingerprint, then field-level structure agreement. */
 export async function assertCoverageGate(
   projectRoot: string, explorationId: string, target: RecordTarget, sourceVersion: string, structure: RecordStructure,
@@ -306,8 +314,5 @@ export async function assertCoverageGate(
   if (saved.explorationId !== explorationId || saved.sourceVersion !== sourceVersion || saved.targetFingerprint !== current.fingerprint) {
     gateFail('COVERAGE_STALE', 'The record or target changed after the coverage check; repeat it and record a new result');
   }
-  const types: Array<keyof RecordStructure> = ['elements', 'relationships', 'elementKinds', 'relationshipKinds'];
-  const labels = types.flatMap(type => (structure[type] as unknown as Record<string, unknown>[]).map(item => refLabel(type, item)));
-  const diagnostics = compareStructure(structure, current.model).flatMap((item, index) => item.status === 'unchanged' ? [] : mismatch(item, labels[index]));
-  if (diagnostics.length) gateFail('STRUCTURE_MISMATCH', 'Recorded structure does not match the target', diagnostics);
+  assertStructureMatches(structure, current.model);
 }
