@@ -85,6 +85,18 @@ describe('apply change workflow template', () => {
     }
   });
 
+  it('assigns Review identity before delegation without requiring CLI begin support', () => {
+    const review = applyReference('references/apply-step-3-review.md');
+
+    expect(review).toContain('the main Agent creates a unique reviewId');
+    expect(review).toContain('This is delegation metadata, not a pre-registered Quality record');
+    expect(review).toContain('records the opinion with the current Quality revision');
+    expect(review).not.toContain('--begin');
+    const recovery = applyReference('references/quality-recovery.md');
+    expect(recovery).toContain('The Quality CLI has no review-begin or revalidation-assignment operation');
+    expect(recovery).not.toContain('quality review "<change-name>" --begin');
+  });
+
   it('routes isolation without loading mutually exclusive method references', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     const preparation = applyReference('references/apply-step-1-preparation.md');

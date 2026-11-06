@@ -81,7 +81,7 @@ Assess Declaration/Definition impact only when concept identity or scope changes
 
 Read `.xirang/references/xirang-design-record.md` before using a relevant existing record, preserving a pending question/hypothesis/recommendation, recording or revising design content, or closing a missing record decision before Summary. Ordinary discussion without these triggers does not preload it.
 
-The shared protocol owns nature/decision states, user authority, complete and selective reads, versioned partial updates, conflict handling and the Summary gate. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol and returned version unless context is lost or its content is unavailable.
+The shared protocol owns nature/decision states, user authority, complete and selective reads, versioned partial updates, conflict handling, user-facing record presentation and the Summary gate. Apply its **User-facing record presentation** rules at record loads and after updates. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol and returned version unless context is lost or its content is unavailable.
 
 ## Work and handoff
 

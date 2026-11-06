@@ -47,7 +47,7 @@ ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
 ## Confirmed design inputs
 
-MUST read \`.xirang/references/xirang-design-record.md\` at entry. It owns record discovery, confirmation authority, reload/selective reads, versioned updates, writing rules, coverage and consumption. Apply those gates at the flow points below; do not duplicate full reads per section. A record is formation evidence, not a complete Delta. Local decisions and record revisions can stay in Propose; practical feasibility experiments or substantial redesign return to Explore.
+MUST read \`.xirang/references/xirang-design-record.md\` at entry. It owns record discovery, confirmation authority, reload/selective reads, versioned updates, user-facing presentation, writing rules, coverage and consumption. Apply its **User-facing record presentation** rules at record loads and after updates; apply other gates at their flow points below. Do not duplicate full reads per section. A record is formation evidence, not a complete Delta. Local decisions and record revisions can stay in Propose; practical feasibility experiments or substantial redesign return to Explore.
 
 ## Documentation and gap handling
 

@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261106T042444Z-f0da5e86",
+  "sourceVersion": "751128724b720f98b2771e10ce38016be9e51f12b945a027cedfca007a237940",
+  "targetFingerprint": "85a58203882ed122f483182de29780c8c903b91e9967aa26e1c2e186b2cf5d7e",
+  "recordedAt": "2026-11-06T06:17:22.670Z",
+  "entries": [
+    {
+      "identity": "report-forms-load-vs-update",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "新对话或当前无有效已展示基线时，向用户概要呈现全部已确认内容与待决问题",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "新对话首次载入记录，或当前上下文没有已展示且仍有效的记录基线时，Agent SHALL 以自然语言概要呈现记录中全部已确认内容及所有待决问题，使用户能够了解并纠正 Agent 将据以继续的设计；SHALL NOT 呈现成功载入的 slug、记录身份、sourceVersion、valid 状态或机械计数。"
+        },
+        {
+          "detail": "同一对话内写入后只呈现本次内容要点与决策状态变化；已确认内容修改单独标出且不重贴未变化内容",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "同一对话内写入记录后，Agent SHALL 只呈现本次写入的内容要点与决策状态变化；修改已确认内容 SHALL 单独标出，不重贴未变化内容。"
+        },
+        {
+          "detail": "普通同对话读取或重载不重复呈现全量基线",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "同一对话中的普通读取或重载不重复呈现全量基线。"
+        }
+      ]
+    },
+    {
+      "identity": "mechanical-fields-not-user-facing",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "成功载入时不向用户播报 sourceVersion、valid 状态、计数或记录身份",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "SHALL NOT 呈现成功载入的 slug、记录身份、sourceVersion、valid 状态或机械计数。"
+        },
+        {
+          "detail": "sourceVersion 与计数仅供 Agent 内部用途，CLI 输出保持不变",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "CLI 返回的 sourceVersion 与计数仅供 Agent 内部校验、并发控制和覆盖门禁使用，CLI 输出保持不变。"
+        },
+        {
+          "detail": "invalid、drift 或版本冲突必须呈现诊断与调和动作，不播报裸版本号",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "载入、status 或 validate 发现 invalid、relevant drift 或版本冲突时，Agent SHALL 向用户说明诊断及调和动作，不以静默成功播报或裸版本号代替。"
+        }
+      ]
+    },
+    {
+      "identity": "scope-contexts",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "载入呈现规则统一适用于 Build、Explore 与 Propose",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "Design Record SHALL 让 Build、Explore 与 Propose 在载入记录时按用户已有的对话上下文同步设计依据。"
+        }
+      ]
+    },
+    {
+      "identity": "summary-provenance-version",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Design Summary 保留记录身份但不向用户呈现 sourceVersion，CLI 与 Agent 内部版本校验保持有效",
+          "location": {
+            "element": "design-exploration",
+            "section": "设计自查与忠实交接"
+          },
+          "quote": "有记录时引用记录身份，不向用户呈现 sourceVersion；sourceVersion 继续由 CLI 提供并由 Agent 内部用于版本校验，不重复记录全文。"
+        },
+        {
+          "detail": "Explore 输出 Summary 时仅保留可供 Propose 发现来源的记录身份，不呈现 sourceVersion",
+          "location": {
+            "element": "explore",
+            "section": "形成不持久化的 Design Summary"
+          },
+          "quote": "带记录时，只有完整重载、冲突调和和一致性复核通过后才能输出，并保留该记录身份供 Propose 发现来源；sourceVersion 仅保留在 CLI 输出与 Agent 内部校验中，不向用户呈现。"
+        }
+      ]
+    },
+    {
+      "identity": "write-report-counts-conflict",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "写入后只播报内容 delta 与决策变化，已确认内容修改单独标出，不播报机械计数",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "写入后只报告本次写入的内容要点与决策状态变化；修改已确认内容须单独标出，不重贴未变化内容。条目与 normative 条目计数、各决策状态数量等机械概况仅由 Agent 对照 CLI 回执自查，不向用户播报。"
+        },
+        {
+          "detail": "18条记录新增1条并修改1条时，只报告新增与修改的内容要点，不播报共19条",
+          "location": {
+            "element": "design-record",
+            "section": "确认即记录"
+          },
+          "quote": "例如：已有 18 条，新增 1 条、修改 1 条后只报告新增与修改的内容要点，不重贴其余 17 条，也不播报“共 19 条”等机械计数。"
+        }
+      ]
+    }
+  ]
+}

@@ -11,12 +11,12 @@ definition: Explore 是 Agent 在 Intent-first Path 中澄清用户意图、范�
 
 ### Section: 交付 Design Summary
 
-Explore Role SHALL 在适用设计确认及当前记录冲突检查通过后向 Propose 交付 conversation-only Design Summary；存在记录时同时交付其稳定身份与核对版本，无记录时不强制创建。
+Explore Role SHALL 在适用设计确认及当前记录冲突检查通过后向 Propose 交付 conversation-only Design Summary；存在记录时保留其稳定身份以便 Propose 确认来源，但不向用户呈现 sourceVersion；无记录时不强制创建。
 
 - **Explore 活动完成**
 
   - 适用设计已确认，存在时的记录已重载且无未决冲突
-  - 交付有效 Summary 与可用来源身份，不以记录取代完整设计。
+  - 交付有效 Summary 与可用来源身份，不以记录取代完整设计，也不向用户播报版本。
 
 ### Section: 不实现项目
 

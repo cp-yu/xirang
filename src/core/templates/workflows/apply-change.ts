@@ -13,34 +13,6 @@ import {
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
 
-const QUALITY_RECOVERY_REFERENCE_CONTENT = `
-# Quality Recovery
-
-Interrupted optimization normally continues the original delegation. First the main agent confirms the old writer and pending writebacks have stopped. The CLI does not detect external agent processes. Validate retained workspace identity and immutable \`.apply-isolation.json.baseCommit\`; preserve code, commits/checkpoints, current records and all historical material.
-
-Run \`xirang quality status "<change-name>" --json\` from projectRoot. Read the original delegation, baseline Review and checkpoint, recovery commit, latest saves, actual verification outputs and relevant history. Inspect disk and differences, including untracked files; unexpected interruption may have no final report. If A is recorded complete and B remains half-written, inspect B and interactions before continuing, repairing or reversing it. Preserve reliable A. Do not mark B complete or discard A/B automatically.
-
-After interruption, confirm prior writers stopped. Reconcile current .quality.json revision, Git commits and code before recording an opinion. Preserve legacy files unchanged; v3 never imports their contents.
-
-Repair or reverse optional work locally and run affected tests directly. The CLI does not launch tests or capture their evidence. Preserve other reliable changes; pause and report uncertain ownership or recovery.
-
-A confirmed defect already present in this Change before optimization must be repaired and pass independent defect-repair Review for its problem and impact. Main arranges repair and required Review. Unrelated historical issues and contract conflicts return to main under their respective scope rules. A failed optional optimization may be abandoned, with reasons/treatment saved then, restored-state test evidence and final user disclosure.
-
-Main reassesses affected tests and Review after recovery from actual diffs and dependencies. Preserve reliable evidence and report missing or affected validation; do not infer that a prior outcome remains applicable.
-
-Use \`.xirang/references/xirang-quality-cli.md\` for generated schemas, version handling and diagnostics. Do not hand-edit the snapshot, append-only log, IDs or hashes, roll history back with code, delete records to force a start, or silently migrate unsupported formats. A stale version requires re-reading and reconciliation. Lock, truncated log, incomplete/mismatched store or unsupported historical operation requires preserving every file and reporting the exact diagnosis; do not guess which file to delete.
-
-If the user explicitly requests fresh re-verification, first confirm the original Reviewer, Opt, implementation work and pending result handling, writebacks, commits and recovery have stopped. Preserve the existing workspace identity, immutable baseCommit, current code, commits/checkpoints and all history. The request already authorizes re-verification; do not ask for the same authorization again. Ordinary repairs, local reversals and same-delegation recovery continue their existing association.
-
-After checking the stopped flow and reconciling current status, use \`xirang quality review "<change-name>" --begin --version <current-version> --from <external-payload-file> --json\`. The baseline begin payload includes the complete-Change assignment and \`revalidation: { "reason": "<actual reason for the requested re-verification>", "previousFlowStopped": true }\`; omit delegationIds. Read the generated reviewBegin schema in \`.xirang/references/xirang-quality-cli.md\`. The reason must be nonempty. The existing --version supplies the expected current record version and is required for revalidation. previousFlowStopped is your explicit declaration based on the actual execution context; the CLI does not detect or cancel external processes.
-
-On success, the CLI preserves the prior snapshot core and reason under a generated revalidation identity in revalidationHistory, retains earlier history, and begins the new baseline Review in the same versioned transition. The append-only log continues, and old execution evidence files remain unchanged. Active reviews contain the newly begun Review; old Reviews, delegations, verification records, skip, completion plan/conclusion, checkpoints and Sync associations remain historical and cannot satisfy the new flow. This transition changes quality associations, not code, workspace identity, baseCommit or Git commits.
-
-Inspect current status before handing off. A new baseline Review binds the commit actually inspected. After it passes, the main Agent decides whether to run Opt, then records the disposition and any delivered commit-bound opinions. Previous opinions do not replace current assessment.
-
-If begin fails or its response is interrupted, read status and the retained store before retrying. Do not blindly repeat revalidation, guess an identity, submit an old result to the new flow, or move/delete record files yourself. A stale version needs reconciliation; an unsupported, incomplete, locked or mismatched store needs its exact diagnosis resolved with every file preserved. If the current association or history cannot be established, stop dependent writes and report that evidence gap. There is no reset, delete or migration command.
-`.trim();
-
 const OPTIMIZATION_FAILURE_DIAGNOSIS_REFERENCE = `
 # Diagnosing Optimization Failures
 
@@ -118,7 +90,7 @@ Use this reference only after Step 1 selects current-branch isolation and isolat
 const APPLY_STEP_3_REVIEW_REFERENCE = `
 # Apply Step 3: Independent Review
 
-Run the applicable project review process from a clean context. The Reviewer independently inspects the commit under review and returns a JSON opinion matching the generated review schema in .xirang/references/quality-cli.md. The opinion contains reviewId, scope, commit, result (PASS or FAIL), summary and findings. The Reviewer stays read-only; the main Agent addresses findings, updates tasks.md when warranted, chooses the commit, and records the opinion with the current Quality revision.
+Run the applicable project review process from a clean context. Before delegation, the main Agent creates a unique reviewId and supplies it with the scope and target commit. This is delegation metadata, not a pre-registered Quality record. The Reviewer independently inspects the specified commit and returns a JSON opinion matching the generated review schema in .xirang/references/quality-cli.md. The opinion contains reviewId, scope, commit, result (PASS or FAIL), summary and findings. The Reviewer stays read-only; the main Agent addresses findings, updates tasks.md when warranted, chooses the commit, and records the opinion with the current Quality revision.
 
 Begin every required review from the committed code to be assessed. If a Review fails, make corrections and commit them before recording a passing re-review. Do not represent the main Agent's decision that no extra Review is needed as a Reviewer PASS. Opt's tests are evidence, not an independent Review.
 `.trim();
@@ -187,7 +159,6 @@ After Seal succeeds, Archive may run its independent gates. Do not separately co
 `.trim();
 
 
-void QUALITY_RECOVERY_REFERENCE_CONTENT;
 void APPLY_STEP_1_PREPARATION_REFERENCE;
 void APPLY_STEP_4_OPTIMIZATION_REFERENCE;
 
@@ -195,6 +166,8 @@ const QUALITY_RECOVERY_REFERENCE_CONTENT_V3 = `
 # Quality Recovery
 
 After interruption, confirm the previous writer has stopped. Read current status and reconcile the .quality.json revision, current code and Git commits before recording another opinion. Preserve unrelated changes and all legacy Quality files; the new protocol never imports their contents.
+
+For explicitly requested fresh re-verification, first confirm prior Review/Opt writers and pending results have stopped, then re-read status and reconcile the current code and target commit. The Quality CLI has no review-begin or revalidation-assignment operation: use Step 3, where the main Agent supplies a new unique reviewId, scope and target commit to the Reviewer, then records the returned opinion through the normal versioned review command. Existing opinions remain history; do not claim the CLI creates a revalidation association or resets prior state. If the prior flow or current commit cannot be established, stop and report the evidence gap.
 
 Run relevant tests directly and inspect their actual output. Quality CLI does not run tests, decide whether Opt is required, or decide whether a post-Opt Review is needed. The main Agent chooses the verification scope, records Review opinions against the commits actually inspected, and records either delivered Opt opinions with base/result commits or a reasoned not_performed disposition.
 
