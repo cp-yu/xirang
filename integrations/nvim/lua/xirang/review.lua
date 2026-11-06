@@ -53,7 +53,15 @@ local function stop(session)
 end
 
 local function selected(session)
-  return session.items[session.cursor]
+  return session.items and session.items[session.cursor]
+end
+
+local function saveTargetDraft(session)
+  local item = selected(session)
+  if not item or item.plan or not vim.api.nvim_buf_is_valid(session.right) then return end
+  if vim.bo[session.right].modifiable then
+    item.targetDraft = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n')
+  end
 end
 
 local function setBufferText(buffer, text)
@@ -97,14 +105,23 @@ local function showDelta(session, item)
   for _, win in ipairs({ session.leftWin, session.rightWin }) do
     pcall(vim.api.nvim_win_call, win, function() vim.cmd('diffoff') end)
   end
-  setBufferText(session.left, item.before)
-  setBufferText(session.right, item.after)
+  local target = item.targetDraft or item.after
+  setBufferText(session.right, target)
+  vim.bo[session.right].modifiable = true
+  for _, win in ipairs({ session.leftWin, session.rightWin }) do
+    vim.wo[win].wrap = true
+  end
   vim.api.nvim_set_current_win(session.leftWin)
   vim.wo[session.leftWin].winbar = ' NOW | Current model'
   vim.cmd('diffthis')
+  vim.wo[session.leftWin].wrap = true
+  vim.api.nvim_win_set_cursor(session.leftWin, { 1, 0 })
   vim.api.nvim_set_current_win(session.rightWin)
   vim.wo[session.rightWin].winbar = ' TARGET | Expected model'
   vim.cmd('diffthis')
+  vim.wo[session.rightWin].wrap = true
+  vim.api.nvim_win_set_cursor(session.leftWin, { 1, 0 })
+  vim.api.nvim_win_set_cursor(session.rightWin, { 1, 0 })
   vim.api.nvim_set_current_win(session.listWin)
 end
 
@@ -130,6 +147,7 @@ local function selectRow(session, direction)
   for line, index in pairs(session.itemRows) do if index == nextItem then target = line; break end end
   if not target then return end
   local focus = vim.api.nvim_get_current_win()
+  saveTargetDraft(session)
   session.cursor = nextItem
   setSelectedRow(session, target)
   selectedText(session)
@@ -204,6 +222,7 @@ local function renderList(session)
 end
 
 local function refresh(session, initial)
+  saveTargetDraft(session)
   session.generation = session.generation + 1
   local generation = session.generation
   local argv = vim.deepcopy(defaults.cli)
@@ -298,16 +317,19 @@ local function open(change)
   local list = buf('xirang://' .. change .. '/files', '', false)
   vim.bo[list].bufhidden = 'wipe'
   vim.api.nvim_win_set_buf(listWin, list)
+  vim.wo[listWin].wrap = true
   vim.wo[listWin].cursorline = true
   vim.api.nvim_win_set_width(listWin, math.min(34, math.max(24, math.floor(vim.o.columns * 0.24))))
   vim.cmd('wincmd l')
   local leftWin = vim.api.nvim_get_current_win()
   local left = buf('xirang://' .. change .. '/current', '', false)
   vim.api.nvim_win_set_buf(leftWin, left)
+  vim.wo[leftWin].wrap = true
   vim.cmd('rightbelow vsplit')
   local rightWin = vim.api.nvim_get_current_win()
   local right = buf('xirang://' .. change .. '/expected', '', false)
   vim.api.nvim_win_set_buf(0, right)
+  vim.wo[rightWin].wrap = true
   local session = {
     change = change, cwd = cwd, tab = tab, list = list, listWin = listWin, left = left, right = right,
     leftWin = leftWin, rightWin = rightWin, buffers = { list, left, right }, watchers = {},

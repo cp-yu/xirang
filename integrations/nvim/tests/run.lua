@@ -14,6 +14,9 @@ local state = { valid = true, after = 'target\nsecond\nthird\n', pending = {}, c
 local review = dofile('integrations/nvim/lua/xirang/review.lua')
 local function payload()
   return vim.json.encode({ valid = state.valid, diagnostics = {}, sources = state.valid and {
+    { path = 'elements/other.md', entries = {
+      { entity = 'element-declaration', identity = 'other', operation = 'ADDED', before = '', after = 'other target\nline two\nline three\n' },
+    } },
     { path = 'elements/item.md', entries = {
       { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
       { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
@@ -51,8 +54,8 @@ if mode == 'list' then
   assertContains(text, 'item.md')
   assertContains(text, '~ item.md')
   assertContains(text, ' Plan')
-  assert(#session.items == 2)
-  assert(#session.groups.elements == 1)
+  assert(#session.items == 3)
+  assert(#session.groups.elements == 2)
   local info = {}
   for _, win in ipairs(vim.fn.getwininfo()) do info[win.winid] = win.wincol end
   assert(info[session.listWin] < info[session.leftWin] and info[session.leftWin] < info[session.rightWin])
@@ -60,7 +63,7 @@ if mode == 'list' then
   assert(vim.wo[session.rightWin].winbar:find('TARGET', 1, true))
   local listWidth = vim.api.nvim_win_get_width(session.listWin)
   local markerRows = vim.api.nvim_buf_get_lines(session.list, 0, -1, false)
-  assert(markerRows[2] == ' ~ item.md')
+  assert(markerRows[2] == ' + other.md')
   vim.api.nvim_set_current_win(session.listWin)
   vim.api.nvim_win_set_cursor(session.listWin, { 1, 0 })
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<CR>', true, false, true), 'xt', false)
@@ -84,10 +87,22 @@ elseif mode == 'compare' then
   assert(cols[session.listWin] < cols[session.leftWin] and cols[session.leftWin] < cols[session.rightWin])
   local diffJMapping = vim.api.nvim_buf_call(session.right, function() return vim.fn.maparg('j', 'n') end)
   assert(diffJMapping == '')
+  assert(vim.wo[session.leftWin].wrap and vim.wo[session.rightWin].wrap)
+  assert(vim.bo[session.right].modifiable)
+  vim.api.nvim_win_set_cursor(session.rightWin, { 3, 0 })
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'xt', false)
   assert(session.cursor == 2)
-  local before = #vim.fn.getqflist()
-  local item = session.items[session.cursor]
+  assert(vim.api.nvim_win_get_cursor(session.rightWin)[1] == 1)
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'edited target' })
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'xt', false)
+  assert(session.cursor == 3)
+  assert(vim.api.nvim_win_get_cursor(session.rightWin)[1] == 1)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true), 'xt', false)
+  assert(session.cursor == 2)
+  assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'edited target')
+  assert(vim.api.nvim_win_get_cursor(session.rightWin)[1] == 1)
+  session.cursor = 3
+  local item = session.items[3]
   assert(item.plan and item.content == 'Plan text\n')
   review._showSelected(session)
   assert(#vim.api.nvim_tabpage_list_wins(session.tab) == 2)
@@ -98,6 +113,7 @@ elseif mode == 'compare' then
   review._showSelected(session)
   assert(vim.api.nvim_win_get_width(session.listWin) == listWidth)
   assert(vim.wo[session.leftWin].diff and vim.wo[session.rightWin].diff)
+  session.cursor = 2
   review._sourceJump(session)
   assert(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()) == source)
 elseif mode == 'refresh' then
@@ -114,6 +130,8 @@ elseif mode == 'refresh' then
   local initialCalls = state.calls
   local sourceBuf = vim.fn.bufadd(source)
   state.after = 'new target\n'
+  session.cursor = 2
+  review._showSelected(session)
   local output = io.open(source, 'w'); output:write('external change'); output:close()
   waitFor(function() return state.calls > initialCalls end)
   local modelSource = root .. '/.xirang/model/elements/root.md'
@@ -158,7 +176,7 @@ elseif mode == 'windows-paths' then
   launch()
   local session = current()
   assert(session.cwd == root)
-  assert(session.groups.elements[1].source == vim.fs.joinpath(root, '.xirang', 'changes', 'demo', 'elements/item.md'))
+  assert(session.groups.elements[2].source == vim.fs.joinpath(root, '.xirang', 'changes', 'demo', 'elements/item.md'))
   assert(#session.watchers == 10)
   vim.cmd('tabclose!')
   vim.wait(20)
