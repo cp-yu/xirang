@@ -367,6 +367,13 @@ local function open(change)
   refresh(session, true)
 end
 
+function M.closeCurrent()
+  local session = sessions[vim.api.nvim_get_current_tabpage()]
+  if not session then return false end
+  vim.cmd('tabclose!')
+  return true
+end
+
 function M.setup(opts)
   opts = opts or {}
   for name, definition in pairs(highlightGroups) do vim.api.nvim_set_hl(0, name, definition) end

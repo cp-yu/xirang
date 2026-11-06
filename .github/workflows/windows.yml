@@ -59,6 +59,7 @@ jobs:
           nvim --headless -u NONE -l integrations/nvim/tests/run.lua list
           nvim --headless -u NONE -l integrations/nvim/tests/run.lua compare
           nvim --headless -u NONE -l integrations/nvim/tests/run.lua refresh
+          nvim --headless -u NONE -l integrations/nvim/tests/run.lua close
           nvim --headless -u NONE -l integrations/nvim/tests/run.lua windows-paths
       - name: Run Windows Candidate Contract handler tests
         run: >-

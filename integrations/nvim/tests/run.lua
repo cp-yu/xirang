@@ -142,6 +142,17 @@ elseif mode == 'refresh' then
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n'):find('fresh result', 1, true))
   assert(not table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n'):find('stale result', 1, true))
   assert(session.generation >= 4)
+elseif mode == 'close' then
+  launch()
+  local session = current()
+  local reviewTab = session.tab
+  assert(review.closeCurrent())
+  waitFor(function() return session.closed and review._sessions[reviewTab] == nil end)
+  local ordinaryTab = vim.api.nvim_get_current_tabpage()
+  local tabCount = #vim.api.nvim_list_tabpages()
+  assert(not review.closeCurrent())
+  assert(vim.api.nvim_get_current_tabpage() == ordinaryTab)
+  assert(#vim.api.nvim_list_tabpages() == tabCount)
 elseif mode == 'windows-paths' then
   vim.cmd('tabnew')
   launch()
