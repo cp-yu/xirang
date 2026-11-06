@@ -33,6 +33,17 @@ describe('reviewer subagent template', () => {
     expect(prompt).toContain('weak assertion');
   });
 
+  it('accepts caller-assigned review metadata without requiring a persisted begin record', () => {
+    const prompt = getReviewerSubagentTemplate().prompt;
+
+    expect(prompt).toContain('caller-supplied changeName, absolute changeDir/projectRoot, reviewId, scope and target commit');
+    expect(prompt).toContain('Quality status reports recorded opinions, not an in-progress assignment');
+    expect(prompt).toContain('The caller owns reviewId creation, scope assignment and CLI writeback');
+    expect(prompt).toContain('Do not synthesize a missing reviewId');
+    expect(prompt).not.toContain('begun reviewId/assignment');
+    expect(prompt).not.toContain('read the recorded assignment through');
+  });
+
   it('declares read-only permission intent in the source model and renderers', () => {
     const template = getReviewerSubagentTemplate();
 
