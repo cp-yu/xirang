@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 4,
+  "changeId": "nvim-edit-expected-model",
+  "revision": 6,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "a5447d93e456d3373fb2c6dd0c7b1c5c340d1245",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change for completeness, correctness, coherence, and cleanliness. Two reproduced correctness defects block approval: successful writeback can truncate supported Section content in the compiled target, and valid Changes that distribute an Element's Sections across multiple source files reject supported edits. Existing focused tests pass. HEAD remained unchanged throughout assessment.",
+      "findings": [
+        "CRITICAL: Preserve fenced Markdown through writeback compilation. src/core/expected-model-writeback.ts:127–141 serializes submitted Sections and validates the resulting candidate without checking that its compiled supported content equals the submitted target. Its dependency src/core/parsers/section-blocks.ts:145–159 treats headings inside code fences as top-level sections, and lines 172–191 also ignore code fences when identifying Section boundaries. Reproduction: save a Section body containing `Item SHALL preserve Markdown examples.\\n\\n```markdown\\n## Example heading\\nExample content\\n````. Writeback returns `{changed:true, ignoredChanges:[]}`, but recompilation produces only `Item SHALL preserve Markdown examples.\\n\\n```markdown` for that Section. This violates the complete target Section requirement in .xirang/changes/nvim-edit-expected-model/design.md:32 and elements/cli.md:60–69. Make the Delta parsing path preserve fenced content and verify semantic round-trip fidelity before replacing the source; add a regression asserting the entire compiled Section.",
+        "CRITICAL: Avoid duplicating entries belonging to other Delta sources when rebuilding the selected source. src/core/expected-model-writeback.ts:122–131 compares every submitted Section with the Formal Model and places every resulting entry into the selected file, while retaining the other source files. Reproduction: a valid Change has `elements/first.md` modifying `item#First` and `elements/second.md` modifying `item#Second`. Submit the full Expected Element through `first.md` with only its definition changed. The generated first file also contains MODIFIED `item#Second`, and writeback fails with INVALID_TARGET / CONFLICTING_OPERATIONS because second.md already contains that entry. A supported Definition edit therefore fails for an otherwise valid Change, contrary to .xirang/changes/nvim-edit-expected-model/elements/cli.md:54–58 and design.md:30–36. Preserve the source allocation of unaffected entries and add a regression using distinct Sections of the same Element in two source files."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "3f8c2c88ae5ef79fb73f675cbc9f598c5c10f5a2",
+      "result": "FAIL",
+      "summary": "Reviewed the entire cumulative Change for Completeness, Correctness, Coherence and Cleanliness against the proposal, design, tasks, both Semantic Delta units and relevant Formal Model contracts. Found one reproducible correctness defect in queued Neovim saves. The 28 selected Vitest tests, all eight existing Neovim headless modes and TypeScript no-emit checking passed. HEAD remained unchanged; no project files were modified.",
+      "findings": [
+        "CRITICAL — Queued saves can be redirected to the wrong Delta source after navigation. integrations/nvim/lua/xirang/review.lua:323-334 stores only session.saveAgain when a write is already running; lines 348-357 later invoke save(session), which reads the currently selected item and buffer instead of the queued source and text. Reproduced against the committed Lua in an isolated headless Neovim session: edit elements/a.md to 'first A' and :write; edit it to 'second A' and :write again while the first response is pending; press <Tab> to select elements/b.md; complete the first response successfully. The second CLI invocation receives --source elements/b.md with stdin 'planned B', while session.drafts['elements/a.md'] remains 'second A' and that requested write never reaches the CLI. This violates G3 and the neovim Section '保存 Expected Semantic Model 微调', which requires saving the requested target text to its corresponding Delta source. Retain the source and submitted content for each queued write and process that request independently of subsequent selection changes. Add a regression that queues a second write, changes the selected file, and asserts both CLI source arguments and submitted texts. The existing save-race test at integrations/nvim/tests/run.lua:167-195 only exercises repeated writes without navigation, so it does not detect this defect."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "72ef9a4288464446848294018dbfa7b5910ff95b",
+      "result": "PASS",
+      "summary": "Reviewed the entire cumulative Change from isolation base 43572eb18a2fc398c4d7d50107f2c4d714477166 across Completeness, Correctness, Coherence and Cleanliness. No blocking findings. Source aggregation and ordinary Show behavior are supported by src/commands/show.ts:48–100 and test/commands/show.test.ts:38–115. Supported-field writeback, preserved Declaration values, candidate validation, semantic round-trip and atomic replacement are supported by src/core/expected-model-writeback.ts:78–156 and test/core/expected-model-writeback.test.ts:38–238. Fenced Markdown preservation and unaffected entries in other sources are covered at test/core/expected-model-writeback.test.ts:132–169. Request-time source/text capture, queued processing, failed-draft retention and refresh context restoration are supported by integrations/nvim/lua/xirang/review.lua:227–364 and integrations/nvim/tests/run.lua:125–267; queued requests remain bound to their original source across file and Plan navigation. Ran 28 TypeScript tests and all eight headless Neovim modes successfully; cumulative diff whitespace checks passed. HEAD was unchanged at final verification. The existing untracked .quality.json was excluded from evidence. Windows execution and the real-CLI integration suite were not rerun in this review; their committed coverage was inspected at .github/workflows/windows.yml:39–64, test/integration/nvim-writeback.test.ts:13–54 and integrations/nvim/tests/writeback.lua:15–40.",
+      "findings": []
+    },
+    {
+      "reviewKind": "incremental",
+      "commit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+      "result": "PASS",
+      "summary": "已独立审查 Completeness、Correctness、Coherence、Cleanliness，覆盖从 baseCommit 43572eb18a2fc398c4d7d50107f2c4d714477166 推导出的累计 Change 中全部 post-Opt 改动及其影响行为。索引优化保留跨源条目归属、过滤顺序、原对象引用与完整内容比较（src/core/expected-model-writeback.ts:123–145），符合设计决策及 RC2（.xirang/changes/nvim-edit-expected-model/design.md:30–36；tasks.md:22）。Map 单值查找的前提由当前 Change 有效性门禁及重复二元键诊断保证（src/core/expected-model-writeback.ts:91–92；src/core/model/delta.ts:183–219；src/core/change-compiler.ts:150–162）。无操作导航声明仍与实际 Delta Entry 区分，相同 identity 的不同 entity 使用独立键；外部目标变更仍返回 INVALID_TARGET/CONFLICTING_OPERATIONS，并保持原文件字节（test/core/expected-model-writeback.test.ts:141–205）。核心写回及 show 投影测试共 27 项通过；额外一次性差分验证对已提交的优化前后过滤代码运行 1000 个场景、36000 个候选条目，输出顺序及对象引用全部一致。未发现遗漏、行为偏移或清理问题；结束时 HEAD 未变化。",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "delivered",
+    "opinions": [
+      {
+        "opinionId": "O1-cross-source-entry-index",
+        "baseCommit": "72ef9a4288464446848294018dbfa7b5910ff95b",
+        "resultCommit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+        "summary": "独立 Optimizer 发现跨源条目归属判断存在重复扫描；主 Agent 以 entity/identity 二元键的 Set/Map 落实优化。过滤顺序、原对象与内容比较规则保留，增量独立 Review PASS。",
+        "findings": [
+          "主 Agent 执行 49 项相关 Vitest 测试全部通过，包含真实 CLI stdin 与 Neovim :write 保存往返；新增外部条目变更拒绝、无操作导航及不同 entity 同 identity 的回归。",
+          "主 Agent 对实际优化前后过滤代码执行 300 个确定性场景，结果一致；600 个合成 Sections 的 same 调用从 180299 降至 599，局部耗时约从 717ms 降至 3ms。该测量不代表端到端保存速度。",
+          "独立 incremental Review 在 2d58e26bc3c1787310ab67bee7df9ee98fda011f 返回 PASS；另运行 1000 场景、36000 个候选条目，输出顺序与对象引用一致。"
+        ]
+      },
+      {
+        "opinionId": "optimization-final-assessment",
+        "baseCommit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+        "resultCommit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+        "summary": "独立只读 Optimizer 在最新 successful checkpoint 完成有界收口评估：O1 已落实，无需继续执行其它优化，未发现须转回 Review 的已确认正确性问题。",
+        "findings": [
+          "最终 Optimizer 实际运行 tsc --noEmit --incremental false、累计及优化范围 diff 检查，全部通过；1200 场景、46800 候选条目的内存差分保持顺序和对象引用，输入不变。",
+          "Show operation 查找索引、无变化保存返回前移、保存队列结构调整缺少足够实际收益依据，未选为执行项；完整候选校验、往返检查与原子替换保持。",
+          "本轮只读评估未运行 owner Vitest、Neovim headless 或真实文件写回；使用主 Agent 与 Reviewer 已取得且仍适用的证据。Windows/macOS 未实机执行。无优化尝试失败或待撤销修改。"
+        ]
+      }
+    ]
+  },
+  "seal": {
+    "commit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "隔离基线 43572eb18a2fc398c4d7d50107f2c4d714477166 至实现提交 2d58e26bc3c1787310ab67bee7df9ee98fda011f 的累计 Change。受影响模型/Delta/parser/compiler/validator/Show 范围回归 250 项通过；随后仅 Neovim 保存队列修正，经 8 种 headless 模式及真实 CLI 往返验证通过；最终索引优化后 49 项相关测试全部通过，包含核心写回、Delta/compiler/notation 和真实 CLI/Neovim 集成。TypeScript 无输出类型检查、变更代码 lint、LSP 诊断、累计 diff 检查及 Change validate 通过。Windows CI 已加入原生路径、替换和 Neovim 保存覆盖，但 Windows/macOS 未实机运行。",
+    "assessment": "G1–G4 及 RC1–RC3 全部完成。历史 full-change Review 两次 FAIL 的代码围栏、跨源归属和排队保存问题已修复并由新增回归覆盖；完整 Review 在 72ef9a4288464446848294018dbfa7b5910ff95b PASS，索引优化后的 incremental Review 在本提交 PASS。独立 Optimization 最终确认无待执行事项，O1 的局部收益有实际前后代码差分与比较次数证据。既有验证对当前实现仍有效，无未提交实现改动、待处理缺陷或失败优化残留；不需要再开 supplemental Review。该判断来自实际测试、独立评估和代码状态，Quality CLI 自身不执行测试。允许进入后续 Change Closure，未执行 Sync、Archive、合并或推送。"
+  }
+}
