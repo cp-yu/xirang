@@ -39,7 +39,7 @@ export async function createCompleteQualityFixture(root: string, changeDir: stri
   const initial = await readQualityRecord(changeDir);
   if (initial.seal) return;
   const review = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: initial.revision,
-    reviewId: `REV-${path.basename(changeDir)}`, scope: 'baseline', commit, result: 'PASS',
+    reviewKind: 'full-change', commit, result: 'PASS',
     summary: 'Fixture baseline was independently reviewed.', findings: [] });
   const opt = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: review.revision,
     disposition: 'not_performed', reason: 'Fixture does not require optimization.' });
@@ -63,7 +63,7 @@ export async function createBaselineOnlyQualityFixture(root: string, changeDir: 
   const initial = await readQualityRecord(changeDir);
   if (initial.reviews.length) return;
   await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: initial.revision,
-    reviewId: `REV-${path.basename(changeDir)}`, scope: 'baseline', commit, result: 'PASS',
+    reviewKind: 'full-change', commit, result: 'PASS',
     summary: 'Fixture baseline was independently reviewed.', findings: [] });
 }
 

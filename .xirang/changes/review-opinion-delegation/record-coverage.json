@@ -1,0 +1,901 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261106T080858Z-f02a2ac7",
+  "sourceVersion": "b77ab0185ba9eeaa9832766f1c3a1aa3846465707b97907bda3aecb7479b95a4",
+  "targetFingerprint": "cf8ddfe43fb878fd11d5a6a4e70b27a117b90c453b55529be49ff1bd5920ad75",
+  "recordedAt": "2026-11-07T05:05:51.324Z",
+  "entries": [
+    {
+      "identity": "review-opinion-identity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "opinion 不含 reviewId",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Review 记录入口"
+          },
+          "quote": "不包含 `reviewId` 或 `scope`"
+        },
+        {
+          "detail": "CLI 不生成或持久化 reviewId",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Review 记录入口"
+          },
+          "quote": "CLI 不要求或保存 Review identity"
+        },
+        {
+          "detail": "不按 reviewId 去重",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Review 记录入口"
+          },
+          "quote": "不因重复 `reviewId` 拒绝"
+        }
+      ]
+    },
+    {
+      "identity": "parallel-review-dimensions",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主 Agent 可将同轮审查按维度并行委派且分工不冲突",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "可并行委派多个维度，但同轮委派 SHALL 分工不冲突"
+        },
+        {
+          "detail": "收齐有效结果后合并一条 opinion",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "收齐有效结果后由主 Agent 合并为一条 Review opinion"
+        },
+        {
+          "detail": "任一必需维度失败或未解决不得 PASS",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "任一必需维度失败或未解决时不能 PASS"
+        },
+        {
+          "detail": "质量维度在自然语言委派中指定而非 opinion 字段",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "以自然语言指定必要的质量维度或受影响行为"
+        }
+      ]
+    },
+    {
+      "identity": "review-kind-vs-focus",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "结构化类别为三个 reviewKind",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Review 记录入口"
+          },
+          "quote": "`reviewKind` 仅为 `full-change`、`incremental` 或 `supplemental`"
+        },
+        {
+          "detail": "full-change 在普通 Apply 后 Opt 前完整审查",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "普通 Apply 完成所有目标与 Required Corrections 后 SHALL 在 Opt 前执行 `full-change` Review"
+        },
+        {
+          "detail": "Opt 后增量审查按主 Agent 风险决定",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "Opt 后的 `incremental` Review 按主 Agent 对累计改动及其影响的风险判断安排"
+        },
+        {
+          "detail": "完整 Review 漏掉的原有 Change 缺陷修复必须补充审查",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "完整 Review 漏掉的既有 Change 缺陷经修复后 SHALL 执行针对缺陷及其影响的 `supplemental` Review"
+        },
+        {
+          "detail": "完整 Review 对每个 Delta Section 执行 6 步循环",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "6 步验证协议"
+          },
+          "quote": "`full-change` 中每个 Delta Section"
+        },
+        {
+          "detail": "增量和补充审查对受托语义及受影响行为执行循环",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "6 步验证协议"
+          },
+          "quote": "`incremental` 与 `supplemental` 中受托语义和受影响行为"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-location-inputs",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "projectRoot 是实际 checkout 绝对根",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "绝对 `projectRoot`"
+        },
+        {
+          "detail": "changeDir 从根目录和 changeName 推导",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "`changeDir` 从该目录与 `changeName` 得出"
+        },
+        {
+          "detail": "不单独要求 worktree 路径",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 输入合约"
+          },
+          "quote": "实际 checkout 的绝对 `projectRoot`"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-target-commit",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主 Agent 在审查前提交待审代码",
+          "location": {
+            "element": "review",
+            "section": "在每次 Apply 修改后执行"
+          },
+          "quote": "被审查实现 SHALL 先提交为 Git commit"
+        },
+        {
+          "detail": "HEAD 是实际审查提交",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "从该 checkout 的 HEAD 读取审查 commit"
+        },
+        {
+          "detail": "baseCommit 到 HEAD 的累计提交树差异定位 Change",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "`git diff <baseCommit> HEAD --name-only` 定位累计 Change"
+        },
+        {
+          "detail": "仅 HEAD 已提交内容作证据而忽略未提交工作区",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "以 HEAD 的已提交内容及必要的 Semantic Model、Change 与项目证据判断，不以未提交工作区内容"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-invocation-inputs",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主 Agent 传 changeName projectRoot reviewKind 和质量维度",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "`changeName`、实际 checkout 的绝对 `projectRoot`、`reviewKind`"
+        },
+        {
+          "detail": "不传 reviewId changeDir 目标 commit",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "不传 `reviewId`、单独的 `changeDir` 或目标 commit"
+        },
+        {
+          "detail": "Reviewer 自取 HEAD 并绑定意见",
+          "location": {
+            "element": "reviewer",
+            "section": "交付结构化 Review 结论"
+          },
+          "quote": "所审查 HEAD 的 `commit`"
+        }
+      ]
+    },
+    {
+      "identity": "review-related-file-discovery",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "通过差异关系搜索及 Section 关键词发现相关文件",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "根据累计差异、相关 Semantic Model 关系、仓库搜索和 Section 关键词"
+        },
+        {
+          "detail": "读取所有已识别的相关实现与测试，包括未修改文件",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "每个判定相关的文件均在判断前读取"
+        },
+        {
+          "detail": "不使用不存在的 evidenceFiles 字段",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "不新增 `xirangAlignment`、`evidenceFiles` 或 `reviewId`"
+        }
+      ]
+    },
+    {
+      "identity": "review-cleanliness-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "清洁度跟随受托工作及其影响",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 维度定义"
+          },
+          "quote": "本次受托工作及其影响中应清理而未清理的旧代码"
+        }
+      ]
+    },
+    {
+      "identity": "review-unaccounted-change",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "没有 goal Delta Section design 依据的行为改动为 CRITICAL",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "规格外改动检测"
+          },
+          "quote": "没有任何一项为该行为改动提供依据时报告 CRITICAL"
+        },
+        {
+          "detail": "目标任务没有文件清单，不因未列文件报错",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "规格外改动检测"
+          },
+          "quote": "目标级 tasks 不列文件，某文件未被预列本身不构成越界"
+        },
+        {
+          "detail": "相关辅助代码和调用方按实际影响判断",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "规格外改动检测"
+          },
+          "quote": "必要的共同辅助代码和相关调用方也纳入实际影响判断"
+        }
+      ]
+    },
+    {
+      "identity": "review-missing-evidence-severity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "缺少可信行为证据时 FAIL",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "要求的行为没有可信证据时意见为 FAIL"
+        },
+        {
+          "detail": "判断可测试而缺少对应测试时 CRITICAL",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "可测试却没有对应测试"
+        },
+        {
+          "detail": "明显的行为突变仍通过声称测试时 CRITICAL",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "显然的行为突变仍能通过声称覆盖它的测试时，报告 CRITICAL"
+        },
+        {
+          "detail": "已有可信证据但持久测试必要性不明时 WARNING 可伴 PASS",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "在 `findings` 中报告 WARNING，允许意见为 PASS"
+        },
+        {
+          "detail": "不要求 Acceptance Case 与测试一一对应",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "不以 Acceptance Case 与测试文件一一对应"
+        }
+      ]
+    },
+    {
+      "identity": "review-completeness-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "完整审查评估全部目标与 Required Corrections",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "`full-change` 检查所有目标级 goal 和 Required Correction"
+        },
+        {
+          "detail": "增量补充评估实际影响",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "`incremental` 与 `supplemental` 检查受托工作影响的目标、修正与语义"
+        },
+        {
+          "detail": "仅 tasks 的 Change 完整审查目标完成度",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "仅有 tasks、没有 Delta Contracts 和 design 的 Change，完整 Review 检查目标完成情况"
+        },
+        {
+          "detail": "不能以复选框代替行为证据",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "不以测试通过本身或目标复选框代替充分证据"
+        }
+      ]
+    },
+    {
+      "identity": "review-output-contract-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "返回符合 schema 的单条 JSON opinion",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "Return one JSON object matching the generated Review opinion schema below. Bind the opinion to the commit actually inspected and report any changes observed during assessment."
+        },
+        {
+          "detail": "schema 后说明 PASS 与 FAIL 证据边界",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "Use result=PASS only when evidence supports the assigned work; otherwise use FAIL and state concrete findings."
+        },
+        {
+          "detail": "绑定实际 HEAD 与 result summary findings",
+          "location": {
+            "element": "reviewer",
+            "section": "交付结构化 Review 结论"
+          },
+          "quote": "所审查 HEAD 的 `commit`、`result`、自然语言 `summary` 与 `findings`"
+        },
+        {
+          "detail": "仅充分证据才 PASS，否则 FAIL 并说明问题",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "只有受托工作有充分证据才可 PASS；否则 FAIL 并说明具体问题"
+        }
+      ]
+    },
+    {
+      "identity": "review-verification-severity-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "按 reviewKind 运行六步循环",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "6 步验证协议"
+          },
+          "quote": "Locate → Read → Analyze → Cite → Judge → Explain"
+        },
+        {
+          "detail": "PASS 需要最终状态证据",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "6 步验证协议"
+          },
+          "quote": "PASS 需要明确的可引用的最终状态证据"
+        },
+        {
+          "detail": "严重度按具体目标和证据判定",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "严重性阈值与证据标准"
+          },
+          "quote": "Reviewer SHALL 以可观察行为与可信证据判断"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-role-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "角色开头按确认原文说明三个输入与 changeDir 推导",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 角色与硬约束"
+          },
+          "quote": "The main Agent supplies changeName, absolute projectRoot and reviewKind, plus any selected quality dimensions in the delegation. Derive changeDir from projectRoot and changeName."
+        },
+        {
+          "detail": "共同差异依据及三类审查对象按确认原文说明",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 角色与硬约束"
+          },
+          "quote": "For every reviewKind, use the baseCommit-to-HEAD diff to identify the cumulative Change and committed HEAD contents as evidence. Full-change Review assesses the entire Change. Incremental Review assesses the assigned cumulative post-Opt changes and their affected behavior. Supplemental Review assesses the repair of a pre-existing Change defect missed by full-change Review and its impact."
+        },
+        {
+          "detail": "角色输入是 changeName projectRoot reviewKind 和可选维度",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "`changeName`、绝对 `projectRoot`、`reviewKind` 与选定的质量维度"
+        },
+        {
+          "detail": "三类工作共同以累计提交树差异导航",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "`git diff <baseCommit> HEAD --name-only` 定位累计 Change"
+        },
+        {
+          "detail": "完整审查完整 Change，后两类只审查各自影响",
+          "location": {
+            "element": "reviewer",
+            "section": "交付结构化 Review 结论"
+          },
+          "quote": "`full-change` 在受托质量维度内审查完整累计 Change；`incremental` 审查主 Agent 指定的累计 Opt 改动及受影响行为；`supplemental` 审查完整 Change Review 漏掉的原有 Change 缺陷修复及影响"
+        }
+      ]
+    },
+    {
+      "identity": "full-change-review-dimension-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "单个维度内完整覆盖累计 Change",
+          "location": {
+            "element": "review",
+            "section": "评估目标实现质量"
+          },
+          "quote": "每位 `full-change` Reviewer 在自己的维度内仍审查完整 Change"
+        },
+        {
+          "detail": "部分 Change 被标为 full-change 时不产生 opinion",
+          "location": {
+            "element": "review",
+            "section": "评估目标实现质量"
+          },
+          "quote": "委派覆盖不到完整 Change 时交回主 Agent 重新委派，不产生 FAIL opinion"
+        },
+        {
+          "detail": "主 Agent 合并各维度且必需失败未解决不 PASS",
+          "location": {
+            "element": "review",
+            "section": "评估目标实现质量"
+          },
+          "quote": "失败或未解决的必需维度不得合并为 PASS"
+        }
+      ]
+    },
+    {
+      "identity": "review-model-alignment-output",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "用 summary findings 自然语言表达对齐结论",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "模型对齐结论使用自然语言字段"
+        },
+        {
+          "detail": "不增加 xirangAlignment 结构化字段",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "结构化输出合约"
+          },
+          "quote": "不新增 `xirangAlignment`"
+        }
+      ]
+    },
+    {
+      "identity": "review-design-deviation-severity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "实现违背确认设计时 CRITICAL",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 角色与硬约束"
+          },
+          "quote": "实现与已确认设计冲突时 SHALL 报 CRITICAL"
+        },
+        {
+          "detail": "代码注释不能使设计违背降级",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 角色与硬约束"
+          },
+          "quote": "不因代码注释解释偏离而降级"
+        }
+      ]
+    },
+    {
+      "identity": "review-cleanliness-todo-markers",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "代码标记不单独构成清理检查或固定分级",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 维度定义"
+          },
+          "quote": "TODO/FIXME/HACK 注释不单独触发清理或固定分级"
+        },
+        {
+          "detail": "行为和半迁移仍按实际影响检查",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 维度定义"
+          },
+          "quote": "孤儿代码、死 import 和半迁移报告 CRITICAL"
+        }
+      ]
+    },
+    {
+      "identity": "review-cleanliness-unreachable-severity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "不可达的要求行为按 Correctness 判断",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 维度定义"
+          },
+          "quote": "要求的行为不可触达时按 Correctness 判断"
+        },
+        {
+          "detail": "相关新死代码按影响判断，历史不相关代码不自动报",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "Cleanliness 维度定义"
+          },
+          "quote": "新引入的死代码按实际影响判断；无关的既有不可达代码不自动形成 finding"
+        }
+      ]
+    },
+    {
+      "identity": "review-test-execution-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主 Agent 在委派前运行本次所需测试并确认通过",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "Coordinator 角色声明"
+          },
+          "quote": "受托工作所需测试已运行通过"
+        },
+        {
+          "detail": "Reviewer 判断测试与其他证据充分性，不必重跑",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "Coordinator 角色声明"
+          },
+          "quote": "判断测试及其他证据是否充分而不必重复运行测试"
+        },
+        {
+          "detail": "不要求自动全量测试",
+          "location": {
+            "element": "subagent-self-read",
+            "section": "Subagent 测试策略（L1）"
+          },
+          "quote": "主 Agent按累计风险判断最终全量测试和增量 Review"
+        }
+      ]
+    },
+    {
+      "identity": "review-equivalence-tests",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "行为保持目标检查测试能否发现回归",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "行为保持目标 SHALL 检查相关测试能否发现行为回归"
+        },
+        {
+          "detail": "要求替换时旧形态消失",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "在需要替换旧形态时核对旧形态已消失"
+        },
+        {
+          "detail": "违背目标的新旧实现并存是 CRITICAL",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "新旧实现违背目标而并存是 CRITICAL"
+        }
+      ]
+    },
+    {
+      "identity": "review-cleanliness-procedure",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "自主选择可用的检索与分析工具",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "工具无关的检测策略"
+          },
+          "quote": "自主选择项目可用的检索与分析工具取得清理证据"
+        },
+        {
+          "detail": "不依赖固定命令启发式方法库",
+          "location": {
+            "element": "reviewer-cleanliness",
+            "section": "工具无关的检测策略"
+          },
+          "quote": "不依赖 `tasks.md` 的文件清单、`evidenceFiles` 或固定的命令/启发式方法库"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-unrestricted-tools",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Reviewer 不设专属白名单编辑否决或只读沙箱",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "按角色编码工具原生权限"
+          },
+          "quote": "不设专属 read/search/bash 工具白名单、Edit/Write 否决或只读沙箱"
+        },
+        {
+          "detail": "只读责任继续禁止修改项目制品和历史",
+          "location": {
+            "element": "reviewer",
+            "section": "保持只读且不修改项目与任务"
+          },
+          "quote": "不修改项目、Change 制品、`tasks.md`、Quality JSON、Checkpoint 或 Git history"
+        },
+        {
+          "detail": "跨平台投影与用户工具一致",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "Per-tool subagent artifact 渲染"
+          },
+          "quote": "Claude/Pi 制品 SHALL 省略限定工具集合的 `tools` 字段"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-pi-ambient-tools",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Pi Reviewer 后台使用环境扩展工具并等待结果",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "Per-tool subagent artifact 渲染"
+          },
+          "quote": "Pi Reviewer 制品 SHALL 提示后台运行以加载可用的环境扩展工具并等待完整结果"
+        },
+        {
+          "detail": "Optimizer 的前台提示不变",
+          "location": {
+            "element": "internal-subagent-generation",
+            "section": "Per-tool subagent artifact 渲染"
+          },
+          "quote": "Pi Optimizer 的前台提示不因此改变"
+        }
+      ]
+    },
+    {
+      "identity": "review-evidence-citations",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每项判断引用证据",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 角色与硬约束"
+          },
+          "quote": "逐项引用判断证据"
+        },
+        {
+          "detail": "文件内容和缺失性的引用方式",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "6 步验证协议"
+          },
+          "quote": "文件内容判断引用文件位置，缺失性判断引用搜索与空结果"
+        },
+        {
+          "detail": "移除 Bash 类别白名单但保持不修改",
+          "location": {
+            "element": "subagent-self-read",
+            "section": "Subagent Bash 允许命令范围"
+          },
+          "quote": "不设 Bash 命令类别白名单"
+        }
+      ]
+    },
+    {
+      "identity": "review-model-hierarchy-cycle",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "层级循环等结构检查不由 Reviewer 重做",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "不重做层级循环等确定性结构校验"
+        }
+      ]
+    },
+    {
+      "identity": "review-model-alignment-prompt",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "检查最终项目状态对五类目标语义的落实",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "三个验证维度"
+          },
+          "quote": "将最终项目状态与 Contracts、Declarations、Relationships、Metamodel、Views 中适用的 Expected Semantic Model 语义对照"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-invalid-input",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "无效位置基线或 HEAD 停止审查不造意见",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 输入合约"
+          },
+          "quote": "无效位置、无效 `reviewKind`、缺失/无效基线或 HEAD"
+        },
+        {
+          "detail": "错误完整 Change 委派停止并交回主 Agent",
+          "location": {
+            "element": "reviewer-protocol",
+            "section": "Reviewer 输入合约"
+          },
+          "quote": "`full-change` 委派仅覆盖部分 Change 时 SHALL 停止并报告委派错误，不提交 FAIL opinion"
+        },
+        {
+          "detail": "主 Agent 修正并重新委派",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "显式 subagent delegation 指令"
+          },
+          "quote": "错误委派或 HEAD 变化交回重新委派，不写 FAIL opinion"
+        }
+      ]
+    },
+    {
+      "identity": "reviewer-head-race",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "审查开始结束两次核对 HEAD",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "在返回前核对 HEAD 是否仍为开始时取得的 commit"
+        },
+        {
+          "detail": "HEAD 改变停止报告且不产生 opinion",
+          "location": {
+            "element": "reviewer",
+            "section": "独立取得 Review 证据"
+          },
+          "quote": "审查期间 HEAD 变化时，停止并向主 Agent 报告原因，不生成 opinion"
+        }
+      ]
+    },
+    {
+      "identity": "quality-review-schema-transition",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "新 Quality JSON 使用 v4 且新字段 reviewKind 无旧字段",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "`schemaVersion: 4`"
+        },
+        {
+          "detail": "v3 不能当作 v4 意见且旧文件保留",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "旧 `schemaVersion: 3` 的 `.quality.json` 以及更旧的 snapshot、event log 与 evidence 格式均不作为有效 v4 意见"
+        },
+        {
+          "detail": "明确诊断而不迁移重写删除",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "CLI 给出明确格式不支持诊断并保留原文件"
+        },
+        {
+          "detail": "活动 Change 由用户决定后续处理",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "由用户决定受影响活动 Change 如何继续"
+        }
+      ]
+    }
+  ]
+}

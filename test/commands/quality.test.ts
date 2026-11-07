@@ -9,13 +9,13 @@ import { removeTempDir } from '../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
-describe('quality v3 public CLI', () => {
+describe('quality v4 public CLI', () => {
   let root: string;
   let changeDir: string;
   let commit: string;
 
   beforeEach(async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-quality-cli-v3-'));
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-quality-cli-v4-'));
     changeDir = path.join(root, '.xirang', 'changes', 'c1');
     await fs.mkdir(changeDir, { recursive: true });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] unchanged task\n');
@@ -54,17 +54,14 @@ describe('quality v3 public CLI', () => {
     expect(await fs.readdir(changeDir)).toEqual(before);
   });
 
-  it('records commit-bound Review, explicit Opt disposition and Seal with CAS revisions', async () => {
+  it('records commit-bound Review by kind, explicit Opt disposition and Seal with CAS revisions', async () => {
     const tasksBefore = await fs.readFile(path.join(changeDir, 'tasks.md'));
     const review = await record('review', {
-      reviewId: 'REV-1', scope: 'baseline', commit, result: 'PASS', summary: 'Reviewed baseline.', findings: [],
+      reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [],
     }, 0);
-    expect(review).toMatchObject({ contractVersion: 3, code: 'REVIEW_RECORDED', revision: 1 });
-    const duplicate = await cli(['review', 'c1', '--version', '1', '--json', '--input', JSON.stringify({
-      reviewId: 'REV-1', scope: 'baseline', commit, result: 'PASS', summary: 'duplicate', findings: [],
-    })]);
-    expect(duplicate.exitCode).not.toBe(0);
-    expect((await payload(duplicate)).code).toBe('DUPLICATE_REVIEW_ID');
+    expect(review).toMatchObject({ contractVersion: 3, code: 'REVIEW_RECORDED', revision: 1, review: { reviewKind: 'full-change' } });
+    expect(review.review).not.toHaveProperty('reviewId');
+    expect(review.review).not.toHaveProperty('scope');
 
     const status = await payload(await cli(['status', 'c1', '--json']));
     expect(status).toMatchObject({ status: 'needs_optimize', revision: 1 });
@@ -75,18 +72,34 @@ describe('quality v3 public CLI', () => {
     expect(sealed).toMatchObject({ code: 'SEALED', revision: 3, status: 'all_done' });
     expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(tasksBefore);
     const quality = JSON.parse(await fs.readFile(path.join(changeDir, '.quality.json'), 'utf8'));
-    expect(quality).toMatchObject({ schemaVersion: 3, changeId: 'c1', revision: 3, opt: { disposition: 'not_performed' }, seal: { commit } });
+    expect(quality).toMatchObject({ schemaVersion: 4, changeId: 'c1', revision: 3, opt: { disposition: 'not_performed' }, seal: { commit } });
+    expect(quality.reviews).toEqual([{ reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [] }]);
     expect(await fs.readdir(changeDir)).toEqual(['.quality.json', 'tasks.md']);
   });
 
-  it('requires a passing baseline and an existing full commit before accepting opinions', async () => {
+  it('requires full-change before Opt, rejects legacy opinion fields and preserves v3 records', async () => {
     const noReview = await cli(['opt', 'c1', '--version', '0', '--json', '--input', JSON.stringify({ disposition: 'not_performed', reason: 'No Opt.' })]);
     expect(noReview.exitCode).not.toBe(0);
-    expect((await payload(noReview)).code).toBe('BASELINE_REVIEW_REQUIRED');
+    expect((await payload(noReview)).code).toBe('FULL_CHANGE_REVIEW_REQUIRED');
+
+    const oldPayload = await cli(['review', 'c1', '--version', '0', '--json', '--input', JSON.stringify({
+      reviewId: 'REV-1', scope: 'baseline', commit, result: 'PASS', summary: 'obsolete', findings: [],
+    })]);
+    expect(oldPayload.exitCode).toBe(2);
+    expect((await payload(oldPayload)).code).toBe('INVALID_INPUT');
+
     const missingCommit = await cli(['review', 'c1', '--version', '0', '--json', '--input', JSON.stringify({
-      reviewId: 'REV-1', scope: 'baseline', commit: 'f'.repeat(40), result: 'PASS', summary: 'not real', findings: [],
+      reviewKind: 'full-change', commit: 'f'.repeat(40), result: 'PASS', summary: 'not real', findings: [],
     })]);
     expect(missingCommit.exitCode).not.toBe(0);
     expect((await payload(missingCommit)).code).toBe('GIT_COMMIT_NOT_FOUND');
+
+    const file = path.join(changeDir, '.quality.json');
+    const v3 = Buffer.from(JSON.stringify({ schemaVersion: 3, changeId: 'c1', revision: 0, reviews: [], opt: null, seal: null }));
+    await fs.writeFile(file, v3);
+    const status = await cli(['status', 'c1', '--json']);
+    expect(status.exitCode).not.toBe(0);
+    expect((await payload(status)).code).toBe('UNSUPPORTED_QUALITY_VERSION');
+    expect(await fs.readFile(file)).toEqual(v3);
   });
 });

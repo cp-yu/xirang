@@ -38,20 +38,20 @@ For workflow-managed writes, read the resolved file definition before its instru
 1. Step 1: Preparation — read `.xirang/references/xirang-apply-step-1-preparation.md`. Follow `.xirang/references/xirang-quality-recovery.md` for interrupted optimization, an explicit request to start verification again, or a reported recovery gap.
 2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending goals and Required Corrections until they are complete; completing one goal does not leave the loop.
-4. [Mode: Delegate Review] Step 3: Review — after ordinary tasks and Required Corrections are complete, read `.xirang/references/xirang-apply-step-3-review.md` and obtain independent baseline Change-level Review. A failing baseline returns to ordinary implementation and requires Review after correction. Once optimization begins, its scoped corrections and verification follow Step 4, including required targeted Review of repaired baseline defects.
+4. [Mode: Delegate Review] Step 3: Review — after ordinary tasks and Required Corrections, read .xirang/references/xirang-apply-step-3-review.md`, run required tests, commit the implementation and obtain a consolidated full-change Review across required dimensions. Resolve input errors and HEAD movement by correcting delegation and retrying, not by recording FAIL. A failed Review returns to ordinary implementation and requires a new commit and Review. Once optimization begins, use risk-based incremental Review and mandatory supplemental Review for a repaired baseline defect.
 5. Step 4: Optimization — read `.xirang/references/xirang-apply-step-4-optimization.md`. For optimization failures, use the optional guidance in .xirang/references/xirang-optimization-failure-diagnosis.md.
 6. Step 5: Seal — read `.xirang/references/xirang-apply-step-5-seal.md`.
 7. Step 6: Output — read `.xirang/references/xirang-apply-step-6-output.md`.
 
 ## Quality Coordinator
 
-Main owns optimization scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to support those decisions.
-- Main: decide whether to run Opt, assess its delivered opinions, choose required tests and Reviews, then record the final Seal declaration.
+Main owns Review dimension assignments and consolidation, optimization scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to make those judgments.
+- Main: run required tests before Review delegation; delegate non-conflicting dimensions, wait for complete results, consolidate them into one v4 opinion, decide whether to run Opt and select required incremental/supplemental Reviews, then record the final Seal declaration.
 - `xirang-optimizer`: independently discover/group/implement/test within the delegation and report actual results, preservation, evidence, failures and recommendations.
-- `xirang-reviewer`: independently assess the actual assigned scope in fresh context and remain read-only.
-- CLI: persist identities, versions, execution-state associations and history; validate record structures, revisions and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
+- `xirang-reviewer`: independently assess assigned quality dimensions from committed checkout HEAD in a fresh context; its instructions remain read-only while tool permissions match the main Agent.
+- CLI: persist Review opinions by reviewKind, Opt dispositions/opinions, versions and Seal; validate record structures, revisions, and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
 
-Your judgment and Opt's self-tests do not replace required baseline independent Review or targeted Review after a confirmed baseline defect is repaired. Other post-optimization Review is risk-based. Pass location and assignment/delegation IDs; subagents read sources themselves. Wait for complete responses; a slow subagent is not a failed one, and terminating one requires asking the user. Interrupted optimization resumes its original delegation after the old writer stops, unless main deliberately chooses new exploration. Ordinary Apply tasks keep their own discipline.
+Your judgment and Opt's self-tests do not replace required full-change Review or supplemental Review after a confirmed baseline defect is repaired. Other post-optimization incremental Review is risk-based. Delegate changeName, projectRoot, reviewKind and quality dimensions; do not pass reviewId, scope, changeDir or a target commit. Pi Reviewer runs in the background. Wait for complete responses; a slow subagent is not a failed one, and terminating one requires asking the user. Invalid delegation or HEAD movement requires correction and re-delegation, not a FAIL opinion. Interrupted optimization resumes its original delegation after the old writer stops, unless main deliberately chooses new exploration. Ordinary Apply tasks keep their own discipline.
 
 ## Implementation Discipline
 

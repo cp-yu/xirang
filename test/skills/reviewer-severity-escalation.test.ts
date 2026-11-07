@@ -3,20 +3,18 @@ import { describe, expect, it } from 'vitest';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer severity escalation contract', () => {
-  it('uses strict severity assignment instead of lower-tier fallback', () => {
+  it('sets severity from explicit evidence rules and preserves the WARNING exception', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('Default stance: Strict');
-    expect(instructions).toContain('When uncertain: Escalate to CRITICAL');
+    expect(instructions).toContain('Missing credible evidence for required behavior is CRITICAL');
+    expect(instructions).toContain('A design decision violated by implementation is CRITICAL');
+    expect(instructions).toContain('If credible behavior evidence exists but the need for a persistent test is genuinely uncertain, report a WARNING');
     expect(instructions).not.toContain('prefer the lower tier');
-    expect(instructions).not.toContain('SUGGESTION over WARNING, WARNING over CRITICAL');
   });
 
-  it('treats refactor and migration residue as critical severity input', () => {
+  it('retains applicable cleanliness and unauthorized-behavior checks', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain(
-      'OR residue from refactor/migration (orphaned code, stale markers, incomplete migration)'
-    );
+    expect(instructions).toContain('Preserve applicable cleanliness and unauthorized-behavior checks');
   });
 });

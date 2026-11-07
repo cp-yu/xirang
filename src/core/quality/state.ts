@@ -12,7 +12,7 @@ export interface QualityCompletionStatus {
 export async function readQualityCompletion(changeDir: string, projectRoot: string): Promise<QualityCompletionStatus> {
   try {
     const result = await readQualityRecordStatus(changeDir, projectRoot);
-    const gaps = result.status === 'all_done' ? [] : [result.status === 'needs_review' ? 'BASELINE_REVIEW_REQUIRED' : 'OPT_DISPOSITION_OR_SEAL_REQUIRED'];
+    const gaps = result.status === 'all_done' ? [] : [result.status === 'needs_review' ? 'FULL_CHANGE_REVIEW_REQUIRED' : 'OPT_DISPOSITION_OR_SEAL_REQUIRED'];
     return { status: result.status, gaps, changedFiles: [] };
   } catch (cause) {
     const diagnostic = cause instanceof QualityEngineError

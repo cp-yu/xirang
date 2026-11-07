@@ -3,7 +3,7 @@ import { commandSchemas } from '../../src/core/quality/command-schema.js';
 import { renderQualityPayloadSchema } from '../../src/core/quality/protocol.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
-const review = { reviewId: 'REV-1', scope: 'baseline', commit: 'a'.repeat(40), result: 'PASS', summary: 'Reviewed fixture implementation.', findings: [] };
+const review = { reviewKind: 'full-change', commit: 'a'.repeat(40), result: 'PASS', summary: 'Reviewed fixture implementation.', findings: [] };
 
 describe('reviewer output schema binding', () => {
   it('embeds the runtime Review opinion schema', () => {

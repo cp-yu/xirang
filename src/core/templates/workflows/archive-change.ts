@@ -112,7 +112,7 @@ Rules:
 `.trim();
 
 function buildArchiveFullQualityContract(_executionModel: QualityExecutionModel): string {
-  return `   Review the shared Apply/Quality references only when status identifies an outstanding obligation. The baseline Review must be recorded in .quality.json and bind an existing Git commit. The main Agent records either delivered Opt opinions bound to baseCommit/resultCommit or a non-empty not_performed reason, then independently decides whether an Opt follow-up Review is needed. Only the main Agent writes Seal, declaring canRun and testsExpectedToPass for an existing commit. The CLI does not run tests, compare HEAD/workspace freshness or make these judgments. Preserve legacy Quality files unchanged. Do not run a completion review or modify the record during Archive; its Quality gate only checks that the Seal commit object exists.`;
+  return `   Review the shared Apply/Quality references only when status identifies an outstanding obligation. A passing full-change Review must be recorded in .quality.json and bind an existing Git commit. The main Agent records either delivered Opt opinions bound to baseCommit/resultCommit or a non-empty not_performed reason, then decides from risk whether incremental Review or mandatory supplemental Review is needed. Only the main Agent writes Seal, declaring canRun and testsExpectedToPass for an existing commit. The CLI does not run tests, compare HEAD/workspace freshness or make these judgments. Preserve legacy Quality files unchanged. Do not run a completion review or modify the record during Archive; its Quality gate only checks that the Seal commit object exists.`;
 }
 
 function buildAgentGitFlowStep(): string {
@@ -141,7 +141,7 @@ Before archiving, run \`xirang config project --json\` and consume git policy fr
    If no clear change name is provided, run \`xirang list --json\`, show active changes with schema, and ask. Do not guess. Read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values because the CLI moves the active change directory.
 
 2. **Unified Quality Gate**
-   Require a recorded passing baseline Review, explicit Opt disposition and a successful Seal. For Archive's Quality sub-gate, the Seal commit must exist in Git; HEAD/workspace differences and Quality JSON commit status are irrelevant. Keep the current Quality status projection for the final summary. Preserve unsupported legacy records unchanged.
+   Require a recorded passing full-change Review, explicit Opt disposition and a successful Seal. No latest incremental or supplemental Review may remain failed. For Archive's Quality sub-gate, the Seal commit must exist in Git; HEAD/workspace differences and Quality JSON commit status are irrelevant. Keep the current Quality status projection for the final summary. Preserve unsupported legacy records unchanged.
 
 2.5. **Complete Required Quality Evidence**
 
@@ -166,7 +166,7 @@ ${buildArchiveFullQualityContract(executionModel)}
 ${buildAgentGitFlowStep()}
 
 9. **Display summary**
-   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. Distinguish baseline Review, additional independent Reviews actually performed, main reasons for omitted optional Review, actual test evidence and Seal commit assessment. Disclose abandoned optimization attempts/reasons/treatment and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
+   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. Distinguish full-change Review, additional incremental or supplemental Reviews actually performed, main reasons for omitted optional Review, actual test evidence and Seal commit assessment. Disclose abandoned optimization attempts/reasons/treatment and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
 
 **Output On Success**
 

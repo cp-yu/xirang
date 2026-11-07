@@ -35,7 +35,7 @@ const APPLY_STEP_1_PREPARATION_REFERENCE = `
 # Apply Step 1: Preparation
 
 1. Select the change. If no clear name is provided, infer only from explicit context; otherwise run \`xirang list --json\` and ask. Always announce "Using change: <name>".
-2. Run \`xirang status --change "<name>" --json\`, \`xirang instructions apply --change "<name>" --json\` and \`xirang quality status "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Use read-only Quality status to identify whether a baseline Review is missing or whether Seal is present. Obtain the baseline Review through Step 3 when needed. After any code change, reassess the actual state and any required Review. Continue to Step 4 for the main Agent's Opt decision and risk-based verification. For interrupted work, follow Quality Recovery. Do not infer freshness or execution evidence from the CLI.
+2. Run \`xirang status --change "<name>" --json\`, \`xirang instructions apply --change "<name>" --json\` and \`xirang quality status "<name>" --json\`. Read \`configProjection.prompt.fragments\` for \`proseLanguage\` and \`apply.defaultIsolation\`. Use read-only Quality status to identify whether a passing full-change Review is missing or whether Seal is present. Obtain a required full-change Review through Step 3 when needed. After any code change, reassess the actual state and any required incremental or supplemental Review. Continue to Step 4 for the main Agent's Opt decision and risk-based verification. For interrupted work, follow Quality Recovery. Do not infer freshness or execution evidence from the CLI.
 3. Load the shared Xirang Semantic Model context before reading change artifacts.
 ${XIRANG_SHARED_CONTEXT}
 4. Read every context file listed by the CLI. Inspect Quality status as a read-only projection of commit-bound reviews, Opt disposition and Seal; it does not contain test evidence or completion history. \`## Required Corrections\`; unresolved CRITICAL/code_fix/artifact_fix items take priority under their ordinary implementation or optimization scope. Read related history when needed, without treating historical PASS as current proof.
@@ -90,9 +90,12 @@ Use this reference only after Step 1 selects current-branch isolation and isolat
 const APPLY_STEP_3_REVIEW_REFERENCE = `
 # Apply Step 3: Independent Review
 
-Run the applicable project review process from a clean context. Before delegation, the main Agent creates a unique reviewId and supplies it with the scope and target commit. This is delegation metadata, not a pre-registered Quality record. The Reviewer independently inspects the specified commit and returns a JSON opinion matching the generated review schema in .xirang/references/quality-cli.md. The opinion contains reviewId, scope, commit, result (PASS or FAIL), summary and findings. The Reviewer stays read-only; the main Agent addresses findings, updates tasks.md when warranted, chooses the commit, and records the opinion with the current Quality revision.
+Before any Opt work, complete ordinary goals and Required Corrections, run the required tests, then commit the implementation to be reviewed. The main Agent supplies only changeName, the actual checkout's absolute projectRoot, reviewKind, and any selected non-conflicting quality dimensions. Do not pass reviewId, scope, changeDir or a target commit. The Reviewer derives changeDir and commit from its checkout, reads baseCommit from .apply-isolation.json, and independently reviews committed HEAD. Each delegated full-change dimension covers the whole cumulative Change; dimensions may be reviewed in parallel when assignments do not conflict. Pi Reviewers run in the background so environment extensions are available.
 
-Begin every required review from the committed code to be assessed. If a Review fails, make corrections and commit them before recording a passing re-review. Do not represent the main Agent's decision that no extra Review is needed as a Reviewer PASS. Opt's tests are evidence, not an independent Review.
+Wait for every required Reviewer result before consolidation. A delegation/input error or HEAD movement is not an implementation FAIL: correct the assignment or commit state and delegate again. Do not record an opinion if a required dimension is missing, invalid, unresolved or failed. The main Agent consolidates all required dimension results into one opinion with reviewKind: full-change, the common inspected commit, PASS only when all required dimensions pass, a concise summary, and merged findings. Record exactly that one opinion through the generated v4 schema in .xirang/references/xirang-quality-cli.md. If it fails, address Required Corrections, commit the correction and obtain a new independent Review of that commit.
+
+After Opt, the main Agent decides from risk whether an incremental Review is required; it covers cumulative post-Opt changes and affected behavior. A confirmed pre-existing Change defect missed by full-change Review must be repaired and receive a supplemental Review of the repair and impact. Record each consolidated opinion against the commit actually reviewed. Do not represent a main-Agent decision to omit an optional Review as Reviewer PASS. Reviewer tests are evidence to judge, not a requirement to rerun them.
+
 `.trim();
 
 
@@ -105,9 +108,9 @@ Read \`.xirang/references/xirang-quality-cli.md\` for generated input schemas, o
 
 ## Establish the reviewed, recoverable start
 
-Require the valid independent baseline Review from Step 3. That Review applies to the pre-optimization implementation, not later optimization changes. Validate isolation and immutable baseCommit. Save the intended reviewed code in a real commit or reuse an already matching commit; do not create an empty checkpoint commit. Do not overwrite isolation identity or discard unrelated work.
+Require the valid independent full-change Review from Step 3. That Review applies to the pre-optimization implementation, not later optimization changes. Validate isolation and immutable baseCommit. Save the intended reviewed code in a real commit or reuse an already matching commit; do not create an empty checkpoint commit. Do not overwrite isolation identity or discard unrelated work.
 
-Before Opt, require a passing baseline Review. Use Git commits as the recovery and comparison points; Quality stores commit-bound opinions but does not create checkpoints.
+Before Opt, require a passing full-change Review. Use Git commits as the recovery and comparison points; Quality stores commit-bound opinions but does not create checkpoints.
 
 If the main Agent decides not to run Opt, record a non-empty not_performed reason with the current revision. Otherwise record delivered opinions with actual baseCommit/resultCommit values. This decision does not waive required tests or Review.
 
@@ -127,17 +130,17 @@ Return concrete corrections to the same delegation and require updated delivery,
 
 ## Decide and execute final verification
 
-Assess cumulative retained changes, preservation, dependencies and actual test coverage. Tests are required. Decide whether relevant local tests suffice, whether broader/full tests are needed and whether incremental independent Review is needed; briefly explain reasons. No additional risk-approval role is required. Two local optimizations with adequate corresponding tests may finish without full tests or extra Review when your scope/risk judgment supports it. Record that judgment as your decision, not Reviewer PASS; the baseline Review did not review the optimized code.
+Assess cumulative retained changes, preservation, dependencies and actual test coverage. Tests are required. Decide whether relevant local tests suffice, whether broader/full tests are needed and whether incremental independent Review is needed; briefly explain reasons. No additional risk-approval role is required. Two local optimizations with adequate corresponding tests may finish without full tests or extra Review when your scope/risk judgment supports it. Record that judgment as your decision, not Reviewer PASS; the full-change Review did not review the optimized code.
 
 Run the tests required by the main Agent's risk assessment. Obtain and record each required independent Review opinion against the commit that was assessed. Missing or failing required evidence blocks Seal.
 
-For a confirmed correctness defect of this Change missed by baseline Review, arrange repair directly or through Opt, obtain actual repair tests with --scope defect-repair, and require independent scope=defect-repair Review of that problem and impact. Its assignment must exactly match the plan's repairScope and its delegationIds must equal the actual repair-test delegation set (empty if main performed the repair without a delegation). Do not treat such a defect as optional abandonment or use main's judgment to waive its Review.
+For a confirmed correctness defect of this Change missed by full-change Review, arrange repair directly or through Opt, obtain actual repair tests, and require independent supplemental Review of that repair and its impact. The main Agent supplies reviewKind=supplemental and the assigned dimensions; the Reviewer derives the commit from checkout HEAD. Do not treat such a defect as optional abandonment or use main's judgment to waive its Review.
 
-An A test passed at S1 may remain applicable after independent B at S2. Inspect the actual differences and dependencies. If unaffected, record applicability separately in the plan with its original evidenceId or reviewId, scope, concrete differenceBasis, reason and affected=false. This does not rerun or rebind the original result. A changed shared helper requires inspecting impact and rerunning affected validation. Failure, missing evidence or known affected validation cannot be waived. There is no blanket requirement to rerun an unaffected A at S2.
+A test passed at an earlier commit may remain applicable after later work. Inspect actual differences and dependencies. If unaffected, the main Agent may document its applicability with the original evidence description, commit, concrete difference basis, reason and affected=false. This does not rerun or rebind the original result. A changed shared helper requires inspecting impact and rerunning affected validation. Failure, missing evidence or known affected validation cannot be waived. There is no blanket requirement to rerun an unaffected test at the later commit.
 
 ## Record the plan, conclusion and final checkpoint
 
-The main Agent reviews the actual code, tests and opinions, decides whether verification is sufficient, and records Seal assertions for an existing Git commit. Seal does not run tests or compare HEAD/workspace.
+The main Agent reviews the actual code, tests and opinions, decides whether verification is sufficient, and records Seal assertions for an existing Git commit. Seal does not run tests or compare HEAD/workspace. The Reviewer derives each Review commit from HEAD; the v4 Quality opinion records only the actual reviewKind and commit, with no review identity or free-form scope fields.
 
 Set recoveryConfirmed only when recovery is reliable and list unresolvedIssues honestly. CLI records the plan, state association and delivery versions; it does not decide semantic adequacy. A plan is not proof of success. When required verification is actually passing and applicable and no correctness/recovery problem remains, submit conclusion action=complete with the returned planId and final reasons using the current global --version. Do not send evidence IDs again in complete; they are in the plan. If code or delivery changes, reassess affected verification and record a new plan before completion.
 
@@ -153,7 +156,7 @@ An optional attempt may be abandoned. Save item/reason/treatment immediately thr
 const APPLY_STEP_5_SEAL_REFERENCE = `
 # Apply Step 5: Seal
 
-Run xirang quality seal <change-name> using the generated Seal schema. Seal requires a passing latest baseline Review, no failing latest Review for any scope, an explicit Opt disposition and the main Agent's positive canRun/testsExpectedToPass declarations for an existing Git commit. Seal does not run tests or compare the commit with HEAD/workspace.
+Run xirang quality seal <change-name> using the generated Seal schema. Seal requires a passing latest full-change Review, no failing latest Review for any reviewKind, an explicit Opt disposition and the main Agent's positive canRun/testsExpectedToPass declarations for an existing Git commit. Seal does not run tests or compare the commit with HEAD/workspace.
 
 After Seal succeeds, Archive may run its independent gates. Do not separately commit Quality JSON before Seal or Archive; include it in the normal Git handoff. A rejected payload or revision conflict requires reading status and reconciling before retry.
 `.trim();
@@ -167,9 +170,9 @@ const QUALITY_RECOVERY_REFERENCE_CONTENT_V3 = `
 
 After interruption, confirm the previous writer has stopped. Read current status and reconcile the .quality.json revision, current code and Git commits before recording another opinion. Preserve unrelated changes and all legacy Quality files; the new protocol never imports their contents.
 
-For explicitly requested fresh re-verification, first confirm prior Review/Opt writers and pending results have stopped, then re-read status and reconcile the current code and target commit. The Quality CLI has no review-begin or revalidation-assignment operation: use Step 3, where the main Agent supplies a new unique reviewId, scope and target commit to the Reviewer, then records the returned opinion through the normal versioned review command. Existing opinions remain history; do not claim the CLI creates a revalidation association or resets prior state. If the prior flow or current commit cannot be established, stop and report the evidence gap.
+For explicitly requested fresh re-verification, first confirm prior Review/Opt writers and pending results have stopped, then re-read status and reconcile current code and commits. Run the required tests, commit the state to assess, and obtain a new full-change Review by delegating changeName, absolute projectRoot, reviewKind and required dimensions. The Reviewer derives the target commit from HEAD; no reviewId, scope or target commit is supplied. The main Agent consolidates required dimensions into one opinion and records it through the v4 schema. Existing opinions remain history; do not rewrite or reset prior state. If the prior flow, isolation baseline or current HEAD cannot be established, stop and report the evidence gap.
 
-Run relevant tests directly and inspect their actual output. Quality CLI does not run tests, decide whether Opt is required, or decide whether a post-Opt Review is needed. The main Agent chooses the verification scope, records Review opinions against the commits actually inspected, and records either delivered Opt opinions with base/result commits or a reasoned not_performed disposition.
+Run required tests directly and inspect their actual output. Quality CLI does not run tests, decide whether Opt is required, or decide whether post-Opt Review is needed. The main Agent chooses verification scope, obtains required incremental or supplemental opinions, and records either delivered Opt opinions with base/result commits or a reasoned not_performed disposition. Invalid delegation or HEAD movement is corrected and re-delegated, not recorded as FAIL.
 
 Repair or reverse unreliable optional work without discarding unrelated reliable changes. A confirmed Change defect requires repair and independent Review; report it to the main Agent. If ownership, recovery or evidence applicability is unclear, stop dependent actions and report the concrete gap.
 
@@ -181,7 +184,7 @@ const APPLY_STEP_1_PREPARATION_REFERENCE_V3 = `
 
 Select the Change and announce its name. Run \`xirang status --change "<name>" --json\`, \`xirang instructions apply --change "<name>" --json\`, and \`xirang quality status "<name>" --json\`. Read the configured prose language and isolation method. Load the shared Semantic Model context, then inspect the Change artifacts, affected semantic identities and implementation evidence.
 
-Inspect Quality status as read-only context. Obtain a missing independent baseline Review through Step 3. After any implementation or correction, reassess the actual commit and obtain the required Review. Continue to Step 4 for the main Agent's Opt decision and evidence assessment; the CLI does not decide whether Opt or post-Opt Review is needed. For interrupted work, follow Quality Recovery and preserve .quality.json plus all legacy Quality files.
+Inspect Quality status as read-only context. Obtain a missing independent full-change Review through Step 3. After any implementation or correction, reassess the actual commit and obtain the required Review. Continue to Step 4 for the main Agent's Opt decision and evidence assessment; the CLI does not decide whether Opt or post-Opt Review is needed. For interrupted work, follow Quality Recovery and preserve .quality.json plus all legacy Quality files.
 
 Validate existing .apply-isolation.json before proceeding. Reuse it unchanged only when its branch/worktree and baseCommit match the actual workspace. If absent, select and establish one isolation method using Step 2. Do not overwrite isolation identity or silently change the baseline.
 `.trim();
@@ -189,11 +192,11 @@ Validate existing .apply-isolation.json before proceeding. Reuse it unchanged on
 const APPLY_STEP_4_OPTIMIZATION_REFERENCE_V3 = `
 # Apply Step 4: Opt and Verification
 
-The main Agent decides whether to run Opt, defines its scope, inspects its delivery and decides which tests or independent Reviews are required. The Optimizer works in a clean context, inspects the current model, Change and code, and reports concrete changes, benefits, tests, results, failures and follow-up advice. Its tests and opinions are not independent Review. For recovery diagnostics, use .xirang/references/xirang-optimization-failure-diagnosis.md as optional guidance.
+The main Agent decides whether to run Opt, defines its scope, inspects its delivery and decides which tests or independent incremental Reviews are required. The Optimizer works in a clean context, inspects the current model, Change and code, and reports concrete changes, benefits, tests, results, failures and follow-up advice. Its tests and opinions are not independent Review. For recovery diagnostics, use .xirang/references/xirang-optimization-failure-diagnosis.md as optional guidance.
 
-Before Opt, require a passing baseline Review. Run relevant tests directly and inspect real results; Quality CLI does not run tests or store execution evidence. If Opt is performed, record delivered opinions bound to baseCommit/resultCommit. Otherwise record a reasoned not_performed disposition. Repair or reverse optional work that regresses behavior while preserving unrelated changes. A confirmed Change defect requires repair and independent Review, not optional abandonment.
+Before Opt, require a passing full-change Review. Run relevant tests directly and inspect real results; Quality CLI does not run tests or store execution evidence. If Opt is performed, record delivered opinions bound to baseCommit/resultCommit. Otherwise record a reasoned not_performed disposition. Repair or reverse optional work that regresses behavior while preserving unrelated changes. A confirmed Change defect missed by full-change Review requires repair and supplemental Review, not optional abandonment.
 
-Choose verification from actual cumulative changes, dependencies and risk. Record required Review opinions against the commits actually assessed. The main Agent owns the final judgment; the CLI validates record structure and commit existence only. Read .xirang/references/xirang-quality-cli.md for schemas and diagnostics. When implementation and required verification are complete, continue to Step 5 for Seal. Do not invoke retired delegation, verification, conclusion or checkpoint commands.
+Choose verification from actual cumulative changes, dependencies and risk. Obtain and record required incremental or supplemental Review opinions against the commits actually assessed. The main Agent owns the final judgment; the CLI validates record structure and commit existence only. Read .xirang/references/xirang-quality-cli.md for schemas and diagnostics. When implementation and required verification are complete, continue to Step 5 for Seal. Do not invoke retired delegation, verification, conclusion or checkpoint commands.
 `.trim();
 
 void APPLY_STEP_1_PREPARATION_REFERENCE_V3;
@@ -213,7 +216,7 @@ const QUALITY_CLI_REFERENCE_V3 = `${QUALITY_CLI_JSON_SCHEMA_REFERENCE}\n\n${QUAL
 const APPLY_STEP_6_OUTPUT_REFERENCE = `
 # Apply Step 6: Output
 
-Report schema, progress, current task and completed tasks this session, then the actual sealed/archive-ready status. Distinguish the baseline independent Review, any additional Review actually performed and its scope/result, and a main-agent decision that no additional Review was required with reasons. Summarize retained optimization benefits, actual test evidence, abandoned attempts/reasons/treatment, remaining issues and the final verification basis. Do not present an unperformed Review as PASS or hide failed attempts behind retained gains.
+Report schema, progress, current task and completed tasks this session, then the actual sealed/archive-ready status. Distinguish the required full-change Review, any incremental or supplemental Review actually performed and its reviewKind/result, and a main-agent decision that no additional Review was required with reasons. Summarize retained optimization benefits, actual test evidence, abandoned attempts/reasons/treatment, remaining issues and the final verification basis. Do not present an unperformed Review as PASS or hide failed attempts behind retained gains.
 
 Continue Archive from the same Apply workspace. Apply MUST NOT switch branches or remove the worktree; Archive owns branch return and isolation cleanup. Keep edits minimal, use Node path handling for generated paths, update task checkboxes only after evidence passes and preserve canonical artifact headings/tokens and configured document language projection.
 `.trim();
@@ -235,20 +238,20 @@ For workflow-managed writes, read the resolved file definition before its instru
 1. Step 1: Preparation — read \`.xirang/references/xirang-apply-step-1-preparation.md\`. Follow \`.xirang/references/xirang-quality-recovery.md\` for interrupted optimization, an explicit request to start verification again, or a reported recovery gap.
 2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending goals and Required Corrections until they are complete; completing one goal does not leave the loop.
-4. [Mode: Delegate Review] Step 3: Review — after ordinary tasks and Required Corrections are complete, read \`.xirang/references/xirang-apply-step-3-review.md\` and obtain independent baseline Change-level Review. A failing baseline returns to ordinary implementation and requires Review after correction. Once optimization begins, its scoped corrections and verification follow Step 4, including required targeted Review of repaired baseline defects.
+4. [Mode: Delegate Review] Step 3: Review — after ordinary tasks and Required Corrections, read \.xirang/references/xirang-apply-step-3-review.md\`, run required tests, commit the implementation and obtain a consolidated full-change Review across required dimensions. Resolve input errors and HEAD movement by correcting delegation and retrying, not by recording FAIL. A failed Review returns to ordinary implementation and requires a new commit and Review. Once optimization begins, use risk-based incremental Review and mandatory supplemental Review for a repaired baseline defect.
 5. Step 4: Optimization — read \`.xirang/references/xirang-apply-step-4-optimization.md\`. For optimization failures, use the optional guidance in .xirang/references/xirang-optimization-failure-diagnosis.md.
 6. Step 5: Seal — read \`.xirang/references/xirang-apply-step-5-seal.md\`.
 7. Step 6: Output — read \`.xirang/references/xirang-apply-step-6-output.md\`.
 
 ## Quality Coordinator
 
-Main owns optimization scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to support those decisions.
-- Main: decide whether to run Opt, assess its delivered opinions, choose required tests and Reviews, then record the final Seal declaration.
+Main owns Review dimension assignments and consolidation, optimization scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to make those judgments.
+- Main: run required tests before Review delegation; delegate non-conflicting dimensions, wait for complete results, consolidate them into one v4 opinion, decide whether to run Opt and select required incremental/supplemental Reviews, then record the final Seal declaration.
 - \`xirang-optimizer\`: independently discover/group/implement/test within the delegation and report actual results, preservation, evidence, failures and recommendations.
-- \`xirang-reviewer\`: independently assess the actual assigned scope in fresh context and remain read-only.
-- CLI: persist identities, versions, execution-state associations and history; validate record structures, revisions and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
+- \`xirang-reviewer\`: independently assess assigned quality dimensions from committed checkout HEAD in a fresh context; its instructions remain read-only while tool permissions match the main Agent.
+- CLI: persist Review opinions by reviewKind, Opt dispositions/opinions, versions and Seal; validate record structures, revisions, and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
 
-Your judgment and Opt's self-tests do not replace required baseline independent Review or targeted Review after a confirmed baseline defect is repaired. Other post-optimization Review is risk-based. Pass location and assignment/delegation IDs; subagents read sources themselves. Wait for complete responses; a slow subagent is not a failed one, and terminating one requires asking the user. Interrupted optimization resumes its original delegation after the old writer stops, unless main deliberately chooses new exploration. Ordinary Apply tasks keep their own discipline.
+Your judgment and Opt's self-tests do not replace required full-change Review or supplemental Review after a confirmed baseline defect is repaired. Other post-optimization incremental Review is risk-based. Delegate changeName, projectRoot, reviewKind and quality dimensions; do not pass reviewId, scope, changeDir or a target commit. Pi Reviewer runs in the background. Wait for complete responses; a slow subagent is not a failed one, and terminating one requires asking the user. Invalid delegation or HEAD movement requires correction and re-delegation, not a FAIL opinion. Interrupted optimization resumes its original delegation after the old writer stops, unless main deliberately chooses new exploration. Ordinary Apply tasks keep their own discipline.
 
 ## Implementation Discipline
 

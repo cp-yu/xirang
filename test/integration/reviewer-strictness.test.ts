@@ -84,18 +84,10 @@ describe('reviewer strictness integration contract', () => {
     });
 
     expect(result).toEqual({ severity: 'WARNING', summary: 'Cosmetic drift only' });
-    expect(instructions).toContain('cosmetic and does not affect observable behavior');
+    expect(instructions).toContain('If credible behavior evidence exists but the need for a persistent test is genuinely uncertain, report a WARNING');
   });
 
-  it('blocks stale TODO markers for completed work', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'complete migration',
-      finalFileEvidence: 'TODO: remove after migration\nexport const migrated = true;',
-    });
-
-    expect(result).toEqual({
-      severity: 'CRITICAL',
-      summary: 'Stale TODO for completed work',
-    });
+  it('does not treat TODO markers alone as a finding', () => {
+    expect(instructions).toContain('TODO/FIXME/HACK comments alone are not findings');
   });
 });
