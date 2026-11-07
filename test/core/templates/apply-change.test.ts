@@ -142,6 +142,12 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Step 6: Output');
   });
 
+  it('keeps Pi Reviewer scheduling in the Apply Review reference', () => {
+    const review = applyReference('references/apply-step-3-review.md');
+
+    expect(review).toContain('Pi Reviewers run in the background so environment extensions are available');
+  });
+
   it('keeps flow details in step references instead of the skill outline', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     const preparation = applyReference('references/apply-step-1-preparation.md');

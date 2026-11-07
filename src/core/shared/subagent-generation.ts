@@ -30,19 +30,12 @@ export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
-const PI_BACKGROUND_DESCRIPTION_SUBAGENTS = new Set([
-  'xirang-reviewer',
-]);
 const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
   'xirang-optimizer',
 ]);
-const PI_BACKGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run in the background so environment extensions are available and wait for the complete result before consolidating.';
 const PI_FOREGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 
 function piDescription(template: SubagentTemplate): string {
-  if (PI_BACKGROUND_DESCRIPTION_SUBAGENTS.has(template.name)) {
-    return `${template.description}${PI_BACKGROUND_DESCRIPTION_SUFFIX}`;
-  }
   return PI_FOREGROUND_DESCRIPTION_SUBAGENTS.has(template.name)
     ? `${template.description}${PI_FOREGROUND_DESCRIPTION_SUFFIX}`
     : template.description;

@@ -11,7 +11,7 @@ describe('xirang reviewer skill content', () => {
   it('validates the delegation and binds the opinion to an unchanged checkout HEAD', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('Pi callers must run this Reviewer in the background so environment extensions are available, then wait for the complete result before consolidating.');
+    expect(instructions).not.toContain('Pi callers must run this Reviewer in the background');
     expect(instructions).toContain('Validate changeName, absolute projectRoot, the derived changeDir, reviewKind and the required isolation metadata');
     expect(instructions).toContain('Read baseCommit from changeDir/.apply-isolation.json and verify it resolves');
     expect(instructions).toContain('Derive the target commit from checkout HEAD');

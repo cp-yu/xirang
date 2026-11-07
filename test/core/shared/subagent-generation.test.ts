@@ -66,7 +66,7 @@ describe('subagent generation', () => {
     expect(pi).toMatchObject({
       name: 'xirang-reviewer',
     });
-    expect(pi.description).toContain('run in the background so environment extensions are available and wait for the complete result');
+    expect(pi.description).toBe(reviewer!.description);
     expect(pi).not.toHaveProperty('model');
     expect(pi).not.toHaveProperty('tools');
     expect(pi).not.toHaveProperty('display_name');
@@ -83,8 +83,7 @@ describe('subagent generation', () => {
     expect(opencode).not.toHaveProperty('model');
   });
 
-  it('adds Pi-only background guidance to Reviewer and foreground guidance to Opt', () => {
-    const backgroundSuffix = ' Pi callers: run in the background so environment extensions are available and wait for the complete result before consolidating.';
+  it('adds Pi-only foreground guidance to Opt without changing Reviewer discovery text', () => {
     const foregroundSuffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 
     for (const template of INTERNAL_SUBAGENT_TEMPLATES) {
@@ -93,11 +92,9 @@ describe('subagent generation', () => {
       const opencode = markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST'));
       const codex = generateSubagentContent(template, 'codex', 'TEST');
 
-      const expectedPiDescription = template.name === 'xirang-reviewer'
-        ? `${template.description}${backgroundSuffix}`
-        : template.name === 'xirang-optimizer'
-          ? `${template.description}${foregroundSuffix}`
-          : template.description;
+      const expectedPiDescription = template.name === 'xirang-optimizer'
+        ? `${template.description}${foregroundSuffix}`
+        : template.description;
       expect(pi.description).toBe(expectedPiDescription);
       expect(claude.description).toBe(template.description);
       expect(opencode.description).toBe(template.description);
