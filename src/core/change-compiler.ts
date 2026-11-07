@@ -25,6 +25,7 @@ export interface CompileChangeOptions {
   /** Pre-parsed Semantic Model; avoids re-reading the four partitions. */
   base?: ParsedModel;
   allowAlreadyApplied?: boolean;
+  parsedDelta?: ParsedDelta;
 }
 
 export interface CompiledChange {
@@ -147,7 +148,7 @@ export async function compileChangeDelta(
   options: CompileChangeOptions = {},
 ): Promise<CompiledDelta> {
   const base = options.base ?? await readFormalSemanticModel(projectRoot);
-  const parsed = await parseSemanticDelta(changeRoot(projectRoot, changeName));
+  const parsed = options.parsedDelta ?? await parseSemanticDelta(changeRoot(projectRoot, changeName));
   const applied = applySemanticDelta(base.model, parsed.delta);
   const raw = [
     ...base.diagnostics,

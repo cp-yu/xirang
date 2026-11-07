@@ -44,6 +44,8 @@ jobs:
           test/core/update.test.ts
           test/core/quality/state.test.ts
           test/commands/quality.test.ts
+          test/core/expected-model-writeback.test.ts
+          test/integration/nvim-writeback.test.ts
           test/core/record/paths.test.ts
           test/core/record/workspace.test.ts
           test/core/record/consume.test.ts
@@ -56,11 +58,10 @@ jobs:
       - name: Run Neovim Change review checks
         shell: pwsh
         run: |
-          nvim --headless -u NONE -l integrations/nvim/tests/run.lua list
-          nvim --headless -u NONE -l integrations/nvim/tests/run.lua compare
-          nvim --headless -u NONE -l integrations/nvim/tests/run.lua refresh
-          nvim --headless -u NONE -l integrations/nvim/tests/run.lua close
-          nvim --headless -u NONE -l integrations/nvim/tests/run.lua windows-paths
+          foreach ($mode in @('list', 'compare', 'refresh', 'close', 'windows-paths', 'save', 'save-race', 'context')) {
+            nvim --headless -u NONE -i NONE -n -l integrations/nvim/tests/run.lua $mode
+            if ($LASTEXITCODE -ne 0) { throw "Neovim check failed: $mode" }
+          }
       - name: Run Windows Candidate Contract handler tests
         run: >-
           pnpm --dir likec4 exec vitest run --no-isolate

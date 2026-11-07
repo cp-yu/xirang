@@ -21,6 +21,7 @@ import { registerQualityCommand } from '../commands/quality.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
 import { registerRecordCommand } from '../commands/record.js';
+import { registerDeltaCommand } from '../commands/delta.js';
 import {
   statusCommand,
   instructionsCommand,
@@ -154,6 +155,7 @@ registerQualityCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
 registerRecordCommand(program);
+registerDeltaCommand(program);
 
 program
   .command('list')

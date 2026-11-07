@@ -14,12 +14,12 @@ local state = { valid = true, after = 'target\nsecond\nthird\n', pending = {}, c
 local review = dofile('integrations/nvim/lua/xirang/review.lua')
 local function payload()
   return vim.json.encode({ valid = state.valid, diagnostics = {}, sources = state.valid and {
-    { path = 'elements/other.md', entries = {
-      { entity = 'element-declaration', identity = 'other', operation = 'ADDED', before = '', after = 'other target\nline two\nline three\n' },
+    { path = 'elements/other.md', before = '', after = 'other target\nline two\nline three\n', entries = {
+      { entity = 'element-declaration', identity = 'other', operation = 'ADDED' },
     } },
-    { path = 'elements/item.md', entries = {
-      { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
-      { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED', before = 'current\nsecond\nthird\n', after = state.after },
+    { path = 'elements/item.md', before = 'current\nsecond\nthird\n', after = state.after, entries = {
+      { entity = 'element-declaration', identity = 'item', operation = 'MODIFIED' },
+      { entity = 'section', identity = 'item#Contract', operation = 'MODIFIED' },
     } },
   } or {}, plans = state.valid and {{ path = 'design.md', content = 'Plan text\n' }} or {} })
 end
@@ -122,6 +122,108 @@ elseif mode == 'compare' then
   session.cursor = 2
   review._sourceJump(session)
   assert(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()) == source)
+elseif mode == 'save' then
+  launch()
+  local session = current()
+  session.cursor = 2
+  review._showSelected(session)
+  vim.api.nvim_set_current_win(session.rightWin)
+  local originalTab = session.tab
+  local originalRight = session.rightWin
+  local width = vim.api.nvim_win_get_width(session.listWin)
+  session.expanded.views = false
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'edited target', 'second', 'third' })
+  vim.api.nvim_win_set_cursor(session.rightWin, { 2, 3 })
+  local submitted
+  review.setup({ cwd = root, runner = function(argv, _, callback, input)
+    if argv[2] == 'delta' then
+      submitted = input
+      assert(argv[3] == 'writeback' and argv[4] == 'demo')
+      assert(argv[5] == '--source' and argv[6] == 'elements/item.md')
+      state.after = input
+      callback({ code = 0, stdout = vim.json.encode({ ok = true, ignoredChanges = { 'identity' } }) })
+    else callback({ code = 0, stdout = payload() }) end
+  end })
+  vim.cmd('write')
+  waitFor(function() return submitted and not vim.bo[session.right].modified end)
+  assert(submitted == 'edited target\nsecond\nthird')
+  assert(session.tab == originalTab and session.rightWin == originalRight)
+  assert(session.items[session.cursor].path == 'elements/item.md')
+  assert(vim.api.nvim_get_current_win() == originalRight)
+  assert(vim.api.nvim_win_get_cursor(originalRight)[1] == 2)
+  assert(vim.api.nvim_win_get_cursor(originalRight)[2] == 3)
+  assert(vim.api.nvim_win_get_width(session.listWin) == width)
+  assert(session.expanded.views == false)
+  assert(vim.wo[originalRight].statusline:find('identity', 1, true))
+  assert(not vim.bo[session.left].modifiable and vim.bo[session.right].modifiable)
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'invalid draft' })
+  review.setup({ cwd = root, runner = function(_, _, callback)
+    callback({ code = 1, stdout = vim.json.encode({ ok = false, message = 'invalid target' }) })
+  end })
+  vim.cmd('write')
+  waitFor(function() return session.saveError ~= nil end)
+  assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'invalid draft')
+  assert(vim.bo[session.right].modified)
+elseif mode == 'save-race' then
+  launch()
+  local session = current()
+  session.cursor = 2
+  review._showSelected(session)
+  vim.api.nvim_set_current_win(session.rightWin)
+  local saves = {}
+  review.setup({ cwd = root, runner = function(argv, _, callback, input)
+    if argv[2] == 'delta' then saves[#saves + 1] = { callback = callback, input = input }
+    else callback({ code = 0, stdout = payload() }) end
+  end })
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'first save' })
+  vim.cmd('write')
+  assert(#saves == 1)
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'newer draft' })
+  state.after = saves[1].input
+  saves[1].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return not session.saving and session.items[session.cursor].after == 'first save' end)
+  assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'newer draft')
+  assert(vim.bo[session.right].modified)
+  vim.cmd('write')
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'last save' })
+  vim.cmd('write')
+  saves[2].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return #saves == 3 end)
+  assert(saves[3].input == 'last save')
+  state.after = saves[3].input
+  saves[3].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return not session.saving and not vim.bo[session.right].modified end)
+  assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'last save')
+elseif mode == 'context' then
+  state.after = string.rep('target line\n', 100)
+  launch()
+  local session = current()
+  session.cursor = 2
+  review._showSelected(session)
+  vim.api.nvim_set_current_win(session.rightWin)
+  vim.wo[session.rightWin].scrollbind = false
+  vim.wo[session.rightWin].cursorbind = false
+  vim.api.nvim_win_set_cursor(session.rightWin, { 70, 4 })
+  vim.fn.winrestview({ lnum = 70, col = 4, topline = 65 })
+  local before = vim.fn.winsaveview()
+  local focus = vim.api.nvim_get_current_win()
+  session.expanded.relationships = false
+  local calls = state.calls
+  vim.api.nvim_exec_autocmds('BufWritePost', { buffer = vim.fn.bufadd(source) })
+  waitFor(function() return state.calls > calls and session.generation >= 2 end)
+  vim.wait(50)
+  local after = vim.fn.winsaveview()
+  assert(vim.api.nvim_get_current_win() == focus)
+  assert(after.lnum == before.lnum and after.col == before.col and after.topline == before.topline)
+  assert(session.expanded.relationships == false)
+  state.after = 'short'
+  local pending
+  review.setup({ cwd = root, runner = function(_, _, callback) pending = callback end })
+  vim.api.nvim_exec_autocmds('BufWritePost', { buffer = vim.fn.bufadd(source) })
+  pending({ code = 0, stdout = payload() })
+  waitFor(function() return session.items[session.cursor].after == 'short' end)
+  assert(vim.api.nvim_win_get_cursor(session.rightWin)[1] == 1)
+  assert(vim.api.nvim_win_get_cursor(session.rightWin)[2] <= 4)
 elseif mode == 'refresh' then
   state.valid = false
   local priorTab = vim.api.nvim_get_current_tabpage()
@@ -157,7 +259,7 @@ elseif mode == 'refresh' then
   assert(#callbacks >= 2)
   local function response(value)
     return vim.json.encode({ valid = true, sources = {
-      { path = 'elements/item.md', entries = {{ entity = 'element-declaration', identity = 'item', before = 'current\n', after = value }} },
+      { path = 'elements/item.md', before = 'current\n', after = value, entries = {{ entity = 'element-declaration', identity = 'item' }} },
     }, plans = {} })
   end
   callbacks[#callbacks]({ code = 0, stdout = response('fresh result\n') })

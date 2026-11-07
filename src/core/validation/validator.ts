@@ -22,6 +22,7 @@ import {
 export interface ChangeDeltaValidationContext {
   projectRoot?: string;
   allowAlreadyApplied?: boolean;
+  files?: ReadonlyMap<string, string>;
 }
 
 export class Validator {
@@ -40,7 +41,7 @@ export class Validator {
     const missingHeaderSpecs: string[] = [];
     const emptySectionSpecs: Array<{ path: string; sections: string[] }> = [];
 
-    for (const [entryPath, unit] of await readElementDeltaUnits(changeDir)) {
+    for (const [entryPath, unit] of await readElementDeltaUnits(changeDir, context?.files)) {
       const plan = parseDeltaSpec(unit);
       const sectionNames: string[] = [];
       if (plan.sectionPresence.added) sectionNames.push('## ADDED Sections');
@@ -105,7 +106,7 @@ export class Validator {
       });
     }
 
-    if (!context?.allowAlreadyApplied && !await carriesSemanticDelta(changeDir) && !await declaresExplicitNoDelta(changeDir)) {
+    if (!context?.allowAlreadyApplied && !(context?.files ? context.files.size > 0 : await carriesSemanticDelta(changeDir)) && !await declaresExplicitNoDelta(changeDir)) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
     }
 
@@ -220,7 +221,14 @@ async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
 }
 
 /** Section deltas live in the `elements/` partition of the change; paths locate the unit itself. */
-async function readElementDeltaUnits(changeDir: string): Promise<Array<[string, string]>> {
+async function readElementDeltaUnits(changeDir: string, files?: ReadonlyMap<string, string>): Promise<Array<[string, string]>> {
+  if (files) {
+    return [...files].flatMap(([file, content]): Array<[string, string]> => {
+      const split = splitFrontmatter(content);
+      return file.startsWith('elements/') && split.ok && readEntity(split.data) === 'element-declaration'
+        && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];
+    });
+  }
   const partition = path.join(changeDir, 'elements');
   const units: Array<[string, string]> = [];
   const visit = async (directory: string, relative: string): Promise<void> => {
