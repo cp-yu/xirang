@@ -11,147 +11,29 @@ definition: Reviewer Protocol 定义 Reviewer 角色与只读约束、commit-bou
 
 ### Section: Reviewer 角色与硬约束
 
-`xirang-reviewer` skill SHALL 将 subagent 定义为 clean-context、只读 Review Agent。它拥有实际受托范围内独立 completeness、correctness、coherence 判定权，MUST 自主读取证据、为判断引用具体文件路径和行范围、先完成完整验证再判严重性，且 MUST NOT 依赖实现对话历史或修改任何文件、任务状态、Quality JSON 与 Git history。Review opinion SHALL 绑定调用方指定的 Git commit；Required Corrections 交由主 Agent 处理。
+`xirang-reviewer` SHALL 独立检查受托质量维度内的最终已提交实现，逐项引用判断证据，不依赖实现对话或 Apply 的完成声明，不修改项目状态。生成的 Role 起始段 SHALL 使用已确认的字面指令 `The main Agent supplies changeName, absolute projectRoot and reviewKind, plus any selected quality dimensions in the delegation. Derive changeDir from projectRoot and changeName.`；随后使用已确认的字面说明 `For every reviewKind, use the baseCommit-to-HEAD diff to identify the cumulative Change and committed HEAD contents as evidence. Full-change Review assesses the entire Change. Incremental Review assesses the assigned cumulative post-Opt changes and their affected behavior. Supplemental Review assesses the repair of a pre-existing Change defect missed by full-change Review and its impact.`。Reviewer 可使用主 Agent 可用的工具，包括用户提供的检索工具，但工具能力不构成写入授权。Reviewer 不执行 Propose 已由 CLI 完成的 Expected Semantic Model 结构合法性复检；实现与已确认设计冲突时 SHALL 报 CRITICAL，不因代码注释解释偏离而降级。
 
 ### Section: Reviewer 输入合约
 
-`xirang-reviewer` skill SHALL 要求顶层 Agent 传入 `changeName`、`changeDir`、`projectRoot`、审查范围与被审查 Git commit identity。Reviewer SHALL 只针对该 commit 和实际范围形成 opinion；不得将 `git diff` hunks 或未提交工作区内容作为该 commit 的实现证据。缺失或无法读取指定 commit 时 SHALL fail closed。Reviewer 可读取同一新 Quality JSON 中已有意见作为上下文，但历史 PASS 不能代替本次读取与判断；不得读取旧 snapshot/log/evidence 并将其当作新协议依据。
-
-- **定位信息完整**：收到 changeName、changeDir、projectRoot、scope 与 commit 后，Reviewer 自行读取必要的 Change、Semantic Model 和 commit 内容。
-- **缺少 commit identity**：Reviewer SHALL 返回证据缺口，不猜测 HEAD 或 branch ref。
-- **意见与 commit 绑定**：输出 commit identity 必须与调用方指定值相同；后续提交不得重绑该 Review。
+主 Agent SHALL 提供 `changeName`、实际 checkout 的绝对 `projectRoot`、`reviewKind` 与受托质量维度；不传 `reviewId`、单独的 `changeDir` 或目标 commit。Reviewer 从 HEAD 确定目标 commit，从隔离元数据取得 `baseCommit`，用两棵提交树的累计差异导航，以已提交 HEAD 内容作为实现证据。无效位置、无效 `reviewKind`、缺失/无效基线或 HEAD、`full-change` 委派仅覆盖部分 Change 时 SHALL 停止并报告委派错误，不提交 FAIL opinion；一个质量维度内覆盖整个 Change 的 `full-change` 委派有效。审查开始与结束的 HEAD 不同也 SHALL 停止并报告，由主 Agent 对新 HEAD 重新委派。
 
 ### Section: 6 步验证协议
 
-`xirang-reviewer` skill SHALL 为基线 Review 的每个 delta Section，以及增量/基线缺陷修复 Review 实际委托范围内的语义与受影响行为 定义并强制执行 6 步客观验证循环：Locate（识别候选文件）、Read（检查最终磁盘内容）、Analyze（对比 Section 语义与其可观察行为）、Cite（记录文件路径与行范围）、Judge（分配 PASS/WARNING/CRITICAL）、Explain（准确说明缺失、偏离或不确定内容）。覆盖按可观察行为与可信证据判断，不按 Acceptance Case 与测试文件 1:1 映射。
-
-- **需求被实现证据清晰满足**
-
-  - finalFileContents 中某文件清晰实现了 Section 语义
-  - 关联 Acceptance Case 所具体化的可观察行为均有可信证据
-  - reviewer SHALL 分配 PASS
-  - SHALL 引用文件路径和行范围作为证据
-  - SHALL NOT 仅因缺少与 Acceptance Case 同名的独立测试文件而拒绝 PASS
-
-- **搜索后未找到可信证据**
-
-  - 经过对 scope 内候选文件的彻底 Read
-  - 未找到 Section 语义的可信实现证据
-  - reviewer SHALL 分配 CRITICAL
-  - SHALL 说明搜索过程和为何判定为缺失
+Reviewer SHALL 对 `full-change` 中每个 Delta Section、`incremental` 与 `supplemental` 中受托语义和受影响行为执行 Locate → Read → Analyze → Cite → Judge → Explain。`full-change` 的质量维度可分工，但每个受托维度均覆盖完整累计 Change。Reviewer SHALL 依累计差异、Semantic Model 关系、仓库搜索和 Section 关键词主动发现关联的实现与测试文件，在正面或负面判断前读取每个相关文件，包括未修改的调用方；不要求遍历全仓库所有文件。PASS 需要明确的可引用的最终状态证据；文件内容判断引用文件位置，缺失性判断引用搜索与空结果，不以 diff hunk 单独证明行为。
 
 ### Section: 严重性阈值与证据标准
 
-`xirang-reviewer` skill SHALL 定义 CRITICAL、WARNING、SUGGESTION 三级严重性及其触发条件与阻塞/写回语义。Severity assignment philosophy：默认立场严格，证据薄弱时升级到 CRITICAL；举证责任在于证明完整性；不确定时升级到 CRITICAL。
-
-- **实现与 spec 矛盾**
-
-  - 实现逻辑与 spec 明确矛盾（如 spec 要求失败 3 次锁定，代码检查 2 次）
-  - reviewer SHALL 分配 CRITICAL（非 WARNING）
-  - recommendation SHALL 提供两条路径："对齐代码与 spec" 或 "更新 spec 如果实现是故意的"
-
-- **装饰性 drift 降级为 WARNING**
-
-  - spec 说 "validate input"，代码函数名是 checkInput 且行为逻辑完全一致
-  - reviewer SHALL 分配 WARNING（而非 CRITICAL）
-  - SHALL 在 summary 中注明这是装饰性差异
-
-- **实现存在于非 diff 文件中**
-
-  - Section 语义由已有代码（非当前 diff 中的文件）满足
-  - 最终文件内容确认了此行为
-  - reviewer SHALL 分配 PASS 并引用最终文件证据
-  - SHALL 在 gitDiffSummary 中注明由已有代码覆盖
-
-### Section: 降级为 WARNING 的补充条件
-
-当实现可能存在但 reviewer 缺乏验证工具（如运行时行为、外部 API 集成），或设计决策偏离已在代码注释中显式说明理由时，reviewer SHALL 判定为 WARNING 而非 CRITICAL；不确定时仍 SHALL 升级到 CRITICAL。
-
-- **设计决策偏离已注释说明理由**
-
-  - design.md 决策与代码实现不同
-  - 代码注释显式说明偏离理由
-  - reviewer SHALL 判定为 WARNING（而非 CRITICAL）
-  - SHALL 在 summary 中注明注释位置
-
-- **缺乏验证工具时降级为 WARNING**
-
-  - 实现可能存在但 reviewer 缺乏验证工具（如运行时行为、外部 API 集成）
-  - reviewer SHALL 判定为 WARNING（而非 CRITICAL）
-  - SHALL 在 summary 中注明证据缺口
+Reviewer SHALL 以可观察行为与可信证据判断，而不以 Acceptance Case 与测试文件一一对应。要求的行为没有可信证据时意见为 FAIL；可测试却没有对应测试、或显然的行为突变仍能通过声称覆盖它的测试时，报告 CRITICAL。行为已有可信证据但是否需要持久测试不能确定时，在 `findings` 中报告 WARNING，允许意见为 PASS，并交主 Agent 和用户判断是否补测试。实现与目标行为矛盾、设计决定被违背或存在未由 goal、Delta Section、design 决定覆盖的 Change 行为改动时报告 CRITICAL。Reviewer SHALL 判断测试能否发现行为回归，而不以测试通过本身或目标复选框代替充分证据。
 
 ### Section: 三个验证维度
 
-`xirang-reviewer` skill SHALL 覆盖四个验证维度及可选的对齐检查，并按目标的验证方向分派判定模式：存在性判定针对目标声明的行为或结果，缺失性判定针对验证删除的目标，等价性判定针对行为保持目标。存在性判定 SHALL 接受一条测试覆盖多个 Acceptance Case、以及 Change 明确分类的 one-time evidence；SHALL NOT 把缺少 1:1 测试文件本身升级为 CRITICAL。
+`xirang-reviewer` SHALL 依据受托工作检查 Completeness、Correctness、Coherence、Cleanliness 与最终项目状态对适用 Expected Semantic Model 语义的落实。`full-change` 检查所有目标级 goal 和 Required Correction；`incremental` 与 `supplemental` 检查受托工作影响的目标、修正与语义。仅有 tasks、没有 Delta Contracts 和 design 的 Change，完整 Review 检查目标完成情况并解释其他维度为何不适用。
 
-- **仅有 tasks.md 的变更**
-
-  - 变更仅有 tasks.md 无 delta contracts 无 design.md
-  - reviewer SHALL 仅验证目标完成度
-  - SHALL 跳过正确性、一致性、清洁性和对齐检查并注明
-
-- **Correctness 按行为证据判定覆盖**
-
-  - delta contract 中某 Section 包含 Acceptance Case
-  - 代码、测试或目标声明的 one-time evidence 能证明这些 Acceptance Case 具体化的可观察行为
-  - reviewer SHALL 判定该 Section 覆盖充分
-  - SHALL NOT 因没有与每个 Acceptance Case 一一对应的测试文件而判定 CRITICAL "Acceptance Case not covered"
-
-- **行为无证据或弱断言升级为 CRITICAL**
-
-  - 某 required behavior 没有可信实现或验证证据
-- **OR** 声称覆盖该行为的测试在翻转关键比较或删除关键赋值后仍会通过
-- **THEN** reviewer SHALL 判定为 CRITICAL
-- **AND** recommendation SHALL 要求补强行为证据，而不是补锁词测试
-
-- **正式模型原文锁词升级为 CRITICAL**
-
-  - 本次变更新增测试读取正式 `.xirang/model/` 并断言 Section 或 Acceptance Case 原文
-  - reviewer SHALL 判定为 CRITICAL
-  - recommendation SHALL 要求改为验证项目代码行为或 CLI fixture
-
-- **缺失性判定要求多角度搜索后引用证据**
-
-  - 某目标验证声明的删除是否完成
-  - reviewer SHALL 对该交付物执行缺失性判定：搜索符号名、文件路径与 import 引用
-  - 判定 PASS 时 SHALL 引用搜索命令与空结果作为证据
-  - 发现任何残留引用时 SHALL 判定为 CRITICAL 并引用残留位置
-
-- **目标声明的删除与 git diff 逐项核对**
-
-  - 某目标验证声明删除文件或行为
-  - reviewer SHALL 在 `git diff <baseCommit>...HEAD` 与 `git status --short` scope 及最终仓库内容中确认该删除已完成
-  - 声明的删除未完成时 SHALL 判定为 CRITICAL
-
-- **完整制品的变更**
-
-  - 变更包含所有制品（proposal、specs、design、tasks）
-  - reviewer SHALL 验证所有四个维度 + Xirang 对齐
-
-- **Coherence 维度升级设计违背为 CRITICAL**
-
-  - design.md 说"用 Redis 缓存"
-  - 代码使用了 Map
-  - 代码中无注释说明理由
-  - reviewer SHALL 判定为 CRITICAL "Design decision violated"
-  - recommendation SHALL 要求对齐设计或更新 design.md
-
-- **等价性判定不接受仅测试证据**
-
-  - 某行为保持目标的关联测试全部通过
-  - 该目标验证方向点名的旧形态在最终代码中仍然存在
-  - reviewer SHALL 判定为 CRITICAL（新旧实现并存即半迁移）
-  - SHALL NOT 仅凭测试通过判定该目标完成
-
-优化工作 SHALL 结合委托、实际报告和代码判断归属，允许当前 Change 目标所需新增/删除/移动文件和多层依赖上的公共辅助函数；不只因实现文件未在目标级 tasks 中预列或超过一层依赖而判 CRITICAL。公共函数检查其他调用方，另一套无关查询系统重构仍超出授权。增量或基线缺陷修复 Review SHALL 仅报告实际检查范围，不声称未检查部分已被重新审查。
+Correctness SHALL 比较目标行为、边界和可观察结果与最终实现、测试及其他可信证据；一项测试可覆盖多个 Acceptance Case，明确归为一次性验证的证据仍有效。需要删除时搜索符号、路径及引用，以搜索命令和空结果支持不存在判断；发现残留为 CRITICAL。行为保持目标 SHALL 检查相关测试能否发现行为回归，并在需要替换旧形态时核对旧形态已消失；新旧实现违背目标而并存是 CRITICAL。Coherence SHALL 检查 `design.md` 的决策与实现一致。Cleanliness SHALL 依本次受托工作及其影响检查必要清理。对齐检查 SHALL 将最终项目状态与 Contracts、Declarations、Relationships、Metamodel、Views 中适用的 Expected Semantic Model 语义对照，不重做层级循环等确定性结构校验。
 
 ### Section: 结构化输出合约
 
-`xirang-reviewer` skill SHALL 定义单个结构化 JSON opinion，至少包含 `commit`、`scope`、`result`（`PASS`、`PASS_WITH_WARNINGS` 或 `FAIL_NEEDS_CORRECTIONS`）、`issues`、`summary` 与 `evidenceFiles`。`issues` SHALL 具体描述证据、偏离或 Required Corrections；可选 `gitDiffSummary` 只作上下文，不替代最终内容证据。输出 SHALL NOT 包含 `writeBackPlan`、task checkbox 修改指令或要求 Reviewer 编辑 `tasks.md` 的字段。CLI 负责在保存时验证 commit identity 并追加到 Quality JSON；主 Agent 决定如何处理 opinion。
-
-- **Opinion 结构完整**：Reviewer 完成验证后返回符合该 JSON schema 的单个对象，不添加对话前言。
-- **没有阻塞问题**：result 为 PASS 或 PASS_WITH_WARNINGS，opinion 仍绑定实际 commit 与审查范围。
-- **发现阻塞问题**：result 为 FAIL_NEEDS_CORRECTIONS，并返回足以让主 Agent 修正的 findings；Reviewer 不直接写入任务文件。
+有效审查 SHALL 返回一条符合生成的 Review opinion schema 的 JSON 对象，仅含 `reviewKind`、实际审查的 `commit`、`result`（`PASS` 或 `FAIL`）、`summary` 字符串和 `findings` 字符串数组；模型对齐结论使用自然语言字段，不新增 `xirangAlignment`、`evidenceFiles` 或 `reviewId`。生成的 Output Contract SHALL 使用已确认的字面指令 `Return one JSON object matching the generated Review opinion schema below. Bind the opinion to the commit actually inspected and report any changes observed during assessment.`，在 schema 后说明 `Use result=PASS only when evidence supports the assigned work; otherwise use FAIL and state concrete findings.`；不重复其他章节已有的只读、引用与编排规则。只有受托工作有充分证据才可 PASS；否则 FAIL 并说明具体问题。输入或审查快照失效时向主 Agent 报告错误，不伪造有效意见或写入 Quality。
 
 ### Section: 跨工具 skill 路径兼容
 

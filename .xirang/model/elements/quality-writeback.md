@@ -19,7 +19,7 @@ Review opinion SHALL 保留结构化 findings 与 Required Corrections，供主 
 
 ### Section: 状态快照持久化
 
-每个 Change SHALL 只使用 `.xirang/changes/<change>/.quality.json` 作为 Quality 的持久记录。文件 SHALL 含 `schemaVersion: 3`、Change identity、单调递增的 `revision`、Review opinions、Opt disposition/opinions 和当前 Seal。CLI SHALL 在同目录使用 Node.js `path` API 定位文件，以临时文件加原子 rename 写入，并用 expected revision 执行 compare-and-swap；版本冲突拒绝写入且保留原文件。该文件名 SHALL 不匹配现有旧 runtime 忽略规则。
+每个 Change SHALL 只使用 `.xirang/changes/<change>/.quality.json` 作为 Quality 持久记录。新记录包含 `schemaVersion: 4`、Change identity、单调递增的 `revision`、含 `reviewKind` 而不含 `reviewId`/`scope` 的 Review opinions、Opt disposition/opinions 及当前 Seal。CLI SHALL 使用 Node.js `path` API 定位同目录文件，以临时文件与原子 rename 写入，按 expected revision 执行 CAS；版本冲突拒绝写入且保留原文件。原有 v3 文件遇到不兼容时保留字节并返回明确诊断，不转换为 v4。
 
 ### Section: append-only 历史日志
 

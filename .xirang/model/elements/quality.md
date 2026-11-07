@@ -11,7 +11,7 @@ definition: Quality 是 Change Implementation 中以 commit 绑定的 Review 意
 
 ### Section: Review 通过后建立 Baseline
 
-Quality SHALL 要求每个 Change 在可 Seal 前至少具有一条通过的独立基线 Review。Review opinion SHALL 绑定已提交且在审查期间保持不变的 Git commit；失败 Review 的修正 SHALL 形成不同的 Git commit，并在该 commit 上重新 Review，直至基线 Review 通过。通过的基线 Review 是 Opt 与 Seal 的必要前置条件；Quality 不为该 commit 创建或保存代码恢复状态。
+Quality SHALL 在 Opt 或 Seal 前要求至少一条通过的 `full-change` Review。Review opinion 绑定已提交且在审查期间 HEAD 不变的 Git commit；完整 Review 失败后的修正形成不同 Git commit 并重新审查。通过的完整 Review 是后续 Opt 的基线，不证明 Opt 以后的改动经过独立审查；Quality 不为 commit 保存代码恢复状态。
 
 ### Section: 成功优化推进 Checkpoint
 
@@ -43,7 +43,7 @@ Quality SHALL 仅在基线 Review 已通过、Seal 前已有明确 Opt 处置、
 
 ### Section: 按阶段与证据缺口推进
 
-Quality SHALL 按基线 Review、主 Agent 决定的可选 Opt、Opt 处置和 Seal 顺序推进。Review findings 与 Required Corrections 交由主 Agent 判断和处理；Quality SHALL NOT 自动修改 `tasks.md`。没有 Seal 时不得进入 Change Closure；Opt 后是否追加 Review 由主 Agent 按实际风险决定，不由 CLI 推断或要求。
+Quality SHALL 按 `full-change` Review、主 Agent 决定的可选 Opt、Opt 处置与 Seal 顺序推进。Review findings、WARNING 和 Required Corrections 由主 Agent 判断和处理；Quality 不自动修改 `tasks.md`。Opt 后 `incremental` Review 由主 Agent 按风险决定；发现并修复完整 Review 漏掉的原有 Change 缺陷后必须执行 `supplemental` Review。没有有效 Seal 不得进入 Change Closure。
 
 ### Section: 单一 Quality Record 承载意见与 Seal
 

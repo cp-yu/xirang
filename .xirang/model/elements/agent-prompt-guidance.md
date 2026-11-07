@@ -15,7 +15,7 @@ Optimization 启用且用户未明确拒绝时，提示词 SHALL 委托 Opt 进�
 
 ### Section: 共享 quality gate 指引片段
 
-系统 SHALL 从同一实现协议源向 Apply/Archive 生成 Review 委托、Opt opinion/显式不做 Opt 处置、Seal、status 与 Archive commit 检查指引，提供最小合法 JSON 示例和确定性失败语义。阶段指引表达基线 Review、主 Agent 决定的可选 Opt 与 Seal；不得保留独立 test-capture、checkpoint 或 freshness ledger 协议。
+系统 SHALL 从统一实现协议源向 Apply/Archive 投影 v4 Review opinion、按 `reviewKind` 的 Reviewer 委派与主 Agent 汇总、Opt 处置、Seal、status 和 Archive commit 检查指引，示例与实际 schema 一致；不维护平行的 `reviewId`/`scope` 说明、独立测试输出存储或 freshness ledger。阶段指引包含通过的 `full-change` Review、可选 Opt、必要的后续 Review 与 Seal。
 
 ### Section: Archive 模板未收口恢复路径
 
@@ -23,7 +23,7 @@ Archive SHALL 对缺失或不可解析的 Seal commit 提供具体诊断，并�
 
 ### Section: Quality 模板 CLI 错误恢复指南
 
-提示词 SHALL 根据 CLI code、diagnostics 和 allowedNextOperations 修正输入或补齐真实 Review/Opt opinion 与 Seal commit，不伪造意见、不删除历史、不把测试失败输出改为成功。Commit identity 无效时不得猜测 HEAD 或 branch ref。新实现不读取、迁移或兼容旧 quality 格式与命令输入；旧记录保持原样且不作为新协议证据。Seal commit 存在不表示当前 HEAD 或工作区与之相同，提示词 SHALL NOT 作此声明。
+提示词 SHALL 根据 CLI code 与诊断修正输入或补齐真实 Review/Opt opinion 与 Seal commit，不伪造意见或删除历史。Reviewer 从实际 checkout 的 HEAD 确定审查 commit；CLI 写入时 commit identity 无效不得猜测另一提交替代已评估状态，应交回重新委派。v3 `.quality.json` 与更旧质量格式不迁移或重写，文件原样保留并明确报不支持；Seal commit 存在不表示当前 HEAD/工作区与之相同。
 
 ### Section: 提供可选失败诊断 reference
 
