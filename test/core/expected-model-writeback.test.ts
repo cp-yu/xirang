@@ -129,6 +129,45 @@ describe('Expected Model text writeback', () => {
     expect(await fs.readFile(source, 'utf8')).toBe(original);
   });
 
+  it.each(['```', '~~~~'])('preserves complete fenced Markdown examples through %s writeback and recompilation', async fence => {
+    const target = await expected();
+    target.sections[0].body = `Item SHALL preserve Markdown examples.\n\n${fence}markdown\n## Example heading\n### Section: Example section\n#### Acceptance Case: Example case\nExample content\n${fence}\n\nText after the fence.`;
+    target.sections[0].acceptanceCases = [{ name: 'actual-case', body: `**WHEN** saved **THEN** complete.\n\n${fence}markdown\n## ADDED Sections\n### Section: Example\n${fence}` }];
+    const result = await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect(result).toEqual({ changed: true, ignoredChanges: [] });
+    expect((await expected()).sections).toEqual(target.sections);
+  });
+
+  it('preserves unaffected entries in another source for the same Element', async () => {
+    const external = elementUnit({ identity: 'item', sections: '## MODIFIED Sections\n\n### Section: Context\n\nItem SHALL keep externally planned context.' });
+    const externalPath = path.join(path.dirname(source), 'second.md');
+    await fs.writeFile(externalPath, external);
+    const target = await expected();
+    target.declaration.definition = 'Adjusted definition.';
+    await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect((await expected()).declaration.definition).toBe('Adjusted definition.');
+    expect((await expected()).sections).toEqual(target.sections);
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+    expect(await fs.readFile(source, 'utf8')).not.toContain('### Section: Context');
+    target.sections[0].body = 'Item SHALL save locally edited behavior.';
+    await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect((await expected()).sections).toEqual(target.sections);
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+  });
+
+  it('preserves an unaffected Declaration Entry owned by another source', async () => {
+    const external = elementUnit({ identity: 'item', title: 'Planned title' }).replace('entity: element-declaration', 'operation: MODIFIED\nentity: element-declaration');
+    const externalPath = path.join(path.dirname(source), 'second.md');
+    await fs.writeFile(externalPath, external);
+    const target = await expected();
+    target.sections[0].body = 'Item SHALL save locally edited behavior.';
+    await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect((await expected()).declaration.title).toBe('Planned title');
+    expect((await expected()).sections).toEqual(target.sections);
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+    expect(await fs.readFile(source, 'utf8')).not.toMatch(/^operation:/m);
+  });
+
   it('stores Acceptance Case edits inside the host Section and treats case deletion as Section modification', async () => {
     const target = await expected();
     target.sections[0].acceptanceCases = [{ name: 'saved-case', body: '**WHEN** saved **THEN** visible.' }];

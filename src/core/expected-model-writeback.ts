@@ -125,7 +125,10 @@ export async function writebackExpectedModel(
     entity: 'element-declaration', identity, operation: base ? 'MODIFIED' : 'ADDED', target: edited.declaration,
   });
   entries.push(...sectionEntries(base?.sections ?? [], edited.sections, identity));
-  const content = serializeDelta(edited, entries);
+  const otherEntries = current.sources.filter(item => item.path !== sourcePath).flatMap(item => item.entities);
+  const localEntries = entries.filter(entry => !otherEntries.some(other => other.entity === entry.entity
+    && other.identity === entry.identity && current.delta.entries.some(existing => same(existing, entry))));
+  const content = serializeDelta(edited, localEntries);
   if (same(edited, expected)) return { changed: false, ignoredChanges };
   files.set(sourcePath, content);
   const candidate = await compileChangeDelta(root, change, { base: current.base, parsedDelta: parseSemanticDeltaFiles(files) });
@@ -134,6 +137,14 @@ export async function writebackExpectedModel(
   const taskErrors = tasks ? validateTaskStructure(tasks).issues.filter(issue => issue.severity === 'error') : [];
   if (!candidate.compiled.valid || !notation.valid || taskErrors.length) {
     fail('INVALID_TARGET', '微调后的完整 Change 校验失败。', [...candidate.compiled.diagnostics, ...notation.issues, ...taskErrors]);
+  }
+  const roundTrip = candidate.compiled.target?.elements.find(element => element.declaration.identity === identity);
+  const contentByIdentity = (element: ModelElement) => ({
+    declaration: element.declaration,
+    sections: [...element.sections].sort((left, right) => left.name.localeCompare(right.name)),
+  });
+  if (!roundTrip || !same(contentByIdentity(roundTrip), contentByIdentity(edited))) {
+    fail('INVALID_TARGET', '候选 Delta 不能完整表达提交的目标内容。', [{ code: 'TARGET_ROUNDTRIP_MISMATCH', identity }]);
   }
   const temporary = path.join(path.dirname(target), `.${path.basename(target)}.${randomUUID()}.tmp`);
   try {

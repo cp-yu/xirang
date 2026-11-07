@@ -145,9 +145,10 @@ export function parseDeltaSpec(content: string): DeltaPlan {
 function splitTopLevelSections(content: string): Record<string, string> {
   const lines = content.split('\n');
   const result: Record<string, string> = {};
+  const mask = buildCodeFenceMask(lines);
   const indices: Array<{ title: string; index: number; level: number }> = [];
   for (let i = 0; i < lines.length; i++) {
-    const m = lines[i].match(/^(##)\s+(.+)$/);
+    const m = !mask[i] && lines[i].match(/^(##)\s+(.+)$/);
     if (m) {
       indices.push({ title: m[2].trim(), index: i, level: m[1].length });
     }
@@ -173,10 +174,12 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
   if (!sectionBody) return [];
   const lines = normalizeLineEndings(sectionBody).split('\n');
   const blocks: SectionBlock[] = [];
+  const mask = buildCodeFenceMask(lines);
+  const isHeader = (index: number) => !mask[index] && /^###\s+Section:/.test(lines[index]);
   let i = 0;
   while (i < lines.length) {
     // Seek the next Section header
-    while (i < lines.length && !/^###\s+Section:/.test(lines[i])) i++;
+    while (i < lines.length && !isHeader(i)) i++;
     if (i >= lines.length) break;
     const headerLine = lines[i];
     const m = headerLine.match(SECTION_HEADER_REGEX);
@@ -184,7 +187,7 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
     const name = normalizeSectionName(m[1]);
     const buf: string[] = [headerLine];
     i++;
-    while (i < lines.length && !/^###\s+Section:/.test(lines[i]) && !/^##\s+/.test(lines[i])) {
+    while (i < lines.length && !isHeader(i) && (mask[i] || !/^##\s+/.test(lines[i]))) {
       buf.push(lines[i]);
       i++;
     }
@@ -197,7 +200,9 @@ function parseRemovedNames(sectionBody: string): string[] {
   if (!sectionBody) return [];
   const names: string[] = [];
   const lines = normalizeLineEndings(sectionBody).split('\n');
-  for (const line of lines) {
+  const mask = buildCodeFenceMask(lines);
+  for (const [index, line] of lines.entries()) {
+    if (mask[index]) continue;
     const m = line.match(SECTION_HEADER_REGEX);
     if (m) {
       names.push(normalizeSectionName(m[1]));
