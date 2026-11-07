@@ -320,13 +320,18 @@ local function refresh(session, initial)
   else vim.system(argv, { cwd = session.cwd, text = true }, callback) end
 end
 
-local function save(session)
-  local item = selected(session)
-  if not item or item.plan then return end
-  if session.saving then session.saveAgain = true; return end
-  saveTargetDraft(session)
-  local text = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n')
-  local path = item.path
+local function save(session, request)
+  if not request then
+    local item = selected(session)
+    if not item or item.plan then return end
+    saveTargetDraft(session)
+    request = { item = item, path = item.path, text = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') }
+  end
+  if session.saving then
+    session.saveQueue[#session.saveQueue + 1] = request
+    return
+  end
+  local item, path, text = request.item, request.path, request.text
   session.saving = true
   session.saveError = nil
   session.generation = session.generation + 1
@@ -342,18 +347,16 @@ local function save(session)
         session.saveError = ok and data.message or result.stderr or '保存失败'
         vim.wo[session.rightWin].statusline = ' Xirang | 保存失败'
         notify(session.saveError, vim.log.levels.ERROR)
-        session.saveAgain = false
+        if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1)) end
         return
       end
       if session.drafts[path] == text then session.drafts[path] = nil end
-      if selected(session) and selected(session).path == path then
-        -- 避免刷新把已保存文本重新当作草稿。
-        item.after = text
-      end
+      -- 避免切回源文件或刷新时把已保存文本重新当作草稿。
+      item.after = text
       local ignored = data.ignoredChanges or {}
       local message = #ignored > 0 and ('已忽略不支持的修改: ' .. table.concat(ignored, ', ')) or '已保存'
       vim.wo[session.rightWin].statusline = (' Xirang | ' .. message):gsub('%%', '%%%%')
-      if session.saveAgain then session.saveAgain = false; save(session)
+      if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1))
       else refresh(session, false) end
     end)
   end
@@ -406,7 +409,7 @@ local function open(change)
   local session = {
     change = change, cwd = cwd, tab = tab, list = list, listWin = listWin, left = left, right = right,
     leftWin = leftWin, rightWin = rightWin, buffers = { list, left, right }, watchers = {},
-    generation = 0, cursor = 1, drafts = {}, listWidth = vim.api.nvim_win_get_width(listWin), groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
+    generation = 0, cursor = 1, drafts = {}, saveQueue = {}, listWidth = vim.api.nvim_win_get_width(listWin), groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
     expanded = { elements = true, metamodel = true, relationships = true, views = true, plan = true },
   }
   sessions[tab] = session

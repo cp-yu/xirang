@@ -172,7 +172,7 @@ elseif mode == 'save-race' then
   vim.api.nvim_set_current_win(session.rightWin)
   local saves = {}
   review.setup({ cwd = root, runner = function(argv, _, callback, input)
-    if argv[2] == 'delta' then saves[#saves + 1] = { callback = callback, input = input }
+    if argv[2] == 'delta' then saves[#saves + 1] = { callback = callback, input = input, source = argv[6] }
     else callback({ code = 0, stdout = payload() }) end
   end })
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'first save' })
@@ -194,6 +194,47 @@ elseif mode == 'save-race' then
   saves[3].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
   waitFor(function() return not session.saving and not vim.bo[session.right].modified end)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'last save')
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'first before navigation' })
+  vim.cmd('write')
+  vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'queued before navigation' })
+  vim.cmd('write')
+  -- 切换文件后，已请求的保存仍须使用原源文件和原文本。
+  local switch = vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true)
+  vim.api.nvim_feedkeys(switch, 'x', false)
+  assert(session.items[session.cursor].path == 'elements/other.md')
+  saves[4].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return #saves == 5 end)
+  assert(saves[4].source == 'elements/item.md' and saves[4].input == 'first before navigation')
+  assert(saves[5].source == 'elements/item.md' and saves[5].input == 'queued before navigation')
+  state.after = saves[5].input
+  saves[5].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return not session.saving end)
+  assert(session.items[session.cursor].path == 'elements/other.md')
+  session.cursor = 2
+  review._showSelected(session)
+  waitFor(function() return table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'queued before navigation' end)
+  assert(not vim.bo[session.right].modified)
+  vim.api.nvim_set_current_win(session.rightWin)
+  for _, text in ipairs({ 'queued first', 'queued invalid', 'queued last' }) do
+    vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { text })
+    vim.cmd('write')
+  end
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'x', false)
+  assert(session.items[session.cursor].plan)
+  saves[6].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return #saves == 7 end)
+  assert(saves[7].source == 'elements/item.md' and saves[7].input == 'queued invalid')
+  saves[7].callback({ code = 1, stdout = vim.json.encode({ ok = false, message = 'invalid queued save' }) })
+  waitFor(function() return #saves == 8 end)
+  assert(saves[8].source == 'elements/item.md' and saves[8].input == 'queued last')
+  state.after = saves[8].input
+  saves[8].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  waitFor(function() return not session.saving end)
+  assert(session.items[session.cursor].plan and not vim.bo[session.right].modifiable)
+  session.cursor = 2
+  review._showSelected(session)
+  waitFor(function() return table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'queued last' end)
+  assert(not vim.bo[session.right].modified)
 elseif mode == 'context' then
   state.after = string.rep('target line\n', 100)
   launch()
