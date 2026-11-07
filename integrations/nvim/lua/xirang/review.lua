@@ -106,6 +106,7 @@ local function showDelta(session, item)
     pcall(vim.api.nvim_win_call, win, function() vim.cmd('diffoff') end)
   end
   local target = item.targetDraft or item.after
+  setBufferText(session.left, item.before)
   setBufferText(session.right, target)
   vim.bo[session.right].modifiable = true
   for _, win in ipairs({ session.leftWin, session.rightWin }) do
