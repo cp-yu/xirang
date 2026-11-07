@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "nvim-edit-expected-model",
-  "revision": 6,
+  "revision": 8,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -35,6 +35,13 @@
       "result": "PASS",
       "summary": "已独立审查 Completeness、Correctness、Coherence、Cleanliness，覆盖从 baseCommit 43572eb18a2fc398c4d7d50107f2c4d714477166 推导出的累计 Change 中全部 post-Opt 改动及其影响行为。索引优化保留跨源条目归属、过滤顺序、原对象引用与完整内容比较（src/core/expected-model-writeback.ts:123–145），符合设计决策及 RC2（.xirang/changes/nvim-edit-expected-model/design.md:30–36；tasks.md:22）。Map 单值查找的前提由当前 Change 有效性门禁及重复二元键诊断保证（src/core/expected-model-writeback.ts:91–92；src/core/model/delta.ts:183–219；src/core/change-compiler.ts:150–162）。无操作导航声明仍与实际 Delta Entry 区分，相同 identity 的不同 entity 使用独立键；外部目标变更仍返回 INVALID_TARGET/CONFLICTING_OPERATIONS，并保持原文件字节（test/core/expected-model-writeback.test.ts:141–205）。核心写回及 show 投影测试共 27 项通过；额外一次性差分验证对已提交的优化前后过滤代码运行 1000 个场景、36000 个候选条目，输出顺序及对象引用全部一致。未发现遗漏、行为偏移或清理问题；结束时 HEAD 未变化。",
       "findings": []
+    },
+    {
+      "reviewKind": "supplemental",
+      "commit": "4fe6cebccc7f0536e7c6b5eed5853c262bc6a62d",
+      "result": "PASS",
+      "summary": "已独立审查状态栏反馈缺陷修正及其影响，覆盖 Completeness、Correctness、Coherence、Cleanliness。完整读取 Change scaffolding、四分区 Delta 清单及全部两个 Delta units，并以 baseCommit 43572eb18a2fc398c4d7d50107f2c4d714477166 到 HEAD 的累积变更定位实现。新增接口在失败分支发布“保存失败”，在成功分支发布“已保存”或具体忽略字段，且维持原有通知、草稿、队列和刷新流程（integrations/nvim/lua/xirang/review.lua:323–366）；持久回归直接断言忽略项与失败 buffer 变量（integrations/nvim/tests/run.lua:125–168），与目标 Contract 要求一致（.xirang/changes/nvim-edit-expected-model/elements/neovim.md:30–58）。本机配置 b658cdd 的 lua/xirang/review.lua 与仓库提交文件 SHA-256 完全相同，lua/user/theme.lua:286–307 已消费该变量；仓库接入和同步说明明确（integrations/nvim/README.md:13–19）。独立运行全部 8 个 headless 模式通过，并以完整 init.lua、真实 <leader>qx、Ctrl-s、PATH 全局 CLI 在独立 tmux TUI 复验失败路径：lualine 重绘后的终端实际显示“保存失败”，草稿保留、左侧只读，临时项目全部 .xirang 文件哈希不变。已检查提供的真实保存驱动和终端捕获，成功及忽略项反馈有实际集成证据。补充实现仅增加状态发布、相应断言与文档，未发现本次范围内的行为倒退或未授权行为。复核结束 HEAD 未移动，两个工作树均干净。",
+      "findings": []
     }
   ],
   "opt": {
@@ -65,10 +72,10 @@
     ]
   },
   "seal": {
-    "commit": "2d58e26bc3c1787310ab67bee7df9ee98fda011f",
+    "commit": "4fe6cebccc7f0536e7c6b5eed5853c262bc6a62d",
     "canRun": true,
     "testsExpectedToPass": true,
-    "testScope": "隔离基线 43572eb18a2fc398c4d7d50107f2c4d714477166 至实现提交 2d58e26bc3c1787310ab67bee7df9ee98fda011f 的累计 Change。受影响模型/Delta/parser/compiler/validator/Show 范围回归 250 项通过；随后仅 Neovim 保存队列修正，经 8 种 headless 模式及真实 CLI 往返验证通过；最终索引优化后 49 项相关测试全部通过，包含核心写回、Delta/compiler/notation 和真实 CLI/Neovim 集成。TypeScript 无输出类型检查、变更代码 lint、LSP 诊断、累计 diff 检查及 Change validate 通过。Windows CI 已加入原生路径、替换和 Neovim 保存覆盖，但 Windows/macOS 未实机运行。",
-    "assessment": "G1–G4 及 RC1–RC3 全部完成。历史 full-change Review 两次 FAIL 的代码围栏、跨源归属和排队保存问题已修复并由新增回归覆盖；完整 Review 在 72ef9a4288464446848294018dbfa7b5910ff95b PASS，索引优化后的 incremental Review 在本提交 PASS。独立 Optimization 最终确认无待执行事项，O1 的局部收益有实际前后代码差分与比较次数证据。既有验证对当前实现仍有效，无未提交实现改动、待处理缺陷或失败优化残留；不需要再开 supplemental Review。该判断来自实际测试、独立评估和代码状态，Quality CLI 自身不执行测试。允许进入后续 Change Closure，未执行 Sync、Archive、合并或推送。"
+    "testScope": "隔离基线 43572eb18a2fc398c4d7d50107f2c4d714477166 至实现提交 2d58e26bc3c1787310ab67bee7df9ee98fda011f 的累计 Change。受影响模型/Delta/parser/compiler/validator/Show 范围回归 250 项通过；随后仅 Neovim 保存队列修正，经 8 种 headless 模式及真实 CLI 往返验证通过；最终索引优化后 49 项相关测试全部通过，包含核心写回、Delta/compiler/notation 和真实 CLI/Neovim 集成。TypeScript 无输出类型检查、变更代码 lint、LSP 诊断、累计 diff 检查及 Change validate 通过。Windows CI 已加入原生路径、替换和 Neovim 保存覆盖，但 Windows/macOS 未实机运行。 用户报告后补充真实安装面 E2E：在 tmux 完整 TUI 加载 /home/yunxin/.config/nvim/init.lua，通过 <leader>qx、Ctrl-s、Tab/S-Tab、<leader>qc 及 PATH 全局 xirang 在独立临时项目完成 14 项检查；覆盖打开双栏、Definition 与 Section 实际落盘、忽略 title 且 lualine 重绘后提示持续、无效目标原 Delta 不变、切换后失败草稿保留、Plan 只读、关闭重开、保存光标/视口保持及 Formal Model 全部文件哈希不变。E2E 驱动 /tmp/xirang-installed-e2e-driver.py、结果 /tmp/xirang-installed-e2e-results.json、终端捕获 /tmp/xirang-e2e-final-open.txt 与 /tmp/xirang-e2e-final-save.txt；补充 Reviewer 独立运行 8 种 headless 模式，并用完整个人配置真实 TUI 复验失败路径，全部通过。",
+    "assessment": "既有 full-change 与 incremental Review 及局部索引优化证据继续适用。实际安装面发现旧插件与已更新链接 CLI 不兼容，已同步本机插件；完整 TUI 发现 lualine 重绘覆盖提示，补充 buffer 状态接口和本机 lualine 消费，仓库 4fe6cebcc 与本机 Neovim b658cdd 的插件字节一致。本次 supplemental Review 绑定当前实现提交 PASS，无 findings；真实使用入口 E2E 验证完成。补充实现只发布已有结果，不改变解析、写回、队列与刷新流程，主 Agent 判断无需追加 Optimization 或再次 Review；不把该判断记为新 Optimizer/Reviewer 意见。此前 Seal 缺少真实安装面的验证，本次以补充 E2E 与独立审查更新。实现与两个工作区均无待处理问题，可进入 Change Closure，未执行 Sync、Archive、合并或推送。Quality CLI 本身不执行测试。"
   }
 }
