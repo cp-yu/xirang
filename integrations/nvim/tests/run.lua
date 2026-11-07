@@ -155,6 +155,7 @@ elseif mode == 'save' then
   assert(vim.api.nvim_win_get_width(session.listWin) == width)
   assert(session.expanded.views == false)
   assert(vim.wo[originalRight].statusline:find('identity', 1, true))
+  assert(vim.b[session.right].xirang_review_status:find('identity', 1, true))
   assert(not vim.bo[session.left].modifiable and vim.bo[session.right].modifiable)
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'invalid draft' })
   review.setup({ cwd = root, runner = function(_, _, callback)
@@ -164,6 +165,7 @@ elseif mode == 'save' then
   waitFor(function() return session.saveError ~= nil end)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'invalid draft')
   assert(vim.bo[session.right].modified)
+  assert(vim.b[session.right].xirang_review_status == '保存失败')
 elseif mode == 'save-race' then
   launch()
   local session = current()

@@ -345,6 +345,7 @@ local function save(session, request)
       local ok, data = pcall(vim.json.decode, result.stdout or '')
       if result.code ~= 0 or not ok or not data.ok then
         session.saveError = ok and data.message or result.stderr or '保存失败'
+        vim.b[session.right].xirang_review_status = '保存失败'
         vim.wo[session.rightWin].statusline = ' Xirang | 保存失败'
         notify(session.saveError, vim.log.levels.ERROR)
         if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1)) end
@@ -355,6 +356,7 @@ local function save(session, request)
       item.after = text
       local ignored = data.ignoredChanges or {}
       local message = #ignored > 0 and ('已忽略不支持的修改: ' .. table.concat(ignored, ', ')) or '已保存'
+      vim.b[session.right].xirang_review_status = message
       vim.wo[session.rightWin].statusline = (' Xirang | ' .. message):gsub('%%', '%%%%')
       if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1))
       else refresh(session, false) end

@@ -15,3 +15,5 @@ The integration watches the selected Change and `.xirang/model/`, and refreshes 
 保存成功会复用当前 tab 和 buffers，保持选中文件、焦点、光标、视口、列表分组与宽度；内容缩短时光标落在有效位置。未保存的草稿按文件保留，刷新及保存期间继续输入的内容不会被覆盖。多次成功保存以最后一次为准，无版本冲突门禁。编辑写回要求 CLI 与插件同时更新到支持此命令和源文件级投影的版本。
 
 Run the standalone headless checks from the repository root with `nvim --headless -u NONE -l integrations/nvim/tests/run.lua list|compare|refresh|close|windows-paths|save|save-race|context`.
+
+使用 lualine 等状态栏插件时，可添加组件 `function() return vim.b.xirang_review_status or '' end` 呈现保存结果，避免状态栏重绘覆盖忽略项或失败提示。更新本集成时须同步实际 Neovim 配置中的 `lua/xirang/review.lua`；使用全局链接的 CLI 时，仅构建 CLI 不会更新该文件。
