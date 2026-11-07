@@ -11,7 +11,7 @@ definition: Quality CLI Gate 是 Quality 的确定性接口与门禁，负责在
 
 ### Section: Review 记录入口
 
-`xirang quality review <change-name>` SHALL 接受一条完整 Review opinion 并追加至 Change 的 Quality JSON，至少关联 scope、Git commit、result、summary 与 findings。CLI SHALL 验证 payload 结构、Review identity 唯一性及 commit 对象存在；Review 结果只对所关联 commit 和范围成立。基线 Review 只有 PASS 或 PASS_WITH_WARNINGS 可满足门槛。FAIL_NEEDS_CORRECTIONS 在后续不同 commit 上取得通过的 Review 前不得满足门槛。CLI 不解析 findings 的自然语言充分性，不回写 `tasks.md`。
+`xirang quality review <change-name>` SHALL 以 CAS revision 接受一条符合 v4 schema 的完整 Review opinion，并追加至该 Change 的 `.quality.json`：`reviewKind` 仅为 `full-change`、`incremental` 或 `supplemental`，还包含真实存在的 Git `commit`、`result`（`PASS` 或 `FAIL`）、非空 `summary` 和 `findings`；不包含 `reviewId` 或 `scope`，CLI 不要求或保存 Review identity，不因重复 `reviewId` 拒绝。结果只适用于该 commit 与该类别实际审查的工作。失败的同类 Review 只有在不同的修正 commit 上取得 PASS 才满足其门禁；无效委派与输入错误不保存为 FAIL。CLI 不解释 findings 的充分性、不修改任务或代替主 Agent 合并质量维度意见。
 
 ### Section: Optimization 记录入口
 
@@ -19,11 +19,11 @@ definition: Quality CLI Gate 是 Quality 的确定性接口与门禁，负责在
 
 ### Section: Seal 校验
 
-`xirang quality seal` SHALL 要求至少一条通过的独立基线 Review、没有未解决的 Review failure、明确的 Opt 处置，以及 Seal payload。Seal SHALL 绑定一个 Git commit，并包含主 Agent 对该 commit 的 `canRun` 与 `testsExpectedToPass` 正向声明、适用测试范围和 assessment。CLI 验证 commit 对象存在并记录声明；不执行测试、不定义客观测试成功、不保存测试输出、不要求工作区 clean、不要求 commit 等于 HEAD 或与当前工作区匹配，也不要求在 Seal 或 Archive 前单独提交 Quality JSON。后续工作区或 HEAD 变化不单独使 Seal 失效。
+`xirang quality seal` SHALL 要求通过的最新 `full-change` Review、每类已执行 Review 的最新结果均无未解决的 FAIL、明确的 Opt 处置与主 Agent 的 Seal 声明。Seal 仍绑定存在的 Git commit 和 `canRun`、`testsExpectedToPass`、`testScope`、`assessment`；CLI 不执行测试、不保存输出、不比较 HEAD/工作区、不要求 Quality JSON 单独提交，也不从其他类别的 PASS 推定同类失败已解决。
 
 ### Section: Status 输出语义
 
-`quality status` SHALL 只读解析新 Quality JSON，报告基线 Review、失败 Review 是否已有不同 commit 上的通过复审、Opt disposition、Seal 与可执行的下一步。没有通过基线 Review 时状态为 `needs_review`；基线通过但缺 Opt 处置或 Seal 时为 `needs_optimize`；Seal 及其 commit 有效且流程门槛成立时为 `all_done`。Status SHALL NOT 计算代码 manifest、比较 HEAD/工作区或因代码变化标记 dirty；无 JSON 时报告缺失，不从旧记录推断状态。
+`quality status` SHALL 只读解析 v4 Quality JSON，按 `reviewKind` 报告通过的完整 Review、同类失败是否已由不同 commit 上的通过意见解决、Opt 处置与 Seal。缺少通过的 `full-change` 或存在未解决失败时为 `needs_review`；通过完整 Review 但缺少 Opt 处置或 Seal 时为 `needs_optimize`；所有门禁通过且 Seal commit 有效时为 `all_done`。Status 不比较 HEAD/工作区；缺少记录时报告缺失，v3 或更旧格式不当作新意见。
 
 ### Section: 统一输出与诊断结构
 
@@ -33,14 +33,10 @@ definition: Quality CLI Gate 是 Quality 的确定性接口与门禁，负责在
 
 系统 SHALL 从实现使用的同一批协议常量和字段定义生成 Quality help 及 Apply/Archive references，覆盖 Review opinion、Opt disposition、Seal、commit 关联、最小合法 JSON 示例、CAS revision 和失败诊断。不维护平行手写 schema 或旧方向指令；CLI 只校验 JSON 结构、Git commit identity、声明的流程条件及关联，不运行测试或评分自然语言充分性。
 
-### Section: 记录实际测试证据
-
-CLI SHALL 在测试执行时关联代码状态和实际结果，记录非零退出、运行中状态变化及证据不新鲜的事实，不能用报告时状态接受旧通过结果。测试输出和引用须可供主 Agent 检查。过期/失败记录可保存，但不能满足最终成功条件。
-
 ### Section: 记录主 Agent 最终结论
 
-CLI SHALL 接受主 Agent 对累计交付的最终验证范围与理由，区分所需测试、增量 Review、基线缺陷修复 Review 和无需追加 Review 的判断。记录最终结论时检查必需结果和当前状态关联；主 Agent 对未受影响的原成功证据可明确记录适用范围、所依据实际差异与理由，单独关联当前状态并保留原运行状态，不把它记为新测试或 Reviewer PASS。失败、缺失或已确认受影响却未补齐的验证不得通过此关联绕过。允许多委托共享最终验证，不强制每次交付新 Review 或全量测试。CLI 不判断范围选择或自然语言依据是否充分。
+CLI SHALL 接受主 Agent 对最终验证范围的 Seal 声明，记录该声明与实际必需 Review 的 `reviewKind` 和 commit 关联。主 Agent 可认为未受后续改动影响的原测试证据仍适用，但不能将其冒充新测试或 Reviewer PASS；失败、缺失或已确认受影响却未验证的证据不能支撑正向 Seal 声明。CLI 不决定风险范围，不存储或评分测试输出与自然语言依据。
 
 ### Section: 拒绝退役协议
 
-新实现 SHALL 只读取新单一 JSON schema，不读取、迁移、重写或兼容旧 snapshot、event log、evidence 文件或旧质量命令 payload。发现旧输入时 SHALL 给出明确的不支持诊断；不得将其转换为 Review、Opt 或 Seal。既有忽略规则、本地旧记录与历史归档保持原样，Quality CLI 不清理这些文件。
+Quality JSON SHALL 使用 `schemaVersion: 4`。旧 `schemaVersion: 3` 的 `.quality.json` 以及更旧的 snapshot、event log 与 evidence 格式均不作为有效 v4 意见，不自动读取为通过结果、迁移、重写或删除；CLI 给出明确格式不支持诊断并保留原文件，由用户决定受影响活动 Change 如何继续。既有忽略规则和历史归档保持原样。

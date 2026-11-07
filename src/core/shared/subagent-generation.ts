@@ -30,13 +30,19 @@ export const INTERNAL_SUBAGENT_TEMPLATES: readonly SubagentTemplate[] = [
 ] as const;
 
 const DEFAULT_TOOLS = ['read', 'grep', 'find', 'bash'] as const;
-const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
+const PI_BACKGROUND_DESCRIPTION_SUBAGENTS = new Set([
   'xirang-reviewer',
+]);
+const PI_FOREGROUND_DESCRIPTION_SUBAGENTS = new Set([
   'xirang-optimizer',
 ]);
+const PI_BACKGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run in the background so environment extensions are available and wait for the complete result before consolidating.';
 const PI_FOREGROUND_DESCRIPTION_SUFFIX = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 
 function piDescription(template: SubagentTemplate): string {
+  if (PI_BACKGROUND_DESCRIPTION_SUBAGENTS.has(template.name)) {
+    return `${template.description}${PI_BACKGROUND_DESCRIPTION_SUFFIX}`;
+  }
   return PI_FOREGROUND_DESCRIPTION_SUBAGENTS.has(template.name)
     ? `${template.description}${PI_FOREGROUND_DESCRIPTION_SUFFIX}`
     : template.description;
@@ -96,7 +102,7 @@ function renderClaudeMarkdown(template: SubagentTemplate): string {
     [
       `name: ${template.name}`,
       `description: ${escapeYamlString(template.description)}`,
-      `tools: ${escapeYamlString(toClaudeTools(template))}`,
+      ...(template.tools ? [`tools: ${escapeYamlString(toClaudeTools(template))}`] : []),
       ...(template.model && template.model !== 'inherit'
         ? [`model: ${escapeYamlString(template.model)}`]
         : []),
@@ -111,7 +117,7 @@ function renderPiMarkdown(template: SubagentTemplate): string {
     [
       `name: ${template.name}`,
       `description: ${escapeYamlString(piDescription(template))}`,
-      `tools: ${escapeYamlString(toolList(template).join(', '))}`,
+      ...(template.tools ? [`tools: ${escapeYamlString(toolList(template).join(', '))}`] : []),
       ...(template.model && template.model !== 'inherit'
         ? [`model: ${escapeYamlString(template.model)}`]
         : []),
@@ -130,7 +136,7 @@ function renderOpenCodeMarkdown(template: SubagentTemplate): string {
         ? [`model: ${escapeYamlString(template.model)}`]
         : []),
       'permission:',
-      `  edit: ${toolList(template).some(tool => tool === 'write' || tool === 'edit') ? 'allow' : 'deny'}`,
+      `  edit: ${template.name === 'xirang-reviewer' || toolList(template).some(tool => tool === 'write' || tool === 'edit') ? 'allow' : 'deny'}`,
       '  bash: ask',
       '',
     ].join('\n'),

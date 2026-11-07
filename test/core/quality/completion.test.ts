@@ -31,7 +31,7 @@ describe('quality status projection', () => {
 
   it('projects Review, Opt and Seal gaps without manifest freshness comparison', async () => {
     expect((await readQualityCompletion(changeDir, root)).status).toBe('needs_review');
-    const review = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewId: 'REV-1', scope: 'baseline', commit,
+    const review = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
       result: 'PASS', summary: 'Baseline passes.', findings: [] });
     expect((await readQualityCompletion(changeDir, root)).status).toBe('needs_optimize');
     const opt = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: review.revision, disposition: 'not_performed', reason: 'No Opt is needed.' });

@@ -1,101 +1,26 @@
 import { describe, expect, it } from 'vitest';
 
+import { generateSubagentContent } from '../../src/core/shared/subagent-generation.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
-const instructions = getReviewerSubagentTemplate().prompt;
-
-type Severity = 'CRITICAL' | 'WARNING' | 'SUGGESTION';
-
-interface ReviewerAcceptanceCase {
-  completedTask: string;
-  finalFileEvidence: string;
-  specExpectation?: string;
-  designDecision?: string;
-}
-
-function simulateReviewerSeverity(acceptanceCase: ReviewerAcceptanceCase): {
-  severity: Severity;
-  summary: string;
-} {
-  if (
-    acceptanceCase.completedTask.includes('refactor') &&
-    acceptanceCase.finalFileEvidence.includes('export function oldApi')
-  ) {
-    return { severity: 'CRITICAL', summary: 'Dead code not removed' };
-  }
-
-  if (
-    acceptanceCase.specExpectation &&
-    !acceptanceCase.finalFileEvidence.includes(acceptanceCase.specExpectation)
-  ) {
-    return { severity: 'CRITICAL', summary: 'AcceptanceCase not covered' };
-  }
-
-  if (
-    acceptanceCase.designDecision &&
-    !acceptanceCase.finalFileEvidence.includes(acceptanceCase.designDecision) &&
-    !acceptanceCase.finalFileEvidence.includes('design deviation:')
-  ) {
-    return { severity: 'CRITICAL', summary: 'Design decision violated' };
-  }
-
-  if (acceptanceCase.finalFileEvidence.includes('TODO: remove after migration')) {
-    return { severity: 'CRITICAL', summary: 'Stale TODO for completed work' };
-  }
-
-  return { severity: 'WARNING', summary: 'Cosmetic drift only' };
-}
+const reviewer = generateSubagentContent(getReviewerSubagentTemplate(), 'pi', 'TEST');
 
 describe('reviewer strictness integration contract', () => {
-  it('blocks orphaned code left after refactor', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'refactor oldApi to newApi',
-      finalFileEvidence: 'export function oldApi() {}\nexport function newApi() {}',
-    });
-
-    expect(result).toEqual({ severity: 'CRITICAL', summary: 'Dead code not removed' });
+  it('judges evidence by observable behavior rather than one test per acceptance case', () => {
+    expect(reviewer).toContain('Judge evidence by observable behavior, not by one test per Acceptance Case');
+    expect(reviewer).toContain('One test may cover multiple cases, and explicitly classified one-time evidence is valid');
+    expect(reviewer).toContain('Missing credible evidence for required behavior is CRITICAL');
   });
 
-  it('blocks uncovered acceptanceCases', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'implement retry lockout acceptanceCase',
-      specExpectation: 'lock after three failures',
-      finalFileEvidence: 'if (failures >= 2) lock();',
-    });
-
-    expect(result).toEqual({ severity: 'CRITICAL', summary: 'AcceptanceCase not covered' });
+  it('treats a violated design decision as critical even when a code comment explains the deviation', () => {
+    expect(reviewer).toContain('A design decision violated by implementation is CRITICAL, even if a code comment explains the deviation');
   });
 
-  it('blocks unexplained design violations', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'implement cache design',
-      designDecision: 'Redis cache',
-      finalFileEvidence: 'const cache = new Map<string, string>();',
-    });
-
-    expect(result).toEqual({ severity: 'CRITICAL', summary: 'Design decision violated' });
+  it('does not treat TODO markers alone as findings', () => {
+    expect(reviewer).toContain('TODO/FIXME/HACK comments alone are not findings');
   });
 
-  it('downgrades cosmetic drift', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'validate input',
-      specExpectation: 'input.trim()',
-      finalFileEvidence: 'function checkInput(input: string) { return input.trim(); }',
-    });
-
-    expect(result).toEqual({ severity: 'WARNING', summary: 'Cosmetic drift only' });
-    expect(instructions).toContain('cosmetic and does not affect observable behavior');
-  });
-
-  it('blocks stale TODO markers for completed work', () => {
-    const result = simulateReviewerSeverity({
-      completedTask: 'complete migration',
-      finalFileEvidence: 'TODO: remove after migration\nexport const migrated = true;',
-    });
-
-    expect(result).toEqual({
-      severity: 'CRITICAL',
-      summary: 'Stale TODO for completed work',
-    });
+  it('retains applicable cleanliness and unauthorized-behavior checks', () => {
+    expect(reviewer).toContain('Preserve applicable cleanliness and unauthorized-behavior checks');
   });
 });

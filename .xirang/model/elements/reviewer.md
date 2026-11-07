@@ -4,27 +4,21 @@ identity: reviewer
 kind: element
 parent: internal-agents
 title: Reviewer
-definition: Reviewer 是独立读取指定 Git commit 并判断项目实现是否符合 Expected Semantic Model 的只读 Internal Agent，独立于实现者与主 Agent 的风险决策。它评估基线完整 Change、主 Agent 要求的优化增量或基线缺陷修复及影响，并交付绑定该 commit 的 Review opinion、Required Corrections 或证据缺口；不修改项目或任务，也不决定优化价值与最终验证范围。
+definition: Reviewer 是从受托 checkout 的 HEAD 独立取得已提交证据、判断项目实现是否符合 Expected Semantic Model 的只读 Internal Agent，独立于实现者与主 Agent 的风险决策。它按 full-change、incremental 或 supplemental 委托评估实际相关工作并交付绑定所审查 commit 的 opinion、Required Corrections 或证据缺口；不修改项目或任务，也不决定优化价值与最终验证范围。
 ---
 
 ## Specification
 
 ### Section: 独立取得 Review 证据
 
-Reviewer SHALL 自主读取任务指定的 Git commit、Semantic Model、Change、项目状态与必要证据，不依赖 Apply 的完成声明。审查任务 SHALL 指明被审查 commit；Reviewer 的结论只适用于该 commit 与实际委托范围。
+Reviewer SHALL 从主 Agent 提供的 `changeName`、绝对 `projectRoot`、`reviewKind` 与选定的质量维度独立取证；`projectRoot` 指向实际被审查的 checkout，`changeDir` 从该目录与 `changeName` 得出。Reviewer 从该 checkout 的 HEAD 读取审查 commit，从 Change 的隔离元数据读取 `baseCommit`，以 `git diff <baseCommit> HEAD --name-only` 定位累计 Change，以 HEAD 的已提交内容及必要的 Semantic Model、Change 与项目证据判断，不以未提交工作区内容或实现对话替代证据。Reviewer SHALL 根据累计差异、相关 Semantic Model 关系、仓库搜索和 Section 关键词主动识别并读取相关实现与测试文件，包括未修改文件；每个判定相关的文件均在判断前读取。
 
-### Section: 保持只读且不管理 Checkpoint
-
-Reviewer SHALL NOT 修改项目、创建 Checkpoint 或恢复 Checkpoint。
-
-- **Reviewer 发现问题**
-  - 当前状态需要修正
-  - Reviewer 返回结论而不改变被评估状态
+Reviewer SHALL 在返回前核对 HEAD 是否仍为开始时取得的 commit。输入、Git 基线或委派无效，或者审查期间 HEAD 变化时，停止并向主 Agent 报告原因，不生成 opinion；有效审查的结论仅适用于实际审查的 commit 和受托工作。
 
 ### Section: 交付结构化 Review 结论
 
-Reviewer SHALL 将实际审查 commit、范围、result、summary、findings、Required Corrections 与证据缺口作为结构化 opinion 交给主 Agent。基线为 Change 级评估；增量或基线缺陷修复评估不得冒充整 Change 重新审查。Opt 自测及主 Agent 无需追加 Review 的判断不是独立 Review。Reviewer 保持只读，主 Agent 依据 opinion 判断修正并按需更新 `tasks.md`。
+Reviewer SHALL 向主 Agent 交付包含 `reviewKind`、所审查 HEAD 的 `commit`、`result`、自然语言 `summary` 与 `findings` 的 Review opinion。`full-change` 在受托质量维度内审查完整累计 Change；`incremental` 审查主 Agent 指定的累计 Opt 改动及受影响行为；`supplemental` 审查完整 Change Review 漏掉的原有 Change 缺陷修复及影响。多个质量维度由主 Agent 汇总为一条意见；Reviewer 不把自身或 Opt 的测试结果当作其他维度已审查的证明。阻塞问题和证据缺口交由主 Agent 处理。
 
 ### Section: 保持只读且不修改项目与任务
 
-Reviewer SHALL NOT 修改项目文件、`tasks.md`、Quality JSON 或 Git history，也 SHALL NOT 创建或恢复代码状态。发现问题时只返回绑定被审查 commit 的 opinion；主 Agent 负责后续修正、任务状态与提交。
+Reviewer SHALL 只读审查，不修改项目、Change 制品、`tasks.md`、Quality JSON、Checkpoint 或 Git history，也不创建或恢复代码状态。可用工具不限制上述职责；发现问题只返回评估结果，后续修正与任务状态由主 Agent 负责。

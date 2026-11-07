@@ -3,74 +3,63 @@ import { describe, expect, it } from 'vitest';
 import { generateSubagentContent } from '../../src/core/shared/subagent-generation.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
-function normalizeSelfRead(content: string): string {
-  const start = content.indexOf('## Self-Read Protocol');
-  const end = content.indexOf('## Verification Protocol');
-  expect(start).toBeGreaterThanOrEqual(0);
-  expect(end).toBeGreaterThan(start);
-  return content
-    .slice(start, end)
-    .replace(/^---[\s\S]*?---\n/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+function normalizePrompt(content: string): string {
+  return content.slice(content.indexOf('## Role')).replace(/\n"""\s*$/, '').replace(/\s+/g, ' ').trim();
 }
 
 describe('xirang reviewer skill content', () => {
-  it('contains absence-check protocol for REMOVED anchors', () => {
+  it('validates the delegation and binds the opinion to an unchanged checkout HEAD', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('REMOVED Section');
-    expect(instructions).toContain('multi-angle');
-    expect(instructions).toContain('symbol');
-    expect(instructions).toContain('import');
-    expect(instructions).toContain('residue');
-    expect(instructions).toContain('absence');
+    expect(instructions).toContain('Pi callers must run this Reviewer in the background so environment extensions are available, then wait for the complete result before consolidating.');
+    expect(instructions).toContain('Validate changeName, absolute projectRoot, the derived changeDir, reviewKind and the required isolation metadata');
+    expect(instructions).toContain('Read baseCommit from changeDir/.apply-isolation.json and verify it resolves');
+    expect(instructions).toContain('Derive the target commit from checkout HEAD');
+    expect(instructions).toContain('Capture HEAD before assessment and verify it is unchanged before returning');
+    expect(instructions).toContain('delegation error');
+    expect(instructions).toContain('return no Review opinion');
   });
 
-  it('judges behavior preservation from goal direction and evidence', () => {
-    const instructions = getReviewerSubagentTemplate().prompt;
-
-    expect(instructions).toContain('behavior-preservation goal');
-    expect(instructions).toContain('goal\'s verification direction');
-    expect(instructions).toContain('old and new implementations coexist contrary to the goal');
-  });
-
-  it('treats goal checkboxes as progress and verifies removals against Git and final state', () => {
-    const instructions = getReviewerSubagentTemplate().prompt;
-
-    expect(instructions).toContain('Goal checkboxes are progress markers, not deletion declarations');
-    expect(instructions).toContain('Confirm requested removals against actual Git changes and final repository contents');
-    expect(instructions).not.toContain('task `Files`');
-    expect(instructions).not.toContain('Check `Command:`');
-  });
-
-  it('uses immutable baseline and uncommitted name-only scope instead of diff content', () => {
+  it('uses diffs for navigation and committed HEAD contents as evidence', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
     expect(instructions).toContain('git diff <baseCommit>...HEAD --name-only');
     expect(instructions).toContain('git status --short');
-    expect(instructions).toContain('name-only scope');
-    expect(instructions).toContain('final file contents');
+    expect(instructions).toContain('Do not read uncommitted worktree contents as implementation evidence');
+    expect(instructions).toContain('final committed file paths and line ranges');
     expect(instructions).not.toContain('git diff <originalBranch>...HEAD');
     expect(instructions).not.toContain('git log -5 --oneline');
   });
 
-  it('fails closed when the immutable baseline is missing or invalid', () => {
+  it('distinguishes all review kinds and limits judgments to assigned dimensions', () => {
     const instructions = getReviewerSubagentTemplate().prompt;
 
-    expect(instructions).toContain('changeDir/.apply-isolation.json');
-    expect(instructions).toContain('baseCommit');
-    expect(instructions).toContain('immutable evidence baseline is absent or invalid');
-    expect(instructions).toContain('CRITICAL');
-    expect(instructions).not.toContain('git symbolic-ref refs/remotes/origin/HEAD --short');
+    expect(instructions).toContain('Full-change Review assesses the entire Change');
+    expect(instructions).toContain('Incremental Review assesses the assigned cumulative post-Opt changes');
+    expect(instructions).toContain('Supplemental Review assesses the repair of a pre-existing Change defect');
+    expect(instructions).toContain('Review only the assigned quality dimensions');
+    expect(instructions).toContain('do not claim unassigned dimensions were reviewed');
   });
 
-  it('keeps codex and claude reviewer subagent self-read sections equivalent', () => {
+  it('uses the strict v4 opinion schema and does not persist delegation errors as FAIL', () => {
+    const instructions = getReviewerSubagentTemplate().prompt;
+    const schema = instructions.match(/```json\n([^]*?)\n```/)?.[1];
+
+    expect(schema).toBeDefined();
+    const parsedSchema = JSON.parse(schema!);
+    expect(parsedSchema.required).toEqual(['reviewKind', 'commit', 'result', 'summary', 'findings']);
+    expect(parsedSchema.properties.reviewKind.enum).toEqual(['full-change', 'incremental', 'supplemental']);
+    expect(parsedSchema.properties).not.toHaveProperty('reviewId');
+    expect(parsedSchema.properties).not.toHaveProperty('scope');
+    expect(instructions).toContain('must not be persisted as FAIL');
+  });
+
+  it('keeps generated Codex and Claude Reviewer prompt bodies equivalent', () => {
     const template = getReviewerSubagentTemplate();
     const codex = generateSubagentContent(template, 'codex', 'test');
     const claude = generateSubagentContent(template, 'claude', 'test');
 
-    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(claude));
-    expect(normalizeSelfRead(codex)).toBe(normalizeSelfRead(template.prompt));
+    expect(normalizePrompt(codex)).toBe(normalizePrompt(claude));
+    expect(normalizePrompt(codex)).toBe(normalizePrompt(template.prompt));
   });
 });

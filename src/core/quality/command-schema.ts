@@ -3,9 +3,10 @@ import { z } from 'zod';
 const text = z.string().trim().min(1);
 const findings = z.array(text);
 
+export const reviewKindSchema = z.enum(['full-change', 'incremental', 'supplemental']);
+
 export const reviewSchema = z.object({
-  reviewId: text,
-  scope: text,
+  reviewKind: reviewKindSchema,
   commit: text,
   result: z.enum(['PASS', 'FAIL']),
   summary: text,

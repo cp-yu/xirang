@@ -11,23 +11,11 @@ definition: Apply Quality Integration 是 Apply 对基线独立审查、可选�
 
 ### Section: Review 记录先写回再持久化
 
-`xirang-apply-change` SHALL 先委托 fresh reviewer，再校验其结构化 payload，只应用 CRITICAL `writeBackPlan`，最后调用 `xirang quality review` 持久化该 payload。CLI 持久化 SHALL 发生在 writeback 之后，使 `tasksFileHash` 对应最终写入的 `tasks.md`。
-
-- **CRITICAL writeback 先于记录**
-
-  - reviewer 返回包含 CRITICAL `writeBackPlan` 的合法 payload
-  - Apply SHALL 先更新 `tasks.md`
-  - SHALL 在更新完成后调用 `xirang quality review "<change-name>" --input '<json>' --json`
-  - CLI SHALL 从最终 `tasks.md` 计算 `tasksFileHash`
-
-- **非 CRITICAL finding 不写回**
-
-  - reviewer payload 只包含 WARNING 或 SUGGESTION
-  - Apply SHALL NOT 将这些 finding 写入 `tasks.md`
+`xirang-apply-change` SHALL 在委派前提交待审实现并运行本次受托工作所需测试，向 fresh-context Reviewer 提供 `changeName`、checkout 的绝对 `projectRoot`、`reviewKind` 与选定的质量维度。主 Agent SHALL 收齐所有受托维度的有效结果，合并为一条包含 `reviewKind`、所审查 `commit`、`result`、`summary`、`findings` 的 v4 opinion 后调用 `xirang quality review` 持久化；任一必需维度失败或未解决时不能合并为 PASS。输入或委派错误、HEAD 变化不写入 FAIL opinion，而由主 Agent 修正并重新委派；真实失败的修正由主 Agent 处理任务与代码并形成新提交，Quality/CLI 不自动回写 `tasks.md`。
 
 ### Section: 主 agent 和 subagent 角色分工
 
-Apply SHALL 由主 Agent 负责委托范围、越界处理、继续投入及最终验证范围，允许读取实际代码与证据；Opt 负责发现、分组、合并、修改及局部测试并交付；Reviewer 只读独立审查。缺少对应测试时 Opt SHALL 先补测试再改实现。主 Agent 与 Opt 的判断不替代必需独立 Review。
+Apply SHALL 由主 Agent负责提交、适用测试、质量维度分工、完整结果等待、后续投入和最终验证范围；Reviewer 独立判断已提交状态的目标实现及测试充分性，保持只读但不设专属工具白名单或硬只读权限。Opt 负责委托内优化及局部测试，缺少对应测试时先补后改。主 Agent 和 Opt 不替代必需独立 Review；Pi Reviewer 在后台运行以使用环境中可用的扩展工具，Opt 的调用方式不因此改变。
 
 ### Section: 配置驱动优化控制
 
@@ -43,7 +31,7 @@ Apply 的共享优化 reference SHALL 定义修改前可恢复基线、Opt 按�
 
 ### Section: 共享恢复 reference 编排重验
 
-Apply 与 Archive SHALL 使用同一共享 Git recovery reference。Opt 中断后，主 Agent 确认旧写入者已停止，再通过 Git history、status 与当前代码核对结果并决定继续、修正或撤销；未交付状态不作为 Opt opinion。用户要求从头重新验证时，主 Agent 在原流程停止后追加新的 Review opinion，不重置或轮换 Quality JSON 历史。旧质量格式不读取、不迁移、不删除；旧文件和 commits 保持原样。
+Apply 与 Archive SHALL 使用共享 Git recovery reference。用户要求活动 Change 从头重新验证时，主 Agent 在旧流程停止后用当前 checkout 的 HEAD 重新委派 `full-change` Review，不传目标 commit 或新 `reviewId`，也不重置 v4 Quality 历史。输入无效、HEAD 在审查期间变化或错误的完整 Review 委派需要重新委派，不能以伪造的失败 opinion 占据门禁；不支持的旧 v3 和更早质量文件保留原样并报诊断，待用户决定受影响 Change 的处理。
 
 ### Section: 恢复交付的验证证据
 
@@ -51,7 +39,7 @@ Apply 与 Archive SHALL 使用同一共享 Git recovery reference。Opt 中断�
 
 ### Section: 以委托交付推进优化
 
-普通实现通过基线独立 Review 后，主 Agent SHALL 决定是否委托 Opt；不执行时在 Seal 前记录简短处置理由。Opt 在一次委托内可连续分组实施和测试，交付时记录 `baseCommit`、`resultCommit` 与 opinion。主 Agent 可返回具体修正或启动 fresh-context 新探索，不要求固定轮数。主 Agent 根据累计改动决定所需测试和是否追加独立 Review，随后用 Seal 声明绑定 commit 可运行且预期通过适用测试；CLI 不运行测试或比较当前工作区。
+普通实现通过 `full-change` Review 后，主 Agent SHALL 决定是否委托 Opt；不执行时在 Seal 前记录简短理由。Opt 可以在一次委托内分组实施和测试，以 `baseCommit`、`resultCommit` 交付 opinion。主 Agent 根据累计改动决定所需测试与 `incremental` Review；若发现完整 Review 漏掉的既有 Change 缺陷，经修复后必须针对缺陷和影响执行 `supplemental` Review。每次必需 Review 前提交对应实现并确认所需测试已通过，再用 Seal 声明绑定 commit 可运行且预期通过适用测试；CLI 不运行测试或比较工作区。
 
 ### Section: 记录失败尝试并告知
 

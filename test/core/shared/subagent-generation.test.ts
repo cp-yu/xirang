@@ -49,10 +49,7 @@ describe('subagent generation', () => {
       description: reviewer!.description,
     });
     expect(frontmatter).not.toHaveProperty('model');
-    expect(String(frontmatter.tools)).toContain('Read');
-    expect(String(frontmatter.tools)).toContain('Grep');
-    expect(String(frontmatter.tools)).toContain('Glob');
-    expect(String(frontmatter.tools)).toContain('Bash');
+    expect(frontmatter).not.toHaveProperty('tools');
     expect(frontmatter).not.toHaveProperty('display_name');
     expect(frontmatter).not.toHaveProperty('sandbox_mode');
     expect(frontmatter).not.toHaveProperty('permission');
@@ -68,13 +65,10 @@ describe('subagent generation', () => {
     const pi = markdownFrontmatter(generateSubagentContent(reviewer!, 'pi', 'TEST'));
     expect(pi).toMatchObject({
       name: 'xirang-reviewer',
-      description: `${reviewer!.description} Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.`,
     });
+    expect(pi.description).toContain('run in the background so environment extensions are available and wait for the complete result');
     expect(pi).not.toHaveProperty('model');
-    expect(String(pi.tools)).toContain('read');
-    expect(String(pi.tools)).toContain('grep');
-    expect(String(pi.tools)).toContain('find');
-    expect(String(pi.tools)).toContain('bash');
+    expect(pi).not.toHaveProperty('tools');
     expect(pi).not.toHaveProperty('display_name');
     expect(pi).not.toHaveProperty('disallowed_tools');
     expect(pi).not.toHaveProperty('enabled');
@@ -83,14 +77,15 @@ describe('subagent generation', () => {
     expect(opencode).toMatchObject({
       mode: 'subagent',
       permission: {
-        edit: 'deny',
+        edit: 'allow',
       },
     });
     expect(opencode).not.toHaveProperty('model');
   });
 
-  it('adds Pi-only foreground/no-timeout guidance only to evaluation roles', () => {
-    const suffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
+  it('adds Pi-only background guidance to Reviewer and foreground guidance to Opt', () => {
+    const backgroundSuffix = ' Pi callers: run in the background so environment extensions are available and wait for the complete result before consolidating.';
+    const foregroundSuffix = ' Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.';
 
     for (const template of INTERNAL_SUBAGENT_TEMPLATES) {
       const pi = markdownFrontmatter(generateSubagentContent(template, 'pi', 'TEST'));
@@ -98,7 +93,12 @@ describe('subagent generation', () => {
       const opencode = markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST'));
       const codex = generateSubagentContent(template, 'codex', 'TEST');
 
-      expect(pi.description).toBe(template.name === 'xirang-experimenter' ? template.description : `${template.description}${suffix}`);
+      const expectedPiDescription = template.name === 'xirang-reviewer'
+        ? `${template.description}${backgroundSuffix}`
+        : template.name === 'xirang-optimizer'
+          ? `${template.description}${foregroundSuffix}`
+          : template.description;
+      expect(pi.description).toBe(expectedPiDescription);
       expect(claude.description).toBe(template.description);
       expect(opencode.description).toBe(template.description);
       expect(codex).toContain(`description = "${template.description.replace(/"/g, '\\"')}"`);
@@ -108,7 +108,11 @@ describe('subagent generation', () => {
   it.each(['xirang-reviewer', 'xirang-optimizer', 'xirang-experimenter'])('按 %s 能力渲染四工具权限和模型', name => {
     const template = INTERNAL_SUBAGENT_TEMPLATES.find(item => item.name === name)!;
     expect(template).toBeDefined();
-    const writable = name !== 'xirang-reviewer';
+    if (name === 'xirang-reviewer') {
+      expect(template.tools).toBeUndefined();
+      expect(template.disallowedTools).toBeUndefined();
+      expect(template.mode).toBe('workspace-write');
+    }
     if (name === 'xirang-optimizer') {
       expect(template.tools).toEqual(['read', 'grep', 'find', 'bash', 'write', 'edit']);
       expect(template.disallowedTools ?? []).not.toContain('write');
@@ -116,14 +120,19 @@ describe('subagent generation', () => {
     }
     const claude = markdownFrontmatter(generateSubagentContent(template, 'claude', 'TEST'));
     const pi = markdownFrontmatter(generateSubagentContent(template, 'pi', 'TEST'));
-    for (const [metadata, write, edit] of [[claude, 'Write', 'Edit'], [pi, 'write', 'edit']] as const) {
-      const tools = String(metadata.tools).split(', ');
-      expect(tools.includes(write)).toBe(writable);
-      expect(tools.includes(edit)).toBe(writable);
+    if (name === 'xirang-reviewer') {
+      expect(claude.tools).toBeUndefined();
+      expect(pi.tools).toBeUndefined();
+    } else {
+      for (const [metadata, write, edit] of [[claude, 'Write', 'Edit'], [pi, 'write', 'edit']] as const) {
+        const tools = String(metadata.tools).split(', ');
+        expect(tools.includes(write)).toBe(true);
+        expect(tools.includes(edit)).toBe(true);
+      }
     }
     expect(markdownFrontmatter(generateSubagentContent(template, 'opencode', 'TEST')).permission)
-      .toEqual({ edit: writable ? 'allow' : 'deny', bash: 'ask' });
-    expect(generateSubagentContent(template, 'codex', 'TEST')).toContain(`sandbox_mode = "${writable ? 'workspace-write' : 'read-only'}"`);
+      .toEqual({ edit: 'allow', bash: 'ask' });
+    expect(generateSubagentContent(template, 'codex', 'TEST')).toContain('sandbox_mode = "workspace-write"');
     for (const tool of ['claude', 'pi', 'opencode', 'codex']) {
       expect(generateSubagentContent({ ...template, model: 'custom-model' }, tool, 'TEST')).toMatch(/^model[: =]+"custom-model"/m);
       expect(generateSubagentContent({ ...template, model: 'inherit' }, tool, 'TEST')).not.toMatch(/^model[: =]/m);

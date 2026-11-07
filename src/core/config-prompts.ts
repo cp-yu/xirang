@@ -63,7 +63,7 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
   // Optimization section with comments
   lines.push('# Optimization policy (optional)');
   lines.push('# Set enabled: false to skip optimization; record the disabled reason through quality delegation.');
-  lines.push('# Independent baseline Review, applicable tests and final completion evidence are still required.');
+  lines.push('# Independent full-change Review, applicable tests and final completion evidence are still required.');
   lines.push('# Example:');
   lines.push('#   optimization:');
   lines.push('#     enabled: true');

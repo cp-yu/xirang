@@ -50,4 +50,4 @@ Internal Agents SHALL NOT 提升 Semantic Model。
 
 ### Section: 按角色限定操作能力
 
-Reviewer SHALL 保持只读，不通过 Bash 绕过写入限制。Optimizer SHALL 在委托范围内实际具有修改实现与相关测试的权限，自主分组、合并、补充及运行局部测试；缺少对应测试时先补测试再改实现。Experimenter MAY 编写并执行实验所需代码与文件。所有角色均不承担用户确认、正式模型提升或 Change 关闭；Opt 中间恢复状态不自动成为最终成功，最终验证由主 Agent 负责。
+Reviewer SHALL 只读判断，不修改项目、Change、Quality、Checkpoint 或 Git history；其工具可用范围与主 Agent 相同，不以工具白名单、编辑否决或硬只读沙箱代替行为约束。Optimizer SHALL 在委托范围内实际修改相关实现与测试、执行局部验证，缺失对应测试时先补后改；Experimenter MAY 编写并执行受托实验。三者均不承担用户确认、正式模型提升或 Change 关闭，最终验证范围由主 Agent 决定。

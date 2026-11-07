@@ -295,7 +295,7 @@ async function resolveCompletedApplyState(
     return {
       state: 'needs_review',
       instruction:
-        'All tasks are complete, but baseline Review evidence is missing or invalid. Read `xirang quality status` and record an independent Review bound to an existing commit.',
+                'All tasks are complete, but passing full-change Review evidence is missing or invalid. Read `xirang quality status` and record an independent Review bound to an existing commit.',
     };
   }
 

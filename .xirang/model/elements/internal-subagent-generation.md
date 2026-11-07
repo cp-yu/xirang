@@ -17,39 +17,7 @@ SubagentTemplate 至少有 name、description、prompt，可使用 tools、disal
 
 ### Section: Per-tool subagent artifact 渲染
 
-系统 SHALL 通过渲染函数把统一 `SubagentTemplate` 渲染为 tool-native subagent artifact 内容：Claude、Pi 与 OpenCode 使用 Markdown 与工具原生 frontmatter，Codex 使用 TOML。所有 renderer SHALL 仅在 `template.model` 存在且不等于 `"inherit"` 时输出 `model`。
-
-- **Claude renderer 输出 Markdown agent 文件**
-
-  - 为 Claude 渲染 reviewer 模板
-  - 返回内容 SHALL 以 YAML frontmatter 开头并包含 `name`、`description`、`tools`
-  - frontmatter 后 SHALL 跟 Markdown body 承载 prompt
-
-- **Codex renderer 输出 TOML**
-
-  - 为 Codex 渲染模板
-  - 返回内容 SHALL 为合法 TOML
-  - SHALL 包含 `name`、`description`、`developer_instructions`、`sandbox_mode`
-
-- **显式设置 model 时输出 model 字段**
-
-  - `template.model` 设为非 `"inherit"` 的具体模型标识
-  - 所有 renderer SHALL 输出对应 `model`
-
-- **Pi renderer 输出 foreground guidance**
-  - 为 `xirang-reviewer` 或 `xirang-optimizer` 渲染 Pi artifact
-  - frontmatter SHALL 包含 `name`、`description`、`tools`
-  - `description` SHALL 追加 Pi-only 提示：`Pi callers: run foreground and omit timeoutMs/maxRuntimeMs.`
-  - 其他工具 renderer SHALL NOT 追加该提示
-
-- **TOML multiline 安全转义**
-  - template `prompt` 包含三引号序列或反斜杠字面量
-  - Codex renderer SHALL 安全转义并保持合法 TOML
-
-- **OpenCode renderer 输出 subagent mode 与 permission**
-  - 调用 `generateSubagentContent(template, 'opencode', version)`
-  - frontmatter SHALL 包含 `mode: subagent`
-  - Reviewer SHALL 声明 `permission.edit: deny`；Optimizer 与 Experimenter SHALL 按角色可写能力生成 edit 权限，不继承统一 deny
+系统 SHALL 从统一 `SubagentTemplate` 渲染 Claude、Pi、OpenCode 的 Markdown 与 Codex 的 TOML，只有 `template.model` 明确且不为 `inherit` 时输出模型字段，并保留现有 TOML 转义、用户模型设置及显式安装路径规则。Reviewer 的 Claude/Pi 制品 SHALL 省略限定工具集合的 `tools` 字段，使环境的正常工具可用；OpenCode Reviewer 允许 edit；Codex Reviewer 使用与可写 Agent 相同的工作区沙箱。Pi Reviewer 制品 SHALL 提示后台运行以加载可用的环境扩展工具并等待完整结果，不保留 foreground-only 提示；Pi Optimizer 的前台提示不因此改变。
 
 ### Section: Subagent artifact 写入路径
 
@@ -143,10 +111,4 @@ ArtifactSyncEngine 在写入 subagent artifact 前，SHALL 检查目标文件是
 
 ### Section: 按角色编码工具原生权限
 
-生成制品 SHALL 在工具原生字段编码角色权限。Reviewer 允许 read/search/bash、拒绝 edit/write 或等价 read-only sandbox，禁止借 Bash 绕过。Optimizer 在委托范围内允许读取、搜索、编写、编辑与测试；Experimenter 允许实验所需读写执行。
-
-- Claude 的 Optimizer/Experimenter tools 包含 Read、Grep、Glob、Bash、Write、Edit；Pi 包含 read、grep、find、bash、write、edit。
-- OpenCode Reviewer edit 为 deny，Optimizer/Experimenter edit 为 allow；bash 沿用工具执行授权配置。
-- Codex Reviewer 为 read-only，Optimizer/Experimenter 为 workspace-write。
-- 保持 Pi-only foreground 提示、用户 model 保留和 TOML 转义规则。
-- 生成/更新通过既有显式注册及受管清单处理，相关引用可达；不按名称模式覆盖用户文件。
+系统 SHALL 使 Reviewer 生成面不设专属 read/search/bash 工具白名单、Edit/Write 否决或只读沙箱；Reviewer 的实际操作仍受只读职责指令约束，不得因此修改项目、Change、Quality、Checkpoint 或 Git history。Optimizer 和 Experimenter 保持委托范围内原有的可写能力。所有工具的生成与更新仍按现有显式注册及受管清单处理，保留非 `inherit` 用户 model 与跨平台路径构造，不按名称猜测或覆盖用户非受管文件。

@@ -85,16 +85,22 @@ describe('apply change workflow template', () => {
     }
   });
 
-  it('assigns Review identity before delegation without requiring CLI begin support', () => {
+  it('delegates Review dimensions and records one consolidated v4 opinion', () => {
     const review = applyReference('references/apply-step-3-review.md');
 
-    expect(review).toContain('the main Agent creates a unique reviewId');
-    expect(review).toContain('This is delegation metadata, not a pre-registered Quality record');
-    expect(review).toContain('records the opinion with the current Quality revision');
+    expect(review).toContain('run the required tests, then commit the implementation');
+    expect(review).toContain('non-conflicting quality dimensions');
+    expect(review).toContain('Do not pass reviewId, scope, changeDir or a target commit');
+    expect(review).toContain('Pi Reviewers run in the background');
+    expect(review).toContain('consolidates all required dimension results into one opinion');
+    expect(review).toContain('reviewKind: full-change');
+    expect(review).toContain('incremental');
+    expect(review).toContain('supplemental');
     expect(review).not.toContain('--begin');
     const recovery = applyReference('references/quality-recovery.md');
-    expect(recovery).toContain('The Quality CLI has no review-begin or revalidation-assignment operation');
-    expect(recovery).not.toContain('quality review "<change-name>" --begin');
+    expect(recovery).toContain('a new full-change Review');
+    expect(recovery).toContain('no reviewId, scope or target commit is supplied');
+    expect(recovery).toContain('Invalid delegation or HEAD movement is corrected and re-delegated');
   });
 
   it('routes isolation without loading mutually exclusive method references', () => {
@@ -130,6 +136,7 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Step 1: Preparation');
     expect(instructions).toContain('Step 2: Isolation router');
     expect(instructions).toContain('Step 3: Review');
+    expect(instructions).toContain('read `.xirang/references/xirang-apply-step-3-review.md`');
     expect(instructions).toContain('Step 4: Optimization');
     expect(instructions).toContain('Step 5: Seal');
     expect(instructions).toContain('Step 6: Output');

@@ -1,5 +1,5 @@
 # Apply Step 5: Seal
 
-Run xirang quality seal <change-name> using the generated Seal schema. Seal requires a passing latest baseline Review, no failing latest Review for any scope, an explicit Opt disposition and the main Agent's positive canRun/testsExpectedToPass declarations for an existing Git commit. Seal does not run tests or compare the commit with HEAD/workspace.
+Run xirang quality seal <change-name> using the generated Seal schema. Seal requires a passing latest full-change Review, no failing latest Review for any reviewKind, an explicit Opt disposition and the main Agent's positive canRun/testsExpectedToPass declarations for an existing Git commit. Seal does not run tests or compare the commit with HEAD/workspace.
 
 After Seal succeeds, Archive may run its independent gates. Do not separately commit Quality JSON before Seal or Archive; include it in the normal Git handoff. A rejected payload or revision conflict requires reading status and reconciling before retry.

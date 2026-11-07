@@ -590,7 +590,7 @@ rules: {}
       });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Review Required');
-      expect(result.stdout).toContain('baseline Review');
+      expect(result.stdout).toContain('full-change Review');
     });
 
     it('outputs needs_review state in JSON when all tasks are complete but no review is recorded', async () => {
@@ -610,7 +610,7 @@ rules: {}
 
       const json = JSON.parse(result.stdout);
       expect(json.state).toBe('needs_review');
-      expect(json.instruction).toContain('baseline Review');
+      expect(json.instruction).toContain('full-change Review');
     });
 
     it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {

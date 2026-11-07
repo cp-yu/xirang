@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "review-opinion-delegation",
+  "originalBranch": "main",
+  "baseCommit": "8eb306eb3ceb6814a7f39fc55aa17f520e9b9744"
+}

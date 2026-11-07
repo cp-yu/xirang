@@ -20,7 +20,7 @@ export function renderQualityPayloadSchema(name: SchemaName): string {
 
 export function renderQualityOverview(command = 'xirang quality'): string {
   return [
-    'Quality stores commit-bound Review opinions, an explicit Opt disposition and a main-agent Seal in one .quality.json record.',
+    'Quality stores commit-bound Review opinions by reviewKind, an explicit Opt disposition and a main-agent Seal in one .quality.json record (schemaVersion 4).',
     'The CLI validates structure, revision and Git commit existence. It does not run tests, compare HEAD/workspace freshness, edit tasks.md or choose whether Opt is needed.',
     `Subcommands: ${QUALITY_SUBCOMMANDS.map(name => `${command} ${name}`).join(', ')}`,
     ...Object.values(qualityOptionMetadata).map(item => `${item.flags}: ${item.label}`),
@@ -29,13 +29,13 @@ export function renderQualityOverview(command = 'xirang quality'): string {
 }
 
 export function renderQualityErrorRecovery(): string {
-  return 'Read the reported revision and diagnostic. Reconcile concurrent changes before retrying. Preserve unsupported legacy files unchanged; the new protocol never imports their contents.';
+  return 'Read the reported revision and diagnostic. Reconcile concurrent changes before retrying. A .quality.json with schemaVersion 3 or older is unsupported: preserve its bytes and ask the user how to proceed. Preserve other unsupported legacy files unchanged; the new protocol never imports their contents.';
 }
 
 export function renderReviewHelp(): string {
   return [
     `xirang quality review <change-name> ${option('version')} ${option('input')}|${option('from')}`,
-    'Record one Reviewer opinion bound to an existing Git commit. Review findings and any task corrections remain with the main Agent. Revisions are compare-and-swap tokens.',
+    'Record one Reviewer opinion by reviewKind, bound to an existing Git commit. Review findings and any task corrections remain with the main Agent. Revisions are compare-and-swap tokens.',
     renderQualityPayloadSchema('review'),
   ].join('\n\n');
 }
