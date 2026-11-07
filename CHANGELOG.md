@@ -1,5 +1,17 @@
 # xirang
 
+## 0.2.6
+
+### Minor Changes
+
+- **BREAKING**：Quality Review 意见升级为 schemaVersion 4：`reviewId` 与自由文本 `scope` 退出，改用 `reviewKind`（`full-change`/`incremental`/`supplemental`）区分审查类别，意见绑定既有 Git commit；旧 schemaVersion 3 的 `.quality.json` 明确报不支持并保持原样，不迁移、不隐式导入。Seal 门禁仍要求最新 full-change Review 通过、无未解决失败与显式 Opt 处置。
+- Reviewer 委派协议重写：Reviewer 从 checkout HEAD 自取审查目标、从 `.apply-isolation.json` 读取 `baseCommit`，按 baseCommit→HEAD 累计差异独立取证；调用方不再传目标 commit，委派输入错误或审查期间 HEAD 移动不产生意见，由主 Agent 修正后重新委派。主 Agent 在所需测试通过后按非冲突质量维度并行委派并汇总为一条意见。
+- 解除 Reviewer 固定工具白名单：Claude/Pi/OpenCode/Codex 投影不再限制可用工具或硬性禁止编辑，只读责任保留在 Reviewer 指令中；Pi Reviewer 专属 Agent 声明后台运行以加载环境扩展，并由调用方等待完整结果后再汇总。
+
+### Patch Changes
+
+- Apply/Archive 指令、references 与生成面同步 reviewKind 语义；修复 Apply 模板 Step 3 引用路径投影；Reviewer 严格性测试改为直接校验生产生成的 Pi 指令而非本地模拟器。
+
 ## 0.2.5
 
 ### Patch Changes
