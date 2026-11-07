@@ -136,6 +136,7 @@ describe('apply change workflow template', () => {
     expect(instructions).toContain('Step 1: Preparation');
     expect(instructions).toContain('Step 2: Isolation router');
     expect(instructions).toContain('Step 3: Review');
+    expect(instructions).toContain('read `.xirang/references/xirang-apply-step-3-review.md`');
     expect(instructions).toContain('Step 4: Optimization');
     expect(instructions).toContain('Step 5: Seal');
     expect(instructions).toContain('Step 6: Output');
