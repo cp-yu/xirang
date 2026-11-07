@@ -125,9 +125,15 @@ export async function writebackExpectedModel(
     entity: 'element-declaration', identity, operation: base ? 'MODIFIED' : 'ADDED', target: edited.declaration,
   });
   entries.push(...sectionEntries(base?.sections ?? [], edited.sections, identity));
-  const otherEntries = current.sources.filter(item => item.path !== sourcePath).flatMap(item => item.entities);
-  const localEntries = entries.filter(entry => !otherEntries.some(other => other.entity === entry.entity
-    && other.identity === entry.identity && current.delta.entries.some(existing => same(existing, entry))));
+  const entryKey = (entry: Pick<DeltaEntry, 'entity' | 'identity'>) => JSON.stringify([entry.entity, entry.identity]);
+  const otherEntries = new Set(current.sources.filter(item => item.path !== sourcePath)
+    .flatMap(item => item.entities.map(entryKey)));
+  const existingEntries = new Map(current.delta.entries.map(entry => [entryKey(entry), entry]));
+  const localEntries = entries.filter(entry => {
+    const key = entryKey(entry);
+    const existing = existingEntries.get(key);
+    return !otherEntries.has(key) || !existing || !same(existing, entry);
+  });
   const content = serializeDelta(edited, localEntries);
   if (same(edited, expected)) return { changed: false, ignoredChanges };
   files.set(sourcePath, content);

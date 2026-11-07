@@ -168,6 +168,42 @@ describe('Expected Model text writeback', () => {
     expect(await fs.readFile(source, 'utf8')).not.toMatch(/^operation:/m);
   });
 
+  it('retains existing rejection and original bytes when an externally owned entry changes', async () => {
+    const external = elementUnit({ identity: 'item', sections: '## MODIFIED Sections\n\n### Section: Context\n\nItem SHALL keep externally planned context.' });
+    const externalPath = path.join(path.dirname(source), 'second.md');
+    await fs.writeFile(externalPath, external);
+    const target = await expected();
+    target.sections[1].body = 'Item SHALL edit externally owned behavior.';
+    await expect(writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target)))
+      .rejects.toMatchObject({ code: 'INVALID_TARGET', diagnostics: expect.arrayContaining([
+        expect.objectContaining({ code: 'CONFLICTING_OPERATIONS' }),
+      ]) });
+    expect(await fs.readFile(source, 'utf8')).toBe(original);
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+  });
+
+  it('retains a new entry when another source only contains a no-operation navigation declaration', async () => {
+    const external = elementUnit({ identity: 'item' });
+    const externalPath = path.join(path.dirname(source), 'second.md');
+    await fs.writeFile(externalPath, external);
+    const target = await expected();
+    target.declaration.definition = 'Adjusted definition.';
+    await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect((await expected()).declaration.definition).toBe(target.declaration.definition);
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+  });
+
+  it('keeps entity types distinct when another source uses the same identity', async () => {
+    const directory = path.dirname(path.dirname(source));
+    const kind = '---\nentity: element-kind\nidentity: item\ncontract: optional\noperation: ADDED\n---\n';
+    await writeChangeDelta(root, 'demo', { 'metamodel/item.md': kind });
+    const target = await expected();
+    target.declaration.definition = 'Adjusted definition.';
+    await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
+    expect((await expected()).declaration.definition).toBe(target.declaration.definition);
+    expect(await fs.readFile(path.join(directory, 'metamodel', 'item.md'), 'utf8')).toBe(kind);
+  });
+
   it('stores Acceptance Case edits inside the host Section and treats case deletion as Section modification', async () => {
     const target = await expected();
     target.sections[0].acceptanceCases = [{ name: 'saved-case', body: '**WHEN** saved **THEN** visible.' }];
