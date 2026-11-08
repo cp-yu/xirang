@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261108T134839Z-479ee209",
+  "sourceVersion": "c059a203a1e8c52ca62f8d0480184c82d7644c2422f74f67acf132e7812f383e",
+  "targetFingerprint": "577af76683c60f9203c95dda124925222e7be22d74576bfc1529047416705d83",
+  "recordedAt": "2026-11-08T16:50:26.961Z",
+  "entries": [
+    {
+      "identity": "distinguish-intent-solution-technical-facts",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "区分意图、方案与事实；先理解目标及约束，再决定路线",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "对用户与 Agent 的方案同等审视，区分事实、推导及假设",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "Agent SHALL 根据目标和约束同等审视用户与自身提出的方案，区分事实、推导与关键假设，寻找可能推翻方案的约束或反例。方案采纳不证明技术可行；方案失败本身不证明意图理解错误或目标不可实现。发现问题时先复核方案及假设；证据确实暴露意图歧义或约束冲突时，再澄清对应部分。明确路线要求与目标冲突时，说明冲突及选项，由用户决定调整方向，不擅自改变目标或路线约束。修订后复核依赖结论。"
+        },
+        {
+          "detail": "用户路线失败不直接否定目标",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "- **用户路线遇到反证**：依据问题重新比较可行路径，不因某条路线失败直接否定用户目标。"
+        },
+        {
+          "detail": "Agent 路线失败先复核自身方案和假设，不归因为意图对齐失败",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "- **Agent 路线失败**：先检查自身方案和技术假设，不无依据重开意图确认。"
+        },
+        {
+          "detail": "Propose 成文检查同样避免由路线失败推出意图误解或目标不可达",
+          "location": {
+            "element": "post-propose-validation",
+            "section": "完整机制自查"
+          },
+          "quote": "SHALL 检查支持实施方案达成验收结果的证据及关键假设。用户确认不自动成为可行性证据；方案失败本身不证明意图理解错误或目标不可实现。先定位事实判断、方案或意图理解中的问题，不能因自身方案失败就要求用户重述已清楚的意图。"
+        }
+      ]
+    },
+    {
+      "identity": "preserve-local-evidence-value-and-limits",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "使用局部证据所支持的已验证部分，不扩大为整体方案证明",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        },
+        {
+          "detail": "局部接口成功的具体结果边界",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "Explore 主代理维护设计与实验边界"
+          },
+          "quote": "- **局部实验成功**：仅某接口能力得到验证时，使用该事实判断相关部分，不宣称整套方案已通过验证。"
+        },
+        {
+          "detail": "局部覆盖有限不否定其证据价值",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        }
+      ]
+    },
+    {
+      "identity": "proportionate-verification-without-mechanical-flow",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "已有证据与推理可以支持判断，不要求每次写测试",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        },
+        {
+          "detail": "关键可行性问题无法充分解决时按需实验",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        },
+        {
+          "detail": "已充分的背景和证据直接复用，不重复提问或强制实验",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **信息已充分**：已有背景、目标与证据足以继续时，复用它们推进，不重复询问或强制实验。"
+        },
+        {
+          "detail": "按实际缺口和有效上下文推进，不按固定问卷重复执行",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "Explore 必须执行 brainstorming checklist"
+          },
+          "quote": "  - 系统按当前缺口推进适用设计工作，复用已有理解和确认，不重复执行固定问卷"
+        }
+      ]
+    },
+    {
+      "identity": "intent-to-outcome-reasoning",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "根据现状围绕问题理解意图、预期结果和约束",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "在目标与约束下判断方案，区分事实及关键假设",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "Agent SHALL 根据目标和约束同等审视用户与自身提出的方案，区分事实、推导与关键假设，寻找可能推翻方案的约束或反例。方案采纳不证明技术可行；方案失败本身不证明意图理解错误或目标不可实现。发现问题时先复核方案及假设；证据确实暴露意图歧义或约束冲突时，再澄清对应部分。明确路线要求与目标冲突时，说明冲突及选项，由用户决定调整方向，不擅自改变目标或路线约束。修订后复核依赖结论。"
+        },
+        {
+          "detail": "通过证据、推理和必要实验解决可行性疑点",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        },
+        {
+          "detail": "可观察验收结果衔接后续实现与反馈，实验不代替正式验收",
+          "location": {
+            "element": "explore-role",
+            "section": "形成有依据的设计判断"
+          },
+          "quote": "Agent SHALL 以明确的可观察验收结果衔接后续实现与反馈；实验不代替正式项目验收。"
+        },
+        {
+          "detail": "推进关系不是固定问卷，复用已明确内容",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        }
+      ]
+    },
+    {
+      "identity": "actively-understand-incomplete-user-input",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "允许只给意图、只给路线或混合表达，主动理解局部输入",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "只表达意图不推定路线已选",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **只表达意图**：用户说“我想更快地找到问题。”时，理解当前困难、使用情境与希望改善的结果，帮助探索路径，不猜定用户已选择方案。"
+        },
+        {
+          "detail": "只提出路线须理解背后的问题，并辨别候选和明确约束",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **只提出路线**：用户说“加一个缓存。”时，理解要解决的问题及为何想到缓存，辨别它是候选建议还是明确约束。"
+        },
+        {
+          "detail": "发现并提问会影响决策或结果判断的缺口",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        }
+      ]
+    },
+    {
+      "identity": "sufficient-understanding-and-targeted-questions",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "主动发现未考虑的决策点和异常、竞争、时序问题",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "系统 SHALL 主动发现用户尚未考虑的决策点，包括适用的失败结果、事件竞争和时间起点或容差；SHALL 解释备选方案的可观察后果并给出有理由的推荐，每次只问一个问题，等待用户回答后再继续。推荐本身不构成确认。"
+        },
+        {
+          "detail": "可查事实主动取证，关键目标与取舍缺口通过针对性提问解决",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "提问说明当前理解和疑点，一次一问；复用已明确内容",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "我想更快地找到问题：理解困难、情境和期望结果",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **只表达意图**：用户说“我想更快地找到问题。”时，理解当前困难、使用情境与希望改善的结果，帮助探索路径，不猜定用户已选择方案。"
+        },
+        {
+          "detail": "加一个缓存：理解问题、为何想到缓存及路线约束性质",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **只提出路线**：用户说“加一个缓存。”时，理解要解决的问题及为何想到缓存，辨别它是候选建议还是明确约束。"
+        },
+        {
+          "detail": "混合表达辨别目标和可调整路径",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **混合表达**：用户同时表达目标与路线时，辨别需保留的目标和可调整的路径。"
+        },
+        {
+          "detail": "后续反证区分事实、方案和意图缺口，只重新澄清受影响部分",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "Agent SHALL 根据目标和约束同等审视用户与自身提出的方案，区分事实、推导与关键假设，寻找可能推翻方案的约束或反例。方案采纳不证明技术可行；方案失败本身不证明意图理解错误或目标不可实现。发现问题时先复核方案及假设；证据确实暴露意图歧义或约束冲突时，再澄清对应部分。明确路线要求与目标冲突时，说明冲突及选项，由用户决定调整方向，不擅自改变目标或路线约束。修订后复核依赖结论。"
+        },
+        {
+          "detail": "明确路线与目标冲突时由用户选择调整方向",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "2-3 方案对比"
+          },
+          "quote": "- **明确约束冲突**：用户明确要求的路线无法同时满足目标时，呈现冲突及可调整选项，等待用户选择。"
+        },
+        {
+          "detail": "充分上下文时继续推进",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "- **信息已充分**：已有背景、目标与证据足以继续时，复用它们推进，不重复询问或强制实验。"
+        }
+      ]
+    },
+    {
+      "identity": "formation-prompt-scope-and-approach",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Explore 活动的主动理解及判断责任",
+          "location": {
+            "element": "explore",
+            "section": "一次一问并比较方案"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "Design Exploration 在确认适用设计时完成理解和判断",
+          "location": {
+            "element": "design-exploration",
+            "section": "确认适用设计"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "设计循环的具体提问及输入处理",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "一次一问的提问纪律"
+          },
+          "quote": "Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。"
+        },
+        {
+          "detail": "Explore 工作身份承担独立判断责任",
+          "location": {
+            "element": "explore-role",
+            "section": "形成有依据的设计判断"
+          },
+          "quote": "Agent SHALL 根据目标和约束同等审视用户与自身提出的方案，区分事实、推导与关键假设，寻找可能推翻方案的约束或反例。方案采纳不证明技术可行；方案失败本身不证明意图理解错误或目标不可实现。发现问题时先复核方案及假设；证据确实暴露意图歧义或约束冲突时，再澄清对应部分。明确路线要求与目标冲突时，说明冲突及选项，由用户决定调整方向，不擅自改变目标或路线约束。修订后复核依赖结论。"
+        },
+        {
+          "detail": "按关键不确定性选择实验并限制结论",
+          "location": {
+            "element": "explore",
+            "section": "委托可行性实验"
+          },
+          "quote": "可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。"
+        },
+        {
+          "detail": "Propose 无有效 Summary 时主动建立理解",
+          "location": {
+            "element": "propose",
+            "section": "补足最低语义就绪条件"
+          },
+          "quote": "缺少有效 Design Summary 时，Propose SHALL 通过项目证据与针对性提问主动建立对问题、期望结果、约束、影响范围、方案及验证方式的理解，不把用户提供的路线当成完整意图。SHALL 解决影响目标的重大缺口，包括 Definition、Contract 与结构范围上的未决 Semantic Delta 决策；已明确内容直接复用，不使用固定问卷。"
+        },
+        {
+          "detail": "Propose 成文保持证据与关键假设检查",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "Propose SHALL 检查支持实现预期结果的证据及关键假设；用户确认本身不证明可行性，方案失败本身不证明意图理解错误或目标不可实现。SHALL 区分事实判断、方案缺陷与意图理解缺口，按已确认依据修正可确定的错误，重大方案调整或目标与约束冲突按决策确认规则处理。"
+        },
+        {
+          "detail": "Propose 工作流复用 Summary 并主动补足独立入口理解",
+          "location": {
+            "element": "propose-workflow",
+            "section": "Propose smart routing"
+          },
+          "quote": "Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有有效 Summary 时 SHALL 通过项目证据与针对性提问建立对问题、期望结果、约束、影响范围、方案和验证方式的理解，不把用户给出的路线视为完整意图；解决影响目标的缺口及未决 Source decisions 后判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。"
+        },
+        {
+          "detail": "机制自查区分反证、事实、方案及意图问题",
+          "location": {
+            "element": "post-propose-validation",
+            "section": "完整机制自查"
+          },
+          "quote": "SHALL 检查支持实施方案达成验收结果的证据及关键假设。用户确认不自动成为可行性证据；方案失败本身不证明意图理解错误或目标不可实现。先定位事实判断、方案或意图理解中的问题，不能因自身方案失败就要求用户重述已清楚的意图。"
+        },
+        {
+          "detail": "Propose 角色保持有效理解及有依据的判断",
+          "location": {
+            "element": "propose-role",
+            "section": "写入 Change 制品"
+          },
+          "quote": "Propose Role SHALL 复用有效的已确认理解；缺少有效 Summary 时，主动取证并通过针对性提问理解问题、目标、约束、方案及验证方式，不将候选路线当成完整意图。成文时检查方案及关键假设的证据；确认不证明可行，方案失败不自动证明意图误解或目标不可达。已有依据能确定的错误自行修正；涉及已确认承诺或重大取舍时说明选项并请求裁决，不重复询问已明确内容。"
+        },
+        {
+          "detail": "提示词复用既有规则且不重复展开",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "Explore 通过 referenceFiles 暴露行为引导"
+          },
+          "quote": "提示词 SHALL 在组合后的上下文中保持精简；在适用位置表达关键判断与边界，复用已有规则，不将同一原则在各阶段重复展开，也不把每个例子或推论都变成独立指令。"
+        },
+        {
+          "detail": "Experimenter 复用既有实验与证据职责，不引入新角色行为",
+          "location": {
+            "element": "experimenter",
+            "section": "交付实践证据与限制"
+          },
+          "quote": "Experimenter SHALL 返回实验问题、方法、执行方式、可复现证据、观察结果、分析及适用限制；区分已验证事实、失败、证据不足及剩余假设。结果供 Explore 判断可行性并继续确认设计，不能把实验成功当成用户采纳。"
+        }
+      ]
+    },
+    {
+      "identity": "behavior-focused-verification-proposal",
+      "result": "not-applicable",
+      "reason": "此条是本 Change 的一次性实施验证安排，不是 Expected Semantic Model 的永久行为承诺：同模型同输入的小规模多轮对比、适度重复、生成测试复用及证据局限已写入 design.md 的验证策略与 One-time Verification；tasks.md G1–G4 承接对应行为及边界。没有省略执行安排，也不将其转为每次 Explore 必跑测试的产品流程。案例中的产品行为分别由提问纪律、方案对比、可行性实验与 Propose 自查 Sections 承载。"
+    },
+    {
+      "identity": "concise-prompt-integration",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "组合上下文中保持精简，只补必要判断和边界，复用已有规则",
+          "location": {
+            "element": "explore-brainstorming",
+            "section": "Explore 通过 referenceFiles 暴露行为引导"
+          },
+          "quote": "提示词 SHALL 在组合后的上下文中保持精简；在适用位置表达关键判断与边界，复用已有规则，不将同一原则在各阶段重复展开，也不把每个例子或推论都变成独立指令。"
+        }
+      ]
+    }
+  ]
+}
