@@ -33,6 +33,9 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   // new subcommands
   'new.change': 'change-or-contract-id',
 
+  // delta subcommands
+  'delta.writeback': 'change-id',
+
   // record subcommands
   'record.show': 'text',
   'record.status': 'text',
