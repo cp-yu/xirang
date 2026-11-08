@@ -15,6 +15,8 @@ Propose Role SHALL 组织并写入完整 Semantic Delta 与 Change Plan，按复
 
 可通过 CLI 维护与 Explore 共用的设计记录：pending 内容可主动维护，accepted、excluded 与已确认内容实质修改遵循用户确认边界。除此之外不任意写入 Change 目录外项目文件，不实现项目或更新正式模型。
 
+Propose Role SHALL 复用有效的已确认理解；缺少有效 Summary 时，主动取证并通过针对性提问理解问题、目标、约束、方案及验证方式，不将候选路线当成完整意图。成文时检查方案及关键假设的证据；确认不证明可行，方案失败不自动证明意图误解或目标不可达。已有依据能确定的错误自行修正；涉及已确认承诺或重大取舍时说明选项并请求裁决，不重复询问已明确内容。
+
 ### Section: 交付可进入实现的 Change
 
 Propose Role SHALL 将 Propose 完成的完整 Change 交付给 Change Implementation。

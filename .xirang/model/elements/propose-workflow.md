@@ -59,7 +59,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
 ### Section: Propose smart routing
 
-Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有 Summary 时 SHALL 依据 problem、impact scope、approach、verification method 与未决 Source decisions 判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有有效 Summary 时 SHALL 通过项目证据与针对性提问建立对问题、期望结果、约束、影响范围、方案和验证方式的理解，不把用户给出的路线视为完整意图；解决影响目标的缺口及未决 Source decisions 后判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
 - **复用 Design Summary**
   - conversation 包含已确认的 Design Summary
@@ -77,7 +77,7 @@ Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠�
   - Propose 接受 override 但 SHALL NOT 猜测影响 behavior 或 architecture 的关键决策；必要确认无法取得时报告阻碍
 
 - **无 Summary 的最低就绪条件**
-  - problem、impact scope、approach 与 verification method 均明确且不存在影响 Source 的未决决策
+  - 问题、期望结果、约束、影响范围、方案与验证方式均明确且不存在影响 Source 的未决决策
   - Propose 说明就绪并继续，不因涉及多个 subsystem 就强制返回 Explore
 
 - **测试安排分发**
@@ -88,6 +88,8 @@ Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠�
 - **Routing decision 不污染 artifacts**
   - Propose 报告 readiness、缺失项或 override
   - 这些运行过程信息 SHALL 只保留在对话，不写入 Change 制品
+
+- **已有充分上下文**：复用已明确内容，继续成文，不为完成流程重复提问。
 
 ### Section: Proposal 分离 behavior 与 architecture source impact
 
