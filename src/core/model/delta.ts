@@ -195,14 +195,24 @@ function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]):
 }
 
 export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelta> {
+  return parseSemanticDeltaFiles(await readModelFiles(changeRoot));
+}
+
+export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>): ParsedDelta {
   const entries: DeltaEntry[] = [];
   const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
-  for (const [file, content] of [...await readModelFiles(changeRoot)].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
+  for (const [file, content] of [...files].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
     const start = entries.length;
     if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics);
     else parseDeltaContainer(file, content, entries, diagnostics);
     const entities = entries.slice(start).map(({ entity, identity }) => ({ entity, identity }));
+    if (entities.length === 0) {
+      const unit = splitFrontmatter(content);
+      if (unit.ok && unit.data.entity === 'element-declaration' && typeof unit.data.identity === 'string') {
+        entities.push({ entity: 'element-declaration', identity: unit.data.identity });
+      }
+    }
     if (entities.length > 0) sources.push({ path: file, entities });
   }
   detectConflicts(entries, diagnostics);

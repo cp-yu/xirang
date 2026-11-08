@@ -53,21 +53,42 @@ describe('top-level show command', () => {
     const json = JSON.parse(result.stdout);
     expect(json).toMatchObject({ id: 'review', valid: true });
     expect(json.sources).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: 'elements/auth.md', entries: expect.arrayContaining([
-        expect.objectContaining({ identity: 'auth', before: '', after: expect.stringContaining('identity: auth') }),
+      expect.objectContaining({ path: 'elements/auth.md', before: '', after: expect.stringContaining('identity: auth'), entries: expect.arrayContaining([
+        expect.objectContaining({ identity: 'auth', operation: 'ADDED' }),
       ]) }),
-      expect.objectContaining({ path: 'elements/old.md', entries: expect.arrayContaining([
-        expect.objectContaining({ identity: 'old', before: expect.stringContaining('identity: old'), after: '' }),
+      expect.objectContaining({ path: 'elements/old.md', before: expect.stringContaining('identity: old'), after: '', entries: expect.arrayContaining([
+        expect.objectContaining({ identity: 'old', operation: 'REMOVED' }),
       ]) }),
-      expect.objectContaining({ path: 'relationships/custom-file.yaml', entries: expect.arrayContaining([
-        expect.objectContaining({ identity: expect.any(String), after: expect.stringContaining('target: auth') }),
-        expect.objectContaining({ identity: expect.any(String), after: expect.stringContaining('source: auth') }),
+      expect.objectContaining({ path: 'relationships/custom-file.yaml', after: expect.stringContaining('target: auth'), entries: expect.arrayContaining([
+        expect.objectContaining({ identity: expect.any(String) }),
       ]) }),
     ]));
+    const relationships = json.sources.find((source: { path: string }) => source.path === 'relationships/custom-file.yaml');
+    expect(relationships.entries).toHaveLength(2);
+    expect(relationships.after.match(/source: auth/g)).toHaveLength(1);
+    expect(relationships.entries[0]).not.toHaveProperty('after');
     expect(json.plans).toEqual([
       { path: 'proposal.md', content: '# Change: Review\n' },
       { path: 'design.md', content: 'Decision text.\n' },
     ]);
+  });
+
+  it('keeps unchanged Sections in one complete source-level projection', async () => {
+    await writeProjectModel(testDir, minimalModel({ elements: [{ identity: 'item', sections:
+      '## Specification\n\n### Section: Edited\n\nItem SHALL keep old text.\n\n### Section: Context\n\nItem SHALL keep context.' }] }));
+    const directory = await writeChangeDelta(testDir, 'complete', {
+      'elements/custom.md': '---\nentity: element-declaration\nidentity: item\nkind: capability\nparent: root\ntitle: Item\ndefinition: Updated definition.\noperation: MODIFIED\n---\n\n## MODIFIED Sections\n\n### Section: Edited\n\nItem SHALL use new text.\n',
+    });
+    await fs.writeFile(path.join(directory, 'proposal.md'), '# Change: Complete\n');
+    const result = await runCLI(['show', 'complete', '--review', '--json'], { cwd: testDir });
+    const sources = JSON.parse(result.stdout).sources;
+    expect(sources).toHaveLength(1);
+    expect(sources[0].entries).toHaveLength(2);
+    expect(sources[0].after.match(/identity: item/g)).toHaveLength(1);
+    expect(sources[0].after).toContain('Item SHALL use new text.');
+    expect(sources[0].before).toContain('Item SHALL keep old text.');
+    expect(sources[0].before).toContain('Item SHALL keep context.');
+    expect(sources[0].after).toContain('Item SHALL keep context.');
   });
 
   it('does not expose partial model content for invalid review projections', async () => {

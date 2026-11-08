@@ -20,6 +20,14 @@ The system SHALL behave.
 });
 
 describe('Section delta parsing', () => {
+  it.each(['```', '~~~~'])('preserves headings and operation examples inside %s fences', fence => {
+    const raw = `### Section: Actual\n\nThe system SHALL preserve examples.\n\n${fence}markdown\n## MODIFIED Sections\n### Section: Fenced example\n#### Acceptance Case: Example only\n${fence}\n\nTail text.`;
+    const plan = parseDeltaSpec(`## ADDED Sections\n\n${raw}\n\n## REMOVED Sections\n\n### Section: Removed`);
+    expect(plan.added).toEqual([{ name: 'Actual', headerLine: '### Section: Actual', raw }]);
+    expect(plan.modified).toEqual([]);
+    expect(plan.removed).toEqual(['Removed']);
+  });
+
   it('marks RENAMED Sections as an unsupported operation section', () => {
     const plan = parseDeltaSpec(`## RENAMED Sections
 

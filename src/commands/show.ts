@@ -55,23 +55,23 @@ export class ShowCommand {
       }
       const before = serializeSemanticModel(result.base.model);
       const after = serializeSemanticModel(compiled.target);
-      const sources = result.sources.map(source => ({
-        path: source.path,
-        entries: source.entities.map(({ entity, identity }) => {
+      const sources = result.sources.map(source => {
+        const paths = new Set(source.entities.map(({ entity, identity }) => {
           const host = identity.split('#')[0];
-          const relationKind = entity === 'relationship' ? identity.split('\0')[1] : undefined;
-          const modelPath = entity === 'relationship' ? `relationships/${relationKind}.yaml`
-            : entity === 'element-kind' || entity === 'relationship-kind' ? `metamodel/${host}.md`
-              : entity === 'authored-view' ? `views/${host}.md` : `elements/${host}.md`;
-          return {
-            entity,
-            identity,
+          if (entity === 'relationship') return `relationships/${identity.split('\0')[1]}.yaml`;
+          if (entity === 'element-kind' || entity === 'relationship-kind') return `metamodel/${host}.md`;
+          return entity === 'authored-view' ? `views/${host}.md` : `elements/${host}.md`;
+        }));
+        return {
+          path: source.path,
+          entries: source.entities.map(({ entity, identity }) => ({
+            entity, identity,
             operation: result.delta.entries.find(entry => entry.entity === entity && entry.identity === identity)?.operation,
-            before: before.get(modelPath)?.toString('utf8') ?? '',
-            after: after.get(modelPath)?.toString('utf8') ?? '',
-          };
-        }),
-      }));
+          })),
+          before: [...paths].map(file => before.get(file)?.toString('utf8') ?? '').join('\n\n'),
+          after: [...paths].map(file => after.get(file)?.toString('utf8') ?? '').join('\n\n'),
+        };
+      });
       const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', itemName);
       const plans = [];
       for (const file of ['proposal.md', 'design.md', 'tasks.md']) {

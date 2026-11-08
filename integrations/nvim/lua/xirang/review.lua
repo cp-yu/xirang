@@ -60,7 +60,8 @@ local function saveTargetDraft(session)
   local item = selected(session)
   if not item or item.plan or not vim.api.nvim_buf_is_valid(session.right) then return end
   if vim.bo[session.right].modifiable then
-    item.targetDraft = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n')
+    local text = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n')
+    session.drafts[item.path] = text ~= item.after and text or nil
   end
 end
 
@@ -68,6 +69,7 @@ local function setBufferText(buffer, text)
   vim.bo[buffer].modifiable = true
   vim.api.nvim_buf_set_lines(buffer, 0, -1, false, lines(text))
   vim.bo[buffer].modifiable = false
+  vim.bo[buffer].modified = false
 end
 
 local function restoreListWidth(session)
@@ -105,10 +107,11 @@ local function showDelta(session, item)
   for _, win in ipairs({ session.leftWin, session.rightWin }) do
     pcall(vim.api.nvim_win_call, win, function() vim.cmd('diffoff') end)
   end
-  local target = item.targetDraft or item.after
+  local target = session.drafts[item.path] or item.after
   setBufferText(session.left, item.before)
   setBufferText(session.right, target)
   vim.bo[session.right].modifiable = true
+  vim.bo[session.right].modified = target ~= item.after
   for _, win in ipairs({ session.leftWin, session.rightWin }) do
     vim.wo[win].wrap = true
   end
@@ -222,7 +225,32 @@ local function renderList(session)
   end
 end
 
+local function captureView(session)
+  local view = { focus = vim.api.nvim_get_current_win(), windows = {}, path = selected(session) and selected(session).path }
+  for _, win in ipairs({ session.listWin, session.rightWin, session.leftWin }) do
+    if win and vim.api.nvim_win_is_valid(win) then
+      view.windows[win] = vim.api.nvim_win_call(win, vim.fn.winsaveview)
+    end
+  end
+  session.listWidth = vim.api.nvim_win_get_width(session.listWin)
+  return view
+end
+
+local function restoreView(view)
+  for win, state in pairs(view.windows) do
+    if vim.api.nvim_win_is_valid(win) then
+      local buffer = vim.api.nvim_win_get_buf(win)
+      state.lnum = math.min(state.lnum, vim.api.nvim_buf_line_count(buffer))
+      local line = vim.api.nvim_buf_get_lines(buffer, state.lnum - 1, state.lnum, false)[1] or ''
+      state.col = math.min(state.col, math.max(0, #line - 1))
+      vim.api.nvim_win_call(win, function() vim.fn.winrestview(state) end)
+    end
+  end
+  if vim.api.nvim_win_is_valid(view.focus) then vim.api.nvim_set_current_win(view.focus) end
+end
+
 local function refresh(session, initial)
+  if session.saving then return end
   saveTargetDraft(session)
   session.generation = session.generation + 1
   local generation = session.generation
@@ -231,6 +259,8 @@ local function refresh(session, initial)
   local callback = function(result)
     vim.schedule(function()
       if generation ~= session.generation or session.closed then return end
+      saveTargetDraft(session)
+      local view = not initial and captureView(session) or nil
       local ok, data = pcall(vim.json.decode, result.stdout or '')
       if result.code ~= 0 or not ok or not data.valid then
         if initial then
@@ -262,15 +292,9 @@ local function refresh(session, initial)
       local groups = { elements = {}, metamodel = {}, relationships = {}, views = {} }
       for _, source in ipairs(data.sources or {}) do
         local partition = source.path:match('^([^/]+)/')
-        local before, after = {}, {}
-        local seenBefore, seenAfter = {}, {}
-        for _, entry in ipairs(source.entries) do
-          if not seenBefore[entry.before] then before[#before + 1] = entry.before; seenBefore[entry.before] = true end
-          if not seenAfter[entry.after] then after[#after + 1] = entry.after; seenAfter[entry.after] = true end
-        end
         groups[partition][#groups[partition] + 1] = {
           path = source.path, source = vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change, source.path),
-          before = table.concat(before, '\n\n'), after = table.concat(after, '\n\n'),
+          before = source.before, after = source.after,
           operation = operationForEntries(source.entries),
         }
       end
@@ -282,11 +306,64 @@ local function refresh(session, initial)
         }
       end
       renderList(session)
+      if view then
+        for index, item in ipairs(session.items) do
+          if item.path == view.path then session.cursor = index; break end
+        end
+        renderList(session)
+      end
       if #session.items > 0 then session.cursor = math.min(session.cursor, #session.items); selectedText(session) end
+      if view then restoreView(view) end
     end)
   end
   if defaults.runner then defaults.runner(argv, session.cwd, callback)
   else vim.system(argv, { cwd = session.cwd, text = true }, callback) end
+end
+
+local function save(session, request)
+  if not request then
+    local item = selected(session)
+    if not item or item.plan then return end
+    saveTargetDraft(session)
+    request = { item = item, path = item.path, text = table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') }
+  end
+  if session.saving then
+    session.saveQueue[#session.saveQueue + 1] = request
+    return
+  end
+  local item, path, text = request.item, request.path, request.text
+  session.saving = true
+  session.saveError = nil
+  session.generation = session.generation + 1
+  local argv = vim.deepcopy(defaults.cli)
+  vim.list_extend(argv, { 'delta', 'writeback', session.change, '--source', path, '--json' })
+  local callback = function(result)
+    vim.schedule(function()
+      if session.closed then return end
+      saveTargetDraft(session)
+      session.saving = false
+      local ok, data = pcall(vim.json.decode, result.stdout or '')
+      if result.code ~= 0 or not ok or not data.ok then
+        session.saveError = ok and data.message or result.stderr or '保存失败'
+        vim.b[session.right].xirang_review_status = '保存失败'
+        vim.wo[session.rightWin].statusline = ' Xirang | 保存失败'
+        notify(session.saveError, vim.log.levels.ERROR)
+        if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1)) end
+        return
+      end
+      if session.drafts[path] == text then session.drafts[path] = nil end
+      -- 避免切回源文件或刷新时把已保存文本重新当作草稿。
+      item.after = text
+      local ignored = data.ignoredChanges or {}
+      local message = #ignored > 0 and ('已忽略不支持的修改: ' .. table.concat(ignored, ', ')) or '已保存'
+      vim.b[session.right].xirang_review_status = message
+      vim.wo[session.rightWin].statusline = (' Xirang | ' .. message):gsub('%%', '%%%%')
+      if #session.saveQueue > 0 then save(session, table.remove(session.saveQueue, 1))
+      else refresh(session, false) end
+    end)
+  end
+  if defaults.runner then defaults.runner(argv, session.cwd, callback, text)
+  else vim.system(argv, { cwd = session.cwd, text = true, stdin = text }, callback) end
 end
 
 local function sourceJump(session)
@@ -334,10 +411,12 @@ local function open(change)
   local session = {
     change = change, cwd = cwd, tab = tab, list = list, listWin = listWin, left = left, right = right,
     leftWin = leftWin, rightWin = rightWin, buffers = { list, left, right }, watchers = {},
-    generation = 0, cursor = 1, listWidth = vim.api.nvim_win_get_width(listWin), groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
+    generation = 0, cursor = 1, drafts = {}, saveQueue = {}, listWidth = vim.api.nvim_win_get_width(listWin), groups = { elements = {}, metamodel = {}, relationships = {}, views = {} },
     expanded = { elements = true, metamodel = true, relationships = true, views = true, plan = true },
   }
   sessions[tab] = session
+  vim.bo[right].buftype = 'acwrite'
+  vim.api.nvim_create_autocmd('BufWriteCmd', { buffer = right, callback = function() save(session) end })
   local function map(key, action)
     for _, target in ipairs({ list, left, right }) do
       vim.keymap.set('n', key, action, { buffer = target, silent = true })
@@ -360,6 +439,7 @@ local function open(change)
       renderList(session)
       selectRow(session, 1)
     elseif session.itemRows[row] then
+      saveTargetDraft(session)
       session.cursor = session.itemRows[row]
       selectedText(session)
     end
