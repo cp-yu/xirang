@@ -1,0 +1,47 @@
+{
+  "projectRoot": "/home/yunxin/Documents/Code/tools/developmentFramework/OpenSpec",
+  "model": "llmgw/gpt-6.1-sol",
+  "branch": "intent-solution-feasibility",
+  "sourceCommit": "89fe0d4e6",
+  "purpose": "Controlled conversational vignette verification; not full CLI workflow replay",
+  "edits": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "P1",
+    "P2"
+  ],
+  "workflowRunId": "65e45f83-28ae-4015-ab9b-901555cbd9a2",
+  "startedAt": 1794156978799,
+  "endedAt": 1794157205016,
+  "totalTokens": {
+    "input": 126951,
+    "output": 20244,
+    "total": 147195
+  },
+  "totalCost": {
+    "inputTokens": 126951,
+    "outputTokens": 20244,
+    "costUsd": 1.3782030000000003
+  },
+  "frozenPrompts": {
+    "explore-baseline.md": {
+      "sha256": "7d45ebba1e1459ccffbc020bae301f62292910086b6fd5d5fbd1ed3b546e86b1",
+      "bytes": 17090
+    },
+    "explore-candidate.md": {
+      "sha256": "a63105365a170f1f8f025d1b4c645f93c41b9d4267ede15eab2bf7377cd85591",
+      "bytes": 18684
+    },
+    "propose-baseline.md": {
+      "sha256": "a5a1b35eb5922fd643347a18640f0a321accde15f7796da20ede801d1456f378",
+      "bytes": 38247
+    },
+    "propose-candidate.md": {
+      "sha256": "8fb06c88b4a3be5a9b2ef3ce430d897be4d6972208e5dc9d1a3e2dd3ec83070c",
+      "bytes": 38595
+    }
+  }
+}

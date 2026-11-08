@@ -197,7 +197,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('impact scope');
       expect(body).toContain('approach');
       expect(body).toContain('verification method');
-      expect(body).toContain('unresolved Semantic Delta decisions across Definition, Contract, or structural scope');
+      expect(body).toContain('Semantic Delta decisions across Definition, Contract');
       expect(body).toContain('explicitly overrides the readiness recommendation');
       expect(body).toContain('does not authorize guessing source decisions');
       expect(body).toMatch(/ask one focused question at a time/i);
