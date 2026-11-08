@@ -1,0 +1,9 @@
+{
+  "root": "/tmp/xirang-tools-evidence-38srizuv",
+  "model": "llmgw/gpt-6.1-sol",
+  "purpose": "追加工具行为验证；隔离夹具，非真实供应商能力评估",
+  "scenarios": [
+    "investigation",
+    "feasibility"
+  ]
+}

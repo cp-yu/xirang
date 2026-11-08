@@ -44,7 +44,7 @@ describe('explore template integration', () => {
     expect(template).toContain('Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts.');
     expect(reference).toContain('Only after the user accepts the Summary');
     expect(reference).toContain('User agreement is required to exclude or defer in-scope behavior.');
-    expect(reference).toContain('experimental success is evidence, not user adoption');
+    expect(reference).toMatch(/experimental success is evidence, not user adoption/i);
     expect(template).toContain('only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure');
   });
 

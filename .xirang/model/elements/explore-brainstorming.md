@@ -11,12 +11,12 @@ definition: Explore Brainstorming 定义 Explore 的设计澄清流程：通过�
 
 ### Section: Explore 必须执行 brainstorming checklist
 
-Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置和需求澄清：探索项目上下文（evidence-first）、提供 visual companion（如果需要）、一次一问澄清需求、提出 2-3 个方案并对比权衡、分段呈现设计并逐段确认、生成 Design Summary。
+Explore 阶段 SHALL 按当前问题和有效上下文组织 brainstorming checklist，覆盖适用的设计职责：探索项目上下文（evidence-first）、提供 visual companion（如果需要）、一次一问澄清需求、提出 2-3 个方案并对比权衡、分段呈现设计并逐段确认、生成 Design Summary。
 
 - **完整 brainstorming 流程**
 
   - 用户调用 explore workflow
-  - 系统按顺序执行 6 步 checklist
+  - 系统按当前缺口推进适用设计工作，复用已有理解和确认，不重复执行固定问卷
   - 关于现有代码、架构或技术决策的所有声明必须基于项目证据，不得用通用知识替代项目事实
 
 - **跳过 visual companion**
@@ -38,13 +38,20 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
   - 问题有明确的几个选项
   - 系统以多选题形式提问，而非开放式问题
 
+Agent SHALL 区分用户意图、实现方案与技术事实，允许用户只表达意图、只提出路线或混合表达；在确定方案前主动理解现状、问题、期望结果与约束，区分候选路线和明确要求。影响问题定义、方案选择或结果判断的缺口 SHALL 通过项目取证和针对性提问澄清；提问时说明当前理解和疑点，一次一问，复用已明确内容，不采用固定问卷。
+
+- **只表达意图**：用户说“我想更快地找到问题。”时，理解当前困难、使用情境与希望改善的结果，帮助探索路径，不猜定用户已选择方案。
+- **只提出路线**：用户说“加一个缓存。”时，理解要解决的问题及为何想到缓存，辨别它是候选建议还是明确约束。
+- **混合表达**：用户同时表达目标与路线时，辨别需保留的目标和可调整的路径。
+- **信息已充分**：已有背景、目标与证据足以继续时，复用它们推进，不重复询问或强制实验。
+
 ### Section: 2-3 方案对比
 
-系统 SHALL 提出 2-3 个不同的技术方案并对比权衡；每个方案包含方案描述、优势、劣势、适用场景，并推荐其中一个方案且说明理由。
+存在需要选择的关键方案时，系统 SHALL 提出 2-3 个可行方案并对比权衡；每个方案包含方案描述、优势、劣势、适用场景，并推荐其中一个方案且说明理由。
 
 - **方案对比呈现**
 
-  - 系统理解了需求并准备提出技术方案
+  - 系统理解了需求且存在尚未确定的关键方案选择
   - 系统提出 2-3 个方案并对比权衡
   - 系统推荐其中一个方案并说明理由
 
@@ -59,6 +66,14 @@ Explore 阶段 SHALL 执行 6 步 brainstorming checklist，确保设计前置�
   - 系统 SHALL 用一行指出 ponytailladder 建议（如：「ponytail 说：这个抽象现在不需要，直接调 stdlib 够用。要换成这个吗？」）
   - 系统 SHALL 等待用户确认后才调整方案
   - 若无 ponytailladder 可简化项，系统 SHALL 自然跳过
+
+已确定的选择 SHALL 复用，不为满足数量制造替代方案。
+
+Agent SHALL 根据目标和约束同等审视用户与自身提出的方案，区分事实、推导与关键假设，寻找可能推翻方案的约束或反例。方案采纳不证明技术可行；方案失败本身不证明意图理解错误或目标不可实现。发现问题时先复核方案及假设；证据确实暴露意图歧义或约束冲突时，再澄清对应部分。明确路线要求与目标冲突时，说明冲突及选项，由用户决定调整方向，不擅自改变目标或路线约束。修订后复核依赖结论。
+
+- **用户路线遇到反证**：依据问题重新比较可行路径，不因某条路线失败直接否定用户目标。
+- **Agent 路线失败**：先检查自身方案和技术假设，不无依据重开意图确认。
+- **明确约束冲突**：用户明确要求的路线无法同时满足目标时，呈现冲突及可调整选项，等待用户选择。
 
 ### Section: 分段设计呈现
 
@@ -286,6 +301,8 @@ Explore 在已有 change 上发现 insight 时 SHALL 以 Semantic Model 分类 f
   - SHALL 明确简单变更仍需要设计确认，但只确认适用章节，最低集合为 problem、impact scope、approach 与 verification method
   - SHALL 明确用户审查通过 `Design Summary` 后才能路由到 `xirang-propose`
 
+提示词 SHALL 在组合后的上下文中保持精简；在适用位置表达关键判断与边界，复用已有规则，不将同一原则在各阶段重复展开，也不把每个例子或推论都变成独立指令。
+
 ### Section: Explore 使用 todo 跟踪流程
 
 `xirang-explore` SHALL 在 todo 工具可用时，把 Explore 阶段记录为 checklist 并在阶段完成时更新；该 checklist 只表示对话流程进度，不授权 main explore agent 创建、编辑或删除项目文件。
@@ -337,3 +354,7 @@ Explore main agent SHALL 可检查证据、运行查询、提问、比较方案�
 获取影响面时 SHALL 先用 arch search 选择 focus identities，再用 identity-only arch impact 获取 refinement、Relationships 与 canonical paths，最后 batch arch query 读取判断所需的完整 Definitions 与 Contracts。实现证据由代码工具获取，不能从 Relationship adjacency 自动推断必须修改，也不能从 identity、title 或残余上下文猜测未读语义。
 
 生成的 Explore skill SHALL 明确记录维护、实验委托和正式实现之间的权限边界；需要完整 Change 时交 Propose。
+
+可行性判断 SHALL 使用已有证据与推理能力，不要求每次新增测试。已有依据不足以解决影响决策的可行性问题时，SHALL 在确认依赖设计前委托 Experimenter 设计并执行最小判别实验。局部证据 SHALL 用于支持已验证部分，不扩大为整个方案已证实，也不因其覆盖有限而忽略其价值。执行受阻或结果不明确时，说明剩余疑点及其对决策的影响，不把运行过实验当作疑点已解决。
+
+- **局部实验成功**：仅某接口能力得到验证时，使用该事实判断相关部分，不宣称整套方案已通过验证。

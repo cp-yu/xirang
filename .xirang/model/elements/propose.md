@@ -20,12 +20,9 @@ Propose SHALL 承接并复用 Explore 形成的已确认 Design Summary，以完
 
 ### Section: 补足最低语义就绪条件
 
-缺少 Design Summary 时，Propose SHALL 先确认 problem、impact scope、approach 与 verification method 足够清晰。
+缺少有效 Design Summary 时，Propose SHALL 通过项目证据与针对性提问主动建立对问题、期望结果、约束、影响范围、方案及验证方式的理解，不把用户提供的路线当成完整意图。SHALL 解决影响目标的重大缺口，包括 Definition、Contract 与结构范围上的未决 Semantic Delta 决策；已明确内容直接复用，不使用固定问卷。
 
-- **用户直接进入 Propose**
-
-  - 对话中没有完整 Summary
-  - Agent 在编写 Change 前确认最低设计集
+- **用户直接进入 Propose**：对话中没有完整 Summary，用户只说“加一个缓存。”时，先理解要解决的问题及路线是否为明确约束，再判断语义就绪，不直接猜定目标。
 
 ### Section: 查缺补漏与决策确认
 
@@ -65,6 +62,8 @@ Formation 内 SHALL 对照确认来源检查完整机制、制品一致性和适
 - **用户要求交互**
   - 用户明确希望边写边审
   - Propose SHALL 按机制展示包含对应目标与验证方向的实际草稿，反馈后再推进
+
+Propose SHALL 检查支持实现预期结果的证据及关键假设；用户确认本身不证明可行性，方案失败本身不证明意图理解错误或目标不可实现。SHALL 区分事实判断、方案缺陷与意图理解缺口，按已确认依据修正可确定的错误，重大方案调整或目标与约束冲突按决策确认规则处理。
 
 ### Section: 完成时披露文档化补充
 
