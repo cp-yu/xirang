@@ -1,5 +1,13 @@
 # xirang
 
+## 0.2.7
+
+### Patch Changes
+
+- Explore/Propose 工作流提示词更新：Explore 设计循环要求主动理解意图/路线混合输入、澄清影响问题定义的关键缺口，以证据同等审视用户与自身方案，并按证据决定可行性实验（不再机械强制）；实验受阻或结果不明确时必须披露剩余疑点及其对决策影响。Propose 直接入口与成文自查要求补足目标、约束与语义就绪判断，不以确认替代可行性证据。
+- Neovim 变更审阅支持目标模型微调写回：`xirang delta writeback <change> --source <path>` 从 stdin 将审阅投影中的 Expected Semantic Model 修改写回 Delta 源文件；补齐该命令的补全类型声明。
+- Reviewer 委派调度指引集中化；Neovim 审阅修复差量条目归属、排队保存与写回正文细节。
+
 ## 0.2.6
 
 ### Minor Changes
