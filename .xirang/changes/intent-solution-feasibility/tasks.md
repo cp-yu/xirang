@@ -15,3 +15,8 @@
 - [x] G4: 受管提示词完整表达已确认行为并保持上下文精简
   - Contract: `explore-brainstorming` / Section "Explore 通过 referenceFiles 暴露行为引导"
   - Verify: 用户与 Agent 使用的工作面与来源一致，关键判断和边界保持完整；不出现逐阶段重复展开、固定问卷或强制实验要求，原有记录、权限和交接边界继续有效。
+
+## Required Corrections
+
+- [x] [artifact_fix] RC1: 为 G1 补充可查项目事实的实际取证证据，保留工具调用与结果。
+- [x] [artifact_fix] RC2: 为 G2 补充关键可行性疑点的实际实验交接和受阻或不确定结果消费证据，确认不会提前放行依赖设计。

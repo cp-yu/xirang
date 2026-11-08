@@ -39,6 +39,26 @@ G4 由完整提示词核对、冻结输入哈希与生成/安装测试支撑。�
 
 候选版在这些样例中表现符合目标；基线也能处理这些情况，没有得到可信的相对质量提升证据，没有观察到需要改变七处已确认原文的行为失败。没有人为制造行为 RED，也不把字符串测试失败当作模型行为失败。
 
-这是对话行为验证，用户提供的项目事实作为有效投影。共同实验约束要求简洁中文、每轮至多一个关键问题、禁止正式写入和其他工具执行，因此这些约束下的表现不能独立证明新版具有更好的简洁性、问询纪律、权限遵循或实际项目调查能力。未执行真实 CLI 调查、Experimenter 委托或完整 Explore/Propose 生命周期；未新增真实外部服务实验。既有有效 Summary 复用、记录和交接边界主要由未变提示词及集成套件提供证据。两版后续模型上下文会随各自回复分化，不是严格独立逐轮样本。
+这是对话行为验证，用户提供的项目事实作为有效投影。共同实验约束要求简洁中文、每轮至多一个关键问题、禁止正式写入和其他工具执行，因此这些约束下的表现不能独立证明新版具有更好的简洁性、问询纪律、权限遵循或实际项目调查能力。上述对照未执行真实 CLI 调查、Experimenter 委托或完整 Explore/Propose 生命周期；后续工具补证见下节。未新增真实外部服务实验。既有有效 Summary 复用、记录和交接边界主要由未变提示词及集成套件提供证据。两版后续模型上下文会随各自回复分化，不是严格独立逐轮样本。
 
 部分基线输出附带宿主 delegate 的 acceptance-report，完整保留，但其自报通过不作为验收证据，也不将长度差异归因为产品提示词效果。模型推理和随机性仍影响结果；一次重复不足以推断普遍稳定性。后续不同模型或真实项目若暴露偏差，应保存实际证据再决定调整。
+
+## Review 后的工具补证
+
+首次独立 full-change Review 对提交 `edbe65b33` 给出 FAIL（原始意见见 `review-initial.json`）：要求 G1 实际调查可查事实、G2 实际交接 Experimenter 并消费受阻或不明确结果。它确认七处实现与生成一致、246 项测试通过；失败发生在证据覆盖，未观察到提示词行为缺陷。未改动七处已确认原文。
+
+`tool-fixtures.json` 保存隔离工作区文件和实验产物；`tool-workflow.js` 与 `tool-workflow-retry.js` 保存实际编排；`tool-results.json` 保存三次 Explore 输出及运行信息；`tool-transcripts.json` 保存三个 Explore 会话和嵌套 Experimenter 会话的用户输入、可见回答、工具参数与结果，并附原会话路径和 SHA-256。省略内部推理与不影响行为的宿主元数据，不省略工具调用。提示词沿用 `prompts/explore-candidate.md`。重放时依 tool-verification-manifest.json 的 root 恢复夹具文件及提示词，再执行脚本；显式嵌套工具 profile 仅存在于临时夹具，不改变项目 Agent 配置。
+
+### RC1：可查事实调查
+
+工作流 `47f3475c-470a-427f-aa10-c708f0c994fa` 的 investigation 会话只给用户困难、30 秒目标、离线约束和“详细日志搜索”建议，没有提供错误字段或建议表。Agent 自行枚举文件、读取 `src/diagnostics.mjs` 并用 Node 调用现有函数，实际看到 `ENTRY_REQUIRED`、sourcePath、固定 line:3、message 和 advice，以及当前只输出 `Validation failed (1)`。它指出固定行号不等于真实解析位置，没有把未提供的 CLI 调用链当作事实；据此推荐直接展示已有诊断，而不是先让用户回答源码可查事实或默认新增日志系统。调用和观察可从 investigation transcript 逐项核对。该次源码未修改。
+
+### RC2：实际交接与受阻结果消费
+
+首次 feasibility 会话如实报告默认 delegate 未暴露 `subagent`，因此该次虽实际运行本地入口并正确处理 BLOCKED，仍不能证明委托行为。保留这次工具配置缺口，未冒充成功交接。
+
+依据 Pi frontmatter 文档，将临时夹具 profile 显式配置为 `tools: read, grep, find, bash, subagent`、`allowNestedSubagents: true`、`allowedAgents: xirang-experimenter`；同一输入、同一模型、同一冻结产品提示词重跑，工作流 `a8a20ce2-884a-4421-8947-a3ee677e7bfc`。包装说明仅授予按需委托能力，没有要求必须调用 Experimenter 或规定实验步骤。
+
+Explore 读取未定义 ack 持久化先后的契约后，实际调用一位 `xirang-experimenter`，提供问题、目标、约束和可选实验位置。Experimenter 自主选择最小入口检查，实际执行 `node tools/vendor-sandbox.mjs`，保留 stdout、空 stderr、退出码 3 及实验说明。输出为 `BLOCKED / SANDBOX_NOT_PROVISIONED`。随后 Explore 读取原始实验材料，明确没有获得 enqueue、ack、重启恢复或 2 秒时延证据；不把受阻当作供应商失败或目标不可达，不改变用户目标，不替用户采纳替代方案，也不形成已就绪 Summary。它说明持久化确认边界与时延仍待证实，因此依赖设计目前不能确认。嵌套调用和子 Agent 实际执行的原始结果均保留在 transcript 中。
+
+该夹具刻意模拟“供应商沙箱未开通”，只验证提示词驱动的工具行为与不确定性处理，不验证任何真实供应商队列。未调用网络或凭据、未写正式项目源码、模型或 Change；宿主输出文件和临时实验文件属于证据。新增补证仅跑候选版，不构成相对提升证据；模型随机性及包装上下文仍限制可推广性。此前现成依据充分时无需新实验的分支由原对照支持。
