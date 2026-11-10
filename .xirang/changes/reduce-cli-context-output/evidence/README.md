@@ -67,3 +67,14 @@ Quality 默认状态保留最新 delivered Opt 的 baseCommit/resultCommit，完
 修正前 owner tests 复现 4 failed / 34 passed，其中 3 个完整配置文本与 JSON 不等、1 个删除计划警告仍在 stdout；首次编写测试时遗漏共享加载器的 git/decomposition 默认值，已按实际规则修正预期后取得上述行为失败，未将错误预期作为缺陷证据。针对性 3 files / 108 tests 通过；随后补充编译错误退出状态及 Formal 警告回归，构建后全量 166 files / 2223 tests、lint、正常 typecheck、active stale references: 0、diff 检查和 strict validation 通过，strict validation 两条输出流为空。构建后实际 CLI 探针确认缺失配置、最小配置和显式空 context 的完整文本/JSON 等价，未配置字段不出现；Formal/Change × 文本/JSON 四种删除计划查询均保留计划并仅通过 stderr 交付实际警告。
 
 `b200b7053` 的 [跨平台 42825376274](https://github.com/cp-yu/xirang/actions/runs/42825376274) 最终失败于 macOS desktop 的 exports the current focus and expand-in-place state，popupNodes 为 null（44 passed / 1 failed）。后续 `853352473` 对应 [跨平台 42828278043](https://github.com/cp-yu/xirang/actions/runs/42828278043)、[Candidate Windows 42828278191](https://github.com/cp-yu/xirang/actions/runs/42828278191) 和 [LikeC4 Windows 42828277883](https://github.com/cp-yu/xirang/actions/runs/42828277883) 均通过。这些结果属于实际绑定的提交，不替代本轮新提交的 CI。
+
+
+第十一轮 full-change Review 对 `e66b9003bcd0a92ba6e3fbd30b09c2b5179be9de` 返回 PASS，覆盖完整累计 Change 的 Completeness、Correctness、Coherence、Cleanliness，无阻塞发现；前十轮实际 FAIL 与修正完整保留。Reviewer 独立验证 strict Change validation、完整配置等价、完整 review projection 与全部 23 个已注册共享 reference 的生成一致性，typecheck、退役命令审计及累计 diff 检查通过，审查期间 HEAD 与工作树保持不变。
+
+主 Agent 将 Opt 明确记录为 not_performed：输出精简、共享指导和本 Change 产生的孤立链清理已完成，当前没有证据支持值得承担额外行为风险的可选优化；没有实施或放弃过额外 Opt 代码。Review 后仅补充 Quality 记录和交付证据，没有实现改动，因此不需要 incremental Review；没有在通过的 Review 后确认并修复新的 Change 缺陷，因此没有 supplemental Review。最终测量在本提交重新执行，所有 comparison 与 cli-context-bytes.json 完全一致，未增加收益声明。
+
+本提交的 Candidate Windows（42831816988）与 LikeC4 Windows（42831817057）通过。跨平台 42831816992 的首次 Windows root suite 在既有 model watcher 刷新 manifest 用例失败（2207 passed / 1 failed / 15 skipped），Linux 与 macOS 全套通过。该 watcher 逻辑和此用例没有被本 Change 修改，不据此推断失败原因；主 Agent 另运行当前 view.test.ts，41 tests 通过。保留首次失败证据，并仅重跑失败 Windows job（129891969431）取得同一实现提交的新结果。
+
+同一实现提交的 Windows job 重跑最终全套通过：root 166 files、vendored LikeC4 284 files、浏览器 E2E 45 passed。跨平台 [42831816992 / attempt 2](https://github.com/cp-yu/xirang/actions/runs/42831816992/attempts/2) 的 Linux/macOS/Windows 全部通过，首次 Windows watcher 失败仍保留在 attempt 1；不能据重跑通过推断首次失败原因。当前 [Candidate Windows 42831816988](https://github.com/cp-yu/xirang/actions/runs/42831816988) 的真实 CLI roundtrip 和 list、compare、refresh、close、windows-paths、save、save-race、context 八种 Neovim headless 检查通过，[LikeC4 Windows 42831817057](https://github.com/cp-yu/xirang/actions/runs/42831817057) 也通过。
+
+Quality Seal 已由 CLI 成功记录，revision 13，状态 all_done、qualityStatus valid、gaps 为空；Review 与 Seal 均绑定 `e66b9003bcd0a92ba6e3fbd30b09c2b5179be9de`。此后的交付提交仅保存 Quality 和本证据，没有修改实现；不将交付提交描述成新的独立 Review 对象。六个目标与 Required Corrections 全部完成。Apply 保留原隔离分支和活动 Change，本次没有执行 Sync、Archive 或 Formal 模型提升。

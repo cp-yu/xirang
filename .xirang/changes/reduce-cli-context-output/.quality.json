@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "reduce-cli-context-output",
-  "revision": 10,
+  "revision": 13,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -114,8 +114,24 @@
         "CRITICAL — Full text configuration queries manufacture null values for absent optional fields. src/core/config-projection.ts:119-146 creates properties whose values are undefined; src/commands/config.ts:112-125 passes that object directly to the text renderer, and src/core/config-schema.ts:292-325 serializes undefined as null. Reproduced using a project whose .xirang/config.yaml contains only `schema: semantic-model`: `xirang config project` prints `proseLanguage: null`, `context: null`, `optimization: null` and `apply: null`, while `xirang config project --json` omits those fields. This violates the omission and equivalent-scope requirements in .xirang/changes/reduce-cli-context-output/elements/config-command.md:88-92 and the explicit missing-context omission requirement in elements/config-projection.md:35-37. Omit undefined properties from text output while preserving explicitly configured empty strings, and extend test/commands/config.test.ts:287-317 to compare complete text/JSON results for minimally configured projects.",
         "CRITICAL — `arch plan-remove --change` still sends actual compiler warnings through stdout. src/commands/arch/plan-remove.ts:85-93 retains compiled diagnostics in the result, lines 96-109 render them into text, and lines 118-123 serialize the entire result without emitting stderr diagnostics. Reproduced with a valid root Element Kind stored in views/project.md and a valid Change modifying the root: both `xirang arch plan-remove root --change sample` and its `--json` variant exit 0 with empty stderr; the ENTITY_PARTITION_MISMATCH warning appears only in stdout. This violates the whole-CLI result/diagnostic separation required by .xirang/changes/reduce-cli-context-output/elements/cli.md:102-112 and leaves G1 incomplete. Route compiler warnings to stderr using the requested encoding while retaining the removal-plan data in stdout; extend the owning command tests at test/commands/arch-plan-remove.test.ts:55-71 with warning-bearing text and JSON cases."
       ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "e66b9003bcd0a92ba6e3fbd30b09c2b5179be9de",
+      "result": "PASS",
+      "summary": "Reviewed the entire cumulative Change against all six goals, Required Corrections, Semantic Delta units and design decisions for Completeness, Correctness, Coherence and Cleanliness. No blocking findings remain. Committed implementation and owning tests support output/diagnostic separation, selective configuration and workflow state, Record handoff protection, explicit validation details, shared guidance and Neovim protocol adaptation. Independent read-only probes passed, including strict Change validation, configuration parity, complete review projection and parity of all 23 registered shared references. Type checking, retired-command auditing and cumulative diff checks passed. HEAD remained unchanged and the worktree remained clean.",
+      "findings": []
     }
   ],
-  "opt": null,
-  "seal": null
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "本 Change 的输出精简、共享指导与退役链清理已完成，并经完整测试及独立 full-change Review 通过。当前没有具有充分代码证据、明确增量收益且值得承担额外行为风险的可选优化事项；保留已审查实现，不再追加 Opt 改动。"
+  },
+  "seal": {
+    "commit": "e66b9003bcd0a92ba6e3fbd30b09c2b5179be9de",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "本机构建、166 files / 2223 tests、lint、tsc --noEmit、strict Change validation、active stale references: 0、diff 检查及构建后 CLI 边界探针；独立 full-change Review 覆盖完整累计 Change 的四个维度和全部 23 个共享 references 的生成一致性；实现提交对应跨平台 run 42831816992 的 Linux/macOS/Windows 全套检查，以及 Candidate Windows 42831816988 和 LikeC4 Windows 42831817057 均通过。当前提交的 Windows 真实 CLI roundtrip、八种 Neovim headless 模式及浏览器 E2E（45 passed）有实际通过证据。",
+    "assessment": "六个目标及 Required Corrections 全部完成，最新 full-change Review 为 PASS；历史十轮 FAIL 与对应修正完整保留。Opt 明确为 not_performed，当前没有证据支持值得追加行为风险的可选优化。通过 Review 后未改动实现，仅记录 Quality 与交付证据，因此无新增 incremental 或 supplemental Review。Windows 首次 CI 的既有 watcher 用例超时，未改动代码后同一提交重跑全套通过；失败原因尚未确定，保留首次失败与重跑证据，不将其隐藏或推断为已修复缺陷。字节测量已在最终实现重跑并与保存结果一致，属于固定样本的 UTF-8 字节而非 token 或真实 Agent 任务效果。当前结果可进入 Change Closure；本次 Apply 不执行 Sync/Archive。"
+  }
 }
