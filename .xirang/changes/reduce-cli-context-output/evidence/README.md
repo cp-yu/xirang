@@ -2,4 +2,4 @@
 
 `cli-context-bytes.json` 是实际测量结果。复现：分别构建实现前基线 `6f77c5b1a` 与本分支，再执行 `node scripts/measure-cli-context.mjs <baseline-checkout> <current-checkout>`。脚本在同一临时位置重置相同模型、Change、配置及 Record，记录 stdout、stderr 和实际读取的辅助文件；静态文件首读成本包含在内。样本无警告，不能据此推断警告字节变化；计量单位是 UTF-8 字节，不是 token，也不证明真实 Agent 任务质量或普遍降幅。新旧完整 Contract 查询保留相同语义；默认 validation 样本未请求 preview。Propose 的辅助文件读取量增加，已纳入累计总量。
 
-Windows 路径与交接验证由 `.github/workflows/windows.yml` 的真实 Windows runner 提供；实际 run 结果在完成后补入本文件。
+Windows 实际证据：[run 42805740210](https://github.com/cp-yu/xirang/actions/runs/42805740210) 的 `Verify Windows record paths and build gates` 步骤通过，覆盖本次文件名寻址、coverage/consume、CLI 输出与 Candidate 门禁。该 run 整体失败于随后 Neovim refresh 检查，不能视为整组通过。首轮跨平台 lint 失败已改为显式 if/else，`pnpm lint` 通过，runner 的 10 个测试通过。Neovim 的跳转测试按真实路径比较；随后 Windows 暴露保存事件路径分隔符不一致，已在事件匹配两端 normalize。本机八组 headless 模式和真实 CLI roundtrip 再次通过；Windows 重跑结果需独立查看 PR checks，不以本记录推测通过。后续生成 parity 再次检查通过，受管 skills/references 无差异。

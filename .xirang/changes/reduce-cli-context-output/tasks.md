@@ -8,7 +8,7 @@
   - Contract: `cli` / Section "提供一致可复现的操作"
   - Verify: 配置选择保持完整字段原义和匹配制品规则，合法未配置与非法路径可区分，磁盘修改后的下一次查询立即生效；缺失制品、无效目标清单、未完成目标和各 Quality 门禁分别产生正确状态及缺口，不回传任务正文；Quality 默认给当前结论与 revision，显式历史保留完整意见，CAS 和同类失败解决规则不变。
 
-- [ ] G3: 以文件名维护 Record 并保留覆盖交接保护
+- [x] G3: 以文件名维护 Record 并保留覆盖交接保护
   - Contract: `design-record-operations` / Section "门禁化交接确认来源"
   - Verify: 文件名可用于完整及条目选择读取、局部编辑与交接，无需外部 sourceVersion；未提及内容保持，显式差异正确区分修改、补充与撤回；coverage 后来源仍存在，来源内容或目标模型变化使 consume 拒绝，只改 Plan 不使模型指纹失效；成功按先保存原始字节、验证、删除来源的顺序交接，失败及冲突快照保留来源，同字节快照可重验恢复。Windows、macOS 与 Linux 的文件名寻址及受控路径行为一致；Windows CI 提供实际路径行为证据，路径逃逸或 symlink 被拒绝而不写目标。
 
