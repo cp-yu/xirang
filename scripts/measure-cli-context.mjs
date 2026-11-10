@@ -45,19 +45,23 @@ async function measure(tree, legacy) {
   if (legacy) {
     for (const artifact of ['proposal', 'specs', 'design', 'tasks', 'proposal', 'design', 'tasks']) await cli('propose', ['instructions', artifact, '--change', 'sample', '--json']);
   } else {
+    await load('propose', '.xirang/references/xirang-configuration-use.md');
     for (const artifact of ['proposal', 'specs', 'design', 'tasks']) {
       await load('propose', `.xirang/references/xirang-artifact-${artifact}.md`);
       await cli('propose', ['config', 'project', '--artifact', artifact, '--select', 'proseLanguage', '--select', 'context', '--select', 'rules', '--json']);
     }
   }
-  await cli('propose', ['validate', '--change', 'sample', '--json']);
+  await cli('propose', ['validate', '--change', 'sample', ...(legacy ? [] : ['--preview']), '--json']);
   await load('apply', '.pi/skills/xirang-apply-change/SKILL.md');
   await load('apply', '.xirang/references/xirang-apply-step-1-preparation.md');
   await cli('apply', ['status', '--change', 'sample', '--json']);
   if (legacy) {
     await cli('apply', ['instructions', 'apply', '--change', 'sample', '--json']);
     await cli('apply', ['quality', 'status', 'sample', '--json']);
-  } else await cli('apply', ['config', 'project', '--select', 'proseLanguage', '--select', 'apply', '--json']);
+  } else {
+    await load('apply', '.xirang/references/xirang-configuration-use.md');
+    await cli('apply', ['config', 'project', '--select', 'proseLanguage', '--select', 'apply', '--json']);
+  }
   await load('record', '.xirang/references/xirang-design-record.md');
   const created = await cli('record', legacy ? ['record', 'create', '--slug', 'sample', '--from', path.join(root, 'payload.json'), '--json'] : ['record', 'create', 'sample.md', '--from', path.join(root, 'payload.json'), '--json']);
   const id = legacy ? created.result.explorationId : 'sample.md';

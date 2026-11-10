@@ -15,6 +15,7 @@ interface SchemaValidationResult {
   path: string;
   valid: boolean;
   issues: ValidationIssue[];
+  stages: string[];
 }
 
 function unknownSchema(name: string): Error {
@@ -27,7 +28,7 @@ function inspectSchema(name: string) {
   return { name, source: 'package' as const, path: schemaDir };
 }
 
-function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidationResult {
+function validateBuiltInSchema(name: string): SchemaValidationResult {
   const schemaDir = getSchemaDir(name);
   if (!schemaDir) throw unknownSchema(name);
   const issues: ValidationIssue[] = [];
@@ -39,14 +40,13 @@ function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidation
     'Dependency graph',
     'File references',
   ];
-  if (verbose) stages.forEach((stage) => console.log(`  ${stage}...`));
 
   let schema;
   try {
     schema = resolveSchema(name);
   } catch (error) {
     issues.push({ level: 'error', path: 'schema.yaml', message: (error as Error).message });
-    return { name, path: schemaDir, valid: false, issues };
+    return { name, path: schemaDir, valid: false, issues, stages };
   }
 
   for (const artifact of schema.artifacts) {
@@ -59,7 +59,7 @@ function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidation
       });
     }
   }
-  return { name, path: schemaDir, valid: issues.length === 0, issues };
+  return { name, path: schemaDir, valid: issues.length === 0, issues, stages };
 }
 
 export function registerSchemaCommand(program: Command): void {
@@ -91,7 +91,11 @@ export function registerSchemaCommand(program: Command): void {
     .action((name: string | undefined, options: { json?: boolean; verbose?: boolean }) => {
       try {
         const names = name ? [name] : [...BUILT_IN_SCHEMA_IDS];
-        const results = names.map((id) => validateBuiltInSchema(id, Boolean(options.verbose && !options.json)));
+        const results = names.map(validateBuiltInSchema);
+        if (options.verbose) {
+          if (options.json) console.log(JSON.stringify(results.map(({ name, stages }) => ({ name, stages }))));
+          else for (const result of results) console.log(`${result.name}:\n${result.stages.map(stage => `  ${stage}`).join("\n")}`);
+        }
         const valid = results.every((result) => result.valid);
         for (const result of results) {
           if (result.issues.length) {

@@ -111,12 +111,10 @@ function generateManualSubmissionUrl(title: string, body: string): string {
  * Display formatted feedback content for manual submission
  */
 function displayFormattedFeedback(title: string, body: string): void {
-  console.log('\n--- FORMATTED FEEDBACK ---');
   console.log(`Title: ${title}`);
   console.log(`Labels: feedback`);
   console.log('\nBody:');
   console.log(body);
-  console.log('--- END FEEDBACK ---\n');
 }
 
 /**

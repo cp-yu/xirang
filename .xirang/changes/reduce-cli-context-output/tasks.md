@@ -23,3 +23,10 @@
 - [x] G6: Neovim 在精简 CLI 协议下可靠保存与审阅
   - Contract: `neovim` / Section "保存 Expected Semantic Model 微调"
   - Verify: 退出码 0 且 stdout 为空的保存正常刷新，混合支持与忽略修改仍提示 ignoredChanges 并显示 accepted 内容；失败从 stderr 取得具体诊断并保留草稿。Change 选择与完整前后模型、Plan 查询可用，异步旧响应不覆盖新结果，刷新保持现有视图状态。
+
+## Required Corrections
+
+- [x] [code_fix] 形成工作流显式审阅有效差异，并在累计测量中保留同一审阅信息。
+- [x] [code_fix] 共享指导完整保留配置作用域、语言边界及 additive rules，模型恢复按紧凑导航与必要快照推进。
+- [x] [code_fix] 非交互批量校验保持无问题静默，JSON 格式选择覆盖诊断编码，显式 schema 详情保留检查阶段。
+- [x] [code_fix] 归档重试返回已有位置，Candidate 文本详情包含实际语义差异，反馈材料去除装饰。

@@ -64,12 +64,12 @@
       },
       "after": {
         "calls": 6,
-        "stdout": 1289,
+        "stdout": 1432,
         "stderr": 0,
-        "reads": 55504,
-        "total": 56793
+        "reads": 58127,
+        "total": 59559
       },
-      "reductionPercent": 37.32
+      "reductionPercent": 34.27
     },
     "apply": {
       "before": {
@@ -83,10 +83,10 @@
         "calls": 2,
         "stdout": 793,
         "stderr": 0,
-        "reads": 17365,
-        "total": 18158
+        "reads": 19670,
+        "total": 20463
       },
-      "reductionPercent": 16.53
+      "reductionPercent": 5.94
     },
     "record": {
       "before": {
@@ -259,42 +259,42 @@
     },
     {
       "group": "record",
-      "command": "record create --slug sample --from /tmp/xirang-context-measure-p4a3Ys/payload.json --json",
+      "command": "record create --slug sample --from /tmp/xirang-context-measure-1pYkRM/payload.json --json",
       "stdout": 473,
       "stderr": 0,
       "reads": 0
     },
     {
       "group": "record",
-      "command": "record show 20261110T100617Z-1524cee9 --json",
+      "command": "record show 20261110T113428Z-d8140554 --json",
       "stdout": 3160,
       "stderr": 0,
       "reads": 0
     },
     {
       "group": "record",
-      "command": "record status 20261110T100617Z-1524cee9 --json",
+      "command": "record status 20261110T113428Z-d8140554 --json",
       "stdout": 502,
       "stderr": 0,
       "reads": 0
     },
     {
       "group": "record",
-      "command": "record validate 20261110T100617Z-1524cee9 --json",
+      "command": "record validate 20261110T113428Z-d8140554 --json",
       "stdout": 511,
       "stderr": 0,
       "reads": 0
     },
     {
       "group": "record",
-      "command": "record show 20261110T100617Z-1524cee9 --entry E2 --json",
+      "command": "record show 20261110T113428Z-d8140554 --entry E2 --json",
       "stdout": 566,
       "stderr": 0,
       "reads": 0
     },
     {
       "group": "record",
-      "command": "record update 20261110T100617Z-1524cee9 --from /tmp/xirang-context-measure-p4a3Ys/patch.json --source-version 7d81748ec5a0dcbe77addf48ce073ead9f441d2d719974ca6330b090f82b74b9 --json",
+      "command": "record update 20261110T113428Z-d8140554 --from /tmp/xirang-context-measure-1pYkRM/patch.json --source-version dc02fb41533e5a4b436ee8413c97f399ab484f6950df78684d057b310d365233 --json",
       "stdout": 1138,
       "stderr": 0,
       "reads": 0
@@ -348,7 +348,14 @@
       "file": ".pi/skills/xirang-propose/SKILL.md",
       "stdout": 0,
       "stderr": 0,
-      "reads": 38880
+      "reads": 39526
+    },
+    {
+      "group": "propose",
+      "file": ".xirang/references/xirang-configuration-use.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 1977
     },
     {
       "group": "propose",
@@ -408,8 +415,8 @@
     },
     {
       "group": "propose",
-      "command": "validate --change sample --json",
-      "stdout": 0,
+      "command": "validate --change sample --preview --json",
+      "stdout": 143,
       "stderr": 0,
       "reads": 0
     },
@@ -425,7 +432,7 @@
       "file": ".xirang/references/xirang-apply-step-1-preparation.md",
       "stdout": 0,
       "stderr": 0,
-      "reads": 7392
+      "reads": 7720
     },
     {
       "group": "apply",
@@ -433,6 +440,13 @@
       "stdout": 728,
       "stderr": 0,
       "reads": 0
+    },
+    {
+      "group": "apply",
+      "file": ".xirang/references/xirang-configuration-use.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 1977
     },
     {
       "group": "apply",
@@ -450,7 +464,7 @@
     },
     {
       "group": "record",
-      "command": "record create sample.md --from /tmp/xirang-context-measure-p4a3Ys/payload.json --json",
+      "command": "record create sample.md --from /tmp/xirang-context-measure-1pYkRM/payload.json --json",
       "stdout": 0,
       "stderr": 0,
       "reads": 0
@@ -471,7 +485,7 @@
     },
     {
       "group": "record",
-      "command": "record update sample.md --from /tmp/xirang-context-measure-p4a3Ys/patch.json --json",
+      "command": "record update sample.md --from /tmp/xirang-context-measure-1pYkRM/patch.json --json",
       "stdout": 0,
       "stderr": 0,
       "reads": 0

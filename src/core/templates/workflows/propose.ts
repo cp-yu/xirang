@@ -2,6 +2,7 @@
  * Propose workflow template.
  */
 import { artifactReferences } from '../fragments/artifact-references.js';
+import { CONFIGURATION_USE_GUIDANCE } from '../fragments/configuration-use.js';
 import type { SkillTemplate } from '../types.js';
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
@@ -69,7 +70,7 @@ Preserve artifact dependency order while using these review units. Discuss new i
    - Run \`xirang list --json\` and inspect relevant existing change artifacts when present.
    - Run \`xirang record list --json\`. Select a relevant Change-context record and apply the shared **Inputs and authority** protocol to the complete latest record, Summary, and current context. Unresolved conflicts and pending decisions affecting the target block Formation. With no record, check for an explicit user exemption or a statement that this design has no normative content; obtain an undeclared record decision here before compiling. Do not infer exemption or create an empty record.
    - Load the formal Xirang Semantic Model through the shared context above.
-   - Follow shared Semantic Model context: search finite candidates, use outline and impact for navigation, then query selected Declarations and needed Contracts. Do not expand every impact result. Snapshot is reserved for loss of global model understanding or model diagnostics.
+   - Follow shared Semantic Model context: search finite candidates, use outline and impact for navigation, then query selected Declarations and needed Contracts. Do not expand every impact result. Recover global understanding with markdown outline and selected reads; use snapshot only when those are insufficient or model diagnostics require it.
    - Use implementation evidence only where needed to resolve current behavior or lowering constraints.
 3. Assess semantic readiness.
    - Reuse a confirmed, still-current \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and the Declaration, Relationship, Metamodel, and View Delta units; route testing strategy to \`design.md\` and concrete test work to \`tasks.md\`; route risk and trade-off decisions to \`design.md\`.
@@ -113,7 +114,7 @@ Preserve artifact dependency order while using these review units. Discuss new i
     - Review source to target first. Read the complete latest record, confirmed Design Summary and Propose rulings. For each applicable confirmed commitment, identify its responsible Elements at each abstraction level before consulting the authored scope. Read their actual target clauses, including unchanged clauses claimed as no-op; compare conditions, numbers, examples, timing, exceptions and outcomes separately at each owner. Apply the shared nature/decision/applicability rules: accepted applicable normative details need current locations and excerpts; resolve target-affecting pending decisions and justify non-applicability or no effect. Excluded and informative entries do not require invented obligations. Repair missing commitments in Contracts and proposal scope before reconciling Plan.
     - Then read the current proposal, Delta, design and tasks back to their authority. Check each behavioral requirement and asserted outcome against its Contract and confirmed basis, applying Documentation and gap handling to permitted minor elaborations and unresolved intent. A valid reference or matching topic does not establish agreement; compare what each statement requires, forbids or leaves open. Check every target-state occurrence of revised decisions, preserving accurate historical descriptions and unrelated text. Keep implementation and testing arrangements in Plan. Every target behavior needing implementation must have an implementation arrangement and an observable verification direction that can falsify it; no verification direction invents target behavior. Correct source-determined writing errors yourself; when a substantive decision is needed, present all findings and request one user ruling at a time. Agreement among artifacts cannot excuse a shared omission.
     - Challenge the complete mechanism and its acceptance outcomes: try relevant boundary or competing-event sequences, tracing initial state, event order and expected outcome against invariants, timing and failure behavior. Check the evidence and critical assumptions supporting the proposed implementation's ability to realize those outcomes. Confirmation alone does not establish feasibility, and an approach failure alone does not establish an intent mismatch or an unachievable goal. Do not substitute a list of scenario names for the reasoning. Repair expression or derivation errors without changing confirmed decisions; otherwise use Documentation and gap handling. A passing reference check cannot establish that a mechanism is coherent.
-    - Then run the deterministic validation on the final artifacts after user rulings: \`xirang validate --change "<name>" --json\`, which owns combined validation, effective-diff review, and task structure validation. Do NOT run \`xirang sync\`.
+    - Then run the deterministic validation on the final artifacts after user rulings: \`xirang validate --change "<name>" --preview --json\`, then inspect the returned effective-diff entries against the intended scope before completion. This command performs combined validation and task structure validation. Do NOT run \`xirang sync\`.
     - Errors from deterministic validation or the scaffolding checks block ready-for-apply. Fix at most one round and recheck once; remaining errors stay blocking. Formatting repairs may only restate existing commitments; they must not invent restrictions to satisfy a validator. Recheck any affected semantic conclusions after repairs.
     - WARNING does not block ready-for-apply; retain it for the final summary.
 11. Finish the reviewed Change under the shared **Coverage gate** and **Output and handoff** after combined validation succeeds.
@@ -130,7 +131,7 @@ Preserve artifact dependency order while using these review units. Discuss new i
 ${ARTIFACT_DOC_LANGUAGE_CONTRACT}
 
 Tasks use a single goal-level checklist. Each goal states the intended outcome, references its target Contract Section, and identifies behavior, relevant boundary, and observable verification direction. Apply determines files, tests, commands, and technical ordering from repository evidence. Only explicit user-required ordering is encoded in goal order.`,
-    referenceFiles: artifactReferences(),
+    referenceFiles: [...artifactReferences(), { path: 'references/configuration-use.md', content: CONFIGURATION_USE_GUIDANCE }],
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },

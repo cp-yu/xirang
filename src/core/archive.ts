@@ -135,6 +135,8 @@ export class ArchiveCommand {
     }
 
     if (!activeChangeExists && archivedChangePath) {
+      const archive = path.relative(targetPath, archivedChangePath);
+      console.log(options.json ? JSON.stringify({ archive }) : archive);
       return;
     }
 

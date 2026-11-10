@@ -207,7 +207,7 @@ describe('snack template semantic diff gate', () => {
   const instructions = template.instructions;
 
   it('finishes reconciliation after validation without writing a presentation artifact', () => {
-    const validationIndex = instructions.indexOf('Run `xirang validate --change "<name>" --json`');
+    const validationIndex = instructions.indexOf('Run `xirang validate --change "<name>" --preview --json`');
     expect(validationIndex).toBeGreaterThanOrEqual(0);
     expect(instructions).not.toContain('xirang diff --change "<name>" --write');
     expect(instructions).not.toContain('`.xirang/changes/<name>/effective-change.md`');

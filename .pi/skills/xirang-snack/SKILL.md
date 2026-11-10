@@ -69,14 +69,15 @@ Use each artifact reference in Definition, Guidance, Template order. Keep static
 - Use `identity` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
 - An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as `## Specification`, and whether a Contract is required comes from the `contract` field of its Element Kind.
-- Use `xirang arch outline --format json` as the navigation projection: it returns the complete Element hierarchy without Definitions, Relationships, or Metamodel unless explicitly selected.
+- Prefer `xirang arch outline --format markdown` for reading the complete Element hierarchy; expand Definitions, Relationships or Metamodel only when needed. Use JSON when a program needs exact fields.
 - Use `xirang arch impact <identity> --depth <n> --json` for identity-only refinement context and a relationship summary. Use `--paths` only when relationship paths are needed; impact never returns Element Definitions or Contracts.
 - Use `xirang arch query <identity> --json` for the complete Declaration of a selected identity; add `--contract` only when that Element Contract is needed. Batch only the selected identities whose semantics answer the current question.
 - Before expanding a read or issuing a batch, state the concrete question it must answer and include only the identities or file ranges required for that question. Start discovery with `xirang arch search <query> --limit <n>`.
 - For code evidence, locate symbols or definitions first with LSP or `rg`, then read the smallest relevant implementation range. For tests, locate the test that owns the behavior before opening test files; do not read whole directories by default.
 - Use concurrency only for bounded, independent reads. Do not emit or retain raw nested JSON when a concise projection or selected fields answer the question.
 - If a tool truncates output, treat it as incomplete: narrow the query or split it into bounded reads, then retrieve and verify the missing portion before relying on the result.
-- If specific semantic context is missing, query that identity rather than expanding every identity returned by impact. If global model understanding is lost after context compression, session switch, or a model diagnostic, run `xirang arch snapshot --format json` for the full Declaration/Relationship/Metamodel baseline, then query only required Contracts.
+- If specific semantic context is missing, query that identity rather than expanding every identity returned by impact. If global model understanding is lost after context compression or session switch, recover with `xirang arch outline --format markdown` and selected semantic reads. Use `xirang arch snapshot --format json` only when those reads cannot recover the needed global state or a model diagnostic requires the full Declaration/Relationship/Metamodel baseline; then query only required Contracts.
+- Before authoring or revising artifacts, load `.xirang/references/xirang-configuration-use.md` once and follow its configuration-use protocol; reuse it while current.
 - The Agent MUST NOT guess missing Definition or Contract semantics from identity, title, an old summary, residual conversation context, or implementation evidence.
 - Default unit naming is `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, and `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind; a change reuses these names under `.xirang/changes/<name>/`. Directory and file names carry no model semantics: every entry declares its own `entity` and `identity`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/`rg`/`read` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
@@ -139,7 +140,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 - Use current code only as implementation evidence; it MUST NOT override the Xirang Semantic Model
    - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate `tasks.md` (code is already implemented).
-13. Run `xirang validate --change "<name>" --json`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
+13. Run `xirang validate --change "<name>" --preview --json` and review the effective-diff entries against implementation evidence before completion. On ERROR/WARNING, repair once from artifact guidance, rerun the command, review the final preview, and report the final result.
 14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Output Hints
@@ -154,6 +155,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 ## Artifact Contract
 
 **Document Language Contract**:
+- Follow the shared configuration-use protocol in `.xirang/references/xirang-configuration-use.md`; load it once before authoring and reuse it while current.
 - Query effective `proseLanguage` through `xirang config project --select proseLanguage --json` once and after relevant configuration changes. Use it for newly authored natural-language prose; preserve IDs, schema keys, paths, commands, SHALL/MUST and canonical template/Section headings.
 - Keep the template structure unchanged. If no `proseLanguage` value is present, keep the default writing behavior for prose.
 

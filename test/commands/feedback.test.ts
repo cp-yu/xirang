@@ -105,7 +105,7 @@ describe('FeedbackCommand', () => {
 
       // Should show formatted feedback
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
+        expect.stringContaining('Title: Feedback:')
       );
 
       // Should show manual submission URL
@@ -144,7 +144,7 @@ describe('FeedbackCommand', () => {
 
       // Should show formatted feedback
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
+        expect.stringContaining('Title: Feedback:')
       );
     });
   });
@@ -403,7 +403,7 @@ describe('FeedbackCommand', () => {
 
       // Verify formatted output structure
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
+        expect.stringContaining('Title: Feedback:')
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('Title: Feedback: Test message')
@@ -411,9 +411,10 @@ describe('FeedbackCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('Labels: feedback')
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- END FEEDBACK ---')
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Test body'));
+      const output = consoleLogSpy.mock.calls.flat().join('\n');
+      expect(output).not.toContain('FORMATTED FEEDBACK');
+      expect(output).not.toContain('END FEEDBACK');
     });
 
     it('should generate correct manual submission URL', async () => {

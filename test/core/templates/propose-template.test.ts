@@ -114,14 +114,14 @@ describe('propose template post-validation flow', () => {
   it('uses progressive model navigation before selected semantic expansion', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
     for (const token of [
-      'xirang arch outline --format json',
+      'xirang arch outline --format markdown',
       'xirang arch impact <identity> --depth <n> --json',
       'xirang arch query <identity> --json',
       'xirang arch snapshot --format json',
     ]) expect(instructions).toContain(token);
     expect(instructions).toContain(XIRANG_SHARED_CONTEXT);
 
-    const outline = instructions.indexOf('xirang arch outline --format json');
+    const outline = instructions.indexOf('xirang arch outline --format markdown');
     const impact = instructions.indexOf('xirang arch impact <identity> --depth <n> --json', outline);
     const query = instructions.indexOf('xirang arch query <identity> --json', impact);
     expect(outline).toBeGreaterThan(-1);
@@ -138,7 +138,7 @@ describe('propose template post-validation flow', () => {
 
   it('uses one blocking combined validation with a single repair pass', () => {
     for (const body of getProposeBodies()) {
-      expect(body.match(/xirang validate --change "<name>" --json/g)).toHaveLength(1);
+      expect(body.match(/xirang validate --change "<name>" --preview --json/g)).toHaveLength(1);
       expect(body).toContain('Errors from deterministic validation or the scaffolding checks block ready-for-apply');
       expect(body).toContain('WARNING does not block');
       expect(body).toContain('Fix at most one round and recheck once');
@@ -295,7 +295,7 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('.xirang/references/xirang-design-record.md');
     expect(body).toContain('shared **Coverage gate**');
     expect(body).toContain('shared **Writing rules**');
-    const validate = body.indexOf('xirang validate --change "<name>" --json');
+    const validate = body.indexOf('xirang validate --change "<name>" --preview --json');
     const coverage = body.indexOf('xirang record coverage <filename> --change "<name>" --from <file> --json');
     const consume = body.indexOf('xirang record consume <filename> --change "<name>" --json');
     expect(coverage).toBeGreaterThan(validate);
@@ -310,7 +310,7 @@ describe('propose template post-validation flow', () => {
 
   it('reports readiness after validation without writing a presentation artifact', () => {
     for (const body of getProposeBodies()) {
-      const validationIndex = body.indexOf('xirang validate --change "<name>" --json');
+      const validationIndex = body.indexOf('xirang validate --change "<name>" --preview --json');
       const finishIndex = body.indexOf('Finish with `xirang status --change "<name>"`');
       expect(validationIndex).toBeGreaterThanOrEqual(0);
       expect(finishIndex).toBeGreaterThan(validationIndex);
@@ -338,6 +338,16 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('Keep the template structure unchanged');
       expect(body).toContain('If no `proseLanguage` value is present');
     }
+  });
+
+  it('delivers one shared configuration-use protocol to artifact authors', () => {
+    const template = getXirangProposeSkillTemplate();
+    const guidance = template.referenceFiles?.find(file => file.path === 'references/configuration-use.md')?.content;
+    expect(template.instructions).toContain('.xirang/references/xirang-configuration-use.md');
+    expect(guidance).toMatch(/proseLanguage[^\n]*context[^\n]*all applicable artifacts/);
+    expect(guidance).toMatch(/rules\[artifactId\][^\n]*only[^\n]*matching artifact/);
+    expect(guidance).toMatch(/additive[^\n]*built-in Definition, Guidance and Template[^\n]*never as replacements/);
+    expect(guidance).toContain('MODIFIED Section must use its exact existing title');
   });
 
   it('does not require per-artifact language self-checks', () => {

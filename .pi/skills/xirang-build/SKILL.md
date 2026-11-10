@@ -65,6 +65,8 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 - `identity` uses `[A-Za-z0-9._-]+` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
 - Default file naming, non-normative: `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind.
 
+Before authoring, load `.xirang/references/xirang-configuration-use.md` and query the effective configuration fields needed for this Build. Reuse current guidance and configuration.
+
 ## Confirmed design inputs
 
 MUST read `.xirang/references/xirang-design-record.md` before using or creating a design record or checking the source's record decision. Use its **Inputs and authority**, **User-facing record presentation**, **Record on confirmation**, entry writing standard, **Writing rules**, **Coverage gate**, and **Output and handoff** at the flow points below. Build uses its own instance of the shared schemaVersion 4 record: pending material is not confirmation, and only the user decides accepted/excluded or permits substantive revisions to confirmed entries and structure. Record confirmed decisions immediately and follow the shared user-facing delta report. A Build record may exist before Candidate initialization; this does not authorize Candidate writes or add a Design Summary stage. With no record, require the declared exemption or absence of normative content on `build.md`; an undeclared absence blocks promotion readiness.

@@ -5,7 +5,7 @@ import { diagnostic } from '../utils/output.js';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { validateSemanticModel } from '../core/model/validator.js';
-import { isInteractive, resolveNoInteractive } from '../utils/interactive.js';
+import { isInteractive } from '../utils/interactive.js';
 import { getActiveChangeIds, getContractElementIds } from '../utils/item-discovery.js';
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
@@ -53,7 +53,7 @@ export class ValidateCommand {
       await this.runBulkValidation({
         changes: !!options.all || !!options.changes,
         contracts: !!options.all || !!options.contracts,
-      }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: resolveNoInteractive(options) });
+      }, { strict: !!options.strict, json: !!options.json, concurrency: options.concurrency, noInteractive: !interactive });
       return;
     }
 

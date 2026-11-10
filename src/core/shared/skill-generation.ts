@@ -12,6 +12,8 @@ import {
 } from '../templates/workflows/archive-change.js';
 import { resolveQualityExecutionModel } from '../templates/workflows/quality-execution-model.js';
 import { getApplyChangeSkillTemplate } from '../templates/workflows/apply-change.js';
+import { CONFIGURATION_USE_GUIDANCE } from '../templates/fragments/configuration-use.js';
+import { artifactReferences } from '../templates/fragments/artifact-references.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
@@ -85,6 +87,13 @@ export function getSkillTemplates(
       ...(archive.template.referenceFiles ?? []),
       ...(getApplyChangeSkillTemplate().referenceFiles ?? []),
     ];
+  }
+
+  if (workflowSurfaces.length && !workflowSurfaces.some(entry => entry.workflowId === 'propose')) {
+    const shared = workflowSurfaces[0].template;
+    shared.referenceFiles = [...(shared.referenceFiles ?? []), { path: 'references/configuration-use.md', content: CONFIGURATION_USE_GUIDANCE }];
+    const snack = workflowSurfaces.find(entry => entry.workflowId === 'snack');
+    if (snack) snack.template.referenceFiles = [...(snack.template.referenceFiles ?? []), ...artifactReferences()];
   }
 
   return workflowSurfaces;

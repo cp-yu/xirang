@@ -243,7 +243,7 @@ describe('Xirang shared context fragment', () => {
       'one Element has at most one Contract',
       '`contract` field of its Element Kind',
       'relationships',
-      'xirang arch outline --format json',
+      'xirang arch outline --format markdown',
       'xirang arch impact <identity> --depth <n> --json',
       'xirang arch query <identity> --json',
       '`--contract` only when that Element Contract is needed',
@@ -263,7 +263,10 @@ describe('Xirang shared context fragment', () => {
   });
 
   it('defines deterministic context reload rules and bounded projections', () => {
-    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch snapshot --format json');
+    const recovery = XIRANG_SHARED_CONTEXT.split('\n').find(line => line.includes('global model understanding'))!;
+    expect(recovery).toContain('xirang arch outline --format markdown');
+    expect(recovery).toMatch(/snapshot[^\n]*only when/);
+    expect(recovery).toContain('selected semantic reads');
     expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch query <identity> --json');
     expect(XIRANG_SHARED_CONTEXT).toContain('`--contract`');
     expect(XIRANG_SHARED_CONTEXT).toContain('`--paths`');

@@ -111,7 +111,7 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('.xirang/references/xirang-artifact-proposal.md');
     expect(snackSkill).toContain('.xirang/references/xirang-artifact-specs.md');
     expect(snackSkill).toContain('.xirang/references/xirang-artifact-design.md');
-    expect(snackSkill).toContain('xirang validate --change "<name>" --json');
+    expect(snackSkill).toContain('xirang validate --change "<name>" --preview --json');
     expect(snackSkill).not.toContain('xirang diff --change "<name>" --write');
     expect(snackSkill).not.toContain('.xirang/changes/<name>/effective-change.md');
     expect(snackSkill).not.toContain('xirang acceptanceCase-labels');
@@ -158,7 +158,7 @@ describe('snack workflow integration', () => {
     expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'xirang-snack' });
     expect(refreshed).toContain('git diff');
     expect(refreshed).toContain('.xirang/references/xirang-artifact-proposal.md');
-    expect(refreshed).toContain('xirang validate --change "<name>" --json');
+    expect(refreshed).toContain('xirang validate --change "<name>" --preview --json');
     expect(refreshed).not.toContain('xirang diff --change "<name>" --write');
     expect(refreshed).not.toContain('xirang acceptanceCase-labels');
     // C4: refreshed skill still exposes broader evidence sources

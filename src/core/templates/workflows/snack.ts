@@ -85,7 +85,7 @@ ${XIRANG_SHARED_CONTEXT}
    ${ARCHITECTURE_GENERATE_DELTA}
    - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
-13. Run \`xirang validate --change "<name>" --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
+13. Run \`xirang validate --change "<name>" --preview --json\` and review the effective-diff entries against implementation evidence before completion. On ERROR/WARNING, repair once from artifact guidance, rerun the command, review the final preview, and report the final result.
 14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Output Hints

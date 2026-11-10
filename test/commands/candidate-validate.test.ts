@@ -6,6 +6,7 @@ import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { formatCandidateValidation } from '../../src/commands/candidate.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
+import { runCLI } from '../helpers/run-cli.js';
 import { parseSemanticModel } from '../../src/core/model/parser.js';
 import { createRecord } from '../../src/core/record/workspace.js';
 import { readRecordSemanticContext } from '../../src/core/record/validator.js';
@@ -144,6 +145,9 @@ describe('Candidate validation', () => {
 
     expect(result.valid).toBe(true);
     expect(result.comparison).toMatchObject({ baseline: 'formal', diff: 'available' });
+    const details = await runCLI(['candidate', 'validate', '--details'], { cwd: root });
+    expect(details.exitCode).toBe(0);
+    for (const content of ['added', 'project.root', 'obsolete', 'ADDED', 'MODIFIED', 'REMOVED', 'Candidate validation test project.', 'Changed candidate validation test project.']) expect(details.stdout).toContain(content);
     expect(result.diff?.entries).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'element-declaration', identity: 'added', operation: 'ADDED' }),
       expect.objectContaining({ kind: 'element-declaration', identity: 'project.root', operation: 'MODIFIED' }),

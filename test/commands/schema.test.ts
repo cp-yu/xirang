@@ -43,6 +43,17 @@ describe('schema command', () => {
     expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
+  it('preserves explicitly requested check stages in text and JSON', async () => {
+    const json = await runCLI(['schema', 'validate', 'semantic-model', '--verbose', '--json'], { cwd: tempDir });
+    const text = await runCLI(['schema', 'validate', 'semantic-model', '--verbose'], { cwd: tempDir });
+    expect(json).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(text).toMatchObject({ exitCode: 0, stderr: '' });
+    const [details] = JSON.parse(json.stdout);
+    expect(details.name).toBe('semantic-model');
+    expect(details.stages).toEqual(['YAML parsing', 'Zod validation', 'File definitions', 'Template existence', 'Dependency graph', 'File references']);
+    for (const stage of details.stages) expect(text.stdout).toContain(stage);
+  });
+
   it('validates every built-in schema', async () => {
     const result = await runCLI(['schema', 'validate', '--json'], { cwd: tempDir });
     expect(result.exitCode).toBe(0);

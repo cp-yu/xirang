@@ -390,7 +390,7 @@ newCmd
 
 export async function runCli(argv: string[] = process.argv): Promise<void> {
   const args = argv.slice(2);
-  const json = args.includes('--json');
+  const json = args.includes('--json') || args.some((argument, index) => argument === '--format=json' || (argument === '--format' && args[index + 1] === 'json'));
   setJsonOutput(json);
   const configureOutput = (command: Command): void => {
     if (command !== program && command.commands.length === 0 && !command.options.some(option => option.long === '--json')) command.option('--json', 'Encode results and diagnostics as JSON');

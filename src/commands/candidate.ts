@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { stringify as stringifyYaml } from 'yaml';
 import { PARTITIONS } from '../core/model/types.js';
 import {
   getCandidateStatus,
@@ -56,7 +57,7 @@ export function formatCandidateValidation(result: CandidateValidationResult): st
     `Candidate bytes: ${result.inventory.bytes}`,
     `Formal comparison baseline: ${result.comparison.baseline === 'formal' ? 'available' : 'absent'}`,
     ...(result.comparison.diff === 'available'
-      ? [`Formal diff entries: ${result.diff!.summary.total}`]
+      ? [`Formal diff entries: ${result.diff!.summary.total}`, stringifyYaml(result.diff!.entries, { lineWidth: 0 }).trimEnd()]
       : ['Formal diff: unavailable (formal model absent)']),
   ];
   if (result.reviewDigest) lines.push(`Review digest: ${result.reviewDigest}`);
