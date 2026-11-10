@@ -1,5 +1,15 @@
 # xirang
 
+## 0.2.8
+
+### Patch Changes
+
+- CLI 统一结果协议：无必要结果的写入成功静默（stdout/stderr 均空），真实警告与错误进入 stderr 并按 `--json` 输出结构化诊断；查询返回所请求数据，校验预览、Quality 历史与 Candidate 详情改为显式请求展开。
+- `config project` 支持可重复 `--select` 字段选择与 `--artifact` 规则限定；文本输出与 JSON 表达同一数据范围，未配置字段省略，多行及特殊字符串保留原值与标量边界。
+- Record 采用文件名寻址（不再使用 slug + explorationId），内部保留来源字节与目标语义指纹门禁；移除 `instructions` 活跃命令，共享指导改为按制品读取 `.xirang/references/xirang-artifact-<id>.md`。
+- Change/Quality 查询返回当前状态概况；Archive 指导要求归档前显式执行 `xirang sync`；Sync/Archive/List/plan-remove 等辅助路径保留真实编译警告并保持无问题操作静默。
+- Neovim 审阅适配空成功输出与 stderr 失败诊断并规范化 Windows 保存路径；`view` 返回实际服务地址；补全安装器统一诊断编码，无问题安装与卸载静默。
+
 ## 0.2.7
 
 ### Patch Changes
