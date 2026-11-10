@@ -80,6 +80,22 @@ describe('quality v4 public CLI', () => {
     expect(await fs.readdir(changeDir)).toEqual(['.quality.json', 'tasks.md']);
   });
 
+  it('returns the latest delivered Opt commit association without loading opinion history', async () => {
+    await record('review', { reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed.', findings: [] }, 0);
+    await execFileAsync('git', ['commit', '--allow-empty', '-qm', 'optimized'], { cwd: root });
+    const resultCommit = (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    await record('opt', { disposition: 'delivered', opinions: [
+      { opinionId: 'OPT-1', baseCommit: commit, resultCommit: commit, summary: 'First assessment.', findings: [] },
+      { opinionId: 'OPT-2', baseCommit: commit, resultCommit, summary: 'Latest assessment.', findings: [] },
+    ] }, 1);
+    const current = await payload(await cli(['status', 'c1', '--json']));
+    expect(current.opt).toEqual({ disposition: 'delivered', baseCommit: commit, resultCommit });
+    expect(current).not.toHaveProperty('record');
+    expect(JSON.stringify(current)).not.toContain('assessment');
+    const history = await payload(await cli(['status', 'c1', '--history', '--json']));
+    expect(history.record.opt.opinions).toHaveLength(2);
+  });
+
   it('requires full-change before Opt, rejects legacy opinion fields and preserves v3 records', async () => {
     const noReview = await cli(['opt', 'c1', '--version', '0', '--json', '--input', JSON.stringify({ disposition: 'not_performed', reason: 'No Opt.' })]);
     expect(noReview.exitCode).not.toBe(0);

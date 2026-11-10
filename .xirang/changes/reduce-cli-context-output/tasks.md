@@ -38,3 +38,7 @@
 - [x] [code_fix] Archive 生成指导按实际归档位置结果衔接 Git handoff。
 - [x] [code_fix] Candidate 只读校验来源快照和覆盖结果的格式及来源绑定，保留 consume 前后顺序与历史隔离。
 - [x] [code_fix] 删除文件名迁移后孤立的旧 Record 路径构造链与旧协议断言。
+- [x] [code_fix] 补全安装及文件系统 helper 的真实诊断统一编码，普通缺失静默且只保留必要激活指导。
+- [x] [code_fix] 全局配置警告按请求编码，与有效查询数据分流。
+- [x] [code_fix] Quality 当前概况保留最新 delivered Opt 的 base/result commit 关联。
+- [x] [code_fix] Archive 指导在归档前显式完成独立 Sync，并按实际操作报告结果。

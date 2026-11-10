@@ -17,9 +17,7 @@ vi.mock('../../src/core/completions/installers/zsh-installer.js', () => ({
       isOhMyZsh: true,
       message: 'Completion script installed successfully for Oh My Zsh',
       instructions: [
-        'Completion script installed to Oh My Zsh completions directory.',
         'Restart your shell or run: exec zsh',
-        'Completions should activate automatically.',
       ],
     }),
     uninstall: vi.fn().mockResolvedValue({

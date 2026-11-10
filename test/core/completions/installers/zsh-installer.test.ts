@@ -220,7 +220,7 @@ describe('ZshInstaller', () => {
       expect(secondResult.message).toContain('up to date');
       expect(secondResult.backupPath).toBeUndefined();
       expect(secondResult.instructions).toBeDefined();
-      expect(secondResult.instructions!.join(' ')).toContain('already installed');
+      expect(secondResult.instructions!.join(' ')).toContain('exec zsh');
     });
 
     it('should update completion when content differs', async () => {

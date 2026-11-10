@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { setJsonOutput } from '../../../../src/utils/output.js';
 import { PowerShellInstaller } from '../../../../src/core/completions/installers/powershell-installer.js';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -26,6 +27,8 @@ describe('PowerShellInstaller', () => {
       value: originalPlatform,
     });
     process.env = originalEnv;
+    setJsonOutput(false);
+    vi.restoreAllMocks();
   });
 
   describe('getProfilePath', () => {
@@ -638,7 +641,9 @@ Register-ArgumentCompleter -CommandName xirang -ScriptBlock $xirangCompleter
       expect(content).toContain('# Xirang:START');
     });
 
-    it('should skip UTF-16 BE profile and leave it unchanged', async () => {
+    it('reports an unsupported profile encoding as a structured warning without modifying it', async () => {
+      setJsonOutput(true);
+      const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
       delete process.env.XIRANG_NO_AUTO_CONFIG;
       process.env.PROFILE = path.join(testHomeDir, 'custom-profile.ps1');
       const profilePath = installer.getProfilePath();
@@ -652,6 +657,7 @@ Register-ArgumentCompleter -CommandName xirang -ScriptBlock $xirangCompleter
 
       const result = await installer.configureProfile(mockScriptPath);
       expect(result).toBe(false);
+      expect(JSON.parse(stderr.mock.calls[0][0])).toMatchObject({ code: 'COMPLETION_WARNING', message: expect.stringContaining('UTF-16 BE') });
 
       // File should be untouched
       const raw = await fs.readFile(profilePath);

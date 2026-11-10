@@ -154,7 +154,7 @@ ${buildArchiveFullQualityContract(executionModel)}
    Read \`tasks.md\`; warn and confirm before proceeding if incomplete goal checkboxes remain. Missing goals are not a task-related blocker.
 
 5. **Assess delta sync state**
-   If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.
+   If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. When Delta operations are present, run \`xirang sync "<change-name>"\` before archive; the command reconciles pending operations or confirms an already-synchronized target. Stop on Sync failure. Do not write Formal manually. With no Delta operations, report "No deltas". Archive only checks completed Sync; it does not apply the Delta.
 
 6. **Run archive CLI**
    Run \`xirang archive "<change-name>"\` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and returns its archive location; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
@@ -176,8 +176,8 @@ ${buildAgentGitFlowStep()}
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** .xirang/changes/archive/YYYY-MM-DD-<name>/
-**Quality Gate:** valid Seal commit exists; Archive independently completed Sync, validation and task gates
-**Semantic Model:** ✓ Synced into \`.xirang/model/\`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
+**Quality Gate:** valid Seal commit exists; Archive independently checked completed Sync, validation and task gates
+**Semantic Model:** <Sync completed before Archive / already synchronized / No deltas / explicitly bypassed>; when Sync wrote: Synced into \`.xirang/model/\`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>

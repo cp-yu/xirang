@@ -32,3 +32,10 @@ Windows 专项在修正保存事件路径后整组通过：[run 42806410191](htt
 新增拒绝用例在修正前实际失败（14 failed），修正后覆盖缺失字段、错误版本/文件名/来源 hash/时间戳、非法条目和 malformed source/JSON；无效 Candidate 无可用 digest、CLI 非零且 stdout 为空，成功/失败均保留原始 bytes。测试也确认模型后续变化不会重新施加历史摘录或指纹约束。Build history 使用真实 coverage producer 的完整结果，保留精确字节。旧 managedRecordFilename/managedRecordPath 及专有断言已删除，legacy metadata parser 仍用的 slug/id validators 保留。构建后全量 165 files / 2198 tests、lint、typecheck、active stale references: 0、diff 检查与 strict validation 通过，strict validation 两条输出流为空。
 
 第五轮修正前的 `28f22539c` 对应 [Candidate Windows 42815798143](https://github.com/cp-yu/xirang/actions/runs/42815798143)、[LikeC4 Windows 42815798146](https://github.com/cp-yu/xirang/actions/runs/42815798146) 已通过；[跨平台 42815798148](https://github.com/cp-yu/xirang/actions/runs/42815798148) 在记录时 Linux 通过、Windows/macOS 仍运行。
+
+
+第六轮 full-change Review 对 `ee4946e6d` 返回 FAIL，发现真实 completion installer 和文件系统 helper 的直接 debug/warn 输出、global config 警告编码、当前 Opt 提交关联、Archive/Sync 指导四个缺口。补全首次安装的普通 ENOENT 不再输出；实际权限、编码、清理问题通过共享诊断编码；instruction arrays 只保留激活操作，Fish 无需激活所以成功静默。真实安装器测试使用临时 home/profile，覆盖 Bash/Zsh/Fish/PowerShell 的首次、重复安装及卸载，并检查用户配置保留；另验证 PowerShell 编码警告为结构化 stderr。built CLI 在隔离 HOME 下 Fish 首次、重复安装和卸载三次均 exit 0、stdout/stderr 为 0 字节。全局配置 retired/obsolete/malformed 三类警告均与 JSON 数据分流、文件不被改写。
+
+Quality 默认状态保留最新 delivered Opt 的 baseCommit/resultCommit，完整 opinions 仍仅 history 展开；测试用两条 Opt opinions 确认最新关联。Archive 模板和实际生成 skill 现在在 archive 前按 Delta operations 调用独立 `xirang sync`，失败即停止，摘要区分 Sync 写入与 Archive 门禁。新增四类缺陷用例在修正前 6 failed；修正后相关 270 tests 通过，构建后全量 166 files / 2206 tests、lint/typecheck、active stale references: 0、diff 检查及 strict validation 通过；strict validation 两条输出流为空。生成更新 stdout 为空，工具发现及重启诊断仍保留。
+
+`ee4946e6d` 对应 [Candidate Windows 42818041685](https://github.com/cp-yu/xirang/actions/runs/42818041685) 与 [LikeC4 Windows 42818041702](https://github.com/cp-yu/xirang/actions/runs/42818041702) 通过。[跨平台 42818041631](https://github.com/cp-yu/xirang/actions/runs/42818041631) 的 Linux、macOS 全套通过，Windows Candidate 双击导航的 focus URL 断言超时（44 passed / 1 failed），不能称整组 CI 通过；该浏览器交互实现与测试未被此轮改动。

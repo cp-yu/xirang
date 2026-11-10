@@ -1,3 +1,4 @@
+import { diagnostic } from './output.js';
 import * as nodeFs from 'fs';
 import path from 'path';
 
@@ -107,7 +108,7 @@ export class FileSystemUtils {
       return true;
     } catch (error: any) {
       if (error.code !== 'ENOENT') {
-        console.debug(`Unable to check if file exists at ${filePath}: ${error.message}`);
+        diagnostic(`Unable to check if file exists at ${filePath}: ${error.message}`, 'FILESYSTEM_WARNING');
       }
       return false;
     }
@@ -128,7 +129,7 @@ export class FileSystemUtils {
           return currentDir;
         }
         // Path component exists but is not a directory (edge case)
-        console.debug(`Path component ${currentDir} exists but is not a directory`);
+        diagnostic(`Path component ${currentDir} exists but is not a directory`, 'FILESYSTEM_WARNING');
         return null;
       } catch (error: any) {
         if (error.code === 'ENOENT') {
@@ -141,7 +142,7 @@ export class FileSystemUtils {
           currentDir = parentDir;
         } else {
           // Unexpected error (permissions, I/O error, etc.)
-          console.debug(`Error checking directory ${currentDir}: ${error.message}`);
+          diagnostic(`Error checking directory ${currentDir}: ${error.message}`, 'FILESYSTEM_WARNING');
           return null;
         }
       }
@@ -184,7 +185,7 @@ export class FileSystemUtils {
         }
       }
 
-      console.debug(`Unable to determine write permissions for ${filePath}: ${error.message}`);
+      diagnostic(`Unable to determine write permissions for ${filePath}: ${error.message}`, 'FILESYSTEM_WARNING');
       return false;
     }
   }
@@ -195,7 +196,7 @@ export class FileSystemUtils {
       return stats.isDirectory();
     } catch (error: any) {
       if (error.code !== 'ENOENT') {
-        console.debug(`Unable to check if directory exists at ${dirPath}: ${error.message}`);
+        diagnostic(`Unable to check if directory exists at ${dirPath}: ${error.message}`, 'FILESYSTEM_WARNING');
       }
       return false;
     }
@@ -274,7 +275,7 @@ export class FileSystemUtils {
           if (attempt === maxRetries - 1) {
             // Last attempt failed, but we successfully wrote the file, so permissions are OK
             // Just log and continue - the temp file will be cleaned up eventually
-            console.debug(`Could not clean up test file ${testFile}: ${unlinkError.message}`);
+            diagnostic(`Could not clean up test file ${testFile}: ${unlinkError.message}`, 'FILESYSTEM_WARNING');
           } else {
             // Wait briefly before retrying (Windows file lock release)
             await new Promise((resolve) => setTimeout(resolve, 50));
@@ -283,7 +284,7 @@ export class FileSystemUtils {
       }
       return true;
     } catch (error: any) {
-      console.debug(`Insufficient permissions to write to ${dirPath}: ${error.message}`);
+      diagnostic(`Insufficient permissions to write to ${dirPath}: ${error.message}`, 'FILESYSTEM_WARNING');
       return false;
     }
   }

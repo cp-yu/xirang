@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { runCLI } from '../helpers/run-cli.js';
 import { Command } from 'commander';
 
 describe('config command integration', () => {
@@ -35,6 +36,22 @@ describe('config command integration', () => {
 
     // Reset module cache to pick up new XDG_CONFIG_HOME
     vi.resetModules();
+  });
+
+  it.each([
+    ['retired optimization', JSON.stringify({ optimization: { enabled: false, directionLimit: 4 } }), 'optimization.directionLimit'],
+    ['obsolete fields', JSON.stringify({ profile: 'expanded', workflows: [], delivery: 'skills' }), 'obsolete config fields'],
+    ['malformed JSON', '{ invalid }', 'Invalid JSON'],
+  ])('keeps requested config data separate from JSON diagnostics for %s', async (_name, source, warning) => {
+    fs.mkdirSync(path.join(tempDir, 'xirang'), { recursive: true });
+    const file = path.join(tempDir, 'xirang', 'config.json');
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'list', '--json']);
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toHaveProperty('featureFlags');
+    const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+    expect(diagnostics).toContainEqual(expect.objectContaining({ message: expect.stringContaining(warning) }));
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
   });
 
   it('should use XDG_CONFIG_HOME for config path', async () => {

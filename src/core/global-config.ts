@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -113,7 +114,7 @@ export function getGlobalConfig(): GlobalConfig {
     const parsed = JSON.parse(content);
     if (parsed.optimization && typeof parsed.optimization === 'object') {
       for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
-        if (key in parsed.optimization) console.warn(`Warning: ${configPath}: optimization.${key} is retired and ignored.`);
+        if (key in parsed.optimization) diagnostic(`Warning: ${configPath}: optimization.${key} is retired and ignored.`, 'GLOBAL_CONFIG_WARNING');
       }
     }
     const {
@@ -126,7 +127,7 @@ export function getGlobalConfig(): GlobalConfig {
 
     // Warn about deprecated fields
     if ('profile' in parsed || 'workflows' in parsed || 'delivery' in parsed) {
-      console.warn('Warning: obsolete config fields detected (profile/workflows/delivery). Run "xirang update" to clean up these fields.');
+      diagnostic('Warning: obsolete config fields detected (profile/workflows/delivery). Run "xirang update" to clean up these fields.', 'GLOBAL_CONFIG_WARNING');
     }
 
     // Merge with defaults (loaded values take precedence)
@@ -159,7 +160,7 @@ export function getGlobalConfig(): GlobalConfig {
   } catch (error) {
     // Log warning for parse errors, but not for missing files
     if (error instanceof SyntaxError) {
-      console.error(`Warning: Invalid JSON in ${configPath}, using defaults`);
+      diagnostic(`Warning: Invalid JSON in ${configPath}, using defaults`, 'GLOBAL_CONFIG_WARNING');
     }
     return { ...DEFAULT_CONFIG };
   }

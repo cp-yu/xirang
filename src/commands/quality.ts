@@ -77,7 +77,8 @@ async function status(name: string, options: { history?: boolean }): Promise<num
     const last = record.reviews.filter(r => r.reviewKind === kind).at(-1);
     return last ? [[kind, { result: last.result, commit: last.commit }]] : [];
   }));
-  console.log(JSON.stringify({ ...summary, reviews, opt: record.opt ? { disposition: record.opt.disposition } : null, seal: record.seal ? { commit: record.seal.commit } : null, ...(options.history ? { record } : {}) }));
+  const latestOpt = record.opt?.disposition === 'delivered' ? record.opt.opinions.at(-1) : undefined;
+  console.log(JSON.stringify({ ...summary, reviews, opt: record.opt ? { disposition: record.opt.disposition, ...(latestOpt ? { baseCommit: latestOpt.baseCommit, resultCommit: latestOpt.resultCommit } : {}) } : null, seal: record.seal ? { commit: record.seal.commit } : null, ...(options.history ? { record } : {}) }));
   return 0;
 }
 
