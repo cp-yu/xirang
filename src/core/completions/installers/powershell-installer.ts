@@ -1,3 +1,4 @@
+import { diagnostic } from '../../../utils/output.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -188,7 +189,7 @@ export class PowerShellInstaller {
           if (err?.code === 'ENOENT') {
             // keep defaults
           } else {
-            console.warn(`Warning: Skipping ${profilePath}: ${err?.message ?? String(err)}`);
+            diagnostic(`Warning: Skipping ${profilePath}: ${err?.message ?? String(err)}`, 'COMPLETION_WARNING');
             continue;
           }
         }
@@ -213,7 +214,7 @@ export class PowerShellInstaller {
         anyConfigured = true;
       } catch (error) {
         // Continue to next profile if this one fails
-        console.warn(`Warning: Could not configure ${profilePath}: ${error}`);
+        diagnostic(`Warning: Could not configure ${profilePath}: ${error}`, 'COMPLETION_WARNING');
       }
     }
 
@@ -245,7 +246,7 @@ export class PowerShellInstaller {
           if (err?.code === 'ENOENT') {
             continue; // Profile doesn't exist, nothing to remove
           }
-          console.warn(`Warning: Could not read ${profilePath}: ${err?.message ?? String(err)}`);
+          diagnostic(`Warning: Could not read ${profilePath}: ${err?.message ?? String(err)}`, 'COMPLETION_WARNING');
           continue;
         }
 
@@ -260,7 +261,7 @@ export class PowerShellInstaller {
 
         const endIndex = profileContent.indexOf(endMarker, startIndex);
         if (endIndex === -1) {
-          console.warn(`Warning: Found start marker but no end marker in ${profilePath}`);
+          diagnostic(`Warning: Found start marker but no end marker in ${profilePath}`, 'COMPLETION_WARNING');
           continue;
         }
 
@@ -274,7 +275,7 @@ export class PowerShellInstaller {
         await this.writeProfileFile(profilePath, newContent, fileEncoding, fileBom);
         anyRemoved = true;
       } catch (error) {
-        console.warn(`Warning: Could not clean ${profilePath}: ${error}`);
+        diagnostic(`Warning: Could not clean ${profilePath}: ${error}`, 'COMPLETION_WARNING');
       }
     }
 
@@ -302,7 +303,6 @@ export class PowerShellInstaller {
             installedPath: targetPath,
             message: 'Completion script is already installed (up to date)',
             instructions: [
-              'The completion script is already installed and up to date.',
               'If completions are not working, try restarting PowerShell or run: . $PROFILE',
             ],
           };
@@ -311,7 +311,7 @@ export class PowerShellInstaller {
         isUpdate = true;
       } catch (error: any) {
         // File doesn't exist or can't be read, proceed with installation
-        console.debug(`Unable to read existing completion file at ${targetPath}: ${error.message}`);
+        if (error.code !== 'ENOENT') diagnostic(`Unable to read existing completion file at ${targetPath}: ${error.message}`, 'COMPLETION_WARNING');
       }
 
       // Ensure the directory exists
@@ -368,7 +368,6 @@ export class PowerShellInstaller {
     const profilePath = this.getProfilePath();
 
     return [
-      'Completion script installed successfully.',
       '',
       `To enable completions, add the following to your PowerShell profile (${profilePath}):`,
       '',

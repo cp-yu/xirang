@@ -27,6 +27,14 @@ describe('archive change workflow template', () => {
 
     expect(instructions).toContain('If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required');
     expect(instructions).toContain('Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing');
+    const syncIndex = instructions.indexOf('run `xirang sync "<change-name>"`');
+    const archiveIndex = instructions.indexOf('Run `xirang archive "<change-name>"`');
+    expect(syncIndex).toBeGreaterThan(-1);
+    expect(syncIndex).toBeLessThan(archiveIndex);
+    expect(instructions).toContain('Stop on Sync failure');
+    expect(instructions).toContain('Archive only checks completed Sync');
+    expect(instructions).not.toContain('archive CLI performs the quality gate, sync, and move-to-archive');
+    expect(instructions).not.toContain('Archive independently completed Sync');
     expect(instructions).not.toContain('architecture-delta');
     expect(instructions).not.toContain('main specs');
     expect(instructions).not.toContain('formal LikeC4');

@@ -26,8 +26,8 @@ async function changeSetup(extraEntries: import('../../../src/core/record/types.
     'proposal.md': '## Why\n\nEnough context for a valid change proposal.\n\n## What Changes\n\n- Add selection.\n',
     'elements/select.md': `---\noperation: ADDED\n${elementUnit({ identity: 'select', parent: 'root', sections }).slice(4)}`,
   });
-  const record = await createRecord(root, 'sample', { schemaVersion: 4, context: 'change', entries: [...entries, ...extraEntries] }, await readRecordSemanticContext(root, 'change'));
-  return { root, changeDir, record, id: record.document.metadata.explorationId };
+  const record = await createRecord(root, 'sample.md', { schemaVersion: 4, context: 'change', entries: [...entries, ...extraEntries] }, await readRecordSemanticContext(root, 'change'));
+  return { root, changeDir, record, id: path.basename(record.path) };
 }
 
 const covered = {
@@ -43,22 +43,22 @@ const covered = {
 describe('记录覆盖检查结果', () => {
   it('全部有效时写入绑定来源版本与目标指纹的覆盖结果，并接受既有语义作为 no-op 位置', async () => {
     const { root, changeDir, record, id } = await changeSetup();
-    const result = await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, covered);
+    const result = await recordCoverage(root, id, { change: 'sample' }, covered);
     expect(result).toMatchObject({ path: '.xirang/changes/sample/record-coverage.json', sourceVersion: record.sourceVersion, targetFingerprint: expect.stringMatching(/^[a-f0-9]{64}$/) });
     const saved = JSON.parse(await fs.readFile(path.join(changeDir, 'record-coverage.json'), 'utf8'));
-    expect(saved).toMatchObject({ schemaVersion: 1, explorationId: id, sourceVersion: record.sourceVersion, targetFingerprint: result.targetFingerprint, entries: covered.entries });
+    expect(saved).toMatchObject({ schemaVersion: 1, filename: id, sourceVersion: record.sourceVersion, targetFingerprint: result.targetFingerprint, entries: covered.entries });
   });
 
   it('Change 结构不一致时拒绝覆盖且不替换已有结果，修正后可重新覆盖', async () => {
     const { root, changeDir, record, id } = await changeSetup();
-    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, covered);
+    await recordCoverage(root, id, { change: 'sample' }, covered);
     const destination = path.join(changeDir, 'record-coverage.json');
     const before = await fs.readFile(destination);
     const context = await readRecordSemanticContext(root, 'change');
     const updated = await updateRecord(root, id, {
       structure: { upsert: { elements: [{ identity: 'select', parent: 'root', title: 'Other' }], elementKinds: [{ identity: 'capability', removed: true }] } },
-    }, record.sourceVersion, context);
-    await expect(recordCoverage(root, id, { change: 'sample' }, updated.record.sourceVersion, covered)).rejects.toMatchObject({
+    }, context);
+    await expect(recordCoverage(root, id, { change: 'sample' }, covered)).rejects.toMatchObject({
       code: 'STRUCTURE_MISMATCH',
       diagnostics: [
         expect.objectContaining({ identity: 'select', field: 'title' }),
@@ -68,8 +68,8 @@ describe('记录覆盖检查结果', () => {
     expect(await fs.readFile(destination)).toEqual(before);
     const fixed = await updateRecord(root, id, {
       structure: { upsert: { elements: [{ identity: 'select', title: 'select' }] }, withdraw: { elementKinds: ['capability'] } },
-    }, updated.record.sourceVersion, context);
-    const result = await recordCoverage(root, id, { change: 'sample' }, fixed.record.sourceVersion, covered);
+    }, context);
+    const result = await recordCoverage(root, id, { change: 'sample' }, covered);
     expect(result.sourceVersion).toBe(fixed.record.sourceVersion);
   });
 
@@ -80,17 +80,17 @@ describe('记录覆盖检查结果', () => {
       { ...covered.entries[1], details: [{ ...covered.entries[1].details[0], quote: '**最多** _5_ `本`' }] },
     ] };
     const before = structuredClone(input);
-    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, input);
+    await recordCoverage(root, id, { change: 'sample' }, input);
     expect(JSON.parse(await fs.readFile(path.join(changeDir, 'record-coverage.json'), 'utf8')).entries).toEqual(input.entries);
     expect(input).toEqual(before);
   });
 
   it('按细节顺序保留格式、未覆盖、位置与摘录诊断且不覆盖已有结果', async () => {
     const { root, changeDir, record, id } = await changeSetup();
-    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, covered);
+    await recordCoverage(root, id, { change: 'sample' }, covered);
     const destination = path.join(changeDir, 'record-coverage.json');
     const before = await fs.readFile(destination);
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, {
+    await expect(recordCoverage(root, id, { change: 'sample' }, {
       entries: [covered.entries[0], { identity: 'limit', result: 'covered', details: [
         { detail: '格式优先', location: { element: 'missing' } },
         { detail: '尚未覆盖', uncovered: '等待确认' },
@@ -119,7 +119,7 @@ describe('记录覆盖检查结果', () => {
     ['位置不存在', { entries: [covered.entries[0], { identity: 'limit', result: 'covered', details: [{ detail: '最多 5 本', location: { element: 'select', section: '选择候选', acceptanceCase: '不存在' }, quote: '最多 5 本' }] }] }, 'COVERAGE_LOCATION_UNRESOLVED', 'limit'],
   ])('%s时返回 invalid 与逐项诊断且不写入', async (_name, input, code, identity) => {
     const { root, changeDir, record, id } = await changeSetup();
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, input)).rejects.toMatchObject({
+    await expect(recordCoverage(root, id, { change: 'sample' }, input)).rejects.toMatchObject({
       code: 'INVALID_COVERAGE', diagnostics: expect.arrayContaining([expect.objectContaining({ code, identity })]),
     });
     await expect(fs.access(path.join(changeDir, 'record-coverage.json'))).rejects.toMatchObject({ code: 'ENOENT' });
@@ -133,7 +133,7 @@ describe('记录覆盖检查结果', () => {
     ['accepted', { result: 'pending', affectsTarget: false, reason: '无关' }, 'INVALID_COVERAGE_INPUT'],
   ] as const)('拒绝 %s 条目的无效状态结果 %j', async (decision, disposition, code) => {
     const { root, record, id } = await changeSetup([{ identity: 'question', nature: 'normative', decision, content: '目标待决问题' }]);
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, {
+    await expect(recordCoverage(root, id, { change: 'sample' }, {
       entries: [...covered.entries, { identity: 'question', ...disposition }],
     })).rejects.toMatchObject({ diagnostics: expect.arrayContaining([expect.objectContaining({ identity: 'question', code })]) });
   });
@@ -148,37 +148,37 @@ describe('记录覆盖检查结果', () => {
       { identity: 'other', result: 'not-applicable', reason: '用户限定为其他 Change' },
       { identity: 'question', result: 'pending', affectsTarget: false, reason: '只影响另一个目标' },
     ] };
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, { entries: input.entries.slice(0, -1) }))
+    await expect(recordCoverage(root, id, { change: 'sample' }, { entries: input.entries.slice(0, -1) }))
       .rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: 'COVERAGE_ENTRY_MISSING', identity: 'question' })] });
-    await recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, input);
+    await recordCoverage(root, id, { change: 'sample' }, input);
     expect(JSON.parse(await fs.readFile(path.join(changeDir, 'record-coverage.json'), 'utf8')).entries).toEqual(input.entries);
-    const updated = await updateRecord(root, id, { entries: { upsert: [{ identity: 'question', nature: 'informative', decision: 'pending', content: '变更后的问题' }] } }, record.sourceVersion, await readRecordSemanticContext(root, 'change'));
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, input)).rejects.toMatchObject({ code: 'SOURCE_VERSION_MISMATCH' });
+    const updated = await updateRecord(root, id, { entries: { upsert: [{ identity: 'question', nature: 'informative', decision: 'pending', content: '变更后的问题' }] } }, await readRecordSemanticContext(root, 'change'));
+    await recordCoverage(root, id, { change: 'sample' }, input);
+    expect(JSON.parse(await fs.readFile(path.join(changeDir, 'record-coverage.json'), 'utf8')).sourceVersion).toBe(updated.record.sourceVersion);
     expect(updated.record.sourceVersion).not.toBe(record.sourceVersion);
   });
 
-  it('未覆盖诊断保留理由，过期来源版本被拒绝', async () => {
+  it('未覆盖诊断保留理由', async () => {
     const { root, record, id } = await changeSetup();
-    await expect(recordCoverage(root, id, { change: 'sample' }, record.sourceVersion, {
+    await expect(recordCoverage(root, id, { change: 'sample' }, {
       entries: [covered.entries[0], { identity: 'limit', result: 'covered', details: [{ detail: '闭馆日顺延', uncovered: 'Delta 中没有闭馆日规则' }] }],
     })).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ message: expect.stringContaining('Delta 中没有闭馆日规则') })] });
-    await expect(recordCoverage(root, id, { change: 'sample' }, '0'.repeat(64), covered)).rejects.toMatchObject({ code: 'SOURCE_VERSION_MISMATCH' });
   });
 
   it('Candidate 目标按四分区解析位置', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-coverage-candidate-'));
     roots.push(root);
     await fs.mkdir(path.join(root, '.xirang'));
-    const record = await createRecord(root, 'build', { schemaVersion: 4, context: 'build', entries: [entries[1]] }, await readRecordSemanticContext(root, 'build'));
+    const record = await createRecord(root, 'build.md', { schemaVersion: 4, context: 'build', entries: [entries[1]] }, await readRecordSemanticContext(root, 'build'));
     await initializeCandidate(root, { kind: 'clean' });
     await writeModel(path.join(root, '.xirang', 'candidate'), minimalModel({ elements: [{ identity: 'kept', kind: 'capability', parent: 'root', sections: '## Specification\n\n### Section: 限额\n\n最多 5 本。\n' }] }));
     const input = { entries: [covered.entries[1]] };
-    const result = await recordCoverage(root, record.document.metadata.explorationId, { candidate: true }, record.sourceVersion, input);
+    const result = await recordCoverage(root, path.basename(record.path), { candidate: true }, input);
     expect(result.path).toBe('.xirang/candidate/record-coverage.json');
-    await expect(recordCoverage(root, record.document.metadata.explorationId, { candidate: true }, record.sourceVersion, {
+    await expect(recordCoverage(root, path.basename(record.path), { candidate: true }, {
       entries: [{ identity: 'limit', result: 'covered', details: [{ detail: 'x', location: { relationship: { source: 'kept', kind: 'uses', target: 'root' } } }] }],
     })).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: 'COVERAGE_LOCATION_UNRESOLVED' })] });
-    await expect(recordCoverage(root, record.document.metadata.explorationId, { candidate: true }, record.sourceVersion, {
+    await expect(recordCoverage(root, path.basename(record.path), { candidate: true }, {
       entries: [{ identity: 'limit', result: 'covered', details: [{ detail: 'x', location: { elementKind: 'project' }, quote: 'x' }] }],
     })).rejects.toMatchObject({ diagnostics: [expect.objectContaining({ code: 'INVALID_COVERAGE_INPUT' })] });
   });

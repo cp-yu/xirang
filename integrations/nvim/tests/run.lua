@@ -121,7 +121,7 @@ elseif mode == 'compare' then
   assert(not vim.bo[session.left].modifiable)
   session.cursor = 2
   review._sourceJump(session)
-  assert(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()) == source)
+  assert(vim.uv.fs_realpath(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())) == vim.uv.fs_realpath(source))
 elseif mode == 'save' then
   launch()
   local session = current()
@@ -141,7 +141,7 @@ elseif mode == 'save' then
       assert(argv[3] == 'writeback' and argv[4] == 'demo')
       assert(argv[5] == '--source' and argv[6] == 'elements/item.md')
       state.after = input
-      callback({ code = 0, stdout = vim.json.encode({ ok = true, ignoredChanges = { 'identity' } }) })
+      callback({ code = 0, stdout = vim.json.encode({ ignoredChanges = { 'identity' } }) })
     else callback({ code = 0, stdout = payload() }) end
   end })
   vim.cmd('write')
@@ -159,7 +159,7 @@ elseif mode == 'save' then
   assert(not vim.bo[session.left].modifiable and vim.bo[session.right].modifiable)
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'invalid draft' })
   review.setup({ cwd = root, runner = function(_, _, callback)
-    callback({ code = 1, stdout = vim.json.encode({ ok = false, message = 'invalid target' }) })
+    callback({ code = 1, stdout = '', stderr = vim.json.encode({ message = 'invalid target' }) })
   end })
   vim.cmd('write')
   waitFor(function() return session.saveError ~= nil end)
@@ -182,18 +182,18 @@ elseif mode == 'save-race' then
   assert(#saves == 1)
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'newer draft' })
   state.after = saves[1].input
-  saves[1].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[1].callback({ code = 0, stdout = '' })
   waitFor(function() return not session.saving and session.items[session.cursor].after == 'first save' end)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'newer draft')
   assert(vim.bo[session.right].modified)
   vim.cmd('write')
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'last save' })
   vim.cmd('write')
-  saves[2].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[2].callback({ code = 0, stdout = '' })
   waitFor(function() return #saves == 3 end)
   assert(saves[3].input == 'last save')
   state.after = saves[3].input
-  saves[3].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[3].callback({ code = 0, stdout = '' })
   waitFor(function() return not session.saving and not vim.bo[session.right].modified end)
   assert(table.concat(vim.api.nvim_buf_get_lines(session.right, 0, -1, false), '\n') == 'last save')
   vim.api.nvim_buf_set_lines(session.right, 0, -1, false, { 'first before navigation' })
@@ -204,12 +204,12 @@ elseif mode == 'save-race' then
   local switch = vim.api.nvim_replace_termcodes('<S-Tab>', true, false, true)
   vim.api.nvim_feedkeys(switch, 'x', false)
   assert(session.items[session.cursor].path == 'elements/other.md')
-  saves[4].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[4].callback({ code = 0, stdout = '' })
   waitFor(function() return #saves == 5 end)
   assert(saves[4].source == 'elements/item.md' and saves[4].input == 'first before navigation')
   assert(saves[5].source == 'elements/item.md' and saves[5].input == 'queued before navigation')
   state.after = saves[5].input
-  saves[5].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[5].callback({ code = 0, stdout = '' })
   waitFor(function() return not session.saving end)
   assert(session.items[session.cursor].path == 'elements/other.md')
   session.cursor = 2
@@ -223,14 +223,14 @@ elseif mode == 'save-race' then
   end
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'x', false)
   assert(session.items[session.cursor].plan)
-  saves[6].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[6].callback({ code = 0, stdout = '' })
   waitFor(function() return #saves == 7 end)
   assert(saves[7].source == 'elements/item.md' and saves[7].input == 'queued invalid')
-  saves[7].callback({ code = 1, stdout = vim.json.encode({ ok = false, message = 'invalid queued save' }) })
+  saves[7].callback({ code = 1, stdout = '', stderr = vim.json.encode({ message = 'invalid queued save' }) })
   waitFor(function() return #saves == 8 end)
   assert(saves[8].source == 'elements/item.md' and saves[8].input == 'queued last')
   state.after = saves[8].input
-  saves[8].callback({ code = 0, stdout = vim.json.encode({ ok = true }) })
+  saves[8].callback({ code = 0, stdout = '' })
   waitFor(function() return not session.saving end)
   assert(session.items[session.cursor].plan and not vim.bo[session.right].modifiable)
   session.cursor = 2

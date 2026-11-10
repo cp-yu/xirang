@@ -109,7 +109,7 @@ Sync SHALL 根据四分区 Semantic Delta 的 operations 判断是否需要同�
 - **无任何 delta**
 
   - change 没有待同步 operations
-  - SHALL 输出 `No sync required.`
+  - SHALL 静默成功，以退出码 0 表示无需同步
 
 - **只有 contract delta**
 
@@ -138,7 +138,7 @@ Sync SHALL 根据四分区 Semantic Delta 的 operations 判断是否需要同�
 - **无 graph delta 且无 contract delta**
 
   - change 没有待同步 graph 或 contract operations
-  - SHALL 输出 `No sync required.`
+  - SHALL 静默成功，以退出码 0 表示无需同步
 
 - **Archive 要求 Sync 已完成**
 
@@ -501,3 +501,7 @@ Sync SHALL 按 entity type 与 identity 将 Target Semantic Model 的每个单�
   - sync 准备 Target 单元树
   - SHALL 报告冲突路径与两个单元并以非零退出失败
   - Formal Semantic Model SHALL 保持不变
+
+### Section: 同步成功仅交付必要结果
+
+Sync SHALL 保留完整验证、原子写入及失败回滚；同步成功或无待同步变化且无警告时，两条输出流 SHALL 为空，不输出文件写入统计或完成回执。失败及真实警告 SHALL 进入 stderr，--json 时使用结构化诊断；不得以输出精简掩盖事务后关联失败。

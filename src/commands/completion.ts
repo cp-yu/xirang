@@ -1,4 +1,4 @@
-import ora from 'ora';
+import { diagnostic } from '../utils/output.js';
 import type { Command } from 'commander';
 import { CompletionFactory } from '../core/completions/factory.js';
 import { introspectCommands } from '../core/completions/introspect.js';
@@ -8,11 +8,13 @@ import { getArchivedChangeIds } from '../utils/item-discovery.js';
 
 interface GenerateOptions {
   shell?: string;
+  json?: boolean;
 }
 
 interface InstallOptions {
   shell?: string;
   verbose?: boolean;
+  json?: boolean;
 }
 
 interface UninstallOptions {
@@ -54,21 +56,21 @@ export class CompletionCommand {
 
       // Shell was detected but not supported
       if (detectionResult.detected && !detectionResult.shell) {
-        console.error(`Error: Shell '${detectionResult.detected}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
+        diagnostic(`Error: Shell '${detectionResult.detected}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
         process.exitCode = 1;
         return null;
       }
 
       // No shell specified and cannot auto-detect
-      console.error('Error: Could not auto-detect shell. Please specify shell explicitly.');
-      console.error(`Usage: xirang completion ${operationName} [shell]`);
-      console.error(`Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
+      diagnostic('Error: Could not auto-detect shell. Please specify shell explicitly.');
+      diagnostic(`Usage: xirang completion ${operationName} [shell]`);
+      diagnostic(`Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
       process.exitCode = 1;
       return null;
     }
 
     if (!CompletionFactory.isSupported(normalizedShell)) {
-      console.error(`Error: Shell '${normalizedShell}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
+      diagnostic(`Error: Shell '${normalizedShell}' is not supported yet. Currently supported: ${CompletionFactory.getSupportedShells().join(', ')}`);
       process.exitCode = 1;
       return null;
     }
@@ -85,7 +87,7 @@ export class CompletionCommand {
     const shell = this.resolveShellOrExit(options.shell, 'generate');
     if (!shell) return;
 
-    await this.generateForShell(shell);
+    await this.generateForShell(shell, !!options.json);
   }
 
   /**
@@ -97,7 +99,7 @@ export class CompletionCommand {
     const shell = this.resolveShellOrExit(options.shell, 'install');
     if (!shell) return;
 
-    await this.installForShell(shell, options.verbose || false);
+    await this.installForShell(shell, options.verbose || false, !!options.json);
   }
 
   /**
@@ -115,21 +117,20 @@ export class CompletionCommand {
   /**
    * Generate completion script for a specific shell
    */
-  private async generateForShell(shell: SupportedShell): Promise<void> {
+  private async generateForShell(shell: SupportedShell, json: boolean): Promise<void> {
     const generator = CompletionFactory.createGenerator(shell);
     const commands = introspectCommands(this.program);
     const script = generator.generate(commands);
-    console.log(script);
+    console.log(json ? JSON.stringify({ script }) : script);
   }
 
   /**
    * Install completion script for a specific shell
    */
-  private async installForShell(shell: SupportedShell, verbose: boolean): Promise<void> {
+  private async installForShell(shell: SupportedShell, verbose: boolean, json: boolean): Promise<void> {
     const generator = CompletionFactory.createGenerator(shell);
     const installer = CompletionFactory.createInstaller(shell);
 
-    const spinner = ora(`Installing ${shell} completion script...`).start();
 
     try {
       // Generate the completion script
@@ -139,10 +140,16 @@ export class CompletionCommand {
       // Install it
       const result = await installer.install(script);
 
-      spinner.stop();
 
       if (result.success) {
-        console.log(`✓ ${result.message}`);
+        if (json) {
+          for (const warning of result.warnings ?? []) diagnostic(warning, 'COMPLETION_WARNING', true);
+          const instructions = result.instructions?.length ? result.instructions :
+            result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured ? [`Restart your ${shell} shell to activate completions.`] : [];
+          const data = { ...(verbose ? { installedPath: result.installedPath, backupPath: result.backupPath } : {}), ...(instructions.length ? { instructions } : {}) };
+          if (Object.keys(data).length) console.log(JSON.stringify(data));
+          return;
+        }
 
         if (verbose && result.installedPath) {
           console.log(`  Installed to: ${result.installedPath}`);
@@ -167,15 +174,13 @@ export class CompletionCommand {
 
         // Display warnings if present
         if (result.warnings && result.warnings.length > 0) {
-          console.log('');
           for (const warning of result.warnings) {
-            console.log(warning);
+            diagnostic(warning, 'COMPLETION_WARNING');
           }
         }
 
         // Print instructions (only shown if .zshrc wasn't auto-configured)
         if (result.instructions && result.instructions.length > 0) {
-          console.log('');
           for (const instruction of result.instructions) {
             console.log(instruction);
           }
@@ -184,7 +189,6 @@ export class CompletionCommand {
           const configWasUpdated = result.zshrcConfigured || result.bashrcConfigured || result.profileConfigured;
 
           if (configWasUpdated) {
-            console.log('');
 
             // Shell-specific reload instructions
             const reloadCommands: Record<string, string> = {
@@ -199,12 +203,11 @@ export class CompletionCommand {
           }
         }
       } else {
-        console.error(`✗ ${result.message}`);
+        diagnostic(`✗ ${result.message}`);
         process.exitCode = 1;
       }
     } catch (error) {
-      spinner.stop();
-      console.error(`✗ Failed to install completion script: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostic(`✗ Failed to install completion script: ${error instanceof Error ? error.message : String(error)}`);
       process.exitCode = 1;
     }
   }
@@ -234,27 +237,24 @@ export class CompletionCommand {
       });
 
       if (!confirmed) {
-        console.log('Uninstall cancelled.');
+        diagnostic('Uninstall cancelled.', 'CANCELLED');
         return;
       }
     }
 
-    const spinner = ora(`Uninstalling ${shell} completion script...`).start();
 
     try {
       const result = await installer.uninstall();
 
-      spinner.stop();
 
       if (result.success) {
-        console.log(`✓ ${result.message}`);
+
       } else {
-        console.error(`✗ ${result.message}`);
+        diagnostic(`✗ ${result.message}`);
         process.exitCode = 1;
       }
     } catch (error) {
-      spinner.stop();
-      console.error(`✗ Failed to uninstall completion script: ${error instanceof Error ? error.message : String(error)}`);
+      diagnostic(`✗ Failed to uninstall completion script: ${error instanceof Error ? error.message : String(error)}`);
       process.exitCode = 1;
     }
   }

@@ -18,10 +18,10 @@ describe('explore template integration', () => {
       expect(template).toContain(fragment);
     }
     for (const command of [
-      'xirang arch outline --format json',
+      'xirang arch outline --format markdown',
       'xirang arch query <identity> --json',
       'xirang arch snapshot --format json',
-      'xirang config project --json',
+      'xirang config project --select decomposition --json',
       'xirang record list --json',
     ]) expect(template).toContain(command);
     expect(template).toContain('--contract');

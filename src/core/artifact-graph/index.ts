@@ -36,12 +36,9 @@ export {
 export {
   loadTemplate,
   loadChangeContext,
-  generateInstructions,
   formatChangeStatus,
   TemplateLoadError,
   type ChangeContext,
-  type ArtifactInstructions,
-  type DependencyInfo,
   type ArtifactStatus,
   type ChangeStatus,
 } from './instruction-loader.js';

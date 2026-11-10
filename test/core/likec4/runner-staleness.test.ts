@@ -2,10 +2,17 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { spawn } from 'node:child_process';
+import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
+import { setJsonOutput } from '../../../src/utils/output.js';
+
+vi.mock('node:child_process', () => ({ spawn: vi.fn() }));
 import {
   CLI_RUNTIME_PACKAGES,
   isLikeC4DistStale,
   resolveLikeC4Command,
+  runLikeC4,
   type LikeC4Layout,
 } from '../../../src/commands/arch/runner.js';
 
@@ -52,7 +59,76 @@ const dirs: string[] = [];
 
 afterEach(async () => {
   vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+  setJsonOutput(false);
   await Promise.all(dirs.splice(0).map(dir => fs.rm(dir, { recursive: true, force: true })));
+});
+
+describe('export process output', () => {
+  it.each([0, 1])('separates child diagnostics from results and honors exit code %s', async code => {
+    vi.stubEnv('XIRANG_LIKEC4_STALE_CHECK', '0');
+    setJsonOutput(true);
+    const stdout = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough() });
+    vi.mocked(spawn).mockReturnValue(child as unknown as ReturnType<typeof spawn>);
+    const result = runLikeC4(['export', 'png', '/model']);
+    child.stdout.write('warning from renderer');
+    child.stderr.write('\nrenderer details');
+    child.emit('close', code);
+    if (code) await expect(result).rejects.toThrow('LikeC4 exited with code 1');
+    else await result;
+    expect(stdout).not.toHaveBeenCalled();
+    expect(stderr.mock.calls.map(([message]) => JSON.parse(message))).toEqual([
+      { code: 'LIKEC4_DIAGNOSTIC', message: 'warning from renderer' },
+      { code: 'LIKEC4_DIAGNOSTIC', message: 'renderer details' },
+    ]);
+    expect(vi.mocked(spawn).mock.calls.at(-1)?.[1]).toEqual(expect.arrayContaining(['--log-level', 'warning']));
+  });
+});
+
+describe('embedded viewer output', () => {
+  it.each([false, true])('returns resolved addresses and streams diagnostics while running (json=%s)', async json => {
+    vi.stubEnv('XIRANG_LIKEC4_STALE_CHECK', '0');
+    setJsonOutput(json);
+    const stdout = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough() });
+    vi.mocked(spawn).mockReturnValue(child as unknown as ReturnType<typeof spawn>);
+    const result = runLikeC4(['start', '/model'], { json });
+    const urls = { local: ['http://localhost:61895/'], network: ['http://192.0.2.1:61895/'] };
+    child.emit('message', { type: 'xirang-server-ready', urls });
+    child.stderr.write('model warning\n');
+    expect(stdout.mock.calls.map(([message]) => json ? JSON.parse(message) : message)).toEqual(
+      json ? [{ urls }] : [...urls.local, ...urls.network],
+    );
+    expect(json ? JSON.parse(stderr.mock.calls[0][0]) : stderr.mock.calls[0][0]).toEqual(
+      json ? { code: 'LIKEC4_DIAGNOSTIC', message: 'model warning' } : 'model warning',
+    );
+    expect(vi.mocked(spawn).mock.calls.at(-1)?.[1]).toEqual(expect.arrayContaining(['--log-level', 'warning']));
+    expect(vi.mocked(spawn).mock.calls.at(-1)?.[2]).toEqual({ stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+    child.emit('close', 0);
+    await result;
+  });
+
+  it('keeps successful cache validation silent and preserves child failures', async () => {
+    vi.stubEnv('XIRANG_LIKEC4_STALE_CHECK', '0');
+    const stdout = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const stderr = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough() });
+    vi.mocked(spawn).mockReturnValue(child as unknown as ReturnType<typeof spawn>);
+    const success = runLikeC4(['validate', '/model', '--no-layout']);
+    child.emit('close', 0);
+    await success;
+    expect(stdout).not.toHaveBeenCalled();
+    expect(stderr).not.toHaveBeenCalled();
+    const failure = runLikeC4(['validate', '/model', '--no-layout']);
+    child.stderr.write('invalid model');
+    child.emit('close', 1);
+    await expect(failure).rejects.toThrow('LikeC4 exited with code 1');
+    expect(stderr).toHaveBeenCalledWith('invalid model');
+    expect(stdout).not.toHaveBeenCalled();
+  });
 });
 
 describe('isLikeC4DistStale', () => {

@@ -31,16 +31,18 @@ describe('Delta writeback CLI and Neovim round trip', () => {
     return spawnSync(process.execPath, [cli, ...args], { cwd: root, input, encoding: 'utf8', timeout: 15000 });
   }
 
-  it('accepts stdin and emits parseable success/failure envelopes through the installed entry point', async () => {
+  it('accepts stdin and emits silent success and structured stderr diagnostics through the installed entry point', async () => {
     const review = run(['show', 'demo', '--review', '--json']);
     expect(review.status, review.stderr).toBe(0);
     const target = JSON.parse(review.stdout).sources[0].after.replace('planned text', 'saved text');
     const saved = run(['delta', 'writeback', 'demo', '--source', path.join('elements', 'item.md'), '--json'], target);
     expect(saved.status, saved.stderr).toBe(0);
-    expect(JSON.parse(saved.stdout)).toMatchObject({ ok: true, changed: true, ignoredChanges: [] });
+    expect(saved.stdout).toBe('');
+    expect(saved.stderr).toBe('');
     const invalid = run(['delta', 'writeback', 'demo', '--source', path.join('elements', 'item.md'), '--json'], 'invalid');
     expect(invalid.status).toBe(1);
-    expect(JSON.parse(invalid.stdout)).toMatchObject({ ok: false, code: 'INVALID_INPUT' });
+    expect(invalid.stdout).toBe('');
+    expect(JSON.parse(invalid.stderr)).toMatchObject({ code: 'INVALID_INPUT' });
     expect(await fs.readFile(path.join(root, '.xirang', 'changes', 'demo', 'elements', 'item.md'), 'utf8')).toContain('saved text');
   });
 

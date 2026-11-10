@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { runCLI } from '../helpers/run-cli.js';
 import { Command } from 'commander';
+import { parse, stringify } from 'yaml';
 
 describe('config command integration', () => {
   // These tests use real file system operations with XDG_CONFIG_HOME override
@@ -35,6 +37,22 @@ describe('config command integration', () => {
 
     // Reset module cache to pick up new XDG_CONFIG_HOME
     vi.resetModules();
+  });
+
+  it.each([
+    ['retired optimization', JSON.stringify({ optimization: { enabled: false, directionLimit: 4 } }), 'optimization.directionLimit'],
+    ['obsolete fields', JSON.stringify({ profile: 'expanded', workflows: [], delivery: 'skills' }), 'obsolete config fields'],
+    ['malformed JSON', '{ invalid }', 'Invalid JSON'],
+  ])('keeps requested config data separate from JSON diagnostics for %s', async (_name, source, warning) => {
+    fs.mkdirSync(path.join(tempDir, 'xirang'), { recursive: true });
+    const file = path.join(tempDir, 'xirang', 'config.json');
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'list', '--json']);
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toHaveProperty('featureFlags');
+    const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+    expect(diagnostics).toContainEqual(expect.objectContaining({ message: expect.stringContaining(warning) }));
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
   });
 
   it('should use XDG_CONFIG_HOME for config path', async () => {
@@ -144,6 +162,60 @@ describe('config project command', () => {
     await program.parseAsync(['node', 'xirang', 'config', 'project', ...args]);
   }
 
+  it('selects current config fields and only matching artifact rules', async () => {
+    const configDir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(configDir);
+    const configPath = path.join(configDir, 'config.yaml');
+    fs.writeFileSync(configPath, 'schema: semantic-model\nproseLanguage: 中文\nrules:\n  proposal: [Keep scope]\n  specs: [Keep behavior]\n');
+    const args = ['--json', '--select', 'proseLanguage', '--select', 'rules', '--artifact', 'proposal'];
+    await runProjectCommand(args);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: '中文', rules: { proposal: ['Keep scope'] } });
+    fs.writeFileSync(configPath, 'schema: semantic-model\nproseLanguage: English\nrules: {}\n');
+    await runProjectCommand(args);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: 'English', rules: {} });
+  });
+
+  it.each([
+    ...['', '\n', '\n\n', '\r\n'].map(ending => {
+      const newline = ending === '\r\n' ? '\r\n' : '\n';
+      return {
+        context: `first line${newline}rules: context content only${ending}`,
+        rules: { proposal: [`first rule${newline}- still the same rule${ending}`] },
+      };
+    }),
+    { context: 'Use # Root as a heading', rules: { proposal: ['- Required rollback plan', 'Include: rollback plan', '# Keep this heading'] } },
+    { context: 'true', rules: { proposal: ['false', 'null', '123', '[]', '{key: value}', ' yes '] } },
+    { context: '', rules: { proposal: ['Keep the empty context'] } },
+  ])('preserves scalar contents and boundaries in text and JSON (%j)', async selected => {
+    const source = { schema: 'semantic-model', ...selected, rules: { ...selected.rules, specs: ['Other artifact'] } };
+    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
+    const configPath = path.join(tempDir, '.xirang', 'config.yaml');
+    const bytes = stringify(source);
+    fs.writeFileSync(configPath, bytes);
+    const args = ['--select', 'context', '--select', 'rules', '--artifact', 'proposal'];
+    await runProjectCommand([...args, '--json']);
+    expect(JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]))).toEqual(selected);
+    await runProjectCommand(args);
+    expect(parse(`${consoleLogSpy.mock.calls.at(-1)![0]}\n`)).toEqual(selected);
+    expect(fs.readFileSync(configPath, 'utf8')).toBe(bytes);
+  });
+
+  it('distinguishes absent optional fields from invalid selections', async () => {
+    await runProjectCommand(['--json', '--select', 'git.commitMessage.archive']);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      consoleLogSpy.mockClear();
+      await runProjectCommand(['--json', '--select', 'git.commitMessage.typo']);
+      expect(process.exitCode).toBe(1);
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(JSON.parse(error.mock.calls.at(-1)![0])).toMatchObject({ code: 'INVALID_CONFIG_SELECTION' });
+    } finally {
+      process.exitCode = undefined;
+      error.mockRestore();
+    }
+  });
+
   it('prints normalized project config as JSON', async () => {
     fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(
@@ -212,37 +284,24 @@ rules:
     });
   });
 
-  it('prints minimal JSON when config.yaml is missing', async () => {
+  it.each([undefined, { schema: 'semantic-model' }, { schema: 'semantic-model', context: '' }, { schema: 'semantic-model', proseLanguage: '中文', rules: {} }])('keeps complete text and JSON config equivalent without absent optional fields (%j)', async configured => {
+    if (configured) {
+      fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, '.xirang', 'config.yaml'), stringify(configured));
+    }
     await runProjectCommand(['--json']);
-
-    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({
-      architecture: {
-        outline: {
-          elementDefinitionDepth: 2,
-        },
-      },
+    const json = JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]));
+    expect(json).toEqual({
+      ...configured,
+      ...(configured ? {
+        decomposition: '.xirang/references/xirang-semantic-refinement.md',
+        git: { merge: { strategy: 'no-ff' }, branch: { deleteAfterArchive: false } },
+      } : {}),
+      architecture: { outline: { elementDefinitionDepth: 2 } },
       rules: {},
     });
-  });
-
-  it('prints YAML-like text without --json', async () => {
-    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
-    fs.writeFileSync(
-      path.join(tempDir, '.xirang', 'config.yaml'),
-      `schema: semantic-model
-proseLanguage: 中文
-rules: {}
-`,
-      'utf-8'
-    );
-
     await runProjectCommand([]);
-
-    const output = consoleLogSpy.mock.calls[0][0];
-    expect(output).toContain('schema: semantic-model');
-    expect(output).toContain('proseLanguage: 中文');
-    expect(output).toContain('rules: {}');
-    expect(output).not.toContain('propose');
+    expect(parse(`${consoleLogSpy.mock.calls.at(-1)![0]}\n`)).toEqual(json);
   });
 });
 

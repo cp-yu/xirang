@@ -16,7 +16,6 @@ describe('global-config', () => {
   let tempDir: string;
   let originalEnv: NodeJS.ProcessEnv;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
-  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     // Create temp directory for tests
@@ -28,7 +27,6 @@ describe('global-config', () => {
 
     // Spy on console for warning tests
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -40,7 +38,6 @@ describe('global-config', () => {
 
     // Restore console
     consoleErrorSpy.mockRestore();
-    consoleWarnSpy.mockRestore();
   });
 
   describe('constants', () => {
@@ -204,7 +201,7 @@ describe('global-config', () => {
       fs.writeFileSync(configPath, source);
 
       const config = getGlobalConfig();
-      const warnings = consoleWarnSpy.mock.calls.flat().join('\\n');
+      const warnings = consoleErrorSpy.mock.calls.flat().join('\\n');
 
       expect(config.optimization).toEqual({ enabled: false });
       expect(warnings).toContain('optimization.directionLimit is retired and ignored');
@@ -229,7 +226,7 @@ describe('global-config', () => {
 
       expect(config).not.toHaveProperty('propose');
       expect((config as any).futureOption).toBe(123);
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
       expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
     });
 
@@ -304,7 +301,7 @@ describe('global-config', () => {
 
         getGlobalConfig();
 
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           expect.stringContaining('obsolete config fields')
         );
       });
@@ -322,7 +319,7 @@ describe('global-config', () => {
 
         getGlobalConfig();
 
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           expect.stringContaining('obsolete config fields')
         );
       });

@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 import { Command } from 'commander';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -14,6 +15,7 @@ interface SchemaValidationResult {
   path: string;
   valid: boolean;
   issues: ValidationIssue[];
+  stages: string[];
 }
 
 function unknownSchema(name: string): Error {
@@ -26,7 +28,7 @@ function inspectSchema(name: string) {
   return { name, source: 'package' as const, path: schemaDir };
 }
 
-function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidationResult {
+function validateBuiltInSchema(name: string): SchemaValidationResult {
   const schemaDir = getSchemaDir(name);
   if (!schemaDir) throw unknownSchema(name);
   const issues: ValidationIssue[] = [];
@@ -38,14 +40,13 @@ function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidation
     'Dependency graph',
     'File references',
   ];
-  if (verbose) stages.forEach((stage) => console.log(`  ${stage}...`));
 
   let schema;
   try {
     schema = resolveSchema(name);
   } catch (error) {
     issues.push({ level: 'error', path: 'schema.yaml', message: (error as Error).message });
-    return { name, path: schemaDir, valid: false, issues };
+    return { name, path: schemaDir, valid: false, issues, stages };
   }
 
   for (const artifact of schema.artifacts) {
@@ -58,7 +59,7 @@ function validateBuiltInSchema(name: string, verbose: boolean): SchemaValidation
       });
     }
   }
-  return { name, path: schemaDir, valid: issues.length === 0, issues };
+  return { name, path: schemaDir, valid: issues.length === 0, issues, stages };
 }
 
 export function registerSchemaCommand(program: Command): void {
@@ -74,10 +75,10 @@ export function registerSchemaCommand(program: Command): void {
         const results = options.all
           ? BUILT_IN_SCHEMA_IDS.map(inspectSchema)
           : [inspectSchema(name ?? '')];
-        if (options.json) console.log(JSON.stringify(options.all ? results : results[0], null, 2));
+        if (options.json) console.log(JSON.stringify(options.all ? results : results[0]));
         else results.forEach((result) => console.log(`Schema: ${result.name}\nSource: package\nPath: ${result.path}`));
       } catch (error) {
-        console.error(`Error: ${(error as Error).message}`);
+        diagnostic(`Error: ${(error as Error).message}`);
         process.exitCode = 1;
       }
     });
@@ -90,17 +91,21 @@ export function registerSchemaCommand(program: Command): void {
     .action((name: string | undefined, options: { json?: boolean; verbose?: boolean }) => {
       try {
         const names = name ? [name] : [...BUILT_IN_SCHEMA_IDS];
-        const results = names.map((id) => validateBuiltInSchema(id, Boolean(options.verbose && !options.json)));
+        const results = names.map(validateBuiltInSchema);
+        if (options.verbose) {
+          if (options.json) console.log(JSON.stringify(results.map(({ name, stages }) => ({ name, stages }))));
+          else for (const result of results) console.log(`${result.name}:\n${result.stages.map(stage => `  ${stage}`).join("\n")}`);
+        }
         const valid = results.every((result) => result.valid);
-        if (options.json) {
-          console.log(JSON.stringify(name ? results[0] : { valid, schemas: results }, null, 2));
-        } else {
-          results.forEach((result) => console.log(`${result.valid ? '✓' : '✗'} ${result.name}`));
+        for (const result of results) {
+          if (result.issues.length) {
+            if (options.json) console.error(JSON.stringify({ name: result.name, path: result.path, issues: result.issues }));
+            else result.issues.forEach(issue => diagnostic(`${result.name} (${result.path}) ${issue.path}: ${issue.message}`));
+          }
         }
         if (!valid) process.exitCode = 1;
       } catch (error) {
-        if (options.json) console.log(JSON.stringify({ valid: false, error: (error as Error).message }, null, 2));
-        else console.error(`Error: ${(error as Error).message}`);
+        diagnostic(`Error: ${(error as Error).message}`);
         process.exitCode = 1;
       }
     });

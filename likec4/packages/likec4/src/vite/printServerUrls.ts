@@ -15,6 +15,11 @@ export function printServerUrls(server: ViteDevServer | PreviewServer) {
     throw new Error('Vite server is not ready, no resolvedUrls')
   }
 
+  if (process.send) {
+    process.send({ type: 'xirang-server-ready', urls: server.resolvedUrls })
+    return
+  }
+
   boxen(
     [
       k.green('LikeC4 served at:'),

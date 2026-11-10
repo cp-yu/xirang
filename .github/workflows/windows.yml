@@ -49,6 +49,11 @@ jobs:
           test/core/record/paths.test.ts
           test/core/record/workspace.test.ts
           test/core/record/consume.test.ts
+          test/core/record/coverage.test.ts
+          test/commands/config.test.ts
+          test/commands/record-json.test.ts
+          test/commands/output.test.ts
+          test/commands/validate.test.ts
           test/integration/record-workflow.test.ts
           test/commands/candidate-init.test.ts
           test/commands/candidate-validate.test.ts

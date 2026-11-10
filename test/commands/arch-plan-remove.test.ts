@@ -27,11 +27,16 @@ describe('arch plan-remove command', () => {
 
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
-  it('reports deterministic formal dependencies by stable identity without writing', async () => {
+  it.each([false, true])('reports deterministic formal dependencies and diagnostics without writing (warning=%s)', async warning => {
+    if (warning) await fs.rename(path.join(modelRoot, 'metamodel/project.md'), path.join(modelRoot, 'views/project.md'));
     const before = await fs.readFile(path.join(modelRoot, 'elements', 'old.id.md'), 'utf8');
     const byId = await runCLI(['arch', 'plan-remove', 'old.id', '--json'], { cwd: root });
 
     expect(byId.exitCode).toBe(0);
+    if (warning) {
+      expect(JSON.parse(byId.stderr)).toMatchObject({ code: 'ENTITY_PARTITION_MISMATCH', message: expect.stringContaining('views/project.md') });
+    } else expect(byId.stderr).toBe('');
+    expect(byId.stdout).not.toContain('ENTITY_PARTITION_MISMATCH');
     const idResult = JSON.parse(byId.stdout);
     expect(idResult.subject).toEqual({ id: 'old.id', title: 'Old' });
     expect(idResult.subject).not.toHaveProperty('fqn');
@@ -52,22 +57,52 @@ describe('arch plan-remove command', () => {
     expect(result.stderr).toContain('Element not found: ghost.id');
   });
 
-  it('classifies explicitly removed dependencies as Handled and keeps the rest unresolved', async () => {
+  it('reports compilation errors on stderr with a failing exit status in either encoding', async () => {
+    await writeChangeDelta(root, 'invalid-parent', {
+      'elements/new.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: new.id\nkind: capability\nparent: ghost.id\ntitle: New\ndefinition: New summary\n---\n',
+    });
+    for (const json of [false, true]) {
+      const result = await runCLI(['arch', 'plan-remove', 'old.id', '--change', 'invalid-parent', ...(json ? ['--json'] : [])], { cwd: root });
+      expect(result.exitCode).toBe(1);
+      expect(result.stdout).not.toContain('MISSING_PARENT');
+      const message = json ? JSON.parse(result.stderr).message : result.stderr;
+      expect(message).toContain('MISSING_PARENT');
+      expect(message).toContain('invalid-parent');
+      expect(message).toContain('ghost.id');
+    }
+  });
+
+  it.each([false, true])('classifies removed dependencies and separates real diagnostics (warning=%s)', async warning => {
+    if (warning) await fs.rename(path.join(modelRoot, 'metamodel/project.md'), path.join(modelRoot, 'views/project.md'));
     await writeChangeDelta(root, 'replace-old', {
       'elements/new.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: new.id\nkind: capability\nparent: project.root\ntitle: New\ndefinition: New summary\n---\n',
       'relationships/invokes.yaml': 'relationships:\n  - operation: REMOVED\n    source: consumer.id\n    kind: invokes\n    target: old.id\n',
     });
 
-    const result = await runCLI(['arch', 'plan-remove', 'old.id', '--change', 'replace-old', '--json'], { cwd: root });
-
-    expect(result.exitCode).toBe(0);
-    const json = JSON.parse(result.stdout);
-    expect(json.handled).toEqual([
-      expect.objectContaining({ type: 'relationship', identity: 'relationship:consumer.id|invokes|old.id' }),
-    ]);
-    expect(json.unresolved).toEqual([
-      expect.objectContaining({ type: 'descendant', identity: 'element:child.id' }),
-    ]);
-    expect(json.requiredCount).toBe(1);
+    for (const jsonMode of [false, true]) {
+      const result = await runCLI(['arch', 'plan-remove', 'old.id', '--change', 'replace-old', ...(jsonMode ? ['--json'] : [])], { cwd: root });
+      expect(result.exitCode).toBe(0);
+      if (jsonMode) {
+        const json = JSON.parse(result.stdout);
+        expect(json.handled).toEqual([
+          expect.objectContaining({ type: 'relationship', identity: 'relationship:consumer.id|invokes|old.id' }),
+        ]);
+        expect(json.unresolved).toEqual([
+          expect.objectContaining({ type: 'descendant', identity: 'element:child.id' }),
+        ]);
+        expect(json.requiredCount).toBe(1);
+      } else {
+        expect(result.stdout).toContain('Required before target can validate: 1');
+        expect(result.stdout).toContain('relationship:consumer.id|invokes|old.id');
+        expect(result.stdout).toContain('element:child.id');
+      }
+      expect(result.stdout).not.toContain('ENTITY_PARTITION_MISMATCH');
+      if (warning) {
+        const message = jsonMode ? JSON.parse(result.stderr).message : result.stderr;
+        expect(message).toContain('replace-old');
+        expect(message).toContain('views/project.md');
+        expect(message).toContain('ENTITY_PARTITION_MISMATCH');
+      } else expect(result.stderr).toBe('');
+    }
   });
 });

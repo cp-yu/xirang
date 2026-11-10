@@ -18,14 +18,14 @@ definition: Workspace Update 定义 `xirang update` 刷新项目受管表面与�
   - 项目中已配置 AI 工具
   - 检测已安装的工具 skills 目录
   - 为检测到的每个工具重新生成固定 workflow skills
-  - 显示更新摘要，列出刷新的工具
+  - 成功无必要结果时静默，不重复列出刷新的工具
   - SHALL NOT refresh slash command workflow artifacts
 
 - **清理过时配置字段**
 
   - 全局配置包含 `profile`、`workflows` 或 `delivery` 字段
   - 自动删除这些字段并保存清理后的配置
-  - 输出警告："Obsolete config fields detected (profile/workflows/delivery), auto-cleaning..." 与 "Obsolete fields auto-cleaned."
+  - 在 stderr 报告具体被清理的过时字段，不重复输出开始与完成回执
 
 ### Section: Prerequisites
 
@@ -45,26 +45,9 @@ Update command SHALL 要求现有 `.xirang/` workspace，才能刷新 managed su
 
 ### Section: Core Files Always Updated
 
-The update command SHALL always refresh the managed workflow skill files for configured tools and display an ASCII-safe success message。
+update SHALL 通过共享 ArtifactSyncEngine 以最新模板整体替换已配置工具的受管 workflow skills，不管理或改写根级 AGENTS stub。成功且无必要结果时 SHALL 静默，不输出 Updated、版本或 Tools 汇总。
 
-- **Successful update**
-
-  - the update completes successfully
-  - 刷新受管 workflow skill 文件
-  - 显示 `✓ Updated: <tools> (v<version>)` 汇总
-
-- **替换受管 skill 文件**
-
-  - update 成功完成
-  - 以最新模板整体替换受管 workflow skill 文件
-  - 显示 "Restart your IDE or current session for refreshed skills to take effect."
-
-- **Updating files**
-
-  - updating files
-  - refresh managed workflow skill files for each configured tool via the shared ArtifactSyncEngine
-  - 显示 `Tools: <tools>` 受影响工具列表
-  - SHALL NOT 管理或改写根级 AGENTS 指令 stub
+刷新需要重启 IDE 或当前 session 才生效时，SHALL 保留简短、具体的生效提示，不将重启必要性混入成功装饰。真实配置迁移警告进入 stderr；查询/交互请求与必要交付结果遵循统一通道。
 
 ### Section: 工具感知的更新提示
 

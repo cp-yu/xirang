@@ -17,7 +17,7 @@ export async function selectActiveChange(
     .sort();
 
   if (changeDirs.length === 0) {
-    console.log('No active changes found.');
+
     return null;
   }
 

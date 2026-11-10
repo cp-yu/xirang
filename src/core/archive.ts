@@ -1,7 +1,8 @@
+import { diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { getTaskProgressForChange, formatTaskStatus } from '../utils/task-progress.js';
+import { getTaskProgressForChange } from '../utils/task-progress.js';
 import chalk from 'chalk';
 import {
   assessChangeSyncState,
@@ -79,6 +80,7 @@ async function findArchivedChangePathAsync(archiveDir: string, changeName: strin
 }
 
 interface ArchiveOptions {
+  json?: boolean;
   yes?: boolean;
   noValidate?: boolean;
   validate?: boolean;
@@ -110,7 +112,7 @@ export class ArchiveCommand {
         message: 'Select a change to archive',
       });
       if (!selectedChange) {
-        console.log('No change selected. Aborting.');
+        diagnostic('No change selected. Aborting.');
         return;
       }
       changeName = selectedChange;
@@ -133,7 +135,8 @@ export class ArchiveCommand {
     }
 
     if (!activeChangeExists && archivedChangePath) {
-      this.printGitHandoff();
+      const archive = path.relative(targetPath, archivedChangePath);
+      console.log(options.json ? JSON.stringify({ archive }) : archive);
       return;
     }
 
@@ -158,8 +161,8 @@ export class ArchiveCommand {
     await fs.mkdir(archiveDir, { recursive: true });
     await moveDirectory(changeDir, archivePath);
 
-    console.log(`Change '${changeName}' archived as '${archiveName}'.`);
-    this.printGitHandoff();
+    const archive = path.join(XIRANG_DIR_NAME, 'changes', 'archive', archiveName);
+    console.log(options.json ? JSON.stringify({ archive }) : archive);
   }
 
   private async runQualityGate(
@@ -182,11 +185,11 @@ export class ArchiveCommand {
           default: false,
         });
         if (!proceed) {
-          console.log('Archive cancelled. Run without --no-verify to use the standard quality gate.');
+          diagnostic('Archive cancelled. Run without --no-verify to use the standard quality gate.');
           return false;
         }
       }
-      console.log(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-verify bypass.'));
+      diagnostic(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-verify bypass.'));
       return true;
     }
 
@@ -218,11 +221,11 @@ export class ArchiveCommand {
           default: false,
         });
         if (!proceed) {
-          console.log('Archive cancelled.');
+          diagnostic('Archive cancelled.');
           return false;
         }
       }
-      console.log(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-sync bypass.'));
+      diagnostic(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-sync bypass.'));
       return true;
     }
 
@@ -253,20 +256,21 @@ export class ArchiveCommand {
           default: false,
         });
         if (!proceed) {
-          console.log('Archive cancelled.');
+          diagnostic('Archive cancelled.');
           return false;
         }
       }
       const timestamp = new Date().toISOString();
-      console.log(chalk.yellow(`[${timestamp}] Validation skipped: ${path.basename(changeDir)}`));
+      diagnostic(chalk.yellow(`[${timestamp}] Validation skipped: ${path.basename(changeDir)}`));
       return true;
     }
 
     const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
+    for (const warning of compiled.diagnostics.filter(issue => issue.level === 'WARNING')) {
+      diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
+    }
     if (!compiled.valid) {
-      console.log(chalk.red('\nValidation errors in Semantic Delta:'));
-      for (const issue of compiled.diagnostics) console.log(chalk.red(`  ✗ ${issue.code}: ${issue.message}`));
-      return false;
+      throw new Error(`Validation errors in Semantic Delta:\n${compiled.diagnostics.map(issue => `${issue.code}: ${issue.message}`).join('\n')}`);
     }
     return true;
   }
@@ -277,7 +281,7 @@ export class ArchiveCommand {
     options: ArchiveOptions,
   ): Promise<boolean> {
     const progress = await getTaskProgressForChange(changesDir, changeName);
-    console.log(`Goal status: ${formatTaskStatus(progress)}`);
+
 
     const incompleteGoals = Math.max(progress.total - progress.completed, 0);
     if (incompleteGoals > 0) {
@@ -288,18 +292,14 @@ export class ArchiveCommand {
           default: false,
         });
         if (!proceed) {
-          console.log('Archive cancelled.');
+          diagnostic('Archive cancelled.');
           return false;
         }
       } else {
-        console.log(`Warning: ${incompleteGoals} incomplete goal(s) found. Continuing due to --yes flag.`);
+        diagnostic(`Warning: ${incompleteGoals} incomplete goal(s) found. Continuing due to --yes flag.`);
       }
     }
     return true;
-  }
-
-  private printGitHandoff(): void {
-    console.log('Git handoff: agent handles git commits, merge, and cleanup after archive.');
   }
 
   private getArchiveDate(): string {

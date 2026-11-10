@@ -1,3 +1,4 @@
+import { diagnostic } from '../../../utils/output.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -148,7 +149,7 @@ export class ZshInstaller {
       return true;
     } catch (error: any) {
       // Fail gracefully - don't break installation
-      console.debug(`Unable to configure .zshrc for completions: ${error.message}`);
+      if (error.code !== 'ENOENT') diagnostic(`Unable to configure .zshrc for completions: ${error.message}`, 'COMPLETION_WARNING');
       return false;
     }
   }
@@ -184,7 +185,7 @@ export class ZshInstaller {
       return !content.includes(completionsDir);
     } catch (error) {
       // If we can't read .zshrc, assume config is needed
-      console.debug(`Unable to read .zshrc to check fpath config: ${error instanceof Error ? error.message : String(error)}`);
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') diagnostic(`Unable to read .zshrc to check fpath config: ${error instanceof Error ? error.message : String(error)}`, 'COMPLETION_WARNING');
       return true;
     }
   }
@@ -240,7 +241,7 @@ export class ZshInstaller {
       return true;
     } catch (error: any) {
       // Fail gracefully
-      console.debug(`Unable to remove .zshrc configuration: ${error.message}`);
+      if (error.code !== 'ENOENT') diagnostic(`Unable to remove .zshrc configuration: ${error.message}`, 'COMPLETION_WARNING');
       return false;
     }
   }
@@ -267,7 +268,6 @@ export class ZshInstaller {
             isOhMyZsh,
             message: 'Completion script is already installed (up to date)',
             instructions: [
-              'The completion script is already installed and up to date.',
               'If completions are not working, try: exec zsh',
             ],
           };
@@ -276,7 +276,7 @@ export class ZshInstaller {
         isUpdate = true;
       } catch (error: any) {
         // File doesn't exist or can't be read, proceed with installation
-        console.debug(`Unable to read existing completion file at ${targetPath}: ${error.message}`);
+        if (error.code !== 'ENOENT') diagnostic(`Unable to read existing completion file at ${targetPath}: ${error.message}`, 'COMPLETION_WARNING');
       }
 
       // Ensure the directory exists
@@ -372,16 +372,13 @@ export class ZshInstaller {
   private generateInstructions(isOhMyZsh: boolean, installedPath: string): string[] {
     if (isOhMyZsh) {
       return [
-        'Completion script installed to Oh My Zsh completions directory.',
         'Restart your shell or run: exec zsh',
-        'Completions should activate automatically.',
       ];
     } else {
       const completionsDir = path.dirname(installedPath);
       const zshrcPath = path.join(this.homeDir, '.zshrc');
 
       return [
-        'Completion script installed to ~/.zsh/completions/',
         '',
         'To enable completions, add the following to your ~/.zshrc file:',
         '',

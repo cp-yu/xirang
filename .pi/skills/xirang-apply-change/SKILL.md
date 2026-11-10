@@ -31,7 +31,7 @@ Design for testability: when behavior is difficult to test because of hidden glo
 
 Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Acceptance Cases when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
 
-For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
+For workflow-managed artifact writes, load the matching `.xirang/references/xirang-artifact-<id>.md` only when needed, reading Definition before Guidance and Template. Do not copy guidance, configuration or reasoning into artifacts.
 
 ## Flow Outline
 

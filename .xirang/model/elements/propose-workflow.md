@@ -229,7 +229,7 @@ Propose 生成 `tasks.md` 时 SHALL 按用户能审阅的目标行为而非代�
 - **Acceptance Case operations 通过 diff 审阅**
 
   - Agent 已完成 delta Contracts、design、结构目标与 combined validation
-  - SHALL 审阅 validate concise preview
+  - SHALL 通过 validate --change <name> --preview 显式请求并审阅 concise preview
   - 非预期 operation SHALL 阻塞 ready-for-apply 并要求修正 source
 
 - **Sections 按 Behavior Source 生成**
@@ -241,7 +241,7 @@ Propose 生成 `tasks.md` 时 SHALL 按用户能审阅的目标行为而非代�
 - **Specs boundary 不重复定义**
 
   - workflow 生成 Contracts
-  - SHALL 依赖 `xirang instructions specs --change "<name>" --json` 返回的 definition（Element-owned Contract delta authoring 指导）
+  - SHALL 按需读取共享制品 reference 中的 resolved definition 与 Element-owned Contract delta authoring 指导
   - SHALL NOT 在 workflow template 维护竞争的 behavior boundary
 
 - **Acceptance Case 写行为而非排版**

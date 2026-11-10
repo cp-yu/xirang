@@ -148,11 +148,10 @@ function parseMetadata(data: Record<string, unknown>): DesignRecordMetadata {
   if (data.entity === 'change-structural-definition') fail('UNSUPPORTED_RECORD_VERSION', 'Legacy structural records are unsupported; explicit user handling is required');
   exactKeys(data, ['entity', 'explorationId', 'slug', 'semanticModelFingerprint'], 'metadata');
   if (data.entity !== 'confirmed-design-record') fail('INVALID_METADATA', 'entity must be confirmed-design-record');
-  if (typeof data.explorationId !== 'string' || typeof data.slug !== 'string') fail('INVALID_METADATA', 'explorationId and slug must be strings');
-  validateExplorationId(data.explorationId);
-  validateRecordSlug(data.slug);
+  if (data.explorationId !== undefined) validateExplorationId(String(data.explorationId));
+  if (data.slug !== undefined) validateRecordSlug(String(data.slug));
   if (typeof data.semanticModelFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(data.semanticModelFingerprint)) fail('INVALID_METADATA', 'semanticModelFingerprint must be a SHA-256 digest');
-  return { entity: 'confirmed-design-record', explorationId: data.explorationId, slug: data.slug, semanticModelFingerprint: data.semanticModelFingerprint };
+  return { entity: 'confirmed-design-record', ...(data.explorationId ? { explorationId: String(data.explorationId) } : {}), ...(data.slug ? { slug: String(data.slug) } : {}), semanticModelFingerprint: data.semanticModelFingerprint };
 }
 
 function parseBaseline(value: unknown): RelevantSemanticModelBaseline {
@@ -195,8 +194,8 @@ export function renderDesignRecord(document: DesignRecordDocument): string {
   if (payload.context === 'change' && baseline.modelState === 'absent') fail('INVALID_BASELINE', 'Change record requires a formal model');
   return [
     '---', `entity: ${metadata.entity}`,
-    `explorationId: ${renderScalar(metadata.explorationId)}`,
-    `slug: ${renderScalar(metadata.slug)}`,
+    ...(metadata.explorationId ? [`explorationId: ${renderScalar(metadata.explorationId)}`] : []),
+    ...(metadata.slug ? [`slug: ${renderScalar(metadata.slug)}`] : []),
     `semanticModelFingerprint: ${renderScalar(metadata.semanticModelFingerprint)}`, '---',
     stringifyYaml(payload, { lineWidth: 0 }).trimEnd(), BASELINE_OPEN,
     stringifyYaml(baseline, { lineWidth: 0 }).trimEnd(), BASELINE_CLOSE, '',

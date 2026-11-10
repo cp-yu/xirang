@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 /**
  * Update Command
  *
@@ -7,17 +8,13 @@
 
 import path from 'path';
 import chalk from 'chalk';
-import ora from 'ora';
 import * as fs from 'fs';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { AI_TOOLS, XIRANG_DIR_NAME } from './config.js';
 import {
   getToolVersionStatus,
-  getToolsWithSkillsDir,
-  type ToolVersionStatus,
 } from './shared/index.js';
-import { isInteractive } from '../utils/interactive.js';
 import { getGlobalConfig, getGlobalConfigPath, saveGlobalConfig } from './global-config.js';
 import { getAvailableTools } from './available-tools.js';
 import {
@@ -85,7 +82,7 @@ export class UpdateCommand {
 
     const configMigration = migrateProjectConfigDefaults(resolvedProjectPath);
     if (configMigration.status === 'skipped') {
-      console.warn(
+      diagnostic(
         chalk.yellow(
           `Project config default migration skipped for ${path.relative(resolvedProjectPath, configMigration.path)} (${configMigration.reason})`
         )
@@ -102,8 +99,7 @@ export class UpdateCommand {
     const configuredTools = getConfiguredToolsForProfileSync(resolvedProjectPath);
 
     if (configuredTools.length === 0) {
-      console.log(chalk.yellow('No configured tools found.'));
-      console.log(chalk.dim('Run "xirang setup" to set up tools.'));
+      diagnostic('No configured tools found. Run "xirang setup" to set up tools.', 'NO_CONFIGURED_TOOLS');
       return;
     }
 
@@ -111,7 +107,6 @@ export class UpdateCommand {
     const toolStatuses = configuredTools.map((toolId) =>
       getToolVersionStatus(resolvedProjectPath, toolId, XIRANG_VERSION)
     );
-    const statusByTool = new Map(toolStatuses.map((status) => [status.toolId, status] as const));
 
     // 7. Smart update detection (skills-only drift)
     const toolsNeedingVersionUpdate = toolStatuses
@@ -126,25 +121,15 @@ export class UpdateCommand {
       ...toolsNeedingVersionUpdate,
       ...toolsNeedingConfigSync,
     ]);
-    const toolsUpToDate = toolStatuses.filter((s) => !toolsToUpdateSet.has(s.toolId));
 
     if (!this.force && toolsToUpdateSet.size === 0) {
       // All tools are up to date
-      this.displayUpToDateMessage(toolStatuses);
 
       // Still check for new tool directories and extra workflows
       this.detectNewTools(resolvedProjectPath, configuredTools);
       this.displayExtraWorkflowsNote(resolvedProjectPath, configuredTools, desiredWorkflows);
       return;
     }
-
-    // 8. Display update plan
-    if (this.force) {
-      console.log(`Force updating ${configuredTools.length} tool(s): ${configuredTools.join(', ')}`);
-    } else {
-      this.displayUpdatePlan([...toolsToUpdateSet], statusByTool, toolsUpToDate);
-    }
-    console.log();
 
     // 9. Update tools (all if force, otherwise only those needing update)
     const toolsToUpdate = this.force ? configuredTools : [...toolsToUpdateSet];
@@ -170,75 +155,12 @@ export class UpdateCommand {
       }
     }
 
-    // 11. Summary
-    console.log();
-    if (updatedTools.length > 0) {
-      console.log(chalk.green(`✓ Updated: ${updatedTools.join(', ')} (v${XIRANG_VERSION})`));
-    }
-    if (failedTools.length > 0) {
-      console.log(chalk.red(`✗ Failed: ${failedTools.map(f => `${f.name} (${f.error})`).join(', ')}`));
-    }
-    if (summary.totalSkillsRemoved > 0) {
-      console.log(chalk.dim(`Removed: ${summary.totalSkillsRemoved} skill directories`));
-    }
-
-    const configuredAndNewTools = [...configuredTools];
-
-    // 13. Detect new tool directories not currently configured
-    this.detectNewTools(resolvedProjectPath, configuredAndNewTools);
-
-    // 14. Display note about extra workflows not in profile
-    this.displayExtraWorkflowsNote(resolvedProjectPath, configuredAndNewTools, desiredWorkflows);
-
-    // 15. List affected tools
-    if (updatedTools.length > 0) {
-      const toolDisplayNames = updatedTools;
-      console.log(chalk.dim(`Tools: ${toolDisplayNames.join(', ')}`));
-    }
-
-    console.log();
-    console.log(chalk.dim('Restart your IDE or current session for refreshed skills to take effect.'));
+    if (failedTools.length) throw new Error(`Failed: ${failedTools.map(f => `${f.name} (${f.error})`).join(', ')}`);
+    this.detectNewTools(resolvedProjectPath, configuredTools);
+    this.displayExtraWorkflowsNote(resolvedProjectPath, configuredTools, desiredWorkflows);
+    diagnostic('Restart your IDE or current session for refreshed skills to take effect.', 'RESTART_REQUIRED');
   }
 
-  private getGuidanceToolId(toolIds: readonly string[]): string {
-    return toolIds[0] ?? 'codex';
-  }
-
-  /**
-   * Display message when all tools are up to date.
-   */
-  private displayUpToDateMessage(toolStatuses: ToolVersionStatus[]): void {
-    const toolNames = toolStatuses.map((s) => s.toolId);
-    console.log(chalk.green(`✓ All ${toolStatuses.length} tool(s) up to date (v${XIRANG_VERSION})`));
-    console.log(chalk.dim(`  Tools: ${toolNames.join(', ')}`));
-    console.log();
-    console.log(chalk.dim('Use --force to refresh files anyway.'));
-  }
-
-  /**
-   * Display the update plan showing which tools need updating.
-   */
-  private displayUpdatePlan(
-    toolsToUpdate: string[],
-    statusByTool: Map<string, ToolVersionStatus>,
-    upToDate: ToolVersionStatus[]
-  ): void {
-    const updates = toolsToUpdate.map((toolId) => {
-      const status = statusByTool.get(toolId);
-      if (status?.needsUpdate) {
-        const fromVersion = status.generatedByVersion ?? 'unknown';
-        return `${status.toolId} (${fromVersion} → ${XIRANG_VERSION})`;
-      }
-      return `${toolId} (config sync)`;
-    });
-
-    console.log(`Updating ${toolsToUpdate.length} tool(s): ${updates.join(', ')}`);
-
-    if (upToDate.length > 0) {
-      const upToDateNames = upToDate.map((s) => s.toolId);
-      console.log(chalk.dim(`Already up to date: ${upToDateNames.join(', ')}`));
-    }
-  }
 
   /**
    * Detects new tool directories that aren't currently configured and displays a hint.
@@ -254,8 +176,7 @@ export class UpdateCommand {
       const isSingleTool = newToolNames.length === 1;
       const toolNoun = isSingleTool ? 'tool' : 'tools';
       const pronoun = isSingleTool ? 'it' : 'them';
-      console.log();
-      console.log(
+      diagnostic(
         chalk.yellow(
           `Detected new ${toolNoun}: ${newToolNames.join(', ')}. Run 'xirang setup' to add ${pronoun}.`
         )
@@ -276,7 +197,7 @@ export class UpdateCommand {
     const extraWorkflows = installedWorkflows.filter((w) => !profileSet.has(w));
 
     if (extraWorkflows.length > 0) {
-      console.log(chalk.dim(`Note: ${extraWorkflows.length} extra workflows installed outside the standard set. Run 'xirang update' to sync.`));
+      diagnostic(chalk.dim(`Note: ${extraWorkflows.length} extra workflows installed outside the standard set. Run 'xirang update' to sync.`));
     }
   }
 
@@ -290,10 +211,10 @@ export class UpdateCommand {
       if (!fs.existsSync(configPath)) return;
       const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
       if (raw.profile === undefined && raw.workflows === undefined && raw.delivery === undefined) return;
-      console.warn(chalk.yellow('Obsolete config fields detected (profile/workflows/delivery), auto-cleaning...'));
+      diagnostic(chalk.yellow('Obsolete config fields detected (profile/workflows/delivery), auto-cleaning...'));
       const config = getGlobalConfig();
       saveGlobalConfig(config);
-      console.log(chalk.dim('Obsolete fields auto-cleaned.'));
+
     } catch {
       // Silently ignore config cleanup failures
     }
@@ -372,7 +293,7 @@ export class UpdateCommand {
     }
 
     if (cleaned > 0) {
-      console.log(chalk.dim(`Cleaned ${cleaned} deprecated workflow remnant files.`));
+
     }
   }
 }

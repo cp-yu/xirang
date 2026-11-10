@@ -2,7 +2,7 @@ import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import type { Command } from 'commander';
-import ora from 'ora';
+import { diagnostic } from '../utils/output.js';
 import { selectActiveChange } from '../core/change-utils.js';
 import {
   assessChangeSyncState,
@@ -10,7 +10,6 @@ import {
   prepareChangeSync,
 } from '../core/change-sync.js';
 import { readQualitySeal } from '../core/quality/engine.js';
-import { PARTITIONS } from '../core/model/types.js';
 import { validateChangeExists } from './workflow/shared.js';
 
 export interface SyncOptions {
@@ -38,7 +37,7 @@ export async function syncCommand(
       message: 'Select a change to sync',
     });
     if (!selectedChange) {
-      console.log('No change selected. Aborting.');
+
       return;
     }
     changeName = selectedChange;
@@ -56,19 +55,18 @@ export async function syncCommand(
   const syncState = await assessChangeSyncState(projectRoot, validatedChangeName);
 
   if (!syncState.requiresSync) {
-    console.log('No sync required.');
+
     return;
   }
 
   const prepared = await prepareChangeSync(projectRoot, syncState, { skipValidation });
+  for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code);
   if (prepared.manifest.length === 0) {
-    console.log('No sync required.');
+
     return;
   }
 
-  const summary = await applyPreparedChangeSync(projectRoot, prepared);
-  console.log(`Sync complete for '${validatedChangeName}'.`);
-  for (const partition of PARTITIONS) console.log(`${partition}: ${summary.partitions[partition]}`);
+  await applyPreparedChangeSync(projectRoot, prepared);
 }
 
 export function registerSyncCommand(program: Command): void {
@@ -81,8 +79,7 @@ export function registerSyncCommand(program: Command): void {
       try {
         await syncCommand(changeName, options);
       } catch (error) {
-        console.log();
-        ora().fail(`Error: ${(error as Error).message}`);
+        diagnostic((error as Error).message);
         process.exit(1);
       }
     });

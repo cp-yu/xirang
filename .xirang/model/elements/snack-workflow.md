@@ -120,7 +120,7 @@ Snack SHALL 仅在 Metamodel、Project Root、element identity/definition、cont
 
 ### Section: Snack 使用 Source Impact reconcile Proposal
 
-Snack SHALL 运行 proposal instructions，并使用 canonical `## Source Impact` 独立记录 Behavior Source 与 Architecture Source。Behavior Source 使用 Element 稳定 identity（全局寻址 `<element identity>#<Section name>`），与 graph 使用的 identity 属于同一 identity 空间。
+Snack SHALL 按需读取共享 proposal 制品定义与指导，并使用 canonical `## Source Impact` 独立记录 Behavior Source 与 Architecture Source。Behavior Source 使用 Element 稳定 identity（全局寻址 `<element identity>#<Section name>`），与 graph 使用的 identity 属于同一 identity 空间。
 
 - **Current proposal 保持不变**
 
@@ -160,7 +160,7 @@ Snack SHALL NOT 生成 `tasks.md`。
 
 ### Section: Snack 执行一次自检
 
-Snack SHALL 运行 full change validation，并审阅统一 effective semantic diff。出现 ERROR/WARNING 时 SHALL 修复一轮并复检一次；validation 无 ERROR 后 SHALL 审阅 effective diff。
+Snack SHALL 运行 full change validation，并通过 validate --change <name> --preview 显式请求并审阅统一 effective semantic diff。出现 ERROR/WARNING 时 SHALL 修复一轮并复检一次；validation 无 ERROR 后 SHALL 审阅 effective diff。
 
 - **输出 reconciliation result**
 

@@ -5,6 +5,7 @@ import { changeRoot, modelRoot } from './model/paths.js';
 import { parseSemanticDelta, type DeltaEntry } from './model/delta.js';
 import { writeMinimal } from './model/sync-writer.js';
 import type { ParsedModel } from './model/parser.js';
+import type { ChangeDiagnostic } from './semantic-diff.js';
 import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
 import {
   applySemanticTreeManifest,
@@ -30,6 +31,7 @@ export interface PreparedChangeSync {
   formalFingerprint: string;
   partitions: PartitionCounts;
   manifest: PreparedSyncManifestEntry[];
+  warnings: ChangeDiagnostic[];
 }
 
 export interface AppliedChangeSyncSummary {
@@ -115,6 +117,7 @@ export async function prepareChangeSync(
     formalFingerprint: semanticTreeFingerprint(before),
     partitions: countPartitions(manifest),
     manifest,
+    warnings: compiled.diagnostics.filter(item => item.level === 'WARNING'),
   };
 }
 
@@ -150,7 +153,7 @@ export async function applyPreparedChangeSync(
 
   const files = prepared.manifest.map(entry => entry.path);
   if (!(options.silent ?? false) && files.length > 0) {
-    console.log('Semantic Model updated successfully.');
+
   }
 
   return { partitions: prepared.partitions, files };

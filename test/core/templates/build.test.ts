@@ -9,11 +9,15 @@ import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/bui
 describe('xirang-build workflow', () => {
   it('records atomic coverage and consumes the Build source before final validation, independent review, and exact-digest promotion', () => {
     const instructions = getBuildSkillTemplate().instructions;
-    const coverage = instructions.indexOf('xirang record coverage <explorationId> --candidate --source-version <sourceVersion> --from <file> --json');
-    const consume = instructions.indexOf('xirang record consume <explorationId> --candidate --source-version <sourceVersion> --json');
+    const coverage = instructions.indexOf('xirang record coverage <filename> --candidate --from <file> --json');
+    const consume = instructions.indexOf('xirang record consume <filename> --candidate --json');
     expect(coverage).toBeGreaterThan(-1);
     expect(consume).toBeGreaterThan(coverage);
-    expect(instructions.indexOf('xirang candidate validate --json', consume)).toBeGreaterThan(consume);
+    const finalValidation = instructions.indexOf('xirang candidate validate --details --json', consume);
+    const review = instructions.indexOf('generic read-only subagent with a clean context');
+    expect(finalValidation).toBeGreaterThan(consume);
+    expect(finalValidation).toBeLessThan(review);
+    expect(instructions).toContain('actual Formal comparison and diff, or the explicit unavailable reason');
     expect(instructions.indexOf('generic read-only subagent with a clean context')).toBeGreaterThan(consume);
     expect(instructions.indexOf('xirang candidate promote --digest')).toBeGreaterThan(consume);
     expect(instructions).toContain('Do not reuse a pre-handoff digest');
@@ -73,7 +77,7 @@ describe('xirang-build workflow', () => {
   it('requires an explicit decision for an active Candidate', () => {
     const instructions = getBuildSkillTemplate().instructions;
 
-    expect(instructions).toContain('baseline, inventory, and status');
+    expect(instructions).toContain('current baseline and status');
     expect(instructions).toContain('continue the active Candidate');
     expect(instructions).toContain('authorize discarding it and initialize a replacement');
     expect(instructions).toContain('If the user chooses to continue, preserve the active Candidate and skip Candidate initialization');
@@ -156,7 +160,7 @@ describe('xirang-build workflow', () => {
     const instructions = getBuildSkillTemplate().instructions;
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
-    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('xirang config project --select decomposition --json');
     expect(instructions).toContain('Read the guidance file at that resolved path in full');
     expect(instructions).toContain('do not substitute another method');
     expect(instructions).toContain('stop hierarchy formation and ask the user once');

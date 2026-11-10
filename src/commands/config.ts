@@ -1,4 +1,6 @@
 import { Command } from 'commander';
+import { diagnostic } from '../utils/output.js';
+import { z } from 'zod';
 import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
 import {
@@ -17,8 +19,22 @@ import {
   validateConfig,
   DEFAULT_CONFIG,
 } from '../core/config-schema.js';
-import { readProjectConfig } from '../core/project-config.js';
+import { readProjectConfig, ProjectConfigSchema, validateConfigRules } from '../core/project-config.js';
+import { resolveSchema } from '../core/artifact-graph/index.js';
 import { normalizeProjectConfig } from '../core/config-projection.js';
+
+function isProjectSelection(key: string, artifactIds: string[]): boolean {
+  const parts = key.split('.');
+  if (parts[0] === 'rules') return parts.length === 1 || (parts.length === 2 && artifactIds.includes(parts[1]));
+  if (parts[0] === 'docLanguage') return false;
+  let field: z.ZodType = ProjectConfigSchema;
+  for (const part of parts) {
+    while (field instanceof z.ZodOptional || field instanceof z.ZodDefault) field = field.unwrap() as z.ZodType;
+    if (!(field instanceof z.ZodObject) || !Object.hasOwn(field.shape, part)) return false;
+    field = field.shape[part];
+  }
+  return true;
+}
 
 function isPromptCancellationError(error: unknown): boolean {
   return (
@@ -40,7 +56,7 @@ export function registerConfigCommand(program: Command): void {
     .hook('preAction', (thisCommand) => {
       const opts = thisCommand.opts();
       if (opts.scope && opts.scope !== 'global') {
-        console.error('Error: Project-local config is not yet implemented');
+        diagnostic('Error: Project-local config is not yet implemented');
         process.exit(1);
       }
     });
@@ -49,8 +65,9 @@ export function registerConfigCommand(program: Command): void {
   configCmd
     .command('path')
     .description('Show config file location')
-    .action(() => {
-      console.log(getGlobalConfigPath());
+    .option('--json', 'Output as JSON')
+    .action((options: { json?: boolean }) => {
+      console.log(options.json ? JSON.stringify(getGlobalConfigPath()) : getGlobalConfigPath());
     });
 
   // config list
@@ -62,7 +79,7 @@ export function registerConfigCommand(program: Command): void {
       const config = getGlobalConfig();
 
       if (options.json) {
-        console.log(JSON.stringify(config, null, 2));
+        console.log(JSON.stringify(config));
       } else {
         console.log(formatValueYaml(config));
       }
@@ -73,31 +90,57 @@ export function registerConfigCommand(program: Command): void {
     .command('project')
     .description('Show normalized project-level configuration')
     .option('--json', 'Output as JSON')
-    .action((options: { json?: boolean }) => {
-      const normalized = normalizeProjectConfig(readProjectConfig(process.cwd()));
-
-      if (options.json) {
-        console.log(JSON.stringify(normalized, null, 2));
+    .option('--select <key>', 'Select an effective config field (repeatable)', (value: string, previous: string[]) => [...previous, value], [])
+    .option('--artifact <id>', 'Limit rules to one artifact')
+    .action((options: { json?: boolean; select: string[]; artifact?: string }) => {
+      const report = (message: string, code: string) => console.error(options.json
+        ? JSON.stringify({ code, message }) : message);
+      const normalized = normalizeProjectConfig(readProjectConfig(process.cwd(), (message) => report(message, 'CONFIG_WARNING')));
+      const artifactIds = resolveSchema(normalized.schema ?? 'semantic-model', process.cwd()).artifacts.map(a => a.id);
+      if (options.artifact && !artifactIds.includes(options.artifact)) {
+        report(`Unknown artifact '${options.artifact}'. Available: ${artifactIds.join(', ')}`, 'INVALID_ARTIFACT');
+        process.exitCode = 1;
         return;
       }
-
-      console.log(formatValueYaml(normalized));
+      for (const warning of validateConfigRules(normalized.rules, new Set(artifactIds), normalized.schema ?? 'semantic-model')) {
+        report(warning, 'CONFIG_WARNING');
+      }
+      if (options.artifact) {
+        const rules = normalized.rules[options.artifact];
+        normalized.rules = rules?.length ? { [options.artifact]: rules } : {};
+      }
+      let result: Record<string, unknown> = normalized as unknown as Record<string, unknown>;
+      if (options.select.length) {
+        result = {};
+        for (const key of options.select) {
+          if (!isProjectSelection(key, artifactIds)) {
+            report(`Invalid effective configuration field '${key}'`, 'INVALID_CONFIG_SELECTION');
+            process.exitCode = 1;
+            return;
+          }
+          const value = getNestedValue(normalized as unknown as Record<string, unknown>, key);
+          if (value !== undefined) setNestedValue(result, key, value);
+        }
+      }
+      console.log(options.json ? JSON.stringify(result) : formatValueYaml(result));
     });
 
   // config get
   configCmd
     .command('get <key>')
     .description('Get a specific value (raw, scriptable)')
-    .action((key: string) => {
+    .option('--json', 'Output as JSON')
+    .action((key: string, options: { json?: boolean }) => {
       const config = getGlobalConfig();
       const value = getNestedValue(config as Record<string, unknown>, key);
 
       if (value === undefined) {
+        diagnostic(`Configuration key "${key}" is not set`, 'CONFIG_KEY_NOT_FOUND');
         process.exitCode = 1;
         return;
       }
 
-      if (typeof value === 'object' && value !== null) {
+      if (options.json || (typeof value === 'object' && value !== null)) {
         console.log(JSON.stringify(value));
       } else {
         console.log(String(value));
@@ -115,10 +158,10 @@ export function registerConfigCommand(program: Command): void {
       const keyValidation = validateConfigKeyPath(key);
       if (!keyValidation.valid && (keyValidation.retired || !allowUnknown)) {
         const reason = keyValidation.reason ? ` ${keyValidation.reason}.` : '';
-        console.error(`Error: Invalid configuration key "${key}".${reason}`);
-        console.error('Use "xirang config list" to see available keys.');
+        diagnostic(`Error: Invalid configuration key "${key}".${reason}`);
+        diagnostic('Use "xirang config list" to see available keys.');
         if (!keyValidation.retired) {
-          console.error('Pass --allow-unknown to bypass this check.');
+          diagnostic('Pass --allow-unknown to bypass this check.');
         }
         process.exitCode = 1;
         return;
@@ -134,7 +177,7 @@ export function registerConfigCommand(program: Command): void {
       // Validate the new config
       const validation = validateConfig(newConfig);
       if (!validation.success) {
-        console.error(`Error: Invalid configuration - ${validation.error}`);
+        diagnostic(`Error: Invalid configuration - ${validation.error}`);
         process.exitCode = 1;
         return;
       }
@@ -143,9 +186,7 @@ export function registerConfigCommand(program: Command): void {
       setNestedValue(config, key, coercedValue);
       saveGlobalConfig(config as GlobalConfig);
 
-      const displayValue =
-        typeof coercedValue === 'string' ? `"${coercedValue}"` : String(coercedValue);
-      console.log(`Set ${key} = ${displayValue}`);
+
     });
 
   // config unset
@@ -158,9 +199,7 @@ export function registerConfigCommand(program: Command): void {
 
       if (existed) {
         saveGlobalConfig(config as GlobalConfig);
-        console.log(`Unset ${key} (reverted to default)`);
-      } else {
-        console.log(`Key "${key}" was not set`);
+
       }
     });
 
@@ -172,8 +211,8 @@ export function registerConfigCommand(program: Command): void {
     .option('-y, --yes', 'Skip confirmation prompts')
     .action(async (options: { all?: boolean; yes?: boolean }) => {
       if (!options.all) {
-        console.error('Error: --all flag is required for reset');
-        console.error('Usage: xirang config reset --all [-y]');
+        diagnostic('Error: --all flag is required for reset');
+        diagnostic('Usage: xirang config reset --all [-y]');
         process.exitCode = 1;
         return;
       }
@@ -188,7 +227,7 @@ export function registerConfigCommand(program: Command): void {
           });
         } catch (error) {
           if (isPromptCancellationError(error)) {
-            console.log('Reset cancelled.');
+            diagnostic('Reset cancelled.', 'CANCELLED');
             process.exitCode = 130;
             return;
           }
@@ -196,13 +235,13 @@ export function registerConfigCommand(program: Command): void {
         }
 
         if (!confirmed) {
-          console.log('Reset cancelled.');
+          diagnostic('Reset cancelled.', 'CANCELLED');
           return;
         }
       }
 
       saveGlobalConfig({ ...DEFAULT_CONFIG });
-      console.log('Configuration reset to defaults');
+
     });
 
   // config edit
@@ -213,9 +252,9 @@ export function registerConfigCommand(program: Command): void {
       const editor = process.env.EDITOR || process.env.VISUAL;
 
       if (!editor) {
-        console.error('Error: No editor configured');
-        console.error('Set the EDITOR or VISUAL environment variable to your preferred editor');
-        console.error('Example: export EDITOR=vim');
+        diagnostic('Error: No editor configured');
+        diagnostic('Set the EDITOR or VISUAL environment variable to your preferred editor');
+        diagnostic('Example: export EDITOR=vim');
         process.exitCode = 1;
         return;
       }
@@ -252,17 +291,17 @@ export function registerConfigCommand(program: Command): void {
         const validation = validateConfig(parsedConfig);
 
         if (!validation.success) {
-          console.error(`Error: Invalid configuration - ${validation.error}`);
+          diagnostic(`Error: Invalid configuration - ${validation.error}`);
           process.exitCode = 1;
         }
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          console.error(`Error: Config file not found at ${configPath}`);
+          diagnostic(`Error: Config file not found at ${configPath}`);
         } else if (error instanceof SyntaxError) {
-          console.error(`Error: Invalid JSON in ${configPath}`);
-          console.error(error.message);
+          diagnostic(`Error: Invalid JSON in ${configPath}`);
+          diagnostic(error.message);
         } else {
-          console.error(`Error: Unable to validate configuration - ${error instanceof Error ? error.message : String(error)}`);
+          diagnostic(`Error: Unable to validate configuration - ${error instanceof Error ? error.message : String(error)}`);
         }
         process.exitCode = 1;
       }

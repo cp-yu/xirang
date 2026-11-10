@@ -1,3 +1,4 @@
+import { diagnostic } from '../../../utils/output.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -143,7 +144,7 @@ export class BashInstaller {
       return true;
     } catch (error: any) {
       // Fail gracefully - don't break installation
-      console.debug(`Unable to configure .bashrc for completions: ${error.message}`);
+      if (error.code !== 'ENOENT') diagnostic(`Unable to configure .bashrc for completions: ${error.message}`, 'COMPLETION_WARNING');
       return false;
     }
   }
@@ -199,7 +200,7 @@ export class BashInstaller {
       return true;
     } catch (error: any) {
       // Fail gracefully
-      console.debug(`Unable to remove .bashrc configuration: ${error.message}`);
+      if (error.code !== 'ENOENT') diagnostic(`Unable to remove .bashrc configuration: ${error.message}`, 'COMPLETION_WARNING');
       return false;
     }
   }
@@ -232,7 +233,6 @@ export class BashInstaller {
             message: 'Completion script is already installed (up to date)',
             instructions: bashrcConfigured
               ? [
-                  'The completion script is already installed and up to date.',
                   'If completions are not working, try: exec bash',
                 ]
               : this.generateInstructions(targetPath),
@@ -242,7 +242,7 @@ export class BashInstaller {
         isUpdate = true;
       } catch (error: any) {
         // File doesn't exist or can't be read, proceed with installation
-        console.debug(`Unable to read existing completion file at ${targetPath}: ${error.message}`);
+        if (error.code !== 'ENOENT') diagnostic(`Unable to read existing completion file at ${targetPath}: ${error.message}`, 'COMPLETION_WARNING');
       }
 
       // Ensure the directory exists
@@ -315,7 +315,6 @@ export class BashInstaller {
     const completionsDir = path.dirname(installedPath);
 
     return [
-      'Completion script installed successfully.',
       '',
       'To enable completions, add the following to your ~/.bashrc file:',
       '',

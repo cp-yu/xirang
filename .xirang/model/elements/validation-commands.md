@@ -4,7 +4,7 @@ identity: validation-commands
 kind: element
 parent: deterministic-operations
 title: Validation Commands
-definition: Validation Commands 定义 `xirang validate` 命令面的校验契约：顶层 validate 的选择与批量模式、显式 full-Change validation 与 concise preview、Section 交叉校验、fence-aware Section 读取与 effective preview。
+definition: Validation Commands 是顶层 validate 的确定性校验能力。它支持活动 Change 与 Element Contracts 的单项、批量和类型选择，联合验证完整目标模型与任务结构，并按显式请求呈现共享编译器的差异预览；它只读报告问题，不修改规范来源或生成持久审阅制品。
 ---
 
 ## Specification
@@ -46,7 +46,7 @@ validate 命令 SHALL 支持批量校验（`--all`）与按类型过滤（`--cha
   - 执行 `xirang validate --all`
   - 校验全部活动 changes（排除 archive）
   - 校验 formal model 中携带 Contract 的 Elements
-  - 显示通过/失败汇总并以 exit code 1 退出（若有失败）
+  - 仅在 stderr 报告带 item 定位的问题；无问题时静默，有失败时以 exit code 1 退出
 
 - **Scope of bulk validation**
 
@@ -57,41 +57,13 @@ validate 命令 SHALL 支持批量校验（`--all`）与按类型过滤（`--cha
 
   - executing `xirang validate --changes`
   - validate all changes in .xirang/changes/ (excluding archive)
-  - display results for each change
-  - show summary statistics
+  - 只报告各 Change 的实际问题，不输出通过回执或默认汇总
 
 ### Section: Validation options and progress indication
 
-validate 命令 SHALL 支持 `--strict`、`--json` 标准选项并在批量操作期间显示进度。
+validate SHALL 支持 --strict 与 --json。默认校验只报告问题；JSON 模式的问题也在 stderr，以 item id、type 及具体 issue 定位，不输出每个有效 item 的回执、durationMs 或默认汇总。--strict SHALL 将 warnings 视为 errors，任一 item 有 warning/error 时非零退出。非 strict 的 warning SHALL 保留且不单独导致失败。
 
-- **Strict validation**
-
-  - 执行 `xirang validate --all --strict`
-  - 将 warnings 视为 errors 并在任何 item 有 warning 或 error 时失败
-
-- **JSON output**
-
-  - 执行 `xirang validate --all --json`
-  - 输出结构化 JSON，包含每项结果与 summary statistics
-
-- **JSON output schema for bulk validation**
-
-  - 执行 `xirang validate --all --json`（或 `--changes`/`--contracts`）
-  - 输出 JSON 对象，包含 `items` 数组与 `summary` 统计
-  - 每项含 `id`、`type`（change/contract）、`valid`、`issues` 与 `durationMs`
-  - 任一 item 无效时以 exit code 1 退出
-
-- **Show validation progress**
-
-  - 校验多个 items（--all/--changes/--contracts）
-  - 显示进度指示与当前校验 item
-  - 显示通过/失败的运行计数
-
-- **Concurrency limits for performance**
-
-  - 校验多个 items
-  - 以有界并发（默认约 6）运行校验
-  - 保持进度指示响应
+批量校验 SHALL 保持有界并发（默认约 6）。非交互调用 SHALL 不显示进度、当前 item、通过/失败运行计数或 spinner；无问题时两条输出流均为空。
 
 ### Section: Item type detection and ambiguity handling
 
@@ -239,13 +211,13 @@ change validation SHALL 对 `## REMOVED Sections` 中引用的 header 验证其�
 
 ### Section: 显式 Full-Change validation
 
-Validate 命令 SHALL 通过 `--change <name>` 支持显式 full-Change validation：SHALL 联合校验全部四分区 delta 与 Element Contracts，materialize 完整 Target Semantic Model，并输出 validation status、diagnostics、summary 与 concise effective preview。CLI SHALL NOT 提供 `--artifacts` 选项，也不存在 artifact-scoped validation。
+Validate 命令 SHALL 通过 `--change <name>` 支持显式 full-Change validation：SHALL 联合校验全部四分区 delta 与 Element Contracts，materialize 完整 Target Semantic Model，默认只在 stderr 报告具体问题，显式 --preview 时输出 summary 与 concise effective preview。CLI SHALL NOT 提供 `--artifacts` 选项，也不存在 artifact-scoped validation。
 
 - **Explicit change 默认完整 validation**
 
   - 执行 `xirang validate --change my-change`
   - SHALL 联合验证结构、contract 与 relationship operations
-  - SHALL 输出 validation status、diagnostics、summary 与 concise effective entries
+  - SHALL 默认仅报告问题；成功无问题时静默，--preview 才输出 summary 与 concise effective entries
 
 - **Missing active change**
 
@@ -258,7 +230,7 @@ Validate 命令 SHALL 通过 `--change <name>` 支持显式 full-Change validati
   - change 只有 contract operations
   - 运行 `xirang validate --change <name>`
   - SHALL 接受缺失的结构分区 delta 单元
-  - preview SHALL 显示结构无 semantic changes
+  - 显式请求的 preview SHALL 显示结构无 semantic changes
 
 - **验证分区 delta 记法**
 
@@ -297,7 +269,7 @@ Validate 命令 SHALL 通过 `--change <name>` 支持显式 full-Change validati
 
   - change source 缺少必需章节
   - SHALL 给出期望标题与最小 canonical skeleton
-  - SHALL 指向当前 artifact instructions
+  - SHALL 指向当前共享制品写作 reference，而不建议重复读取整套 instructions
 
 ### Section: Section 必须包含 normative body
 
@@ -334,36 +306,14 @@ Error、warning 与 info 消息 SHALL 包含 source 文件路径与结构化路�
   - schema validation 失败
   - 消息 SHALL 包含 file、path 与适用的 Required Corrections hint
 
-### Section: 无效结果包含 Next steps footer
-
-CLI SHALL 在 item 无效且未使用 `--json` 时追加 Next steps footer，包含计数摘要与情境化的引导 bullets。
-
-- **Change 无效摘要**
-
-  - 一个 change validation 失败
-  - 输出 "Next steps" 与 2-3 条定向引导 bullets
-  - 建议用 `--json` 重跑查看结构化诊断
-
 ### Section: Change validation effective preview
 
-`xirang validate --change <name>` SHALL 在 validation 结果中呈现该 change 实际表达的 concise semantic changes，Preview SHALL 来自与 diff 相同的 compiler 与 Diff IR。
+validate --change <name> --preview SHALL 显式请求该 Change 实际表达的 concise semantic changes，来自与目标验证相同的 compiler 和 Diff IR。默认不展示差异，成功无问题时静默；--json 不隐式开启 preview。
 
-- **预览展示实体级变化**
-
-  - 用户运行 `xirang validate --change sample`
-  - 结果 SHALL 包含以 entity kind 与稳定 identity 表达的 effective entries
-
-- **Preview 不写 review artifact**
-
-  - 用户运行 validate
-  - command SHALL 只输出 ephemeral text/JSON preview，不创建或更新任何 review artifact 文件（包括遗留的 `effective-change.md`）
-  - 不存在的 review artifact SHALL 不产生 blocking guidance
-
-- **JSON concise preview**
-
-  - 用户运行 `xirang validate --change my-change --json`
-  - JSON SHALL 包含 valid、diagnostics、summary 与 concise effective entries
-  - SHALL NOT 输出完整 before/after field payload
+- 显式 --preview：stdout 提供实体级 summary 和以 entity kind、稳定 identity 表达的 concise entries；--json 返回这些结构化数据，不包含完整 before/after payload。
+- 无语义变化：请求的预览仍返回有效空 entries 与相应 summary。
+- 校验有问题：问题在 stderr，退出码按校验结论确定；只可返回确实可计算的预览，不将部分结果声称为完整有效目标。
+- 命令 SHALL 只输出临时预览，不创建、更新或要求 review artifact，包括 effective-change.md。
 
 ### Section: 变更路径并行校验
 
@@ -377,7 +327,7 @@ Change validation SHALL 将 delta Contracts 与结构单元作为独立 source m
 - **Partial diagnostics**
 
   - Contracts 或 Architecture 一侧失败而另一侧可计算
-  - validation SHALL 保留可计算侧的 concise preview
+  - 显式 --preview 时 validation SHALL 保留可计算侧的 concise preview；未请求时仅报告问题
   - overall result SHALL 为 invalid
 
 - **Delta references an unknown element**

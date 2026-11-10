@@ -97,9 +97,9 @@ describe('top-level show command', () => {
     });
     await fs.writeFile(path.join(changeDir, 'proposal.md'), '## Why\nInvalid.\n');
     const result = await runCLI(['show', 'invalid-review', '--review', '--json'], { cwd: testDir });
-    expect(result.exitCode).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ valid: false, diagnostics: expect.any(Array) });
-    expect(JSON.parse(result.stdout)).not.toHaveProperty('sources');
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(JSON.parse(result.stderr).issues.length).toBeGreaterThan(0);
   });
 
   it('auto-detects change id and supports --json', async () => {
@@ -112,7 +112,6 @@ describe('top-level show command', () => {
       valid: true,
       summary: { total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 },
       entries: [{ kind: 'element-declaration', identity: 'auth', operation: 'ADDED' }],
-      diagnostics: [],
     });
   });
 
@@ -124,13 +123,9 @@ describe('top-level show command', () => {
 
     const result = await runCLI(['show', 'invalid', '--json'], { cwd: testDir });
 
-    expect(result.exitCode).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({
-      id: 'invalid',
-      valid: false,
-      diagnostics: [expect.objectContaining({ code: 'REMOVED_IDENTITY_MISSING' })],
-      entries: expect.any(Array),
-    });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(JSON.parse(result.stderr).issues).toContainEqual(expect.objectContaining({ code: 'REMOVED_IDENTITY_MISSING' }));
   });
 
   it('ignores legacy proposal and change-local specs as semantic sources', async () => {

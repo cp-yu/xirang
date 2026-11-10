@@ -34,8 +34,8 @@ describe('quality v4 public CLI', () => {
     return runCLI(['quality', ...args], { cwd: root });
   }
   async function payload(result: Awaited<ReturnType<typeof cli>>) {
-    expect(result.stdout).not.toBe('');
-    return JSON.parse(result.stdout.trim());
+    if (result.exitCode !== 0) expect(result.stdout).toBe('');
+    return JSON.parse((result.exitCode === 0 ? result.stdout : result.stderr).trim());
   }
   async function record(command: string, input: unknown, revision: number) {
     const result = await cli([command, 'c1', '--version', String(revision), '--json', '--input', JSON.stringify(input)]);
@@ -59,9 +59,7 @@ describe('quality v4 public CLI', () => {
     const review = await record('review', {
       reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [],
     }, 0);
-    expect(review).toMatchObject({ contractVersion: 3, code: 'REVIEW_RECORDED', revision: 1, review: { reviewKind: 'full-change' } });
-    expect(review.review).not.toHaveProperty('reviewId');
-    expect(review.review).not.toHaveProperty('scope');
+    expect(review).toEqual({ revision: 1 });
 
     const status = await payload(await cli(['status', 'c1', '--json']));
     expect(status).toMatchObject({ status: 'needs_optimize', revision: 1 });
@@ -69,12 +67,33 @@ describe('quality v4 public CLI', () => {
     const sealed = await record('seal', {
       commit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'The committed result is runnable.',
     }, 2);
-    expect(sealed).toMatchObject({ code: 'SEALED', revision: 3, status: 'all_done' });
+    expect(sealed).toEqual({ revision: 3 });
+    const current = await payload(await cli(['status', 'c1', '--json']));
+    expect(current.status).toBe('all_done');
+    expect(current).not.toHaveProperty('record');
+    const history = await payload(await cli(['status', 'c1', '--history', '--json']));
+    expect(history.record.reviews).toHaveLength(1);
     expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(tasksBefore);
     const quality = JSON.parse(await fs.readFile(path.join(changeDir, '.quality.json'), 'utf8'));
     expect(quality).toMatchObject({ schemaVersion: 4, changeId: 'c1', revision: 3, opt: { disposition: 'not_performed' }, seal: { commit } });
     expect(quality.reviews).toEqual([{ reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [] }]);
     expect(await fs.readdir(changeDir)).toEqual(['.quality.json', 'tasks.md']);
+  });
+
+  it('returns the latest delivered Opt commit association without loading opinion history', async () => {
+    await record('review', { reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed.', findings: [] }, 0);
+    await execFileAsync('git', ['commit', '--allow-empty', '-qm', 'optimized'], { cwd: root });
+    const resultCommit = (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    await record('opt', { disposition: 'delivered', opinions: [
+      { opinionId: 'OPT-1', baseCommit: commit, resultCommit: commit, summary: 'First assessment.', findings: [] },
+      { opinionId: 'OPT-2', baseCommit: commit, resultCommit, summary: 'Latest assessment.', findings: [] },
+    ] }, 1);
+    const current = await payload(await cli(['status', 'c1', '--json']));
+    expect(current.opt).toEqual({ disposition: 'delivered', baseCommit: commit, resultCommit });
+    expect(current).not.toHaveProperty('record');
+    expect(JSON.stringify(current)).not.toContain('assessment');
+    const history = await payload(await cli(['status', 'c1', '--history', '--json']));
+    expect(history.record.opt.opinions).toHaveLength(2);
   });
 
   it('requires full-change before Opt, rejects legacy opinion fields and preserves v3 records', async () => {

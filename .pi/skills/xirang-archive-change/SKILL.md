@@ -23,7 +23,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
-Before archiving, run `xirang config project --json` and consume git policy from its normalized project config: `git.commitMessage.archive`, `git.commitMessage.merge`, `git.merge.strategy`, and `git.branch.deleteAfterArchive`; do not parse raw YAML inside the skill.
+Before archiving, load `.xirang/references/xirang-configuration-use.md`, then run `xirang config project --select git --json` and consume git policy from its normalized project config: `git.commitMessage.archive`, `git.commitMessage.merge`, `git.merge.strategy`, and `git.branch.deleteAfterArchive`; do not parse raw YAML inside the skill.
 
 **Steps**
 
@@ -44,13 +44,13 @@ Before archiving, run `xirang config project --json` and consume git policy from
    Read `tasks.md`; warn and confirm before proceeding if incomplete goal checkboxes remain. Missing goals are not a task-related blocker.
 
 5. **Assess delta sync state**
-   If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.
+   If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required. When Delta operations are present, run `xirang sync "<change-name>"` before archive; the command reconciles pending operations or confirms an already-synchronized target. Stop on Sync failure. Do not write Formal manually. With no Delta operations, report "No deltas". Archive only checks completed Sync; it does not apply the Delta.
 
 6. **Run archive CLI**
-   Run `xirang archive "<change-name>"` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and prints the Git handoff reminder; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
+   Run `xirang archive "<change-name>"` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and returns its archive location; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
 
 7. **Git handoff**
-   Read the archive CLI output and projected Git policy from `xirang config project --json`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
+   Read the archive CLI output and projected Git policy from `xirang config project --select git --json`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
 
 8. **Agent git flow**
    The agent continues the post-archive git flow. First handle the implementation boundary before Xirang/docs archive artifacts. If uncommitted real project implementation changes remain, create a normal implementation commit that contains only those changes. Then always create a semantic boundary commit with `git commit --allow-empty`; this boundary commit may be intentionally empty when the effective implementation diff is already carried by retained `wip: opt-*` checkpoint commits. If `git.commitMessage.boundary` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-boundary-commit-message.md`. Use that template to build the boundary commit message and run `git commit -F -` for the boundary commit. If `git.commitMessage.archive` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-archive-commit-message.md`. Use that template before creating the Xirang/docs archive commit, add only archive/synced paths, and run `git commit -F -`. If a merge or squash commit message is needed, prepare it from the configured or built-in merge template. If `git.commitMessage.merge` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-merge-summary-message.md`.
@@ -68,8 +68,8 @@ Before archiving, run `xirang config project --json` and consume git policy from
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** .xirang/changes/archive/YYYY-MM-DD-<name>/
-**Quality Gate:** valid Seal commit exists; Archive independently completed Sync, validation and task gates
-**Semantic Model:** ✓ Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
+**Quality Gate:** valid Seal commit exists; Archive independently checked completed Sync, validation and task gates
+**Semantic Model:** <Sync completed before Archive / already synchronized / No deltas / explicitly bypassed>; when Sync wrote: Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>

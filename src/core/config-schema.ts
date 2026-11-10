@@ -1,5 +1,6 @@
 import path from 'path';
 import { z } from 'zod';
+import { stringify } from 'yaml';
 
 const GitCommitMessagePathSchema = z
   .string()
@@ -289,44 +290,7 @@ export function coerceValue(value: string, forceString: boolean = false): string
  * @returns Formatted string
  */
 export function formatValueYaml(value: unknown, indent: number = 0): string {
-  const indentStr = '  '.repeat(indent);
-
-  if (value === null || value === undefined) {
-    return 'null';
-  }
-
-  if (typeof value === 'boolean' || typeof value === 'number') {
-    return String(value);
-  }
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    if (value.length === 0) {
-      return '[]';
-    }
-    return value.map((item) => `${indentStr}- ${formatValueYaml(item, indent + 1)}`).join('\n');
-  }
-
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>);
-    if (entries.length === 0) {
-      return '{}';
-    }
-    return entries
-      .map(([key, val]) => {
-        const formattedVal = formatValueYaml(val, indent + 1);
-        if (typeof val === 'object' && val !== null && Object.keys(val).length > 0) {
-          return `${indentStr}${key}:\n${formattedVal}`;
-        }
-        return `${indentStr}${key}: ${formattedVal}`;
-      })
-      .join('\n');
-  }
-
-  return String(value);
+  return stringify(value ?? null, { lineWidth: 0 }).replace(/\n$/, '').replace(/^/gm, '  '.repeat(indent));
 }
 
 /**

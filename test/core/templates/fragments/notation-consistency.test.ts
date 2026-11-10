@@ -1,9 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
-
-import { generateInstructions, loadChangeContext } from '../../../../src/core/artifact-graph/instruction-loader.js';
+import { describe, expect, it } from 'vitest';
+import { resolveSchema } from '../../../../src/core/artifact-graph/resolver.js';
+import { artifactReferences } from '../../../../src/core/templates/fragments/artifact-references.js';
 import { PARTITIONS } from '../../../../src/core/model/types.js';
 import {
   ARCHITECTURE_GENERATE_DELTA,
@@ -37,23 +34,12 @@ function fieldRows(surface: string): string[] {
 }
 
 describe('Semantic Model notation consistency', () => {
-  let projectRoot: string;
-
-  beforeEach(() => {
-    projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-notation-'));
-    fs.mkdirSync(path.join(projectRoot, '.xirang', 'changes', 'notation-test'), { recursive: true });
-  });
-
-  afterEach(() => {
-    fs.rmSync(projectRoot, { recursive: true, force: true });
-  });
-
   it('keeps shared entity fields, identity syntax, and retired notation aligned', () => {
-    const projected = generateInstructions(loadChangeContext(projectRoot, 'notation-test'), 'specs');
+    const reference = artifactReferences().find(item => item.path === 'references/artifact-specs.md')!;
     const surfaces = [
       SEMANTIC_MODEL_UNIT_NOTATION,
       ARCHITECTURE_GENERATE_DELTA,
-      projected.instruction,
+      reference.content,
     ];
 
     for (const surface of surfaces) {
@@ -66,10 +52,7 @@ describe('Semantic Model notation consistency', () => {
   });
 
   it('keeps the specs output partitions aligned with the model compiler', () => {
-    const outputPath = generateInstructions(
-      loadChangeContext(projectRoot, 'notation-test'),
-      'specs'
-    ).outputPath;
+    const outputPath = resolveSchema('semantic-model').artifacts.find(artifact => artifact.id === 'specs')!.generates;
     const projectedPartitions = outputPath.match(/^\{([^}]+)\}/)?.[1].split(',').sort();
 
     expect(projectedPartitions).toEqual([...PARTITIONS].sort());

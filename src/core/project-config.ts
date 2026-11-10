@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
@@ -374,7 +375,7 @@ export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfig
  * @param projectRoot - The root directory of the project (where `.xirang/` lives)
  * @returns Parsed config or null if file doesn't exist
  */
-export function readProjectConfig(projectRoot: string): ProjectConfig | null {
+export function readProjectConfig(projectRoot: string, warn: (message: string) => void = (message) => diagnostic(message, 'CONFIG_WARNING')): ProjectConfig | null {
   // Try both .yaml and .yml, prefer .yaml
   let configPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yaml');
   if (!existsSync(configPath)) {
@@ -389,7 +390,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     const raw = parseYaml(content);
 
     if (!raw || typeof raw !== 'object') {
-      console.warn(`.xirang/config.yaml is not a valid YAML object`);
+      warn(`.xirang/config.yaml is not a valid YAML object`);
       return null;
     }
 
@@ -399,7 +400,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     if (schemaResult.success) {
       config.schema = schemaResult.data;
     } else if (raw.schema !== undefined) {
-      console.warn(
+      warn(
         `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: semantic-model`
       );
       return null;
@@ -413,7 +414,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (proseLanguageResult.success) {
         config.proseLanguage = proseLanguageResult.data;
       } else {
-        console.warn(`Invalid 'proseLanguage' field in config (must be non-empty string)`);
+        warn(`Invalid 'proseLanguage' field in config (must be non-empty string)`);
       }
     } else if (raw.docLanguage !== undefined) {
       const proseLanguageField = z.string().min(1);
@@ -422,7 +423,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (proseLanguageResult.success) {
         config.proseLanguage = proseLanguageResult.data;
       } else {
-        console.warn(`Invalid 'docLanguage' field in config (must be non-empty string)`);
+        warn(`Invalid 'docLanguage' field in config (must be non-empty string)`);
       }
     }
 
@@ -434,7 +435,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (decompositionResult.success) {
         config.decomposition = decompositionResult.data;
       } else {
-        console.warn(
+        warn(
           `Invalid 'decomposition' field in config (must be a project-root relative path or a bare name matching [A-Za-z0-9._-]+)`
         );
       }
@@ -448,15 +449,15 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (contextResult.success) {
         const contextSize = Buffer.byteLength(contextResult.data, 'utf-8');
         if (contextSize > MAX_CONTEXT_SIZE) {
-          console.warn(
+          warn(
             `Context too large (${(contextSize / 1024).toFixed(1)}KB, limit: ${MAX_CONTEXT_SIZE / 1024}KB)`
           );
-          console.warn(`Ignoring context field`);
+          warn(`Ignoring context field`);
         } else {
           config.context = contextResult.data;
         }
       } else {
-        console.warn(`Invalid 'context' field in config (must be string)`);
+        warn(`Invalid 'context' field in config (must be string)`);
       }
     }
 
@@ -481,7 +482,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
         config.architecture = architectureResult.data;
       } else {
         config.architecture = cloneFunctionalDefaults().architecture;
-        console.warn(
+        warn(
           `Invalid 'architecture.outline.elementDefinitionDepth' field in config (must be a non-negative integer)`
         );
       }
@@ -494,7 +495,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       });
       if (raw.optimization && typeof raw.optimization === 'object' && !Array.isArray(raw.optimization)) {
         for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
-          if (key in raw.optimization) console.warn(`optimization.${key} is retired and ignored`);
+          if (key in raw.optimization) warn(`optimization.${key} is retired and ignored`);
         }
       }
       const optimizationResult = optimizationField.safeParse(raw.optimization);
@@ -502,7 +503,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (optimizationResult.success) {
         config.optimization = optimizationResult.data;
       } else {
-        console.warn(
+        warn(
           `Invalid 'optimization' field in config (must be an object with boolean 'enabled')`
         );
       }
@@ -520,7 +521,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
       if (applyResult.success) {
         config.apply = applyResult.data;
       } else {
-        console.warn(`Invalid 'apply' field in config (must be an object with defaultIsolation: ask | branch | worktree | none)`);
+        warn(`Invalid 'apply' field in config (must be an object with defaultIsolation: ask | branch | worktree | none)`);
       }
     }
 
@@ -528,12 +529,12 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
     const gitConfig = config.git!;
     if (raw.git !== undefined) {
       if (!isPlainRecord(raw.git)) {
-        console.warn(`Invalid 'git' field in config (must be an object)`);
+        warn(`Invalid 'git' field in config (must be an object)`);
       } else {
         const rawGit = raw.git;
 
         if (rawGit.autoCommit !== undefined) {
-          console.warn(
+          warn(
             'git.autoCommit is deprecated and ignored; archive handoff is always handled by the agent'
           );
         }
@@ -551,7 +552,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
               if (result.success) {
                 commitMessage[key] = result.data;
               } else {
-                console.warn(`git.commitMessage.${key} must be a POSIX relative path without ..`);
+                warn(`git.commitMessage.${key} must be a POSIX relative path without ..`);
               }
             }
 
@@ -559,7 +560,7 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
               gitConfig.commitMessage = commitMessage;
             }
           } else {
-            console.warn(`Invalid 'git.commitMessage' field in config (must be an object)`);
+            warn(`Invalid 'git.commitMessage' field in config (must be an object)`);
           }
         }
 
@@ -568,12 +569,12 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
             const rawArchive = rawGit.archive;
             const rawCommitMessage = rawArchive.commitMessage;
             if (isPlainRecord(rawCommitMessage) && rawCommitMessage.convention !== undefined) {
-              console.warn(
+              warn(
                 'git.archive.commitMessage.convention is deprecated and ignored; use git.commitMessage.archive for path overrides'
               );
             }
           } else {
-            console.warn(`Invalid 'git.archive' field in config (must be an object)`);
+            warn(`Invalid 'git.archive' field in config (must be an object)`);
           }
         }
 
@@ -586,18 +587,18 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
               if (strategyResult.success) {
                 gitConfig.merge.strategy = strategyResult.data;
               } else {
-                console.warn('git.merge.strategy must be one of: no-ff, ff-only, squash');
+                warn('git.merge.strategy must be one of: no-ff, ff-only, squash');
               }
             }
 
             const rawCommitMessage = rawMerge.commitMessage;
             if (isPlainRecord(rawCommitMessage) && rawCommitMessage.convention !== undefined) {
-              console.warn(
+              warn(
                 'git.merge.commitMessage.convention is deprecated and ignored; use git.commitMessage.merge for path overrides'
               );
             }
           } else {
-            console.warn(`Invalid 'git.merge' field in config (must be an object)`);
+            warn(`Invalid 'git.merge' field in config (must be an object)`);
           }
         }
 
@@ -610,11 +611,11 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
               if (deleteAfterArchiveResult.success) {
                 gitConfig.branch.deleteAfterArchive = deleteAfterArchiveResult.data;
               } else {
-                console.warn('git.branch.deleteAfterArchive must be boolean');
+                warn('git.branch.deleteAfterArchive must be boolean');
               }
             }
           } else {
-            console.warn(`Invalid 'git.branch' field in config (must be an object)`);
+            warn(`Invalid 'git.branch' field in config (must be an object)`);
           }
         }
       }
@@ -638,12 +639,12 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
               hasValidRules = true;
             }
             if (validRules.length < rulesArrayResult.data.length) {
-              console.warn(
+              warn(
                 `Some rules for '${artifactId}' are empty strings, ignoring them`
               );
             }
           } else {
-            console.warn(
+            warn(
               `Rules for '${artifactId}' must be an array of strings, ignoring this artifact's rules`
             );
           }
@@ -653,14 +654,14 @@ export function readProjectConfig(projectRoot: string): ProjectConfig | null {
           config.rules = parsedRules;
         }
       } else {
-        console.warn(`Invalid 'rules' field in config (must be object)`);
+        warn(`Invalid 'rules' field in config (must be object)`);
       }
     }
 
     // Return partial config even if some fields failed
     return Object.keys(config).length > 0 ? (config as ProjectConfig) : null;
   } catch (error) {
-    console.warn(`Failed to parse .xirang/config.yaml:`, error);
+    warn(`Failed to parse .xirang/config.yaml: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
 }

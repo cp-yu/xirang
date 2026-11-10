@@ -4,7 +4,6 @@
  * Shows resolved template paths for all artifacts in a schema.
  */
 
-import ora from 'ora';
 import path from 'path';
 import {
   resolveSchema,
@@ -34,7 +33,6 @@ export interface TemplateInfo {
 // -----------------------------------------------------------------------------
 
 export async function templatesCommand(options: TemplatesOptions): Promise<void> {
-  const spinner = options.json ? undefined : ora('Loading templates...').start();
 
   try {
     const projectRoot = process.cwd();
@@ -53,14 +51,13 @@ export async function templatesCommand(options: TemplatesOptions): Promise<void>
       source,
     }));
 
-    spinner?.stop();
 
     if (options.json) {
       const output: Record<string, { path: string; source: string }> = {};
       for (const t of templates) {
         output[t.artifactId] = { path: t.templatePath, source: t.source };
       }
-      console.log(JSON.stringify(output, null, 2));
+      console.log(JSON.stringify(output));
       return;
     }
 
@@ -73,7 +70,6 @@ export async function templatesCommand(options: TemplatesOptions): Promise<void>
       console.log(`  ${t.templatePath}`);
     }
   } catch (error) {
-    spinner?.stop();
     throw error;
   }
 }

@@ -103,7 +103,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     }
   });
 
-  it.each(['apply', 'archive', 'explore'])('retires only owned Optimizer references and resolves internal-agent references for %s', async workflow => {
+  it.each(['apply', 'archive', 'explore', 'build', 'snack'])('retires only owned Optimizer references and resolves internal-agent references for %s', async workflow => {
     const referencesDir = path.join(testDir, '.xirang', 'references');
     const agentsDir = path.join(testDir, '.pi', 'agents');
     await fs.mkdir(referencesDir, { recursive: true });
@@ -125,6 +125,12 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     for (const role of ['optimizer', 'reviewer']) {
       const content = await fs.readFile(path.join(agentsDir, `xirang-${role}.md`), 'utf8');
       for (const match of content.matchAll(/\.xirang\/references\/(xirang-[a-z0-9-]+\.md)/g)) {
+        expect(await exists(path.join(referencesDir, match[1])), match[1]).toBe(true);
+      }
+    }
+    if (workflow === 'snack') {
+      const skill = await fs.readFile(path.join(testDir, '.pi', 'skills', 'xirang-snack', 'SKILL.md'), 'utf8');
+      for (const match of skill.matchAll(/\.xirang\/references\/(xirang-(?:artifact-[a-z]+|configuration-use)\.md)/g)) {
         expect(await exists(path.join(referencesDir, match[1])), match[1]).toBe(true);
       }
     }

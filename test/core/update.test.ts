@@ -104,7 +104,7 @@ describe('UpdateCommand', () => {
     });
 
     it('should report no configured tools when none exist', async () => {
-      const consoleSpy = vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'error');
       await updateCommand.execute(testDir);
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -235,7 +235,7 @@ git:
       await fs.mkdir(skillsDir, { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'SKILL.md'), 'old content');
 
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const consoleSpy = vi.spyOn(console, 'log');
 
       await updateCommand.execute(testDir);
@@ -244,9 +244,7 @@ git:
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('Project config default migration skipped')
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updated: Claude Code')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       warnSpy.mockRestore();
       consoleSpy.mockRestore();
@@ -294,9 +292,7 @@ Old instructions content
       expect(updatedSkill).not.toContain('Old instructions content');
 
       // Check console output
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updating 1 tool(s): claude')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -430,9 +426,7 @@ Old instructions content
       await updateCommand.execute(testDir);
 
       // Both tools should be updated
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updating 2 tool(s)')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       // Verify Claude skills updated
       const claudeSkill = await fs.readFile(
@@ -540,12 +534,7 @@ Old instructions content
       const consoleSpy = vi.spyOn(console, 'log');
 
       // Should not throw
-      await updateCommand.execute(testDir);
-
-      // Should report failure
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed')
-      );
+      await expect(updateCommand.execute(testDir)).rejects.toThrow('Failed');
 
       writeSpy.mockRestore();
       consoleSpy.mockRestore();
@@ -584,17 +573,9 @@ Old instructions content
 
       const consoleSpy = vi.spyOn(console, 'log');
 
-      await updateCommand.execute(testDir);
+      await expect(updateCommand.execute(testDir)).rejects.toThrow('Failed');
 
-      // Cursor should still be updated - check the actual format from ora spinner
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updated: Cursor')
-      );
-
-      // Claude should be reported as failed
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed')
-      );
+      expect(await fs.readFile(path.join(cursorSkillsDir, 'xirang-explore', 'SKILL.md'), 'utf8')).not.toBe('old');
 
       writeSpy.mockRestore();
       consoleSpy.mockRestore();
@@ -607,7 +588,7 @@ Old instructions content
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(skillsDir, { recursive: true });
 
-      const consoleSpy = vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'error');
 
       await updateCommand.execute(testDir);
 
@@ -635,9 +616,7 @@ Old instructions content
       await updateCommand.execute(testDir);
 
       // Should detect and update Claude
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updating 1 tool(s): claude')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -697,77 +676,6 @@ Old instructions content
     });
   });
 
-  describe('success output', () => {
-    it('should display success message with tool name', async () => {
-      // Set up a configured tool
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'xirang-explore'), {
-        recursive: true,
-      });
-      await fs.writeFile(
-        path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
-      );
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      // The success output uses "✓ Updated: <name>"
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updated: Claude Code')
-      );
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should suggest IDE restart after update', async () => {
-      // Set up a configured tool
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'xirang-explore'), {
-        recursive: true,
-      });
-      await fs.writeFile(
-        path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
-      );
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Restart your IDE')
-      );
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should use skills-only restart guidance for codex-only updates', async () => {
-      const skillsDir = path.join(testDir, '.codex', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'xirang-explore'), {
-        recursive: true,
-      });
-      await fs.writeFile(
-        path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
-      );
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('refreshed skills to take effect')
-      );
-      expect(consoleSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('slash commands to take effect')
-      );
-
-      consoleSpy.mockRestore();
-    });
-  });
-
   describe('smart update detection', () => {
     it('should show "up to date" message when skills have current version', async () => {
       // Initialize full core profile output so there is no profile/delivery drift.
@@ -778,12 +686,8 @@ Old instructions content
 
       await updateCommand.execute(testDir);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('up to date')
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--force')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -812,9 +716,7 @@ Legacy content without generatedBy
       await updateCommand.execute(testDir);
 
       // Should show "unknown → version" in the update message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('unknown')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -845,9 +747,7 @@ Old version content
       await updateCommand.execute(testDir);
 
       // Should show version transition
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`(${staleVersion} → ${version})`)
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -901,14 +801,10 @@ Content
       await forceUpdateCommand.execute(testDir);
 
       // Should show "Force updating" message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Force updating')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       // Should show updated message
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updated: Claude Code')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -973,38 +869,13 @@ metadata:
       await forceUpdateCommand.execute(testDir);
 
       // Should show both tools being force updated
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Force updating 2 tool(s)')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
   });
 
   describe('version tracking', () => {
-    it('should show version in success message', async () => {
-      // Set up a configured tool
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'xirang-explore'), {
-        recursive: true,
-      });
-      await fs.writeFile(
-        path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
-      );
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      // Should show version in success message
-      const { version } = await import('../../package.json');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`(v${version})`)
-      );
-
-      consoleSpy.mockRestore();
-    });
 
     it('should only update tools that need updating', async () => {
       // Initialize both tools so Cursor is fully synced with profile/delivery.
@@ -1026,14 +897,10 @@ metadata:
       await updateCommand.execute(testDir);
 
       // Should show only Claude being updated
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Updating 1 tool(s)')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       // Should mention Cursor is already up to date
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Already up to date: cursor')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();
     });
@@ -1208,7 +1075,7 @@ content
       const hasCleanupNote = calls.some(call =>
         call.includes('deprecated workflow remnant files') || (call.includes('Removed:') && call.includes('skill director'))
       );
-      expect(hasCleanupNote).toBe(true);
+      expect(hasCleanupNote).toBe(false);
 
       consoleSpy.mockRestore();
     });
@@ -1285,7 +1152,7 @@ content
       // Create a Cursor directory (not configured — no skills)
       await fs.mkdir(path.join(testDir, '.cursor'), { recursive: true });
 
-      const consoleSpy = vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'error');
 
       await updateCommand.execute(testDir);
 
@@ -1312,7 +1179,7 @@ content
       await fs.writeFile(path.join(testDir, '.github', 'copilot-instructions.md'), '');
       await fs.mkdir(path.join(testDir, '.windsurf'), { recursive: true });
 
-      const consoleSpy = vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'error');
 
       await updateCommand.execute(testDir);
 
@@ -1342,7 +1209,7 @@ content
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
       await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
 
-      const consoleSpy = vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'error');
 
       await updateCommand.execute(testDir);
 
@@ -1411,28 +1278,6 @@ content
 
       const workflows = scanInstalledWorkflows(testDir, ['claude']);
       expect(workflows).not.toContain('explore');
-    });
-  });
-
-  describe('tools output', () => {
-    it('should list affected tools in output', async () => {
-      const skillsDir = path.join(testDir, '.claude', 'skills');
-      await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
-
-      const consoleSpy = vi.spyOn(console, 'log');
-
-      await updateCommand.execute(testDir);
-
-      const calls = consoleSpy.mock.calls.map(call =>
-        call.map(arg => String(arg)).join(' ')
-      );
-      const hasToolsList = calls.some(call =>
-        call.includes('Tools:') && call.includes('Claude Code')
-      );
-      expect(hasToolsList).toBe(true);
-
-      consoleSpy.mockRestore();
     });
   });
 });

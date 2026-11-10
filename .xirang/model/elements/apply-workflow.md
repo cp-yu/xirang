@@ -15,13 +15,13 @@ definition: Apply Workflow 定义 `xirang-apply-change` 如何处理 Apply 的�
 
 - **needs_review 状态进入 Review**
 
-  - `instructions apply --json` 返回 `state: 'needs_review'`
+  - `status --change <name>` 返回 `state: 'needs_review'`
   - 模板 SHALL 指示 Agent 委托 clean-context Reviewer，并保存 commit-bound opinion
   - SHALL NOT 中断流程或要求用户手动触发
 
 - **needs_optimize 状态进入 Opt 处置与 Seal**
 
-  - `instructions apply --json` 返回 `state: 'needs_optimize'`
+  - `status --change <name>` 返回 `state: 'needs_optimize'`
   - 主 Agent SHALL 决定委托 Opt 或记录不做 Opt 的理由，之后完成 Seal
   - SHALL NOT 将 Opt 设为必做，也 SHALL NOT 中断流程或要求用户手动触发
 

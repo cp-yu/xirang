@@ -2,22 +2,17 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   assertContainedPath,
-  managedRecordPath,
   projectRelativePosix,
   validateExplorationId,
   validateRecordSlug,
+  validateRecordFilename,
 } from '../../../src/core/record/paths.js';
 
 describe('record paths', () => {
-  it('constructs a direct-child managed path', () => {
-    // Resolve the fixture root so Windows maps '/' to the current drive the
-    // same way the implementation does.
-    const repo = path.resolve('/repo');
-    expect(managedRecordPath(repo, 'definition-first', '20260729T120000Z-a1b2c3d4')).toBe(
-      path.join(repo, '.xirang', 'records', 'definition-first-20260729T120000Z-a1b2c3d4.md'),
-    );
+  it('accepts contained portable filenames and rejects escapes and Windows reserved names on every platform', () => {
+    for (const name of ['design.md', 'design_2-accepted.md']) expect(validateRecordFilename(name)).toBe(name);
+    for (const name of ['../design.md', 'folder/design.md', 'folder\\design.md', 'C:design.md', 'CON.md', 'nul.md', 'COM1.md', '.hidden.md']) expect(() => validateRecordFilename(name)).toThrow('filename');
   });
-
   it('rejects invalid slugs and exploration identities', () => {
     for (const slug of ['', 'Upper', '../escape', 'two words', '-leading']) {
       expect(() => validateRecordSlug(slug)).toThrow();

@@ -149,7 +149,8 @@ describe('business specification 4+N', () => {
       for (const args of [['arch', 'validate', '--json'], ['validate', 'inventory', '--type', 'contract', '--json'], ['validate', '--contracts', '--json']]) {
         const result = await runCLI(args, { cwd: project });
         expect(result.exitCode).toBe(1);
-        expect(result.stdout).toContain('MISSING_BUSINESS_SECTION');
+        expect(result.stdout).toBe('');
+        expect(result.stderr).toContain('MISSING_BUSINESS_SECTION');
       }
     }
   });

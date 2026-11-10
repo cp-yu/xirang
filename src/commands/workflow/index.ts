@@ -1,14 +1,11 @@
 /**
  * Workflow CLI Commands
  *
- * Commands for the artifact-driven workflow: status, instructions, templates, schemas, new change.
+ * Commands for the artifact-driven workflow: status, templates, schemas, new change.
  */
 
 export { statusCommand } from './status.js';
 export type { StatusOptions } from './status.js';
-
-export { instructionsCommand, applyInstructionsCommand } from './instructions.js';
-export type { InstructionsOptions } from './instructions.js';
 
 export { templatesCommand } from './templates.js';
 export type { TemplatesOptions } from './templates.js';

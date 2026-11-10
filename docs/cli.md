@@ -2,6 +2,8 @@
 
 The Xirang CLI (`xirang`) provides terminal commands for project setup, validation, status inspection, architecture browsing, and lifecycle management. These commands complement the managed workflow skills documented in [Workflow Skills And Architecture Commands](commands.md).
 
+Successful writes without a necessary result produce no stdout, including with `--json`. Queries retain requested empty data. Warnings and errors use stderr; JSON diagnostics are structured. Non-interactive commands omit progress and success decoration.
+
 ## Summary
 
 | Category | Commands | Purpose |
@@ -10,7 +12,7 @@ The Xirang CLI (`xirang`) provides terminal commands for project setup, validati
 | **Browsing** | `list`, `view`, `show` | Explore Changes and the Semantic Model |
 | **Validation** | `validate` | Check Changes and Element Contracts for issues |
 | **Lifecycle** | `archive` | Finalize completed changes |
-| **Workflow** | `status`, `instructions`, `templates`, `schemas` | Artifact-driven workflow support |
+| **Workflow** | `status`, `templates`, `schemas` | Artifact-driven workflow support |
 | **Schemas** | `schema validate`, `schema which` | Inspect and validate built-in workflows |
 | **Config** | `config` | View and modify settings |
 | **Utility** | `feedback`, `completion` | Feedback and shell integration |
@@ -43,12 +45,12 @@ These commands support `--json` output for programmatic use by AI agents and scr
 | `xirang show <item>` | Read content | `--json` for parsing |
 | `xirang validate` | Check for issues | `--all --json` for bulk validation |
 | `xirang status` | See artifact progress | `--json` for structured status |
-| `xirang instructions` | Get next steps | `--json` for agent instructions |
+| `xirang config project` | Read current effective configuration | `--select <key>` and `--artifact <id>` narrow the result |
 | `xirang templates` | Find template paths | `--json` for path resolution |
 | `xirang schemas` | List available schemas | `--json` for schema discovery |
-| `xirang quality` | Record review and optimization conclusions | `--json` for records, diagnostics, and allowed next operations |
+| `xirang quality` | Record review and optimization conclusions | `--json` for current commit associations, revision receipts, and diagnostics |
 
-Xirang's quality gate tracks one fact: whether the current code still matches a passing review record. `xirang quality review` records a conclusion and computes the evidence fingerprint, `xirang quality optimize` records one optimization round (or finalizes the loop with a `stopReason`), and `xirang quality seal` confirms the change is ready for archive. Checkpoints are git commits created by the apply workflow, so a failed optimization round restores the last successful commit instead of a stash. `/xirang:archive` reuses a clean, finalized record when possible; when it must re-run the quality flow, that rerun honors the same optimization eligibility rules.
+Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Archive requires a valid Seal and a synchronized Semantic Delta.
 
 ---
 
@@ -317,134 +319,36 @@ xirang validate --all --json
 xirang validate --all --strict --concurrency 12
 ```
 
-**Output (text):**
-
-```
-Validating add-dark-mode...
-  ✓ Semantic Delta valid
-  ✓ Expected Semantic Model valid
-
-Validation passed
-```
-
-**Output (JSON):**
-
-```json
-{
-  "items": [
-    {
-      "id": "add-dark-mode",
-      "type": "change",
-      "valid": true,
-      "issues": [],
-      "durationMs": 42
-    }
-  ],
-  "summary": {
-    "totals": { "items": 1, "passed": 1, "failed": 0 },
-    "byType": {
-      "change": { "items": 1, "passed": 1, "failed": 0 }
-    }
-  },
-  "version": "1.0"
-}
-```
+Validation always executes all applicable checks. With no issues, success is silent in text and JSON modes. Issues go to stderr; `--json` encodes them as structured diagnostics. Errors fail; `--strict` also fails on warnings. Add `--preview` for the semantic difference (summary and concise entries in JSON); no presentation artifact is persisted.
 
 ---
 
 ## Lifecycle Commands
 
-### `xirang quality`
-
-Record the quality state of a change's code: one review conclusion per code state, one optimization round per direction decision, and the finalization that lets archive proceed.
-
-```
-xirang quality <review|optimize|status|seal> [change-name] [options]
-```
-
-**Arguments:**
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `change-name` | Yes | Change whose record is read or written |
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--input <json>` | Payload for `review` and `optimize`; falls back to stdin when omitted |
-| `--json` | Output the unified result envelope |
-
-**Examples:**
-
-```bash
-# Record a review conclusion for the current code state
-xirang quality review add-dark-mode --input '{"result":"PASS","issues":[],"evidenceFiles":["src/app.ts"]}' --json
-
-# Record one optimization round, or finalize the loop
-xirang quality optimize add-dark-mode --input '{"directions":[],"stopReason":"NO_ACTIONABLE","summary":"no eligible direction"}' --json
-
-# Inspect the recorded state without writing anything
-xirang quality status add-dark-mode --json
-
-# Confirm the record is ready for archive
-xirang quality seal add-dark-mode --json
-```
-
-**What it does:**
-
-1. `review` accepts a conclusion only while the state is `dirty`, computes `tasksFileHash` and the evidence fingerprint, and writes `.xirang/changes/<name>/.quality-state.json` plus an append-only `.quality-log.jsonl`
-2. `optimize` accepts a round only while the state is `clean`, assigns direction IDs, selects the highest priority eligible direction, maintains the two-level counters, and derives the terminal state from `stopReason`
-3. `status` reports `state`, the recorded review, the direction ledger, and `allowedNextOperations`; it never writes
-4. `seal` verifies the record structure, the clean state, and the finalized optimization terminal, then prints a seal hash
-5. Successful calls exit 0, blocked entry conditions exit 1 with a stable `code`, and invalid payloads exit 2 with structured `diagnostics`
-
 ### `xirang archive`
 
-Archive a completed Change after the quality gate, sync, validation, and task gates pass. Archive does not update the formal Semantic Model; run `xirang sync` first when the four-partition Semantic Delta has pending model changes.
-
-```
-xirang archive [change-name] [options]
-```
-
-**Arguments:**
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `change-name` | No | Change to archive (prompts if omitted) |
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `-y, --yes` | Skip confirmation prompts |
-| `--no-sync` | Bypass the pending delta sync gate with explicit authorization |
-| `--no-validate` | Skip validation (requires confirmation) |
-| `--no-verify` | Bypass the quality gate with explicit authorization |
-
-**Examples:**
+Archive a completed Change after Quality, Sync, validation and task gates pass. Apply its Semantic Delta to the formal model with `xirang sync <change-name>` first when synchronization is pending; Archive checks synchronization and moves the Change without applying the Delta itself.
 
 ```bash
-# Interactive archive
-xirang archive
-
-# Archive specific change
-xirang archive add-dark-mode
-
-# Archive without prompts (CI/scripts)
-xirang archive add-dark-mode --yes
-
-# Explicitly bypass the sync gate for a change with no formal-source reconciliation
-xirang archive update-ci-config --no-sync --yes
+xirang sync add-dark-mode
+xirang archive add-dark-mode --yes --json
 ```
 
-**What it does:**
+The Change name is optional in an interactive terminal. `--yes` skips confirmation prompts. Success returns the archive location as text or `{ "archive": ".xirang/changes/archive/<date>-<change-name>" }` with `--json`; a retry after archiving returns the existing location. Gate failures exit nonzero and preserve the active Change. Warnings and errors go to stderr, structurally encoded with `--json`.
 
-1. Requires a clean, finalized, archive-compatible quality record unless `--no-verify` is explicitly authorized
-2. Requires all four-partition Semantic Delta Entries to be synced unless `--no-sync` is explicitly authorized
-3. Validates the Change unless `--no-validate` is explicitly authorized
-4. Checks task completion and prompts when required
-5. Moves the complete Change to `.xirang/changes/archive/YYYY-MM-DD-<name>/` as audit history
+### `xirang quality`
+
+Quality records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal in `.quality.json` (schemaVersion 4). It validates payloads, integer CAS revisions and referenced Git commits; it does not run tests or compare workspace freshness.
+
+```bash
+xirang quality status add-dark-mode --json
+xirang quality status add-dark-mode --history --json
+xirang quality review add-dark-mode --version 0 --from review.json --json
+xirang quality opt add-dark-mode --version 1 --from opt.json --json
+xirang quality seal add-dark-mode --version 2 --from seal.json --json
+```
+
+Writes return only `{ "revision": N }`; failures are nonzero with structured stderr diagnostics. Full payload schemas and recovery guidance are in `.xirang/references/xirang-quality-cli.md`.
 
 ---
 
@@ -513,54 +417,13 @@ Progress: 2/4 artifacts complete
 
 ---
 
-### `xirang instructions`
+### Artifact guidance and current state
 
-Get enriched instructions for creating an artifact or applying tasks. Used by AI agents to understand what to create next.
+Read `.xirang/references/xirang-artifact-<id>.md` only for the artifact being authored, in Definition, Guidance, Template order. Setup/update generate these references from the built-in schema. Reuse a reference already read in the current conversation.
 
-```
-xirang instructions [artifact] [options]
-```
+Use `config project --artifact <id> --select proseLanguage --select context --select rules --json` for current authoring configuration. Repeat `--select` for effective point paths; nesting is preserved, legal unconfigured optional fields are omitted, and invalid paths or unknown artifacts fail. `--artifact` limits only rules before selection.
 
-**Arguments:**
-
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `artifact` | No | Artifact ID: `proposal`, `specs`, `design`, `tasks`, or `apply` |
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--change <id>` | Change name (required in non-interactive mode) |
-| `--schema <name>` | Schema override |
-| `--json` | Output as JSON |
-
-**Special case:** Use `apply` as the artifact to get task implementation instructions.
-
-**Examples:**
-
-```bash
-# Get instructions for next artifact
-xirang instructions --change add-dark-mode
-
-# Get specific artifact instructions
-xirang instructions design --change add-dark-mode
-
-# Get apply/implementation instructions
-xirang instructions apply --change add-dark-mode
-
-# JSON for agent consumption
-xirang instructions design --change add-dark-mode --json
-```
-
-**Output includes:**
-
-- Template content for the artifact
-- Project context from config
-- Content from dependency artifacts
-- Per-artifact rules from config
-
-Artifact and Apply JSON instructions carry configuration once in `configProjection.prompt.fragments`, scoped to the requested surface and artifact. Read context, matching rules, language and other applicable guidance there. The instructions omit the former top-level `context`/`rules`, `configProjection.normalized`, and `prompt.compiledLines` copies; use `xirang config project --json` when the complete normalized project configuration is needed. Text instructions render the same fragments without repeating their content.
+Use `status --change <name> --json` for artifact paths, dependencies, goal counts, Apply state and gaps; read the returned files when their content is needed. Use `quality status <name> --json` for current Review/Opt/Seal conclusions and revision, adding `--history` only when full opinions are needed.
 
 ---
 
@@ -863,3 +726,20 @@ xirang completion uninstall
 - [Workflows](workflows.md) - Common patterns and when to use each command
 - [Schema Commands](#schema-commands) - Inspect built-in schemas and templates
 - [Getting Started](getting-started.md) - First-time setup guide
+
+### Record and Candidate results
+
+Record identity is its contained filename. Agent edits use structured CLI operations:
+
+```bash
+xirang record create design.md --from payload.json --json
+xirang record show design.md --entry A --entry C --json
+xirang record update design.md --from patch.json --json
+xirang record update design.md --from patch.json --diff --json
+xirang record coverage design.md --change example --from coverage.json --json
+xirang record consume design.md --change example --json
+```
+
+Updates and handoff writes are silent; `--diff` explicitly returns this update's differences. Coverage keeps the active source. Consume internally compares source bytes, target-model fingerprint and confirmed structure, saves the exact source bytes, validates, and then deletes the source. Failures preserve it. Callers do not supply versions or hashes.
+
+Candidate validation returns the necessary `reviewDigest` by default. Add `candidate validate --details --json` for comparison and inventory, or `candidate status --details --json` for inventory and history statistics. Promotion keeps the exact-digest gate and returns its history location.

@@ -20,9 +20,9 @@ describe('Candidate command registration', () => {
     const init = candidate?.commands.find((command) => command.name() === 'init');
     expect(init?.options.map((option) => option.long)).toEqual(['--from', '--from-path']);
     const status = candidate?.commands.find((command) => command.name() === 'status');
-    expect(status?.options.map((option) => option.long)).toEqual(['--json']);
+    expect(status?.options.map((option) => option.long)).toEqual(['--json', '--details']);
     const validate = candidate?.commands.find((command) => command.name() === 'validate');
-    expect(validate?.options.map((option) => option.long)).toEqual(['--json']);
+    expect(validate?.options.map((option) => option.long)).toEqual(['--json', '--details']);
     const promote = candidate?.commands.find((command) => command.name() === 'promote');
     expect(promote?.options.map((option) => option.long)).toEqual(['--digest', '--json']);
   });

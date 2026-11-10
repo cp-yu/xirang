@@ -86,7 +86,7 @@ To verify your language config is working:
 
 ```bash
 # Check the instructions and generated workflow guidance
-xirang instructions proposal --change my-change
+xirang config project --select proseLanguage --artifact proposal --select rules --json
 
 # Agents should consume the compiled config projection and apply docLanguage only to artifact prose
 ```

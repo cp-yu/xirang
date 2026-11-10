@@ -80,6 +80,85 @@ describe('artifact-workflow CLI commands', () => {
 
 
   describe('status command', () => {
+it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {
+      const changeDir = await createTestChange('needs-seal-apply', [
+        'proposal',
+        'design',
+        'specs',
+        'tasks',
+      ]);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
+      await createBaselineOnlyQualityFixture(tempDir, changeDir);
+
+      const result = await runCLI(
+        ['status', '--change', 'needs-seal-apply', '--json'],
+        { cwd: tempDir }
+      );
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).toBe('needs_optimize');
+    });
+
+it('reports needs_review after rotation even when history holds a matching pass', async () => {
+      const changeDir = await createTestChange('rotated-apply', [
+        'proposal',
+        'design',
+        'specs',
+        'tasks',
+      ]);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
+      await createCompleteQualityFixture(tempDir, changeDir);
+
+      const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
+      await fs.mkdir(historyDir, { recursive: true });
+      for (const file of ['.quality.json']) {
+        await fs.rename(path.join(changeDir, file), path.join(historyDir, file));
+      }
+
+      const result = await runCLI(['status', '--change', 'rotated-apply', '--json'], {
+        cwd: tempDir,
+      });
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).toBe('needs_review');
+    });
+
+it('outputs all_done state in JSON when the quality record is clean and archive-compatible', async () => {
+      const changeDir = await createTestChange('all-done-apply', [
+        'proposal',
+        'design',
+        'specs',
+        'tasks',
+      ]);
+      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
+      await createCompleteQualityFixture(tempDir, changeDir);
+
+      const result = await runCLI(
+        ['status', '--change', 'all-done-apply', '--json'],
+        { cwd: tempDir }
+      );
+      expect(result.exitCode).toBe(0);
+
+      const json = JSON.parse(result.stdout);
+      expect(json.state).toBe('all_done');
+    });
+    it('reports goal counts and Quality state without echoing goals', async () => {
+      const dir = await createTestChange('goal-state', ['proposal', 'design', 'specs', 'tasks']);
+      let result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
+      let data = JSON.parse(result.stdout);
+      expect(data).toMatchObject({ state: 'ready', goals: { total: 1, completed: 0, remaining: 1 } });
+      expect(result.stdout).not.toContain('Complete the implementation goal');
+      const tasks = path.join(dir, 'tasks.md');
+      await fs.writeFile(tasks, (await fs.readFile(tasks, 'utf8')).replace('[ ]', '[x]'));
+      result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
+      data = JSON.parse(result.stdout);
+      expect(data).toMatchObject({ state: 'needs_review', goals: { total: 1, completed: 1, remaining: 0 } });
+      await fs.writeFile(tasks, '## Goals\n\n- [x] G1: Missing verification');
+      result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
+      expect(JSON.parse(result.stdout).state).toBe('blocked');
+    });
     it('shows status for scaffolded change without proposal.md', async () => {
       // Create empty change directory (no proposal.md)
       const changeDir = path.join(changesDir, 'scaffolded-change');
@@ -89,6 +168,9 @@ describe('artifact-workflow CLI commands', () => {
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('scaffolded-change');
       expect(result.stdout).toContain('0/4 artifacts complete');
+      expect(result.stdout).toContain('[ ] proposal: proposal.md');
+      expect(result.stdout).toContain('[-] design: design.md');
+      expect(result.stdout).toContain('requires: proposal');
     });
 
     it('shows status for a change with proposal only', async () => {
@@ -138,14 +220,21 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['status', '--change', 'complete-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('4/4 artifacts complete');
-      expect(result.stdout).toContain('All artifacts complete!');
+      expect(result.stdout).toContain('ready');
+      expect(result.stderr).toBe('');
+      const json = JSON.parse((await runCLI(['status', '--change', 'complete-change', '--json'], { cwd: tempDir })).stdout);
+      for (const artifact of json.artifacts) {
+        expect(result.stdout).toContain(`${artifact.id}: ${artifact.outputPath}`);
+        for (const output of artifact.outputs) expect(result.stdout).toContain(output);
+        if (artifact.completionMarker) expect(result.stdout).toContain(artifact.completionMarker.path);
+      }
     });
 
     it('exits gracefully when no changes exist', async () => {
       const result = await runCLI(['status'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('No active changes');
-      expect(result.stdout).toContain('xirang new change');
+
     });
 
     it('exits gracefully with JSON when no changes exist', async () => {
@@ -154,7 +243,7 @@ describe('artifact-workflow CLI commands', () => {
 
       const json = JSON.parse(result.stdout);
       expect(json.changes).toEqual([]);
-      expect(json.message).toBe('No active changes.');
+      expect(json).toEqual({ changes: [] });
     });
 
     it('errors when --change is missing and lists available changes', async () => {
@@ -220,120 +309,6 @@ describe('artifact-workflow CLI commands', () => {
     });
   });
 
-  describe('instructions command', () => {
-    it('shows instructions for proposal on scaffolded change', async () => {
-      // Create empty change directory (no proposal.md)
-      const changeDir = path.join(changesDir, 'scaffolded-change');
-      await fs.mkdir(changeDir, { recursive: true });
-
-      const result = await runCLI(['instructions', 'proposal', '--change', 'scaffolded-change'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('<artifact id="proposal"');
-      expect(result.stdout).toContain('proposal.md');
-      expect(result.stdout).toContain('<definition>');
-      expect(result.stdout.indexOf('<definition>')).toBeLessThan(result.stdout.indexOf('<instruction>'));
-      expect(result.stdout.indexOf('<definition>')).toBeLessThan(result.stdout.indexOf('<template>'));
-      expect(result.stdout).toContain('Do not copy this definition into the artifact.');
-      expect(result.stdout).toContain('<current_state completed="false">');
-      expect(result.stdout).toContain('No current artifact outputs.');
-      expect(result.stdout).toContain('<template>');
-    });
-
-    it('shows instructions for design artifact', async () => {
-      await createTestChange('instr-change');
-
-      const result = await runCLI(['instructions', 'design', '--change', 'instr-change'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('<artifact id="design"');
-      expect(result.stdout).toContain('design.md');
-      expect(result.stdout).toContain('<template>');
-    });
-
-    it('shows blocked warning for artifact with unmet dependencies', async () => {
-      // tasks depends on design and specs, which are not done yet
-      await createTestChange('blocked-change');
-
-      const result = await runCLI(['instructions', 'tasks', '--change', 'blocked-change'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('<warning>');
-      expect(result.stdout).toContain('status="missing"');
-    });
-
-    it('outputs JSON for instructions', async () => {
-      await createTestChange('json-instr', ['proposal', 'design']);
-
-      const result = await runCLI(['instructions', 'design', '--change', 'json-instr', '--json'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe('');
-
-      const json = JSON.parse(result.stdout);
-      expect(json.artifactId).toBe('design');
-      expect(json.outputPath).toContain('design.md');
-      expect(typeof json.template).toBe('string');
-      expect(json.definition).toEqual(expect.objectContaining({
-        purpose: expect.any(String),
-        compilationRole: expect.any(String),
-        content: expect.any(Object),
-        writePolicy: 'agent-authored',
-        validation: expect.any(Array),
-      }));
-      expect(Array.isArray(json.dependencies)).toBe(true);
-      expect(json.currentState).toEqual({
-        completed: true,
-        outputs: [expect.stringContaining('design.md')],
-      });
-    });
-
-    it('outputs the coarse task template for tasks instructions', async () => {
-      await createTestChange('tasks-instr', ['proposal', 'design', 'specs']);
-
-      const result = await runCLI(['instructions', 'tasks', '--change', 'tasks-instr', '--json'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.artifactId).toBe('tasks');
-      expect(json.template).toContain('## Goals');
-      expect(json.template).toContain('Contract:');
-      expect(json.template).toContain('Verify:');
-      expect(json.template).not.toContain('**Files**:');
-      expect(json.template).not.toContain('#### Checks');
-      expect(json.instruction).toContain('goal-level');
-      expect(json.instruction).not.toContain('Test action:');
-    });
-
-    it('errors when artifact argument is missing', async () => {
-      await createTestChange('test-change');
-
-      const result = await runCLI(['instructions', '--change', 'test-change'], { cwd: tempDir });
-      expect(result.exitCode).toBe(1);
-      const output = getOutput(result);
-      expect(output).toContain('Missing required argument <artifact>');
-      expect(output).toContain('Valid artifacts');
-    });
-
-    it('errors for unknown artifact', async () => {
-      await createTestChange('test-change');
-
-      const result = await runCLI(['instructions', 'unknown-artifact', '--change', 'test-change'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(1);
-      const output = getOutput(result);
-      expect(output).toContain("Artifact 'unknown-artifact' not found");
-      expect(output).toContain('Valid artifacts');
-    });
-  });
-
   describe('templates command', () => {
     it('shows template paths for default schema', async () => {
       const result = await runCLI(['templates'], { cwd: tempDir });
@@ -377,7 +352,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['new', 'change', 'my-new-feature'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
       const output = getOutput(result);
-      expect(output).toContain("Created change 'my-new-feature'");
+      expect(output).toBe('');
 
       const changeDir = path.join(changesDir, 'my-new-feature');
       const stat = await fs.stat(changeDir);
@@ -401,7 +376,7 @@ describe('artifact-workflow CLI commands', () => {
       const result = await runCLI(['new', 'change', 'invalid name'], { cwd: tempDir });
       expect(result.exitCode).toBe(1);
       const output = getOutput(result);
-      expect(output).toContain('Error');
+      expect(output).toContain('cannot contain spaces');
     });
 
     it('errors for duplicate change name', async () => {
@@ -419,309 +394,11 @@ describe('artifact-workflow CLI commands', () => {
     });
   });
 
-  describe('instructions apply command', () => {
-    it('shows apply instructions for semantic-model schema with tasks', async () => {
-      await createTestChange('apply-change', ['proposal', 'design', 'specs', 'tasks']);
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'apply-change'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('## Apply: apply-change');
-      expect(result.stdout).toContain('Schema: semantic-model');
-      expect(result.stdout).toContain('### Context Files');
-      expect(result.stdout).toContain('### Instruction');
-    });
-
-    it('shows blocked state when required artifacts are missing', async () => {
-      // Only create proposal - missing tasks (required by semantic-model apply block)
-      await createTestChange('blocked-apply', ['proposal']);
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'blocked-apply'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Blocked');
-      expect(result.stdout).toContain('Missing artifacts: tasks');
-      expect(result.stdout).toContain('Return to the Propose workflow');
-      expect(result.stdout).not.toContain('Use the xirang-apply-change skill to create');
-    });
-
-    it('outputs JSON for apply instructions', async () => {
-      await createTestChange('json-apply', ['proposal', 'design', 'specs', 'tasks']);
-      await fs.writeFile(
-        path.join(tempDir, '.xirang', 'config.yaml'),
-        `schema: semantic-model
-proseLanguage: 中文
-apply:
-  defaultIsolation: branch
-git:
-  merge:
-    strategy: no-ff
-    messageFrom: artifacts
-  branch:
-    deleteAfterArchive: false
-rules: {}
-`,
-        'utf-8'
-      );
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'json-apply', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toBe('');
-
-      const json = JSON.parse(result.stdout);
-      const expectedProposalPath = await fs.realpath(path.join(changesDir, 'json-apply', 'proposal.md'));
-      const expectedSpecPath = await fs.realpath(
-        path.join(changesDir, 'json-apply', 'elements', 'test-element.md')
-      );
-      expect(json.changeName).toBe('json-apply');
-      expect(json.schemaName).toBe('semantic-model');
-      expect(json.state).toBe('ready');
-      expect(json.contextFiles).toBeDefined();
-      expect(typeof json.contextFiles).toBe('object');
-      expect(json.contextFiles.proposal).toEqual([expectedProposalPath]);
-      expect(json.contextFiles.specs).toEqual([expectedSpecPath]);
-      expect(json.configProjection).not.toHaveProperty('normalized');
-      expect(json.configProjection.prompt).not.toHaveProperty('compiledLines');
-      expect(result.stdout.split('Use 中文 for natural-language prose')).toHaveLength(2);
-      expect(json.configProjection.prompt.fragments).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
-          expect.objectContaining({ key: 'apply', scope: 'global', lines: ['apply.defaultIsolation: branch'] }),
-        ])
-      );
-    });
-
-    it('prints config projection in text apply instructions', async () => {
-      await createTestChange('text-apply-projection', ['proposal', 'design', 'specs', 'tasks']);
-      await fs.writeFile(
-        path.join(tempDir, '.xirang', 'config.yaml'),
-        `schema: semantic-model
-proseLanguage: 中文
-apply:
-  defaultIsolation: worktree
-rules: {}
-`,
-        'utf-8'
-      );
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'text-apply-projection'], {
-        cwd: tempDir,
-      });
-
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('<config_projection>');
-      expect(result.stdout).toContain('<fragment key="proseLanguage" scope="global">');
-      expect(result.stdout).toContain('Use 中文 for natural-language prose');
-      expect(result.stdout).toContain('apply.defaultIsolation: worktree');
-    });
-
-    it('rejects legacy task layouts during apply preparation', async () => {
-      const changeDir = await createTestChange('legacy-apply', ['proposal', 'design', 'specs', 'tasks']);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '### Task 1: Legacy\\n\\n**Files**:\\n- Modify: `src/example.ts`\\n');
-      const result = await runCLI(['instructions', 'apply', '--change', 'legacy-apply', '--json'], { cwd: tempDir });
-      expect(result.exitCode).toBe(0);
-      const json = JSON.parse(result.stdout);
-      expect(json.progress).toEqual({ total: 0, complete: 0, remaining: 0 });
-      expect(json.state).toBe('blocked');
-    });
-
-    it('tracks target-level goals as apply progress', async () => {
-      const changeDir = await createTestChange('goal-apply', ['proposal', 'design', 'specs', 'tasks']);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Complete first goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: behavior is complete\n- [ ] G2: Complete second goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: behavior is complete\n');
-      const result = await runCLI(['instructions', 'apply', '--change', 'goal-apply', '--json'], { cwd: tempDir });
-      expect(result.exitCode).toBe(0);
-      const json = JSON.parse(result.stdout);
-      expect(json.progress).toEqual({ total: 2, complete: 1, remaining: 1 });
-      expect(json.tasks).toEqual([
-        { id: 'G1', description: 'Complete first goal', done: true },
-        { id: 'G2', description: 'Complete second goal', done: false },
-      ]);
-    });
-
-    it('rejects project-local schemas for apply instructions', async () => {
-      const schemaDir = path.join(tempDir, '.xirang', 'schemas', 'custom');
-      await fs.mkdir(schemaDir, { recursive: true });
-      await fs.writeFile(path.join(schemaDir, 'schema.yaml'), 'name: custom\nversion: 1\nartifacts: []\n');
-      const changeDir = path.join(changesDir, 'custom-schema-change');
-      await fs.mkdir(changeDir, { recursive: true });
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'custom-schema-change', '--schema', 'custom', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(1);
-      expect(getOutput(result)).toContain('Available schemas:');
-      expect(getOutput(result)).toContain('semantic-model');
-    });
-
-    it('shows schema instruction from apply block', async () => {
-      await createTestChange('instr-apply', ['proposal', 'design', 'specs', 'tasks']);
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'instr-apply'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      // Should show the instruction from semantic-model schema apply block
-      expect(result.stdout).toContain('establish credible evidence that the behavior is unmet');
-      expect(result.stdout).toContain('Non-runtime artifact changes require final-state evidence');
-      expect(result.stdout).not.toContain('Test action:');
-    });
-
-    it('shows needs_review state when all tasks are complete but no review is recorded', async () => {
-      const changeDir = await createTestChange('done-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      // Overwrite tasks with all completed
-      await fs.writeFile(
-        path.join(changeDir, 'tasks.md'),
-        '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.'
-      );
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'done-apply'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Review Required');
-      expect(result.stdout).toContain('full-change Review');
-    });
-
-    it('outputs needs_review state in JSON when all tasks are complete but no review is recorded', async () => {
-      const changeDir = await createTestChange('done-apply-json', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'done-apply-json', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_review');
-      expect(json.instruction).toContain('full-change Review');
-    });
-
-    it('outputs needs_optimize state in JSON when the optimization loop is not finalized', async () => {
-      const changeDir = await createTestChange('needs-seal-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
-      await createBaselineOnlyQualityFixture(tempDir, changeDir);
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'needs-seal-apply', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_optimize');
-      expect(json.instruction).toContain('Opt disposition or Seal');
-    });
-
-    it('reports needs_review after rotation even when history holds a matching pass', async () => {
-      const changeDir = await createTestChange('rotated-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
-      await createCompleteQualityFixture(tempDir, changeDir);
-
-      const historyDir = path.join(changeDir, '.quality-history', '20260101T000000000Z-rotation');
-      await fs.mkdir(historyDir, { recursive: true });
-      for (const file of ['.quality.json']) {
-        await fs.rename(path.join(changeDir, file), path.join(historyDir, file));
-      }
-
-      const result = await runCLI(['instructions', 'apply', '--change', 'rotated-apply', '--json'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('needs_review');
-      expect(json.instruction).not.toContain('all done');
-    });
-
-    it('outputs all_done state in JSON when the quality record is clean and archive-compatible', async () => {
-      const changeDir = await createTestChange('all-done-apply', [
-        'proposal',
-        'design',
-        'specs',
-        'tasks',
-      ]);
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
-      await createCompleteQualityFixture(tempDir, changeDir);
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'all-done-apply', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      expect(json.state).toBe('all_done');
-      expect(json.instruction).toContain('ready to be archived');
-    });
-
-    it('uses semantic-model schema apply configuration', async () => {
-      // Create a semantic-model style change with all artifacts
-      await createTestChange('apply-schema-test', ['proposal', 'design', 'specs', 'tasks']);
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'apply-schema-test', '--schema', 'semantic-model'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Schema: semantic-model');
-    });
-
-    it('semantic-model schema uses apply block configuration', async () => {
-      // Verify that semantic-model schema uses its apply block (requires: [tasks])
-      await createTestChange('apply-config-test', ['proposal', 'design', 'specs', 'tasks']);
-
-      const result = await runCLI(
-        ['instructions', 'apply', '--change', 'apply-config-test', '--json'],
-        { cwd: tempDir }
-      );
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      // semantic-model schema has apply block with requires: [tasks], so should be ready
-      expect(json.schemaName).toBe('semantic-model');
-      expect(json.state).toBe('ready');
-    });
-
-  });
-
   describe('help text', () => {
     it('status command help shows description', async () => {
       const result = await runCLI(['status', '--help']);
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('Display artifact completion status');
-    });
-
-    it('instructions command help shows description', async () => {
-      const result = await runCLI(['instructions', '--help']);
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Output enriched instructions');
     });
 
     it('templates command help shows description', async () => {
@@ -742,250 +419,6 @@ rules: {}
       const result = await runCLI(['experimental'], { cwd: tempDir });
       expect(result.exitCode).toBe(1);
       expect(getOutput(result)).toContain("unknown command 'experimental'");
-    });
-  });
-
-  describe('project config integration', () => {
-    describe('new change uses config schema', () => {
-      it('creates change with schema from project config', async () => {
-        // Create project config with semantic-model schema
-        // Note: changesDir is already at tempDir/.xirang/changes (created in beforeEach)
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          'schema: semantic-model\n'
-        );
-
-        // Create a new change without specifying schema
-        const result = await runCLI(['new', 'change', 'test-change'], { cwd: tempDir, timeoutMs: 30000 });
-        expect(result.exitCode).toBe(0);
-
-        // Verify the change was created with semantic-model schema
-        const metadataPath = path.join(changesDir, 'test-change', '.xirang.yaml');
-        const metadata = await fs.readFile(metadataPath, 'utf-8');
-        expect(metadata).toContain('schema: semantic-model');
-      }, 60000);
-
-      it('CLI schema overrides config schema', async () => {
-        // Create project config with semantic-model schema
-        // Note: xirang directory already exists (from changesDir creation in beforeEach)
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          'schema: semantic-model\n'
-        );
-
-        // Create change with explicit schema
-        const result = await runCLI(
-          ['new', 'change', 'override-test', '--schema', 'semantic-model'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result.exitCode).toBe(0);
-
-        // Verify the change uses the CLI-specified schema
-        const metadataPath = path.join(changesDir, 'override-test', '.xirang.yaml');
-        const metadata = await fs.readFile(metadataPath, 'utf-8');
-        expect(metadata).toContain('schema: semantic-model');
-      }, 60000);
-    });
-
-    describe('instructions command with config', () => {
-      it('injects context and matching rules once in text and JSON instructions', async () => {
-        // Create project config with context and rules
-        // Note: xirang directory already exists (from changesDir creation in beforeEach)
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: semantic-model
-proseLanguage: zh-CN
-context: |
-  Tech stack: TypeScript, React
-  API style: RESTful
-rules:
-  proposal:
-    - Include rollback plan
-    - Identify affected teams
-  design:
-    - Design-only instruction marker
-`
-        );
-
-        // Create a test change
-        await createTestChange('config-test');
-
-        // Get instructions for proposal
-        const result = await runCLI(
-          ['instructions', 'proposal', '--change', 'config-test'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result.exitCode).toBe(0);
-
-        for (const value of ['Tech stack: TypeScript, React', 'API style: RESTful', 'Include rollback plan', 'Identify affected teams']) {
-          expect(result.stdout.split(value)).toHaveLength(2);
-        }
-        expect(result.stdout).toContain('<project_context>');
-        expect(result.stdout).toContain('<rules>');
-        expect(result.stdout).toContain('<config_projection>');
-        expect(result.stdout).not.toContain('<fragment key="context"');
-        expect(result.stdout).not.toContain('<fragment key="rules"');
-        expect(result.stdout).not.toContain('Design-only instruction marker');
-
-        const jsonResult = await runCLI(
-          ['instructions', 'proposal', '--change', 'config-test', '--json'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(jsonResult.exitCode).toBe(0);
-        for (const value of ['Tech stack: TypeScript, React', 'API style: RESTful', 'Include rollback plan', 'Identify affected teams', 'Use zh-CN for natural-language prose']) {
-          expect(jsonResult.stdout.split(value)).toHaveLength(2);
-        }
-        expect(jsonResult.stdout).not.toContain('Design-only instruction marker');
-        const json = JSON.parse(jsonResult.stdout);
-        expect(json).not.toHaveProperty('context');
-        expect(json).not.toHaveProperty('rules');
-        expect(json.configProjection).not.toHaveProperty('normalized');
-        expect(json.configProjection.prompt).not.toHaveProperty('compiledLines');
-        expect(json.configProjection.prompt.fragments).toEqual(expect.arrayContaining([
-          expect.objectContaining({ key: 'context', scope: 'global' }),
-          expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Include rollback plan', 'Identify affected teams'] }),
-        ]));
-      }, 60000);
-
-      it('does not inject rules for non-matching artifact', async () => {
-        // Create project config with rules only for proposal
-        // Note: xirang directory already exists (from changesDir creation in beforeEach)
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: semantic-model
-rules:
-  proposal:
-    - Include rollback plan
-`
-        );
-
-        // Create a test change
-        await createTestChange('non-matching-test');
-
-        // Get instructions for design (not proposal)
-        const result = await runCLI(
-          ['instructions', 'design', '--change', 'non-matching-test'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result.exitCode).toBe(0);
-
-        // Verify rules are NOT injected for design
-        expect(result.stdout).not.toContain('Include rollback plan');
-      }, 60000);
-    });
-
-    describe('backwards compatibility', () => {
-      it('existing changes work without config file', async () => {
-        // Create change without any config file
-        await createTestChange('no-config-change', ['proposal']);
-
-        // Status command should work
-        const statusResult = await runCLI(
-          ['status', '--change', 'no-config-change'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(statusResult.exitCode).toBe(0);
-        expect(statusResult.stdout).toContain('no-config-change');
-        expect(statusResult.stdout).toContain('semantic-model'); // Default schema
-
-        // Instructions command should work
-        const instrResult = await runCLI(
-          ['instructions', 'design', '--change', 'no-config-change'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(instrResult.exitCode).toBe(0);
-        expect(instrResult.stdout).toContain('<artifact');
-      }, 60000);
-
-      it('changes with metadata work without config file', async () => {
-        // Create change with explicit schema in metadata
-        const changeDir = await createTestChange('metadata-only-change');
-        await fs.writeFile(
-          path.join(changeDir, '.xirang.yaml'),
-          'schema: semantic-model\ncreated: "2025-01-05"\n'
-        );
-
-        // Status should use schema from metadata
-        const result = await runCLI(
-          ['status', '--change', 'metadata-only-change'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('semantic-model');
-      }, 60000);
-    });
-
-    describe('config changes reflected immediately', () => {
-      it('config changes are reflected without restart', async () => {
-        // Create initial config
-        // Note: xirang directory already exists (from changesDir creation in beforeEach)
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: semantic-model
-context: Initial context
-`
-        );
-
-        // Create a test change
-        await createTestChange('immediate-test');
-
-        // Get instructions - should have initial context
-        const result1 = await runCLI(
-          ['instructions', 'proposal', '--change', 'immediate-test'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result1.exitCode).toBe(0);
-        expect(result1.stdout).toContain('Initial context');
-
-        // Update config
-        await fs.writeFile(
-          path.join(tempDir, '.xirang', 'config.yaml'),
-          `schema: semantic-model
-context: Updated context
-`
-        );
-
-        // Get instructions again - should have updated context
-        const result2 = await runCLI(
-          ['instructions', 'proposal', '--change', 'immediate-test'],
-          { cwd: tempDir, timeoutMs: 30000 }
-        );
-        expect(result2.exitCode).toBe(0);
-        expect(result2.stdout).toContain('Updated context');
-        expect(result2.stdout).not.toContain('Initial context');
-      }, 60000);
-    });
-  });
-
-  describe('tasks instructions content', () => {
-    it('includes deletion and refactor conversion rules', async () => {
-      await createTestChange('delete-refactor-change', ['proposal', 'specs', 'design']);
-
-      const result = await runCLI(['instructions', 'tasks', '--change', 'delete-refactor-change', '--json'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      const instruction = json.instruction;
-
-      expect(instruction).toContain('Do not prescribe files, tests, test actions, commands');
-      expect(instruction).toContain('Use goal checkboxes as the only ordinary progress markers');
-      expect(instruction).toContain('Apply chooses and records no specific test arrangement');
-    });
-
-    it('describes non-runtime text fast path', async () => {
-      await createTestChange('text-change', ['proposal', 'specs', 'design']);
-
-      const result = await runCLI(['instructions', 'tasks', '--change', 'text-change', '--json'], {
-        cwd: tempDir,
-      });
-      expect(result.exitCode).toBe(0);
-
-      const json = JSON.parse(result.stdout);
-      const instruction = json.instruction;
-
-      expect(instruction).toContain('Apply chooses and records no specific test arrangement');
     });
   });
 });

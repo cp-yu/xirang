@@ -1,3 +1,4 @@
+import { diagnostic } from '../../../utils/output.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -63,17 +64,13 @@ export class FishInstaller {
             success: true,
             installedPath: targetPath,
             message: 'Completion script is already installed (up to date)',
-            instructions: [
-              'The completion script is already installed and up to date.',
-              'Fish automatically loads completions - they should be available immediately.',
-            ],
           };
         }
         // File exists but content is different - this is an update
         isUpdate = true;
       } catch (error: any) {
         // File doesn't exist or can't be read, proceed with installation
-        console.debug(`Unable to read existing completion file at ${targetPath}: ${error.message}`);
+        if (error.code !== 'ENOENT') diagnostic(`Unable to read existing completion file at ${targetPath}: ${error.message}`, 'COMPLETION_WARNING');
       }
 
       // Ensure the directory exists
@@ -101,10 +98,6 @@ export class FishInstaller {
         installedPath: targetPath,
         backupPath,
         message,
-        instructions: [
-          'Fish automatically loads completions from ~/.config/fish/completions/',
-          'Completions are available immediately - no shell restart needed.',
-        ],
       };
     } catch (error) {
       return {

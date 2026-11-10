@@ -1,6 +1,8 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { parseDesignRecord } from '../record/document.js';
+import { validateCoverageSnapshot } from '../record/coverage.js';
 import { RECORD_COVERAGE_FILE, RECORD_SOURCE_FILE } from '../record/paths.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from '../model/paths.js';
@@ -269,6 +271,28 @@ function validateMetadata(files: CandidateSnapshotFile[], diagnostics: ChangeDia
   }
 }
 
+function validateRecordProvenance(files: CandidateSnapshotFile[], diagnostics: ChangeDiagnostic[]): void {
+  const source = files.find(file => file.path === RECORD_SOURCE_FILE);
+  let document: ReturnType<typeof parseDesignRecord> | undefined;
+  if (source) {
+    try {
+      document = parseDesignRecord(source.bytes.toString('utf8'));
+      if (document.payload.context !== 'build') throw new Error('Candidate provenance requires a Build record.');
+    } catch (error) {
+      diagnostics.push(diagnostic('CANDIDATE_RECORD_SOURCE', RECORD_SOURCE_FILE, (error as Error).message));
+    }
+  }
+  const coverage = files.find(file => file.path === RECORD_COVERAGE_FILE);
+  if (coverage) {
+    try {
+      const issues = validateCoverageSnapshot(JSON.parse(coverage.bytes.toString('utf8')), source && document ? { bytes: source.bytes, document } : undefined);
+      for (const issue of issues) diagnostics.push(diagnostic('CANDIDATE_RECORD_COVERAGE', RECORD_COVERAGE_FILE, issue.message));
+    } catch (error) {
+      diagnostics.push(diagnostic('CANDIDATE_RECORD_COVERAGE', RECORD_COVERAGE_FILE, (error as Error).message));
+    }
+  }
+}
+
 function digestEntries(files: CandidateSnapshotFile[]): CandidateDigestEntry[] {
   return files
     .filter(file => file.path === 'build.md' || RECORD_FILES.has(file.path) || isPartitionFile(file.path))
@@ -311,6 +335,7 @@ export async function validateCandidateDirectory(
   validateLayout(files, diagnostics);
   validateText(files, diagnostics);
   validateMetadata(files, diagnostics);
+  validateRecordProvenance(files, diagnostics);
   const entries = digestEntries(files);
   const reviewDigest = computeCandidateDigest(entries);
 

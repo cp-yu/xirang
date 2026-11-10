@@ -51,11 +51,11 @@ async function validateChangeTarget(projectRoot: string, changeName: string): Pr
 export type RecordConsumeTarget = RecordTarget;
 
 export async function consumeRecord(
-  projectRoot: string, explorationId: string, target: RecordConsumeTarget, sourceVersion: string,
+  projectRoot: string, explorationId: string, target: RecordConsumeTarget,
   filesystem: RecordTransferFileSystem = fs,
 ): Promise<RecordConsumeResult> {
   const source = await showRecord(projectRoot, explorationId);
-  if (!sourceVersion || source.sourceVersion !== sourceVersion) fail('SOURCE_VERSION_MISMATCH', 'Reload the current source and repeat coverage review before consuming');
+  const sourceVersion = source.sourceVersion;
   const isCandidate = assertExplicitTarget(target);
   if (source.document.payload.context !== (isCandidate ? 'build' : 'change')) fail('CONTEXT_MISMATCH', 'Build and Change records use separate formation contexts');
   const targetDirectory = () => isCandidate

@@ -27,7 +27,7 @@ export const XIRANG_PHILOSOPHY = `
 export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
 **Structural Decomposition Guidance**
 
-- Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
+- Before forming or reorganizing an Element hierarchy, run \`xirang config project --select decomposition --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
 - Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
@@ -142,14 +142,15 @@ export const XIRANG_SHARED_CONTEXT = `
 - Use \`identity\` as the only way to reference a semantic object. FQN, syntax position, and derived local names are generation artifacts and never appear in a persistent source.
 - Read relevant parent and children as abstraction/refinement context. Do not assume a fixed element-kind hierarchy or treat nesting as ownership.
 - An Element Contract is the body of its Element unit: one Element has at most one Contract, expressed as \`## Specification\`, and whether a Contract is required comes from the \`contract\` field of its Element Kind.
-- Use \`xirang arch outline --format json\` as the navigation projection: it returns the complete Element hierarchy without Definitions, Relationships, or Metamodel unless explicitly selected.
+- Prefer \`xirang arch outline --format markdown\` for reading the complete Element hierarchy; expand Definitions, Relationships or Metamodel only when needed. Use JSON when a program needs exact fields.
 - Use \`xirang arch impact <identity> --depth <n> --json\` for identity-only refinement context and a relationship summary. Use \`--paths\` only when relationship paths are needed; impact never returns Element Definitions or Contracts.
 - Use \`xirang arch query <identity> --json\` for the complete Declaration of a selected identity; add \`--contract\` only when that Element Contract is needed. Batch only the selected identities whose semantics answer the current question.
 - Before expanding a read or issuing a batch, state the concrete question it must answer and include only the identities or file ranges required for that question. Start discovery with \`xirang arch search <query> --limit <n>\`.
 - For code evidence, locate symbols or definitions first with LSP or \`rg\`, then read the smallest relevant implementation range. For tests, locate the test that owns the behavior before opening test files; do not read whole directories by default.
 - Use concurrency only for bounded, independent reads. Do not emit or retain raw nested JSON when a concise projection or selected fields answer the question.
 - If a tool truncates output, treat it as incomplete: narrow the query or split it into bounded reads, then retrieve and verify the missing portion before relying on the result.
-- If specific semantic context is missing, query that identity rather than expanding every identity returned by impact. If global model understanding is lost after context compression, session switch, or a model diagnostic, run \`xirang arch snapshot --format json\` for the full Declaration/Relationship/Metamodel baseline, then query only required Contracts.
+- If specific semantic context is missing, query that identity rather than expanding every identity returned by impact. If global model understanding is lost after context compression or session switch, recover with \`xirang arch outline --format markdown\` and selected semantic reads. Use \`xirang arch snapshot --format json\` only when those reads cannot recover the needed global state or a model diagnostic requires the full Declaration/Relationship/Metamodel baseline; then query only required Contracts.
+- Before authoring or revising artifacts, load \`.xirang/references/xirang-configuration-use.md\` once and follow its configuration-use protocol; reuse it while current.
 - The Agent MUST NOT guess missing Definition or Contract semantics from identity, title, an old summary, residual conversation context, or implementation evidence.
 - Default unit naming is \`elements/<identity>.md\`, \`metamodel/<kind identity>.md\`, \`views/<view identity>.md\`, and \`relationships/<relationship kind identity>.yaml\` grouped by Relationship Kind; a change reuses these names under \`.xirang/changes/<name>/\`. Directory and file names carry no model semantics: every entry declares its own \`entity\` and \`identity\`, and loading locates entries by those, never by path.
 - Treat code paths, symbols, imports, and calls from CodeGraph or ACE/\`rg\`/\`read\` as current implementation evidence only; do not promote them to elements or relationships without declared model intent.
@@ -174,7 +175,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 | \`authored-view\` | \`identity\`, \`include\`; optional \`exclude\`, \`of\`, \`title\`, \`autoLayout\` |
 
 - \`identity\` uses \`[A-Za-z0-9._-]+\`, contains no path separator, and does not encode parent hierarchy
-- Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
+- Before writing, follow the matching artifact reference Guidance after reading its Definition; query status and selected configuration only when needed
 - Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read \`design.md\` for architecture decisions and the formal Xirang Semantic Model as current semantic state
 - Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Sections, Relationships, Kinds, and Views
@@ -203,6 +204,7 @@ export const QUALITY_ERROR_RECOVERY_GUIDE = renderQualityErrorRecovery();
  */
 export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 **Document Language Contract**:
-- Follow the returned \`configProjection.prompt\` for prose language and canonical-token boundaries; do not reinterpret raw config.
-- Keep the template structure unchanged. If no \`proseLanguage\` projection is present, keep the default writing behavior for prose.
+- Follow the shared configuration-use protocol in \`.xirang/references/xirang-configuration-use.md\`; load it once before authoring and reuse it while current.
+- Query effective \`proseLanguage\` through \`xirang config project --select proseLanguage --json\` once and after relevant configuration changes. Use it for newly authored natural-language prose; preserve IDs, schema keys, paths, commands, SHALL/MUST and canonical template/Section headings.
+- Keep the template structure unchanged. If no \`proseLanguage\` value is present, keep the default writing behavior for prose.
 `.trim();

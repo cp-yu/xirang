@@ -17,8 +17,8 @@ Use a todo checklist when available: evidence → applicable decisions → confi
 Before a ready Summary:
 - Resolve contradictions, vague boundaries, and target-affecting pending choices. User agreement is required to exclude or defer in-scope behavior. Correct source-determined expression or reasoning errors yourself; ask for new or changed decisions.
 - Exercise relevant boundary/competing-event sequences against the design, and check necessary experimental evidence, testing strategy, risks and semantic impact coverage.
-- Pass the shared Design Record **Record decision and Summary gate**. It owns complete latest-record reload, capture completeness, conflicts and version binding.
+- Pass the shared Design Record **Record decision and Summary gate**. It owns complete latest-record reload, capture completeness, conflicts and filename handoff.
 
-Present the Design Summary in the conversation only. Preserve confirmed scope, behavior, rationale, conditions, numbers, exceptions, timing and acceptance outcomes, with applicable architecture, technology, testing and risks. Distinguish confirmed decisions, recommendations, unresolved items and user-approved exclusions. When record-backed, identify explorationId without copying the record or exposing sourceVersion. Do not create a separate decision ledger.
+Present the Design Summary in the conversation only. Preserve confirmed scope, behavior, rationale, conditions, numbers, exceptions, timing and acceptance outcomes, with applicable architecture, technology, testing and risks. Distinguish confirmed decisions, recommendations, unresolved items and user-approved exclusions. When record-backed, identify its filename without copying the record. Do not create a separate decision ledger.
 
 Stop after presenting the Summary for user review. User changes return to the affected design section and dependent checks. Only after the user accepts the Summary may they trigger xirang-propose; Explore does not author a complete Change, update formal model/generated work surfaces, commit or implement. Design Record operations and delegated experimental writes follow their own permissions.

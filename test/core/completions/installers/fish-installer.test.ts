@@ -90,9 +90,7 @@ complete -c xirang -a 'init' -d 'Initialize Xirang'
       expect(result.message).toBe('Completion script installed successfully for Fish');
       expect(result.installedPath).toBe(path.join(testHomeDir, '.config', 'fish', 'completions', 'xirang.fish'));
       expect(result.backupPath).toBeUndefined();
-      expect(result.instructions).toHaveLength(2);
-      expect(result.instructions![0]).toContain('Fish automatically loads completions');
-      expect(result.instructions![1]).toContain('Completions are available immediately');
+      expect(result.instructions).toBeUndefined();
     });
 
     it('should create parent directories if they do not exist', async () => {
@@ -121,7 +119,7 @@ complete -c xirang -a 'init' -d 'Initialize Xirang'
 
       expect(result.success).toBe(true);
       expect(result.message).toBe('Completion script is already installed (up to date)');
-      expect(result.instructions![0]).toContain('already installed and up to date');
+      expect(result.instructions).toBeUndefined();
       expect(result.backupPath).toBeUndefined();
     });
 
@@ -209,14 +207,11 @@ complete -c xirang -a 'validate' -d 'Validate specs'
       expect(result.message).toContain('Failed to install completion script');
     });
 
-    it('should provide appropriate instructions for Fish', async () => {
+    it('needs no activation instructions for Fish', async () => {
       const result = await installer.install(mockCompletionScript);
 
       expect(result.success).toBe(true);
-      expect(result.instructions).toBeDefined();
-      expect(result.instructions).toHaveLength(2);
-      expect(result.instructions![0]).toContain('~/.config/fish/completions/');
-      expect(result.instructions![1]).toContain('no shell restart needed');
+      expect(result.instructions).toBeUndefined();
     });
 
     it('should handle empty completion script', async () => {

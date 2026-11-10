@@ -10,7 +10,7 @@ describe('reviewer subagent template', () => {
 
     expect(prompt).toContain(XIRANG_PHILOSOPHY);
     expect(prompt).toContain(XIRANG_SHARED_CONTEXT);
-    expect(prompt).toContain('xirang arch outline --format json');
+    expect(prompt).toContain('xirang arch outline --format markdown');
     expect(prompt).toContain('xirang arch impact <identity> --depth <n> --json');
     expect(prompt).toContain('xirang arch query <identity> --json');
     expect(prompt).toContain('--contract');

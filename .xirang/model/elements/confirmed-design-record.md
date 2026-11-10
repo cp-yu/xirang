@@ -45,14 +45,13 @@ definition: 中间设计记录是 Design Record 维护的当前设计制品，�
 
 ### Section: 保持稳定身份与最新状态
 
-记录 SHALL 使用不可变 explorationId、可变 slug 和稳定条目及结构对象身份，表达最新实际设计及其决策状态。修订局部更新并保留无关内容，不累积相互冲突的对话版本，不要求 revision history 或整体 readiness 字段。记录级 sourceVersion 覆盖完整内容，不增加条目级版本。
+Record SHALL 以文件名称作为唯一标识符，条目与结构对象保留各自稳定语义 identity。记录 SHALL 表达最新设计与决策状态，局部更新保留无关内容，不累积相互冲突的对话版本，不要求 revision history 或整体 readiness，不引入记录或条目修订号。
 
-- 重命名 slug 后 explorationId 及未变条目身份不变。
-- 获用户允许修订已采纳条目时保存最新内容，不并列保留冲突版本，也不通过降为 pending 绕过确认。
+重命名后使用新文件名，未变条目身份不变。获用户允许修订已采纳条目时保存最新内容，不并列保留冲突版本，也不通过降为 pending 绕过确认。记录内容指纹 SHALL 由 coverage/consume 内部计算并校验，不要求用户或 Agent 抄传。
 
 ### Section: 保存相关 Semantic Model 基准快照
 
-记录 SHALL 保存 CLI 计算的来源版本标识及相关上下文基准，以区分捕获时不存在的 formal model、存在且有效的模型及之后上下文变化。相关语义身份包括结构部分的对象及显式关联的 identity，SHALL NOT 以自然语言猜测完整依赖范围；CLI 比较能确定的上下文变化，其结果不是语义覆盖证明。
+记录 SHALL 保存 相关 Semantic Model 上下文基准，以区分捕获时不存在的 formal model、存在且有效的模型及之后上下文变化。相关语义身份包括结构部分的对象及显式关联的 identity，SHALL NOT 以自然语言猜测完整依赖范围；CLI 比较能确定的上下文变化，其结果不是语义覆盖证明。
 
 - **首次 Build 无正式模型**
 

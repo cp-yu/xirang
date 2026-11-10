@@ -6,7 +6,9 @@ import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { formatCandidateValidation } from '../../src/commands/candidate.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
+import { runCLI } from '../helpers/run-cli.js';
 import { parseSemanticModel } from '../../src/core/model/parser.js';
+import { recordCoverage } from '../../src/core/record/coverage.js';
 import { createRecord } from '../../src/core/record/workspace.js';
 import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { semanticModelFingerprint } from '../../src/core/semantic-diff.js';
@@ -71,42 +73,89 @@ describe('Candidate validation', () => {
     });
   });
 
-  it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
-    const record = await createRecord(root, 'source', {
+  async function provenance() {
+    const record = await createRecord(root, 'source.md', {
       schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
       entries: [{ identity: 'scope', nature: 'normative', decision: 'accepted', content: 'Preserve the confirmed exception.' }],
     }, await readRecordSemanticContext(root, 'build'));
-    const source = path.join(candidate, 'record-source.md');
-    await fs.writeFile(source, record.bytes);
+    await recordCoverage(root, 'source.md', { candidate: true }, {
+      entries: [{ identity: 'scope', result: 'covered', details: [{
+        detail: 'Confirmed scope', location: { element: 'project.root' }, quote: 'Candidate validation test project.',
+      }] }],
+    });
+    const coveragePath = path.join(candidate, 'record-coverage.json');
+    return { record, sourcePath: path.join(candidate, 'record-source.md'), coveragePath,
+      coverage: JSON.parse(await fs.readFile(coveragePath, 'utf8')) };
+  }
+
+  it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
+    const { record, sourcePath, coveragePath, coverage } = await provenance();
+    // Coverage precedes source copying during consume.
+    expect((await validateCandidate(root)).valid).toBe(true);
+    await fs.writeFile(sourcePath, record.bytes);
     const tree = await readTree(root);
     const first = await validateCandidate(root);
     expect(first.valid).toBe(true);
-    expect(first.inventory.files).toContain('record-source.md');
+    expect(first.inventory.files).toEqual(expect.arrayContaining(['record-source.md', 'record-coverage.json']));
     expect(first.diff?.summary.total).toBe(0);
     expect((await validateCandidate(root)).reviewDigest).toBe(first.reviewDigest);
     expect(await readTree(root)).toEqual(tree);
-    await fs.writeFile(source, record.bytes.toString('utf8').replace('confirmed exception', 'confirmed timing'));
+    await fs.writeFile(coveragePath, JSON.stringify({ ...coverage, recordedAt: '2030-01-01T00:00:00.000Z' }) + '\n');
+    expect((await validateCandidate(root)).reviewDigest).not.toBe(first.reviewDigest);
+    // Historical locations, quotes and target fingerprints do not constrain later model edits.
+    const unit = path.join(candidate, 'elements', 'project.root.md');
+    await fs.writeFile(unit, (await fs.readFile(unit, 'utf8')).replace('Candidate validation test project.', 'Revised project definition.'));
+    expect((await validateCandidate(root)).valid).toBe(true);
+    await fs.rm(coveragePath);
+    const sourceOnly = await validateCandidate(root);
+    expect(sourceOnly.valid).toBe(true);
+    await fs.writeFile(sourcePath, record.bytes.toString('utf8').replace('confirmed exception', 'confirmed timing'));
     const changed = await validateCandidate(root);
     expect(changed.valid).toBe(true);
-    expect(changed.reviewDigest).not.toBe(first.reviewDigest);
-    // Historical snapshots are opaque provenance; current record format gates apply before consume.
-    await fs.writeFile(source, record.bytes.toString('utf8').replace('schemaVersion: 4', 'schemaVersion: 3'));
-    const historical = await validateCandidate(root);
-    expect(historical.valid).toBe(true);
-    expect(historical.reviewDigest).not.toBe(first.reviewDigest);
-    await fs.writeFile(source, record.bytes);
-    const coverage = path.join(candidate, 'record-coverage.json');
-    await fs.writeFile(coverage, '{"schemaVersion":1}\n');
-    const covered = await validateCandidate(root);
-    expect(covered.valid).toBe(true);
-    expect(covered.inventory.files).toContain('record-coverage.json');
-    expect(covered.reviewDigest).not.toBe(first.reviewDigest);
-    await fs.writeFile(coverage, '{"schemaVersion":2}\n');
-    expect((await validateCandidate(root)).reviewDigest).not.toBe(covered.reviewDigest);
-    await fs.writeFile(path.join(candidate, 'framing-source.md'), record.bytes);
-    expect((await validateCandidate(root)).diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'CANDIDATE_FILE_UNEXPECTED', path: 'framing-source.md' }),
-    ]));
+    expect(changed.reviewDigest).not.toBe(sourceOnly.reviewDigest);
+  });
+
+  it.each([
+    ['missing fields', { schemaVersion: 1 }],
+    ['unsupported version', { schemaVersion: 2 }],
+    ['unsafe filename', { filename: '../source.md' }],
+    ['unbound source', { sourceVersion: '0'.repeat(64) }],
+    ['invalid target fingerprint', { targetFingerprint: 'invalid' }],
+    ['invalid timestamp', { recordedAt: 'invalid' }],
+    ['missing dispositions', { entries: [] }],
+    ['unknown source entry', { entries: [{ identity: 'unknown', result: 'not-applicable', reason: 'test' }] }],
+    ['malformed detail', { entries: [{ identity: 'scope', result: 'covered', details: [{}] }] }],
+  ])('rejects %s in provenance without rewriting files or issuing a digest', async (reason, patch) => {
+    const { record, sourcePath, coveragePath, coverage } = await provenance();
+    await fs.writeFile(sourcePath, record.bytes);
+    await fs.writeFile(coveragePath, JSON.stringify(reason === 'missing fields' ? patch : { ...coverage, ...patch }) + '\n');
+    const before = await readTree(root);
+    const result = await validateCandidate(root);
+    expect(result.valid).toBe(false);
+    expect(result.reviewDigest).toBeUndefined();
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: 'CANDIDATE_RECORD_COVERAGE', path: 'record-coverage.json' }));
+    expect(await readTree(root)).toEqual(before);
+  });
+
+  it.each([
+    ['malformed source', 'not a design record\n'],
+    ['unsupported source version', 'version'],
+    ['wrong formation context', 'context'],
+    ['malformed coverage JSON', 'json'],
+    ['changed bound source bytes', 'bytes'],
+  ])('rejects %s on the CLI without a usable digest', async (_reason, mutation) => {
+    const { record, sourcePath, coveragePath } = await provenance();
+    await fs.writeFile(sourcePath, mutation === 'version' ? record.bytes.toString('utf8').replace('schemaVersion: 4', 'schemaVersion: 3')
+      : mutation === 'context' ? record.bytes.toString('utf8').replace('context: build', 'context: change')
+      : mutation === 'bytes' ? record.bytes.toString('utf8').replace('confirmed exception', 'confirmed timing')
+      : mutation === 'json' ? record.bytes : mutation);
+    if (mutation === 'json') await fs.writeFile(coveragePath, '{invalid}\n');
+    const before = await readTree(root);
+    const result = await runCLI(['candidate', 'validate', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('CANDIDATE_RECORD_');
+    expect(await readTree(root)).toEqual(before);
   });
 
   it('reports unavailable comparison without invalidating the first Formal Candidate', async () => {
@@ -144,6 +193,9 @@ describe('Candidate validation', () => {
 
     expect(result.valid).toBe(true);
     expect(result.comparison).toMatchObject({ baseline: 'formal', diff: 'available' });
+    const details = await runCLI(['candidate', 'validate', '--details'], { cwd: root });
+    expect(details.exitCode).toBe(0);
+    for (const content of ['added', 'project.root', 'obsolete', 'ADDED', 'MODIFIED', 'REMOVED', 'Candidate validation test project.', 'Changed candidate validation test project.']) expect(details.stdout).toContain(content);
     expect(result.diff?.entries).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'element-declaration', identity: 'added', operation: 'ADDED' }),
       expect.objectContaining({ kind: 'element-declaration', identity: 'project.root', operation: 'MODIFIED' }),

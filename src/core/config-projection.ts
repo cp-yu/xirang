@@ -54,17 +54,9 @@ export interface ProjectionScope {
 }
 
 export interface ProjectionFragment {
-  key: 'proseLanguage' | 'context' | 'decomposition' | 'rules' | 'git' | 'apply' | 'architecture';
+  key: 'proseLanguage' | 'context' | 'rules' | 'git';
   scope: 'global' | 'artifact';
   lines: string[];
-}
-
-export interface PromptProjection {
-  surface: string;
-  artifactId?: string;
-  fragments: ProjectionFragment[];
-  compiledLines: string[];
-  canonicalTokenPolicy: CanonicalTokenPolicy;
 }
 
 export interface RuntimeProjection {
@@ -77,15 +69,6 @@ export interface RuntimeProjection {
   forbidHardcodedEnglishBoilerplate: boolean;
   affectsFingerprint: boolean;
   canonicalTokenPolicy: CanonicalTokenPolicy;
-}
-
-export interface InstructionConfigProjection {
-  prompt: Omit<PromptProjection, 'compiledLines'>;
-}
-
-export interface ConfigProjectionBundle {
-  normalized: NormalizedProjectConfig;
-  prompt: PromptProjection;
 }
 
 const CANONICAL_TOKEN_POLICY: CanonicalTokenPolicy = {
@@ -101,7 +84,6 @@ const CANONICAL_TOKEN_POLICY: CanonicalTokenPolicy = {
 
 interface ProjectionRule {
   key: ProjectionFragment['key'];
-  buildPrompt: (config: NormalizedProjectConfig, scope: ProjectionScope) => ProjectionFragment | null;
   buildRuntime: (config: NormalizedProjectConfig, scope: ProjectionScope) => ProjectionFragment | null;
   affectsFingerprint: (config: NormalizedProjectConfig, scope: ProjectionScope) => boolean;
 }
@@ -128,8 +110,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     Object.entries(config.rules ?? {})
       .map(([artifactId, items]) => {
         const normalizedItems = items
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0);
+          .filter((item) => item.trim().length > 0);
         return [artifactId.trim(), normalizedItems] as const;
       })
       .filter(([artifactId, items]) => artifactId.length > 0 && items.length > 0)
@@ -138,7 +119,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
   return {
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
-    context: normalizeString(config.context),
+    context: config.context,
     decomposition: config.decomposition ? resolveDecompositionPath(config.decomposition) : undefined,
     architecture,
     optimization: config.optimization
@@ -222,17 +203,6 @@ function buildGitProjectionLines(git: NonNullable<NormalizedProjectConfig['git']
 const projectionRules: ProjectionRule[] = [
   {
     key: 'proseLanguage',
-    buildPrompt(config) {
-      if (!config.proseLanguage) {
-        return null;
-      }
-
-      return {
-        key: 'proseLanguage',
-        scope: 'global',
-        lines: buildProseLanguageLines(config.proseLanguage),
-      };
-    },
     buildRuntime(config) {
       if (!config.proseLanguage) {
         return null;
@@ -250,17 +220,6 @@ const projectionRules: ProjectionRule[] = [
   },
   {
     key: 'context',
-    buildPrompt(config) {
-      if (!config.context) {
-        return null;
-      }
-
-      return {
-        key: 'context',
-        scope: 'global',
-        lines: [config.context],
-      };
-    },
     buildRuntime(config) {
       if (!config.context) {
         return null;
@@ -277,30 +236,7 @@ const projectionRules: ProjectionRule[] = [
     },
   },
   {
-    key: 'decomposition',
-    buildPrompt(config, scope) {
-      if (!config.decomposition || !['build', 'explore', 'propose', 'snack'].includes(scope.surface)) {
-        return null;
-      }
-
-      return {
-        key: 'decomposition',
-        scope: 'global',
-        lines: [`decomposition: ${config.decomposition}`],
-      };
-    },
-    buildRuntime() {
-      return null;
-    },
-    affectsFingerprint() {
-      return false;
-    },
-  },
-  {
     key: 'rules',
-    buildPrompt(config, scope) {
-      return buildArtifactRulesFragment(config, scope);
-    },
     buildRuntime(config, scope) {
       return buildArtifactRulesFragment(config, scope);
     },
@@ -310,17 +246,6 @@ const projectionRules: ProjectionRule[] = [
   },
   {
     key: 'git',
-    buildPrompt(config, scope) {
-      if (scope.surface !== 'archive' || !config.git) {
-        return null;
-      }
-
-      return {
-        key: 'git',
-        scope: 'global',
-        lines: buildGitProjectionLines(config.git),
-      };
-    },
     buildRuntime(config, scope) {
       if (scope.runtimeConsumer !== 'archive' || !config.git) {
         return null;
@@ -336,79 +261,7 @@ const projectionRules: ProjectionRule[] = [
       return false;
     },
   },
-  {
-    key: 'apply',
-    buildPrompt(config, scope) {
-      if (scope.surface !== 'apply' || !config.apply) {
-        return null;
-      }
-
-      return {
-        key: 'apply',
-        scope: 'global',
-        lines: [
-          `apply.defaultIsolation: ${config.apply.defaultIsolation}`,
-        ],
-      };
-    },
-    buildRuntime() {
-      return null;
-    },
-    affectsFingerprint() {
-      return false;
-    },
-  },
-  {
-    key: 'architecture',
-    buildPrompt(config) {
-      return {
-        key: 'architecture',
-        scope: 'global',
-        lines: [
-          `architecture.outline.elementDefinitionDepth: ${config.architecture.outline.elementDefinitionDepth}`,
-        ],
-      };
-    },
-    buildRuntime() {
-      return null;
-    },
-    affectsFingerprint() {
-      return false;
-    },
-  },
 ];
-
-function compilePromptProjection(
-  normalized: NormalizedProjectConfig,
-  scope: { surface: string; artifactId?: string }
-): PromptProjection {
-  const fragments = projectionRules
-    .map((rule) => rule.buildPrompt(normalized, scope))
-    .filter((fragment): fragment is ProjectionFragment => fragment !== null);
-
-  return {
-    surface: scope.surface,
-    artifactId: scope.artifactId,
-    fragments,
-    compiledLines: fragments.flatMap((fragment) => fragment.lines),
-    canonicalTokenPolicy: CANONICAL_TOKEN_POLICY,
-  };
-}
-
-export function projectConfigForPrompt(
-  config: ProjectConfig | null,
-  scope: { surface: string; artifactId?: string }
-): PromptProjection {
-  return compilePromptProjection(normalizeProjectConfig(config), scope);
-}
-
-export function projectConfigForInstructions(
-  config: ProjectConfig | null,
-  scope: { surface: string; artifactId?: string }
-): InstructionConfigProjection {
-  const { compiledLines, ...prompt } = projectConfigForPrompt(config, scope);
-  return { prompt };
-}
 
 export function projectConfigForRuntime(
   config: ProjectConfig | null,
@@ -434,18 +287,6 @@ export function projectConfigForRuntime(
     forbidHardcodedEnglishBoilerplate: Boolean(normalized.proseLanguage),
     affectsFingerprint: projectionRules.some((rule) => rule.affectsFingerprint(normalized, runtimeScope)),
     canonicalTokenPolicy: CANONICAL_TOKEN_POLICY,
-  };
-}
-
-export function buildConfigProjectionBundle(
-  config: ProjectConfig | null,
-  scope: { surface: string; artifactId?: string }
-): ConfigProjectionBundle {
-  const normalized = normalizeProjectConfig(config);
-
-  return {
-    normalized,
-    prompt: compilePromptProjection(normalized, scope),
   };
 }
 

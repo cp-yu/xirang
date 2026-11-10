@@ -249,6 +249,17 @@ local function restoreView(view)
   if vim.api.nvim_win_is_valid(view.focus) then vim.api.nvim_set_current_win(view.focus) end
 end
 
+local function failure(result)
+  local ok, data = pcall(vim.json.decode, result.stderr or '')
+  if ok and type(data) == 'table' then
+    if data.message then return data.message end
+    local messages = {}
+    for _, issue in ipairs(data.issues or data.diagnostics or {}) do messages[#messages + 1] = issue.message or issue.code or tostring(issue) end
+    if #messages > 0 then return table.concat(messages, '; ') end
+  end
+  return result.stderr and result.stderr ~= '' and result.stderr or 'CLI request failed'
+end
+
 local function refresh(session, initial)
   if session.saving then return end
   saveTargetDraft(session)
@@ -264,14 +275,15 @@ local function refresh(session, initial)
       local ok, data = pcall(vim.json.decode, result.stdout or '')
       if result.code ~= 0 or not ok or not data.valid then
         if initial then
-          notify('Change review is invalid: ' .. session.change, vim.log.levels.ERROR)
+          notify(failure(result), vim.log.levels.ERROR)
           session.closed = true
           stop(session)
           if vim.api.nvim_tabpage_is_valid(session.tab) then pcall(vim.api.nvim_set_current_tabpage, session.tab); vim.cmd('tabclose!') end
           return
         end
         session.groups = { elements = {}, metamodel = {}, relationships = {}, views = {} }
-        session.diagnostics = data and data.diagnostics or {}
+        local diagnosticsOk, diagnostics = pcall(vim.json.decode, result.stderr or '')
+        session.diagnostics = diagnosticsOk and (diagnostics.issues or diagnostics.diagnostics or { { message = diagnostics.message } }) or { { message = failure(result) } }
         for _, b in ipairs({ session.left, session.right }) do
           if vim.api.nvim_buf_is_valid(b) then
             vim.bo[b].modifiable = true
@@ -286,7 +298,7 @@ local function refresh(session, initial)
           pcall(vim.api.nvim_win_call, session.rightWin, function() vim.cmd('diffoff') end)
         end
         renderList(session)
-        notify('Change review became invalid: ' .. session.change, vim.log.levels.ERROR)
+        notify(failure(result), vim.log.levels.ERROR)
         return
       end
       local groups = { elements = {}, metamodel = {}, relationships = {}, views = {} }
@@ -343,8 +355,9 @@ local function save(session, request)
       saveTargetDraft(session)
       session.saving = false
       local ok, data = pcall(vim.json.decode, result.stdout or '')
-      if result.code ~= 0 or not ok or not data.ok then
-        session.saveError = ok and data.message or result.stderr or '保存失败'
+      if result.code == 0 and (result.stdout or ''):match('^%s*$') then ok, data = true, {} end
+      if result.code ~= 0 or not ok or type(data) ~= 'table' then
+        session.saveError = failure(result)
         vim.b[session.right].xirang_review_status = '保存失败'
         vim.wo[session.rightWin].statusline = ' Xirang | 保存失败'
         notify(session.saveError, vim.log.levels.ERROR)
@@ -379,6 +392,7 @@ local function open(change)
     local argv = vim.deepcopy(defaults.cli)
     vim.list_extend(argv, { 'list', '--json' })
     local result = vim.system(argv, { cwd = cwd, text = true }):wait()
+    if result.code ~= 0 then notify(failure(result), vim.log.levels.ERROR); return end
     local ok, data = pcall(vim.json.decode, result.stdout or '')
     if not ok or not data.changes or #data.changes == 0 then notify('No active Changes found.', vim.log.levels.WARN); return end
     vim.ui.select(data.changes, { prompt = 'Xirang Change', format_item = function(item) return item.name end }, function(item)
@@ -485,10 +499,10 @@ function M.setup(opts)
   defaults.runner = opts.runner
   vim.api.nvim_create_user_command('XirangReview', function(command) open(command.args ~= '' and command.args or nil) end, { nargs = '?' })
   vim.api.nvim_create_autocmd('BufWritePost', { callback = function(event)
-    local path = vim.api.nvim_buf_get_name(event.buf)
+    local path = vim.fs.normalize(vim.api.nvim_buf_get_name(event.buf))
     for _, session in pairs(sessions) do
-      if path:find(vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change), 1, true)
-        or path:find(vim.fs.joinpath(session.cwd, '.xirang', 'model'), 1, true) then refresh(session, false) end
+      if path:find(vim.fs.normalize(vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change)), 1, true)
+        or path:find(vim.fs.normalize(vim.fs.joinpath(session.cwd, '.xirang', 'model')), 1, true) then refresh(session, false) end
     end
   end })
 end

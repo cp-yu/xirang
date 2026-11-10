@@ -13,7 +13,7 @@ import {
   XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
 
-const ARTIFACT_INSTRUCTION_CONTRACT = `For each response, follow the authoring order in the returned \`instruction\`. Keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs; do not copy non-artifact inputs into the artifact.`;
+const ARTIFACT_INSTRUCTION_CONTRACT = `Use each artifact reference in Definition, Guidance, Template order. Keep static guidance, selected configuration, dependency status and target content separate; do not copy non-artifact inputs into artifacts.`;
 
 export function getSnackSkillTemplate(): SkillTemplate {
   return {
@@ -70,22 +70,22 @@ ${XIRANG_SHARED_CONTEXT}
    - If no structural fact changes, set the compatible Architecture Source scope to \`None\`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile \`proposal.md\`.
-   - Run \`xirang instructions proposal --change "<name>" --json\`.
+   - Read \`.xirang/references/xirang-artifact-proposal.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact proposal --select proseLanguage --select context --select rules --json\`.
    - Reconcile \`## Source Impact\` from the Contract and structural scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings and reference Elements by \`identity\`.
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve \`## Why\`, \`## What Changes\`, \`## Source Impact\`, and \`## Impact\`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in \`elements/<identity>.md\`.
-   - Run \`xirang instructions specs --change "<name>" --json\`.
+   - Read \`.xirang/references/xirang-artifact-specs.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact specs --select proseLanguage --select context --select rules --json\`.
    - Create or update only the identities declared by the Contract scope. The default unit name is \`<identity>.md\`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned \`## ADDED Sections\`, \`## MODIFIED Sections\`, and \`## REMOVED Sections\` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.
-   - Run \`xirang instructions design --change "<name>" --json\`.
+   - Read \`.xirang/references/xirang-artifact-design.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact design --select proseLanguage --select context --select rules --json\`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
    ${ARCHITECTURE_GENERATE_DELTA}
    - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
-13. Run \`xirang validate --change "<name>" --json\`. On ERROR/WARNING, repair once from artifact instructions, validate once more, and report the final result.
+13. Run \`xirang validate --change "<name>" --preview --json\` and review the effective-diff entries against implementation evidence before completion. On ERROR/WARNING, repair once from artifact guidance, rerun the command, review the final preview, and report the final result.
 14. Finish with the output hints. Do NOT generate a presentation artifact or run a separate Diff command.
 
 ## Output Hints

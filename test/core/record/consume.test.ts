@@ -33,16 +33,14 @@ async function setup(changeName = 'sample', contextKind: 'build' | 'change' = 'c
     entries: [{ identity: 'limit', nature: 'normative', decision: 'accepted' as const, content: '最多 5 本，闭馆日顺延。' }],
     structure: { elements: [], relationships: [], elementKinds: [], relationshipKinds: [] },
   } satisfies import('../../../src/core/record/types.js').DesignRecordPayload;
-  const record = await createRecord(root, 'sample', payload, context, {
-    now: new Date('2026-07-29T12:00:00Z'), randomHex: 'a1b2c3d4',
-  });
+  const record = await createRecord(root, 'sample.md', payload, context);
   return { root, changeName, record };
 }
 
 type Target = { change: string } | { candidate: true };
 const coverage = { entries: [{ identity: 'limit', result: 'covered', details: [{ detail: '最多 5 本', location: { element: 'root' }, quote: 'Project root definition.' }] }] };
-async function cover(root: string, record: { document: { metadata: { explorationId: string } }; sourceVersion: string }, target: Target) {
-  return recordCoverage(root, record.document.metadata.explorationId, target, record.sourceVersion, coverage);
+async function cover(root: string, record: { path: string; sourceVersion: string }, target: Target) {
+  return recordCoverage(root, path.basename(record.path), target, coverage);
 }
 
 async function validChange(root: string, changeName: string): Promise<string> {
@@ -55,14 +53,14 @@ async function validChange(root: string, changeName: string): Promise<string> {
 describe('record consume', () => {
   it('consumes an explicit active Candidate and binds the source bytes to its digest', async () => {
     const { root, record } = await setup('build', 'build');
-    const id = record.document.metadata.explorationId;
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    const id = path.basename(record.path);
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'INVALID_CANDIDATE_PATH' });
     await expect(fs.access(record.absolutePath)).resolves.toBeUndefined();
     await initializeCandidate(root, { kind: 'current' });
     await cover(root, record, { candidate: true });
     const before = await validateCandidate(root);
-    const result = await consumeRecord(root, id, { candidate: true }, record.sourceVersion);
+    const result = await consumeRecord(root, id, { candidate: true });
     expect(result.path).toBe('.xirang/candidate/record-source.md');
     expect(await fs.readFile(path.join(root, result.path))).toEqual(record.bytes);
     const after = await validateCandidate(root);
@@ -74,20 +72,18 @@ describe('record consume', () => {
   it('preserves Candidate and source on invalid target, conflicting snapshot, or stale source', async () => {
     const { root, record } = await setup('build', 'build');
     await initializeCandidate(root, { kind: 'current' });
-    const id = record.document.metadata.explorationId;
+    const id = path.basename(record.path);
     const destination = path.join(root, '.xirang', 'candidate', 'record-source.md');
     const build = path.join(root, '.xirang', 'candidate', 'build.md');
     await fs.writeFile(build, 'invalid  \r\n');
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'CANDIDATE_VALIDATION_FAILED' });
     await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
     await fs.writeFile(build, 'valid\n');
     await fs.writeFile(destination, 'existing snapshot\n');
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'PROVENANCE_CONFLICT' });
     expect(await fs.readFile(destination, 'utf8')).toBe('existing snapshot\n');
-    await expect(consumeRecord(root, id, { candidate: true }, '0'.repeat(64)))
-      .rejects.toMatchObject({ code: 'SOURCE_VERSION_MISMATCH' });
     expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
   });
 
@@ -97,7 +93,7 @@ describe('record consume', () => {
     const destination = path.join(root, '.xirang', 'candidate', 'record-source.md');
     await fs.writeFile(destination, record.bytes);
     await cover(root, record, { candidate: true });
-    const result = await consumeRecord(root, record.document.metadata.explorationId, { candidate: true }, record.sourceVersion);
+    const result = await consumeRecord(root, path.basename(record.path), { candidate: true });
     expect(result.recovered).toBe(true);
     expect(await fs.readFile(destination)).toEqual(record.bytes);
     await expect(fs.access(record.absolutePath)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -122,21 +118,21 @@ describe('record consume', () => {
     };
     const target = contextKind === 'build' ? { candidate: true as const } : { change: changeName };
     await cover(root, record, target);
-    await expect(consumeRecord(root, record.document.metadata.explorationId, target, record.sourceVersion, filesystem))
+    await expect(consumeRecord(root, path.basename(record.path), target, filesystem))
       .rejects.toMatchObject({ code: 'PROVENANCE_MISSING' });
     expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
     await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
-    await consumeRecord(root, record.document.metadata.explorationId, target, record.sourceVersion);
+    await consumeRecord(root, path.basename(record.path), target);
     expect(await fs.readFile(destination)).toEqual(record.bytes);
     await expect(fs.access(record.absolutePath)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
   it('rejects ambiguous targets and cross-context consumption', async () => {
     const { root, record } = await setup();
-    const id = record.document.metadata.explorationId;
-    await expect(consumeRecord(root, id, { candidate: true, change: 'sample' } as any, record.sourceVersion))
+    const id = path.basename(record.path);
+    await expect(consumeRecord(root, id, { candidate: true, change: 'sample' } as any))
       .rejects.toMatchObject({ code: 'INVALID_CONSUME_TARGET' });
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'CONTEXT_MISMATCH' });
     expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
   });
@@ -148,22 +144,23 @@ describe('record consume', () => {
     const outside = path.join(root, 'outside');
     await fs.rename(candidate, outside);
     await fs.symlink(outside, candidate, 'dir');
-    const id = record.document.metadata.explorationId;
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    const id = path.basename(record.path);
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'INVALID_CANDIDATE_PATH' });
     await fs.unlink(candidate);
     await fs.rename(outside, candidate);
     await fs.symlink(record.absolutePath, path.join(candidate, 'record-source.md'));
-    await expect(consumeRecord(root, id, { candidate: true }, record.sourceVersion))
+    await expect(consumeRecord(root, id, { candidate: true }))
       .rejects.toMatchObject({ code: 'INVALID_CANDIDATE_PATH' });
     expect(await fs.readFile(record.absolutePath)).toEqual(record.bytes);
   });
 
-  it('拒绝过期的来源版本，保留来源和目标', async () => {
+  it('rejects source bytes changed after coverage and preserves source and target', async () => {
     const { root, changeName, record } = await setup();
     const changeDir = await validChange(root, changeName);
-    await expect(consumeRecord(root, record.document.metadata.explorationId, { change: changeName }, '0'.repeat(64)))
-      .rejects.toMatchObject({ code: 'SOURCE_VERSION_MISMATCH' });
+    await cover(root, record, { change: changeName });
+    await fs.writeFile(record.absolutePath, record.bytes.toString().replace('最多 5 本', '最多 6 本'));
+    await expect(consumeRecord(root, path.basename(record.path), { change: changeName })).rejects.toMatchObject({ code: 'COVERAGE_STALE' });
     await expect(fs.access(record.absolutePath)).resolves.toBeUndefined();
     await expect(fs.access(path.join(changeDir, 'record-source.md'))).rejects.toMatchObject({ code: 'ENOENT' });
   });
@@ -175,7 +172,7 @@ describe('record consume', () => {
 operation: ADDED
 ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
     });
-    await expect(consumeRecord(root, record.document.metadata.explorationId, { change: changeName }, record.sourceVersion))
+    await expect(consumeRecord(root, path.basename(record.path), { change: changeName }))
       .rejects.toMatchObject({ code: 'CHANGE_VALIDATION_FAILED' });
     await expect(fs.access(record.absolutePath)).resolves.toBeUndefined();
     await expect(fs.access(path.join(changeDir, 'record-source.md'))).rejects.toMatchObject({ code: 'ENOENT' });
@@ -186,7 +183,7 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
     const changeDir = await validChange(root, changeName);
     await cover(root, record, { change: changeName });
     const before = await fs.readFile(record.absolutePath);
-    const result = await consumeRecord(root, record.document.metadata.explorationId, { change: changeName }, record.sourceVersion);
+    const result = await consumeRecord(root, path.basename(record.path), { change: changeName });
     expect(result.path).toBe(`.xirang/changes/${changeName}/record-source.md`);
     expect(await fs.readFile(path.join(changeDir, 'record-source.md'))).toEqual(before);
     await expect(fs.access(record.absolutePath)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -200,7 +197,7 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
     await fs.cp(changeDir, outside, { recursive: true });
     await fs.rm(changeDir, { recursive: true });
     await fs.symlink(outside, changeDir, 'dir');
-    await expect(consumeRecord(root, record.document.metadata.explorationId, { change: changeName }, record.sourceVersion)).rejects.toMatchObject({
+    await expect(consumeRecord(root, path.basename(record.path), { change: changeName })).rejects.toMatchObject({
       code: 'INVALID_CHANGE_PATH',
     });
     await expect(fs.access(record.absolutePath)).resolves.toBeUndefined();
@@ -212,13 +209,13 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
     const source = await fs.readFile(recovered.record.absolutePath);
     await fs.writeFile(path.join(recoverDir, 'record-source.md'), source);
     await cover(recovered.root, recovered.record, { change: recovered.changeName });
-    await consumeRecord(recovered.root, recovered.record.document.metadata.explorationId, { change: recovered.changeName }, recovered.record.sourceVersion);
+    await consumeRecord(recovered.root, path.basename(recovered.record.path), { change: recovered.changeName });
     await expect(fs.access(recovered.record.absolutePath)).rejects.toMatchObject({ code: 'ENOENT' });
 
     const conflict = await setup('conflict');
     const conflictDir = await validChange(conflict.root, conflict.changeName);
     await fs.writeFile(path.join(conflictDir, 'record-source.md'), 'different', 'utf8');
-    await expect(consumeRecord(conflict.root, conflict.record.document.metadata.explorationId, { change: conflict.changeName }, conflict.record.sourceVersion))
+    await expect(consumeRecord(conflict.root, path.basename(conflict.record.path), { change: conflict.changeName }))
       .rejects.toMatchObject({ code: 'PROVENANCE_CONFLICT' });
     await expect(fs.access(conflict.record.absolutePath)).resolves.toBeUndefined();
   });
@@ -226,24 +223,24 @@ ${elementUnit({ identity: 'bad', kind: 'missing' }).slice(4)}`,
   it('无覆盖结果或覆盖后 Delta 改变时拒绝，修改 tasks.md 不使其过期', async () => {
     const { root, changeName, record } = await setup('gate');
     const changeDir = await validChange(root, changeName);
-    const id = record.document.metadata.explorationId;
-    await expect(consumeRecord(root, id, { change: changeName }, record.sourceVersion)).rejects.toMatchObject({ code: 'COVERAGE_MISSING' });
+    const id = path.basename(record.path);
+    await expect(consumeRecord(root, id, { change: changeName })).rejects.toMatchObject({ code: 'COVERAGE_MISSING' });
     await cover(root, record, { change: changeName });
     await fs.writeFile(path.join(changeDir, 'elements', 'new.md'), `---\noperation: ADDED\n${elementUnit({ identity: 'new', title: 'New', definition: 'Changed capability.' }).slice(4)}`);
-    await expect(consumeRecord(root, id, { change: changeName }, record.sourceVersion)).rejects.toMatchObject({ code: 'COVERAGE_STALE' });
+    await expect(consumeRecord(root, id, { change: changeName })).rejects.toMatchObject({ code: 'COVERAGE_STALE' });
     await expect(fs.access(record.absolutePath)).resolves.toBeUndefined();
     await expect(fs.access(path.join(changeDir, 'record-source.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     await cover(root, record, { change: changeName });
     await fs.writeFile(path.join(changeDir, 'tasks.md'), '');
-    await expect(consumeRecord(root, id, { change: changeName }, record.sourceVersion)).resolves.toMatchObject({ recovered: false });
+    await expect(consumeRecord(root, id, { change: changeName })).resolves.toMatchObject({ recovered: false });
   });
 
   it('Change 结构不一致时在 coverage 阶段拒绝并逐项报告', async () => {
     const { root, changeName, record } = await setup('structure');
     await validChange(root, changeName);
-    const id = record.document.metadata.explorationId;
+    const id = path.basename(record.path);
     const context = await readRecordSemanticContext(root, 'change');
-    const updated = await updateRecord(root, id, { structure: { upsert: { elements: [{ identity: 'new', parent: 'root', title: 'Other' }], elementKinds: [{ identity: 'domain', removed: true }] } } }, record.sourceVersion, context);
+    const updated = await updateRecord(root, id, { structure: { upsert: { elements: [{ identity: 'new', parent: 'root', title: 'Other' }], elementKinds: [{ identity: 'domain', removed: true }] } } }, context);
     await expect(cover(root, updated.record, { change: changeName })).rejects.toMatchObject({
       code: 'STRUCTURE_MISMATCH',
       diagnostics: [

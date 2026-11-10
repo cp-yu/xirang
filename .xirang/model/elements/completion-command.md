@@ -93,7 +93,9 @@ The completion system SHALL automatically detect the user's current shell enviro
   - `$SHELL` contains `fish` in the path
   - detect shell as `fish`
   - proceed with fish-specific completion logic
+
 ### Section: Completion Generation
+
 Completion command SHALL 为所有 supported shells 生成来自当前 Commander.js command tree 的 completion scripts，并 SHALL 反映 setup、Candidate 与 Project Build 的当前 surface。
 
 - **所有 shell 暴露当前 commands**
@@ -114,7 +116,9 @@ Completion command SHALL 为所有 supported shells 生成来自当前 Commander
   - `init` SHALL complete its starting-point options
   - `validate` SHALL complete `--json`
   - `promote` SHALL complete `--digest`
+
 ### Section: Dynamic Completions
+
 Dynamic completion SHALL 继续为 change IDs 与 Element identity 提供 project-aware suggestions，并 SHALL NOT 从 Candidate 或 history 推断 formal identifiers。
 
 - **Formal ID completion**
@@ -173,6 +177,7 @@ The completion implementation SHALL follow clean architecture principles，通�
   - define a `SupportedShell` type as literal type: `'zsh' | 'bash' | 'fish' | 'powershell'`
   - implement `detectShell()` function in `src/utils/shell-detection.ts`
   - 返回 `{ shell, detected }`；shell 解析或支持性错误由 `CompletionCommand` 层以支持的 shell 列表报出
+
 ### Section: Completion 安装
 
 `xirang completion install [shell]` SHALL 为自动检测或显式指定的 shell 安装 completion script，支持 `--yes` 跳过确认、`--verbose` 详细输出与 marker-based 配置修改。
@@ -220,7 +225,7 @@ The completion implementation SHALL follow clean architecture principles，通�
   - create custom completions directory at `~/.oh-my-zsh/custom/completions/` if it doesn't exist
   - write completion script to `~/.oh-my-zsh/custom/completions/_xirang`
   - ensure `~/.oh-my-zsh/custom/completions` is in `$fpath` by updating `~/.zshrc` if needed
-  - display success message with instruction to run `exec zsh` or restart terminal
+  - 仅交付使变更生效所必需的 `exec zsh` 或终端重启提示
 
 - **Installing for standard Zsh**
   - user executes `xirang completion install zsh` and Oh My Zsh is not detected
@@ -228,7 +233,7 @@ The completion implementation SHALL follow clean architecture principles，通�
   - write completion script to `~/.zsh/completions/_xirang`
   - add `fpath=(~/.zsh/completions $fpath)` to `~/.zshrc` if not already present
   - add `autoload -Uz compinit && compinit` to `~/.zshrc` if not already present
-  - display success message with instruction to run `exec zsh` or restart terminal
+  - 仅交付使变更生效所必需的 `exec zsh` 或终端重启提示
 
 - **Installing for Bash with bash-completion**
   - user executes `xirang completion install bash`
@@ -236,7 +241,8 @@ The completion implementation SHALL follow clean architecture principles，通�
   - 写入 completion 到 `~/.local/share/bash-completion/completions/xirang`
   - 以 marker（`# Xirang:START`/`# Xirang:END`）在 `~/.bashrc` 中 source 该文件
   - 未检测到 bash-completion 时显示 warning 并建议 `brew install bash-completion@2`
-  - display success message with instruction to run `exec bash` or restart terminal
+  - 仅交付使变更生效所必需的 `exec bash` 或终端重启提示
+
 ### Section: Completion 卸载
 
 `xirang completion uninstall [shell]` SHALL 移除已安装的 completion script，支持 `--yes` 跳过确认与 marker-based 清理。
@@ -269,27 +275,28 @@ The completion implementation SHALL follow clean architecture principles，通�
   - if user confirms, remove `~/.oh-my-zsh/custom/completions/_xirang` if Oh My Zsh is detected
   - remove `~/.zsh/completions/_xirang` if standard Zsh setup is detected
   - remove fpath modifications from `~/.zshrc` using marker-based removal
-  - display success message
+  - 成功无必要结果时静默
 
 - **Uninstalling Bash completion**
   - user executes `xirang completion uninstall bash`
   - prompt for confirmation (unless `--yes` flag provided)
   - if user confirms, remove completion file from bash-completion directory or `~/.bash_completion.d/`
   - remove sourcing lines from `~/.bashrc` using marker-based removal
-  - display success message
+  - 成功无必要结果时静默
 
 - **Uninstalling Fish completion**
   - user executes `xirang completion uninstall fish`
   - prompt for confirmation (unless `--yes` flag provided)
   - if user confirms, remove `~/.config/fish/completions/xirang.fish`
-  - display success message (no config file modification needed)
+  - 成功无必要结果时静默（无需修改配置文件）
 
 - **Uninstalling PowerShell completion**
   - user executes `xirang completion uninstall powershell`
   - prompt for confirmation (unless `--yes` flag provided)
   - if user confirms, remove completion import from PowerShell profile using marker-based removal
   - remove completion script file
-  - display success message
+  - 成功无必要结果时静默
+
 ### Section: Error Handling
 
 The completion command SHALL provide clear error messages for common failure scenarios.
@@ -308,33 +315,15 @@ The completion command SHALL provide clear error messages for common failure sce
 
 - **缺失 shell 配置目录**
   - 期望的 shell 配置目录不存在
-  - 自动创建该目录（附带用户通知）
+  - 自动创建该目录，不附普通创建回执
   - 继续安装
+
 ### Section: Output Format
 
-The completion command SHALL provide machine-parseable and human-readable output.
+Completion SHALL 按请求交付脚本或必要结果，警告和错误进入 stderr。generate 的 stdout SHALL 只有完整脚本内容，能够直接重定向保存。安装或卸载成功无必要结果时 SHALL 静默；必要的 shell reload 信息保留，不附 checkmark、彩色成功段落或重复文件创建确认。
 
-- **Script generation output**
+显式 --verbose SHALL 按需返回 shell 检测、目标路径和配置修改详情；非交互调用即使请求详情，也 SHALL 不输出 spinner 或成功装饰。
 
-  - generating completion script to stdout
-  - output only the completion script content (no extra messages)
-  - allow redirection to files
-
-- **Installation success output**
-  - installation completes successfully
-  - display formatted success message with:
-  - Checkmark indicator
-  - Installation location
-  - Next steps (shell reload instructions)
-  - use colors when terminal supports it (unless `--no-color` is set)
-
-- **Verbose installation output**
-  - user provides `--verbose` flag during installation
-  - display detailed steps:
-  - Shell detection result
-  - Target file paths
-  - Configuration modifications
-  - File creation confirmations
 ### Section: Testing Support
 
 The completion implementation SHALL be testable with unit and integration tests for all supported shells.
@@ -364,6 +353,7 @@ The completion implementation SHALL be testable with unit and integration tests 
   - verify all shells support the same commands and flags
   - verify dynamic completions work consistently across shells
   - ensure error messages are consistent across shells
+
 ### Section: Command Registry
 
 `CompletionCommand` SHALL 通过构造时注入的 Commander.js `program` 实例调用运行时反射获取命令定义，而非依赖静态 `COMMAND_REGISTRY` 常量。

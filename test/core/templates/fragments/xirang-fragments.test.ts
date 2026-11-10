@@ -38,19 +38,6 @@ const RETIRED_QUALITY_TOKENS = [
 ];
 
 describe('current CLI documentation', () => {
-  it('documents the implemented validate JSON envelope', () => {
-    const cli = readFileSync(path.join(process.cwd(), 'docs', 'cli.md'), 'utf8');
-    const json = cli.match(/\*\*Output \(JSON\):\*\*\n\n```json\n([\s\S]*?)\n```/)?.[1];
-
-    expect(json).toBeDefined();
-    const payload = JSON.parse(json!);
-    expect(payload.version).toBe('1.0');
-    expect(payload.items).toEqual([expect.objectContaining({ id: 'add-dark-mode', type: 'change', valid: true })]);
-    expect(payload.summary).toEqual({
-      totals: { items: 1, passed: 1, failed: 0 },
-      byType: { change: { items: 1, passed: 1, failed: 0 } },
-    });
-  });
 
   it('keeps every active surface free of retired quality tokens', () => {
     const activeSurfaces = {
@@ -107,8 +94,8 @@ describe('quality gate shared fragments', () => {
 
 describe('Semantic Delta authoring fragment', () => {
   it('defers definition-first ordering to the artifact instruction projection', () => {
-    expect(ARCHITECTURE_GENERATE_DELTA).toContain('follow the authoring order in the returned `instruction`');
-    expect(ARCHITECTURE_GENERATE_DELTA).toContain('`definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(ARCHITECTURE_GENERATE_DELTA).toContain('Guidance');
+    expect(ARCHITECTURE_GENERATE_DELTA).toContain('query status and selected configuration only when needed');
     expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('content.includes');
     expect(ARCHITECTURE_GENERATE_DELTA).not.toContain('content.excludes');
   });
@@ -256,7 +243,7 @@ describe('Xirang shared context fragment', () => {
       'one Element has at most one Contract',
       '`contract` field of its Element Kind',
       'relationships',
-      'xirang arch outline --format json',
+      'xirang arch outline --format markdown',
       'xirang arch impact <identity> --depth <n> --json',
       'xirang arch query <identity> --json',
       '`--contract` only when that Element Contract is needed',
@@ -276,7 +263,10 @@ describe('Xirang shared context fragment', () => {
   });
 
   it('defines deterministic context reload rules and bounded projections', () => {
-    expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch snapshot --format json');
+    const recovery = XIRANG_SHARED_CONTEXT.split('\n').find(line => line.includes('global model understanding'))!;
+    expect(recovery).toContain('xirang arch outline --format markdown');
+    expect(recovery).toMatch(/snapshot[^\n]*only when/);
+    expect(recovery).toContain('selected semantic reads');
     expect(XIRANG_SHARED_CONTEXT).toContain('xirang arch query <identity> --json');
     expect(XIRANG_SHARED_CONTEXT).toContain('`--contract`');
     expect(XIRANG_SHARED_CONTEXT).toContain('`--paths`');
@@ -347,7 +337,7 @@ describe('Xirang shared context fragment', () => {
 describe('默认语义精化路由', () => {
   it('结构形成入口指向统一默认指导', () => {
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
-      expect(template.instructions).toContain('xirang config project --json');
+      expect(template.instructions).toContain('xirang config project --select decomposition --json');
       expect(template.instructions).toContain('Read the guidance file at that resolved path in full');
       expect(template.instructions).not.toContain('opaque method name');
     }

@@ -39,17 +39,7 @@ definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周�
 
 ### Section: Candidate status SHALL 只读报告状态
 
-`xirang candidate status` SHALL 在不修改 Candidate、formal source 或 history 的情况下，计算 active workspace state、starting point、source inventory、history count 和 disk usage。
-
-- **Candidate 存在**
-
-  - status 读取 valid active workspace
-  - text 与 JSON output SHALL 标识 starting point 并报告分区 inventory
-
-- **Candidate 不存在**
-
-  - active Candidate 不存在
-  - status SHALL 成功报告该状态并指引运行 `xirang candidate init`
+candidate status SHALL 只读报告 active workspace 是否存在及存在时的 starting point。--details SHALL 请求分区 inventory、history count 与 disk usage；默认不展开统计或重复创建指导。不存在 Candidate 时 SHALL 成功返回不存在状态，不以空 stdout 代替查询结果。查询不修改 Candidate、formal source 或 history。
 
 ### Section: Candidate validation SHALL 确定性且只读
 
@@ -59,7 +49,7 @@ definition: Candidate Commands 定义 `xirang candidate` 命令面的生命周�
 
   - Candidate 具有一个 Project Root、合法 identity 与 containment、合法 kind policies、完整 required contracts、合法 Sections 与合法 semantic relations
   - 每个 Candidate file 满足 canonical encoding、newline、Unicode、ordering、path、frontmatter 与 no-symlink rules
-  - validation SHALL 返回 valid、deterministic inventory、formal diff summary 与 `reviewDigest`
+  - validation 默认 SHALL 只返回必要的 `reviewDigest`；--details SHALL 额外返回 deterministic inventory 与 formal comparison/diff。警告与错误 SHALL 写入 stderr，--json 时为结构化 JSON；无效 Candidate 非零退出且不得交付可用于提升的 digest
   - 对未变化 bytes 重复 validation SHALL 返回相同 digest
 
 - **Non-canonical Candidate 被拒绝**

@@ -99,13 +99,13 @@ describe('FeedbackCommand', () => {
       }
 
       // Should display warning
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('GitHub CLI not found')
       );
 
       // Should show formatted feedback
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
+        expect.stringContaining('Title: Feedback:')
       );
 
       // Should show manual submission URL
@@ -114,7 +114,7 @@ describe('FeedbackCommand', () => {
       );
     });
 
-    it('should handle unauthenticated gh CLI with fallback', async () => {
+    it.each([false, true])('keeps unauthenticated fallback guidance on stderr (json=%s)', async json => {
       // Simulate gh installed but not authenticated
       mockExecSync.mockImplementation((cmd: string) => {
         if (cmd === 'which gh' || cmd === 'where gh') {
@@ -125,28 +125,37 @@ describe('FeedbackCommand', () => {
         }
       });
 
-      try {
-        await feedbackCommand.execute('Test feedback');
-      } catch (error: any) {
-        // Should exit with code 0 (successful fallback)
-        expect(error.message).toBe('process.exit(0)');
+      await expect(feedbackCommand.execute('Test feedback', { json })).rejects.toThrow('process.exit(0)');
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const warning = json ? JSON.parse(consoleErrorSpy.mock.calls[0][0]).message : consoleErrorSpy.mock.calls[0][0];
+      expect(warning).toContain('GitHub authentication required');
+      expect(warning).toContain('gh auth login');
+      expect(consoleLogSpy.mock.calls.flat().join('\n')).not.toContain('gh auth login');
+      if (json) {
+        expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toMatchObject({
+          title: 'Feedback: Test feedback', labels: ['feedback'], url: expect.stringContaining('/issues/new?'),
+        });
+      } else {
+        expect(consoleLogSpy).toHaveBeenCalledWith('Title: Feedback: Test feedback');
       }
-
-      // Should display warning
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('GitHub authentication required')
-      );
-
-      // Should show auth instructions
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('To auto-submit in the future: gh auth login')
-      );
-
-      // Should show formatted feedback
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
-      );
     });
+  });
+
+  it('keeps JSON feedback results separate from manual-submission diagnostics', async () => {
+    mockExecSync.mockImplementation(() => { throw new Error('missing gh'); });
+    await expect(feedbackCommand.execute('Test', { json: true })).rejects.toThrow('process.exit(0)');
+    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toMatchObject({ title: 'Feedback: Test', labels: ['feedback'], url: expect.stringContaining('/issues/new?') });
+    expect(JSON.parse(consoleErrorSpy.mock.calls[0][0])).toMatchObject({ code: 'FEEDBACK_MANUAL_SUBMISSION' });
+  });
+
+  it('returns only the created issue URL as JSON', async () => {
+    mockExecSync.mockReturnValue('available');
+    mockExecFileSync.mockReturnValue('https://github.com/cp-yu/xirang/issues/123\n');
+    await feedbackCommand.execute('Test', { json: true });
+    expect(consoleLogSpy.mock.calls).toEqual([[JSON.stringify({ issueUrl: 'https://github.com/cp-yu/xirang/issues/123' })]]);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('successful feedback submission', () => {
@@ -191,7 +200,7 @@ describe('FeedbackCommand', () => {
 
       // Should display success message
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Feedback submitted successfully')
+        expect.stringContaining('https://github.com/')
       );
 
       // Should display issue URL
@@ -387,7 +396,7 @@ describe('FeedbackCommand', () => {
 
       // Verify formatted output structure
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- FORMATTED FEEDBACK ---')
+        expect.stringContaining('Title: Feedback:')
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('Title: Feedback: Test message')
@@ -395,9 +404,10 @@ describe('FeedbackCommand', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith(
         expect.stringContaining('Labels: feedback')
       );
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('--- END FEEDBACK ---')
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Test body'));
+      const output = consoleLogSpy.mock.calls.flat().join('\n');
+      expect(output).not.toContain('FORMATTED FEEDBACK');
+      expect(output).not.toContain('END FEEDBACK');
     });
 
     it('should generate correct manual submission URL', async () => {

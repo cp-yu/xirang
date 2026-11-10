@@ -25,7 +25,7 @@ describe('generated internal agent semantic context', () => {
       '.pi/skills/xirang-snack/SKILL.md',
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
-      const configRead = content.indexOf('xirang config project --json');
+      const configRead = content.indexOf('xirang config project --select decomposition --json');
       const resolvedGuidance = content.indexOf('Read the guidance file at that resolved path in full');
 
       expect(configRead, file).toBeGreaterThanOrEqual(0);

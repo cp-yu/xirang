@@ -100,7 +100,7 @@ Apply skill SHALL 指导 Agent 通过 outline 理解 Target Semantic Model 的�
 - **从 Project Root 建立整体上下文**
 
   - task 的局部 Element 缺少足够 context，或 Agent 怀疑整体认知已丢失
-  - Agent SHALL 重新运行 `xirang arch outline --format json`
+  - Agent SHALL 重新运行 `xirang arch outline --format markdown`
   - SHALL 使用完整 hierarchy 回溯到足以解释 intent 的 abstraction，再按需 query 更深 Element
 
 - **读取 element-owned Contracts**
@@ -151,7 +151,7 @@ Core workflow templates SHALL 将不清楚、上下文压缩后可能遗忘或�
 - **整体模型认知不清**
 
   - Agent 不清楚整体 Semantic Model，或怀疑上下文压缩、长会话或上下文切换已丢失整体认知
-  - Agent SHALL 重新运行 `xirang arch outline --format json`，按需要显式展开结构，必要时运行 `arch snapshot`
+  - Agent SHALL 重新运行 `xirang arch outline --format markdown`，按需要显式展开结构，必要时运行 `arch snapshot`
   - SHALL 使用当前正式模型恢复整体结构，不将 snapshot 当作默认日常入口
 
 - **具体 Element 语义不清**
@@ -241,7 +241,7 @@ Build、Explore、Propose、任务生成及相关共享指导 SHALL 清楚区分
 
   - Agent 进入 Explore 或 Propose 并执行模型或记录读取
   - 按阶段入口、普通局部补读、恢复入口和收尾门禁的规则选择读取范围
-  - 有效 sourceVersion 与未变的已知语义可复用；压缩、session 切换、版本冲突、相关 drift 或状态未知时重建完整依据
+  - 未变且仍有效的已知语义可复用；压缩、session 切换、来源或目标变化、相关 drift 或状态未知时重建完整依据
 
 - **扩展读取有明确问题**
 
@@ -254,7 +254,7 @@ Build、Explore、Propose、任务生成及相关共享指导 SHALL 清楚区分
 - **共享规则保持一致**
 
   - Explore、Propose 与共享 reference 生成
-  - 采用一致的局部读取、sourceVersion 复用、恢复门禁、完整性与禁止猜测规则
+  - 采用一致的局部读取、当前依据复用、恢复门禁、完整性与禁止猜测规则
   - Build 等共享使用方只消费其适用的部分，不被误改为 Change 专属流程
 
 - **验证行为而非措辞**
@@ -265,3 +265,11 @@ Build、Explore、Propose、任务生成及相关共享指导 SHALL 清楚区分
 ### Section: Quality flow 使用 Review、Opt 与 Seal 表格
 
 Quality workflow template SHALL 以表格呈现以下门槛：每个 Change 先取得通过的独立基线 Review；之后由主 Agent 决定执行 Opt 或记录不做 Opt 的理由；Seal 绑定 commit 并记录主 Agent 的可运行及测试预期声明。Opinion 与 commit identity 由 CLI 关联，代码恢复由 Git 承载，Archive 只确认 Seal commit 对象存在。
+
+### Section: 按消费目的控制上下文读取
+
+所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。
+
+静态指导 SHALL 按任务加载并复用当前已掌握内容，不把 instructions 全量移入每个 skill 或每次必读文件。Apply 不固定同时调用 status、instructions apply 和 quality status；先从 status 获取目标概况及推进状态，需要具体质量结论或 revision 时再查 quality status。Record 首次接手、上下文丢失、交接前完整读取，普通阶段按需读取条目，不固定 show/status/validate 三连；适用的语义和确定性门禁仍须执行。
+
+上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。

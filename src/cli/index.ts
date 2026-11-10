@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import ora from 'ora';
+import { diagnostic, setJsonOutput } from '../utils/output.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { AI_TOOLS } from '../core/config.js';
@@ -24,14 +24,11 @@ import { registerRecordCommand } from '../commands/record.js';
 import { registerDeltaCommand } from '../commands/delta.js';
 import {
   statusCommand,
-  instructionsCommand,
-  applyInstructionsCommand,
   templatesCommand,
   schemasCommand,
   newChangeCommand,
   DEFAULT_SCHEMA,
   type StatusOptions,
-  type InstructionsOptions,
   type TemplatesOptions,
   type SchemasOptions,
   type NewChangeOptions,
@@ -113,7 +110,7 @@ program
         }
       } catch (error: any) {
         if (error.code === 'ENOENT') {
-          console.log(`Directory "${targetPath}" doesn't exist, it will be created.`);
+
         } else if (error.message && error.message.includes('not a directory')) {
           throw error;
         } else {
@@ -128,8 +125,7 @@ program
         projectDefinition: options?.projectDefinition,
       }).execute(targetPath);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -144,8 +140,7 @@ program
       const updateCommand = new UpdateCommand({ force: options?.force });
       await updateCommand.execute(resolvedPath);
     } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -170,8 +165,7 @@ program
       const sort = options?.sort === 'name' ? 'name' : 'recent';
       await listCommand.execute('.', { sort, json: options?.json, long: options?.long });
     } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -181,13 +175,12 @@ program
   .description('Browse the Semantic Model in the embedded web viewer')
   .option('--listen <address>', 'IP address to listen on')
   .option('--port <n>', 'Web server port', (value) => Number(value))
-  .action(async (options: { listen?: string; port?: number }) => {
+  .action(async (options: { listen?: string; port?: number; json?: boolean }) => {
     try {
       const viewCommand = new ViewCommand();
-      await viewCommand.execute('.', { listen: options.listen, port: options.port });
+      await viewCommand.execute('.', { listen: options.listen, port: options.port, json: options.json });
     } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -204,8 +197,7 @@ program
       const archiveCommand = new ArchiveCommand();
       await archiveCommand.execute(changeName, options);
     } catch (error) {
-      console.log(); // Empty line for spacing
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -224,7 +216,8 @@ program
   .option('--change <name>', 'Validate an explicit change')
   .option('--type <type>', 'Specify item type when ambiguous: change|contract')
   .option('--strict', 'Enable strict validation mode')
-  .option('--json', 'Output validation results as JSON')
+  .option('--json', 'Encode diagnostics and requested results as JSON')
+  .option('--preview', 'Show the Change semantic difference')
   .option('--concurrency <n>', 'Max concurrent validations (defaults to env XIRANG_CONCURRENCY or 6)')
   .option('--no-interactive', 'Disable interactive prompts')
   .action(async (itemName?: string, options?: { all?: boolean; changes?: boolean; contracts?: boolean; change?: string; type?: string; strict?: boolean; json?: boolean; noInteractive?: boolean; concurrency?: string }) => {
@@ -232,8 +225,7 @@ program
       const validateCommand = new ValidateCommand();
       await validateCommand.execute(itemName, options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -250,8 +242,7 @@ program
       const showCommand = new ShowCommand();
       await showCommand.execute(itemName, options ?? {});
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -266,8 +257,7 @@ program
       const feedbackCommand = new FeedbackCommand();
       await feedbackCommand.execute(message, options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -280,13 +270,12 @@ const completionCmd = program
 completionCmd
   .command('generate [shell]')
   .description('Generate completion script for a shell (outputs to stdout)')
-  .action(async (shell?: string) => {
+  .action(async (shell?: string, options?: { json?: boolean }) => {
     try {
       const completionCommand = new CompletionCommand(program);
-      await completionCommand.generate({ shell });
+      await completionCommand.generate({ shell, json: options?.json });
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -295,13 +284,12 @@ completionCmd
   .command('install [shell]')
   .description('Install completion script for a shell')
   .option('--verbose', 'Show detailed installation output')
-  .action(async (shell?: string, options?: { verbose?: boolean }) => {
+  .action(async (shell?: string, options?: { verbose?: boolean; json?: boolean }) => {
     try {
       const completionCommand = new CompletionCommand(program);
-      await completionCommand.install({ shell, verbose: options?.verbose });
+      await completionCommand.install({ shell, verbose: options?.verbose, json: options?.json });
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -315,8 +303,7 @@ completionCmd
       const completionCommand = new CompletionCommand(program);
       await completionCommand.uninstall({ shell, yes: options?.yes });
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -350,30 +337,7 @@ program
     try {
       await statusCommand(options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
-      process.exit(1);
-    }
-  });
-
-// Instructions command
-program
-  .command('instructions [artifact]')
-  .description('Output enriched instructions for creating an artifact or applying tasks')
-  .option('--change <id>', 'Change name')
-  .option('--schema <name>', 'Schema override (auto-detected from config.yaml)')
-  .option('--json', 'Output as JSON')
-  .action(async (artifactId: string | undefined, options: InstructionsOptions) => {
-    try {
-      // Special case: "apply" is not an artifact, but a command to get apply instructions
-      if (artifactId === 'apply') {
-        await applyInstructionsCommand(options);
-      } else {
-        await instructionsCommand(artifactId, options);
-      }
-    } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -388,8 +352,7 @@ program
     try {
       await templatesCommand(options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -403,8 +366,7 @@ program
     try {
       await schemasCommand(options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
@@ -421,20 +383,32 @@ newCmd
     try {
       await newChangeCommand(name, options);
     } catch (error) {
-      console.log();
-      ora().fail(`Error: ${(error as Error).message}`);
+      diagnostic((error as Error).message);
       process.exit(1);
     }
   });
 
 export async function runCli(argv: string[] = process.argv): Promise<void> {
   const args = argv.slice(2);
+  const json = args.includes('--json') || args.some((argument, index) => argument === '--format=json' || (argument === '--format' && args[index + 1] === 'json'));
+  setJsonOutput(json);
+  const configureOutput = (command: Command): void => {
+    if (command !== program && command.commands.length === 0 && !command.options.some(option => option.long === '--json')) command.option('--json', 'Encode results and diagnostics as JSON');
+    command.configureOutput({ outputError: (str, write) => write(json ? JSON.stringify({ code: 'INVALID_ARGUMENT', message: str.trim() }) + '\n' : str) });
+    command.commands.forEach(configureOutput);
+  };
+  configureOutput(program);
   const firstCommand = args.find((argument) => !argument.startsWith('-'));
   const qualityInvocation = firstCommand === 'quality';
   if (qualityInvocation) program.enablePositionalOptions(true);
   try {
     await program.parseAsync(argv);
+  } catch (error) {
+    if (!(error instanceof Error)) throw error;
+    diagnostic(error.message);
+    process.exitCode = 1;
   } finally {
+    setJsonOutput(false);
     if (qualityInvocation) program.enablePositionalOptions(false);
   }
 }

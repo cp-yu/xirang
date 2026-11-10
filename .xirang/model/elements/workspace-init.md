@@ -4,7 +4,7 @@ identity: workspace-init
 kind: element
 parent: workspace-init-update
 title: Workspace Init
-definition: Workspace Init 定义 `xirang setup` 创建完整工作区的行为：创建或保留 `.xirang` durable core、`model/{metamodel,elements,relationships,views}` 四分区 Semantic Model skeleton、changes 与 references、固定 Agent workflow 集合，支持跨平台与 non-interactive 运行，并在成功后暴露 Project Build 引导。Element Contract 与 Element Declaration 共用同一 `elements/` 单元，不存在独立的 Contracts store。
+definition: Workspace Init 是 setup 创建完整息壤工作区的能力。它创建或保留 .xirang durable core、model 四分区骨架、changes、references 及固定 Agent workflow 集合，支持跨平台和非交互使用；后续 Project Build 通过工作面指导衔接，不以初始化完成代替模型构建。Element Declaration 与 Contract 共用 elements 单元，不存在独立 Contract store。
 ---
 
 ## Specification
@@ -86,28 +86,11 @@ Setup SHALL 对所有 workspace paths 使用 Node.js path APIs，并 SHALL 提�
 
 ### Section: Setup success guidance SHALL 暴露 Project Build
 
-Setup success output SHALL 使用当前工具的 Project Build invocation 引导用户继续语义构建。
-
-- **安装 Project Build workflow**
-
-  - setup 为工具安装 fixed workflow set
-  - success guidance SHALL 使用该工具的 `xirang-build` invocation
-  - SHALL NOT 引用退役的 bootstrap workflow 名称
+Setup 交付的工作面 SHALL 通过按需读取的工具适配指导暴露 Project Build invocation，不在无结果成功回执中重复整套 onboarding。指导 SHALL 使用当前工具的 xirang-build invocation，不引用退役 bootstrap workflow。
 
 ### Section: Setup output messaging
 
-Setup 命令 SHALL 显示清晰的输出，说明生成了什么。
-
-- **显示目标工具**
-
-  - setup 命令成功运行
-  - 输出包含目标工具名
-
-- **显示生成路径**
-
-  - setup 命令完成
-  - 输出列出全部生成的 skill 文件路径
-  - 列出创建的 workspace 目录（model 四分区、changes、references）
+Setup SHALL 在无必要结果的成功操作后保持 stdout 为空，--json 同样适用；不得默认列出全部生成路径、工具名或成功摘要。真实警告与错误 SHALL 写入 stderr。用户显式请求的交互选择与帮助 SHALL 保留，成功静默不改变工作区和受管制品的实际创建职责。
 
 ### Section: Setup 物化默认结构拆分方法
 
