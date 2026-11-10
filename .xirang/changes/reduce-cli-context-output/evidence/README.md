@@ -25,3 +25,10 @@ Windows 专项在修正保存事件路径后整组通过：[run 42806410191](htt
 第四轮 full-change Review 对 `309125e53` 返回 FAIL，发现文本 status 路径信息缺失、反馈认证恢复指引通道错误，并指出 Archive 指导仍描述已移除的成功回执。前两项在 owning tests 中复现失败后修正：文本 status 保留 outputPath、现有 outputs、completion marker 和依赖；未认证反馈在文本/JSON 两种模式的 stderr 同时返回认证警告与 `gh auth login`，stdout 仅保留手工提交材料。Archive 模板与重刷后的 skill 改为消费实际归档位置。全量 165 files / 2185 tests、lint/typecheck、build、active stale references: 0、diff 检查与 strict validation 通过；strict validation 两条输出流均为空。静态生成更新 stdout 为空，stderr 保留工具发现及重启提示。测量配方的 status 调用使用 JSON，本轮仅修正文本 status，未据此增加或重算收益。
 
 `309125e53` 对应 [Candidate Windows 42813871949](https://github.com/cp-yu/xirang/actions/runs/42813871949) 与 [LikeC4 Windows 42813872116](https://github.com/cp-yu/xirang/actions/runs/42813872116) 已通过；[跨平台 42813871911](https://github.com/cp-yu/xirang/actions/runs/42813871911) 在此记录时 Linux 通过，Windows/macOS 仍运行，尚不能宣称整组通过。
+
+
+第五轮 full-change Review 对 `28f22539c` 返回 FAIL，指出 Candidate 来源格式/绑定缺口及旧 slug + explorationId 路径构造链孤立。Candidate 现在只读解析 Build record 格式；coverage 校验完整 v1 字段、可移植 filename、精确来源 SHA-256、时间戳及条目形状/来源条目身份。来源未复制前允许格式正确的 coverage，以保留 consume 的先校验、复制、重验顺序；复制后必须匹配 exact source bytes。历史位置、摘录和 targetFingerprint 不对照当前模型重验，模型语义仍只来自四分区。过去只接受任意 canonical provenance bytes、`{ "schemaVersion": 1 }` coverage 的宽松断言已替换；不再将其作为有效性依据。
+
+新增拒绝用例在修正前实际失败（14 failed），修正后覆盖缺失字段、错误版本/文件名/来源 hash/时间戳、非法条目和 malformed source/JSON；无效 Candidate 无可用 digest、CLI 非零且 stdout 为空，成功/失败均保留原始 bytes。测试也确认模型后续变化不会重新施加历史摘录或指纹约束。Build history 使用真实 coverage producer 的完整结果，保留精确字节。旧 managedRecordFilename/managedRecordPath 及专有断言已删除，legacy metadata parser 仍用的 slug/id validators 保留。构建后全量 165 files / 2198 tests、lint、typecheck、active stale references: 0、diff 检查与 strict validation 通过，strict validation 两条输出流为空。
+
+第五轮修正前的 `28f22539c` 对应 [Candidate Windows 42815798143](https://github.com/cp-yu/xirang/actions/runs/42815798143)、[LikeC4 Windows 42815798146](https://github.com/cp-yu/xirang/actions/runs/42815798146) 已通过；[跨平台 42815798148](https://github.com/cp-yu/xirang/actions/runs/42815798148) 在记录时 Linux 通过、Windows/macOS 仍运行。

@@ -22,14 +22,6 @@ export function recordRoot(projectRoot: string): string {
   return path.join(path.resolve(projectRoot), '.xirang', 'records');
 }
 
-export function managedRecordFilename(slug: string, explorationId: string): string {
-  return `${validateRecordSlug(slug)}-${validateExplorationId(explorationId)}.md`;
-}
-
-export function managedRecordPath(projectRoot: string, slug: string, explorationId: string): string {
-  return path.join(recordRoot(projectRoot), managedRecordFilename(slug, explorationId));
-}
-
 export function assertContainedPath(
   root: string,
   target: string,

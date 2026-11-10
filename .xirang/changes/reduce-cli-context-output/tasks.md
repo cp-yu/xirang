@@ -36,3 +36,5 @@
 - [x] [code_fix] 移除 instructions 退役产生的孤立生成链及旧协议断言，保留共享加载与运行时配置投影。
 - [x] [code_fix] 文本 status 保留制品路径与实际输出位置，认证恢复指引在两种编码中均走诊断通道。
 - [x] [code_fix] Archive 生成指导按实际归档位置结果衔接 Git handoff。
+- [x] [code_fix] Candidate 只读校验来源快照和覆盖结果的格式及来源绑定，保留 consume 前后顺序与历史隔离。
+- [x] [code_fix] 删除文件名迁移后孤立的旧 Record 路径构造链与旧协议断言。

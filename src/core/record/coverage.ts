@@ -6,9 +6,9 @@ import { parseSemanticModelFiles, readModelTree } from '../model/parser.js';
 import { relationshipIdentity, type SemanticModel } from '../model/types.js';
 import { canonicalJson, semanticModelFingerprint } from '../semantic-diff.js';
 import { validateChangeName } from '../../utils/change-utils.js';
-import { projectRelativePosix, RECORD_COVERAGE_FILE } from './paths.js';
+import { projectRelativePosix, RECORD_COVERAGE_FILE, validateRecordFilename } from './paths.js';
 import { compareStructure, refLabel } from './structure.js';
-import type { DerivedStructureObject, DesignRecordPayload, RecordStructure } from './types.js';
+import type { DerivedStructureObject, DesignRecordDocument, DesignRecordPayload, RecordStructure } from './types.js';
 import { showRecord } from './workspace.js';
 
 export type RecordTarget = { change: string; candidate?: never } | { candidate: true; change?: never };
@@ -149,7 +149,7 @@ function resolves(model: SemanticModel, location: Exclude<Location, { element: s
   return model.views.some(item => item.identity === location.view);
 }
 
-function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input: unknown): { entries: CoverageEntry[]; diagnostics: RecordGateDiagnostic[] } {
+function checkCoverage(payload: DesignRecordPayload | undefined, model: SemanticModel | undefined, input: unknown): { entries: CoverageEntry[]; diagnostics: RecordGateDiagnostic[] } {
   const diagnostics: RecordGateDiagnostic[] = [];
   const report = (code: string, identity: string, message: string) => diagnostics.push({ severity: 'ERROR', code, identity, message });
   const data = object(input);
@@ -157,7 +157,7 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
     report('INVALID_COVERAGE_INPUT', 'coverage', 'Coverage input must be { entries: [...] }');
     return { entries: [], diagnostics };
   }
-  const recorded = new Map(payload.entries.map(item => [item.identity, item]));
+  const recorded = new Map(payload?.entries.map(item => [item.identity, item]));
   const seen = new Set<string>();
   const entries: CoverageEntry[] = [];
   for (const raw of data.entries) {
@@ -170,12 +170,12 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
     if (seen.has(identity)) report('INVALID_COVERAGE_INPUT', identity, 'Duplicate coverage entry');
     seen.add(identity);
     const source = recorded.get(identity);
-    if (!source) {
+    if (payload && !source) {
       report('COVERAGE_ENTRY_UNKNOWN', identity, 'Coverage entry is not in the record');
       continue;
     }
     const keys = Object.keys(entry).sort().join(',');
-    if (source.decision === 'pending') {
+    if (source?.decision === 'pending' || (!payload && entry.result === 'pending')) {
       if (entry.result !== 'pending' || typeof entry.affectsTarget !== 'boolean'
         || !['affectsTarget,identity,result', 'affectsTarget,identity,reason,result'].includes(keys)
         || (entry.reason !== undefined && !nonEmpty(entry.reason))
@@ -187,7 +187,7 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
       entries.push(entry as unknown as CoverageEntry);
       continue;
     }
-    if (source.decision !== 'accepted' || source.nature !== 'normative') {
+    if (source && (source.decision !== 'accepted' || source.nature !== 'normative')) {
       report('INVALID_COVERAGE_INPUT', identity, 'Excluded and informative entries do not require target commitment locations');
       continue;
     }
@@ -214,7 +214,7 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
         report('COVERAGE_DETAIL_UNCOVERED', identity, `Detail "${detail.detail}" is uncovered: ${String(detail.uncovered)}`);
       } else if (!locationShape(detail.location) || (elementLocation && !nonEmpty(detail.quote))) {
         report('INVALID_COVERAGE_INPUT', identity, `Detail "${detail.detail}" has an invalid location or empty quote`);
-      } else {
+      } else if (model) {
         const location = detail.location as Location;
         const text = 'element' in location ? locationText(model, location) : undefined;
         const resolved = 'element' in location ? text !== undefined : resolves(model, location);
@@ -227,12 +227,32 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
     });
     entries.push(entry as unknown as CoverageEntry);
   }
-  for (const item of payload.entries) {
+  for (const item of payload?.entries ?? []) {
     if ((item.decision === 'pending' || (item.decision === 'accepted' && item.nature === 'normative')) && !seen.has(item.identity)) {
       report('COVERAGE_ENTRY_MISSING', item.identity, 'Pending or accepted normative entry has no disposition');
     }
   }
   return { entries, diagnostics };
+}
+
+/** Validate historical coverage shape and source binding without resolving against the current model. */
+export function validateCoverageSnapshot(
+  input: unknown, source?: { bytes: Buffer; document: DesignRecordDocument },
+): RecordGateDiagnostic[] {
+  const invalid = (message: string): RecordGateDiagnostic[] => [{ severity: 'ERROR', code: 'INVALID_COVERAGE', identity: 'coverage', message }];
+  const data = object(input);
+  if (!data || Object.keys(data).sort().join(',') !== 'entries,filename,recordedAt,schemaVersion,sourceVersion,targetFingerprint'
+    || data.schemaVersion !== 1 || !nonEmpty(data.filename)
+    || ![data.sourceVersion, data.targetFingerprint].every(value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value))
+    || typeof data.recordedAt !== 'string' || Number.isNaN(Date.parse(data.recordedAt))
+    || new Date(data.recordedAt).toISOString() !== data.recordedAt) {
+    return invalid('Expected coverage schemaVersion 1, filename, SHA-256 sourceVersion/targetFingerprint, ISO recordedAt and entries.');
+  }
+  try { validateRecordFilename(data.filename); } catch (error) { return invalid((error as Error).message); }
+  if (source && data.sourceVersion !== createHash('sha256').update(source.bytes).digest('hex')) {
+    return invalid('Coverage sourceVersion must identify the exact record-source.md bytes.');
+  }
+  return checkCoverage(source?.document.payload, undefined, { entries: data.entries }).diagnostics;
 }
 
 async function loadSource(projectRoot: string, explorationId: string, target: RecordTarget) {

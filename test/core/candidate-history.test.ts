@@ -5,6 +5,7 @@ import path from 'node:path';
 import { SetupCommand } from '../../src/core/setup.js';
 import { initializeCandidate } from '../../src/core/candidate/workspace.js';
 import { validateCandidate } from '../../src/core/candidate/validator.js';
+import { recordCoverage } from '../../src/core/record/coverage.js';
 import { createRecord } from '../../src/core/record/workspace.js';
 import { readRecordSemanticContext } from '../../src/core/record/validator.js';
 import { promoteCandidate } from '../../src/core/candidate/promotion.js';
@@ -32,8 +33,10 @@ describe('Candidate build history', () => {
       entries: [{ identity: 'intent', nature: 'normative', decision: 'accepted', content: 'Preserve history without promoting provenance.' }],
     }, await readRecordSemanticContext(root, 'build'));
     await fs.writeFile(path.join(root, '.xirang', 'candidate', 'record-source.md'), source.bytes);
-    const coverage = Buffer.from('{"schemaVersion":1}\n');
-    await fs.writeFile(path.join(root, '.xirang', 'candidate', 'record-coverage.json'), coverage);
+    await recordCoverage(root, 'history-source.md', { candidate: true }, {
+      entries: [{ identity: 'intent', result: 'not-applicable', reason: 'History retention is not a model commitment.' }],
+    });
+    const coverage = await fs.readFile(path.join(root, '.xirang', 'candidate', 'record-coverage.json'));
     const first = await validateCandidate(root);
     const promoted = await promoteCandidate(root, first.reviewDigest!, {
       now: () => new Date('2030-01-01T00:00:00.000Z'),
