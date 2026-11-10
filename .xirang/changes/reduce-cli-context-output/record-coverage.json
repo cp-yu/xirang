@@ -1,0 +1,837 @@
+{
+  "schemaVersion": 1,
+  "explorationId": "20261110T064853Z-02c89c77",
+  "sourceVersion": "14663baffca623c52f594b304843dbffc66b4cf37912a25e19692b186e9cc797",
+  "targetFingerprint": "8dd5e1bc3c47dcc96fc787dd7493b2e2ea68734378f2d580a7e25eb00b15027a",
+  "recordedAt": "2026-11-10T08:34:06.844Z",
+  "entries": [
+    {
+      "identity": "minimal-success-receipts",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "整个 CLI 无必要结果成功静默，默认及 JSON 都适用",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "查询包括空结果仍返回数据",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        },
+        {
+          "detail": "后续新身份、Quality revision 和 Candidate digest 正常交付",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        },
+        {
+          "detail": "真实警告错误保留并区分通道",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        }
+      ]
+    },
+    {
+      "identity": "short-source-version",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "文件名称是 Record 唯一身份，不维护 explorationId/slug 双身份",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "xirang record 的 create、list、show、status、validate、update、rename、coverage、consume 与 discard SHALL 使用 .xirang/records/ 内的文件名称作为记录唯一标识符，不再维护 explorationId 与 slug 的双重身份，也不引入记录修订号。CLI SHALL 保留格式化和结构化编辑能力；合法文件可由用户直接编写或编辑，读取时按当前内容校验，不依赖只有 CLI 才能更新的记录版本字段。"
+        },
+        {
+          "detail": "不增加记录修订号",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "xirang record 的 create、list、show、status、validate、update、rename、coverage、consume 与 discard SHALL 使用 .xirang/records/ 内的文件名称作为记录唯一标识符，不再维护 explorationId 与 slug 的双重身份，也不引入记录修订号。CLI SHALL 保留格式化和结构化编辑能力；合法文件可由用户直接编写或编辑，读取时按当前内容校验，不依赖只有 CLI 才能更新的记录版本字段。"
+        },
+        {
+          "detail": "用户可以手写或直接编辑合法文件，保留 CLI 编辑能力",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "xirang record 的 create、list、show、status、validate、update、rename、coverage、consume 与 discard SHALL 使用 .xirang/records/ 内的文件名称作为记录唯一标识符，不再维护 explorationId 与 slug 的双重身份，也不引入记录修订号。CLI SHALL 保留格式化和结构化编辑能力；合法文件可由用户直接编写或编辑，读取时按当前内容校验，不依赖只有 CLI 才能更新的记录版本字段。"
+        },
+        {
+          "detail": "Agent 提示词仍要求经 CLI 操作，不宣告绕过或直接编辑",
+          "location": {
+            "element": "design-record-operations",
+            "section": "管理统一确认记录生命周期"
+          },
+          "quote": "- 非空 pending 条目可创建记录；条目和结构均为空时拒绝。\n- 文件重命名后以新名称寻址，条目与结构对象的语义 identity 保持不变。\n- 用户直接编辑合法条目后，show 和后续校验读取新内容；旧 coverage 不因此自动更新。\n- Agent skill/reference 及相关操作提示词 SHALL 要求经 CLI 完成 Record 操作，SHALL NOT 宣告可绕过 CLI 或允许 Agent 直接编辑。\n- 不发现 .xirang/framing/ 为有效记录，不提供 framing 兼容别名。"
+        },
+        {
+          "detail": "coverage 内部绑定来源内容 hash 与目标指纹，无需调用方抄传",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "位置在 Expected Semantic Model 或 Candidate 中须真实存在，可为 Element Declaration、Section、Acceptance Case、Relationship、Element Kind、Relationship Kind、Authored View。Element 位置须附当前原文摘录，忽略空白与 Markdown 强调后匹配 Declaration 的 title/definition、Section（含案例）或案例名称/正文；其余实体按 identity 校验。对 named Change，CLI SHALL 在写入 coverage 前将记录结构逐字段与 Expected Semantic Model 比对；结构对象缺失、已确认字段不一致或 `removed: true` 对象仍存在时拒绝并报告差异。Candidate 的结构门禁仍在 consume 执行。全部通过才由 CLI 自动计算当前来源内容 hash 与目标模型指纹，连同检查结果写入 record-coverage.json；调用方 SHALL 不抄传或提供 sourceVersion。目标指纹 SHALL 绑定 Expected Semantic Model 或 Candidate 模型内容，不使用递增修订号，不将 proposal.md、design.md 或 tasks.md 内容纳入模型指纹。coverage SHALL 保留活动 Record，不复制或删除来源。任何失败返回诊断，不写入或替换已有结果。"
+        },
+        {
+          "detail": "目标是 Expected Semantic Model 或 Candidate 模型而非修订号",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "位置在 Expected Semantic Model 或 Candidate 中须真实存在，可为 Element Declaration、Section、Acceptance Case、Relationship、Element Kind、Relationship Kind、Authored View。Element 位置须附当前原文摘录，忽略空白与 Markdown 强调后匹配 Declaration 的 title/definition、Section（含案例）或案例名称/正文；其余实体按 identity 校验。对 named Change，CLI SHALL 在写入 coverage 前将记录结构逐字段与 Expected Semantic Model 比对；结构对象缺失、已确认字段不一致或 `removed: true` 对象仍存在时拒绝并报告差异。Candidate 的结构门禁仍在 consume 执行。全部通过才由 CLI 自动计算当前来源内容 hash 与目标模型指纹，连同检查结果写入 record-coverage.json；调用方 SHALL 不抄传或提供 sourceVersion。目标指纹 SHALL 绑定 Expected Semantic Model 或 Candidate 模型内容，不使用递增修订号，不将 proposal.md、design.md 或 tasks.md 内容纳入模型指纹。coverage SHALL 保留活动 Record，不复制或删除来源。任何失败返回诊断，不写入或替换已有结果。"
+        },
+        {
+          "detail": "consume 重新计算来源与目标指纹，不在普通回执输出",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "record consume SHALL 显式选择 named Change 或 active Candidate，不从 cwd 猜测目标。执行前 SHALL 读取已有覆盖结果，自动重新计算记录内容 hash 与当前目标模型指纹并比较；缺少覆盖结果、来源内容或目标模型变化时拒绝并要求重查。调用方 SHALL 不提供 --source-version；内部指纹不作为普通成功回执。"
+        },
+        {
+          "detail": "覆盖后来源修改使旧结果失效",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "- coverage 后编辑 Record：consume 拒绝，来源仍在。\n- coverage 后 Delta 改变 Expected Semantic Model：consume 拒绝，来源仍在。\n- coverage 后只修改 tasks.md：目标模型指纹不因此失效，其他门禁仍须满足。\n- 结构中 D 的 parent 是 X，目标为 Y：拒绝并报告字段差异。\n- 上次复制后中断且快照字节相同：重新检查全部门禁后清理来源；快照冲突时不覆盖。\n- 多个 Change 与 Candidate 同时存在：仅向显式指定的受控目标交接。"
+        },
+        {
+          "detail": "保留正式语义 identity、Quality CAS revision 与 Candidate digest 绑定",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "CLI SHALL 保留 Semantic Model 的 identity 引用语义、Quality revision 的 CAS 语义及 Candidate reviewDigest 的精确内容绑定，不以输出精简移除这些机制。"
+        }
+      ]
+    },
+    {
+      "identity": "cli-wide-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "优化覆盖整个 CLI 默认和结构化输出",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "查询和辅助交付按实际职责保留",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        },
+        {
+          "detail": "范围包括驱动 CLI 的全部工作流和读取要求",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "指令、Record 与动态查询共同减少调用",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "静态指导 SHALL 按任务加载并复用当前已掌握内容，不把 instructions 全量移入每个 skill 或每次必读文件。Apply 不固定同时调用 status、instructions apply 和 quality status；先从 status 获取目标概况及推进状态，需要具体质量结论或 revision 时再查 quality status。Record 首次接手、上下文丢失、交接前完整读取，普通阶段按需读取条目，不固定 show/status/validate 三连；适用的语义和确定性门禁仍须执行。"
+        }
+      ]
+    },
+    {
+      "identity": "validation-preview-on-demand",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "默认仅问题，JSON 不隐式开启差异",
+          "location": {
+            "element": "validation-commands",
+            "section": "Change validation effective preview"
+          },
+          "quote": "validate --change <name> --preview SHALL 显式请求该 Change 实际表达的 concise semantic changes，来自与目标验证相同的 compiler 和 Diff IR。默认不展示差异，成功无问题时静默；--json 不隐式开启 preview。"
+        },
+        {
+          "detail": "--preview 显式请求实体级 summary 与 entries",
+          "location": {
+            "element": "validation-commands",
+            "section": "Change validation effective preview"
+          },
+          "quote": "- 显式 --preview：stdout 提供实体级 summary 和以 entity kind、稳定 identity 表达的 concise entries；--json 返回这些结构化数据，不包含完整 before/after payload。\n- 无语义变化：请求的预览仍返回有效空 entries 与相应 summary。\n- 校验有问题：问题在 stderr，退出码按校验结论确定；只可返回确实可计算的预览，不将部分结果声称为完整有效目标。\n- 命令 SHALL 只输出临时预览，不创建、更新或要求 review artifact，包括 effective-change.md。"
+        },
+        {
+          "detail": "复用共享 compiler，不持久化展示制品",
+          "location": {
+            "element": "validation-commands",
+            "section": "Change validation effective preview"
+          },
+          "quote": "validate --change <name> --preview SHALL 显式请求该 Change 实际表达的 concise semantic changes，来自与目标验证相同的 compiler 和 Diff IR。默认不展示差异，成功无问题时静默；--json 不隐式开启 preview。"
+        },
+        {
+          "detail": "不生成或要求 review artifact",
+          "location": {
+            "element": "validation-commands",
+            "section": "Change validation effective preview"
+          },
+          "quote": "- 显式 --preview：stdout 提供实体级 summary 和以 entity kind、稳定 identity 表达的 concise entries；--json 返回这些结构化数据，不包含完整 before/after payload。\n- 无语义变化：请求的预览仍返回有效空 entries 与相应 summary。\n- 校验有问题：问题在 stderr，退出码按校验结论确定；只可返回确实可计算的预览，不将部分结果声称为完整有效目标。\n- 命令 SHALL 只输出临时预览，不创建、更新或要求 review artifact，包括 effective-change.md。"
+        }
+      ]
+    },
+    {
+      "identity": "instructions-necessity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "静态制品定义、指导、模板和规则仅单一受管来源",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "静态制品定义、写作指导、模板与配置遵循规则 SHALL 使用单一受管来源，按当前任务需要加载；不得同时维护 instructions 命令与 reference 两套提示词交付。动态配置、制品状态及质量详情 SHALL 分别通过 config project、status --change 与 quality status 获取。生成文件的新增、替换、删除 SHALL 由显式注册清单定位，不通过文件名模式猜测所有权；沿用既有受管前缀边界，用户文件不被覆盖。"
+        },
+        {
+          "detail": "根据任务按需加载，不保留两套提示词交付",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "静态制品定义、写作指导、模板与配置遵循规则 SHALL 使用单一受管来源，按当前任务需要加载；不得同时维护 instructions 命令与 reference 两套提示词交付。动态配置、制品状态及质量详情 SHALL 分别通过 config project、status --change 与 quality status 获取。生成文件的新增、替换、删除 SHALL 由显式注册清单定位，不通过文件名模式猜测所有权；沿用既有受管前缀边界，用户文件不被覆盖。"
+        },
+        {
+          "detail": "沿用受管前缀所有权及清单，不增设用户覆盖体系",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "静态制品定义、写作指导、模板与配置遵循规则 SHALL 使用单一受管来源，按当前任务需要加载；不得同时维护 instructions 命令与 reference 两套提示词交付。动态配置、制品状态及质量详情 SHALL 分别通过 config project、status --change 与 quality status 获取。生成文件的新增、替换、删除 SHALL 由显式注册清单定位，不通过文件名模式猜测所有权；沿用既有受管前缀边界，用户文件不被覆盖。"
+        },
+        {
+          "detail": "三个现有查询承接动态能力，静态文件不代替门禁",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "以文件指导与查询协同推进"
+          },
+          "quote": "静态制品定义、写作指导和模板 SHALL 由按需加载的 skill/reference 提供；config project SHALL 提供当前有效配置，status --change SHALL 提供制品与推进状态，quality status SHALL 提供当前质量详情。CLI SHALL 不注册 instructions 命令或用另一统一 context 命令重新聚合这些提示词与数据。"
+        },
+        {
+          "detail": "移除 instructions 且不重建统一 context 命令",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "以文件指导与查询协同推进"
+          },
+          "quote": "静态制品定义、写作指导和模板 SHALL 由按需加载的 skill/reference 提供；config project SHALL 提供当前有效配置，status --change SHALL 提供制品与推进状态，quality status SHALL 提供当前质量详情。CLI SHALL 不注册 instructions 命令或用另一统一 context 命令重新聚合这些提示词与数据。"
+        },
+        {
+          "detail": "依赖和校验继续由 CLI 确定",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "以文件指导与查询协同推进"
+          },
+          "quote": "缺少必需制品或有效目标清单时，Apply workflow SHALL 根据 status 的具体缺口返回 Propose 调和输入，不自行创建缺失的形成制品。制品依赖与校验 SHALL 继续由 CLI 确定，静态指导不替代动态门禁。"
+        }
+      ]
+    },
+    {
+      "identity": "on-demand-runtime-queries",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "config project 提供当前有效配置及语言、context、规则、隔离等",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "系统 SHALL 提供 xirang config project，使用共享配置加载与归一化规则返回当前有效项目配置。未指定选择范围时 SHALL 返回完整配置；包含适用的 proseLanguage、context、decomposition、architecture、optimization、apply、git 和 rules，不包含已退役的 Propose routing。每次调用 SHALL 读取当前磁盘配置，先前查询结果不得遮蔽后续修改。"
+        },
+        {
+          "detail": "按需选择字段及匹配制品规则",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "--select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。"
+        },
+        {
+          "detail": "配置数据不重复提示词片段",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "JSON SHALL 返回所请求的配置数据；文本 SHALL 以紧凑 YAML-like 表达同一范围。context 与 rules 的内容 SHALL 保持原文及换行；JSON 语法转义解码后内容相同。不输出 prompt fragments、compiledLines 或重复的语言强化段落。未配置字段和默认值 SHALL 遵循共享归一化规则，不由输出层制造新的默认值。"
+        },
+        {
+          "detail": "Change 状态含制品完整性、具体缺口和目标完成概况",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "系统 SHALL 通过 xirang status --change <id> 只读返回活动 Change 的制品完成状态、依赖缺口、目标完成概况及必要的 Quality 概况，支持仅有目录的 scaffolded Change。每个 artifact SHALL 标明 done、ready 或 blocked；blocked SHALL 列出缺失依赖，状态 SHALL 保留 outputPath 及实际已存在的输出路径，不嵌入文件正文。"
+        },
+        {
+          "detail": "目标完成计数不回传正文",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。"
+        },
+        {
+          "detail": "只给必要 Quality 概况，详情另查",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。"
+        },
+        {
+          "detail": "缺少任务或目标阻塞，全部完成后联合 Quality 判断",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "- scaffolded Change 的全部 artifacts 尚不存在：根 artifact 为 ready，依赖它的 artifacts 为 blocked，并列出缺失依赖；state 为 blocked。\n- 必需制品齐全但 tasks.md 缺失、无目标或为不支持格式：state 为 blocked，gaps 指出实际缺口。\n- 存在未完成目标：state 为 ready，返回完成与剩余计数，目标内容由 tasks.md 读取。\n- 目标全部完成：联合 Quality 门禁给出 needs_review、needs_optimize 或 all_done；计数完成不得单独产生 all_done。\n- 无 apply.tracks 且 required artifacts 完整：state 为 ready。\n- 用户未指定 --change 且存在活动 Change，或指定的 Change 不存在：非零退出，stderr 给出具体诊断及可用 Change；无活动 Change 且未指定时按空查询返回。"
+        },
+        {
+          "detail": "Quality status 给 Review/Opt/Seal 当前结论和具体缺口",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Status 输出语义"
+          },
+          "quote": "quality status SHALL 只读解析 v4 Quality JSON，按 reviewKind 报告当前 Review 结论及 commit 关联、同类失败是否已由不同 commit 上的通过意见解决、Opt 处置与 Seal。缺少通过的 full-change 或存在未解决失败时为 needs_review；通过完整 Review 但缺少 Opt 处置或 Seal 时为 needs_optimize；所有门禁通过且 Seal commit 有效时为 all_done。Status SHALL 不比较 HEAD/工作区；缺少记录时报告缺失及 revision 0，v3 或更旧格式不当作新意见。"
+        },
+        {
+          "detail": "默认不展开历史及完整 opinion",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Status 输出语义"
+          },
+          "quote": "默认结果 SHALL 包含当前 revision、当前门禁结论及具体缺口，不展开历史或完整 opinion 正文。quality status <change> --history SHALL 额外返回完整 Quality record；历史意见及已记录的处置 SHALL 不因默认输出精简而被删除。"
+        },
+        {
+          "detail": "工作流规则由文件承载，不增加统一 context 命令",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "以文件指导与查询协同推进"
+          },
+          "quote": "静态制品定义、写作指导和模板 SHALL 由按需加载的 skill/reference 提供；config project SHALL 提供当前有效配置，status --change SHALL 提供制品与推进状态，quality status SHALL 提供当前质量详情。CLI SHALL 不注册 instructions 命令或用另一统一 context 命令重新聚合这些提示词与数据。"
+        }
+      ]
+    },
+    {
+      "identity": "silent-json-success",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "无数据成功的默认与 JSON stdout 为空且 exit 0",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "不生成 ok 或空对象成功 envelope",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "有数据时才按 JSON 编码，诊断仍具体",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "空查询有结果，必要新身份、revision、digest 不删",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        },
+        {
+          "detail": "真实警告即使成功也不吞掉",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "- 一次配置写入成功且无警告：文件完成写入，默认与 --json 的两条输出流均为空，退出码 0。\n- 查询没有活动 Change：返回可识别的空集合，退出码 0，不以空 stdout 代替查询结果。\n- 查询返回有效配置但发现被忽略的非法配置项：stdout 返回配置，stderr 返回对应警告，退出码仍为 0。\n- 写入输入非法：退出码非零，stderr 包含具体原因及适用定位；不在 stdout 再输出错误对象。\n- Quality 写入成功：返回新 revision，不回显刚提交的完整 opinion 或 success envelope。"
+        }
+      ]
+    },
+    {
+      "identity": "record-coverage-consume-lifecycle",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "coverage 保存 record-coverage.json 且保留活动来源",
+          "location": {
+            "element": "design-record-operations",
+            "section": "记录覆盖检查结果"
+          },
+          "quote": "位置在 Expected Semantic Model 或 Candidate 中须真实存在，可为 Element Declaration、Section、Acceptance Case、Relationship、Element Kind、Relationship Kind、Authored View。Element 位置须附当前原文摘录，忽略空白与 Markdown 强调后匹配 Declaration 的 title/definition、Section（含案例）或案例名称/正文；其余实体按 identity 校验。对 named Change，CLI SHALL 在写入 coverage 前将记录结构逐字段与 Expected Semantic Model 比对；结构对象缺失、已确认字段不一致或 `removed: true` 对象仍存在时拒绝并报告差异。Candidate 的结构门禁仍在 consume 执行。全部通过才由 CLI 自动计算当前来源内容 hash 与目标模型指纹，连同检查结果写入 record-coverage.json；调用方 SHALL 不抄传或提供 sourceVersion。目标指纹 SHALL 绑定 Expected Semantic Model 或 Candidate 模型内容，不使用递增修订号，不将 proposal.md、design.md 或 tasks.md 内容纳入模型指纹。coverage SHALL 保留活动 Record，不复制或删除来源。任何失败返回诊断，不写入或替换已有结果。"
+        },
+        {
+          "detail": "用户接受最终 Change 及当前覆盖后才能 consume",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "Change 的用户接受门禁由 Propose 遵守：只有用户接受最终 Change 及其当前覆盖结果后才调用 consume。record-source.md 与 record-coverage.json SHALL 作为形成历史保留，不参与后续 Expected Semantic Model、Sync 或 Closure 的规范计算。"
+        },
+        {
+          "detail": "自动检查当前源和目标指纹匹配",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "record consume SHALL 显式选择 named Change 或 active Candidate，不从 cwd 猜测目标。执行前 SHALL 读取已有覆盖结果，自动重新计算记录内容 hash 与当前目标模型指纹并比较；缺少覆盖结果、来源内容或目标模型变化时拒绝并要求重查。调用方 SHALL 不提供 --source-version；内部指纹不作为普通成功回执。"
+        },
+        {
+          "detail": "记录结构按字段与目标比较",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "每个已确认结构对象 SHALL 按语义 identity 与目标逐字段比对：未删除对象必须存在且已记录字段一致，removed: true 对象必须不存在；不一致须逐项报告。通过后 SHALL 先保存来源原始字节为 record-source.md，再完成适用校验，最后删除活动 Record。前置或交接失败 SHALL 保留来源与既有目标；本次产生的未完成快照须撤销。同字节已有快照可重验恢复，冲突快照必须停止。"
+        },
+        {
+          "detail": "先保存原始字节为 record-source.md，再校验，最后删来源",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "每个已确认结构对象 SHALL 按语义 identity 与目标逐字段比对：未删除对象必须存在且已记录字段一致，removed: true 对象必须不存在；不一致须逐项报告。通过后 SHALL 先保存来源原始字节为 record-source.md，再完成适用校验，最后删除活动 Record。前置或交接失败 SHALL 保留来源与既有目标；本次产生的未完成快照须撤销。同字节已有快照可重验恢复，冲突快照必须停止。"
+        },
+        {
+          "detail": "交接失败保留来源及既有目标；同字节可恢复、冲突停止",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "每个已确认结构对象 SHALL 按语义 identity 与目标逐字段比对：未删除对象必须存在且已记录字段一致，removed: true 对象必须不存在；不一致须逐项报告。通过后 SHALL 先保存来源原始字节为 record-source.md，再完成适用校验，最后删除活动 Record。前置或交接失败 SHALL 保留来源与既有目标；本次产生的未完成快照须撤销。同字节已有快照可重验恢复，冲突快照必须停止。"
+        },
+        {
+          "detail": "两份文件仅为形成历史",
+          "location": {
+            "element": "design-record-operations",
+            "section": "门禁化交接确认来源"
+          },
+          "quote": "Change 的用户接受门禁由 Propose 遵守：只有用户接受最终 Change 及其当前覆盖结果后才调用 consume。record-source.md 与 record-coverage.json SHALL 作为形成历史保留，不参与后续 Expected Semantic Model、Sync 或 Closure 的规范计算。"
+        }
+      ]
+    },
+    {
+      "identity": "cli-byte-budget-objective",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "优先减少调用重复读取，再冗余内容，再范围，最后格式",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "同样本场景比较单次及累计字节",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "stdout、stderr 及实际辅助文件读取均计入",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "同量内容迁入文件不算收益",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "未运行 tokenizer 不报告 token 节省",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "每项改动说明减少内容及必要信息的获取位置",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "必要诊断与当前请求完整语义保留",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        }
+      ]
+    },
+    {
+      "identity": "consumer-specific-output-format",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Agent 阅读优先完整紧凑文本，outline 用 Markdown",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "程序精确取字段用 JSON",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "逐命令核对覆盖，不假定文本 JSON 等价",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "先减少调用再降低表示开销",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        },
+        {
+          "detail": "明确请求完整 Contract/snapshot/review 不摘要截断",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "所有 CLI 驱动工作流 SHALL 优先取消不必要调用与重复读取，其次删除无用回执和重复内容，再缩小查询范围，最后选择紧凑表示。Agent 阅读理解 SHALL 优先选择请求范围内内容完整且紧凑的文本，例如 arch outline --format markdown；程序需要精确取字段时使用 JSON。逐命令核对信息覆盖，不假定文本与 JSON 全部等价；完整 Contract、snapshot 与 review projection 不得被自动摘要或截断。"
+        }
+      ]
+    },
+    {
+      "identity": "minimal-cli-output-details",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Record 默认静默，显式 --diff 给变化",
+          "location": {
+            "element": "design-record-operations",
+            "section": "按部分更新记录"
+          },
+          "quote": "更新 SHALL 不要求 --source-version 或调用方记录修订号；CLI 校验当前输入、结构和上下文，用户确认授权由 Agent 协议承担。成功且没有显式请求结果时 SHALL 静默；--diff SHALL 返回本次条目和结构差异，不附整份记录或 baseline。"
+        },
+        {
+          "detail": "首次接手、上下文丢失、交接前完整读",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "Build、Explore 与 Propose 的 Agent SHALL 经 CLI 操作 Record。首次接手、上下文丢失与交接前 SHALL 完整读取当前记录；已掌握且未发生相关变化的依据可以复用，普通局部补读 SHALL 按条目选择，不固定执行 show/status/validate 三连。需要判断 drift、结构有效性或恢复失效结论时 SHALL 执行对应检查，不以减少调用跳过适用门禁。"
+        },
+        {
+          "detail": "普通阶段选择读取并取消固定三连",
+          "location": {
+            "element": "design-record",
+            "section": "载入记录时同步当前设计依据"
+          },
+          "quote": "Build、Explore 与 Propose 的 Agent SHALL 经 CLI 操作 Record。首次接手、上下文丢失与交接前 SHALL 完整读取当前记录；已掌握且未发生相关变化的依据可以复用，普通局部补读 SHALL 按条目选择，不固定执行 show/status/validate 三连。需要判断 drift、结构有效性或恢复失效结论时 SHALL 执行对应检查，不以减少调用跳过适用门禁。"
+        },
+        {
+          "detail": "Change status 仅状态、缺口及目标计数，不回传正文",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。"
+        },
+        {
+          "detail": "当前结论与缺口默认可得，历史按需",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Status 输出语义"
+          },
+          "quote": "默认结果 SHALL 包含当前 revision、当前门禁结论及具体缺口，不展开历史或完整 opinion 正文。quality status <change> --history SHALL 额外返回完整 Quality record；历史意见及已记录的处置 SHALL 不因默认输出精简而被删除。"
+        },
+        {
+          "detail": "Candidate 校验保留 digest，比较统计 --details 获取",
+          "location": {
+            "element": "candidate-commands",
+            "section": "Candidate validation SHALL 确定性且只读"
+          },
+          "quote": "- Candidate 具有一个 Project Root、合法 identity 与 containment、合法 kind policies、完整 required contracts、合法 Sections 与合法 semantic relations\n  - 每个 Candidate file 满足 canonical encoding、newline、Unicode、ordering、path、frontmatter 与 no-symlink rules\n  - validation 默认 SHALL 只返回必要的 `reviewDigest`；--details SHALL 额外返回 deterministic inventory 与 formal comparison/diff。警告与错误 SHALL 写入 stderr，--json 时为结构化 JSON；无效 Candidate 非零退出且不得交付可用于提升的 digest\n  - 对未变化 bytes 重复 validation SHALL 返回相同 digest"
+        },
+        {
+          "detail": "非交互无 spinner、加载进度、成功装饰",
+          "location": {
+            "element": "cli",
+            "section": "保持非交互输出简洁"
+          },
+          "quote": "非交互调用 SHALL 不输出 spinner、加载进度、颜色装饰或成功装饰文本。真实警告、错误、必要后续凭据及显式请求的完整数据 SHALL 保留。显式请求详细信息时，输出 SHALL 仅展开该命令请求的范围，不因 --json 自动增加额外内容。"
+        },
+        {
+          "detail": "同样本累计字节包括 reference，复用行为测试不锁自然语言全文或字节",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "上下文开销比较 SHALL 使用相同样本、任务目的和调用场景，计入实际 stdout、stderr 及读取的 skill/reference 字节，既评估单次响应也评估累计工作流。不将同量内容从 CLI 搬入文件算作收益，不设未经确认的固定降幅，未运行 tokenizer 不报告 token 节省量。每项优化 SHALL 指明省掉的调用或内容及必要信息的获取位置；行为验证复用已有测试，不以固定自然语言全文或字节快照代替可观察结果。"
+        },
+        {
+          "detail": "Neovim 的保存行为与新 CLI 输出同步验证",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。"
+        }
+      ]
+    },
+    {
+      "identity": "stdout-stderr-contract",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "stdout 只有结果，stderr 是警告错误",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "JSON 诊断结构化，无重复成功失败 envelope",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "无结果无警告成功两条流都空且 exit 0",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "整个 CLI SHALL 将 stdout 限于请求的数据或必须交付的结果，将警告与错误写入 stderr；成功以退出码 0 表达，失败以非零退出码及具体诊断表达。无返回数据且无警告的成功操作 SHALL 使 stdout 与 stderr 均为空，默认和 --json 模式均不得输出仅为确认成功的消息、{\"ok\":true} 或 {}。--json SHALL 决定有数据时的编码，诊断也 SHALL 使用结构化 JSON，不重复输出成功/失败 envelope。"
+        },
+        {
+          "detail": "有效数据与警告分流且 exit 0",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "- 一次配置写入成功且无警告：文件完成写入，默认与 --json 的两条输出流均为空，退出码 0。\n- 查询没有活动 Change：返回可识别的空集合，退出码 0，不以空 stdout 代替查询结果。\n- 查询返回有效配置但发现被忽略的非法配置项：stdout 返回配置，stderr 返回对应警告，退出码仍为 0。\n- 写入输入非法：退出码非零，stderr 包含具体原因及适用定位；不在 stdout 再输出错误对象。\n- Quality 写入成功：返回新 revision，不回显刚提交的完整 opinion 或 success envelope。"
+        },
+        {
+          "detail": "失败非零并提供具体 stderr 诊断",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "- 一次配置写入成功且无警告：文件完成写入，默认与 --json 的两条输出流均为空，退出码 0。\n- 查询没有活动 Change：返回可识别的空集合，退出码 0，不以空 stdout 代替查询结果。\n- 查询返回有效配置但发现被忽略的非法配置项：stdout 返回配置，stderr 返回对应警告，退出码仍为 0。\n- 写入输入非法：退出码非零，stderr 包含具体原因及适用定位；不在 stdout 再输出错误对象。\n- Quality 写入成功：返回新 revision，不回显刚提交的完整 opinion 或 success envelope。"
+        },
+        {
+          "detail": "原 stdout 错误消费者同步读取 stderr",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。"
+        }
+      ]
+    },
+    {
+      "identity": "nvim-cli-output-adaptation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "exit 0 空 stdout 仍保存成功刷新",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。"
+        },
+        {
+          "detail": "ignoredChanges 继续 status bar 提示",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。"
+        },
+        {
+          "detail": "失败显示 stderr 诊断并保留草稿",
+          "location": {
+            "element": "neovim",
+            "section": "保存 Expected Semantic Model 微调"
+          },
+          "quote": "Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。"
+        },
+        {
+          "detail": "list 仍用于选择，show --review 保留完整模型和 Plan",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "Change 选择 SHALL 从成功的 list 查询解析完整 changes 数据，审阅 SHALL 从成功的 show --review 查询读取完整模型与 Plan 数据；命令失败时从 stderr 读取诊断，不把缺失或部分结果当作有效查询。通道调整 SHALL 保留现有刷新、异步顺序及视图状态保证。"
+        },
+        {
+          "detail": "刷新状态与异步顺序保持",
+          "location": {
+            "element": "neovim",
+            "section": "定位源文件并刷新审阅"
+          },
+          "quote": "Change 选择 SHALL 从成功的 list 查询解析完整 changes 数据，审阅 SHALL 从成功的 show --review 查询读取完整模型与 Plan 数据；命令失败时从 stderr 读取诊断，不把缺失或部分结果当作有效查询。通道调整 SHALL 保留现有刷新、异步顺序及视图状态保证。"
+        }
+      ]
+    },
+    {
+      "identity": "reviewed-config-status-interface",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "不选范围保留完整归一化配置",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "系统 SHALL 提供 xirang config project，使用共享配置加载与归一化规则返回当前有效项目配置。未指定选择范围时 SHALL 返回完整配置；包含适用的 proseLanguage、context、decomposition、architecture、optimization、apply、git 和 rules，不包含已退役的 Propose routing。每次调用 SHALL 读取当前磁盘配置，先前查询结果不得遮蔽后续修改。"
+        },
+        {
+          "detail": "--select 可重复且保持点路径嵌套形状",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "--select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。"
+        },
+        {
+          "detail": "--artifact 限定匹配 rules，组合时先限定再选择",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "--select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。"
+        },
+        {
+          "detail": "合法可选缺失省略，选择无字段返回 {}",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "--select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。"
+        },
+        {
+          "detail": "非法字段或未知 artifact 报错",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "--select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。"
+        },
+        {
+          "detail": "磁盘改变下一次调用生效",
+          "location": {
+            "element": "config-command",
+            "section": "查询项目配置"
+          },
+          "quote": "系统 SHALL 提供 xirang config project，使用共享配置加载与归一化规则返回当前有效项目配置。未指定选择范围时 SHALL 返回完整配置；包含适用的 proseLanguage、context、decomposition、architecture、optimization、apply、git 和 rules，不包含已退役的 Propose routing。每次调用 SHALL 读取当前磁盘配置，先前查询结果不得遮蔽后续修改。"
+        },
+        {
+          "detail": "status 提供制品、缺口、计数、state 不回传目标正文",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。"
+        },
+        {
+          "detail": "isComplete 是制品完整而非 Quality 完成",
+          "location": {
+            "element": "artifact-workflow-commands",
+            "section": "Status Command"
+          },
+          "quote": "JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。"
+        },
+        {
+          "detail": "默认当前结论缺口 revision，--history 只按需附完整 record",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Status 输出语义"
+          },
+          "quote": "默认结果 SHALL 包含当前 revision、当前门禁结论及具体缺口，不展开历史或完整 opinion 正文。quality status <change> --history SHALL 额外返回完整 Quality record；历史意见及已记录的处置 SHALL 不因默认输出精简而被删除。"
+        },
+        {
+          "detail": "写入仅新 revision，CAS 失败与字段诊断保持",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "统一输出与诊断结构"
+          },
+          "quote": "所有 xirang quality 子命令 SHALL 将请求的结果写入 stdout，将警告和错误写入 stderr。写入成功 SHALL 只返回供后续 CAS 使用的新 revision，不回显提交的完整 opinion、Opt 或 Seal，也不附 ok 或通用 allowedNextOperations。"
+        },
+        {
+          "detail": "待办缺口是查询结果，执行失败非空成功",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "统一输出与诊断结构"
+          },
+          "quote": "门槛或关联不满足 SHALL 以 exit 1 退出；输入形状非法 SHALL 以 exit 2 退出并使用 INVALID_INPUT。失败诊断 SHALL 保留稳定 code；适用的字段诊断 SHALL 包含 path、expected、actual 与 fix。--json 时 stderr SHALL 使用结构化 JSON。成功状态查询的待办缺口 SHALL 作为所请求的状态数据返回；命令执行失败不得伪装成空成功。"
+        },
+        {
+          "detail": "空查询结果与无数据静默成功区分",
+          "location": {
+            "element": "cli",
+            "section": "统一结果与诊断通道"
+          },
+          "quote": "查询 SHALL 返回所请求的数据，包括有效的空查询结果；已知缺口作为状态查询的结果表达，不冒充命令执行失败。调用方需要继续引用的新身份、Quality revision 与 Candidate reviewDigest SHALL 作为必要结果返回。完整 Contract、snapshot 与 review projection 的请求范围 SHALL 完整保留，不自动摘要或截断。导出位置、completion script、反馈提交 URL 及必要的手工提交材料 SHALL 按其实际交付职责返回。"
+        }
+      ]
+    }
+  ]
+}

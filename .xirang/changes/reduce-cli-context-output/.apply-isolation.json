@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "reduce-cli-context-output",
+  "originalBranch": "main",
+  "baseCommit": "a01cacf4e2f43eec812bee588085749c3e0c359a"
+}
