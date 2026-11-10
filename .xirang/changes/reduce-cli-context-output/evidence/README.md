@@ -44,3 +44,10 @@ Quality 默认状态保留最新 delivered Opt 的 baseCommit/resultCommit，完
 第七轮 full-change Review 对 `09cfe2d51` 返回 FAIL，指出成功编译的警告在 Sync 与 Archive 中丢失。Sync 的准备结果现在保留编译警告，由命令在已同步的提前返回之前输出；Archive 的只读门禁同样输出实际警告。文本诊断包含路径、代码及原因，JSON 通过共享 stderr 诊断编码。新增真实 CLI 回归使用完整 Quality fixture，不绕过门禁，覆盖有/无警告的首次 Sync、重复 Sync 和 Archive，并核对模型更新及实际归档位置。新增用例在修正前 2 failed；修正后针对性 3 files / 51 tests 通过。
 
 构建后全量 166 files / 2208 tests、lint、typecheck、active stale references: 0、diff 检查及 strict validation 通过；strict validation 两条输出流均为空。本轮测量样本仍无警告，不据此增加字节收益。修正前 `09cfe2d51` 对应 [Candidate Windows 42820601221](https://github.com/cp-yu/xirang/actions/runs/42820601221) 与 [LikeC4 Windows 42820601316](https://github.com/cp-yu/xirang/actions/runs/42820601316) 已通过；[跨平台 42820601255](https://github.com/cp-yu/xirang/actions/runs/42820601255) 在记录时仍运行，不能称整组通过。
+
+
+第八轮 full-change Review 对 `0a09a2e68` 返回 FAIL，指出 List 丢失编译警告及文本配置多行标量边界丢失，并提示 CLI 文档存在过时 Quality 概述。List 现在在保留原查询结果的同时，通过 stderr 返回含 Change、路径和代码的实际编译警告；JSON 请求使用结构化诊断。多行字符串使用现有 YAML 序列化器及当前嵌套缩进表示，保留原文、单条规则边界和换行；不引入新依赖。CLI 概述按实际 v4 Review/Opt/Seal 协议修正，恢复 Archive 的命令、位置结果和独立 Sync 门禁说明。
+
+新增/扩展 owner tests 在修正前 5 failed / 35 passed，覆盖警告抑制和 key/list-like 内容溢出标量；修正后 3 files / 109 tests 通过。配置用例覆盖无末尾换行、一个/多个末尾换行和 CRLF；文本按 console.log 实际输出包含的最终换行解析。构建后实际 CLI 探针确认 List --long/--json 的有警告归属、无警告静默及结果保留，并确认文本/JSON 配置返回相同多行值与嵌套、配置源字节不变。全量 166 files / 2213 tests、lint、typecheck、active stale references: 0、diff 检查和 strict validation 通过；strict validation 两条输出流为空。LSP 在 config-schema.ts 仅提示既有 Zod API deprecated，不影响类型检查。
+
+`09cfe2d51` 的 [跨平台 42820601255](https://github.com/cp-yu/xirang/actions/runs/42820601255) 最终 Linux、Windows 全套通过，macOS 浏览器 fits the diagram after switching 的谓词等待超时（44 passed / 1 failed）；未推断失败原因或改动该交互实现。`0a09a2e68` 的 [Candidate Windows 42822698204](https://github.com/cp-yu/xirang/actions/runs/42822698204) 与 [LikeC4 Windows 42822698106](https://github.com/cp-yu/xirang/actions/runs/42822698106) 通过，[跨平台 42822698255](https://github.com/cp-yu/xirang/actions/runs/42822698255) 在记录时仍运行。

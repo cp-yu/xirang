@@ -1,5 +1,6 @@
 import path from 'path';
 import { z } from 'zod';
+import { stringify } from 'yaml';
 
 const GitCommitMessagePathSchema = z
   .string()
@@ -300,7 +301,9 @@ export function formatValueYaml(value: unknown, indent: number = 0): string {
   }
 
   if (typeof value === 'string') {
-    return value;
+    return /[\r\n]/.test(value)
+      ? stringify(value, { lineWidth: 0 }).replace(/\n$/, '').replace(/\n/g, `\n${'  '.repeat(Math.max(1, indent))}`)
+      : value;
   }
 
   if (Array.isArray(value)) {

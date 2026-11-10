@@ -48,9 +48,9 @@ These commands support `--json` output for programmatic use by AI agents and scr
 | `xirang config project` | Read current effective configuration | `--select <key>` and `--artifact <id>` narrow the result |
 | `xirang templates` | Find template paths | `--json` for path resolution |
 | `xirang schemas` | List available schemas | `--json` for schema discovery |
-| `xirang quality` | Record review and optimization conclusions | `--json` for records, diagnostics, and allowed next operations |
+| `xirang quality` | Record review and optimization conclusions | `--json` for current commit associations, revision receipts, and diagnostics |
 
-Xirang's quality gate tracks one fact: whether the current code still matches a passing review record. `xirang quality review` records a conclusion and computes the evidence fingerprint, `xirang quality optimize` records one optimization round (or finalizes the loop with a `stopReason`), and `xirang quality seal` confirms the change is ready for archive. Checkpoints are git commits created by the apply workflow, so a failed optimization round restores the last successful commit instead of a stash. `/xirang:archive` reuses a clean, finalized record when possible; when it must re-run the quality flow, that rerun honors the same optimization eligibility rules.
+Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Archive requires a valid Seal and a synchronized Semantic Delta.
 
 ---
 
@@ -324,6 +324,17 @@ Validation always executes all applicable checks. With no issues, success is sil
 ---
 
 ## Lifecycle Commands
+
+### `xirang archive`
+
+Archive a completed Change after Quality, Sync, validation and task gates pass. Apply its Semantic Delta to the formal model with `xirang sync <change-name>` first when synchronization is pending; Archive checks synchronization and moves the Change without applying the Delta itself.
+
+```bash
+xirang sync add-dark-mode
+xirang archive add-dark-mode --yes --json
+```
+
+The Change name is optional in an interactive terminal. `--yes` skips confirmation prompts. Success returns the archive location as text or `{ "archive": ".xirang/changes/archive/<date>-<change-name>" }` with `--json`; a retry after archiving returns the existing location. Gate failures exit nonzero and preserve the active Change. Warnings and errors go to stderr, structurally encoded with `--json`.
 
 ### `xirang quality`
 

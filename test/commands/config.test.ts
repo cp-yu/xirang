@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { runCLI } from '../helpers/run-cli.js';
 import { Command } from 'commander';
+import { parse, stringify } from 'yaml';
 
 describe('config command integration', () => {
   // These tests use real file system operations with XDG_CONFIG_HOME override
@@ -172,6 +173,25 @@ describe('config project command', () => {
     fs.writeFileSync(configPath, 'schema: semantic-model\nproseLanguage: English\nrules: {}\n');
     await runProjectCommand(args);
     expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: 'English', rules: {} });
+  });
+
+  it.each(['', '\n', '\n\n', '\r\n'])('preserves multiline scalar boundaries and line endings (%j)', async ending => {
+    const newline = ending === '\r\n' ? '\r\n' : '\n';
+    const selected = {
+      context: `first line${newline}rules: context content only${ending}`,
+      rules: { proposal: [`first rule${newline}- still the same rule${ending}`] },
+    };
+    const source = { schema: 'semantic-model', ...selected, rules: { ...selected.rules, specs: ['Other artifact'] } };
+    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
+    const configPath = path.join(tempDir, '.xirang', 'config.yaml');
+    const bytes = stringify(source);
+    fs.writeFileSync(configPath, bytes);
+    const args = ['--select', 'context', '--select', 'rules', '--artifact', 'proposal'];
+    await runProjectCommand([...args, '--json']);
+    expect(JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]))).toEqual(selected);
+    await runProjectCommand(args);
+    expect(parse(`${consoleLogSpy.mock.calls.at(-1)![0]}\n`)).toEqual(selected);
+    expect(fs.readFileSync(configPath, 'utf8')).toBe(bytes);
   });
 
   it('distinguishes absent optional fields from invalid selections', async () => {

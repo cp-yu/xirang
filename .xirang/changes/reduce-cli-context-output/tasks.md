@@ -43,3 +43,6 @@
 - [x] [code_fix] Quality 当前概况保留最新 delivered Opt 的 base/result commit 关联。
 - [x] [code_fix] Archive 指导在归档前显式完成独立 Sync，并按实际操作报告结果。
 - [x] [code_fix] Sync 与 Archive 在成功及已同步路径保留实际编译警告，文本/JSON 诊断可定位，无问题成功仍静默。
+- [x] [code_fix] List 保留编译警告及 Change/路径归属，文本与 JSON 查询结果仍可用且无警告时诊断静默。
+- [x] [code_fix] 文本配置投影保持多行标量和单条规则边界，换行及选择嵌套与 JSON 内容一致。
+- [x] [artifact_fix] CLI 概述与当前 commit-bound Quality 协议一致，并保留 Archive 的实际命令与门禁说明。

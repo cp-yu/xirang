@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -25,6 +25,7 @@ describe('ListCommand', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     // Restore console.log
     console.log = originalLog;
 
@@ -176,8 +177,10 @@ Regular text that should be ignored
       expect(logOutput.some(line => line.includes('no-tasks') && line.includes('No goals'))).toBe(true);
     });
 
-    it('should include compiler-derived details in JSON and long output', async () => {
+    it.each([false, true])('should include compiler-derived details and preserve warnings (warning=%s)', async warning => {
       await writeProjectModel(tempDir, minimalModel());
+      if (warning) await fs.rename(path.join(tempDir, '.xirang/model/metamodel/project.md'), path.join(tempDir, '.xirang/model/views/project.md'));
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
       const changeDir = await writeChangeDelta(tempDir, 'demo', {
         'elements/auth.md': [
           '---',
@@ -209,11 +212,18 @@ Regular text that should be ignored
         }],
       });
 
+      const jsonDiagnostics = errors.mock.calls.map(call => JSON.parse(call[0]));
+      if (warning) expect(jsonDiagnostics).toContainEqual({ code: 'ENTITY_PARTITION_MISMATCH', message: expect.stringMatching(/demo.*views\/project\.md/) });
+      else expect(jsonDiagnostics).toEqual([]);
+      errors.mockClear();
       logOutput = [];
       await listCommand.execute(tempDir, { long: true });
       expect(logOutput.some(line => line.includes('demo: demo'))).toBe(true);
       expect(logOutput.some(line => line.includes('[deltas 1]'))).toBe(true);
       expect(logOutput.some(line => line.includes('[goals 1/2]'))).toBe(true);
+      if (warning) expect(errors.mock.calls.map(call => call[0]).join('\n')).toMatch(/demo.*views\/project\.md.*ENTITY_PARTITION_MISMATCH/);
+      else expect(errors).not.toHaveBeenCalled();
+      errors.mockRestore();
     });
 
     it('should include qualityStatus in JSON output', async () => {

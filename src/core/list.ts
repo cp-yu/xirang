@@ -4,6 +4,7 @@ import { compileChange, readFormalSemanticModel } from './change-compiler.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { readQualityRecordStatus } from './quality/engine.js';
 import { formatTaskStatus, getTaskProgressForChange } from '../utils/task-progress.js';
+import { diagnostic } from '../utils/output.js';
 
 interface ChangeInfo {
   name: string;
@@ -103,6 +104,9 @@ export class ListCommand {
             const compiled = await compileChange(targetPath, changeDir, { base });
             title = compiled.title;
             deltaCount = compiled.diff.summary.total;
+            for (const warning of compiled.diagnostics.filter(issue => issue.level === 'WARNING')) {
+              diagnostic(`${changeDir}: ${warning.path}: ${warning.code}: ${warning.message}`, warning.code, json);
+            }
           }
         } catch {
           // Keep deterministic fallback values for incomplete change directories.
