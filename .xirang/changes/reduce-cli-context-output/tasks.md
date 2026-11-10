@@ -34,3 +34,5 @@
 - [x] [code_fix] Build 在最终审阅与呈现前取得当前 Formal 比较或明确不可用原因。
 - [x] [code_fix] View 仅输出实际服务地址，JSON 编码及警告分流覆盖启动和内部校验子进程。
 - [x] [code_fix] 移除 instructions 退役产生的孤立生成链及旧协议断言，保留共享加载与运行时配置投影。
+- [x] [code_fix] 文本 status 保留制品路径与实际输出位置，认证恢复指引在两种编码中均走诊断通道。
+- [x] [code_fix] Archive 生成指导按实际归档位置结果衔接 Git handoff。

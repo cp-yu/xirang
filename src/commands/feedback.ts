@@ -160,13 +160,12 @@ function submitViaGhCli(title: string, body: string, json: boolean): void {
  * Handle fallback when gh CLI is not available or not authenticated
  */
 function handleFallback(title: string, body: string, reason: 'missing' | 'unauthenticated', json: boolean): void {
-  diagnostic(reason === 'missing' ? 'GitHub CLI not found. Manual submission required.' : 'GitHub authentication required. Manual submission required.', 'FEEDBACK_MANUAL_SUBMISSION', json);
+  diagnostic(reason === 'missing' ? 'GitHub CLI not found. Manual submission required.' : 'GitHub authentication required. Manual submission required. To auto-submit in the future: gh auth login', 'FEEDBACK_MANUAL_SUBMISSION', json);
   const manualUrl = generateManualSubmissionUrl(title, body);
   if (json) console.log(JSON.stringify({ title, body, labels: ['feedback'], url: manualUrl }));
   else {
     displayFormattedFeedback(title, body);
     console.log(manualUrl);
-    if (reason === 'unauthenticated') console.log('To auto-submit in the future: gh auth login');
   }
 
   // Exit with success code (fallback is successful)

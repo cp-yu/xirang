@@ -20,3 +20,8 @@ Windows 专项在修正保存事件路径后整组通过：[run 42806410191](htt
 删除旧 enriched instructions generator、专有类型/帮助函数/导出和 prompt-only 配置投影；共享模板、Change context/status、配置归一化与 runtime 投影保留。旧 generator/prompt 测试随退役协议删除，notation consistency 改从实际交付的静态 reference 及 schema 检查。全量 165 files / 2184 tests、root lint/typecheck、LikeC4 typecheck、root/LikeC4 build、活跃退役引用审计（0）与 diff 检查通过；测试数量减少反映退役协议断言移除。Change strict validation 成功且两条输出流均为 0 字节。
 
 第三轮修正前的 HEAD 对应 [Candidate Windows 42811144832](https://github.com/cp-yu/xirang/actions/runs/42811144832) 与 [LikeC4 Windows 42811144817](https://github.com/cp-yu/xirang/actions/runs/42811144817) 通过。[跨平台 42811144863](https://github.com/cp-yu/xirang/actions/runs/42811144863) 的 Linux、Windows 全套通过，macOS 的浏览器 `fits the diagram after switching` 谓词等待超时（44 passed / 1 failed）；不把此轮称为全部 CI 通过，也不推断该超时的原因。当前 View 修正仅改 vendored 服务 URL 输出，没有改浏览器交互实现。
+
+
+第四轮 full-change Review 对 `309125e53` 返回 FAIL，发现文本 status 路径信息缺失、反馈认证恢复指引通道错误，并指出 Archive 指导仍描述已移除的成功回执。前两项在 owning tests 中复现失败后修正：文本 status 保留 outputPath、现有 outputs、completion marker 和依赖；未认证反馈在文本/JSON 两种模式的 stderr 同时返回认证警告与 `gh auth login`，stdout 仅保留手工提交材料。Archive 模板与重刷后的 skill 改为消费实际归档位置。全量 165 files / 2185 tests、lint/typecheck、build、active stale references: 0、diff 检查与 strict validation 通过；strict validation 两条输出流均为空。静态生成更新 stdout 为空，stderr 保留工具发现及重启提示。测量配方的 status 调用使用 JSON，本轮仅修正文本 status，未据此增加或重算收益。
+
+`309125e53` 对应 [Candidate Windows 42813871949](https://github.com/cp-yu/xirang/actions/runs/42813871949) 与 [LikeC4 Windows 42813872116](https://github.com/cp-yu/xirang/actions/runs/42813872116) 已通过；[跨平台 42813871911](https://github.com/cp-yu/xirang/actions/runs/42813871911) 在此记录时 Linux 通过，Windows/macOS 仍运行，尚不能宣称整组通过。

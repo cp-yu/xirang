@@ -157,7 +157,7 @@ ${buildArchiveFullQualityContract(executionModel)}
    If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. The archive CLI performs the quality gate, sync, and move-to-archive; do not duplicate sync writes manually.
 
 6. **Run archive CLI**
-   Run \`xirang archive "<change-name>"\` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and prints the Git handoff reminder; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
+   Run \`xirang archive "<change-name>"\` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and returns its archive location; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
 
 7. **Git handoff**
    Read the archive CLI output and projected Git policy from \`xirang config project --select git --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.

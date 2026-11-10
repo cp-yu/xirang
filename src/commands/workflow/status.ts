@@ -10,6 +10,10 @@ import { validateChangeExists, validateSchemaExists, getAvailableChanges, getSta
 
 export interface StatusOptions { change?: string; schema?: string; json?: boolean }
 export interface WorkflowStatus extends ChangeStatus {
+  artifacts: Array<ChangeStatus['artifacts'][number] & {
+    outputs?: string[];
+    completionMarker?: { path: string; present: boolean };
+  }>;
   state: 'blocked' | 'ready' | 'needs_review' | 'needs_optimize' | 'all_done';
   goals: { total: number; completed: number; remaining: number };
   gaps: Array<{ path: string; message: string }>;
@@ -74,6 +78,10 @@ export function printStatusText(status: WorkflowStatus): void {
   const complete = status.artifacts.filter(a => a.status === 'done').length;
   console.log(`${status.changeName} (${status.schemaName}): ${status.state}`);
   console.log(`${complete}/${status.artifacts.length} artifacts complete; ${status.goals.completed}/${status.goals.total} goals complete`);
-  for (const artifact of status.artifacts) console.log(`${getStatusIndicator(artifact.status)} ${artifact.id}${artifact.missingDeps?.length ? `: ${artifact.missingDeps.join(', ')}` : ''}`);
+  for (const artifact of status.artifacts) {
+    console.log(`${getStatusIndicator(artifact.status)} ${artifact.id}: ${artifact.outputPath}${artifact.missingDeps?.length ? ` (requires: ${artifact.missingDeps.join(', ')})` : ''}`);
+    for (const output of artifact.outputs ?? []) console.log(`  ${output}`);
+    if (artifact.completionMarker) console.log(`  ${artifact.completionMarker.path}: ${artifact.completionMarker.present ? 'present' : 'missing'}`);
+  }
   for (const gap of status.gaps) console.log(`${gap.path}: ${gap.message}`);
 }

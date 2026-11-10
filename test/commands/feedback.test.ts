@@ -114,7 +114,7 @@ describe('FeedbackCommand', () => {
       );
     });
 
-    it('should handle unauthenticated gh CLI with fallback', async () => {
+    it.each([false, true])('keeps unauthenticated fallback guidance on stderr (json=%s)', async json => {
       // Simulate gh installed but not authenticated
       mockExecSync.mockImplementation((cmd: string) => {
         if (cmd === 'which gh' || cmd === 'where gh') {
@@ -125,27 +125,20 @@ describe('FeedbackCommand', () => {
         }
       });
 
-      try {
-        await feedbackCommand.execute('Test feedback');
-      } catch (error: any) {
-        // Should exit with code 0 (successful fallback)
-        expect(error.message).toBe('process.exit(0)');
+      await expect(feedbackCommand.execute('Test feedback', { json })).rejects.toThrow('process.exit(0)');
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const warning = json ? JSON.parse(consoleErrorSpy.mock.calls[0][0]).message : consoleErrorSpy.mock.calls[0][0];
+      expect(warning).toContain('GitHub authentication required');
+      expect(warning).toContain('gh auth login');
+      expect(consoleLogSpy.mock.calls.flat().join('\n')).not.toContain('gh auth login');
+      if (json) {
+        expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toMatchObject({
+          title: 'Feedback: Test feedback', labels: ['feedback'], url: expect.stringContaining('/issues/new?'),
+        });
+      } else {
+        expect(consoleLogSpy).toHaveBeenCalledWith('Title: Feedback: Test feedback');
       }
-
-      // Should display warning
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('GitHub authentication required')
-      );
-
-      // Should show auth instructions
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('To auto-submit in the future: gh auth login')
-      );
-
-      // Should show formatted feedback
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Title: Feedback:')
-      );
     });
   });
 

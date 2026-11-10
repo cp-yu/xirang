@@ -168,6 +168,9 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('scaffolded-change');
       expect(result.stdout).toContain('0/4 artifacts complete');
+      expect(result.stdout).toContain('[ ] proposal: proposal.md');
+      expect(result.stdout).toContain('[-] design: design.md');
+      expect(result.stdout).toContain('requires: proposal');
     });
 
     it('shows status for a change with proposal only', async () => {
@@ -218,6 +221,13 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('4/4 artifacts complete');
       expect(result.stdout).toContain('ready');
+      expect(result.stderr).toBe('');
+      const json = JSON.parse((await runCLI(['status', '--change', 'complete-change', '--json'], { cwd: tempDir })).stdout);
+      for (const artifact of json.artifacts) {
+        expect(result.stdout).toContain(`${artifact.id}: ${artifact.outputPath}`);
+        for (const output of artifact.outputs) expect(result.stdout).toContain(output);
+        if (artifact.completionMarker) expect(result.stdout).toContain(artifact.completionMarker.path);
+      }
     });
 
     it('exits gracefully when no changes exist', async () => {
