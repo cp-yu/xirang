@@ -175,12 +175,18 @@ describe('config project command', () => {
     expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: 'English', rules: {} });
   });
 
-  it.each(['', '\n', '\n\n', '\r\n'])('preserves multiline scalar boundaries and line endings (%j)', async ending => {
-    const newline = ending === '\r\n' ? '\r\n' : '\n';
-    const selected = {
-      context: `first line${newline}rules: context content only${ending}`,
-      rules: { proposal: [`first rule${newline}- still the same rule${ending}`] },
-    };
+  it.each([
+    ...['', '\n', '\n\n', '\r\n'].map(ending => {
+      const newline = ending === '\r\n' ? '\r\n' : '\n';
+      return {
+        context: `first line${newline}rules: context content only${ending}`,
+        rules: { proposal: [`first rule${newline}- still the same rule${ending}`] },
+      };
+    }),
+    { context: 'Use # Root as a heading', rules: { proposal: ['- Required rollback plan', 'Include: rollback plan', '# Keep this heading'] } },
+    { context: 'true', rules: { proposal: ['false', 'null', '123', '[]', '{key: value}', ' yes '] } },
+    { context: '', rules: { proposal: ['Keep the empty context'] } },
+  ])('preserves scalar contents and boundaries in text and JSON (%j)', async selected => {
     const source = { schema: 'semantic-model', ...selected, rules: { ...selected.rules, specs: ['Other artifact'] } };
     fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     const configPath = path.join(tempDir, '.xirang', 'config.yaml');

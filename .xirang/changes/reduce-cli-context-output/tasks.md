@@ -46,3 +46,6 @@
 - [x] [code_fix] List 保留编译警告及 Change/路径归属，文本与 JSON 查询结果仍可用且无警告时诊断静默。
 - [x] [code_fix] 文本配置投影保持多行标量和单条规则边界，换行及选择嵌套与 JSON 内容一致。
 - [x] [artifact_fix] CLI 概述与当前 commit-bound Quality 协议一致，并保留 Archive 的实际命令与门禁说明。
+- [x] [code_fix] Setup 配置创建失败以原始错误及路径进入失败通道，不再静默返回成功。
+- [x] [code_fix] 文本配置投影保留特殊单行字符串与空 context 的标量边界，内容与 JSON 一致。
+- [x] [code_fix] 移除本 Change 精简 Setup 输出后产生的孤立导入和失效回执参数。

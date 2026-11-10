@@ -51,3 +51,12 @@ Quality 默认状态保留最新 delivered Opt 的 baseCommit/resultCommit，完
 新增/扩展 owner tests 在修正前 5 failed / 35 passed，覆盖警告抑制和 key/list-like 内容溢出标量；修正后 3 files / 109 tests 通过。配置用例覆盖无末尾换行、一个/多个末尾换行和 CRLF；文本按 console.log 实际输出包含的最终换行解析。构建后实际 CLI 探针确认 List --long/--json 的有警告归属、无警告静默及结果保留，并确认文本/JSON 配置返回相同多行值与嵌套、配置源字节不变。全量 166 files / 2213 tests、lint、typecheck、active stale references: 0、diff 检查和 strict validation 通过；strict validation 两条输出流为空。LSP 在 config-schema.ts 仅提示既有 Zod API deprecated，不影响类型检查。
 
 `09cfe2d51` 的 [跨平台 42820601255](https://github.com/cp-yu/xirang/actions/runs/42820601255) 最终 Linux、Windows 全套通过，macOS 浏览器 fits the diagram after switching 的谓词等待超时（44 passed / 1 failed）；未推断失败原因或改动该交互实现。`0a09a2e68` 的 [Candidate Windows 42822698204](https://github.com/cp-yu/xirang/actions/runs/42822698204) 与 [LikeC4 Windows 42822698106](https://github.com/cp-yu/xirang/actions/runs/42822698106) 通过，[跨平台 42822698255](https://github.com/cp-yu/xirang/actions/runs/42822698255) 在记录时仍运行。
+
+
+第九轮 full-change Review 对 `b200b7053` 返回 FAIL，指出 Setup 配置写入失败静默成功、特殊单行配置标量歧义及精简 renderer 后的 chalk 孤立导入。Setup 现在直接传播真实配置写入错误，由现有 CLI 边界返回非零和 stderr 诊断；移除本 Change 产生的无用导入、成功回执状态返回及失效 renderer 参数。配置文本的全部字符串统一使用现有 YAML 序列化器，保留注释、列表/映射外观、隐式类型、空字符串和既有多行内容的标量边界。
+
+回归在修正前 5 failed / 85 passed；修正后 3 files / 159 tests 通过。Setup owning CLI 回归仅在外部 fs.writeFile 边界注入 config.yaml 的 EACCES，验证之前的模型写入确已发生，文本/JSON 均失败且原始原因和路径可见；不 mock 内部配置或输出协作函数。配置 parity 扩展原 owning 用例，核对文本/JSON 解码后的内容及源字节。构建后真实 CLI 子进程探针同样在 fs 边界注入配置失败，两种编码均 exit 1、stdout 为空、stderr 保留原因及路径；特殊单行标量与空 context 在两种输出中值相同且源字节不变。
+
+本轮构建、全量 166 files / 2218 tests、lint、正常 typecheck、active stale references: 0、diff 检查及 strict validation 通过；strict validation 两条输出流为空。额外 noUnusedLocals/noUnusedParameters 检查仍失败，当前 24 条诊断、实现前测量基线 6f77c5b1a 有 28 条；忽略行列号比较后新增诊断为 0，不将该严格检查描述为通过，也不清理无关历史项。
+
+`0a09a2e68` 的 [跨平台 42822698255](https://github.com/cp-yu/xirang/actions/runs/42822698255) 最终失败于 macOS mobile 的 exports a change source in diff mode，popupNodes 为 null（44 passed / 1 failed）。`b200b7053` 的 [Candidate Windows 42825376124](https://github.com/cp-yu/xirang/actions/runs/42825376124) 通过；[LikeC4 Windows 42825376280](https://github.com/cp-yu/xirang/actions/runs/42825376280) 的 @likec4/log typecheck 子进程以 -1073741502 / 3221225794 退出，日志未给出 TypeScript 代码诊断；[跨平台 42825376274](https://github.com/cp-yu/xirang/actions/runs/42825376274) 在记录时仍运行。保留失败证据，不推断原因或将未完成的 CI 视为通过。

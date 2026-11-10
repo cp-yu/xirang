@@ -7,7 +7,6 @@ import { diagnostic } from '../utils/output.js';
  */
 
 import path from 'path';
-import chalk from 'chalk';
 import ora from 'ora';
 import * as fs from 'fs';
 import { createRequire } from 'module';
@@ -129,10 +128,9 @@ export class SetupCommand {
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 
     // Create config.yaml if needed
-    const configStatus = await this.createConfig(xirangPath, proseLanguage);
+    await this.createConfig(xirangPath, proseLanguage);
 
-    // Display success message
-    this.displaySuccessMessage(projectPath, validatedTools, results, configStatus, extendMode, proseLanguage);
+    this.displaySuccessMessage(results);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -564,7 +562,7 @@ export class SetupCommand {
   private async createConfig(
     xirangPath: string,
     proseLanguage?: string
-  ): Promise<'created' | 'updated' | 'exists' | 'skipped'> {
+  ): Promise<void> {
     const configPath = path.join(xirangPath, 'config.yaml');
     const configYmlPath = path.join(xirangPath, 'config.yml');
     const configYamlExists = fs.existsSync(configPath);
@@ -572,20 +570,12 @@ export class SetupCommand {
     const existingConfigPath = configYamlExists ? configPath : configYmlExists ? configYmlPath : null;
 
     if (existingConfigPath) {
-      if (!proseLanguage) {
-        return 'exists';
-      }
-      await this.writeProseLanguage(existingConfigPath, proseLanguage);
-      return 'updated';
+      if (proseLanguage) await this.writeProseLanguage(existingConfigPath, proseLanguage);
+      return;
     }
 
-    try {
-      const yamlContent = serializeConfig({ schema: DEFAULT_SCHEMA, proseLanguage });
-      await FileSystemUtils.writeFile(configPath, yamlContent);
-      return 'created';
-    } catch {
-      return 'skipped';
-    }
+    const yamlContent = serializeConfig({ schema: DEFAULT_SCHEMA, proseLanguage });
+    await FileSystemUtils.writeFile(configPath, yamlContent);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -593,21 +583,11 @@ export class SetupCommand {
   // ═══════════════════════════════════════════════════════════
 
   private displaySuccessMessage(
-    projectPath: string,
-    tools: Array<{ value: string; name: string; skillsDir: string; wasConfigured: boolean }>,
     results: {
-      createdTools: typeof tools;
-      refreshedTools: typeof tools;
+      createdTools: readonly unknown[];
+      refreshedTools: readonly unknown[];
       failedTools: Array<{ name: string; error: Error }>;
-      commandsSkipped: string[];
-      generatedSkillCount: number;
-      generatedCommandCount: number;
-      removedCommandCount: number;
-      removedSkillCount: number;
-    },
-    configStatus: 'created' | 'updated' | 'exists' | 'skipped',
-    extendMode: boolean,
-    proseLanguage?: string
+    }
   ): void {
     if (results.failedTools.length) {
       throw new Error(`Failed: ${results.failedTools.map(f => `${f.name} (${f.error.message})`).join(', ')}`);

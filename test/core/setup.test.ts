@@ -10,6 +10,7 @@ import { validateSemanticModel } from '../../src/core/model/validator.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
 import { getCommandSlug } from '../../src/core/shared/index.js';
 import { saveGlobalConfig, getGlobalConfig } from '../../src/core/global-config.js';
+import { runCLI } from '../helpers/run-cli.js';
 
 const { confirmMock, inputMock, showWelcomeScreenMock, searchableMultiSelectMock } = vi.hoisted(() => ({
   confirmMock: vi.fn(),
@@ -539,6 +540,24 @@ context: |
   });
 
   describe('error handling', () => {
+    it.each([false, true])('reports a config write failure after other setup writes succeed (json=%s)', async json => {
+      const configPath = path.join(testDir, '.xirang', 'config.yaml');
+      const originalWriteFile = fs.writeFile;
+      vi.spyOn(fs, 'writeFile').mockImplementation(async (...args: Parameters<typeof fs.writeFile>) => {
+        if (args[0] === configPath) {
+          throw Object.assign(new Error(`EACCES: permission denied, open '${configPath}'`), { code: 'EACCES', path: configPath });
+        }
+        return originalWriteFile(...args);
+      });
+      const result = await runCLI(['setup', testDir, '--tools', 'none', '--project-definition', TEST_PROJECT_DEFINITION, ...(json ? ['--json'] : [])]);
+      expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+      const message = json ? JSON.parse(result.stderr).message : result.stderr;
+      expect(message).toContain('EACCES');
+      expect(message).toContain(configPath);
+      expect(await fs.readFile(path.join(testDir, '.xirang/model/elements/project.root.md'), 'utf8')).toContain(TEST_PROJECT_DEFINITION);
+      expect(await fileExists(configPath)).toBe(false);
+    });
+
     it('should provide helpful error for insufficient permissions', async () => {
       // Mock the permission check to fail
       const readOnlyDir = path.join(testDir, 'readonly');

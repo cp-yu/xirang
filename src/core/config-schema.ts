@@ -301,9 +301,7 @@ export function formatValueYaml(value: unknown, indent: number = 0): string {
   }
 
   if (typeof value === 'string') {
-    return /[\r\n]/.test(value)
-      ? stringify(value, { lineWidth: 0 }).replace(/\n$/, '').replace(/\n/g, `\n${'  '.repeat(Math.max(1, indent))}`)
-      : value;
+    return stringify(value, { lineWidth: 0 }).replace(/\n$/, '').replace(/\n/g, `\n${'  '.repeat(Math.max(1, indent))}`);
   }
 
   if (Array.isArray(value)) {
