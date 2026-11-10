@@ -86,19 +86,20 @@ describe('ViewCommand', () => {
       projectRoot: tempDir,
       likec4SourceDir: likec4CacheDir(tempDir),
       port: undefined,
+      json: undefined,
       changeManifestFile: expect.stringContaining('xirang-change-manifest.json'),
     });
     expect((await fs.readdir(likec4CacheDir(tempDir))).sort())
       .toEqual(['likec4.config.json', 'model.c4', 'relations.c4', 'specification.c4', 'views.c4']);
   });
 
-  it('passes a custom port to the embedded server', async () => {
+  it('passes a custom port and JSON encoding to the embedded server', async () => {
     await writeBaseModel(tempDir);
     const launch = vi.fn<ViewLauncher>().mockResolvedValue(undefined);
 
-    await new ViewCommand(launch).execute(tempDir, { port: 4321 });
+    await new ViewCommand(launch).execute(tempDir, { port: 4321, json: true });
 
-    expect(launch).toHaveBeenCalledWith(expect.objectContaining({ projectRoot: tempDir, port: 4321 }));
+    expect(launch).toHaveBeenCalledWith(expect.objectContaining({ projectRoot: tempDir, port: 4321, json: true }));
   });
 
   it('passes a custom listen address to the embedded server', async () => {
@@ -119,6 +120,7 @@ describe('ViewCommand', () => {
       changeManifestFile: '/tmp/manifest.json',
       listen: '0.0.0.0',
       port: 61000,
+      json: true,
     });
 
     expect(runLikeC4).toHaveBeenCalledWith([
@@ -130,7 +132,7 @@ describe('ViewCommand', () => {
       '0.0.0.0',
       '--port',
       '61000',
-    ]);
+    ], { json: true });
   });
 
   it('discovers the nearest Xirang project from a nested directory', async () => {

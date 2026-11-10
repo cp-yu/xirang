@@ -26,6 +26,7 @@ export interface ViewLaunchOptions {
   changeManifestFile: string;
   listen?: string;
   port?: number;
+  json?: boolean;
 }
 
 export type ViewLauncher = (options: ViewLaunchOptions) => Promise<void>;
@@ -46,7 +47,7 @@ export function findXirangProjectRoot(startPath: string): string | undefined {
   }
 }
 
-export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, changeManifestFile, listen, port }) => {
+export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, changeManifestFile, listen, port, json }) => {
   const args = [
     'start',
     likec4SourceDir,
@@ -59,7 +60,7 @@ export const launchEmbeddedLikeC4: ViewLauncher = async ({ likec4SourceDir, chan
   if (port !== undefined) {
     args.push('--port', String(port));
   }
-  await runLikeC4(args);
+  await runLikeC4(args, { json });
 };
 
 function runtimeLikeC4(model: SemanticModel): { likec4Sources: Record<string, string>; likec4ElementPaths: Record<string, string> };
@@ -496,7 +497,7 @@ export function watcherRefreshForPath(normalized: string | null): WatcherRefresh
 export class ViewCommand {
   constructor(private readonly launch: ViewLauncher = launchEmbeddedLikeC4) {}
 
-  async execute(startPath: string = '.', options: { listen?: string; port?: number } = {}): Promise<void> {
+  async execute(startPath: string = '.', options: { listen?: string; port?: number; json?: boolean } = {}): Promise<void> {
     const projectRoot = findXirangProjectRoot(startPath);
     if (!projectRoot) {
       throw new Error('未找到 Xirang 项目');
@@ -559,6 +560,7 @@ export class ViewCommand {
           changeManifestFile,
           listen: options.listen,
           port: options.port,
+          json: options.json,
         });
       } finally {
         sourceWatcher?.close();

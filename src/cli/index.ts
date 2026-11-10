@@ -175,10 +175,10 @@ program
   .description('Browse the Semantic Model in the embedded web viewer')
   .option('--listen <address>', 'IP address to listen on')
   .option('--port <n>', 'Web server port', (value) => Number(value))
-  .action(async (options: { listen?: string; port?: number }) => {
+  .action(async (options: { listen?: string; port?: number; json?: boolean }) => {
     try {
       const viewCommand = new ViewCommand();
-      await viewCommand.execute('.', { listen: options.listen, port: options.port });
+      await viewCommand.execute('.', { listen: options.listen, port: options.port, json: options.json });
     } catch (error) {
       diagnostic((error as Error).message);
       process.exit(1);

@@ -11,9 +11,7 @@ import {
   type ProjectConfig,
 } from '../../src/core/project-config.js';
 import {
-  buildConfigProjectionBundle,
   normalizeProjectConfig,
-  projectConfigForPrompt,
   projectConfigForRuntime,
 } from '../../src/core/config-projection.js';
 
@@ -1222,43 +1220,6 @@ rules:
       });
     });
 
-    it('projects the effective architecture outline depth for agents', () => {
-      const defaultBundle = buildConfigProjectionBundle(
-        {
-          schema: 'semantic-model',
-          rules: {},
-        },
-        { surface: 'apply' }
-      );
-      const configuredBundle = buildConfigProjectionBundle(
-        {
-          schema: 'semantic-model',
-          architecture: {
-            outline: {
-              elementDefinitionDepth: 4,
-            },
-          },
-          rules: {},
-        },
-        { surface: 'apply' }
-      );
-
-      expect(defaultBundle.normalized.architecture).toEqual({
-        outline: {
-          elementDefinitionDepth: 2,
-        },
-      });
-      expect(defaultBundle.prompt.fragments).toContainEqual({
-        key: 'architecture',
-        scope: 'global',
-        lines: ['architecture.outline.elementDefinitionDepth: 2'],
-      });
-      expect(configuredBundle.normalized.architecture.outline.elementDefinitionDepth).toBe(4);
-      expect(configuredBundle.prompt.compiledLines).toContain(
-        'architecture.outline.elementDefinitionDepth: 4'
-      );
-    });
-
     it('normalizes whitespace while preserving supported fields', () => {
       const normalized = normalizeProjectConfig({
         schema: ' semantic-model ',
@@ -1321,137 +1282,6 @@ rules:
       });
     });
 
-    it('builds a prompt projection bundle without leaking raw config structure', () => {
-      const bundle = buildConfigProjectionBundle(
-        {
-          schema: 'semantic-model',
-          proseLanguage: '中文',
-          context: 'Tech stack: TypeScript',
-          rules: {
-            proposal: ['Include rollback plan'],
-            specs: ['Use Given/When/Then'],
-          },
-        },
-        { surface: 'artifact-instructions', artifactId: 'proposal' }
-      );
-
-      expect(bundle.normalized.rules).toEqual({
-        proposal: ['Include rollback plan'],
-        specs: ['Use Given/When/Then'],
-      });
-      expect(bundle.prompt.fragments).toEqual([
-        expect.objectContaining({ key: 'proseLanguage', scope: 'global' }),
-        expect.objectContaining({ key: 'context', scope: 'global' }),
-        expect.objectContaining({ key: 'rules', scope: 'artifact', lines: ['Include rollback plan'] }),
-        expect.objectContaining({ key: 'architecture', scope: 'global' }),
-      ]);
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('Use 中文 for natural-language prose');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('task titles, check names, Section titles, Acceptance Case titles');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('Expect/Evidence descriptions');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('exact existing Section titles required for MODIFIED matching');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('English project terminology may remain embedded');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('CRITICAL: All natural-language prose');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('Tech stack: TypeScript');
-      expect(bundle.prompt.compiledLines.join('\n')).toContain('Include rollback plan');
-      expect(bundle.prompt.compiledLines.join('\n')).not.toContain('Use Given/When/Then');
-    });
-
-    it('normalizes config only once when building a projection bundle', () => {
-      const trimRule = vi.fn(() => 'Keep duplicates');
-      const trimEmptyRule = vi.fn(() => '');
-      const config = {
-        schema: 'semantic-model',
-        decomposition: 'project-decomposition',
-        rules: {
-          ' proposal ': [
-            { trim: trimRule },
-            { trim: trimRule },
-            { trim: trimEmptyRule },
-          ],
-        },
-      } as unknown as ProjectConfig;
-      const scope = { surface: 'propose', artifactId: 'proposal' };
-
-      const bundle = buildConfigProjectionBundle(config, scope);
-
-      expect(trimRule).toHaveBeenCalledTimes(2);
-      expect(trimEmptyRule).toHaveBeenCalledTimes(1);
-      expect(bundle.normalized.rules).toEqual({
-        proposal: [{ trim: trimRule }, { trim: trimRule }],
-      });
-      expect(bundle.prompt).toEqual(projectConfigForPrompt(config, scope));
-    });
-
-    it('projects git settings for archive prompt consumers', () => {
-      const bundle = buildConfigProjectionBundle(
-        {
-          schema: 'semantic-model',
-        git: {
-          ...gitConfig(),
-        },
-          rules: {},
-        },
-        { surface: 'archive' }
-      );
-
-      expect(bundle.normalized.git).toEqual({
-        ...gitConfig(),
-      });
-      expect(bundle.prompt.fragments).toEqual([
-        expect.objectContaining({
-          key: 'git',
-          scope: 'global',
-          lines: [
-            'git.merge.strategy: no-ff',
-            'git.branch.deleteAfterArchive: false',
-          ],
-        }),
-        expect.objectContaining({
-          key: 'architecture',
-          scope: 'global',
-          lines: ['architecture.outline.elementDefinitionDepth: 2'],
-        }),
-      ]);
-    });
-
-    it('keeps archive git projection lines available to archive skill prompts', () => {
-      const projection = projectConfigForPrompt(
-        {
-          schema: 'semantic-model',
-        git: {
-          ...gitConfig({
-            strategy: 'squash',
-            deleteAfterArchive: true,
-            commitMessage: {
-              archive: 'docs/archive.md',
-              merge: 'docs/merge.md',
-            },
-          }),
-        },
-          rules: {},
-        },
-        { surface: 'archive' }
-      );
-
-      expect(projection.fragments).toEqual([
-        expect.objectContaining({
-          key: 'git',
-          scope: 'global',
-          lines: [
-            'git.commitMessage.archive: docs/archive.md',
-            'git.commitMessage.merge: docs/merge.md',
-            'git.merge.strategy: squash',
-            'git.branch.deleteAfterArchive: true',
-          ],
-        }),
-        expect.objectContaining({
-          key: 'architecture',
-          scope: 'global',
-          lines: ['architecture.outline.elementDefinitionDepth: 2'],
-        }),
-      ]);
-    });
-
     it('exposes archive git settings through runtime projection', () => {
       const projection = projectConfigForRuntime(
         {
@@ -1498,32 +1328,7 @@ rules:
       ]);
     });
 
-    it('projects the resolved decomposition path to structural workflows', () => {
-      const bareNameProjection = projectConfigForPrompt(
-        {
-          schema: 'semantic-model',
-          decomposition: 'c4',
-          rules: {},
-        },
-        { surface: 'build' }
-      );
-      const pathProjection = projectConfigForPrompt(
-        {
-          schema: 'semantic-model',
-          decomposition: '.pi/skills/foo/SKILL.md',
-          rules: {},
-        },
-        { surface: 'explore' }
-      );
-      const applyProjection = projectConfigForPrompt(
-        {
-          schema: 'semantic-model',
-          decomposition: 'c4',
-          rules: {},
-        },
-        { surface: 'apply' }
-      );
-
+    it('normalizes decomposition names and preserves explicit paths', () => {
       expect(normalizeProjectConfig({
         schema: 'semantic-model',
         decomposition: 'c4',
@@ -1532,18 +1337,6 @@ rules:
         schema: 'semantic-model',
         decomposition: '.pi/skills/foo/SKILL.md',
       }).decomposition).toBe('.pi/skills/foo/SKILL.md');
-      expect(bareNameProjection.fragments).toContainEqual({
-        key: 'decomposition',
-        scope: 'global',
-        lines: ['decomposition: .xirang/references/c4.md'],
-      });
-      expect(pathProjection.fragments).toContainEqual({
-        key: 'decomposition',
-        scope: 'global',
-        lines: ['decomposition: .pi/skills/foo/SKILL.md'],
-      });
-      expect(applyProjection.fragments.some((fragment) => fragment.key === 'decomposition')).toBe(false);
-      expect(bareNameProjection.compiledLines.join('\n')).not.toMatch(/container|component|\.pi\/skills/);
     });
 
     it('omits invalid or missing fields from runtime projection and marks proseLanguage as fingerprint-affecting', () => {

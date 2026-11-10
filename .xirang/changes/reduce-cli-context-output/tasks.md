@@ -32,3 +32,5 @@
 - [x] [code_fix] 归档重试返回已有位置，Candidate 文本详情包含实际语义差异，反馈材料去除装饰。
 - [x] [code_fix] 归档最终校验拒绝返回非零状态且保留活动 Change，schema 失败同时提供名称、包路径和具体问题。
 - [x] [code_fix] Build 在最终审阅与呈现前取得当前 Formal 比较或明确不可用原因。
+- [x] [code_fix] View 仅输出实际服务地址，JSON 编码及警告分流覆盖启动和内部校验子进程。
+- [x] [code_fix] 移除 instructions 退役产生的孤立生成链及旧协议断言，保留共享加载与运行时配置投影。

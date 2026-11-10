@@ -13,3 +13,10 @@ Windows 专项在修正保存事件路径后整组通过：[run 42806410191](htt
 第二轮 full-change Review 对 `57d70cb24` 返回 FAIL，发现归档拒绝退出码、Build Formal 比较消费及 schema 失败定位三个缺口，意见保留在 Quality 历史。归档最终校验拒绝现在抛出失败且活动 Change 保留；schema 诊断包含包路径；Build 最终 review/presentation 前读取 --details，并在 digest 变化时刷新比较。对应 CLI 测试复现旧行为后通过；全量 165 files / 2220 tests、lint、类型检查、构建及活跃退役引用审计通过。测量中的 Candidate 组仅为 init + digest 校验的两次调用，不代表完整 Build 或 promotion 审阅流程。
 
 后续 [Windows 专项 run 42809174589](https://github.com/cp-yu/xirang/actions/runs/42809174589) 通过。[LikeC4 Windows run 42809174599](https://github.com/cp-yu/xirang/actions/runs/42809174599) 的 language-server typecheck 子进程以 Windows 状态 -1073741502 / 3221225794 退出，日志未给出 TypeScript 代码诊断；不据此推断该 run 通过或本 Change 导致该进程失败。所有实际失败与重跑均保留，不改动无关浏览器或 vendored LikeC4 实现。
+
+
+第三轮 full-change Review 对 `d32ccb263` 返回 FAIL，发现 view 子进程未统一结果与诊断、instructions 退役链孤立两个缺口。View 的内部 validate/start 现在统一关闭 info 日志并捕获诊断，启动通过 IPC 返回 Vite 实际 resolvedUrls；文本输出逐行 URL，JSON 输出 `{ "urls": { "local": [], "network": [] } }` 形状的数据。实际最小模型探针在请求端口 61897 被占用时，两种编码均返回实际端口 61898，HTTP GET 得到 200；无进度或成功装饰，真实 `No likec4 documents found in workspace` 警告仅在 stderr，JSON 模式为结构化诊断。进程边界测试覆盖启动时即时结果与警告、校验静默及失败退出。
+
+删除旧 enriched instructions generator、专有类型/帮助函数/导出和 prompt-only 配置投影；共享模板、Change context/status、配置归一化与 runtime 投影保留。旧 generator/prompt 测试随退役协议删除，notation consistency 改从实际交付的静态 reference 及 schema 检查。全量 165 files / 2184 tests、root lint/typecheck、LikeC4 typecheck、root/LikeC4 build、活跃退役引用审计（0）与 diff 检查通过；测试数量减少反映退役协议断言移除。Change strict validation 成功且两条输出流均为 0 字节。
+
+第三轮修正前的 HEAD 对应 [Candidate Windows 42811144832](https://github.com/cp-yu/xirang/actions/runs/42811144832) 与 [LikeC4 Windows 42811144817](https://github.com/cp-yu/xirang/actions/runs/42811144817) 通过。[跨平台 42811144863](https://github.com/cp-yu/xirang/actions/runs/42811144863) 的 Linux、Windows 全套通过，macOS 的浏览器 `fits the diagram after switching` 谓词等待超时（44 passed / 1 failed）；不把此轮称为全部 CI 通过，也不推断该超时的原因。当前 View 修正仅改 vendored 服务 URL 输出，没有改浏览器交互实现。

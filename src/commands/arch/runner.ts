@@ -4,7 +4,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export type LikeC4Runner = (args: string[]) => Promise<void>;
+export type LikeC4Runner = (args: string[], options?: { json?: boolean }) => Promise<void>;
 
 // The LikeC4 CLI loads its runtime dependencies (language-server, language-services,
 // core, layouts, ...) from the built `dist/` of these packages. Sources newer than
@@ -83,21 +83,28 @@ const STALE_WARNING =
   'warning: LikeC4 sources are newer than dist; running the CLI from source (tsx).\n' +
   'Run `pnpm build` (or `pnpm --dir likec4 build`) to compile the production build.\n';
 
-export const runLikeC4: LikeC4Runner = async (args) => {
-  const exporting = args[0] === 'export';
-  const { argv, mode } = resolveLikeC4Command(exporting ? [...args, '--log-level', 'warning'] : args);
+export const runLikeC4: LikeC4Runner = async (args, options = {}) => {
+  const { argv, mode } = resolveLikeC4Command([...args, '--log-level', 'warning']);
   if (mode === 'source' && !existsSync(argv[0]!)) {
     throw new Error('LikeC4 dist is stale and tsx is unavailable; run `pnpm likec4:build` first.');
   }
   if (mode === 'source') diagnostic(STALE_WARNING.trim(), 'LIKEC4_STALE_BUILD');
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(process.execPath, argv, { stdio: exporting ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
-    let messages = '';
-    child.stdout?.on('data', chunk => { messages += chunk; });
-    child.stderr?.on('data', chunk => { messages += chunk; });
+    const child = spawn(process.execPath, argv, { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+    const report = (chunk: string) => {
+      if (chunk.trim()) diagnostic(chunk.trim(), 'LIKEC4_DIAGNOSTIC');
+    };
+    child.stdout?.setEncoding('utf8').on('data', report);
+    child.stderr?.setEncoding('utf8').on('data', report);
+    child.on('message', message => {
+      const event = message as { type?: string; urls?: { local: string[]; network: string[] } };
+      if (event.type === 'xirang-server-ready' && event.urls) {
+        if (options.json) console.log(JSON.stringify({ urls: event.urls }));
+        else for (const url of [...event.urls.local, ...event.urls.network]) console.log(url);
+      }
+    });
     child.once('error', reject);
     child.once('close', code => {
-      if (messages.trim()) diagnostic(messages.trim(), 'LIKEC4_DIAGNOSTIC');
       if (code === 0) resolve();
       else reject(new Error(`LikeC4 exited with code ${code}`));
     });
