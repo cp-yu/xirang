@@ -267,9 +267,7 @@ export class ArchiveCommand {
 
     const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
     if (!compiled.valid) {
-      diagnostic(chalk.red('\nValidation errors in Semantic Delta:'));
-      for (const issue of compiled.diagnostics) diagnostic(chalk.red(`  ✗ ${issue.code}: ${issue.message}`));
-      return false;
+      throw new Error(`Validation errors in Semantic Delta:\n${compiled.diagnostics.map(issue => `${issue.code}: ${issue.message}`).join('\n')}`);
     }
     return true;
   }

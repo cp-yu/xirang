@@ -27,6 +27,20 @@ it('returns the existing archive location on retries in either mode', async () =
     expect(json.length ? JSON.parse(result.stdout) : result.stdout.trim()).toEqual(json.length ? { archive } : archive);
   }
 });
+it('rejects invalid final archive validation without moving the active Change', async () => {
+  const active = path.join(root, '.xirang', 'changes', 'invalid');
+  await fs.mkdir(active, { recursive: true });
+  await fs.writeFile(path.join(active, '.delta-noop'), '');
+  for (const json of [[], ['--json']]) {
+    const result = await runCLI(['archive', 'invalid', '--yes', '--no-verify', '--no-sync', ...json], { cwd: root });
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe('');
+    const messages = json.length ? result.stderr.trim().split('\n').map(line => JSON.parse(line).message).join('\n') : result.stderr;
+    expect(messages).toContain('MISSING_PROJECT_ROOT');
+    expect((await fs.stat(active)).isDirectory()).toBe(true);
+    await expect(fs.access(path.join(root, '.xirang', 'changes', 'archive'))).rejects.toThrow();
+  }
+});
 it('encodes format-json model and argument failures as diagnostics', async () => {
   for (const args of [['arch', 'outline', '--format', 'json'], ['arch', 'snapshot', '--format=json'], ['arch', 'outline', '--format', 'json', '--definition-depth', 'bad'], ['arch', 'snapshot', '--format', 'json', '--unknown']]) {
     const result = await runCLI(args, { cwd: root });

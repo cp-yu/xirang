@@ -13,7 +13,11 @@ describe('xirang-build workflow', () => {
     const consume = instructions.indexOf('xirang record consume <filename> --candidate --json');
     expect(coverage).toBeGreaterThan(-1);
     expect(consume).toBeGreaterThan(coverage);
-    expect(instructions.indexOf('xirang candidate validate --json', consume)).toBeGreaterThan(consume);
+    const finalValidation = instructions.indexOf('xirang candidate validate --details --json', consume);
+    const review = instructions.indexOf('generic read-only subagent with a clean context');
+    expect(finalValidation).toBeGreaterThan(consume);
+    expect(finalValidation).toBeLessThan(review);
+    expect(instructions).toContain('actual Formal comparison and diff, or the explicit unavailable reason');
     expect(instructions.indexOf('generic read-only subagent with a clean context')).toBeGreaterThan(consume);
     expect(instructions.indexOf('xirang candidate promote --digest')).toBeGreaterThan(consume);
     expect(instructions).toContain('Do not reuse a pre-handoff digest');

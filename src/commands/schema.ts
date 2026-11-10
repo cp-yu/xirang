@@ -99,8 +99,8 @@ export function registerSchemaCommand(program: Command): void {
         const valid = results.every((result) => result.valid);
         for (const result of results) {
           if (result.issues.length) {
-            if (options.json) console.error(JSON.stringify({ name: result.name, issues: result.issues }));
-            else result.issues.forEach(issue => diagnostic(`${issue.path}: ${issue.message}`));
+            if (options.json) console.error(JSON.stringify({ name: result.name, path: result.path, issues: result.issues }));
+            else result.issues.forEach(issue => diagnostic(`${result.name} (${result.path}) ${issue.path}: ${issue.message}`));
           }
         }
         if (!valid) process.exitCode = 1;

@@ -30,3 +30,5 @@
 - [x] [code_fix] 共享指导完整保留配置作用域、语言边界及 additive rules，模型恢复按紧凑导航与必要快照推进。
 - [x] [code_fix] 非交互批量校验保持无问题静默，JSON 格式选择覆盖诊断编码，显式 schema 详情保留检查阶段。
 - [x] [code_fix] 归档重试返回已有位置，Candidate 文本详情包含实际语义差异，反馈材料去除装饰。
+- [x] [code_fix] 归档最终校验拒绝返回非零状态且保留活动 Change，schema 失败同时提供名称、包路径和具体问题。
+- [x] [code_fix] Build 在最终审阅与呈现前取得当前 Formal 比较或明确不可用原因。
