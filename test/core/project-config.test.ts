@@ -47,7 +47,7 @@ describe('project-config', () => {
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'xirang-test-config-'));
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -927,8 +927,7 @@ rules:
 
         expect(config).toBeNull();
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to parse .xirang/config.yaml'),
-          expect.anything()
+          expect.stringContaining('Failed to parse .xirang/config.yaml')
         );
       });
 
@@ -1294,7 +1293,7 @@ rules:
       expect(normalized).toEqual({
         schema: 'semantic-model',
         proseLanguage: '中文',
-        context: 'Team context',
+        context: '  Team context  ',
         architecture: {
           outline: {
             elementDefinitionDepth: 2,
@@ -1317,7 +1316,7 @@ rules:
           }),
         },
         rules: {
-          proposal: ['Rule 1', 'Rule 2'],
+          proposal: ['  Rule 1  ', 'Rule 2'],
         },
       });
     });
@@ -1378,7 +1377,7 @@ rules:
       expect(trimRule).toHaveBeenCalledTimes(2);
       expect(trimEmptyRule).toHaveBeenCalledTimes(1);
       expect(bundle.normalized.rules).toEqual({
-        proposal: ['Keep duplicates', 'Keep duplicates'],
+        proposal: [{ trim: trimRule }, { trim: trimRule }],
       });
       expect(bundle.prompt).toEqual(projectConfigForPrompt(config, scope));
     });

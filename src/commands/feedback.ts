@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 import { execSync, execFileSync } from 'child_process';
 import { createRequire } from 'module';
 import os from 'os';
@@ -122,7 +123,7 @@ function displayFormattedFeedback(title: string, body: string): void {
  * Submit feedback via gh CLI
  * Uses execFileSync to prevent shell injection vulnerabilities
  */
-function submitViaGhCli(title: string, body: string): void {
+function submitViaGhCli(title: string, body: string, json: boolean): void {
   try {
     const result = execFileSync(
       'gh',
@@ -142,14 +143,14 @@ function submitViaGhCli(title: string, body: string): void {
     );
 
     const issueUrl = result.trim();
-    console.log(`\n✓ Feedback submitted successfully!`);
-    console.log(`Issue URL: ${issueUrl}\n`);
+
+    console.log(json ? JSON.stringify({ issueUrl }) : issueUrl);
   } catch (error: any) {
     // Display the error output from gh CLI
     if (error.stderr) {
-      console.error(error.stderr.toString());
+      diagnostic(error.stderr.toString(), 'FEEDBACK_FAILED', json);
     } else if (error.message) {
-      console.error(error.message);
+      diagnostic(error.message, 'FEEDBACK_FAILED', json);
     }
 
     // Exit with the same code as gh CLI
@@ -160,21 +161,14 @@ function submitViaGhCli(title: string, body: string): void {
 /**
  * Handle fallback when gh CLI is not available or not authenticated
  */
-function handleFallback(title: string, body: string, reason: 'missing' | 'unauthenticated'): void {
-  if (reason === 'missing') {
-    console.log('⚠️  GitHub CLI not found. Manual submission required.');
-  } else {
-    console.log('⚠️  GitHub authentication required. Manual submission required.');
-  }
-
-  displayFormattedFeedback(title, body);
-
+function handleFallback(title: string, body: string, reason: 'missing' | 'unauthenticated', json: boolean): void {
+  diagnostic(reason === 'missing' ? 'GitHub CLI not found. Manual submission required.' : 'GitHub authentication required. Manual submission required.', 'FEEDBACK_MANUAL_SUBMISSION', json);
   const manualUrl = generateManualSubmissionUrl(title, body);
-  console.log('Please submit your feedback manually:');
-  console.log(manualUrl);
-
-  if (reason === 'unauthenticated') {
-    console.log('\nTo auto-submit in the future: gh auth login');
+  if (json) console.log(JSON.stringify({ title, body, labels: ['feedback'], url: manualUrl }));
+  else {
+    displayFormattedFeedback(title, body);
+    console.log(manualUrl);
+    if (reason === 'unauthenticated') console.log('To auto-submit in the future: gh auth login');
   }
 
   // Exit with success code (fallback is successful)
@@ -185,24 +179,24 @@ function handleFallback(title: string, body: string, reason: 'missing' | 'unauth
  * Feedback command implementation
  */
 export class FeedbackCommand {
-  async execute(message: string, options?: { body?: string }): Promise<void> {
+  async execute(message: string, options?: { body?: string; json?: boolean }): Promise<void> {
     // Format title and body once for all code paths
     const title = formatTitle(message);
     const body = formatBody(options?.body);
 
     // Check if gh CLI is installed
     if (!isGhInstalled()) {
-      handleFallback(title, body, 'missing');
+      handleFallback(title, body, 'missing', !!options?.json);
       return;
     }
 
     // Check if gh CLI is authenticated
     if (!isGhAuthenticated()) {
-      handleFallback(title, body, 'unauthenticated');
+      handleFallback(title, body, 'unauthenticated', !!options?.json);
       return;
     }
 
     // Submit via gh CLI
-    submitViaGhCli(title, body);
+    submitViaGhCli(title, body, !!options?.json);
   }
 }

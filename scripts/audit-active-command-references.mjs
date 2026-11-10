@@ -18,6 +18,7 @@ const patterns = [
   ['xirang migrate', /\bopsx\s+migrate\b/],
   ['xirang-bootstrap-arch', /\bxirang-bootstrap-arch\b/],
   ['bootstrap-arch', /\bbootstrap-arch\b/],
+  ['retired instructions command', /\bxirang\s+instructions\b/],
   ['experimental workflow', /\bexperimental workflow\b/],
 ];
 const allowedActive = new Set([

@@ -139,7 +139,7 @@ export class ListCommand {
           : change.completedTasks === change.totalTasks ? 'complete' : 'in-progress',
         qualityStatus: change.qualityStatus ?? 'MISSING',
       }));
-      console.log(JSON.stringify({ changes: jsonOutput }, null, 2));
+      console.log(JSON.stringify({ changes: jsonOutput }));
       return;
     }
 

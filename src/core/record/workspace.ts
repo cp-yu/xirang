@@ -7,27 +7,20 @@ import { normalizeRecordPayload, parseDesignRecord, renderDesignRecord } from '.
 import {
   assertContainedPath,
   recordRoot,
-  managedRecordFilename,
-  managedRecordPath,
   projectRelativePosix,
-  validateExplorationId,
-  validateRecordSlug,
+  validateRecordFilename,
 } from './paths.js';
 import { applyRecordPatch, assertRecordStructure, compareStructure, diffStructure, summarizeRecord } from './structure.js';
 import type { DerivedStructureObject, DesignRecordDocument, DesignRecordInput, DesignRecordPayload, RecordPayloadDiff, RecordSummary } from './types.js';
 import type { SemanticModel } from '../model/types.js';
 
-const MANAGED_FILE = /^(.+)-(\d{8}T\d{6}Z-[a-f0-9]{8})\.md$/;
-
 export type RecordWorkspaceErrorCode =
   | 'RECORD_NOT_FOUND'
-  | 'DUPLICATE_EXPLORATION_ID'
   | 'EMPTY_PAYLOAD'
   | 'UNSAFE_MANAGED_PATH'
   | 'MANAGED_PATH_CONFLICT'
-  | 'FILENAME_METADATA_MISMATCH'
   | 'UNSUPPORTED_RECORD_VERSION'
-  | 'SOURCE_VERSION_STALE';
+  ;
 
 export class RecordWorkspaceError extends Error {
   constructor(public readonly code: RecordWorkspaceErrorCode, message: string, public readonly details?: Record<string, unknown>) {
@@ -39,11 +32,6 @@ export class RecordWorkspaceError extends Error {
 export interface RecordSemanticContext {
   model: SemanticModel | null;
   semanticModelFingerprint: string;
-}
-
-export interface RecordIdentityGeneration {
-  now?: Date;
-  randomHex?: string;
 }
 
 export interface RecordWorkspaceRecord {
@@ -117,15 +105,6 @@ async function ensureRecordRoot(projectRoot: string): Promise<string> {
   return changes;
 }
 
-function timestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
-}
-
-function createExplorationId(generation: RecordIdentityGeneration): string {
-  const suffix = generation.randomHex ?? randomBytes(4).toString('hex');
-  return validateExplorationId(`${timestamp(generation.now ?? new Date())}-${suffix}`);
-}
-
 export function diffRecordPayloads(
   previous: DesignRecordPayload,
   next: DesignRecordPayload,
@@ -153,22 +132,12 @@ async function assertRegularFile(target: string): Promise<void> {
   }
 }
 
-function parsedFilename(filename: string): { slug: string; explorationId: string } | undefined {
-  const match = filename.match(MANAGED_FILE);
-  if (!match) return undefined;
-  return { slug: match[1], explorationId: match[2] };
-}
-
 async function readRecord(projectRoot: string, changesRoot: string, filename: string): Promise<RecordWorkspaceRecord> {
-  const parsed = parsedFilename(filename);
-  if (!parsed) workspaceError('UNSAFE_MANAGED_PATH', `Invalid managed record filename: ${filename}`);
+  validateRecordFilename(filename);
   const absolutePath = assertContainedPath(changesRoot, path.join(changesRoot, filename));
   await assertRegularFile(absolutePath);
   const bytes = await fs.readFile(absolutePath);
   const document = parseDesignRecord(bytes.toString('utf8'));
-  if (document.metadata.slug !== parsed.slug || document.metadata.explorationId !== parsed.explorationId) {
-    workspaceError('FILENAME_METADATA_MISMATCH', `Managed filename does not match document metadata: ${filename}`);
-  }
   return { path: projectRelativePosix(projectRoot, absolutePath), absolutePath, bytes, document, sourceVersion: createHash('sha256').update(bytes).digest('hex') };
 }
 
@@ -203,68 +172,48 @@ export async function listRecords(projectRoot: string): Promise<RecordWorkspaceR
     }
     records.push(await readRecord(path.resolve(projectRoot), changesRoot, entry.name));
   }
-  records.sort((left, right) => left.document.metadata.explorationId.localeCompare(right.document.metadata.explorationId));
-  const identities = new Set<string>();
-  for (const record of records) {
-    const identity = record.document.metadata.explorationId;
-    if (identities.has(identity)) {
-      workspaceError('DUPLICATE_EXPLORATION_ID', `Duplicate exploration identity: ${identity}`);
-    }
-    identities.add(identity);
-  }
+  records.sort((a, b) => a.path.localeCompare(b.path));
   return records;
 }
 
-export async function showRecord(projectRoot: string, explorationId: string): Promise<RecordWorkspaceRecord> {
-  validateExplorationId(explorationId);
-  const match = (await listRecords(projectRoot)).find(record => record.document.metadata.explorationId === explorationId);
-  if (!match) workspaceError('RECORD_NOT_FOUND', `Record exploration not found: ${explorationId}`);
-  return match;
+export async function showRecord(projectRoot: string, filename: string): Promise<RecordWorkspaceRecord> {
+  validateRecordFilename(filename);
+  const root = await inspectRecordRoot(projectRoot);
+  if (!root || !await lstat(path.join(root, filename))) workspaceError('RECORD_NOT_FOUND', `Record not found: ${filename}`);
+  return readRecord(path.resolve(projectRoot), root, filename);
 }
 
 export async function createRecord(
   projectRoot: string,
-  slug: string,
+  filename: string,
   input: DesignRecordInput,
   context: RecordSemanticContext,
-  generation: RecordIdentityGeneration = {},
 ): Promise<RecordWorkspaceRecord> {
-  validateRecordSlug(slug);
+  validateRecordFilename(filename);
   const payload = normalizeRecordPayload(input);
   assertRecordStructure(payload.structure, context.model);
   const changesRoot = await ensureRecordRoot(projectRoot);
-  const explorationId = createExplorationId(generation);
-  if ((await listRecords(projectRoot)).some(record => record.document.metadata.explorationId === explorationId)) {
-    workspaceError('DUPLICATE_EXPLORATION_ID', `Duplicate exploration identity: ${explorationId}`);
-  }
-  const absolutePath = managedRecordPath(projectRoot, slug, explorationId);
-  assertContainedPath(changesRoot, absolutePath);
-  if (await lstat(absolutePath)) workspaceError('MANAGED_PATH_CONFLICT', `Managed record path already exists: ${absolutePath}`);
+  const absolutePath = assertContainedPath(changesRoot, path.join(changesRoot, filename));
+  if (await lstat(absolutePath)) workspaceError('MANAGED_PATH_CONFLICT', `Record already exists: ${filename}`);
   const document: DesignRecordDocument = {
     metadata: {
       entity: 'confirmed-design-record',
-      explorationId,
-      slug,
       semanticModelFingerprint: context.semanticModelFingerprint,
     },
     payload,
     baseline: captureRelevantBaseline(context.model, payload),
   };
   await atomicWrite(absolutePath, renderDesignRecord(document));
-  return readRecord(path.resolve(projectRoot), changesRoot, managedRecordFilename(slug, explorationId));
+  return readRecord(path.resolve(projectRoot), changesRoot, filename);
 }
 
 export async function updateRecord(
   projectRoot: string,
   explorationId: string,
   patch: unknown,
-  sourceVersion: string,
   context: RecordSemanticContext,
 ): Promise<RecordUpdateResult> {
   const current = await showRecord(projectRoot, explorationId);
-  if (current.sourceVersion !== sourceVersion) {
-    workspaceError('SOURCE_VERSION_STALE', 'Record changed since the provided source version; reload and resubmit the patch', { currentSourceVersion: current.sourceVersion });
-  }
   const payload = applyRecordPatch(current.document.payload, patch);
   assertRecordStructure(payload.structure, context.model);
   const document: DesignRecordDocument = {
@@ -284,24 +233,16 @@ export async function updateRecord(
 export async function renameRecord(
   projectRoot: string,
   explorationId: string,
-  slug: string,
+  filename: string,
 ): Promise<RecordWorkspaceRecord> {
-  validateRecordSlug(slug);
+  validateRecordFilename(filename);
   const current = await showRecord(projectRoot, explorationId);
-  const changesRoot = recordRoot(projectRoot);
-  const target = managedRecordPath(projectRoot, slug, explorationId);
-  assertContainedPath(changesRoot, target);
-  if (target !== current.absolutePath && await lstat(target)) {
-    workspaceError('MANAGED_PATH_CONFLICT', `Managed record path already exists: ${target}`);
+  const target = assertContainedPath(recordRoot(projectRoot), path.join(recordRoot(projectRoot), filename));
+  if (target !== current.absolutePath) {
+    if (await lstat(target)) workspaceError('MANAGED_PATH_CONFLICT', `Record already exists: ${filename}`);
+    await fs.rename(current.absolutePath, target);
   }
-  const document = { ...current.document, metadata: { ...current.document.metadata, slug } };
-  if (target === current.absolutePath) {
-    await atomicWrite(target, renderDesignRecord(document));
-  } else {
-    await atomicWrite(target, renderDesignRecord(document));
-    await fs.rm(current.absolutePath);
-  }
-  return showRecord(projectRoot, explorationId);
+  return showRecord(projectRoot, filename);
 }
 
 export async function discardRecord(projectRoot: string, explorationId: string): Promise<void> {

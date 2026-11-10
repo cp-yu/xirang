@@ -16,7 +16,7 @@ describe('validate command enriched human output', () => {
     await fs.rm(testDir, { recursive: true, force: true });
   });
 
-  it('prints Next steps footer and guidance on invalid change', async () => {
+  it('prints actionable issues without generic success or workflow footers', async () => {
     const changeContent = `# Test Change\n\n## Why\nThis is a sufficiently long explanation to pass the why length section for validation purposes.\n\n## What Changes\nThere are changes proposed, but no delta specs provided yet.`;
     const changeId = 'c-next-steps';
     const changePath = path.join(changesDir, changeId);
@@ -25,9 +25,9 @@ describe('validate command enriched human output', () => {
 
     const result = await runCLI(['validate', '--change', changeId], { cwd: testDir });
     expect(result.exitCode).not.toBe(0);
-    expect(result.stderr).toContain('has issues');
-    expect(result.stderr).toContain('Next steps:');
-    expect(result.stderr).toContain('xirang validate --change <id> --json');
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('ERROR');
+    expect(result.stderr).not.toContain('Next steps:');
     expect(result.stderr).not.toContain('specs/');
   });
 });

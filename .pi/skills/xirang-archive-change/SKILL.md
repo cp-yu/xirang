@@ -23,7 +23,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
-Before archiving, run `xirang config project --json` and consume git policy from its normalized project config: `git.commitMessage.archive`, `git.commitMessage.merge`, `git.merge.strategy`, and `git.branch.deleteAfterArchive`; do not parse raw YAML inside the skill.
+Before archiving, run `xirang config project --select git --json` and consume git policy from its normalized project config: `git.commitMessage.archive`, `git.commitMessage.merge`, `git.merge.strategy`, and `git.branch.deleteAfterArchive`; do not parse raw YAML inside the skill.
 
 **Steps**
 
@@ -50,7 +50,7 @@ Before archiving, run `xirang config project --json` and consume git policy from
    Run `xirang archive "<change-name>"` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and prints the Git handoff reminder; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
 
 7. **Git handoff**
-   Read the archive CLI output and projected Git policy from `xirang config project --json`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
+   Read the archive CLI output and projected Git policy from `xirang config project --select git --json`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
 
 8. **Agent git flow**
    The agent continues the post-archive git flow. First handle the implementation boundary before Xirang/docs archive artifacts. If uncommitted real project implementation changes remain, create a normal implementation commit that contains only those changes. Then always create a semantic boundary commit with `git commit --allow-empty`; this boundary commit may be intentionally empty when the effective implementation diff is already carried by retained `wip: opt-*` checkpoint commits. If `git.commitMessage.boundary` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-boundary-commit-message.md`. Use that template to build the boundary commit message and run `git commit -F -` for the boundary commit. If `git.commitMessage.archive` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-archive-commit-message.md`. Use that template before creating the Xirang/docs archive commit, add only archive/synced paths, and run `git commit -F -`. If a merge or squash commit message is needed, prepare it from the configured or built-in merge template. If `git.commitMessage.merge` is set, read that project-relative path; otherwise read the project-root file `.xirang/references/xirang-merge-summary-message.md`.

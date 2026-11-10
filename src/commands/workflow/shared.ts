@@ -11,34 +11,10 @@ import path from 'path';
 import * as fs from 'fs';
 import { getSchemaDir, listSchemas } from '../../core/artifact-graph/index.js';
 import { validateChangeName } from '../../utils/change-utils.js';
-import type { InstructionConfigProjection } from '../../core/config-projection.js';
 
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-export interface TaskItem {
-  id: string;
-  description: string;
-  done: boolean;
-}
-
-export interface ApplyInstructions {
-  changeName: string;
-  changeDir: string;
-  schemaName: string;
-  contextFiles: Record<string, string[]>;
-  configProjection: InstructionConfigProjection;
-  progress: {
-    total: number;
-    complete: number;
-    remaining: number;
-  };
-  tasks: TaskItem[];
-  state: 'blocked' | 'all_done' | 'ready' | 'needs_review' | 'needs_optimize';
-  missingArtifacts?: string[];
-  instruction: string;
-}
 
 // -----------------------------------------------------------------------------
 // Constants

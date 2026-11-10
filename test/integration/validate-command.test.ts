@@ -115,7 +115,7 @@ describe('Semantic Model validation integration', () => {
     const result = await runCLI(['arch', 'validate', '--change', 'cli-change', '--json'], { cwd: root });
 
     expect(result.exitCode).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({ success: true, errors: [] });
+    expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it('no longer accepts the removed --delta option', async () => {

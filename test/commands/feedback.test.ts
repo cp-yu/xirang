@@ -99,7 +99,7 @@ describe('FeedbackCommand', () => {
       }
 
       // Should display warning
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('GitHub CLI not found')
       );
 
@@ -133,7 +133,7 @@ describe('FeedbackCommand', () => {
       }
 
       // Should display warning
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('GitHub authentication required')
       );
 
@@ -147,6 +147,22 @@ describe('FeedbackCommand', () => {
         expect.stringContaining('--- FORMATTED FEEDBACK ---')
       );
     });
+  });
+
+  it('keeps JSON feedback results separate from manual-submission diagnostics', async () => {
+    mockExecSync.mockImplementation(() => { throw new Error('missing gh'); });
+    await expect(feedbackCommand.execute('Test', { json: true })).rejects.toThrow('process.exit(0)');
+    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toMatchObject({ title: 'Feedback: Test', labels: ['feedback'], url: expect.stringContaining('/issues/new?') });
+    expect(JSON.parse(consoleErrorSpy.mock.calls[0][0])).toMatchObject({ code: 'FEEDBACK_MANUAL_SUBMISSION' });
+  });
+
+  it('returns only the created issue URL as JSON', async () => {
+    mockExecSync.mockReturnValue('available');
+    mockExecFileSync.mockReturnValue('https://github.com/cp-yu/xirang/issues/123\n');
+    await feedbackCommand.execute('Test', { json: true });
+    expect(consoleLogSpy.mock.calls).toEqual([[JSON.stringify({ issueUrl: 'https://github.com/cp-yu/xirang/issues/123' })]]);
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
   describe('successful feedback submission', () => {
@@ -191,7 +207,7 @@ describe('FeedbackCommand', () => {
 
       // Should display success message
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Feedback submitted successfully')
+        expect.stringContaining('https://github.com/')
       );
 
       // Should display issue URL

@@ -24,7 +24,7 @@ export async function schemasCommand(options: SchemasOptions): Promise<void> {
   const schemas = listSchemasWithInfo(projectRoot);
 
   if (options.json) {
-    console.log(JSON.stringify(schemas, null, 2));
+    console.log(JSON.stringify(schemas));
     return;
   }
 

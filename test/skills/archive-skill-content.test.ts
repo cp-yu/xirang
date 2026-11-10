@@ -52,7 +52,7 @@ describe('xirang archive skill content', () => {
   it('states archive consumes git policy from project config command output', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('xirang config project --select git --json');
     expect(instructions).toContain('normalized project config');
     expect(instructions).toContain('git.commitMessage.archive');
     expect(instructions).toContain('git.commitMessage.merge');

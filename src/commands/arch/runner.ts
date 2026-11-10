@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { diagnostic } from '../../utils/output.js';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,15 +84,22 @@ const STALE_WARNING =
   'Run `pnpm build` (or `pnpm --dir likec4 build`) to compile the production build.\n';
 
 export const runLikeC4: LikeC4Runner = async (args) => {
-  const { argv, mode } = resolveLikeC4Command(args);
+  const exporting = args[0] === 'export';
+  const { argv, mode } = resolveLikeC4Command(exporting ? [...args, '--log-level', 'warning'] : args);
   if (mode === 'source' && !existsSync(argv[0]!)) {
     throw new Error('LikeC4 dist is stale and tsx is unavailable; run `pnpm likec4:build` first.');
   }
-  if (mode === 'source') process.stderr.write(STALE_WARNING);
+  if (mode === 'source') diagnostic(STALE_WARNING.trim(), 'LIKEC4_STALE_BUILD');
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(process.execPath, argv, { stdio: 'inherit' });
+    const child = spawn(process.execPath, argv, { stdio: exporting ? ['ignore', 'pipe', 'pipe'] : 'inherit' });
+    let messages = '';
+    child.stdout?.on('data', chunk => { messages += chunk; });
+    child.stderr?.on('data', chunk => { messages += chunk; });
     child.once('error', reject);
-    child.once('exit', code => code === 0 ? resolve() : reject(new Error(`LikeC4 exited with code ${code}`)));
+    child.once('close', code => {
+      if (messages.trim()) diagnostic(messages.trim(), 'LIKEC4_DIAGNOSTIC');
+      code === 0 ? resolve() : reject(new Error(`LikeC4 exited with code ${code}`));
+    });
   });
 };
 

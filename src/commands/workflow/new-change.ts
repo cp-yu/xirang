@@ -5,7 +5,6 @@ import { XIRANG_DIR_NAME } from '../../core/config.js';
  * Creates a new change directory with optional description and schema.
  */
 
-import ora from 'ora';
 import path from 'path';
 import { createChange, validateChangeName } from '../../utils/change-utils.js';
 import { validateSchemaExists } from './shared.js';
@@ -40,23 +39,9 @@ export async function newChangeCommand(name: string | undefined, options: NewCha
     validateSchemaExists(options.schema, projectRoot);
   }
 
-  const schemaDisplay = options.schema ? ` with schema '${options.schema}'` : '';
-  const spinner = ora(`Creating change '${name}'${schemaDisplay}...`).start();
-
-  try {
-    const result = await createChange(projectRoot, name, { schema: options.schema });
-
-    // If description provided, create README.md with description
-    if (options.description) {
-      const { promises: fs } = await import('fs');
-      const changeDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', name);
-      const readmePath = path.join(changeDir, 'README.md');
-      await fs.writeFile(readmePath, `# ${name}\n\n${options.description}\n`, 'utf-8');
-    }
-
-    spinner.succeed(`Created change '${name}' at .xirang/changes/${name}/ (schema: ${result.schema})`);
-  } catch (error) {
-    spinner.fail(`Failed to create change '${name}'`);
-    throw error;
+  await createChange(projectRoot, name, { schema: options.schema });
+  if (options.description) {
+    const { promises: fs } = await import('fs');
+    await fs.writeFile(path.join(projectRoot, XIRANG_DIR_NAME, 'changes', name, 'README.md'), `# ${name}\n\n${options.description}\n`, 'utf-8');
   }
 }

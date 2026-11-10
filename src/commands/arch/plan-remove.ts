@@ -1,3 +1,4 @@
+import { diagnostic } from '../../utils/output.js';
 import type { Command } from 'commander';
 import { compileChange, readFormalSemanticModel } from '../../core/change-compiler.js';
 import type { ElementDeclaration, SemanticModel } from '../../core/model/types.js';
@@ -117,11 +118,11 @@ export function registerPlanRemoveCommand(arch: Command): void {
     .action(async (identity: string, options: { change?: string; json?: boolean }) => {
       try {
         const result = await planRemove(process.cwd(), identity, options.change);
-        if (options.json) console.log(JSON.stringify(result, null, 2));
+        if (options.json) console.log(JSON.stringify(result));
         else console.log(renderRemovalPlan(result).trimEnd());
         process.exitCode = 0;
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });

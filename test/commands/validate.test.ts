@@ -85,21 +85,21 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasksContent, 'utf-8');
 
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
-    const json = JSON.parse(result.stdout.trim());
+    const json = JSON.parse(result.stderr.trim());
     expect(result.exitCode).toBe(1);
-    expect(json.items[0].valid).toBe(false);
-    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
-    expect(json.items[0].issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
+    expect(result.stdout).toBe('');
+    expect(json.issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
+    expect(json.issues.some((issue: { path: string }) => issue.path === 'tasks.md')).toBe(true);
   });
 
   it('rejects legacy Test action tasks through the CLI', async () => {
     const tasks = `### Task 1: Verify alpha\n\n**Goal**: Verify the alpha change.\n**Files**:\n- Modify: src/alpha.ts\n**Sections**:\n- Verify target behavior\n\n#### Checks\n\n- [ ] C1 Verify alpha\n  - Verifies: elements/alpha.id.md / Section "Validator SHALL support alpha change deltas"\n  - Test action: one-time\n  - Command: pnpm test\n`;
     await fs.writeFile(path.join(changesDir, 'c1', 'tasks.md'), tasks);
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
-    const json = JSON.parse(result.stdout.trim());
+    const json = JSON.parse(result.stderr.trim());
     expect(result.exitCode).toBe(1);
-    expect(json.items[0].valid).toBe(false);
-    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
+    expect(result.stdout).toBe('');
+    expect(json.issues.some((issue: { message: string }) => issue.message.includes('unsupported-task-format'))).toBe(true);
   });
 
   it('accepts a no-delta change carrying the .delta-noop marker', async () => {
@@ -108,9 +108,9 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(changesDir, 'c-nodelta', '.delta-noop'), '', 'utf-8');
 
     const result = await runCLI(['validate', '--change', 'c-nodelta', '--json'], { cwd: testDir });
-    const json = JSON.parse(result.stdout.trim());
-    expect(json.items[0].valid).toBe(true);
-    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('at least one delta'))).toBe(false);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toBe('');
   });
 
   it('reports a no-delta change without the .delta-noop marker', async () => {
@@ -118,9 +118,9 @@ describe('top-level validate command', () => {
     await fs.writeFile(path.join(changesDir, 'c-empty', 'proposal.md'), '# Empty\n\n## Why\nEmpty change.\n', 'utf-8');
 
     const result = await runCLI(['validate', '--change', 'c-empty', '--json'], { cwd: testDir });
-    const json = JSON.parse(result.stdout.trim());
-    expect(json.items[0].valid).toBe(false);
-    expect(json.items[0].issues.some((issue: { message: string }) => issue.message.includes('at least one delta'))).toBe(true);
+    const json = JSON.parse(result.stderr.trim());
+    expect(result.stdout).toBe('');
+    expect(json.issues.some((issue: { message: string }) => issue.message.includes('at least one delta'))).toBe(true);
   });
 
   it('validates explicit --change with the same semantics as the positional form', async () => {
@@ -128,10 +128,8 @@ describe('top-level validate command', () => {
     const explicit = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
 
     expect(explicit.exitCode).toBe(positional.exitCode);
-    const positionalJson = JSON.parse(positional.stdout.trim());
-    const explicitJson = JSON.parse(explicit.stdout.trim());
-    expect(explicitJson.items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
-    expect(explicitJson.items[0].issues).toEqual(positionalJson.items[0].issues);
+    expect(explicit).toMatchObject({ stdout: '', stderr: '' });
+    expect(positional).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it('accepts removing an Element together with its complete Contract', async () => {
@@ -142,25 +140,25 @@ describe('top-level validate command', () => {
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
 
     expect(result.exitCode).toBe(0);
-    expect(JSON.parse(result.stdout).items[0]).toMatchObject({ id: 'c1', type: 'change', valid: true });
+    expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it('shows a concise effective preview without partitions and without writing the artifact', async () => {
-    const human = await runCLI(['validate', '--change', 'c1'], { cwd: testDir });
-    const jsonResult = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+    const human = await runCLI(['validate', '--change', 'c1', '--preview'], { cwd: testDir });
+    const jsonResult = await runCLI(['validate', '--change', 'c1', '--preview', '--json'], { cwd: testDir });
 
     expect(human.exitCode).toBe(0);
-    expect(human.stdout).toContain('Effective change preview');
+    expect(human.stdout).toContain('Change: c1');
     expect(human.stdout).toContain('Semantic Delta');
     expect(human.stdout).not.toMatch(/^Specs$/m);
     expect(jsonResult.exitCode).toBe(0);
     const json = JSON.parse(jsonResult.stdout);
-    expect(json.items[0].summary).toBeDefined();
-    expect(json.items[0].entries).toEqual(expect.arrayContaining([
+    expect(json.summary).toBeDefined();
+    expect(json.entries).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: 'section', operation: 'ADDED' }),
     ]));
-    expect(json.items[0].entries[0]).not.toHaveProperty('before');
-    expect(json.items[0].entries[0]).not.toHaveProperty('scope');
+    expect(json.entries[0]).not.toHaveProperty('before');
+    expect(json.entries[0]).not.toHaveProperty('scope');
     await expect(fs.access(path.join(changesDir, 'c1', 'effective-change.md'))).rejects.toThrow();
   });
 
@@ -179,7 +177,8 @@ describe('top-level validate command', () => {
     const result = await runCLI(['validate', '--change', 'c1'], { cwd: testDir });
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('xirang validate --change <id> --json');
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('elements/alpha.id.md');
     expect(result.stderr).not.toContain('xirang diff');
   });
 
@@ -193,29 +192,20 @@ describe('top-level validate command', () => {
   it('validates all with --all and outputs JSON summary', async () => {
     const result = await runCLI(['validate', '--all', '--json'], { cwd: testDir });
     expect(result.exitCode).toBe(0);
-    const json = JSON.parse(result.stdout.trim());
-    expect(Array.isArray(json.items)).toBe(true);
-    expect(json.summary?.totals?.items).toBeDefined();
-    expect(json.version).toBe('1.0');
+    expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it('validates Element Contracts with --contracts and respects --concurrency', async () => {
     const result = await runCLI(['validate', '--contracts', '--json', '--concurrency', '1'], { cwd: testDir });
     expect(result.exitCode).toBe(0);
-    const json = JSON.parse(result.stdout.trim());
-    expect(json.items.map((item: { id: string }) => item.id)).toEqual(['alpha.id']);
-    expect(json.items.every((item: { type: string }) => item.type === 'contract')).toBe(true);
+    expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it('validates one Element Contract with --type contract', async () => {
     const result = await runCLI(['validate', 'alpha.id', '--type', 'contract', '--json'], { cwd: testDir });
 
     expect(result.exitCode).toBe(0);
-    expect(JSON.parse(result.stdout).items[0]).toMatchObject({
-      id: 'alpha.id',
-      type: 'contract',
-      valid: true,
-    });
+    expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
   it.each([
@@ -268,9 +258,22 @@ describe('top-level validate command', () => {
     const result = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
 
     expect(result.exitCode).toBe(1);
-    const issues = JSON.parse(result.stdout).items[0].issues as Array<{ path: string }>;
+    const issues = JSON.parse(result.stderr).issues as Array<{ path: string }>;
     expect(issues.some(issue => issue.path === 'elements/alpha.id.md')).toBe(true);
     expect(issues.every(issue => issue.path !== 'architecture-delta.c4')).toBe(true);
+  });
+
+  it('reports model warnings on stderr and fails strict mode without requiring a preview', async () => {
+    const kind = path.join(testDir, '.xirang/model/metamodel/capability.md');
+    await fs.rename(kind, path.join(testDir, '.xirang/model/views/capability.md'));
+    const regular = await runCLI(['validate', '--change', 'c1', '--json'], { cwd: testDir });
+    expect(regular.exitCode).toBe(0);
+    expect(regular.stdout).toBe('');
+    expect(JSON.parse(regular.stderr).issues).toContainEqual(expect.objectContaining({ level: 'WARNING' }));
+    const strict = await runCLI(['validate', '--change', 'c1', '--strict', '--json'], { cwd: testDir });
+    expect(strict.exitCode).toBe(1);
+    expect(strict.stdout).toBe('');
+    expect(JSON.parse(strict.stderr).issues).toContainEqual(expect.objectContaining({ level: 'WARNING' }));
   });
 
   it('accepts change proposals saved with CRLF line endings', async () => {

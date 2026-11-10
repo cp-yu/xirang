@@ -271,17 +271,22 @@ export async function recordQualitySeal(input: {
 }
 
 export async function readQualityRecordStatus(changeDir: string, projectRoot: string): Promise<{
-  status: QualityStatus; qualityStatus: 'valid' | 'missing'; revision: number; record: QualityRecord;
+  status: QualityStatus; qualityStatus: 'valid' | 'missing'; revision: number; record: QualityRecord; gaps: string[];
 }> {
   const record = await readQualityRecord(changeDir);
-  if (record.revision === 0) return { status: 'needs_review', qualityStatus: 'missing', revision: 0, record };
+  if (record.revision === 0) return { status: 'needs_review', qualityStatus: 'missing', revision: 0, record, gaps: ['FULL_CHANGE_REVIEW_REQUIRED'] };
   const latestReviews = latestReviewsByKind(record.reviews);
   const fullChange = latestReviews.get('full-change');
   const status: QualityStatus = !fullChange || fullChange.result !== 'PASS' || [...latestReviews.values()].some(item => item.result !== 'PASS')
     ? 'needs_review'
     : !record.opt || !record.seal ? 'needs_optimize' : 'all_done';
   if (record.seal) await requireExistingCommit(projectRoot, record.seal.commit);
-  return { status, qualityStatus: 'valid', revision: record.revision, record };
+  const gaps: string[] = [];
+  if (!fullChange) gaps.push('FULL_CHANGE_REVIEW_REQUIRED');
+  for (const review of latestReviews.values()) if (review.result !== 'PASS') gaps.push(`${review.reviewKind.toUpperCase().replaceAll('-', '_')}_REVIEW_REQUIRED`);
+  if (!record.opt) gaps.push('OPT_DISPOSITION_REQUIRED');
+  if (!record.seal) gaps.push('SEAL_REQUIRED');
+  return { status, qualityStatus: 'valid', revision: record.revision, record, gaps };
 }
 
 export async function readQualitySeal(changeDir: string, projectRoot: string): Promise<{ valid: boolean; commit?: string }> {

@@ -1,0 +1,494 @@
+{
+  "unit": "UTF-8 bytes, not tokens",
+  "fixture": "Same directory, model, Change, config and ten-entry source reset before each variant",
+  "scope": "Executed CLI invocations and files actually read by these representative recipes; excludes identical model/code reads, reasoning and conversation. First-load file cost is included; repeated static reads are avoided only where the workflow says to reuse them.",
+  "comparison": {
+    "single-config": {
+      "before": {
+        "calls": 1,
+        "stdout": 733,
+        "stderr": 0,
+        "reads": 0,
+        "total": 733
+      },
+      "after": {
+        "calls": 1,
+        "stdout": 65,
+        "stderr": 0,
+        "reads": 0,
+        "total": 65
+      },
+      "reductionPercent": 91.13
+    },
+    "single-query": {
+      "before": {
+        "calls": 1,
+        "stdout": 267,
+        "stderr": 0,
+        "reads": 0,
+        "total": 267
+      },
+      "after": {
+        "calls": 1,
+        "stdout": 184,
+        "stderr": 0,
+        "reads": 0,
+        "total": 184
+      },
+      "reductionPercent": 31.09
+    },
+    "single-validation": {
+      "before": {
+        "calls": 1,
+        "stdout": 660,
+        "stderr": 0,
+        "reads": 0,
+        "total": 660
+      },
+      "after": {
+        "calls": 1,
+        "stdout": 0,
+        "stderr": 0,
+        "reads": 0,
+        "total": 0
+      },
+      "reductionPercent": 100
+    },
+    "propose": {
+      "before": {
+        "calls": 9,
+        "stdout": 52015,
+        "stderr": 0,
+        "reads": 38595,
+        "total": 90610
+      },
+      "after": {
+        "calls": 6,
+        "stdout": 1289,
+        "stderr": 0,
+        "reads": 55504,
+        "total": 56793
+      },
+      "reductionPercent": 37.32
+    },
+    "apply": {
+      "before": {
+        "calls": 3,
+        "stdout": 4594,
+        "stderr": 0,
+        "reads": 17161,
+        "total": 21755
+      },
+      "after": {
+        "calls": 2,
+        "stdout": 793,
+        "stderr": 0,
+        "reads": 17365,
+        "total": 18158
+      },
+      "reductionPercent": 16.53
+    },
+    "record": {
+      "before": {
+        "calls": 6,
+        "stdout": 6350,
+        "stderr": 0,
+        "reads": 20992,
+        "total": 27342
+      },
+      "after": {
+        "calls": 4,
+        "stdout": 3007,
+        "stderr": 0,
+        "reads": 20161,
+        "total": 23168
+      },
+      "reductionPercent": 15.27
+    },
+    "candidate": {
+      "before": {
+        "calls": 2,
+        "stdout": 1418,
+        "stderr": 0,
+        "reads": 0,
+        "total": 1418
+      },
+      "after": {
+        "calls": 2,
+        "stdout": 84,
+        "stderr": 0,
+        "reads": 0,
+        "total": 84
+      },
+      "reductionPercent": 94.08
+    }
+  },
+  "before": [
+    {
+      "group": "single-config",
+      "command": "config project --json",
+      "stdout": 733,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "single-query",
+      "command": "arch query root --contract --json",
+      "stdout": 267,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "single-validation",
+      "command": "validate --change sample --json",
+      "stdout": 660,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "status --change sample --json",
+      "stdout": 545,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "file": ".pi/skills/xirang-propose/SKILL.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 38595
+    },
+    {
+      "group": "propose",
+      "command": "instructions proposal --change sample --json",
+      "stdout": 7231,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions specs --change sample --json",
+      "stdout": 10336,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions design --change sample --json",
+      "stdout": 6565,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions tasks --change sample --json",
+      "stdout": 6441,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions proposal --change sample --json",
+      "stdout": 7231,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions design --change sample --json",
+      "stdout": 6565,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "instructions tasks --change sample --json",
+      "stdout": 6441,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "validate --change sample --json",
+      "stdout": 660,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "apply",
+      "file": ".pi/skills/xirang-apply-change/SKILL.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 9920
+    },
+    {
+      "group": "apply",
+      "file": ".xirang/references/xirang-apply-step-1-preparation.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 7241
+    },
+    {
+      "group": "apply",
+      "command": "status --change sample --json",
+      "stdout": 545,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "apply",
+      "command": "instructions apply --change sample --json",
+      "stdout": 3771,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "apply",
+      "command": "quality status sample --json",
+      "stdout": 278,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "file": ".xirang/references/xirang-design-record.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 20992
+    },
+    {
+      "group": "record",
+      "command": "record create --slug sample --from /tmp/xirang-context-measure-p4a3Ys/payload.json --json",
+      "stdout": 473,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record show 20261110T100617Z-1524cee9 --json",
+      "stdout": 3160,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record status 20261110T100617Z-1524cee9 --json",
+      "stdout": 502,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record validate 20261110T100617Z-1524cee9 --json",
+      "stdout": 511,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record show 20261110T100617Z-1524cee9 --entry E2 --json",
+      "stdout": 566,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record update 20261110T100617Z-1524cee9 --from /tmp/xirang-context-measure-p4a3Ys/patch.json --source-version 7d81748ec5a0dcbe77addf48ce073ead9f441d2d719974ca6330b090f82b74b9 --json",
+      "stdout": 1138,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "candidate",
+      "command": "candidate init --from current",
+      "stdout": 362,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "candidate",
+      "command": "candidate validate --json",
+      "stdout": 1056,
+      "stderr": 0,
+      "reads": 0
+    }
+  ],
+  "after": [
+    {
+      "group": "single-config",
+      "command": "config project --select proseLanguage --select apply --json",
+      "stdout": 65,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "single-query",
+      "command": "arch query root --contract --json",
+      "stdout": 184,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "single-validation",
+      "command": "validate --change sample --json",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "status --change sample --json",
+      "stdout": 728,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "file": ".pi/skills/xirang-propose/SKILL.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 38880
+    },
+    {
+      "group": "propose",
+      "file": ".xirang/references/xirang-artifact-proposal.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 3942
+    },
+    {
+      "group": "propose",
+      "command": "config project --artifact proposal --select proseLanguage --select context --select rules --json",
+      "stdout": 136,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "file": ".xirang/references/xirang-artifact-specs.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 6665
+    },
+    {
+      "group": "propose",
+      "command": "config project --artifact specs --select proseLanguage --select context --select rules --json",
+      "stdout": 147,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "file": ".xirang/references/xirang-artifact-design.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 3162
+    },
+    {
+      "group": "propose",
+      "command": "config project --artifact design --select proseLanguage --select context --select rules --json",
+      "stdout": 136,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "file": ".xirang/references/xirang-artifact-tasks.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 2855
+    },
+    {
+      "group": "propose",
+      "command": "config project --artifact tasks --select proseLanguage --select context --select rules --json",
+      "stdout": 142,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "propose",
+      "command": "validate --change sample --json",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "apply",
+      "file": ".pi/skills/xirang-apply-change/SKILL.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 9973
+    },
+    {
+      "group": "apply",
+      "file": ".xirang/references/xirang-apply-step-1-preparation.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 7392
+    },
+    {
+      "group": "apply",
+      "command": "status --change sample --json",
+      "stdout": 728,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "apply",
+      "command": "config project --select proseLanguage --select apply --json",
+      "stdout": 65,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "file": ".xirang/references/xirang-design-record.md",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 20161
+    },
+    {
+      "group": "record",
+      "command": "record create sample.md --from /tmp/xirang-context-measure-p4a3Ys/payload.json --json",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record show sample.md --json",
+      "stdout": 2717,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record show sample.md --entry E2 --json",
+      "stdout": 290,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "record",
+      "command": "record update sample.md --from /tmp/xirang-context-measure-p4a3Ys/patch.json --json",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "candidate",
+      "command": "candidate init --from current",
+      "stdout": 0,
+      "stderr": 0,
+      "reads": 0
+    },
+    {
+      "group": "candidate",
+      "command": "candidate validate --json",
+      "stdout": 84,
+      "stderr": 0,
+      "reads": 0
+    }
+  ]
+}

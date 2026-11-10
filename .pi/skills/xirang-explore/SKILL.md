@@ -68,7 +68,7 @@ Start with `xirang list --json` and `xirang record list --json`. Read relevant a
 
 **Structural Decomposition Guidance**
 
-- Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
+- Before forming or reorganizing an Element hierarchy, run `xirang config project --select decomposition --json` and read the normalized `decomposition` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
 - Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
@@ -81,7 +81,7 @@ Assess Declaration/Definition impact only when concept identity or scope changes
 
 Read `.xirang/references/xirang-design-record.md` before using a relevant existing record, preserving a pending question/hypothesis/recommendation, recording or revising design content, or closing a missing record decision before Summary. Ordinary discussion without these triggers does not preload it.
 
-The shared protocol owns nature/decision states, user authority, complete and selective reads, versioned partial updates, conflict handling, user-facing record presentation and the Summary gate. Apply its **User-facing record presentation** rules at record loads and after updates. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol and returned version unless context is lost or its content is unavailable.
+The shared protocol owns nature/decision states, user authority, complete and selective reads, partial CLI updates, conflict handling, user-facing record presentation and the Summary gate. Apply its **User-facing record presentation** rules at record loads and after updates. Apply it immediately after confirmations without asking for separate persistence permission. Proactively preserved suggestions remain pending; only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure. Keep unconfirmed structure in pending text. Record changes invalidate affected conclusions; reuse the loaded protocol unless context is lost or its content is unavailable.
 
 ## Work and handoff
 

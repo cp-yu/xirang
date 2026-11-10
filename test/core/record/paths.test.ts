@@ -6,9 +6,14 @@ import {
   projectRelativePosix,
   validateExplorationId,
   validateRecordSlug,
+  validateRecordFilename,
 } from '../../../src/core/record/paths.js';
 
 describe('record paths', () => {
+  it('accepts contained portable filenames and rejects escapes and Windows reserved names on every platform', () => {
+    for (const name of ['design.md', 'design_2-accepted.md']) expect(validateRecordFilename(name)).toBe(name);
+    for (const name of ['../design.md', 'folder/design.md', 'folder\\design.md', 'C:design.md', 'CON.md', 'nul.md', 'COM1.md', '.hidden.md']) expect(() => validateRecordFilename(name)).toThrow('filename');
+  });
   it('constructs a direct-child managed path', () => {
     // Resolve the fixture root so Windows maps '/' to the current drive the
     // same way the implementation does.

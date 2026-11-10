@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 /**
  * Setup Command
  *
@@ -11,9 +12,6 @@ import ora from 'ora';
 import * as fs from 'fs';
 import { createRequire } from 'module';
 import { FileSystemUtils } from '../utils/file-system.js';
-import {
-  renderWorkflowInvocation,
-} from '../utils/command-references.js';
 import {
   AI_TOOLS,
   XIRANG_DIR_NAME,
@@ -611,92 +609,19 @@ export class SetupCommand {
     extendMode: boolean,
     proseLanguage?: string
   ): void {
-    console.log();
-    console.log(chalk.bold('Xirang Setup Complete'));
-    console.log();
-
-    // Show created vs refreshed tools
-    if (results.createdTools.length > 0) {
-      console.log(`Created: ${results.createdTools.map((t) => t.name).join(', ')}`);
+    if (results.failedTools.length) {
+      throw new Error(`Failed: ${results.failedTools.map(f => `${f.name} (${f.error.message})`).join(', ')}`);
     }
-    if (results.refreshedTools.length > 0) {
-      console.log(`Refreshed: ${results.refreshedTools.map((t) => t.name).join(', ')}`);
+    if (results.createdTools.length || results.refreshedTools.length) {
+      diagnostic('Restart your IDE or current session for refreshed skills to take effect.', 'RESTART_REQUIRED');
     }
-
-    // Show counts (skills-only)
-    const successfulTools = [...results.createdTools, ...results.refreshedTools];
-    if (successfulTools.length > 0) {
-      const toolDirs = [...new Set(successfulTools.map((t) => t.skillsDir))].join(', ');
-      const skillCount = results.generatedSkillCount;
-      if (skillCount > 0) {
-        console.log(`${skillCount} skills in ${toolDirs}/`);
-      }
-    }
-
-    // Show failures
-    if (results.failedTools.length > 0) {
-      console.log(chalk.red(`Failed: ${results.failedTools.map((f) => `${f.name} (${f.error.message})`).join(', ')}`));
-    }
-
-    // Show removed skills (from deselected workflows)
-    if (results.removedSkillCount > 0) {
-      console.log(chalk.dim(`Removed: ${results.removedSkillCount} skill directories (no longer in workflow manifest)`));
-    }
-
-    // Config status
-    if (configStatus === 'created') {
-      const details = proseLanguage ? `schema: ${DEFAULT_SCHEMA}, proseLanguage: ${proseLanguage}` : `schema: ${DEFAULT_SCHEMA}`;
-      console.log(`Config: ${XIRANG_DIR_NAME}/config.yaml (${details})`);
-    } else if (configStatus === 'updated') {
-      console.log(`Config: ${XIRANG_DIR_NAME}/config.yaml (updated proseLanguage: ${proseLanguage})`);
-    } else if (configStatus === 'exists') {
-      // Show actual filename (config.yaml or config.yml)
-      const configYaml = path.join(projectPath, XIRANG_DIR_NAME, 'config.yaml');
-      const configYml = path.join(projectPath, XIRANG_DIR_NAME, 'config.yml');
-      const configName = fs.existsSync(configYaml) ? 'config.yaml' : fs.existsSync(configYml) ? 'config.yml' : 'config.yaml';
-      console.log(`Config: ${XIRANG_DIR_NAME}/${configName} (exists)`);
-    } else {
-      console.log(chalk.dim(`Config: skipped (non-interactive mode)`));
-    }
-
-    // Getting started
-    const activeWorkflows = [...WorkflowManifestRegistry.getAllWorkflowIds()];
-    const guidanceToolId = this.getGuidanceToolId(successfulTools.map((tool) => tool.value));
-    console.log();
-    if (guidanceToolId && activeWorkflows.includes('propose')) {
-      console.log(chalk.bold('Getting started:'));
-      console.log(`  Start your first change: ${renderWorkflowInvocation(guidanceToolId, 'propose')} "your idea"`);
-    } else {
-      console.log("Done. Run 'xirang setup' to configure your workflows.");
-    }
-
-    if (!extendMode && guidanceToolId && activeWorkflows.includes('build')) {
-      const buildRef = renderWorkflowInvocation(guidanceToolId, 'build' as WorkflowId);
-      console.log(`  Next: run ${buildRef} to build your project Xirang`);
-    }
-
-    // Links
-    console.log();
-    console.log(`Learn more: ${chalk.cyan('https://github.com/cp-yu/xirang')}`);
-    console.log(`Feedback:   ${chalk.cyan('https://github.com/cp-yu/xirang/issues')}`);
-
-    // Restart instruction if any tools were configured
-    if (results.createdTools.length > 0 || results.refreshedTools.length > 0) {
-      console.log();
-      console.log(chalk.white('Restart your IDE or current session for refreshed skills to take effect.'));
-    }
-
-    console.log();
-  }
-
-  private getGuidanceToolId(toolIds: readonly string[]): string | undefined {
-    return toolIds[0];
   }
 
   private startSpinner(text: string) {
     return ora({
       text,
-      stream: process.stdout,
+      isSilent: !this.canPromptInteractively(),
+      stream: process.stderr,
       color: 'gray',
       spinner: PROGRESS_SPINNER,
     }).start();

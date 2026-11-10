@@ -13,10 +13,10 @@ export function registerDeltaCommand(program: Command): void {
         const chunks: Buffer[] = [];
         for await (const chunk of process.stdin) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
         const result = await writebackExpectedModel(process.cwd(), change, options.source, Buffer.concat(chunks).toString('utf8'));
-        console.log(JSON.stringify({ ok: true, ...result, diagnostics: [] }));
+        if (result.ignoredChanges.length) console.log(JSON.stringify({ ignoredChanges: result.ignoredChanges }));
       } catch (error) {
         process.exitCode = 1;
-        console.log(JSON.stringify({ ok: false, code: error instanceof WritebackError ? error.code : 'WRITEBACK_FAILED',
+        console.error(JSON.stringify({ code: error instanceof WritebackError ? error.code : 'WRITEBACK_FAILED',
           message: error instanceof Error ? error.message : String(error),
           diagnostics: error instanceof WritebackError ? error.diagnostics : [],
         }));

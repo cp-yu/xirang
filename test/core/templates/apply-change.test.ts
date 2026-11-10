@@ -51,8 +51,8 @@ describe('apply change workflow template', () => {
   it('uses definition-first authoring without code-map navigation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
     const preparation = applyReference('references/apply-step-1-preparation.md');
-    expect(instructions).toContain('resolved file definition');
-    expect(instructions).toContain('MUST NOT copy definitions');
+    expect(instructions).toContain('reading Definition before Guidance and Template');
+    expect(instructions).toContain('Do not copy guidance, configuration or reasoning');
     expect(preparation).toContain('xirang arch query');
     expect(preparation).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
     expect(preparation).toContain('Xirang Semantic Model');

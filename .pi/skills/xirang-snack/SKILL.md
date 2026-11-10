@@ -42,7 +42,7 @@ For business-specification Elements, prepare scope/non-goals, the complete busin
 
 **Structural Decomposition Guidance**
 
-- Before forming or reorganizing an Element hierarchy, run `xirang config project --json` and read the normalized `decomposition` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
+- Before forming or reorganizing an Element hierarchy, run `xirang config project --select decomposition --json` and read the normalized `decomposition` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
 - Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
@@ -57,7 +57,7 @@ Treat `proposal.md`, `design.md`, and the Delta units under `{metamodel,elements
 
 ## Flow
 
-For each response, follow the authoring order in the returned `instruction`. Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs; do not copy non-artifact inputs into the artifact.
+Use each artifact reference in Definition, Guidance, Template order. Keep static guidance, selected configuration, dependency status and target content separate; do not copy non-artifact inputs into artifacts.
 
 1. Resolve change name and reconcile mode.
    - In the default new-change mode, if `.xirang/changes/<name>/` does not exist, run `xirang new change "<name>"` and create only artifacts required by evidence. If the ID already exists, stop and ask for a different ID; do not update it or synthesize an alternative ID.
@@ -102,16 +102,16 @@ For each response, follow the authoring order in the returned `instruction`. Kee
    - If no structural fact changes, set the compatible Architecture Source scope to `None`. If impact remains unresolved, stop and ask one focused question; do not write structural Delta units or claim reconciliation complete.
 7. Reconcile the Contract and structural scopes as one Semantic Delta; both address the same Element identity space.
 8. Reconcile `proposal.md`.
-   - Run `xirang instructions proposal --change "<name>" --json`.
+   - Read `.xirang/references/xirang-artifact-proposal.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact proposal --select proseLanguage --select context --select rules --json`.
    - Reconcile `## Source Impact` from the Contract and structural scopes of one Semantic Delta. Keep the compatible Behavior Source and Architecture Source headings and reference Elements by `identity`.
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in `elements/<identity>.md`.
-   - Run `xirang instructions specs --change "<name>" --json`.
+   - Read `.xirang/references/xirang-artifact-specs.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact specs --select proseLanguage --select context --select rules --json`.
    - Create or update only the identities declared by the Contract scope. The default unit name is `<identity>.md`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
-   - Run `xirang instructions design --change "<name>" --json`.
+   - Read `.xirang/references/xirang-artifact-design.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact design --select proseLanguage --select context --select rules --json`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
    **Write the Semantic Delta**:
@@ -126,7 +126,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 | `authored-view` | `identity`, `include`; optional `exclude`, `of`, `title`, `autoLayout` |
 
 - `identity` uses `[A-Za-z0-9._-]+`, contains no path separator, and does not encode parent hierarchy
-- Before writing, follow the authoring order in the returned `instruction`; keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs
+- Before writing, follow the matching artifact reference Guidance after reading its Definition; query status and selected configuration only when needed
 - Read proposal `Source Impact` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read `design.md` for architecture decisions and the formal Xirang Semantic Model as current semantic state
 - Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Sections, Relationships, Kinds, and Views
@@ -154,7 +154,7 @@ Every Markdown unit declares its own `entity` in frontmatter. The partition does
 ## Artifact Contract
 
 **Document Language Contract**:
-- Follow the returned `configProjection.prompt` for prose language and canonical-token boundaries; do not reinterpret raw config.
-- Keep the template structure unchanged. If no `proseLanguage` projection is present, keep the default writing behavior for prose.
+- Query effective `proseLanguage` through `xirang config project --select proseLanguage --json` once and after relevant configuration changes. Use it for newly authored natural-language prose; preserve IDs, schema keys, paths, commands, SHALL/MUST and canonical template/Section headings.
+- Keep the template structure unchanged. If no `proseLanguage` value is present, keep the default writing behavior for prose.
 
 Preserve canonical headings, IDs, schema keys, paths, commands, and code identifiers.

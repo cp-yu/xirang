@@ -32,63 +32,58 @@ function payload(identity = 'a'): DesignRecordPayload {
 }
 
 const context = { model: null, semanticModelFingerprint: 'f'.repeat(64) };
-const identity = '20260729T120000Z-a1b2c3d4';
-const generation = { now: new Date('2026-07-29T12:00:00Z'), randomHex: 'a1b2c3d4' };
+const identity = 'first.md';
 
 describe('record workspace', () => {
-  it('creates, shows, partially updates, renames and discards by stable identity', async () => {
+  it('creates, shows, partially updates, renames and discards by filename', async () => {
     const root = await workspace();
-    const created = await createRecord(root, 'first', payload(), context, generation);
-    expect(created.document.metadata.explorationId).toBe(identity);
+    const created = await createRecord(root, 'first.md', payload(), context);
+    expect(path.basename(created.path)).toBe(identity);
     expect(created.sourceVersion).toMatch(/^[a-f0-9]{64}$/);
-    expect(created.path).toBe(`.xirang/records/first-${identity}.md`);
-    expect((await listRecords(root)).map(item => item.document.metadata.slug)).toEqual(['first']);
+    expect(created.path).toBe('.xirang/records/first.md');
+    expect((await listRecords(root)).map(item => path.basename(item.path))).toEqual(['first.md']);
 
     const updated = await updateRecord(root, identity, {
       entries: { upsert: [{ identity: 'b', nature: 'informative', decision: 'accepted' as const, content: 'b 的确认内容' }] },
       structure: { upsert: { elements: [{ identity: 'root', parent: null }] } },
-    }, created.sourceVersion, context);
+    }, context);
     expect(updated.record.document.payload.entries).toEqual([...created.document.payload.entries, { identity: 'b', nature: 'informative', decision: 'accepted' as const, content: 'b 的确认内容' }]);
     expect(updated.diff.entries).toEqual({ added: [expect.objectContaining({ identity: 'b' })], modified: [], removed: [] });
     expect(updated.diff.structure.added).toEqual([{ ref: { element: 'root' }, after: { identity: 'root', parent: null } }]);
     expect(updated.derived).toEqual([{ ref: { element: 'root' }, status: 'added' }]);
     expect(updated.summary).toEqual({ entries: 2, normativeEntries: 1, decisions: { pending: 0, accepted: 2, excluded: 0 }, elements: 1, relationships: 0, elementKinds: 0, relationshipKinds: 0 });
 
-    const renamed = await renameRecord(root, identity, 'renamed');
-    expect(renamed.document.metadata.explorationId).toBe(identity);
-    expect(renamed.sourceVersion).not.toBe(updated.record.sourceVersion);
+    const renamed = await renameRecord(root, identity, 'renamed.md');
+    expect(path.basename(renamed.path)).toBe('renamed.md');
+    expect(renamed.sourceVersion).toBe(updated.record.sourceVersion);
     expect(renamed.document.payload).toEqual(updated.record.document.payload);
-    expect(renamed.document.metadata.slug).toBe('renamed');
-    expect(renamed.path).toContain(`renamed-${identity}.md`);
-    expect((await showRecord(root, identity)).path).toBe(renamed.path);
+    expect(renamed.document.metadata).not.toHaveProperty('slug');
+    expect(renamed.path).toContain('renamed.md');
+    expect((await showRecord(root, 'renamed.md')).path).toBe(renamed.path);
 
-    await discardRecord(root, identity);
+    await discardRecord(root, 'renamed.md');
     await expect(showRecord(root, identity)).rejects.toMatchObject({ code: 'RECORD_NOT_FOUND' });
   });
 
-  it('rejects stale source versions and invalid structure without changing the record', async () => {
+  it('rejects invalid structure without changing the record', async () => {
     const root = await workspace();
-    const created = await createRecord(root, 'first', payload(), context, generation);
-    const patch = { entries: { upsert: [{ identity: 'b', nature: 'normative' as const, decision: 'accepted' as const, content: 'b' }] } };
-    await expect(updateRecord(root, identity, patch, 'e'.repeat(64), context)).rejects.toMatchObject({
-      code: 'SOURCE_VERSION_STALE', details: { currentSourceVersion: created.sourceVersion },
-    });
-    await expect(updateRecord(root, identity, { structure: { upsert: { elements: [{ identity: 'a', parent: 'ghost' }] } } }, created.sourceVersion, context))
+    const created = await createRecord(root, 'first.md', payload(), context);
+    await expect(updateRecord(root, identity, { structure: { upsert: { elements: [{ identity: 'a', parent: 'ghost' }] } } }, context))
       .rejects.toMatchObject({ code: 'INVALID_STRUCTURE', diagnostics: [expect.objectContaining({ code: 'UNRESOLVED_PARENT', identity: 'a' })] });
-    await expect(createRecord(root, 'second', { ...payload('c'), structure: { ...payload().structure, elements: [{ identity: 'a', kind: 'ghost' }] } }, context, { ...generation, randomHex: 'b1b2c3d4' }))
+    await expect(createRecord(root, 'second.md', { ...payload('c'), structure: { ...payload().structure, elements: [{ identity: 'a', kind: 'ghost' }] } }, context))
       .rejects.toMatchObject({ code: 'INVALID_STRUCTURE' });
     expect((await showRecord(root, identity)).bytes.equals(created.bytes)).toBe(true);
     expect(await listRecords(root)).toHaveLength(1);
   });
 
-  it('rejects empty create payloads and duplicate exploration identities', async () => {
+  it('rejects empty payloads and duplicate filenames', async () => {
     const root = await workspace();
     const empty: DesignRecordPayload = { ...payload(), entries: [] };
-    await expect(createRecord(root, 'empty', empty, context, generation)).rejects.toMatchObject({ code: 'EMPTY_PAYLOAD' });
-    const created = await createRecord(root, 'first', payload(), context, generation);
-    await expect(updateRecord(root, identity, { entries: { remove: ['a'] } }, created.sourceVersion, context)).rejects.toMatchObject({ code: 'EMPTY_PAYLOAD' });
-    await expect(createRecord(root, 'second', payload('b'), context, generation)).rejects.toMatchObject({
-      code: 'DUPLICATE_EXPLORATION_ID',
+    await expect(createRecord(root, 'empty.md', empty, context)).rejects.toMatchObject({ code: 'EMPTY_PAYLOAD' });
+    const created = await createRecord(root, 'first.md', payload(), context);
+    await expect(updateRecord(root, identity, { entries: { remove: ['a'] } }, context)).rejects.toMatchObject({ code: 'EMPTY_PAYLOAD' });
+    await expect(createRecord(root, 'first.md', payload('b'), context)).rejects.toMatchObject({
+      code: 'MANAGED_PATH_CONFLICT',
     });
   });
 
@@ -105,7 +100,7 @@ describe('record workspace', () => {
     const outsideDir = await workspace();
     await fs.mkdir(path.join(root2, '.xirang'), { recursive: true });
     await fs.symlink(outsideDir, path.join(root2, '.xirang', 'records'));
-    await expect(createRecord(root2, 'first', payload(), context, generation)).rejects.toMatchObject({
+    await expect(createRecord(root2, 'first.md', payload(), context)).rejects.toMatchObject({
       code: 'UNSAFE_MANAGED_PATH',
     });
   });

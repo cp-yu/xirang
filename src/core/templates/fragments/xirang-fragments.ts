@@ -27,7 +27,7 @@ export const XIRANG_PHILOSOPHY = `
 export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
 **Structural Decomposition Guidance**
 
-- Before forming or reorganizing an Element hierarchy, run \`xirang config project --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
+- Before forming or reorganizing an Element hierarchy, run \`xirang config project --select decomposition --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
 - Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
 - Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
 - Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
@@ -174,7 +174,7 @@ Every Markdown unit declares its own \`entity\` in frontmatter. The partition do
 | \`authored-view\` | \`identity\`, \`include\`; optional \`exclude\`, \`of\`, \`title\`, \`autoLayout\` |
 
 - \`identity\` uses \`[A-Za-z0-9._-]+\`, contains no path separator, and does not encode parent hierarchy
-- Before writing, follow the authoring order in the returned \`instruction\`; keep \`definition\`, dependencies, \`currentState\`, \`configProjection\`, and \`template\` as separate inputs
+- Before writing, follow the matching artifact reference Guidance after reading its Definition; query status and selected configuration only when needed
 - Read proposal \`Source Impact\` as compatible scaffolding for one Semantic Delta; use it to locate affected elements, refinement, Element Contracts, and relationships
 - Read \`design.md\` for architecture decisions and the formal Xirang Semantic Model as current semantic state
 - Treat proposal entries as scope declarations, not authoritative Semantic Delta records; derive exact target-state Declarations, Sections, Relationships, Kinds, and Views
@@ -203,6 +203,6 @@ export const QUALITY_ERROR_RECOVERY_GUIDE = renderQualityErrorRecovery();
  */
 export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
 **Document Language Contract**:
-- Follow the returned \`configProjection.prompt\` for prose language and canonical-token boundaries; do not reinterpret raw config.
-- Keep the template structure unchanged. If no \`proseLanguage\` projection is present, keep the default writing behavior for prose.
+- Query effective \`proseLanguage\` through \`xirang config project --select proseLanguage --json\` once and after relevant configuration changes. Use it for newly authored natural-language prose; preserve IDs, schema keys, paths, commands, SHALL/MUST and canonical template/Section headings.
+- Keep the template structure unchanged. If no \`proseLanguage\` value is present, keep the default writing behavior for prose.
 `.trim();

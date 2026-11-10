@@ -128,8 +128,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     Object.entries(config.rules ?? {})
       .map(([artifactId, items]) => {
         const normalizedItems = items
-          .map((item) => item.trim())
-          .filter((item) => item.length > 0);
+          .filter((item) => item.trim().length > 0);
         return [artifactId.trim(), normalizedItems] as const;
       })
       .filter(([artifactId, items]) => artifactId.length > 0 && items.length > 0)
@@ -138,7 +137,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
   return {
     schema: normalizeString(config.schema),
     proseLanguage: normalizeString(config.proseLanguage),
-    context: normalizeString(config.context),
+    context: config.context,
     decomposition: config.decomposition ? resolveDecompositionPath(config.decomposition) : undefined,
     architecture,
     optimization: config.optimization

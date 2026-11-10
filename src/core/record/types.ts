@@ -90,8 +90,8 @@ export interface RelevantSemanticModelBaseline {
 
 export interface DesignRecordMetadata {
   entity: 'confirmed-design-record';
-  explorationId: string;
-  slug: string;
+  explorationId?: string;
+  slug?: string;
   semanticModelFingerprint: string;
 }
 

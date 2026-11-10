@@ -11,7 +11,7 @@ describe('Record command registration', () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-record-readonly-'));
     try {
       expect(await listRecords(root)).toEqual([]);
-      await expect(showRecord(root, '20260729T120000Z-a1b2c3d4')).rejects.toMatchObject({
+      await expect(showRecord(root, 'design.md')).rejects.toMatchObject({
         code: 'RECORD_NOT_FOUND',
       });
       await expect(fs.access(path.join(root, '.xirang'))).rejects.toMatchObject({ code: 'ENOENT' });
@@ -25,18 +25,18 @@ describe('Record command registration', () => {
     registerRecordCommand(program);
     const record = program.commands.find(command => command.name() === 'record');
     expect(record?.commands.map(command => command.name())).toEqual([
-      'create', 'list', 'show', 'status', 'validate', 'update', 'rename', 'coverage', 'consume', 'discard',
+      'create', 'list', 'show', 'status', 'validate', 'update', 'rename', 'discard', 'coverage', 'consume',
     ]);
     for (const command of record?.commands ?? []) {
       expect(command.options.map(option => option.long)).toContain('--json');
     }
     expect(record?.commands.find(command => command.name() === 'create')?.options.map(option => option.long))
-      .toEqual(['--slug', '--from', '--json']);
+      .toEqual(['--from', '--json']);
     expect(record?.commands.find(command => command.name() === 'update')?.options.map(option => option.long))
-      .toEqual(['--from', '--source-version', '--json']);
+      .toEqual(['--from', '--diff', '--json']);
     expect(record?.commands.find(command => command.name() === 'coverage')?.options.map(option => option.long))
-      .toEqual(['--change', '--candidate', '--source-version', '--from', '--json']);
+      .toEqual(['--change', '--candidate', '--from', '--json']);
     expect(record?.commands.find(command => command.name() === 'consume')?.options.map(option => option.long))
-      .toEqual(['--change', '--candidate', '--source-version', '--json']);
+      .toEqual(['--change', '--candidate', '--json']);
   });
 });

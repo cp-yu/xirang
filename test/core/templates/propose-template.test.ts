@@ -131,8 +131,8 @@ describe('propose template post-validation flow', () => {
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
-    expect(instructions).toContain('follow the authoring order in the returned `instruction`');
-    expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(instructions).toContain('Guidance');
+    expect(instructions).toContain('Definition');
     expect(instructions).not.toContain('Use `content.includes` and `content.excludes` to decide');
   });
 
@@ -156,14 +156,14 @@ describe('propose template post-validation flow', () => {
     expect(template.instructions).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
-    expect(template.referenceFiles).toEqual([]);
+    expect(template.referenceFiles?.map(file => file.path)).toContain('references/artifact-specs.md');
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
     for (const body of getProposeBodies()) {
-      expect(body).toContain('xirang instructions proposal --change "<name>" --json');
-      expect(body).toContain('xirang instructions design --change "<name>" --json');
-      expect(body).toContain('xirang instructions tasks --change "<name>" --json');
+      expect(body).toContain('proposal and design references already loaded');
+      expect(body).toContain('proposal and design references already loaded');
+      expect(body).toContain('.xirang/references/xirang-artifact-tasks.md');
       expect(body).toContain('## Goals');
       expect(body).toContain('G<n>');
       expect(body).toContain('Contract Section reference');
@@ -279,7 +279,7 @@ describe('propose template post-validation flow', () => {
     const instructions = getXirangProposeSkillTemplate().instructions;
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
-    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('xirang config project --select decomposition --json');
     expect(instructions).toContain('unconfirmed structure');
     expect(instructions).toContain('new or reorganized hierarchy');
     expect(instructions).toContain('Do not redo confirmed structural decisions');
@@ -296,8 +296,8 @@ describe('propose template post-validation flow', () => {
     expect(body).toContain('shared **Coverage gate**');
     expect(body).toContain('shared **Writing rules**');
     const validate = body.indexOf('xirang validate --change "<name>" --json');
-    const coverage = body.indexOf('xirang record coverage <explorationId> --change "<name>" --source-version <sourceVersion> --from <file> --json');
-    const consume = body.indexOf('xirang record consume <explorationId> --change "<name>" --source-version <sourceVersion> --json');
+    const coverage = body.indexOf('xirang record coverage <filename> --change "<name>" --from <file> --json');
+    const consume = body.indexOf('xirang record consume <filename> --change "<name>" --json');
     expect(coverage).toBeGreaterThan(validate);
     expect(consume).toBeGreaterThan(coverage);
     const acceptance = body.indexOf('Wait for the user to accept the final Change');
@@ -333,10 +333,10 @@ describe('propose template post-validation flow', () => {
   it('delegates document language boundaries to the runtime config projection', () => {
     for (const body of getProposeBodies()) {
       expect(body).toContain('Document Language Contract');
-      expect(body).toContain('Follow the returned `configProjection.prompt`');
-      expect(body).toContain('prose language and canonical-token boundaries');
+      expect(body).toContain('Query effective `proseLanguage`');
+      expect(body).toContain('preserve IDs, schema keys, paths, commands');
       expect(body).toContain('Keep the template structure unchanged');
-      expect(body).toContain('If no `proseLanguage` projection is present');
+      expect(body).toContain('If no `proseLanguage` value is present');
     }
   });
 

@@ -27,7 +27,7 @@ describe('Candidate build history', () => {
 
   it('retains every successful build history entry', async () => {
     await initializeCandidate(root, { kind: 'current' });
-    const source = await createRecord(root, 'history-source', {
+    const source = await createRecord(root, 'history-source.md', {
       schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
       entries: [{ identity: 'intent', nature: 'normative', decision: 'accepted', content: 'Preserve history without promoting provenance.' }],
     }, await readRecordSemanticContext(root, 'build'));

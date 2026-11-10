@@ -133,7 +133,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 **Input**: ${inputLine}
 
-Before archiving, run \`xirang config project --json\` and consume git policy from its normalized project config: \`git.commitMessage.archive\`, \`git.commitMessage.merge\`, \`git.merge.strategy\`, and \`git.branch.deleteAfterArchive\`; do not parse raw YAML inside the skill.
+Before archiving, run \`xirang config project --select git --json\` and consume git policy from its normalized project config: \`git.commitMessage.archive\`, \`git.commitMessage.merge\`, \`git.merge.strategy\`, and \`git.branch.deleteAfterArchive\`; do not parse raw YAML inside the skill.
 
 **Steps**
 
@@ -160,7 +160,7 @@ ${buildArchiveFullQualityContract(executionModel)}
    Run \`xirang archive "<change-name>"\` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and prints the Git handoff reminder; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
 
 7. **Git handoff**
-   Read the archive CLI output and projected Git policy from \`xirang config project --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
+   Read the archive CLI output and projected Git policy from \`xirang config project --select git --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
 
 8. **Agent git flow**
 ${buildAgentGitFlowStep()}

@@ -20,6 +20,7 @@ describe('ArchiveCommand', () => {
   let tempDir: string;
   let archiveCommand: ArchiveCommand;
   const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
 
   beforeEach(async () => {
     // Create temp directory
@@ -37,6 +38,7 @@ describe('ArchiveCommand', () => {
     
     // Suppress console.log during tests
     console.log = vi.fn();
+    console.error = vi.fn();
     
     archiveCommand = new ArchiveCommand();
   });
@@ -63,6 +65,7 @@ describe('ArchiveCommand', () => {
   afterEach(async () => {
     // Restore console.log
     console.log = originalConsoleLog;
+    console.error = originalConsoleError;
     
     // Clear mocks
     vi.clearAllMocks();
@@ -140,12 +143,8 @@ git:
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('agent')
-      );
+      expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('Git handoff:'));
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining(`docs(${changeName}): Archive change artifacts`)
       );
@@ -163,9 +162,7 @@ git:
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
 
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
-      );
+      expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('Git handoff:'));
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining(`docs(${changeName}): Archive change artifacts`)
       );
@@ -292,7 +289,7 @@ git:
       await archiveCommand.execute(changeName, { yes: true, noVerify: true });
       
       // Verify warning was logged
-      expect(console.log).toHaveBeenCalledWith(
+      expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining('Warning: 2 incomplete goal(s) found')
       );
     });
@@ -324,7 +321,7 @@ git:
 
       await archiveCommand.execute(changeName, { noSync: true });
 
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled.');
+      expect(console.error).toHaveBeenCalledWith('Archive cancelled.');
     });
 
     it('should block archive when a metamodel or view delta is pending', async () => {
@@ -397,7 +394,7 @@ git:
 
       await archiveCommand.execute(changeName, { yes: true, noVerify: true, validate: false });
 
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Validation skipped'));
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Validation skipped'));
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.length).toBe(1);
@@ -498,7 +495,7 @@ git:
       await archiveCommand.execute(changeName, { noValidate: true, noVerify: true });
       
       // Verify archive was cancelled
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
+      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
       
       // Verify change was not archived
       await expect(fs.access(changeDir)).resolves.not.toThrow();
@@ -527,9 +524,7 @@ git:
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Branch switch')
       );
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
-      );
+      expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('Git handoff:'));
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const [archiveName] = (await fs.readdir(archiveDir)).filter((entry) => entry.includes(changeName));
       await expect(fs.access(path.join(archiveDir, archiveName, '.apply-isolation.json'))).resolves.not.toThrow();
@@ -560,7 +555,7 @@ git:
       await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
 
       // Verify archive was cancelled at the --no-verify warning
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
+      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
     });
 
     it('normalizes Windows-style worktree paths before prompting', async () => {
@@ -588,7 +583,7 @@ git:
       await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
 
       // Verify archive was cancelled at the --no-verify warning
-      expect(console.log).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
+      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
     });
   });
 });

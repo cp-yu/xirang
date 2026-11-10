@@ -144,6 +144,35 @@ describe('config project command', () => {
     await program.parseAsync(['node', 'xirang', 'config', 'project', ...args]);
   }
 
+  it('selects current config fields and only matching artifact rules', async () => {
+    const configDir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(configDir);
+    const configPath = path.join(configDir, 'config.yaml');
+    fs.writeFileSync(configPath, 'schema: semantic-model\nproseLanguage: 中文\nrules:\n  proposal: [Keep scope]\n  specs: [Keep behavior]\n');
+    const args = ['--json', '--select', 'proseLanguage', '--select', 'rules', '--artifact', 'proposal'];
+    await runProjectCommand(args);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: '中文', rules: { proposal: ['Keep scope'] } });
+    fs.writeFileSync(configPath, 'schema: semantic-model\nproseLanguage: English\nrules: {}\n');
+    await runProjectCommand(args);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({ proseLanguage: 'English', rules: {} });
+  });
+
+  it('distinguishes absent optional fields from invalid selections', async () => {
+    await runProjectCommand(['--json', '--select', 'git.commitMessage.archive']);
+    expect(JSON.parse(consoleLogSpy.mock.calls.at(-1)![0])).toEqual({});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      consoleLogSpy.mockClear();
+      await runProjectCommand(['--json', '--select', 'git.commitMessage.typo']);
+      expect(process.exitCode).toBe(1);
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(JSON.parse(error.mock.calls.at(-1)![0])).toMatchObject({ code: 'INVALID_CONFIG_SELECTION' });
+    } finally {
+      process.exitCode = undefined;
+      error.mockRestore();
+    }
+  });
+
   it('prints normalized project config as JSON', async () => {
     fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
     fs.writeFileSync(

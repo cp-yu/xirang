@@ -150,7 +150,7 @@ export async function applyPreparedChangeSync(
 
   const files = prepared.manifest.map(entry => entry.path);
   if (!(options.silent ?? false) && files.length > 0) {
-    console.log('Semantic Model updated successfully.');
+
   }
 
   return { partitions: prepared.partitions, files };

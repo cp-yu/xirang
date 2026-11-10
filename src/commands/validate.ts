@@ -1,6 +1,7 @@
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import { promises as fs } from 'fs';
 import ora from 'ora';
+import { diagnostic } from '../utils/output.js';
 import path from 'path';
 import { Validator } from '../core/validation/validator.js';
 import { validateSemanticModel } from '../core/model/validator.js';
@@ -24,6 +25,7 @@ interface ExecuteOptions {
   type?: string;
   strict?: boolean;
   json?: boolean;
+  preview?: boolean;
   noInteractive?: boolean;
   interactive?: boolean; // Commander sets this to false when --no-interactive is used
   concurrency?: string;
@@ -42,7 +44,7 @@ export class ValidateCommand {
     const interactive = isInteractive(options);
 
     if (options.change) {
-      await this.validateExplicitChange(options.change, { strict: !!options.strict, json: !!options.json });
+      await this.validateExplicitChange(options.change, { strict: !!options.strict, json: !!options.json, preview: !!options.preview });
       return;
     }
 
@@ -69,11 +71,11 @@ export class ValidateCommand {
     // Direct item validation with type detection or override
     const typeOverride = this.normalizeType(options.type);
     if (options.type && !typeOverride) {
-      console.error(`Invalid type '${options.type}'. Expected change|contract.`);
+      diagnostic(`Invalid type '${options.type}'. Expected change|contract.`);
       process.exitCode = 1;
       return;
     }
-    await this.validateDirectItem(itemName, { typeOverride, strict: !!options.strict, json: !!options.json });
+    await this.validateDirectItem(itemName, { typeOverride, strict: !!options.strict, json: !!options.json, preview: !!options.preview });
   }
 
   private normalizeType(value?: string): ItemType | undefined {
@@ -104,7 +106,7 @@ export class ValidateCommand {
     items.push(...changes.map(id => ({ name: `change/${id}`, value: { type: 'change' as const, id } })));
     items.push(...contracts.map(id => ({ name: `contract/${id}`, value: { type: 'contract' as const, id } })));
     if (items.length === 0) {
-      console.error('No items found to validate.');
+      diagnostic('No items found to validate.');
       process.exitCode = 1;
       return;
     }
@@ -113,15 +115,15 @@ export class ValidateCommand {
   }
 
   private printNonInteractiveHint(): void {
-    console.error('Nothing to validate. Try one of:');
-    console.error('  xirang validate --all');
-    console.error('  xirang validate --changes');
-    console.error('  xirang validate --contracts');
-    console.error('  xirang validate <item-name>');
-    console.error('Or run in an interactive terminal.');
+    diagnostic('Nothing to validate. Try one of:');
+    diagnostic('  xirang validate --all');
+    diagnostic('  xirang validate --changes');
+    diagnostic('  xirang validate --contracts');
+    diagnostic('  xirang validate <item-name>');
+    diagnostic('Or run in an interactive terminal.');
   }
 
-  private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean }): Promise<void> {
+  private async validateDirectItem(itemName: string, opts: { typeOverride?: ItemType; strict: boolean; json: boolean; preview?: boolean }): Promise<void> {
     const [changes, contracts] = await Promise.all([getActiveChangeIds(), getContractElementIds()]);
     const isChange = changes.includes(itemName);
     const isContract = contracts.includes(itemName);
@@ -129,16 +131,16 @@ export class ValidateCommand {
     const type = opts.typeOverride ?? (isChange ? 'change' : isContract ? 'contract' : undefined);
 
     if (!type) {
-      console.error(`Unknown item '${itemName}'`);
+      diagnostic(`Unknown item '${itemName}'`);
       const suggestions = nearestMatches(itemName, [...changes, ...contracts]);
-      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      if (suggestions.length) diagnostic(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
 
     if (!opts.typeOverride && isChange && isContract) {
-      console.error(`Ambiguous item '${itemName}' matches both a change and an Element Contract.`);
-      console.error('Pass --type change|contract.');
+      diagnostic(`Ambiguous item '${itemName}' matches both a change and an Element Contract.`);
+      diagnostic('Pass --type change|contract.');
       process.exitCode = 1;
       return;
     }
@@ -146,12 +148,12 @@ export class ValidateCommand {
     await this.validateByType(type, itemName, opts);
   }
 
-  private async validateExplicitChange(id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+  private async validateExplicitChange(id: string, opts: { strict: boolean; json: boolean; preview?: boolean }): Promise<void> {
     const changes = await getActiveChangeIds();
     if (!changes.includes(id)) {
-      console.error(`Unknown change '${id}'`);
+      diagnostic(`Unknown change '${id}'`);
       const suggestions = nearestMatches(id, changes);
-      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      if (suggestions.length) diagnostic(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
@@ -161,55 +163,37 @@ export class ValidateCommand {
     const start = Date.now();
     const result = await this.validateChangeWithPreview(validator, id, changeDir);
     const durationMs = Date.now() - start;
-    this.printReport('change', id, result.report, durationMs, opts.json, result.compiled);
+    if (opts.strict && result.report.summary.warnings) result.report.valid = false;
+    this.printReport('change', id, result.report, durationMs, opts.json, opts.preview ? result.compiled : undefined);
     process.exitCode = result.report.valid ? 0 : 1;
   }
 
-  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean }): Promise<void> {
+  private async validateByType(type: ItemType, id: string, opts: { strict: boolean; json: boolean; preview?: boolean }): Promise<void> {
     const validator = new Validator(opts.strict);
     if (type === 'change') {
       const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', id);
       const start = Date.now();
       const result = await this.validateChangeWithPreview(validator, id, changeDir);
       const durationMs = Date.now() - start;
-      this.printReport('change', id, result.report, durationMs, opts.json, result.compiled);
-      // Non-zero exit if invalid (keeps enriched output test semantics)
+      if (opts.strict && result.report.summary.warnings) result.report.valid = false;
+      this.printReport('change', id, result.report, durationMs, opts.json, opts.preview ? result.compiled : undefined);
       process.exitCode = result.report.valid ? 0 : 1;
       return;
     }
     const start = Date.now();
     const report = await validateElementContract(validator, id);
     const durationMs = Date.now() - start;
+    if (opts.strict && report.summary.warnings) report.valid = false;
     this.printReport('contract', id, report, durationMs, opts.json);
     process.exitCode = report.valid ? 0 : 1;
   }
 
-  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, durationMs: number, json: boolean, compiled?: CompiledChange): void {
-    if (json) {
-      const preview = compiled ? {
-        diagnostics: compiled.diagnostics,
-        summary: compiled.diff.summary,
-        entries: conciseDiffEntries(compiled.diff),
-      } : {};
-      const out = { items: [{ id, type, valid: report.valid, issues: report.issues, durationMs, ...preview }], summary: { totals: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 }, byType: { [type]: { items: 1, passed: report.valid ? 1 : 0, failed: report.valid ? 0 : 1 } } }, version: '1.0' };
-      console.log(JSON.stringify(out, null, 2));
-      return;
+  private printReport(type: ItemType, id: string, report: { valid: boolean; issues: any[] }, _durationMs: number, json: boolean, compiled?: CompiledChange): void {
+    if (report.issues.length) {
+      if (json) console.error(JSON.stringify({ id, type, issues: report.issues }));
+      else for (const issue of report.issues) diagnostic(`${issue.level} ${id} ${issue.path}: ${issue.message}`);
     }
-    if (report.valid) {
-      console.log(`${type === 'change' ? 'Change' : 'Element Contract'} '${id}' is valid`);
-    } else {
-      console.error(`${type === 'change' ? 'Change' : 'Element Contract'} '${id}' has issues`);
-      for (const issue of report.issues) {
-        const label = issue.level === 'ERROR' ? 'ERROR' : issue.level;
-        const prefix = issue.level === 'ERROR' ? '✗' : issue.level === 'WARNING' ? '⚠' : 'ℹ';
-        console.error(`${prefix} [${label}] ${issue.path}: ${issue.message}`);
-      }
-      this.printNextSteps(type);
-    }
-    if (compiled) {
-      console.log('Effective change preview');
-      console.log(renderChangeDiff(compiled.diff).trimEnd());
-    }
+    if (compiled) console.log(json ? JSON.stringify({ summary: compiled.diff.summary, entries: conciseDiffEntries(compiled.diff) }) : renderChangeDiff(compiled.diff).trimEnd());
   }
 
   private async validateChangeWithPreview(
@@ -263,21 +247,6 @@ export class ValidateCommand {
     };
   }
 
-  private printNextSteps(type: ItemType): void {
-    const bullets: string[] = [];
-    if (type === 'change') {
-      bullets.push('- Ensure the change carries deltas in elements/: use headers ## ADDED/MODIFIED/REMOVED Sections');
-      bullets.push('- Each Section MUST contain SHALL or MUST');
-      bullets.push('- Re-run with xirang validate --change <id> --json for structured diagnostics');
-    } else {
-      bullets.push('- Ensure the Element unit carries a ## Specification section');
-      bullets.push('- Each Section MUST contain SHALL or MUST');
-      bullets.push('- Re-run with --json to see structured report');
-    }
-    console.error('Next steps:');
-    bullets.forEach(b => console.error(`  ${b}`));
-  }
-
   private async runBulkValidation(scope: { changes: boolean; contracts: boolean }, opts: { strict: boolean; json: boolean; concurrency?: string; noInteractive?: boolean }): Promise<void> {
     const spinner = !opts.json && !opts.noInteractive ? ora('Validating...').start() : undefined;
     const [changeIds, contractIds] = await Promise.all([
@@ -301,7 +270,7 @@ export class ValidateCommand {
         const changeDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', id);
         const { report } = await this.validateChangeWithPreview(validator, id, changeDir, await sharedBase);
         const durationMs = Date.now() - start;
-        return { id, type: 'change' as const, valid: report.valid, issues: report.issues, durationMs };
+        return { id, type: 'change' as const, valid: report.valid && (!opts.strict || report.summary.warnings === 0), issues: report.issues, durationMs };
       });
     }
     for (const id of contractIds) {
@@ -309,27 +278,13 @@ export class ValidateCommand {
         const start = Date.now();
         const report = await validateElementContract(validator, id, await sharedBase, await contractDiagnostics);
         const durationMs = Date.now() - start;
-        return { id, type: 'contract' as const, valid: report.valid, issues: report.issues, durationMs };
+        return { id, type: 'contract' as const, valid: report.valid && (!opts.strict || report.summary.warnings === 0), issues: report.issues, durationMs };
       });
     }
 
     if (queue.length === 0) {
       spinner?.stop();
 
-      const summary = {
-        totals: { items: 0, passed: 0, failed: 0 },
-        byType: {
-          ...(scope.changes ? { change: { items: 0, passed: 0, failed: 0 } } : {}),
-          ...(scope.contracts ? { contract: { items: 0, passed: 0, failed: 0 } } : {}),
-        },
-      } as const;
-
-      if (opts.json) {
-        const out = { items: [] as BulkItemResult[], summary, version: '1.0' };
-        console.log(JSON.stringify(out, null, 2));
-      } else {
-        console.log('No items found to validate.');
-      }
 
       process.exitCode = 0;
       return;
@@ -372,24 +327,8 @@ export class ValidateCommand {
     spinner?.stop();
 
     results.sort((a, b) => a.id.localeCompare(b.id));
-    const summary = {
-      totals: { items: results.length, passed, failed },
-      byType: {
-        ...(scope.changes ? { change: summarizeType(results, 'change') } : {}),
-        ...(scope.contracts ? { contract: summarizeType(results, 'contract') } : {}),
-      },
-    } as const;
 
-    if (opts.json) {
-      const out = { items: results, summary, version: '1.0' };
-      console.log(JSON.stringify(out, null, 2));
-    } else {
-      for (const res of results) {
-        if (res.valid) console.log(`✓ ${res.type}/${res.id}`);
-        else console.error(`✗ ${res.type}/${res.id}`);
-      }
-      console.log(`Totals: ${summary.totals.passed} passed, ${summary.totals.failed} failed (${summary.totals.items} items)`);
-    }
+    for (const result of results) this.printReport(result.type, result.id, result, result.durationMs, opts.json);
 
     process.exitCode = failed > 0 ? 1 : 0;
   }
@@ -433,14 +372,6 @@ function mergeValidationReports(...reports: ValidationReport[]): ValidationRepor
       info,
     },
   };
-}
-
-function summarizeType(results: BulkItemResult[], type: ItemType) {
-  const filtered = results.filter(r => r.type === type);
-  const items = filtered.length;
-  const passed = filtered.filter(r => r.valid).length;
-  const failed = items - passed;
-  return { items, passed, failed };
 }
 
 function normalizeConcurrency(value?: string): number | undefined {

@@ -123,9 +123,16 @@ describe('CompletionCommand', () => {
       await command.install({ shell: 'zsh' });
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Completion script installed successfully')
+        expect.stringContaining('Restart your shell')
       );
       expect(process.exitCode).toBe(0);
+    });
+
+    it('encodes required activation instructions as one JSON result', async () => {
+      await command.install({ shell: 'zsh', json: true });
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      expect(JSON.parse(consoleLogSpy.mock.calls[0][0]).instructions).toContain('Restart your shell or run: exec zsh');
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
     it('should show verbose output when --verbose flag is provided', async () => {
@@ -142,7 +149,7 @@ describe('CompletionCommand', () => {
       await command.install({});
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Completion script installed successfully')
+        expect.stringContaining('Restart your shell')
       );
     });
 
@@ -179,9 +186,7 @@ describe('CompletionCommand', () => {
     it('should uninstall Zsh completion script', async () => {
       await command.uninstall({ shell: 'zsh', yes: true });
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Completion script removed')
-      );
+      expect(consoleLogSpy).not.toHaveBeenCalled();
       expect(process.exitCode).toBe(0);
     });
 
@@ -190,9 +195,7 @@ describe('CompletionCommand', () => {
 
       await command.uninstall({ yes: true });
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Completion script removed')
-      );
+      expect(consoleLogSpy).not.toHaveBeenCalled();
     });
 
     it('should show error when shell cannot be auto-detected', async () => {

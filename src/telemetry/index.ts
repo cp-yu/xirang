@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 /**
  * Telemetry module for anonymous usage analytics.
  *
@@ -162,9 +163,7 @@ export async function maybeShowTelemetryNotice(): Promise<void> {
     }
 
     // Keep machine-readable command output clean.
-    console.error(
-      'Note: Xirang collects anonymous usage stats. Opt out: XIRANG_TELEMETRY=0'
-    );
+    diagnostic('Note: Xirang collects anonymous usage stats. Opt out: XIRANG_TELEMETRY=0', 'TELEMETRY_NOTICE');
 
     // Mark as seen
     await updateTelemetryConfig({ noticeSeen: true });

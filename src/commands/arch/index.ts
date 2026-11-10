@@ -1,3 +1,4 @@
+import { diagnostic } from '../../utils/output.js';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { formatArchitectureQueryText, queryArchitecture } from './query.js';
@@ -29,8 +30,8 @@ export function registerArchCommand(program: Command): void {
         const result = await queryArchitecture(process.cwd(), elementIds, {
           contract: options.contract,
         });
-        console.log(options.json ? JSON.stringify(result, null, 2) : formatArchitectureQueryText(result));
-      } catch (error) { console.error((error as Error).message); process.exitCode = 1; }
+        console.log(options.json ? JSON.stringify(result) : formatArchitectureQueryText(result));
+      } catch (error) { diagnostic((error as Error).message); process.exitCode = 1; }
     });
   arch.command('search <query>')
     .description('Search Semantic Model Elements and their Contracts')
@@ -41,9 +42,9 @@ export function registerArchCommand(program: Command): void {
         const result = await searchArchitecture(process.cwd(), query, {
           limit: options.limit === undefined ? undefined : Number(options.limit),
         });
-        console.log(options.json ? JSON.stringify(result, null, 2) : formatArchitectureSearchText(result));
+        console.log(options.json ? JSON.stringify(result) : formatArchitectureSearchText(result));
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });
@@ -58,9 +59,9 @@ export function registerArchCommand(program: Command): void {
           depth: Number(options.depth),
           paths: options.paths,
         });
-        console.log(options.json ? JSON.stringify(result, null, 2) : formatArchitectureImpactText(result));
+        console.log(options.json ? JSON.stringify(result) : formatArchitectureImpactText(result));
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });
@@ -72,13 +73,14 @@ export function registerArchCommand(program: Command): void {
     .option('--metamodel', 'Include all Element and Relationship Kind declarations')
     .option('--format <format>', 'text, markdown, or json', 'text')
     .action(async options => {
+      if (options.json) options.format = 'json';
       if (!['text', 'markdown', 'json'].includes(options.format)) {
-        console.error(`Unknown format: ${options.format}. Allowed choices are text, markdown, json.`);
+        diagnostic(`Unknown format: ${options.format}. Allowed choices are text, markdown, json.`);
         process.exitCode = 1;
         return;
       }
       if (options.definitionDepth !== undefined && !/^\d+$/.test(options.definitionDepth)) {
-        console.error('Definition depth must be a non-negative integer');
+        diagnostic('Definition depth must be a non-negative integer');
         process.exitCode = 1;
         return;
       }
@@ -92,14 +94,14 @@ export function registerArchCommand(program: Command): void {
           metamodel: options.metamodel,
         });
         if (options.format === 'json') {
-          console.log(JSON.stringify(result, null, 2));
+          console.log(JSON.stringify(result));
         } else if (options.format === 'markdown') {
           console.log(formatArchitectureOutlineMarkdown(result));
         } else {
           console.log(formatArchitectureOutlineText(result));
         }
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });
@@ -107,22 +109,23 @@ export function registerArchCommand(program: Command): void {
     .description('Project the complete Semantic Model skeleton (Declarations, Relationships, Metamodel) without Contracts')
     .option('--format <format>', 'text, markdown, or json', 'text')
     .action(async options => {
+      if (options.json) options.format = 'json';
       if (!['text', 'markdown', 'json'].includes(options.format)) {
-        console.error(`Unknown format: ${options.format}. Allowed choices are text, markdown, json.`);
+        diagnostic(`Unknown format: ${options.format}. Allowed choices are text, markdown, json.`);
         process.exitCode = 1;
         return;
       }
       try {
         const result = await snapshotArchitecture(process.cwd());
         if (options.format === 'json') {
-          console.log(JSON.stringify(treeToSnapshotJson(result), null, 2));
+          console.log(JSON.stringify(treeToSnapshotJson(result)));
         } else if (options.format === 'markdown') {
           console.log(formatArchitectureSnapshotMarkdown(result));
         } else {
           console.log(formatArchitectureSnapshotText(result));
         }
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });
@@ -133,12 +136,13 @@ export function registerArchCommand(program: Command): void {
     .action(async options => {
       try {
         const result = await validateArchitectureCommand(process.cwd(), { change: options.change });
-        if (options.json) console.log(JSON.stringify(result, null, 2));
-        else if (result.success) console.log('✓ Semantic Model validation passed');
-        else console.log(result.errors.map(error => `${error.code}: ${error.message}`).join('\n'));
+        if (result.errors.length || result.warnings.length) {
+          if (options.json) console.error(JSON.stringify({ issues: [...result.errors, ...result.warnings] }));
+          else for (const error of [...result.errors, ...result.warnings]) diagnostic(`${error.code}: ${error.message}`);
+        }
         if (!result.success) process.exitCode = 1;
       } catch (error) {
-        console.error((error as Error).message);
+        diagnostic((error as Error).message);
         process.exitCode = 1;
       }
     });
@@ -146,6 +150,10 @@ export function registerArchCommand(program: Command): void {
     .description('Generate LikeC4 artifacts and export them as images')
     .option('--format <format>', 'png, svg, or pdf', 'png')
     .option('--output <dir>', 'output directory', 'docs/architecture')
-    .action(options => exportArchitecture(process.cwd(), { format: options.format as ExportFormat, output: path.resolve(options.output) }));
+    .action(async options => {
+      const output = path.resolve(options.output);
+      await exportArchitecture(process.cwd(), { format: options.format as ExportFormat, output });
+      console.log(options.json ? JSON.stringify({ output }) : output);
+    });
   registerPlanRemoveCommand(arch);
 }

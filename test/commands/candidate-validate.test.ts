@@ -72,7 +72,7 @@ describe('Candidate validation', () => {
   });
 
   it('validates optional Build provenance read-only and binds exact source bytes to digest', async () => {
-    const record = await createRecord(root, 'source', {
+    const record = await createRecord(root, 'source.md', {
       schemaVersion: 4, context: 'build', relatedIdentities: ['project.root'],
       entries: [{ identity: 'scope', nature: 'normative', decision: 'accepted', content: 'Preserve the confirmed exception.' }],
     }, await readRecordSemanticContext(root, 'build'));

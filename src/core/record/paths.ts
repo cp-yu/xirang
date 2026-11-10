@@ -13,6 +13,11 @@ export function validateExplorationId(identity: string): string {
   return identity;
 }
 
+export function validateRecordFilename(filename: string): string {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*\.md$/.test(filename) || filename.length > 255 || /^(con|prn|aux|nul|com[0-9]|lpt[0-9])\./i.test(filename)) throw new Error(`Invalid record filename: ${filename}`);
+  return filename;
+}
+
 export function recordRoot(projectRoot: string): string {
   return path.join(path.resolve(projectRoot), '.xirang', 'records');
 }

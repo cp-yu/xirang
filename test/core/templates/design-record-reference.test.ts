@@ -27,9 +27,9 @@ describe('Design Record reference projection', () => {
       'all accepted and excluded design decisions and confirmed structure',
       'every pending question or assumption',
       'After a record write, report only the content added, changed, removed, or reclassified',
-      'invalid data, relevant drift, or a version conflict',
+      'invalid data, relevant drift, or a context conflict',
       'what is inconsistent and what reconciliation is needed',
-      'Keep sourceVersion and CLI counts in CLI output',
+      'Do not emit mechanical CLI receipts',
     ]) expect(reference).toContain(phrase);
 
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate()]) {
@@ -51,58 +51,19 @@ describe('Design Record reference projection', () => {
       'decision: excluded',
       '--entry A --entry C',
       'removed: true',
-      '--source-version',
+      '--diff',
       'withdraw',
     ]) expect(reference).toContain(phrase);
   });
 
-  it('uses record read commands and recovery/version protocol tokens', () => {
-    for (const token of [
-      'xirang record list --json',
-      'xirang record show <explorationId> --json',
-      'xirang record status <explorationId> --json',
-      'xirang record validate <explorationId> --json',
-      'xirang record show <explorationId> --entry A --entry C --json',
-      'sourceVersion',
-      'source-version conflict',
-      'context compression',
-      'session switch',
-      'relevant drift',
-      'ordinary discussion',
-      'each section',
-      'diff and summary',
-    ]) expect(reference).toContain(token);
-
-    const bullets: string[] = [];
-    for (const line of reference.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('- ')) bullets.push(trimmed.slice(2));
-      else if (bullets.length > 0 && trimmed) bullets[bullets.length - 1] += ` ${trimmed}`;
-    }
-    const normalized = bullets.map(line => line.replace(/\s+/g, ' '));
-    const positiveReuse = (line: string) => /(?:reuse|retain|carry forward|keep using)[\s\S]*(?:latest|current|returned|new)[\s\S]*version/i.test(line)
-      && !/(?:do not|don't|never|must not|shall not)[\s\S]*(?:reuse|retain|carry|keep)/i.test(line);
-    const reuseRule = normalized.find(line => /sourceVersion/i.test(line) && /across sections/i.test(line));
-    expect(reuseRule && positiveReuse(reuseRule)).toBe(true);
-    expect(positiveReuse('Keep using the current version across sections.')).toBe(true);
-    expect(positiveReuse('Do not reuse the latest version across sections.')).toBe(false);
-    const updateRule = normalized.find(line => /after (?:an )?update/i.test(line));
-    expect(updateRule && /(?:diff|summary)[\s\S]*(?:reuse|retain|carry forward|keep using)/i.test(updateRule)).toBe(true);
-
-    const hasRecoveryAction = (line: string) => /(?:context compression|session switch|source-version conflict|relevant drift|unknown semantic detail)[\s\S]*(?:reload|re-read|refresh|re-establish)[\s\S]*(?:complete record|full record)[\s\S]*(?:status|validation)[\s\S]*(?:only then|before continuing|before continue|then continue|then proceed)/i.test(line)
-      && !/(?:do not|don't|never|must not|shall not)[\s\S]{0,50}(?:reload|re-read|refresh|re-establish)/i.test(line);
-    const recoveryRule = normalized.find(line => /context compression/i.test(line) && /source-version conflict/i.test(line));
-    expect(recoveryRule && hasRecoveryAction(recoveryRule)).toBe(true);
-    expect(hasRecoveryAction('On context compression, reload the full record plus status and validation, and only then proceed.')).toBe(true);
-    expect(hasRecoveryAction('On context compression, do not reload the full record plus status and validation; continue immediately.')).toBe(false);
-    expect(hasRecoveryAction('On context compression,\nreload the full record plus status and validation, and only then proceed.')).toBe(true);
-
-    const avoidsRepeatedReads = (line: string) => /(?:ordinary discussion|each section)[\s\S]*(?:do not|don't|never|must not|shall not|avoid)[\s\S]*(?:repeat|rerun)[\s\S]*(?:full show|show\/status\/validate|complete read)/i.test(line)
-      || /(?:do not|don't|never|must not|shall not|avoid)[\s\S]*(?:repeat|rerun)[\s\S]*(?:full show|show\/status\/validate|complete read)[\s\S]*(?:ordinary discussion|each section)/i.test(line);
-    const repetitionRule = normalized.find(line => /ordinary discussion/i.test(line) && /full show\/status\/validate/i.test(line));
-    expect(repetitionRule && avoidsRepeatedReads(repetitionRule)).toBe(true);
-    expect(avoidsRepeatedReads('For ordinary discussion, repeat the full show/status/validate sequence.')).toBe(false);
-    expect(avoidsRepeatedReads('During ordinary discussion,\navoid repeating the full show/status/validate sequence.')).toBe(true);
+  it('uses filenames, selective reads and CLI updates without version copying or routine triples', () => {
+    expect(reference).toContain('xirang record show <filename> --entry A --entry C --json');
+    expect(reference).toContain('first takeover, after context loss, before Summary');
+    expect(reference).toContain('Do not routinely run show/status/validate together');
+    expect(reference).toContain('Agent writes MUST use `xirang record` structured operations');
+    expect(reference).toContain('Successful updates are silent');
+    expect(reference).not.toContain('--source-version');
+    expect(reference).not.toContain('--slug');
   });
 
   it('keeps dependent consistency and the three-state record decision', () => {
@@ -125,7 +86,7 @@ describe('Design Record reference projection', () => {
       'A summary claim such as "checked item by item" is not a coverage result',
       'Write confirmed examples as Acceptance Cases',
       'Do not generalize numbers, timing, or exceptions',
-      'Any Delta or Candidate edit after recording coverage requires rechecking',
+      'Any target-model change requires renewed coverage',
       'copied from the current target file, never from memory or paraphrased',
       'If the excerpt states only a general rule without the example\'s concrete inputs and outcomes, the example is uncovered',
       'a missing quote or one that does not appear at its location',

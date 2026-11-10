@@ -79,27 +79,29 @@ export function registerCandidateCommand(program: Command): void {
     .option('--from-path <path>', 'Use an explicit source directory carrying the four Semantic Model partitions')
     .action(async (options: { from?: string; fromPath?: string }) => {
       await recoverPendingCandidatePromotions(process.cwd());
-      const status = await initializeCandidate(process.cwd(), baselineFromOptions(options));
-      printStatus(status);
+      await initializeCandidate(process.cwd(), baselineFromOptions(options));
     });
 
   candidate
     .command('status')
-    .description('Report active Candidate and history state without writing files')
+    .description('Report active Candidate state without writing files')
     .option('--json', 'Output structured JSON')
-    .action(async (options: { json?: boolean }) => {
+    .option('--details', 'Include inventory and history statistics')
+    .action(async (options: { json?: boolean; details?: boolean }) => {
       const status = await getCandidateStatus(process.cwd());
-      if (options.json) console.log(JSON.stringify(status, null, 2));
-      else printStatus(status);
+      if (options.details) { if (options.json) console.log(JSON.stringify(status)); else printStatus(status); }
+      else console.log(options.json ? JSON.stringify({ active: status.active, ...(status.active ? { baseline: status.baseline } : {}) }) : status.active ? `Candidate: active (${status.baseline?.kind ?? 'unknown'})` : 'No active Candidate.');
     });
 
   candidate
     .command('validate')
     .description('Validate the complete Candidate and compute its review digest')
     .option('--json', 'Output structured JSON')
-    .action(async (options: { json?: boolean }) => {
+    .option('--details', 'Include comparison and inventory')
+    .action(async (options: { json?: boolean; details?: boolean }) => {
       const result = await validateCandidate(process.cwd());
-      console.log(options.json ? JSON.stringify(result, null, 2) : formatCandidateValidation(result));
+      if (result.diagnostics.length) console.error(options.json ? JSON.stringify({ diagnostics: result.diagnostics }) : result.diagnostics.map(d => `${d.level} ${d.code} ${d.path}: ${d.message}`).join('\n'));
+      if (result.valid) console.log(options.json ? JSON.stringify(options.details ? { ...result, diagnostics: undefined } : { reviewDigest: result.reviewDigest }) : options.details ? formatCandidateValidation({ ...result, diagnostics: [] }) : result.reviewDigest);
       if (!result.valid) process.exitCode = 1;
     });
 
@@ -111,11 +113,6 @@ export function registerCandidateCommand(program: Command): void {
     .action(async (options: { digest: string; json?: boolean }) => {
       // promoteCandidate recovers pending promotions before mutating formal source.
       const result = await promoteCandidate(process.cwd(), options.digest);
-      if (options.json) console.log(JSON.stringify(result, null, 2));
-      else {
-        console.log(`Candidate promoted: ${result.reviewDigest}`);
-        console.log(`History: ${result.historyPath}`);
-        console.log(`Formal files changed: ${result.files.length}`);
-      }
+      console.log(options.json ? JSON.stringify({ historyPath: result.historyPath }) : result.historyPath);
     });
 }

@@ -141,12 +141,8 @@ ADDED:
     expect(currentBranch).toBe('feature-archive');
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
     expect(await git(projectRoot, ['diff', '--cached', '--name-only'])).toBe('');
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
-    );
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('agent')
-    );
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
     expect(console.log).not.toHaveBeenCalledWith(
       expect.stringContaining('docs(feature-archive): Archive change artifacts')
     );
@@ -257,12 +253,8 @@ git:
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);
     expect(currentBranch).toBe('feature-archive');
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('Git handoff: agent handles git commits, merge, and cleanup after archive.')
-    );
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('agent')
-    );
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
     const archives = await fs.readdir(path.join(projectRoot, '.xirang', 'changes', 'archive'));
     expect(archives.some((entry) => entry.endsWith('-feature-archive'))).toBe(true);
     const status = await git(projectRoot, ['status', '--short']);

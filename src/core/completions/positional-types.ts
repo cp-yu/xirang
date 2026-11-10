@@ -16,7 +16,6 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'show': 'change-id',
   'archive': 'change-id',
   'sync': 'change-id',
-  'instructions': 'change-or-contract-id',
   'help': 'text',
   'feedback': 'text',
 
@@ -37,6 +36,7 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'delta.writeback': 'change-id',
 
   // record subcommands
+  'record.create': 'text',
   'record.show': 'text',
   'record.status': 'text',
   'record.validate': 'text',

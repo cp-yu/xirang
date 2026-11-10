@@ -108,9 +108,9 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('CodeGraph');
     expect(snackSkill).toContain('ACE, `rg`, and `read`');
     expect(snackSkill).not.toContain('project.xirang.code-map.yaml');
-    expect(snackSkill).toContain('xirang instructions proposal');
-    expect(snackSkill).toContain('xirang instructions specs');
-    expect(snackSkill).toContain('xirang instructions design');
+    expect(snackSkill).toContain('.xirang/references/xirang-artifact-proposal.md');
+    expect(snackSkill).toContain('.xirang/references/xirang-artifact-specs.md');
+    expect(snackSkill).toContain('.xirang/references/xirang-artifact-design.md');
     expect(snackSkill).toContain('xirang validate --change "<name>" --json');
     expect(snackSkill).not.toContain('xirang diff --change "<name>" --write');
     expect(snackSkill).not.toContain('.xirang/changes/<name>/effective-change.md');
@@ -157,7 +157,7 @@ describe('snack workflow integration', () => {
     expect(refreshed).not.toBe('STALE CONTENT');
     expect(readSkillFrontmatter(refreshed)).toMatchObject({ name: 'xirang-snack' });
     expect(refreshed).toContain('git diff');
-    expect(refreshed).toContain('xirang instructions proposal');
+    expect(refreshed).toContain('.xirang/references/xirang-artifact-proposal.md');
     expect(refreshed).toContain('xirang validate --change "<name>" --json');
     expect(refreshed).not.toContain('xirang diff --change "<name>" --write');
     expect(refreshed).not.toContain('xirang acceptanceCase-labels');

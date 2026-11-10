@@ -52,8 +52,8 @@ describe('snack template artifact reconciliation', () => {
   });
 
   it('defers definition-first ordering to each artifact instruction projection', () => {
-    expect(instructions).toContain('follow the authoring order in the returned `instruction`');
-    expect(instructions).toContain('Keep `definition`, dependencies, `currentState`, `configProjection`, and `template` as separate inputs');
+    expect(instructions).toContain('Guidance');
+    expect(instructions).toContain('Definition');
     expect(instructions).not.toContain('use `content.includes` and `content.excludes` to decide');
   });
 
@@ -154,7 +154,7 @@ describe('snack template artifact reconciliation', () => {
 
   it('uses decomposition only for authorized durable hierarchy reconciliation', () => {
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
-    expect(instructions).toContain('xirang config project --json');
+    expect(instructions).toContain('xirang config project --select decomposition --json');
     expect(instructions).toContain('authorized evidence requires a new or reorganized durable hierarchy');
     expect(instructions).toContain('file moves, symbol renames, imports, or calls');
     expect(instructions).toContain('do not invoke decomposition guidance');

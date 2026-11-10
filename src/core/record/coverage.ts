@@ -235,9 +235,8 @@ function checkCoverage(payload: DesignRecordPayload, model: SemanticModel, input
   return { entries, diagnostics };
 }
 
-async function loadSource(projectRoot: string, explorationId: string, target: RecordTarget, sourceVersion: string) {
+async function loadSource(projectRoot: string, explorationId: string, target: RecordTarget) {
   const source = await showRecord(projectRoot, explorationId);
-  if (!sourceVersion || source.sourceVersion !== sourceVersion) gateFail('SOURCE_VERSION_MISMATCH', 'Reload the current record and repeat the coverage check');
   const isCandidate = assertExplicitTarget(target);
   if (source.document.payload.context !== (isCandidate ? 'build' : 'change')) gateFail('CONTEXT_MISMATCH', 'Build and Change records use separate formation contexts');
   return source;
@@ -261,9 +260,10 @@ export interface RecordCoverageResult {
 }
 
 export async function recordCoverage(
-  projectRoot: string, explorationId: string, target: RecordTarget, sourceVersion: string, input: unknown,
+  projectRoot: string, explorationId: string, target: RecordTarget, input: unknown,
 ): Promise<RecordCoverageResult> {
-  const source = await loadSource(projectRoot, explorationId, target, sourceVersion);
+  const source = await loadSource(projectRoot, explorationId, target);
+  const sourceVersion = source.sourceVersion;
   const current = await readTargetModel(projectRoot, target);
   const { entries, diagnostics } = checkCoverage(source.document.payload, current.model, input);
   if (diagnostics.length) gateFail('INVALID_COVERAGE', 'Coverage result is incomplete or does not resolve against the target', diagnostics);
@@ -271,7 +271,7 @@ export async function recordCoverage(
   const destination = path.join(current.directory, RECORD_COVERAGE_FILE);
   await assertManagedFile(destination, target.candidate ? 'INVALID_CANDIDATE_PATH' : 'INVALID_CHANGE_PATH');
   const content = `${JSON.stringify({
-    schemaVersion: 1, explorationId, sourceVersion, targetFingerprint: current.fingerprint, recordedAt: new Date().toISOString(), entries,
+    schemaVersion: 1, filename: explorationId, sourceVersion, targetFingerprint: current.fingerprint, recordedAt: new Date().toISOString(), entries,
   }, null, 2)}\n`;
   const temporary = path.join(current.directory, `.record-coverage-${process.pid}-${randomBytes(4).toString('hex')}.tmp`);
   try {
@@ -311,7 +311,7 @@ export async function assertCoverageGate(
   let saved: Record<string, unknown> | undefined;
   try { saved = object(JSON.parse(await fs.readFile(file, 'utf8'))); } catch { saved = undefined; }
   if (!saved) gateFail('INVALID_COVERAGE', `${RECORD_COVERAGE_FILE} is not a coverage result`);
-  if (saved.explorationId !== explorationId || saved.sourceVersion !== sourceVersion || saved.targetFingerprint !== current.fingerprint) {
+  if (saved.filename !== explorationId || saved.sourceVersion !== sourceVersion || saved.targetFingerprint !== current.fingerprint) {
     gateFail('COVERAGE_STALE', 'The record or target changed after the coverage check; repeat it and record a new result');
   }
   assertStructureMatches(structure, current.model);

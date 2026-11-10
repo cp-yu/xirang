@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import {
   QualityEngineError,
-  readQualityRecord,
   readQualityRecordStatus,
   recordQualityOpt,
   recordQualityReview,
@@ -15,10 +14,7 @@ import { commandSchemas, qualityOptionMetadata } from '../core/quality/command-s
 import { renderQualityOverview, renderQualityErrorRecovery, renderReviewHelp, renderOptHelp, renderSealHelp } from '../core/quality/protocol.js';
 import { validateChangeExists } from './workflow/shared.js';
 
-const QUALITY_VERSION = 3;
-
 type QualityOptions = { input?: string; from?: string; json?: boolean; version?: string };
-type QualityEnvelope = { ok: boolean; code: string; diagnostics: Array<{ code: string; message: string; path?: string }>; allowedNextOperations: string[]; [key: string]: unknown };
 
 export function registerQualityCommand(program: Command): void {
   const quality = program.command('quality').description('Record commit-bound Review, Opt disposition and Seal opinions')
@@ -47,7 +43,8 @@ export function registerQualityCommand(program: Command): void {
     .action(async (name: string, options: QualityOptions) => run(() => seal(name, options)));
 
   quality.command('status <change-name>').option(qualityOptionMetadata.json.flags, qualityOptionMetadata.json.label)
-    .action(async (name: string) => run(() => status(name)));
+    .option('--history', 'Include full opinion history')
+    .action(async (name: string, options: QualityOptions & { history?: boolean }) => run(() => status(name, options)));
   for (const command of quality.commands) command.option('--no-color', 'Disable color output');
 }
 
@@ -55,29 +52,33 @@ async function review(name: string, options: QualityOptions): Promise<number> {
   const context = await resolveContext(name);
   const payload = parse(commandSchemas.review, await readPayload(options));
   const record = await recordQualityReview({ ...context, expectedRevision: requiredRevision(options.version), ...payload });
-  return success('REVIEW_RECORDED', record.revision, { review: payload });
+  return success(record.revision);
 }
 
 async function opt(name: string, options: QualityOptions): Promise<number> {
   const context = await resolveContext(name);
   const payload = parse(commandSchemas.opt, await readPayload(options));
   const record = await recordQualityOpt({ ...context, expectedRevision: requiredRevision(options.version), ...payload });
-  return success('OPT_RECORDED', record.revision, { opt: record.opt });
+  return success(record.revision);
 }
 
 async function seal(name: string, options: QualityOptions): Promise<number> {
   const context = await resolveContext(name);
   const payload = parse(commandSchemas.seal, await readPayload(options));
   const record = await recordQualitySeal({ ...context, expectedRevision: requiredRevision(options.version), seal: payload });
-  return success('SEALED', record.revision, { seal: record.seal, status: 'all_done' });
+  return success(record.revision);
 }
 
-async function status(name: string): Promise<number> {
+async function status(name: string, options: { history?: boolean }): Promise<number> {
   const context = await resolveContext(name);
   const result = await readQualityRecordStatus(context.changeDir, context.projectRoot);
-  const allowedNextOperations = result.status === 'needs_review' ? ['review', 'status']
-    : result.status === 'needs_optimize' ? ['opt', 'seal', 'status'] : ['archive', 'status'];
-  return success('QUALITY_STATUS', result.revision, { ...result, allowedNextOperations });
+  const { record, ...summary } = result;
+  const reviews = Object.fromEntries(['full-change', 'incremental', 'supplemental'].flatMap(kind => {
+    const last = record.reviews.filter(r => r.reviewKind === kind).at(-1);
+    return last ? [[kind, { result: last.result, commit: last.commit }]] : [];
+  }));
+  console.log(JSON.stringify({ ...summary, reviews, opt: record.opt ? { disposition: record.opt.disposition } : null, seal: record.seal ? { commit: record.seal.commit } : null, ...(options.history ? { record } : {}) }));
+  return 0;
 }
 
 async function resolveContext(name: string): Promise<{ projectRoot: string; changeDir: string }> {
@@ -115,12 +116,9 @@ function requiredRevision(value: string | undefined): number {
   return Number(value);
 }
 
-function success(code: string, revision: number, data: Record<string, unknown>): number {
-  return emit({ ok: true, code, diagnostics: [], allowedNextOperations: [], revision, ...data }, 0);
-}
-function emit(payload: QualityEnvelope, exitCode: number): number {
-  console.log(JSON.stringify({ contractVersion: QUALITY_VERSION, ...payload }));
-  return exitCode;
+function success(revision: number): number {
+  console.log(JSON.stringify({ revision }));
+  return 0;
 }
 async function run(handler: () => Promise<number>): Promise<void> {
   try { const code = await handler(); if (code !== 0) process.exitCode = code; }
@@ -128,10 +126,8 @@ async function run(handler: () => Promise<number>): Promise<void> {
     const error = cause instanceof QualityEngineError ? cause : new QualityEngineError('QUALITY_OPERATION_FAILED', cause instanceof Error ? cause.message : String(cause));
     const code = error.code.startsWith('INVALID_') || error.code.startsWith('UNSAFE_') || error.code.startsWith('MALFORMED_') ? 2 : 1;
     process.exitCode = code;
-    emit({ ok: false, code: error.code, diagnostics: error.diagnostics, allowedNextOperations: [] }, code);
+    console.error(JSON.stringify({ code: error.code, message: error.message, diagnostics: error.diagnostics }));
   }
 }
 
-void readQualityRecord;
 void XIRANG_DIR_NAME;
-void QUALITY_VERSION;

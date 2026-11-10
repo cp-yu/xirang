@@ -67,9 +67,9 @@ describe('syncCommand', () => {
     await syncCommand('direct-sync', { noVerify: true });
 
     expect(await fs.readFile(elementUnit(), 'utf8')).toContain('### Section: Login');
-    expect(console.log).toHaveBeenCalledWith("Sync complete for 'direct-sync'.");
+    expect(console.log).not.toHaveBeenCalled();
     for (const partition of PARTITIONS) {
-      expect(console.log).toHaveBeenCalledWith(`${partition}: ${partition === 'elements' ? 1 : 0}`);
+      expect(console.log).not.toHaveBeenCalled();
     }
     expect(vi.mocked(console.log).mock.calls.flat().join('\n')).not.toMatch(/architecture: |specs: /);
   });
@@ -140,7 +140,7 @@ describe('syncCommand', () => {
 
     await syncCommand('quality-clean', {});
 
-    expect(console.log).toHaveBeenCalledWith("Sync complete for 'quality-clean'.");
+    expect(console.log).not.toHaveBeenCalled();
   });
 
   it('allows explicit --no-verify model writes without mutating Quality JSON', async () => {
@@ -177,7 +177,7 @@ describe('syncCommand', () => {
         ]),
       })
     );
-    expect(console.log).toHaveBeenCalledWith("Sync complete for 'selected-sync'.");
+    expect(console.log).not.toHaveBeenCalled();
   });
 
   it('handles the no active change case without throwing', async () => {
@@ -185,8 +185,8 @@ describe('syncCommand', () => {
 
     await syncCommand(undefined, { noVerify: true });
 
-    expect(console.log).toHaveBeenCalledWith('No active changes found.');
-    expect(console.log).toHaveBeenCalledWith('No change selected. Aborting.');
+    expect(console.log).not.toHaveBeenCalled();
+    expect(console.log).not.toHaveBeenCalled();
   });
 
   it('prints No sync required when a change carries no Semantic Delta', async () => {
@@ -198,7 +198,7 @@ describe('syncCommand', () => {
 
     await syncCommand('no-delta-change', { noVerify: true });
 
-    expect(console.log).toHaveBeenCalledWith('No sync required.');
+    expect(console.log).not.toHaveBeenCalled();
     expect(await fs.readFile(verifyPath, 'utf-8')).toBe(before);
   });
 

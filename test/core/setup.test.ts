@@ -256,12 +256,8 @@ describe('SetupCommand', () => {
       expect(await fileExists(
         path.join(path.resolve(process.env.CODEX_HOME ?? path.join(testDir, 'codex-home')), 'prompts', 'xirang-explore.md')
       )).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('$xirang-propose "your idea"')
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('refreshed skills to take effect')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
       expect(consoleSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('/xirang:propose')
       );
@@ -274,9 +270,7 @@ describe('SetupCommand', () => {
       await initCommand.execute(testDir);
 
       // Skills-only: guidance uses neutral skill invocation (no /xirang:*)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('refreshed skills to take effect')
-      );
+      expect(consoleSpy).not.toHaveBeenCalled();
       expect(consoleSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('slash commands to take effect')
       );
@@ -789,40 +783,6 @@ describe('Xirang skeleton generation', () => {
     await expect(fs.readFile(path.join(elements, 'custom.md'), 'utf8')).resolves.toBe('custom unit\n');
     await expect(fs.readFile(path.join(xirang, 'config.yaml'), 'utf8')).resolves.toBe('schema: semantic-model\ncontext: keep\n');
     await expect(fs.readFile(path.join(xirang, 'user.txt'), 'utf8')).resolves.toBe('keep\n');
-  });
-
-  it('should show Project Build guidance when build is installed and non-extend mode', async () => {
-    saveGlobalConfig({
-      featureFlags: {},
-    });
-
-    const consoleSpy = vi.spyOn(console, 'log');
-    const setupCommand = createSetupCommand({ tools: 'claude', force: true });
-    await setupCommand.execute(testDir);
-
-    const logCalls = consoleSpy.mock.calls.flat().map(String);
-    const buildLine = logCalls.find((line) =>
-      line.includes('Next: run') && line.includes('xirang-build')
-    );
-    expect(buildLine).toBeDefined();
-    expect(buildLine).toContain('/xirang-build');
-    expect(buildLine).toContain('build your project Xirang');
-  });
-
-  it('should show Project Build guidance for the fixed workflow set', async () => {
-    saveGlobalConfig({
-      featureFlags: {},
-    });
-
-    const consoleSpy = vi.spyOn(console, 'log');
-    const setupCommand = createSetupCommand({ tools: 'claude', force: true });
-    await setupCommand.execute(testDir);
-
-    const logCalls = consoleSpy.mock.calls.flat().map(String);
-    const buildLine = logCalls.find((line) =>
-      line.includes('Next: run') && line.includes('xirang-build')
-    );
-    expect(buildLine).toBeDefined();
   });
 
   it('should not show bootstrap guidance in extend mode', async () => {

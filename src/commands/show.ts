@@ -1,3 +1,4 @@
+import { diagnostic } from '../utils/output.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { compileChange, compileChangeDelta } from '../core/change-compiler.js';
@@ -21,7 +22,7 @@ export class ShowCommand {
         const { select } = await import('@inquirer/prompts');
         const changes = await getActiveChangeIds();
         if (changes.length === 0) {
-          console.error('No changes found.');
+          diagnostic('No changes found.');
           process.exitCode = 1;
           return;
         }
@@ -38,9 +39,9 @@ export class ShowCommand {
 
     const changes = await getActiveChangeIds();
     if (!changes.includes(itemName)) {
-      console.error(`Unknown item '${itemName}'`);
+      diagnostic(`Unknown item '${itemName}'`);
       const suggestions = nearestMatches(itemName, changes);
-      if (suggestions.length) console.error(`Did you mean: ${suggestions.join(', ')}?`);
+      if (suggestions.length) diagnostic(`Did you mean: ${suggestions.join(', ')}?`);
       process.exitCode = 1;
       return;
     }
@@ -48,9 +49,10 @@ export class ShowCommand {
     if (options.review && options.json) {
       const result = await compileChangeDelta(process.cwd(), itemName);
       const compiled = result.compiled;
-      const common = { id: itemName, title: compiled.title, valid: compiled.valid, diagnostics: compiled.diagnostics };
+      const common = { id: itemName, title: compiled.title, valid: compiled.valid };
+      if (compiled.diagnostics.length) console.error(JSON.stringify({ issues: compiled.diagnostics }));
       if (!compiled.valid || !compiled.target) {
-        console.log(JSON.stringify(common, null, 2));
+        process.exitCode = 1;
         return;
       }
       const before = serializeSemanticModel(result.base.model);
@@ -78,7 +80,7 @@ export class ShowCommand {
         const content = await fs.readFile(path.join(changeDir, file), 'utf8').catch(() => undefined);
         if (content !== undefined) plans.push({ path: file, content });
       }
-      console.log(JSON.stringify({ ...common, sources, plans }, null, 2));
+      console.log(JSON.stringify({ ...common, sources, plans }));
       return;
     }
 
@@ -90,19 +92,20 @@ export class ShowCommand {
     }
 
     const compiled = await compileChange(process.cwd(), itemName);
+    if (compiled.diagnostics.length) console.error(JSON.stringify({ issues: compiled.diagnostics }));
+    if (!compiled.valid) { process.exitCode = 1; return; }
     console.log(JSON.stringify({
       id: itemName,
       title: compiled.title,
       valid: compiled.valid,
       summary: compiled.diff.summary,
       entries: conciseDiffEntries(compiled.diff),
-      diagnostics: compiled.diagnostics,
-    }, null, 2));
+    }));
   }
 
   private printNonInteractiveHint(): void {
-    console.error('Nothing to show. Try one of:');
-    console.error('  xirang show <change>');
-    console.error('Or run in an interactive terminal.');
+    diagnostic('Nothing to show. Try one of:');
+    diagnostic('  xirang show <change>');
+    diagnostic('Or run in an interactive terminal.');
   }
 }
