@@ -284,37 +284,24 @@ rules:
     });
   });
 
-  it('prints minimal JSON when config.yaml is missing', async () => {
+  it.each([undefined, { schema: 'semantic-model' }, { schema: 'semantic-model', context: '' }, { schema: 'semantic-model', proseLanguage: '中文', rules: {} }])('keeps complete text and JSON config equivalent without absent optional fields (%j)', async configured => {
+    if (configured) {
+      fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
+      fs.writeFileSync(path.join(tempDir, '.xirang', 'config.yaml'), stringify(configured));
+    }
     await runProjectCommand(['--json']);
-
-    expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({
-      architecture: {
-        outline: {
-          elementDefinitionDepth: 2,
-        },
-      },
+    const json = JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]));
+    expect(json).toEqual({
+      ...configured,
+      ...(configured ? {
+        decomposition: '.xirang/references/xirang-semantic-refinement.md',
+        git: { merge: { strategy: 'no-ff' }, branch: { deleteAfterArchive: false } },
+      } : {}),
+      architecture: { outline: { elementDefinitionDepth: 2 } },
       rules: {},
     });
-  });
-
-  it('prints YAML-like text without --json', async () => {
-    fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
-    fs.writeFileSync(
-      path.join(tempDir, '.xirang', 'config.yaml'),
-      `schema: semantic-model
-proseLanguage: 中文
-rules: {}
-`,
-      'utf-8'
-    );
-
     await runProjectCommand([]);
-
-    const output = consoleLogSpy.mock.calls[0][0];
-    expect(output).toContain('schema: semantic-model');
-    expect(output).toContain('proseLanguage: 中文');
-    expect(output).toContain('rules: {}');
-    expect(output).not.toContain('propose');
+    expect(parse(`${consoleLogSpy.mock.calls.at(-1)![0]}\n`)).toEqual(json);
   });
 });
 

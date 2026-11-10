@@ -49,3 +49,6 @@
 - [x] [code_fix] Setup 配置创建失败以原始错误及路径进入失败通道，不再静默返回成功。
 - [x] [code_fix] 文本配置投影保留特殊单行字符串与空 context 的标量边界，内容与 JSON 一致。
 - [x] [code_fix] 移除本 Change 精简 Setup 输出后产生的孤立导入和失效回执参数。
+- [x] [code_fix] 完整配置文本省略未配置字段，保持共享默认值与显式空字符串并与 JSON 等价。
+- [x] [code_fix] 删除影响计划的真实诊断按编码进入 stderr，stdout 保留计划数据与依赖分类。
+- [x] [artifact_fix] 删除影响计划的局部输出 Contract 与统一诊断分流约定一致。

@@ -66,7 +66,8 @@ export async function planRemove(
   identity: string,
   change?: string,
 ): Promise<RemovalPlan> {
-  const formal = (await readFormalSemanticModel(projectRoot)).model;
+  const parsed = await readFormalSemanticModel(projectRoot);
+  const formal = parsed.model;
   const compiled = change ? await compileChange(projectRoot, change) : null;
   if (compiled && compiled.target === null) {
     throw new Error(compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'));
@@ -89,11 +90,11 @@ export async function planRemove(
     handled,
     unresolved,
     requiredCount: unresolved.length,
-    diagnostics: compiled?.diagnostics ?? [],
+    diagnostics: compiled?.diagnostics ?? parsed.diagnostics,
   };
 }
 
-export function renderRemovalPlan(plan: RemovalPlan): string {
+export function renderRemovalPlan(plan: Omit<RemovalPlan, 'diagnostics'>): string {
   const lines = [
     `Removal plan: ${plan.subject.id}`,
     `Required before target can validate: ${plan.requiredCount}`,
@@ -105,7 +106,6 @@ export function renderRemovalPlan(plan: RemovalPlan): string {
     ...(plan.unresolved.length ? plan.unresolved.map(item => `  - ${item.type}: ${item.identity}`) : ['  None.']),
   ];
   if (plan.context.length) lines.push('', 'Context', ...plan.context.map(item => `  ${item.type}: ${item.identity}`));
-  if (plan.diagnostics.length) lines.push('', 'Diagnostics', ...plan.diagnostics.map(item => `  ${item.level} ${item.code}: ${item.message}`));
   return `${lines.join('\n')}\n`;
 }
 
@@ -117,10 +117,13 @@ export function registerPlanRemoveCommand(arch: Command): void {
     .option('--json', 'Output structured JSON')
     .action(async (identity: string, options: { change?: string; json?: boolean }) => {
       try {
-        const result = await planRemove(process.cwd(), identity, options.change);
+        const { diagnostics, ...result } = await planRemove(process.cwd(), identity, options.change);
+        for (const issue of diagnostics) {
+          diagnostic(`${options.change ?? 'model'}: ${issue.path}: ${issue.code}: ${issue.message}`, issue.code, options.json);
+        }
         if (options.json) console.log(JSON.stringify(result));
         else console.log(renderRemovalPlan(result).trimEnd());
-        process.exitCode = 0;
+        process.exitCode = diagnostics.some(issue => issue.level === 'ERROR') ? 1 : 0;
       } catch (error) {
         diagnostic((error as Error).message);
         process.exitCode = 1;
