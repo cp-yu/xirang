@@ -33,6 +33,8 @@ Workflow skill 模板 SHALL 复用共享片段常量，并将长协议物化到 
   - update 写入 `.xirang/references/`
   - 只逐文件覆盖生成清单内的受管前缀文件，不执行目录级删除，不触碰用户文件
 
+静态制品定义、写作指导、模板与配置遵循规则 SHALL 使用单一受管来源，按当前任务需要加载；不得同时维护 instructions 命令与 reference 两套提示词交付。动态配置、制品状态及质量详情 SHALL 分别通过 config project、status --change 与 quality status 获取。生成文件的新增、替换、删除 SHALL 由显式注册清单定位，不通过文件名模式猜测所有权；沿用既有受管前缀边界，用户文件不被覆盖。
+
 ### Section: 保持生成产物行为等价
 
 生成测试 SHALL 验证 manifest-derived projections 保持一致，且代表性 workflow/tool 组合的生成 skill artifacts 与已批准基线行为等价。

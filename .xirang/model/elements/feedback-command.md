@@ -31,6 +31,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
   - 用户执行 `xirang feedback "Title here" --body "Detailed description..."`
   - 系统以指定 title 创建 GitHub Issue
   - issue body 包含详细描述与 metadata
+
 ### Section: GitHub CLI dependency
 
 系统 SHALL 在 `gh` 可用时用于自动提交，并在 `gh` 未安装或未认证时提供 manual submission fallback。
@@ -38,8 +39,8 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
 - **Missing gh CLI with fallback**
 
   - `gh` CLI 未安装（PATH 中找不到）
-  - 系统显示 "GitHub CLI not found. Manual submission required."
-  - 输出带分隔符的结构化反馈内容与预填的 GitHub Issue URL
+  - 系统在 stderr 报告 gh 缺失及需要手工提交的警告
+  - stdout 返回完成手工提交所需的完整反馈内容与预填 GitHub Issue URL，不附装饰分隔符
   - 以零码退出（成功 fallback）
 
 - **Cross-platform gh CLI detection**
@@ -50,7 +51,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
 - **Unauthenticated gh CLI with fallback**
 
   - `gh` CLI 已安装但未认证
-  - 系统显示认证警告、结构化反馈内容与认证指引
+  - stderr 返回认证警告与具体指引，stdout 返回必要的结构化手工反馈材料
   - 以零码退出
 
 - **Cross-platform gh CLI detection on Unix**
@@ -67,6 +68,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
   - user runs `xirang feedback "message"`
   - `gh auth status` returns success (authenticated)
   - the system proceeds with feedback submission
+
 ### Section: Issue metadata
 
 系统 SHALL 在 GitHub Issue body 中包含相关元数据，且不包含敏感信息。
@@ -89,6 +91,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
   - Project names or directory names
   - Environment variables
   - IP addresses
+
 ### Section: Feedback always works
 
 系统 SHALL 允许 feedback 提交不受 telemetry 设置影响。
@@ -101,6 +104,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
 - **Feedback in CI environment**
   - 环境设置 `CI=true` 且用户运行 `xirang feedback "message"`
   - feedback 提交正常进行（若 `gh` 可用且已认证）
+
 ### Section: Error handling
 
 系统 SHALL 优雅处理 feedback 提交错误。
@@ -108,14 +112,15 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
 - **gh CLI execution failure**
 
   - `gh issue create` 命令失败
-  - 系统显示 `gh` CLI 的错误输出
+  - 系统在 stderr 显示 gh 的具体错误；JSON 模式使用结构化诊断
   - 以与 `gh` 相同的 exit code 退出
 
 - **Network failure**
   - `gh` CLI 报告网络连接问题
-  - 系统显示 `gh` 的错误消息
+  - 系统在 stderr 显示 gh 的具体错误
   - 建议检查网络连接
   - 以非零码退出
+
 ### Section: Feedback skill for agents
 
 系统 SHALL 提供 feedback skill，指导 agent 收集并提交用户反馈，包括上下文富集、匿名化与用户确认。
@@ -149,6 +154,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
   - ask for explicit approval before submitting
   - allow the user to request modifications
   - only submit after user confirms
+
 ### Section: Shell completions
 
 系统 SHALL 为 feedback 命令提供 shell completions。
@@ -162,3 +168,7 @@ definition: Feedback Command 定义 `xirang feedback` 通过 `gh` CLI 安全创�
 
   - user types `xirang feedback "msg" --<TAB>`
   - the shell suggests available flags (`--body`)
+
+### Section: 交付提交结果
+
+反馈成功提交后 SHALL 返回实际 Issue URL；不得将该必要结果作为成功噪声省略，也不重复回显已提交正文或装饰成功消息。手工 fallback 的真实警告与必要材料 SHALL 保留，不能因退出码 0 将未自动提交伪装成已提交。

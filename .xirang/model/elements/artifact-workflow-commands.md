@@ -4,88 +4,25 @@ identity: artifact-workflow-commands
 kind: element
 parent: deterministic-operations
 title: Artifact Workflow Commands
-definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`status`、`instructions`、`templates` 与 `new change` 命令面，面向 scaffolded 与 active changes，包括 artifact 完成状态展示、enriched instructions、模板路径解析、schema apply block 与 apply instructions 生成。
+definition: Artifact Workflow Commands 是 Change 制品推进的 CLI 命令面。它通过 status 展示制品依赖、完成概况与实现推进状态，通过 templates 查询模板位置，通过 new change 创建活动 Change；适用于 scaffolded 与已有 Change。静态制品写作和推进指导由工作流文件承载，Quality 详情由专门的质量查询提供。
 ---
 
 ## Specification
 
 ### Section: Status Command
 
-系统 SHALL 展示一个 change 的 artifact 完成状态，包括 scaffolded（空）changes。
+系统 SHALL 通过 xirang status --change <id> 只读返回活动 Change 的制品完成状态、依赖缺口、目标完成概况及必要的 Quality 概况，支持仅有目录的 scaffolded Change。每个 artifact SHALL 标明 done、ready 或 blocked；blocked SHALL 列出缺失依赖，状态 SHALL 保留 outputPath 及实际已存在的输出路径，不嵌入文件正文。
 
-- **Show status with all states**
+JSON SHALL 包含 changeName、schemaName、isComplete、artifacts、applyRequires、state、goals 与 gaps。isComplete 表达制品完整性，SHALL NOT 被解释为 Quality 完成；goals 仅包含 total、completed、remaining 计数，不回传目标正文。gaps SHALL 定位缺失或非法的 prerequisite。具备任务完成后判断条件时，quality SHALL 仅提供当前 Quality 状态概况，不重复完整意见或历史；具体 Review、Opt、Seal 缺口通过 quality status 获取。
 
-  - 用户运行 `xirang status --change <id>`
-  - 系统展示每个 artifact 的状态指示：`[x]` 已完成、`[ ]` ready、`[-]` blocked（列出缺失依赖）
+- scaffolded Change 的全部 artifacts 尚不存在：根 artifact 为 ready，依赖它的 artifacts 为 blocked，并列出缺失依赖；state 为 blocked。
+- 必需制品齐全但 tasks.md 缺失、无目标或为不支持格式：state 为 blocked，gaps 指出实际缺口。
+- 存在未完成目标：state 为 ready，返回完成与剩余计数，目标内容由 tasks.md 读取。
+- 目标全部完成：联合 Quality 门禁给出 needs_review、needs_optimize 或 all_done；计数完成不得单独产生 all_done。
+- 无 apply.tracks 且 required artifacts 完整：state 为 ready。
+- 用户未指定 --change 且存在活动 Change，或指定的 Change 不存在：非零退出，stderr 给出具体诊断及可用 Change；无活动 Change 且未指定时按空查询返回。
 
-- **Status JSON output**
-
-  - 用户运行 `xirang status --change <id> --json`
-  - 系统输出包含 changeName、schemaName、isComplete 与 artifacts array 的 JSON
-
-- **Status on scaffolded change**
-
-  - 用户对没有 artifacts 的 change 运行 `xirang status --change <id>`
-  - 系统展示全部 artifacts 的状态，根 artifacts（无依赖）显示 ready `[ ]`，依赖 artifacts 显示 blocked `[-]`
-
-- **Status shows completion summary**
-  - 用户运行 `xirang status --change <id>`
-  - 输出包含完成百分比与计数（如 "2/4 artifacts complete"）
-
-- **Status JSON includes apply requirements**
-  - 用户运行 `xirang status --change <id> --json`
-  - 系统输出包含 `changeName`、`schemaName`、`isComplete`、`artifacts` 与 `applyRequires` 的 JSON
-
-- **Missing change parameter**
-  - user runs `xirang status` without `--change`
-  - the system displays an error with list of available changes
-  - includes scaffolded changes (directories without proposal.md)
-
-- **Unknown change**
-  - user runs `xirang status --change unknown-id`
-  - directory `.xirang/changes/unknown-id/` does not exist
-  - the system displays an error listing all available change directories
-
-### Section: Instructions Command
-
-系统 SHALL 为 scaffolded 与已有 Changes 输出创建 artifact 的 enriched instructions。semantic-model 的 `tasks` instructions SHALL 只要求目标级任务、对应可观察验证方向及目标级完成 checkbox，不要求 Propose 提供 `Files`、`Sections`、nested executable `Checks`、`Test action`、命令或具体测试路径；需要验证的行为与边界 SHALL 指向相应目标 Contract，不以任务正文独立定义行为。Apply instructions SHALL 指导 Agent 现场选择测试并以实际证据判断目标完成。CLI SHALL 只支持目标级 `tasks.md`；旧式任务文件不迁移且不受支持，需重写后继续使用。
-
-- **展示 enriched instructions**
-  - 用户运行 `xirang instructions <artifact> --change <id>`
-  - 输出 artifact metadata、template、依赖状态与可解锁 artifacts；JSON 模式输出结构化结果
-
-- **Tasks instructions 是目标级**
-  - 用户运行 `xirang instructions tasks --change <id> --json`
-  - SHALL 返回粗粒度 `### Task N:` 目标、目标级 checkbox 与验证方向的模板和指令
-  - SHALL NOT 强制 Propose 提前选择文件、测试动作、命令、用例数量或技术依赖
-
-- **可观察目标而非空泛工作**
-  - 目标涉及错误输入、缺陷修复、行为保持或删除
-  - instructions SHALL 提示写出相应可观察结果与边界，并引用目标 Contract 或既有 Contract，不要求预置 executable Check
-
-- **非运行时文本的验证方向**
-  - 目标只影响无运行时消费者的文本制品
-  - instructions SHALL 不要求人为失败测试；config、schema 与模板有消费者时仍须验证行为
-
-- **Apply instructions 的行为验证**
-  - 用户运行 `xirang instructions apply --change <id> --json`
-  - SHALL 要求 Apply 依据现有测试选择合适动作，行为与代码目标通过实际 RED/GREEN 证据；目标完成状态不得先于证据
-
-- **未知 artifact 与阻塞依赖**
-  - 用户请求未知 artifact 或尚有未满足依赖的 artifact
-  - CLI SHALL 给出有效 IDs 或列明缺失依赖及警告
-
-- **Scaffolded change**
-  - 用户在只有 change 目录时请求 proposal instructions
-  - CLI SHALL 返回模板、定义与元数据，不要求现有制品
-
-- **目标锚点**
-  - 任务的验证方向引用目标 Contract
-  - instructions SHALL 使用 Element identity 和 Section 名定位语义；不要求 Propose 构造文件路径式 `Verifies:` 或 `Preserves:`，不支持旧式 Check 路径锚点
-
-- **不预列删除文件**
-  - 目标涉及删除或替换行为
-  - instructions SHALL 写出要消失或被替换的行为，不预列 `Delete:` 文件清单；Apply SHALL 根据当前项目证据定位实际文件
+文本 SHALL 表达同一制品状态、具体缺口和目标完成概况；不依赖 spinner 传递状态。
 
 ### Section: Templates Command
 
@@ -131,46 +68,7 @@ definition: Artifact Workflow Commands 定义 artifact workflow CLI 行为：`st
 
 ### Section: Schema Apply Block
 
-系统 SHALL 支持 schema definitions 中的 `apply` block，控制实现何时开始与如何开始。
-
-- **Schema with apply block**
-
-  - schema 定义 `apply` block
-  - 系统使用 `apply.requires` 确定 apply 前必须存在的 artifacts
-  - 使用 `apply.tracks` 标识进度跟踪文件
-  - 使用 `apply.instruction` 提供 agent 指引
-
-- **Schema without apply block**
-  - a schema has no `apply` block
-  - the system requires all artifacts to exist before apply is available
-  - uses default instruction: "All artifacts complete. Proceed with implementation."
-
-### Section: Apply Instructions Command
-
-系统 SHALL 通过 `xirang instructions apply` 生成 schema-aware apply instructions。
-
-- **Generate apply instructions**
-
-  - 用户运行 `xirang instructions apply --change <id>`
-  - 所有 required artifacts 存在
-  - 系统输出 `contextFiles`、schema-specific instruction text 与 progress tracking file path
-
-- **Apply blocked by missing artifacts**
-
-  - 用户运行 `xirang instructions apply --change <id>`
-  - required artifacts 缺失
-  - 系统指示 apply 被阻塞并列出必须先创建的 artifacts
-  - 指示返回 Formation workflow reconcile 缺失 prerequisite，而不是指示 apply workflow 创建自身缺失的输入
-
-- **Apply instructions JSON output**
-  - 用户运行 `xirang instructions apply --change <id> --json`
-  - 系统输出包含 `contextFiles`、`instruction`、`tracks` 与 `applyRequires` 的 JSON
-
-- **Semantic-model missing artifacts 返回 Propose**
-  - semantic-model change 缺少 apply-required artifact、tracking file 不存在或 tracking file 无可执行 tasks
-  - Apply state SHALL 为 blocked
-  - instruction SHALL 指示返回 Propose workflow reconcile 缺失 prerequisite
-  - MUST NOT 指示 `xirang-apply-change` 创建缺失 artifact
+系统 SHALL 使用 schema 的 apply.requires 确定 Apply 前必须存在的 artifacts，使用 apply.tracks 确定进度跟踪文件，并将其投影至 Change status。没有 apply block 时 SHALL 要求全部 artifacts 存在。如何落实制品、处理缺失 prerequisite 及继续实现 SHALL 由 workflow 指导表达，不由状态响应重复生成提示词。
 
 ### Section: Next Artifact Discovery
 
@@ -184,19 +82,7 @@ The workflow SHALL 使用 `xirang status` 输出来确定下一步可创建的 a
 
 ### Section: Output Formatting
 
-系统 SHALL 提供一致的输出格式化。
-
-- **Color output**
-  - 终端支持颜色
-  - status indicators 使用颜色：green（done）、yellow（ready）、red（blocked）
-
-- **No color output**
-  - 使用 `--no-color` flag 或设置 `NO_COLOR` 环境变量
-  - 输出使用无 ANSI 颜色的纯文本 indicators
-
-- **Progress indication**
-  - 加载 change state 耗时较长
-  - 加载期间系统显示 spinner
+系统 SHALL 提供文本与 JSON 状态呈现。交互终端支持颜色时，文本状态标识 MAY 使用 green（done）、yellow（ready）、red（blocked）；--no-color、NO_COLOR、JSON 或非交互调用 SHALL 不输出 ANSI 颜色。非交互调用 SHALL 不显示 spinner、加载进度或成功装饰。
 
 ### Section: Experimental Isolation
 
@@ -209,3 +95,9 @@ The workflow SHALL 使用 `xirang status` 输出来确定下一步可创建的 a
 - **Single file implementation**
   - artifact workflow feature is implemented
   - all commands are in `src/commands/artifact-workflow.ts`
+
+### Section: 以文件指导与查询协同推进
+
+静态制品定义、写作指导和模板 SHALL 由按需加载的 skill/reference 提供；config project SHALL 提供当前有效配置，status --change SHALL 提供制品与推进状态，quality status SHALL 提供当前质量详情。CLI SHALL 不注册 instructions 命令或用另一统一 context 命令重新聚合这些提示词与数据。
+
+缺少必需制品或有效目标清单时，Apply workflow SHALL 根据 status 的具体缺口返回 Propose 调和输入，不自行创建缺失的形成制品。制品依赖与校验 SHALL 继续由 CLI 确定，静态指导不替代动态门禁。

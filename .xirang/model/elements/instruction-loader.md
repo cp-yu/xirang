@@ -4,12 +4,13 @@ identity: instruction-loader
 kind: element
 parent: deterministic-operations
 title: Instruction Loader
-definition: Instruction Loader 定义从 schema 目录加载并富化 instruction templates 的行为：template loading、change context loading、template enrichment、status formatting 与 artifact current state projection。
+definition: Instruction Loader 是制品定义、模板与 Change 上下文的加载能力。它独立承载模板解析、制品依赖与完成状态加载，将静态指导供工作面文件投影、动态状态供 status 查询；不生成混合当前配置、状态和静态提示词的指令响应，也不承担目标语义创作。
 ---
 
 ## Specification
 
 ### Section: Template Loading
+
 系统 SHALL 从 schema 目录加载 templates。
 
 - **Load template from schema directory**
@@ -21,6 +22,7 @@ definition: Instruction Loader 定义从 schema 目录加载并富化 instructio
   - 系统抛出带 template path 的错误
 
 ### Section: Change Context Loading
+
 系统 SHALL 加载结合 graph 与完成状态的 change context。
 
 - **Load context for existing change**
@@ -35,25 +37,9 @@ definition: Instruction Loader 定义从 schema 目录加载并富化 instructio
   - `loadChangeContext(projectRoot, changeName, schemaName)` is called
   - the system validates `schemaName` against the sole legal built-in ID `semantic-model`
   - 非内置 ID SHALL 被拒绝（`Schema not found`），不加载任何用户/自定义 schema
-### Section: Template Enrichment
-系统 SHALL 以 change-specific context 富化 templates。
 
-- **Include artifact metadata**
-  - 为 artifact 生成 instructions
-  - 输出包含 change name、artifact ID、schema name 与 output path
-
-- **Include dependency status**
-  - artifact 有 dependencies
-  - 输出显示每个 dependency 的完成状态（done/missing）
-
-- **Include unlocked artifacts**
-  - instructions are generated
-  - the output includes which artifacts become available after this one
-
-- **Root artifact indicator**
-  - an artifact has no dependencies
-  - the dependency section indicates this is a root artifact
 ### Section: Status Formatting
+
 系统 SHALL 将 change status 格式化为可读输出。
 
 - **Mixed completion status**
@@ -71,34 +57,11 @@ definition: Instruction Loader 定义从 schema 目录加载并富化 instructio
 - **Include output paths**
   - status is formatted
   - each artifact shows its output path pattern
+
 ### Section: Artifact current state projection
 
-Instruction loader SHALL 将 artifact completion state 投影为独立的结构化 `currentState`，与 definition、dependencies、instruction、template 和 config projection 分离。该状态 SHALL 只包含完成状态、当前 output paths 与可选 completion marker 状态，MUST NOT 嵌入文件内容。
+制品状态加载 SHALL 将 completion detection、实际 output paths 与可选 completion marker 投影到 status --change 的 artifact 数据，不嵌入文件正文。已有输出只提供 canonical 路径；marker 存在时报告其路径与 present: true，不存在时仍保留预期路径与 present: false。这些状态 SHALL 独立于静态定义、模板和配置数据，模板不负责计算当前磁盘状态。
 
-- **Existing outputs 被投影为路径**
-  - instruction loader 为已有 output 的 artifact 生成 instructions
-  - `currentState.completed` SHALL 反映 completion detection 结果
-  - `currentState.outputs` SHALL 包含当前匹配的 canonical output paths
-  - SHALL NOT 读取并嵌入这些 output 的内容
+### Section: 向工作面交付静态制品指导
 
-- **Completion marker 独立于 outputs**
-  - artifact 通过 completion marker 完成
-  - `currentState.completed` SHALL 为 `true`
-  - `currentState.completionMarker` SHALL 分别包含 marker path 与 `present: true`
-
-- **Absent completion marker 仍暴露预期路径**
-  - artifact 定义 completion marker 但该 marker 不存在
-  - `currentState.completionMarker.path` SHALL 指向预期 marker path
-  - `currentState.completionMarker.present` SHALL 为 `false`
-
-- **JSON 输出结构化 current state**
-  - user 运行 `xirang instructions <artifact> --change <id> --json`
-  - output SHALL 包含 `currentState.completed` 与 `currentState.outputs`
-  - artifact 定义 completion marker 时 SHALL 包含 marker path 与 presence
-  - outputs 与 marker SHALL 只以路径和状态表示
-
-- **Text 输出 current state**
-  - user 运行 `xirang instructions <artifact> --change <id>`
-  - output SHALL 在 `<instruction>` 前包含独立 `<current_state>` section
-  - SHALL 显示 completion 状态、当前 output paths 与可选 completion marker 状态
-  - 无 output 时 SHALL 明确表示当前不存在 artifact outputs
+制品定义、写作指导与模板 SHALL 从受管单一来源投影到 skill/reference，供工作流按当前制品需要读取。静态交付 SHALL 不嵌入某个 Change 的实时完成状态或当前项目配置；这些数据分别由 status --change 与 config project 获取。模板加载失败 SHALL 保留带路径的具体诊断，不静默交付缺失模板。

@@ -4,7 +4,7 @@ identity: change-archive
 kind: element
 parent: change-closure
 title: Change Archive
-definition: Change Archive 定义归档已完成 Change 的行为：Quality Seal、sync、task 与 final validation gates 通过后，将 active change directory 原样移动到 date-prefixed archive path、输出 Git handoff 提醒，并由 Agent 在 CLI 完成后继续 Git 流程；Archive 不创建、重算或覆盖任何 presentation artifact，也不执行 Git 写操作。
+definition: Change Archive 是在 Quality Seal、Sync、任务和最终验证门禁通过后封存活动 Change 的能力。它将活动目录原样移动到带日期的归档位置，保留最终来源及证据；后续 Git 流程由 Agent 按 Archive 工作指导推进。它不创建或重算展示制品，不修改正式模型，也不执行 Git 写操作。
 ---
 
 ## Specification
@@ -53,7 +53,7 @@ Archive 流程 SHALL 在归档前检查 artifact 完成状态：任一 artifact 
   - all artifacts in the schema are complete
   - all tasks are complete
   - the agent moves the change to `.xirang/changes/archive/YYYY-MM-DD-<name>/`
-  - displays success message with archived location
+  - 返回必要的归档位置，不附成功装饰或通用状态摘要
 
 ### Section: Task Completion Check
 
@@ -72,21 +72,21 @@ archive 命令 SHALL 在归档前验证任务完成状态，防止过早归档�
 
 ### Section: Archive Process
 
-Archive SHALL 在 quality、sync、task 与 final change validation gates 通过后，将 active change directory 原样移动到 date-prefixed archive path。Archive MUST NOT 再次修改 Formal Semantic Model，也不得创建、重算或覆盖任何 View presentation artifact。effective diff 仅由只读 `xirang validate --change` 以 ephemeral text/JSON 输出提供，不持久化。
+Archive SHALL 在 quality、sync、task 与 final change validation gates 通过后，将 active change directory 原样移动到 date-prefixed archive path。Archive MUST NOT 再次修改 Formal Semantic Model，也不得创建、重算或覆盖任何 View presentation artifact。effective diff 仅由只读 `xirang validate --change <name> --preview` 以 ephemeral text/JSON 输出提供，不持久化。
 
 - **直接归档**
 
   - 所有 gates 通过且 change directory 存在
-  - SHALL 运行只读 `xirang validate --change` 确认 validation status 为 Passed 且 fingerprints 当前
+  - SHALL 运行只读完整校验并以退出码确认结果及 fingerprints 当前，不要求解析成功文字
   - SHALL 将 change directory 原样移动到 `YYYY-MM-DD-<change-name>`
-  - SHALL 输出 git handoff 提醒
+  - SHALL 返回必要的归档位置，后续 Git 指导由 Archive workflow 承载
   - SHALL NOT 创建、重算或覆盖任何 presentation artifact
   - SHALL NOT 执行 git 写操作
 
 - **已归档 change 检测**
 
   - target archive path 已存在且 active change 不存在
-  - SHALL 输出已归档状态与 git handoff 提醒后退出
+  - SHALL 返回已有归档位置后退出，不重复 Git handoff 指导
 
 - **Final validation 失败**
 
@@ -124,7 +124,9 @@ archive 命令 SHALL 优雅处理各种错误条件。
 
 ### Section: Display Output
 
-Archive SHALL 提供清晰的 gate 状态反馈，并在摘要中区分 Quality Seal、Semantic Model Sync、task 与 validation 结果。Quality 摘要 SHALL 报告 Review/Opt opinion 的 commit 关联和 Seal commit identity；MUST NOT 声称 CLI 执行过测试、Seal commit 匹配当前 HEAD/工作区，或存在最终 successful checkpoint。Archive 不重新判断 Opinion 的自然语言充分性。Archive CLI 不创建 Git commit；Archive 完成后由 Agent 按既有 Git handoff 提交 Change 与 Quality JSON，Seal 或 Archive 前不要求单独提交质量记录。
+Archive SHALL 保留实际 gate 诊断与必要归档位置，不在默认成功输出中重复 Quality/Sync/task/validation 摘要或 Git handoff 提醒。Quality、同步或任务门禁失败时 SHALL 给出具体原因；--no-validate 的 unsafe warning SHALL 保留，未验证不得声称 Passed。
+
+CLI SHALL 不声称执行过测试、Seal commit 匹配当前 HEAD/工作区或存在 successful checkpoint，不重新判断意见文本充分性，不创建 Git commit。Archive 完成后 SHALL 由 Agent 按既有工作流继续提交 Change 与 Quality JSON，Seal 或 Archive 前不要求单独提交质量记录。
 
 ### Section: Archive Validation
 
@@ -178,18 +180,6 @@ archive 命令 SHALL 要求 Sync 作为已完成前置条件：存在未合并 d
   - graph 或 contract operation 仍 pending
   - SHALL 阻塞 archive
   - SHALL 指引先运行 sync
-
-### Section: Archive CLI 输出 git handoff 提醒
-
-`xirang archive` 在完成 quality、sync 与 move-to-archive 后 SHALL 输出后续 git 工作由 agent 自动继续的责任归属提醒，不再读取或区分任何 handoff 模式配置。
-
-- **归档完成后提醒 agent 接管**
-
-  - `xirang archive <change>` 完成归档
-  - CLI SHALL 输出归档已完成
-  - SHALL 提醒后续 git 提交流程由 agent 自动继续处理
-  - SHALL NOT 输出任何推荐 commit message
-  - SHALL NOT 读取 `git.autoCommit` 配置
 
 ### Section: Agent 在归档后继续 git 流程
 

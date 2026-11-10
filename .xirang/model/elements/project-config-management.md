@@ -4,7 +4,7 @@ identity: project-config-management
 kind: element
 parent: project-tooling-configuration
 title: 项目配置管理
-definition: 项目配置管理是 CLI 中读取和管理息壤项目配置的能力。它加载并校验 `.xirang/config.yaml`（含 `.yml` 别名）、维护用户级全局配置，管理配置默认值物化，并将配置编译为各 workflow surface 消费的 prompt/runtime projection。
+definition: 项目配置管理是 CLI 中读取和管理息壤项目配置的能力。它加载并校验 .xirang/config.yaml 及 .yml 别名，维护用户级配置和默认值物化，向 CLI、运行时与工作流提供统一有效配置；工作流的静态遵循规则由共享指导承载，不由配置查询重复生成提示词。
 ---
 
 ## Specification
@@ -59,9 +59,6 @@ definition: 项目配置管理是 CLI 中读取和管理息壤项目配置的能
 
 ### Section: 编译配置投影
 
-系统 SHALL 将项目配置编译为 prompt/runtime projections，供所有会创建或改写制品的工作流 surface 共享同一份 normalized config、compiled fragments 与 canonical token policy。
+系统 SHALL 通过统一加载与归一化提供有效项目配置，供 CLI 查询、运行时消费者和工作流共享。RuntimeProjection SHALL 保留运行时所需语义；Agent 通过 config project 获取数据，并按共享 skill/reference 的语言、canonical tokens、context、rules 及 surface 适用规则执行，不在每次查询中重复生成提示词。
 
-- **多个 surface 消费同一投影**
-
-  - 多个 workflow surface 在相同 config 下为同一 artifact 消费 projection
-  - projection 内容对每个消费者的语义相同，且消费者不通过读取 raw config 重新解释
+相同配置下多个 surface 的适用语义 SHALL 一致，不通过 raw config 重新解释。下一次查询 SHALL 反映磁盘修改，不因旧投影缓存而继续返回旧规则。

@@ -32,6 +32,8 @@ Neovim SHALL 将 Delta 源文件对应的模型内容呈现为左右两栏：左
 - 当前 Change 或模型发生变化后，较早开始的异步投影结果 SHALL NOT 覆盖更新的结果。
 - 写回失败时，Neovim 保留右侧编辑草稿，不以旧投影覆盖它。
 
+Change 选择 SHALL 从成功的 list 查询解析完整 changes 数据，审阅 SHALL 从成功的 show --review 查询读取完整模型与 Plan 数据；命令失败时从 stderr 读取诊断，不把缺失或部分结果当作有效查询。通道调整 SHALL 保留现有刷新、异步顺序及视图状态保证。
+
 ### Section: 保存 Expected Semantic Model 微调
 
 用户 SHALL 能通过保存右侧完整 Expected Semantic Model 文本请求 CLI 写回当前 Delta 源文件。Neovim SHALL 只允许编辑右侧目标模型，左侧当前模型与 Plan 保持只读。CLI 报告被忽略的不支持字段时，Neovim SHALL 在 status bar 提示用户；受支持的 `definition` 与 Contract Section 修改仍 SHALL 正常保存。写回失败时 SHALL 保留草稿供继续编辑或重试。
@@ -61,3 +63,5 @@ Neovim SHALL 将 Delta 源文件对应的模型内容呈现为左右两栏：左
 
   - CLI 拒绝写回并返回错误诊断
   - Neovim 保留用户的右侧草稿，左侧仍不可编辑
+
+Neovim SHALL 根据 CLI 退出码判断保存结果：退出码 0 且 stdout 为空时仍视为保存成功，并在现有 tab 刷新 accepted projection；stdout 有 ignoredChanges 时继续在 status bar 展示被忽略字段。非零退出码时 SHALL 读取 stderr 中的结构化诊断、呈现具体失败并保留未保存草稿。stdout 为空不得被当作 JSON 解码失败或保存失败。
