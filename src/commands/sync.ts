@@ -60,6 +60,7 @@ export async function syncCommand(
   }
 
   const prepared = await prepareChangeSync(projectRoot, syncState, { skipValidation });
+  for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code);
   if (prepared.manifest.length === 0) {
 
     return;

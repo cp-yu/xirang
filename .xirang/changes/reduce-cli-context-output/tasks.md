@@ -42,3 +42,4 @@
 - [x] [code_fix] 全局配置警告按请求编码，与有效查询数据分流。
 - [x] [code_fix] Quality 当前概况保留最新 delivered Opt 的 base/result commit 关联。
 - [x] [code_fix] Archive 指导在归档前显式完成独立 Sync，并按实际操作报告结果。
+- [x] [code_fix] Sync 与 Archive 在成功及已同步路径保留实际编译警告，文本/JSON 诊断可定位，无问题成功仍静默。

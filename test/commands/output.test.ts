@@ -2,6 +2,8 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, expect, it } from 'vitest';
+import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
+import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
 
 let root: string;
@@ -39,6 +41,40 @@ it('rejects invalid final archive validation without moving the active Change', 
     expect(messages).toContain('MISSING_PROJECT_ROOT');
     expect((await fs.stat(active)).isDirectory()).toBe(true);
     await expect(fs.access(path.join(root, '.xirang', 'changes', 'archive'))).rejects.toThrow();
+  }
+});
+it.each([false, true])('preserves successful Sync/Archive warnings and problem-free silence (json=%s)', async json => {
+  for (const warning of [false, true]) {
+    const project = path.join(root, warning ? 'warning' : 'clean');
+    await writeProjectModel(project, minimalModel());
+    if (warning) await fs.rename(path.join(project, '.xirang/model/metamodel/project.md'), path.join(project, '.xirang/model/views/project.md'));
+    const change = await writeChangeDelta(project, 'sample', {
+      'proposal.md': '## Why\n\nPreserve the requested change and its real validation warnings.\n\n## What Changes\n\n- Revise root definition.\n',
+      'elements/root.md': '---\noperation: MODIFIED\n' + elementUnit({ identity: 'root', kind: 'project', parent: null, definition: 'Updated project definition.' }).slice(4),
+    });
+    await createCompleteQualityFixture(project, change);
+    const flags = json ? ['--json'] : [];
+    const diagnostics = (stderr: string) => {
+      if (!warning) expect(stderr).toBe('');
+      else if (json) expect(stderr.trim().split('\n').map(line => JSON.parse(line))).toContainEqual({ code: 'ENTITY_PARTITION_MISMATCH', message: expect.stringContaining('views/project.md') });
+      else {
+        expect(stderr).toContain('ENTITY_PARTITION_MISMATCH');
+        expect(stderr).toContain('views/project.md');
+      }
+    };
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const synced = await runCLI(['sync', 'sample', ...flags], { cwd: project });
+      expect(synced).toMatchObject({ exitCode: 0, stdout: '' });
+      diagnostics(synced.stderr);
+      expect(await fs.readFile(path.join(project, '.xirang/model/elements/root.md'), 'utf8')).toContain('Updated project definition.');
+    }
+    const archived = await runCLI(['archive', 'sample', '--yes', ...flags], { cwd: project });
+    expect(archived.exitCode).toBe(0);
+    const location = json ? JSON.parse(archived.stdout).archive : archived.stdout.trim();
+    expect(location).toContain('sample');
+    expect((await fs.stat(path.join(project, location))).isDirectory()).toBe(true);
+    await expect(fs.access(change)).rejects.toMatchObject({ code: 'ENOENT' });
+    diagnostics(archived.stderr);
   }
 });
 it('encodes format-json model and argument failures as diagnostics', async () => {

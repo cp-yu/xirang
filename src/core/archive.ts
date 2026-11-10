@@ -266,6 +266,9 @@ export class ArchiveCommand {
     }
 
     const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
+    for (const warning of compiled.diagnostics.filter(issue => issue.level === 'WARNING')) {
+      diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
+    }
     if (!compiled.valid) {
       throw new Error(`Validation errors in Semantic Delta:\n${compiled.diagnostics.map(issue => `${issue.code}: ${issue.message}`).join('\n')}`);
     }

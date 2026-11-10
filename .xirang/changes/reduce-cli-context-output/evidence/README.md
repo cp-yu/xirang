@@ -39,3 +39,8 @@ Windows 专项在修正保存事件路径后整组通过：[run 42806410191](htt
 Quality 默认状态保留最新 delivered Opt 的 baseCommit/resultCommit，完整 opinions 仍仅 history 展开；测试用两条 Opt opinions 确认最新关联。Archive 模板和实际生成 skill 现在在 archive 前按 Delta operations 调用独立 `xirang sync`，失败即停止，摘要区分 Sync 写入与 Archive 门禁。新增四类缺陷用例在修正前 6 failed；修正后相关 270 tests 通过，构建后全量 166 files / 2206 tests、lint/typecheck、active stale references: 0、diff 检查及 strict validation 通过；strict validation 两条输出流为空。生成更新 stdout 为空，工具发现及重启诊断仍保留。
 
 `ee4946e6d` 对应 [Candidate Windows 42818041685](https://github.com/cp-yu/xirang/actions/runs/42818041685) 与 [LikeC4 Windows 42818041702](https://github.com/cp-yu/xirang/actions/runs/42818041702) 通过。[跨平台 42818041631](https://github.com/cp-yu/xirang/actions/runs/42818041631) 的 Linux、macOS 全套通过，Windows Candidate 双击导航的 focus URL 断言超时（44 passed / 1 failed），不能称整组 CI 通过；该浏览器交互实现与测试未被此轮改动。
+
+
+第七轮 full-change Review 对 `09cfe2d51` 返回 FAIL，指出成功编译的警告在 Sync 与 Archive 中丢失。Sync 的准备结果现在保留编译警告，由命令在已同步的提前返回之前输出；Archive 的只读门禁同样输出实际警告。文本诊断包含路径、代码及原因，JSON 通过共享 stderr 诊断编码。新增真实 CLI 回归使用完整 Quality fixture，不绕过门禁，覆盖有/无警告的首次 Sync、重复 Sync 和 Archive，并核对模型更新及实际归档位置。新增用例在修正前 2 failed；修正后针对性 3 files / 51 tests 通过。
+
+构建后全量 166 files / 2208 tests、lint、typecheck、active stale references: 0、diff 检查及 strict validation 通过；strict validation 两条输出流均为空。本轮测量样本仍无警告，不据此增加字节收益。修正前 `09cfe2d51` 对应 [Candidate Windows 42820601221](https://github.com/cp-yu/xirang/actions/runs/42820601221) 与 [LikeC4 Windows 42820601316](https://github.com/cp-yu/xirang/actions/runs/42820601316) 已通过；[跨平台 42820601255](https://github.com/cp-yu/xirang/actions/runs/42820601255) 在记录时仍运行，不能称整组通过。
