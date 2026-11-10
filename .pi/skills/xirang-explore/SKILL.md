@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.7"
+  generatedBy: "0.2.8"
 ---
 
 Explore the user's intent with project evidence, maintain the intermediate design, and confirm a design ready for Propose. Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts. CLI-managed records and delegated feasibility experiments are permitted within their protocols.
