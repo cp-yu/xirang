@@ -98,7 +98,8 @@ export const runLikeC4: LikeC4Runner = async (args) => {
     child.once('error', reject);
     child.once('close', code => {
       if (messages.trim()) diagnostic(messages.trim(), 'LIKEC4_DIAGNOSTIC');
-      code === 0 ? resolve() : reject(new Error(`LikeC4 exited with code ${code}`));
+      if (code === 0) resolve();
+      else reject(new Error(`LikeC4 exited with code ${code}`));
     });
   });
 };

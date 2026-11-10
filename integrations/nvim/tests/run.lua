@@ -121,7 +121,7 @@ elseif mode == 'compare' then
   assert(not vim.bo[session.left].modifiable)
   session.cursor = 2
   review._sourceJump(session)
-  assert(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()) == source)
+  assert(vim.uv.fs_realpath(vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())) == vim.uv.fs_realpath(source))
 elseif mode == 'save' then
   launch()
   local session = current()
