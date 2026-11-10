@@ -499,10 +499,10 @@ function M.setup(opts)
   defaults.runner = opts.runner
   vim.api.nvim_create_user_command('XirangReview', function(command) open(command.args ~= '' and command.args or nil) end, { nargs = '?' })
   vim.api.nvim_create_autocmd('BufWritePost', { callback = function(event)
-    local path = vim.api.nvim_buf_get_name(event.buf)
+    local path = vim.fs.normalize(vim.api.nvim_buf_get_name(event.buf))
     for _, session in pairs(sessions) do
-      if path:find(vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change), 1, true)
-        or path:find(vim.fs.joinpath(session.cwd, '.xirang', 'model'), 1, true) then refresh(session, false) end
+      if path:find(vim.fs.normalize(vim.fs.joinpath(session.cwd, '.xirang', 'changes', session.change)), 1, true)
+        or path:find(vim.fs.normalize(vim.fs.joinpath(session.cwd, '.xirang', 'model')), 1, true) then refresh(session, false) end
     end
   end })
 end
