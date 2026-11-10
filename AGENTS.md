@@ -45,7 +45,7 @@ Realization（落实过程）
         │       └── 5. Snack
         ├── 3. Change Implementation
         │   ├── 4. Apply
-        │   └── 4. Verify
+        │   └── 4. Quality
         │       ├── 5. Review
         │       └── 5. Optimization
         └── 3. Change Closure
@@ -63,7 +63,8 @@ Realization（落实过程）
     │       │   └── 5. Archive
     │       └── 4. Internal Agents
     │           ├── 5. Reviewer
-    │           └── 5. Optimizer
+    │           ├── 5. Optimizer
+    │           └── 5. Experimenter
     └── 2. Interaction Surfaces
         ├── 3. CLI
         │   ├── 4. Project and Tooling Configuration
@@ -237,7 +238,7 @@ Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Mod
 
 ## 2. Change Realization
 
-Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并验证，再通过 Change Closure 将经验证的 Semantic Delta 更新到 Semantic Model 并关闭 Change，使项目实现与语义模型进入新的稳定状态。
+Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并经 Quality 验证，再通过 Change Closure 将经验证的 Semantic Delta 更新到 Semantic Model 并关闭 Change，使项目实现与语义模型进入新的稳定状态。
 
 ## 3. Change Formation
 
@@ -289,35 +290,35 @@ Snack 是 Implementation-first Path 的形成阶段。它从已发生的项目�
 
 ## 3. Change Implementation
 
-Change Implementation 是 Change Realization 中落实 Change 并确认其结果的阶段。Agent 依据 Semantic Model、Semantic Delta 与 Change Plan，将 Change 描述的内容落实到项目，并通过独立评估与可复现证据确认项目结果与 Expected Semantic Model 一致。验证通过后，Change 可进入 Change Closure；本阶段不以 Semantic Delta 更新 Semantic Model，也不关闭 Change。
+Change Implementation 是 Change Realization 中落实 Change 并确认其结果的阶段。Agent 依据 Semantic Model、Semantic Delta 与 Change Plan，将 Change 描述的内容落实到项目，并通过 Quality 以 commit 绑定的独立 Review 意见、可选 Opt 意见与主 Agent 的 Seal 声明确认项目结果与 Expected Semantic Model 一致。Quality 完成后，Change 可进入 Change Closure；本阶段不以 Semantic Delta 更新 Semantic Model，也不关闭 Change。
 
 ### 4. Apply
 
-Apply 是 Change Implementation 中落实项目改动的活动。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态，落实 Change 要求的全部项目改动；在 `tasks.md` 存在时，按照其中的执行与验证安排推进；在 Verify 返回 Required Corrections 或已确认的优化事项时，继续完成相应改动。Apply 的产出是可交由 Verify 独立评估的项目状态与可复现证据。
+Apply 是 Change Implementation 中落实项目改动的活动。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态，落实 Change 要求的全部项目改动；在 `tasks.md` 存在时，按照其中的执行与验证安排推进；在 Quality 返回 Required Corrections 或基线缺陷证据时，继续完成相应改动并形成新的修正 commit。Apply 的产出是已提交且附可复现证据的项目状态，供 Quality 独立评估。
 
-### 4. Verify
+### 4. Quality
 
-Verify 是 Change Implementation 中独立评估并改进项目结果的活动，由 Review 与 Optimization 共同完成。Review 在每次 Apply 修改项目后执行，由 Reviewer 评估当前项目状态是否完整、正确且一致地实现 Expected Semantic Model。Optimization 仅在 Review 通过后执行，由 Optimizer 判断当前正确实现是否存在值得执行且不改变目标语义的优化；已确认的优化事项返回 Apply 实现，项目修改后再次进入 Review。当最新项目状态通过 Review，且 Optimization 确认不存在需要继续执行的优化时，Verify 以仍然有效的验证证据确认 Change Implementation 可以进入 Change Closure。Reviewer 与 Optimizer 均作为 Internal Agents，在不受 Apply 阶段上下文影响的 clean context 中作出判断。
+Quality 是 Change Implementation 中确认项目结果的阶段，由 Review 与 Optimization 共同完成，以 commit 绑定的 Review 意见、可选 Opt 意见与主 Agent 的 Seal 声明协调实现判断，并控制 Change 进入 Change Closure。Quality 按 full-change Review、主 Agent 决定的可选 Opt、Opt 处置与 Seal 顺序推进；Review opinions、Opt 处置与 Seal 持久化在每个 Change 的一个 Git-tracked Quality JSON 文档中，由 CLI 原子写入并做 revision 比对。代码修改、成功提交与恢复历史由 Git 承载；Quality 不保存代码快照、测试输出或执行进度。
 
-Verify 使用 Checkpoints 隔离已经通过 Review 的项目状态与尚未验证的优化改动。首次 Review 通过后，当前项目状态形成 baseline checkpoint；每个优化事项经 Apply 实现并重新通过 Review 后，形成新的 successful checkpoint。优化事项未通过 Review 时，项目恢复到最近的 successful checkpoint，同时保留 Review 结论、失败方向与 Optimization 历史，再基于恢复后的项目状态继续评估。只有最新项目状态已成为 successful checkpoint，Optimization 已完成且验证证据仍然有效时，Verify 才能完成并允许 Change 进入 Change Closure。
+实现先提交为 Git commit 并由主 Agent 运行本次所需测试后，才能执行基线 Review；至少一条通过的 full-change Review 是 Opt 与 Seal 的前置条件，但它不证明其后的改动经过独立审查。主 Agent 负责委托范围、后续投入、最终验证范围与风险判断，可自行读取代码与证据，但不替代必需的基线 Review 或基线缺陷修复后的针对性 Review。优化前先保存可恢复基线；Opt 按需保存中间状态，主 Agent 所需验证全部通过且证据仍适用当前状态时保存最终 successful checkpoint。优化引入的问题依据实际证据局部修正或撤销并验证，保留其他可靠优化，不整批回滚；无法确认局部恢复可靠时恢复到可确认基线，仍无法确认则停止并交回主 Agent。Quality 保留 Review 意见历史、Opt opinions 与已放弃方向及其原因，供后续判断并避免重复尝试。
+
+Quality 仅在基线 Review 已通过、Opt 处置明确（已执行时包含 opinion 及 baseCommit 与 resultCommit，未执行时记录简短理由）、且主 Agent 已记录绑定 Git commit 的有效 Seal 声明时，允许 Change 进入 Change Closure。
 
 #### 5. Review
 
-Review 是 Verify 中反复执行的正确性门禁，在每次 Apply 修改项目后进行。它由 Reviewer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行；Reviewer 独立读取 Semantic Model、Change、当前项目状态与项目证据，评估 Change 是否完整落实、项目行为是否正确、实现是否遵循 Change 的决策与项目约束，以及本次变更是否完成必要清理，并判断当前结果是否符合 Expected Semantic Model。Review 产出基于证据的结构化结论；阻塞问题形成 Required Corrections 并返回 Apply。Review 通过时，当前项目状态可以由 Verify 保存为 baseline checkpoint 或 successful checkpoint；Review 未通过时，当前项目状态不得成为 Checkpoint。Review 不创建、恢复或修改 Checkpoint，也不修改项目；其结论只适用于被评估的项目状态，此后任何项目修改都会要求重新 Review。
+Review 是 Quality 中由 clean-context Reviewer 独立评估已提交实现正确性的活动。每条 Review opinion 绑定一个已提交且在审查期间 HEAD 不变的 Git commit，并按 reviewKind 区分：full-change 在每个受托质量维度内覆盖完整累计 Change；incremental 评估受托的累计 Opt 改动及其受影响行为；supplemental 评估基线 Review 漏掉的原有 Change 缺陷的修复及其影响。基线 Review 未通过时，主 Agent 处理修正、形成新的修正 commit 并重新执行完整 Review；Opt 后是否追加 incremental Review 由主 Agent 按累计改动及影响的风险决定。Review 不创建、恢复或修改 checkpoint，也不修改项目；其结论只适用于被评估的项目状态，此后任何项目修改都会要求重新判断受影响的验证。
 
 Reviewer 的核心原则是先证据、后结论。完成声明不构成完成证据；只有从当前项目状态中独立获得足以证明 Change 已被完整、正确落实的证据，Review 才能通过。证据缺失、证据与 Change 矛盾或证据无法覆盖目标行为时，应形成 Required Corrections 或明确的证据缺口，不得基于 Apply 的实施过程、任务勾选或 Agent 的判断推测通过。
 
 #### 5. Optimization
 
-Optimization 是 Verify 中对已通过 Review 并保存为 Checkpoint 的代码实现进行优化评估的阶段。它由 Optimizer 作为 Internal Agent 在不受 Apply 阶段上下文影响的 clean context 中执行；Optimizer 独立读取 Semantic Model、Change、最近 successful checkpoint 对应的当前代码、项目证据与既有优化记录，判断哪些不必要的复杂度可以通过删除或简化消除，以及必要工作是否可以通过更合适的算法、数据结构、控制流、I/O 或资源使用方式提高效率。每个优化事项都必须具有可说明的实际收益、充分的代码证据，并保持 Expected Semantic Model 与项目行为不变。
+Optimization 是 Quality 中通过可选的受托 Opt 推进实现改进的活动。是否执行 Opt 由主 Agent 决定；不执行时在 Seal 前记录 not_performed 处置与简短理由。Optimization 只在实现通过独立基线 Review 后开始，选中事项必须具有可说明的实际收益、充分的代码证据，并保持 Expected Semantic Model 与项目行为不变；改变目标语义的建议应形成新的 Change。Opt 由 fresh-context Optimizer 在委托范围内自主发现、分组、合并并实施优化，先补缺失的行为测试再修改实现，并运行局部测试验证；它以当前 Change 目标与实际影响为界，按需追踪调用与依赖，可新增、删除或移动必要的实现与测试文件，交付一条绑定 baseCommit 与 resultCommit 的 opinion，报告实际保留改动、收益与行为保持依据、测试结果、放弃及遗留事项。优化引入的问题依据 Git 中的实际代码状态局部修正或撤销；优化前已存在且被基线 Review 漏掉的当前 Change 正确性缺陷交回主 Agent 安排修复，修复后经针对问题及其影响的 supplemental Review 方可收口。Opt 之后是否继续优化、是否扩大测试与追加 Review 由主 Agent 按实际风险决定。
 
-被选中的优化事项返回 Apply 实现；该实现在重新通过 Review 前属于 speculative state，不得推进 Checkpoint。Review 通过后，Verify 将当前项目状态保存为新的 successful checkpoint，再由 Optimization 基于该 Checkpoint 继续评估；Review 未通过时，Verify 恢复最近的 successful checkpoint，并保留该优化事项的失败结论与历史，再由 Optimization 基于恢复后的状态重新评估。当最新 successful checkpoint 不再存在需要执行的优化事项时，Optimization 完成。Optimization 不修改代码，不创建或恢复 Checkpoint；如果评估过程中发现正确性问题，则停止优化并将问题返回 Review。
-
-Optimizer 的核心原则是优先删除不需要存在的复杂度，并优化必须存在的工作。优化事项只有在当前代码已经通过 Review、收益有证据、行为与目标语义保持不变、成本和风险与收益相称且存在可执行验证方式时才成立；无法证明收益的机会应延后，改变目标语义的建议应形成新的 Change，正确性缺陷应返回 Review，增加复杂度但没有实际收益的建议应被拒绝。
+Optimizer 的核心原则是优先删除不需要存在的复杂度，并优化必须存在的工作。优化事项只有在当前代码已经通过 Review、收益有证据、行为与目标语义保持不变、成本和风险与收益相称且存在可执行验证方式时才成立；无法证明收益的机会应延后，改变目标语义的建议应形成新的 Change，正确性缺陷应交回主 Agent 处理，增加复杂度但没有实际收益的建议应被拒绝。
 
 ## 3. Change Closure
 
-Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效验证结果为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Archive 不创建、重算或覆盖任何 View presentation artifact。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
+Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效 Quality 结果为入口，`xirang archive` 在归档前校验 Quality Seal 与 Sync 状态；先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Archive 不创建、重算或覆盖任何 View presentation artifact。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
 
 ## 2. Interaction Surfaces
 
@@ -383,20 +384,24 @@ Snack 是 Agent 在 Implementation-first Path 中、从已发生实现出发形�
 
 ##### 5. Apply
 
-Apply 是 Agent 落实 Change 所描述项目改动的工作身份。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态修改项目；在存在执行安排时按安排推进，并处理 Verify 返回的 Required Corrections 与已确认优化事项。产出是可交由独立评估的项目状态与可复现证据。
+Apply 是 Agent 落实 Change 所描述项目改动的工作身份。它以 Expected Semantic Model 为目标，结合 Change Plan 与当前项目状态修改项目；在存在执行安排时按安排推进，并处理 Quality 返回的 Required Corrections 与基线缺陷证据。产出是已提交且附可复现证据的项目状态，供 Quality 独立评估。
 
 ##### 5. Archive
 
-Archive 是 Agent 在验证有效后编排 Change Closure 的工作身份。它确认入口条件已满足，协调 CLI 将 Semantic Delta 应用于 Semantic Model，并保存已完成 Change 及其最终证据、结束 Change 的活动状态。Archive 不重新判定目标语义，也不替代 CLI 的原子状态转换。
+Archive 是 Agent 在 Quality 完成（Seal 成立）后编排 Change Closure 的工作身份。它确认入口条件已满足，协调 CLI 将 Semantic Delta 应用于 Semantic Model，并保存已完成 Change 及其最终证据、结束 Change 的活动状态。Archive 不重新判定目标语义，也不替代 CLI 的原子状态转换。
 
 #### 4. Internal Agents
 
-Internal Agents 在与 Agent 隔离的 clean context 中承担无法由 CLI 确定性操作替代的独立判断。它们通常只读，输出结构化结论供 Agent 消费；不修改项目，不关闭 Change，不提升 Semantic Model。影响发现、模型导航与关系查询由 CLI 与 Semantic Browser 承担。
+Internal Agents 在与主 Agent 隔离的上下文中接受委托、独立取得依据并交付结构化结论，由只读的 Reviewer、受托可写的 Optimizer 与 Experimenter 组成；它们不承担用户设计确认，不关闭 Change，不提升 Semantic Model。能力边界由角色指令约束而不是工具白名单或硬只读沙箱：Reviewer 的工具可用范围与主 Agent 相同，但工具能力不构成写入授权。影响发现、模型导航与关系查询由 CLI 与 Semantic Browser 承担。
 
 ##### 5. Reviewer
 
-Reviewer 评估当前项目状态是否完整、正确且一致地实现 Expected Semantic Model。它独立读取 Semantic Model、Change、项目状态与证据，先证据、后结论；阻塞问题形成 Required Corrections 返回 Apply。Review 通过时，当前状态才有资格成为 Checkpoint；Reviewer 不创建或恢复 Checkpoint，不修改项目。
+Reviewer 在 clean context 中评估已提交的项目状态是否完整、正确且一致地实现 Expected Semantic Model。它独立读取 Semantic Model、Change、已提交实现与证据，先证据、后结论；阻塞问题形成 Required Corrections 返回主 Agent 处理。每条 Review opinion 绑定其实际审查且审查期间 HEAD 不变的 Git commit。Reviewer 可使用与主 Agent 相同的工具获取证据（包括运行测试与检查），但工具能力不构成写入授权：它不修改项目、Change、Quality 记录或 Git history，也不创建或恢复 checkpoint。
 
 ##### 5. Optimizer
 
-Optimizer 在已通过 Review 并保存为 Checkpoint 的实现上，评估是否存在值得执行且不改变目标语义的优化。它输出可说明收益与证据的优化事项，由 Apply 实现后再经 Review；不修改代码，不推进 Checkpoint。正确性问题返回 Review；改变目标语义的建议应形成新的 Change。
+Optimizer 是受托优化执行者：在通过基线 Review 的实现上，于委托范围内自主发现、分组并实施行为保持的优化，先补缺失的行为测试再修改实现，并运行局部测试验证。它实际修改相关实现与测试并按恢复需要形成 Git commits，交付一条绑定 baseCommit 与 resultCommit 的 opinion，报告实际收益、行为保持依据与测试结果。优化引入的问题局部修正或撤销；基线 Review 漏掉的当前 Change 正确性缺陷交回主 Agent 安排修复与针对性 Review；改变目标语义的建议应形成新的 Change。
+
+##### 5. Experimenter
+
+Experimenter 是受 Agent 委托、通过设计和执行实验回答方案可行性问题的 Internal Agent。它独立设计并执行足以回答问题的最小实验——可在当前工作区、临时目录、项目副本或 worktree 中编写实验代码与文件并运行命令——返回方法、可复现证据、观察结果、分析及适用限制。结果供 Explore 判断可行性并继续确认设计；实验成功不等于用户采纳，它不承担用户设计确认、正式 Change 实现或模型提升。
