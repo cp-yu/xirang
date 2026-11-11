@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 4,
+  "changeId": "shared-xirang-skill",
+  "revision": 4,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "5ae994ba48f5d846c233c0fd18d5482653e2fc72",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change across Completeness, Correctness, Coherence and Cleanliness. Common installation, stage dependency routing, guidance reuse and goal-level task instructions are supported by committed implementation and inspected trial traces. All 397 tests run passed; committed-source regeneration matched seven tracked Pi skills and 28 references. One blocking validation coverage regression remains. HEAD stayed unchanged and the worktree remained clean.",
+      "findings": [
+        "CRITICAL — Restore length validation coverage for common and its references. test/skills/skill-template-length-validation.test.ts:26–44 still enumerates getSkillTemplates(), while src/core/shared/skill-generation.ts:98–107 adds common only through getInstallableSkillTemplates(). Moving shared references into src/core/templates/workflows/common.ts:70–80 therefore removes xirang-common/SKILL.md and 13 references from the existing 200/500-line guard, including artifact, configuration, business-specification, Design Record, model-context and semantic-authoring guidance. Committed-source enumeration confirmed these omissions. The current files satisfy the limits, but an over-limit common skill or moved reference would survive the maintained guard. This leaves the generation constraint in .xirang/changes/shared-xirang-skill/elements/skill-generation.md:38 without corresponding regression protection. Update the existing guard to enumerate the installable artifact set, preserving the six-stage registry. Search evidence: rg -n 'getInstallableSkillTemplates|MAX_SKILL_LINES|MAX_REFERENCE_LINES|MAX.*REFERENCE.*LINE|MAX.*SKILL.*LINE' test found no getInstallableSkillTemplates consumer and located the limits only in the stage-only guard."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "438a5806b0f719ef3ccf33ec151aa0e276b9ca38",
+      "result": "PASS",
+      "summary": "Independently reviewed the complete cumulative Change from 5dd53d1ed3b78f9f6a441f338ecc24922080f272 across Completeness, Correctness, Coherence and Cleanliness, including all five Delta units and the length-guard Required Correction. Common is explicitly included in installation and managed ownership without expanding the stage registry (src/core/shared/skill-generation.ts:34-39,98-107; src/core/templates/sync-engine.ts:116-142); installation/update and user-file preservation have executable coverage (test/core/workflow-installation.test.ts:72-97). Stage selection, direct-entry continuation, independent-Agent loading, current-context reuse and conditional references are coherently delivered (src/core/templates/workflows/common.ts:26-80; src/core/templates/fragments/guidance-loading.ts:3-12). Retained trial events independently corroborate both entry orders, Explore-to-Propose reuse, readiness blocking, guidance-update reload and lost-context recovery; their procedure and bounded claims are committed in .xirang/changes/shared-xirang-skill/verification.json:7-30. Goal-level task guidance agrees with Apply's dynamic test selection and preserves Review/Opt/Seal gates (src/core/templates/workflows/propose.ts:68-71,87-103,125; src/core/templates/workflows/apply-change.ts:232-261). The corrected guard enumerates installable common and every attached reference under the existing limits (test/skills/skill-template-length-validation.test.ts:26-44,87-94). Independent typecheck and 279 tests in 22 relevant files passed; cumulative diff whitespace check passed. Windows CI run 42987224888 was independently confirmed successful for implementation commit 1827ec2a02eda4f03e328073c4e4654771c614c0. HEAD and worktree status stayed unchanged throughout assessment; the existing untracked Quality file was excluded. Residual limits: actual Agent trials cover Pi and one model with incomplete project fixtures, and do not establish general token, cost or latency savings. No blocking findings.",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "完整累计变更已通过独立 Review。本次已落实规则交付去重，未发现有充分代码证据、且值得承担额外改动和验证成本的行为保持优化；保持当前已验证实现。"
+  },
+  "seal": {
+    "commit": "438a5806b0f719ef3ccf33ec151aa0e276b9ca38",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "本地 TypeScript 检查、构建、166 个文件/2226 项 Vitest、严格 Change validation；真实 Pi Agent 重复入口与复用/失效/缺失依赖试验；长度约束真实内容变异验证；Reviewer 独立 typecheck 和 22 个文件/279 项测试；当前提交的 GitHub Actions Xirang Cross-platform 42989324939（Windows、macOS、Ubuntu 全部成功）、Candidate Views Windows 42989324948 和 LikeC4 Windows 42989325751 均成功。",
+    "assessment": "四项目标和长度守卫 Required Correction 已完成。首轮 full-change Review 的 FAIL 保留为历史；修正提交经新的完整独立 Review 通过，之后无代码或 Change 制品修改。选择不执行额外 Opt，因为没有充分证据支持进一步行为保持改动的收益；没有 post-Review 代码改动，故不需要 incremental/supplemental Review。首轮 CI 的 macOS 图片导出观察曾返回 null；当前提交完整矩阵全部通过，期间未修改浏览器实现或用例，不声称修复了浏览器缺陷。真实 Agent 样本限于 Pi 和一个模型，指导读取量下降不证明总 token、成本或耗时降低。HEAD 与所审查提交一致，仅 Quality 记录待正常 Archive/Git 交接；没有 sync、archive 或分支清理。"
+  }
+}
