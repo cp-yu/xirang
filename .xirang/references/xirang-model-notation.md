@@ -1,0 +1,17 @@
+**Semantic Model Unit Notation**
+
+Every Markdown unit declares its own `entity` in frontmatter. The partition does not determine the type.
+
+| entity | frontmatter fields |
+|---|---|
+| `element-declaration` | `identity`, `kind`, `parent`, `title`, `definition` |
+| `element-kind` | `identity`, `contract`; optional `contractFormat`, `root`, `parents`, `children` |
+| `relationship-kind` | `identity`; optional `sourceKinds`, `targetKinds` |
+| `authored-view` | `identity`, `include`; optional `exclude`, `of`, `title`, `autoLayout` |
+
+- `parent: null` marks the single Project Root. `include` is `'*'` or a list of element identities; `exclude` is a list of element identities whose whole descendant subtree is pruned, taking precedence over `include`; `of` is one element identity.
+- A `relationships/` file is a container of `{source, kind, target}` entries. A Relationship's identity is its entire content and it carries no other field.
+- An `elements/` unit body is exactly the `## Specification` section: `### Section: <name>` items, each with a free body and optionally `#### Acceptance Case: <name>` blocks inside the acceptance-cases Section. Concept identity and scope prose belongs to the Declaration's `definition` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
+- A `views/` unit has no body.
+- `identity` uses `[A-Za-z0-9._-]+` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
+- Default file naming, non-normative: `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind.

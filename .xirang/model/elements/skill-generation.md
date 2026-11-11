@@ -4,7 +4,7 @@ identity: skill-generation
 kind: element
 parent: agent-workbench-projection
 title: Skill Generation
-definition: Skill Generation 定义共享 skill 片段与 frontmatter 的生成契约：`XIRANG_PHILOSOPHY` 共享片段注入 workflow skills 与 internal subagents，以及生成的 skill frontmatter 必须是合法 YAML。
+definition: Skill Generation 是息壤公共与阶段 skill 的生成能力。它独立承载公共基础、专项指导入口和合法 frontmatter 的交付边界，供各工作流在需要时获得同源规则；阶段业务流程与用户决策由对应工作身份承担，工具安装与同步由工作面投影承担。
 ---
 
 ## Specification
@@ -48,32 +48,21 @@ definition: Skill Generation 定义共享 skill 片段与 frontmatter 的生成�
 
 ### Section: Xirang Philosophy 注入 workflow skill 模板
 
-六个用户可调用 workflow skill 模板 SHALL 在首句职责描述之后、操作步骤之前注入 `XIRANG_PHILOSOPHY`。
+Skill Generation SHALL 将完整 `XIRANG_PHILOSOPHY` 交付于 `xirang-common`，六个阶段 skills SHALL 声明公共前置依赖，正文不内联该完整片段。common SHALL 承载统一语义依据、identity 等基本约束，以及阶段选择、按需加载和复用规则；专项细则通过单一 reference 提供。
 
-- **6 个 workflow skills 共享同一片段**
+用户可以只加载 common 后通过自然语言选择阶段，也可以直接加载任一阶段 skill；Agent SHALL 在开展该阶段工作前取得缺少的公共指导，已加载且仍有效时复用。单独加载 common SHALL NOT 无条件加载全部阶段或专项指导。
 
-  - 生成任一受管 workflow skill
-  - instructions SHALL 包含完整的 `XIRANG_PHILOSOPHY`
-  - 各 workflow MUST NOT 内联另一份改写后的项目哲学
+- **common 入口**：只加载 common 后说“进入 Explore”，Agent 读取 Explore 并按其职责工作。
+- **阶段入口**：直接加载 Explore 且 common 尚不可用，Agent 补读 common 后继续 Explore；不得要求用户先手动调用 common。
 
 ### Section: Xirang Philosophy 注入 internal subagent 模板
 
-`reviewer` 与 `optimizer` internal subagent SHALL 在 Role 段之后注入 `XIRANG_PHILOSOPHY`；其他 internal surface SHALL NOT 注入该片段。
+Reviewer 与 Optimizer 的生成角色指导 SHALL 引用公共 skill 取得 Philosophy 和适用的公共基础，不内联其完整副本。每个独立 Agent SHALL 从自己的有效上下文判断是否已取得指导，主 Agent 已加载不代表子 Agent 已加载。加载公共 skill SHALL 保留受托角色与范围，不重新选择用户阶段，也不改变独立取证和角色权限。
 
-- **reviewer 与 optimizer 包含共享哲学**
+其他 internal surfaces SHALL 只加载自身职责实际需要的指导，不因公共 skill 存在而预加载全部协议。公共内容生成源 SHALL 显式记录使用方与适用边界。
 
-  - reviewer 或 optimizer prompt 被生成
-  - prompt SHALL 在 Role 与 Hard Constraints 之间包含完整的 `XIRANG_PHILOSOPHY`
-
-- **排除 surface 不包含共享哲学**
-
-  - 其他 internal surface 被生成
-  - 输出 SHALL NOT 包含共享哲学标题
-
-- **排除决策编码在片段注释中**
-
-  - `XIRANG_PHILOSOPHY` 常量在 `xirang-fragments.ts` 中被定义
-  - 其上方 JSDoc 注释 SHALL 列出使用方和排除名单及排除原因
+- **独立 Reviewer**：主 Agent 已读 common，fresh Reviewer 仍取得自身需要的公共指导，再按只读审查角色取证。
+- **恢复上下文**：必要指导已不可用时，子 Agent 补读对应内容，角色与委托范围保持不变。
 
 ### Section: skill frontmatter 必须生成合法 YAML
 
@@ -93,28 +82,9 @@ definition: Skill Generation 定义共享 skill 片段与 frontmatter 的生成�
 
 ### Section: 共享生成结构拆分 guidance
 
-Skill Generation SHALL 从一个 canonical `STRUCTURAL_DECOMPOSITION_GUIDANCE` 片段向 `xirang-build`、`xirang-explore`、`xirang-propose` 与 `xirang-snack` 生成一致的配置消费和失败语义；片段 SHALL 以英文单一语言表达单条无分支规则：读取 normalized `decomposition` 解析出的指导文件，缺失或不可读即停止结构形成。各 workflow MAY 在共享规则之外声明自身适用时机，但 SHALL NOT 内联相互漂移的方法解析逻辑。
+Skill Generation SHALL 从一个 canonical 生成源向项目级 reference 交付英文结构拆分配置消费规则。Build、Explore、Propose 与 Snack SHALL 仅在形成或重组 hierarchy 时读取该指导，复用仍有效的内容：读取 normalized `decomposition` 解析出的完整指导文件，缺失或不可读即停止结构形成，不以其他方法替代。各入口保留适用时机，不内联相互漂移的解析逻辑。
 
-- **四个结构形成 workflow 共享片段**
-
-  - setup 或 update 为任一支持工具生成 Build、Explore、Propose 与 Snack skills
-  - 四个 skill instructions 包含同一 `STRUCTURAL_DECOMPOSITION_GUIDANCE`
-  - 片段不包含 method/skill 分支或 Agent 自有方法知识语义
-
-- **非结构 workflow 不注入片段**
-
-  - 生成 Apply、Archive、Reviewer 或 Optimizer artifacts
-  - 这些 artifacts 不包含结构拆分 guidance
-  - 不要求其重新形成 hierarchy
-
-- **项目专属规则不进入共享片段**
-
-  - 本仓库通过 `xirang-project-decomposition` 表达 `semantic-objects`、`realization-process` 或 `collaboration-structure` 等专属方法
-  - canonical shared fragment 不包含这些项目名称或规则正文
-  - 用户自有指导文件独立承载该内容
-
-- **生成内容继续满足长度约束**
-
-  - 四个 workflow 模板注入共享 fragment
-  - 每个生成 `SKILL.md` 继续满足现有 200 行限制
-  - 所有 tool surface 的语义保持 parity
+- **结构形成入口**：四个入口指向同一配置消费规则，规则不含 method/skill 分支。
+- **无结构需求**：Contract-only 工作与 Apply、Archive、Reviewer、Optimizer 不因公共依赖而加载分解方法或重建 hierarchy。
+- **项目指导优先**：本仓库专属分解规则由用户指导文件承载，不进入公共规则正文。
+- **生成约束**：各工具投影语义一致，skills 与 references 遵守既有长度约束。

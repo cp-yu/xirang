@@ -1,16 +1,11 @@
+import { COMMON_PREREQUISITE, MODEL_CONTEXT_ENTRY, SEMANTIC_AUTHORING_ENTRY, DECOMPOSITION_ENTRY, DELTA_NOTATION_ENTRY } from '../fragments/guidance-loading.js';
 /**
  * Snack workflow template (code-first artifact reconciliation).
  */
 import type { SkillTemplate } from '../types.js';
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
-  ARCHITECTURE_GENERATE_DELTA,
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
-  ELEMENT_CONTRACT_SEMANTICS,
-  ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
-  XIRANG_PHILOSOPHY,
-  XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
 
 const ARTIFACT_INSTRUCTION_CONTRACT = `Use each artifact reference in Definition, Guidance, Template order. Keep static guidance, selected configuration, dependency status and target content separate; do not copy non-artifact inputs into artifacts.`;
@@ -22,15 +17,13 @@ export function getSnackSkillTemplate(): SkillTemplate {
       'Quick code-first artifact reconciliation: from already-written code, conditionally create or update proposal + simplified design + the four-partition Semantic Delta using available code-change evidence. Use after iterative coding to back-fill Xirang artifacts without redoing propose→apply. Does not generate tasks.md.',
     instructions: `Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
 
-${XIRANG_PHILOSOPHY}
+${COMMON_PREREQUISITE}
 
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
-${ELEMENT_DEFINITION_SEMANTICS}
+${SEMANTIC_AUTHORING_ENTRY}
 
-${ELEMENT_CONTRACT_SEMANTICS}
-
-${STRUCTURAL_DECOMPOSITION_GUIDANCE}
+${DECOMPOSITION_ENTRY}
 
 Treat \`proposal.md\`, \`design.md\`, and the Delta units under \`{metamodel,elements,relationships,views}/\` as conditional artifacts: create them when missing, update them when stale or inconsistent, and leave them unchanged when current.
 
@@ -49,7 +42,7 @@ ${ARTIFACT_INSTRUCTION_CONTRACT}
    - In update mode, use the explicitly named change. If the user explicitly asks to update the current change without naming it, run \`xirang list --json\` and reuse the single active change; if multiple or none exist, ask which existing change to target.
    - Before updating, read the current proposal, design, and Delta units; classify each as **missing**, **stale**, **inconsistent**, or **current** and preserve unrelated human-authored content.
 2. Load the shared Xirang Semantic Model context.
-${XIRANG_SHARED_CONTEXT}
+${MODEL_CONTEXT_ENTRY}
 3. Collect code-change evidence from conversation context plus \`git diff --cached\`, \`git diff HEAD\`, other available working-tree/staged diffs, and user-selected commit/range diffs. \`git diff\` is one evidence source among several and MUST NOT be treated as the only valid source. Treat natural-language commit/range selectors as agent-parsed evidence selectors, not Xirang CLI flags. Mark conflicts or uncertainty \`[REVIEW NEEDED]\`.
 4. Map changed symbols/files to current Semantic Model context.
    - Use Element \`identity\` values, refinement, Element Contracts, and relationships.
@@ -82,7 +75,7 @@ ${XIRANG_SHARED_CONTEXT}
    - Read \`.xirang/references/xirang-artifact-design.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact design --select proseLanguage --select context --select rules --json\`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content \`[INFERRED FROM CODE]\` and unresolved decisions \`[REVIEW NEEDED]\`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
-   ${ARCHITECTURE_GENERATE_DELTA}
+   ${DELTA_NOTATION_ENTRY}
    - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate \`tasks.md\` (code is already implemented).
 13. Run \`xirang validate --change "<name>" --preview --json\` and review the effective-diff entries against implementation evidence before completion. On ERROR/WARNING, repair once from artifact guidance, rerun the command, review the final preview, and report the final result.

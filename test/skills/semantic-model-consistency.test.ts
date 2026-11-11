@@ -3,7 +3,6 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../src/core/shared/subagent-generation.js';
-import { XIRANG_SHARED_CONTEXT } from '../../src/core/templates/fragments/xirang-fragments.js';
 import { getOptimizerSubagentTemplate } from '../../src/core/templates/workflows/optimizer.js';
 import { getReviewerSubagentTemplate } from '../../src/core/templates/workflows/reviewer.js';
 
@@ -13,7 +12,7 @@ describe('generated internal agent semantic context', () => {
       getReviewerSubagentTemplate(),
       getOptimizerSubagentTemplate(),
     ]) {
-      expect(generateSubagentContent(template, 'claude', 'TEST')).toContain(XIRANG_SHARED_CONTEXT);
+      expect(generateSubagentContent(template, 'claude', 'TEST')).toContain('xirang-model-context.md');
     }
   });
 
@@ -25,11 +24,11 @@ describe('generated internal agent semantic context', () => {
       '.pi/skills/xirang-snack/SKILL.md',
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
-      const configRead = content.indexOf('xirang config project --select decomposition --json');
-      const resolvedGuidance = content.indexOf('Read the guidance file at that resolved path in full');
+      const configRead = content.indexOf('xirang-decomposition-use.md');
+      const resolvedGuidance = readFileSync(path.resolve('.xirang/references/xirang-decomposition-use.md'), 'utf8').indexOf('Read the guidance file at that resolved path in full');
 
       expect(configRead, file).toBeGreaterThanOrEqual(0);
-      expect(resolvedGuidance, file).toBeGreaterThan(configRead);
+      expect(resolvedGuidance, file).toBeGreaterThanOrEqual(0);
       expect(content, file).toContain('decomposition');
     }
   });
@@ -49,7 +48,7 @@ describe('generated internal agent semantic context', () => {
       .map((file) => readFileSync(path.resolve(file), 'utf8'))
       .join('\\n');
 
-    expect(combined).toContain('Xirang Philosophy');
+    expect(combined).toContain('xirang-common');
     for (const retired of [
       'capabilityId',
       'metadata.specs',

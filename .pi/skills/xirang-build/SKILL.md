@@ -11,59 +11,15 @@ metadata:
 
 Build the project Xirang Semantic Model from user-authorized intent and evidence.
 
-**Xirang Philosophy**
+Before doing stage work, load the xirang-common skill from this tool's discovered skills or from ../xirang-common/SKILL.md relative to this skill file, unless its required guidance is already available and current in this Agent's project context. Keep the selected stage while loading it; do not route back or load this stage again. Follow common's on-demand guidance and reuse rules.
 
-1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
-3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
-4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
-5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
+For a Kind or Contract with `contractFormat: business-specification`, read project-root file `.xirang/references/xirang-business-specification-standard.md` before exploring or authoring it, unless already available and current. Generic framework or organizational Elements do not trigger this format.
 
-**Business Specification Standard (4+N)**
+Before exploring or writing an Element Declaration or Contract, read project-root file `.xirang/references/xirang-semantic-authoring.md` unless already available and current.
 
-For business-specification Elements, prepare scope/non-goals, the complete business mechanism, exceptions, and key acceptance outcomes; add Sections only for independently maintained commitments. Before exploring such a Contract or authoring/revising its Kind or Contract, read `.xirang/references/xirang-business-specification-standard.md` for applicability, canonical structure and self-checks. Generic framework or organizational Elements do not trigger this format.
+Only before forming or reorganizing a hierarchy, read project-root file `.xirang/references/xirang-decomposition-use.md` unless already available and current; then follow its normalized configuration routing. Contract-only work does not trigger it.
 
-**Element Definition Semantics**
-
-- A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.
-- A Definition MUST NOT be a rewrite of the title or a one-sentence "used for ..." summary; it expresses concept identity and scope boundary, not implementation files, symbols, call relationships, or the current approach.
-- Responsibilities, guarantees, constraints, behavior, Sections, and acceptance cases belong to the Element Contract; approach and rationale belong to `design.md`; change motivation and migration history belong to `proposal.md`.
-
-**Element Contract Semantics**
-
-- An Element Contract SHALL express completely the responsibilities, guarantees, constraints, and behavior the host Element carries at its own abstraction level; children may further refine or jointly fulfill those commitments. A parent must independently state its complete commitments at that level without requiring readers to read child Contracts. Preserve necessary coverage across abstraction levels without copying child Contracts item by item.
-- Scope states this Element's responsibilities and necessary exclusions, not every thing it does not do. Whole-Change goals and non-goals belong in `proposal.md`; implementation choices, rejected approaches, and reasons needed to understand the design belong in `design.md` (execution work belongs in `tasks.md`). For `pi-native-markdown-preview`, “自研 HTTP 预览服务” is an implementation approach exclusion: route it to `design.md`, not the Element Contract's Scope and Non-goals.
-- State conditions, behavior, and results directly; remove explanations that add no meaning. For example, “系统 MUST 对提交的来源版本进行严格校验，以确保更新始终基于最新记录，避免过期操作对现有内容造成覆盖。” can be shortened to “来源版本过期时，MUST 拒绝更新，记录保持不变。”
-- State each rule once at the same abstraction level. Scope does not repeat the complete pipeline; Business Logic explains the mechanism; exceptions add distinct conditions and outcomes; acceptance uses concrete inputs and results to verify the commitment. Preserve complete commitments across parent/child levels rather than removing them as duplicates.
-- Reuse accurate existing wording and change only affected behavior. Do not polish unrelated passages or repackage clear user-confirmed language merely to make it sound formal. Preserve conditions, numbers, exceptions, timing, and concrete examples. Keep implementation internals and process detail out of Contracts, and name Sections for enduring verifiable commitments, not one-time gap, recovery, or migration actions.
-- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, `SHALL` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved. Business-specification Contracts use the mandatory 4+N groups; related mechanism details remain inside Business Logic instead of becoming separate Sections.
-- A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. `### Section:` headers are the only structural unit inside `## Specification`.
-- `#### Acceptance Case:` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
-
-**Structural Decomposition Guidance**
-
-- Before forming or reorganizing an Element hierarchy, run `xirang config project --select decomposition --json` and read the normalized `decomposition` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
-- Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
-- Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
-- Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
-
-**Semantic Model Unit Notation**
-
-Every Markdown unit declares its own `entity` in frontmatter. The partition does not determine the type.
-
-| entity | frontmatter fields |
-|---|---|
-| `element-declaration` | `identity`, `kind`, `parent`, `title`, `definition` |
-| `element-kind` | `identity`, `contract`; optional `contractFormat`, `root`, `parents`, `children` |
-| `relationship-kind` | `identity`; optional `sourceKinds`, `targetKinds` |
-| `authored-view` | `identity`, `include`; optional `exclude`, `of`, `title`, `autoLayout` |
-
-- `parent: null` marks the single Project Root. `include` is `'*'` or a list of element identities; `exclude` is a list of element identities whose whole descendant subtree is pruned, taking precedence over `include`; `of` is one element identity.
-- A `relationships/` file is a container of `{source, kind, target}` entries. A Relationship's identity is its entire content and it carries no other field.
-- An `elements/` unit body is exactly the `## Specification` section: `### Section: <name>` items, each with a free body and optionally `#### Acceptance Case: <name>` blocks inside the acceptance-cases Section. Concept identity and scope prose belongs to the Declaration's `definition` and MUST NOT be repeated in the Contract. Any other body content is a validation error.
-- A `views/` unit has no body.
-- `identity` uses `[A-Za-z0-9._-]+` and contains no path separator. Element Kind and Relationship Kind identities are globally unique within the Metamodel. Do not encode a parent path or hierarchy position into an identity: position changes over time while identity does not.
-- Default file naming, non-normative: `elements/<identity>.md`, `metamodel/<kind identity>.md`, `views/<view identity>.md`, `relationships/<relationship kind identity>.yaml` grouped by Relationship Kind.
+Before writing Candidate model units, read project-root file `.xirang/references/xirang-model-notation.md` unless already available and current.
 
 Before authoring, load `.xirang/references/xirang-configuration-use.md` and query the effective configuration fields needed for this Build. Reuse current guidance and configuration.
 
@@ -96,7 +52,7 @@ MUST read `.xirang/references/xirang-design-record.md` before using or creating 
 10. When legacy documents or the formal model contain still-current behavior missing from the Candidate, recover it as authored semantic content. Deciding where each piece belongs (which Element, which hierarchy level, which Contract Section) is a semantic choice that requires model understanding: an Agent selects the placement, it is not derived by file name, heading match, or programmatic mapping. Copying content verbatim MAY be done directly; any rewriting or migration (including vocabulary migration: `spec` → `contract`, `architecture-delta.c4` → four-partition Semantic Delta, `.opsx` → `.xirang`) MUST go through a subagent when one is available, using the model the user selected when subagents were confirmed. Keep already-covered content, never resurrect retired behavior (for example: architecture-delta.c4 persistence, Spec store/registry/frontmatter, `xirang change/spec/diff` command groups, archive-time sync or `--no-sync`, impact-sweeper, scenario operation-label acceptance), and record which sources were covered, added, and retired in `build.md`.
 11. After all five layers exist, reload the complete latest record under **Inputs and authority**, reconcile conflicts, and apply the shared **Coverage gate** to current record → complete Candidate. Classify nature, decision, and applicability; resolve target-affecting pending issues and justify non-applicability or no effect. Excluded and informative material belongs in `build.md` or provenance, not invented Contract obligations. Coverage must pass before source handoff.
     - Run `xirang candidate validate --json`. Fix every ERROR in Candidate source and repeat deterministic validation until it succeeds. The CLI is read-only and must not author or normalize semantics.
-    - When an active Build record exists and validation passes, use `result: covered` with atomic details, exact Candidate locations, and excerpts copied from current Candidate files for each applicable accepted normative entry; `result: not-applicable` with a reason for accepted normative content outside this target; and `result: pending` with `affectsTarget` for every pending entry (true blocks, false requires a reason). Excluded and non-pending informative entries need no target locations. Run `xirang record coverage <filename> --candidate --from <file> --json`. On rejection, resolve missing decisions, correct classifications, or write missing details into the Candidate, then revalidate and recheck. Any source or Candidate change invalidates coverage and requires a new check.
+    - When an active Build record exists and validation passes, apply the shared **Coverage gate** to the complete latest record and Candidate, then run `xirang record coverage <filename> --candidate --from <file> --json`. Resolve rejection before continuing; any source or Candidate change requires renewed coverage.
     - After coverage is recorded, reload the complete record when needed, then run `xirang record consume <filename> --candidate --json`. It also compares the record's `structure` with the Candidate field by field. Follow the shared **Output and handoff** success and failure checks; any failure blocks promotion readiness.
     - Run `xirang candidate validate --details --json` again after handoff. Retain the actual Formal comparison and diff, or the explicit unavailable reason, for independent review and final presentation. Do not reuse a pre-handoff digest. The final `reviewDigest` includes `record-source.md` and `record-coverage.json`; review and user confirmation must use this final version. With no record, skip consumption, not validation or independent review, and confirm the declared record decision on `build.md` before promotion readiness.
 12. After deterministic validation succeeds, delegate one complete semantic review to a generic read-only subagent with a clean context.

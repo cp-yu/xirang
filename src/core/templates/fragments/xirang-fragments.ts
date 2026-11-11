@@ -7,7 +7,7 @@ import {
 
 /**
  * Fragment: Xirang philosophy
- * Used in: propose, explore, apply-change, archive-change, build, snack, reviewer, optimizer
+ * Used in: common (stage skills and internal agents load it on demand)
  * Excluded by decision: feedback (writes no artifacts)
  */
 export const XIRANG_PHILOSOPHY = `
@@ -82,7 +82,7 @@ export const ELEMENT_CONTRACT_SEMANTICS = `
 - State conditions, behavior, and results directly; remove explanations that add no meaning. For example, “系统 MUST 对提交的来源版本进行严格校验，以确保更新始终基于最新记录，避免过期操作对现有内容造成覆盖。” can be shortened to “来源版本过期时，MUST 拒绝更新，记录保持不变。”
 - State each rule once at the same abstraction level. Scope does not repeat the complete pipeline; Business Logic explains the mechanism; exceptions add distinct conditions and outcomes; acceptance uses concrete inputs and results to verify the commitment. Preserve complete commitments across parent/child levels rather than removing them as duplicates.
 - Reuse accurate existing wording and change only affected behavior. Do not polish unrelated passages or repackage clear user-confirmed language merely to make it sound formal. Preserve conditions, numbers, exceptions, timing, and concrete examples. Keep implementation internals and process detail out of Contracts, and name Sections for enduring verifiable commitments, not one-time gap, recovery, or migration actions.
-- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved. Business-specification Contracts use the mandatory 4+N groups; related mechanism details remain inside Business Logic instead of becoming separate Sections.
+- A Section SHALL express one independently evolvable normative commitment under a stable identity. Its boundary is whether that commitment can be added, modified, or removed on its own; do not split mechanically by sentence, clause, \`SHALL\` count, or target Section count. Content that only restates the Declaration definition or the union of sibling Sections without adding a normative commitment does not form a Section; independent invariants, ordering, atomicity, consistency, or completion conditions are preserved. For business-specification Contracts, follow project-root file \`.xirang/references/xirang-business-specification-standard.md\` for the applicable grouping rules.
 - A Section body is free-form: prose, lists, tables, decision tables, formulas, pseudocode blocks, event triples, or any other carrier that expresses the item completely. Do not force a carrier, require fixed sub-headings, or treat sub-headings as identity. \`### Section:\` headers are the only structural unit inside \`## Specification\`.
 - \`#### Acceptance Case:\` is used only inside the key-acceptance-cases Section. It is not a general structural requirement; do not demand Acceptance Cases from other Sections, and do not let Acceptance Case count determine the number of persistent tests.
 `.trim();
@@ -203,8 +203,5 @@ export const QUALITY_ERROR_RECOVERY_GUIDE = renderQualityErrorRecovery();
  * Used in: propose, snack, apply-change
  */
 export const ARTIFACT_DOC_LANGUAGE_CONTRACT = `
-**Document Language Contract**:
-- Follow the shared configuration-use protocol in \`.xirang/references/xirang-configuration-use.md\`; load it once before authoring and reuse it while current.
-- Query effective \`proseLanguage\` through \`xirang config project --select proseLanguage --json\` once and after relevant configuration changes. Use it for newly authored natural-language prose; preserve IDs, schema keys, paths, commands, SHALL/MUST and canonical template/Section headings.
-- Keep the template structure unchanged. If no \`proseLanguage\` value is present, keep the default writing behavior for prose.
+Before authoring, read \`.xirang/references/xirang-configuration-use.md\` unless already available and current; follow its effective configuration and document-language rules.
 `.trim();

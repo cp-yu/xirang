@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "filename": "shared-xirang-skill.md",
+  "sourceVersion": "f968f9957a54186e7f814213b8ba6f6aebc9478a437e36497e57e731f83e8396",
+  "targetFingerprint": "91a278e4e9d034e2e27a60f4bdb85c5c8d59f680548b6be8520a1fe7e3636b9f",
+  "recordedAt": "2026-11-11T07:43:25.618Z",
+  "entries": [
+    {
+      "identity": "shared-prerequisite-skill",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "公共 skill 承载完整 Philosophy",
+          "location": {
+            "element": "skill-generation",
+            "section": "Xirang Philosophy 注入 workflow skill 模板"
+          },
+          "quote": "Skill Generation SHALL 将完整 `XIRANG_PHILOSOPHY` 交付于 `xirang-common`，六个阶段 skills SHALL 声明公共前置依赖，正文不内联该完整片段。common SHALL 承载统一语义依据、identity 等基本约束，以及阶段选择、按需加载和复用规则；专项细则通过单一 reference 提供。"
+        },
+        {
+          "detail": "所有六个阶段 skills 声明公共前置依赖",
+          "location": {
+            "element": "skill-generation",
+            "section": "Xirang Philosophy 注入 workflow skill 模板"
+          },
+          "quote": "Skill Generation SHALL 将完整 `XIRANG_PHILOSOPHY` 交付于 `xirang-common`，六个阶段 skills SHALL 声明公共前置依赖，正文不内联该完整片段。common SHALL 承载统一语义依据、identity 等基本约束，以及阶段选择、按需加载和复用规则；专项细则通过单一 reference 提供。"
+        },
+        {
+          "detail": "用户可单独加载公共 skill 作为阶段入口",
+          "location": {
+            "element": "skill-generation",
+            "section": "Xirang Philosophy 注入 workflow skill 模板"
+          },
+          "quote": "用户可以只加载 common 后通过自然语言选择阶段，也可以直接加载任一阶段 skill；Agent SHALL 在开展该阶段工作前取得缺少的公共指导，已加载且仍有效时复用。单独加载 common SHALL NOT 无条件加载全部阶段或专项指导。"
+        }
+      ]
+    },
+    {
+      "identity": "single-rule-maintenance",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "同一完整专项规则只有一个维护位置",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "common、阶段 skills、references 通过入口共享，不重复正文",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "各工具生成投影同源，不能独立维护副本",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "内置 references SHALL 物化于 `.xirang/references/` 这一唯一物理位置，各工具 skill 目录不含 references 子目录。跨工具 skill 文件由同一生成源投影，不独立维护规则副本。静态制品定义、写作指导、模板与配置消费规则 SHALL 使用单一受管来源，不同时交付 instructions 命令与 reference 两套提示词。动态配置、制品状态与质量详情 SHALL 分别通过 config project、status --change 与 quality status 获取；指导复用不替代 Record、模型、配置、Git 或 Quality 的适用状态检查。"
+        }
+      ]
+    },
+    {
+      "identity": "on-demand-reuse",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "公共内容和专项指导按需取得，只补新增需求",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "同一 Agent、同一项目且指导仍有效可用时跨阶段复用",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "新 Agent 重新取得必要内容",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "必要上下文丢失后重新取得必要内容",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "指导更新后重新取得必要内容",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "静态复用不取消 Record、模型、配置、Git 和 Quality 门禁",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        }
+      ]
+    },
+    {
+      "identity": "apply-decides-test-actions",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "tasks 不预列具体测试动作，保留目标和验证方向",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 安排执行与验证"
+          },
+          "quote": "`tasks.md` SHALL 在形成 Change 时列出与用户达成一致的实施目标与各目标需要覆盖的验证方向：要验证的行为、相关边界及预期可观察结果。目标语义 SHALL 引用对应 Element Contract，而不是在任务中另写一套行为定义；行为缺失时先补 Contract。`tasks.md` SHALL NOT 要求 Propose 预列具体实现或测试文件、测试动作、测试层级、命令、用例拆分及细排的实施操作；这些由 Apply 结合当前项目状态确定。`proposal.md`、`design.md` 与 `tasks.md` SHALL 分别承载范围、关键决策与目标验证，不机械重复目标描述。"
+        },
+        {
+          "detail": "具体测试安排由 Apply 结合当前项目状态确定",
+          "location": {
+            "element": "tasks-document",
+            "section": "Tasks 安排执行与验证"
+          },
+          "quote": "`tasks.md` SHALL 在形成 Change 时列出与用户达成一致的实施目标与各目标需要覆盖的验证方向：要验证的行为、相关边界及预期可观察结果。目标语义 SHALL 引用对应 Element Contract，而不是在任务中另写一套行为定义；行为缺失时先补 Contract。`tasks.md` SHALL NOT 要求 Propose 预列具体实现或测试文件、测试动作、测试层级、命令、用例拆分及细排的实施操作；这些由 Apply 结合当前项目状态确定。`proposal.md`、`design.md` 与 `tasks.md` SHALL 分别承载范围、关键决策与目标验证，不机械重复目标描述。"
+        },
+        {
+          "detail": "Propose 与 artifact references、Apply 采用同一边界",
+          "location": {
+            "element": "workflow-templates",
+            "section": "Workflow Skills 声明 Internal Subagents 约束"
+          },
+          "quote": "- **任务指导一致**：Propose、相关 artifact references 与 Apply SHALL 一致规定 tasks.md 只表达实施目标、Contract 引用及验证方向，不写测试动作；测试复用、修改、新增、删除与执行方式由 Apply 依据当前项目动态决定。"
+        }
+      ]
+    },
+    {
+      "identity": "foundation-content-and-loading-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "公共 skill 包含 Philosophy、统一语义依据和 identity 基本约束",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "公共 skill 包含阶段选择、按需加载和复用规则",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "模型查询与 Definition/Contract 写作有唯一专项 reference",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "结构分解与测试质量有唯一专项 reference",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "配置、Design Record 和 Quality 有唯一专项 reference",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "阶段 skill 保留自身职责、执行顺序和关键门禁",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "入口保留触发条件及按需引用而非完整重复规则",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "Agent 工作面 SHALL 将 Philosophy、统一语义依据、identity 基本约束及阶段选择、加载复用规则交付于公共 skill；各阶段 skill 保留自身职责、执行顺序、关键门禁与按需入口。模型查询、Definition/Contract 写作、结构分解、测试质量、配置、Design Record 与 Quality 的完整专项指导 SHALL 各有唯一维护位置，通过 references 按需读取。入口可保留触发条件和简短提醒，不重复承载完整规则。"
+        },
+        {
+          "detail": "common 不预加载全部专项指导",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "用户只加载 common 后表达阶段意图时，Agent SHALL 读取相应阶段 skill；直接加载阶段 skill 时 SHALL 补齐缺少的 common，保留已选阶段，不循环加载。同一 Agent、同一项目中仍有效且可用的指导 SHALL 跨阶段复用；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。公共 skill SHALL NOT 无条件预加载全部专项指导。"
+        }
+      ]
+    },
+    {
+      "identity": "bidirectional-skill-entry",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "只加载 common 后自然语言声明阶段或工作意图",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "Workflow templates SHALL 支持公共入口与阶段入口双向进入。用户只加载 `xirang-common` 后用自然语言声明阶段或表达对应工作意图，Agent SHALL 判断并读取相应阶段 skill；用户直接加载阶段 skill 时，Agent SHALL 补充加载尚未取得的 common。公共与阶段入口 SHALL NOT 循环加载：已选阶段在补读 common 后保持，继续当前阶段。"
+        },
+        {
+          "detail": "Agent 判断阶段并读取对应 skill",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "Workflow templates SHALL 支持公共入口与阶段入口双向进入。用户只加载 `xirang-common` 后用自然语言声明阶段或表达对应工作意图，Agent SHALL 判断并读取相应阶段 skill；用户直接加载阶段 skill 时，Agent SHALL 补充加载尚未取得的 common。公共与阶段入口 SHALL NOT 循环加载：已选阶段在补读 common 后保持，继续当前阶段。"
+        },
+        {
+          "detail": "用户不必再手动调用阶段 skill",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "自然语言请求 SHALL 可用于进入后续阶段，交接提示不得将手动调用 skill 作为唯一入口。Agent SHALL 按用户意图选择阶段，继续执行该阶段的准备条件、设计确认及验证门禁；读取 skill 本身不授权跳过门禁或自行扩大工作范围。"
+        },
+        {
+          "detail": "直接进入阶段时补齐尚未取得的 common",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "Workflow templates SHALL 支持公共入口与阶段入口双向进入。用户只加载 `xirang-common` 后用自然语言声明阶段或表达对应工作意图，Agent SHALL 判断并读取相应阶段 skill；用户直接加载阶段 skill 时，Agent SHALL 补充加载尚未取得的 common。公共与阶段入口 SHALL NOT 循环加载：已选阶段在补读 common 后保持，继续当前阶段。"
+        },
+        {
+          "detail": "common 已有效可用时按复用规则处理",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "不能要求先手动加载 common 才能使用阶段入口",
+          "location": {
+            "element": "skill-generation",
+            "section": "Xirang Philosophy 注入 workflow skill 模板"
+          },
+          "quote": "- **阶段入口**：直接加载 Explore 且 common 尚不可用，Agent 补读 common 后继续 Explore；不得要求用户先手动调用 common。"
+        }
+      ]
+    },
+    {
+      "identity": "entry-routing-and-stage-gates",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "双向入口不得循环加载",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "Workflow templates SHALL 支持公共入口与阶段入口双向进入。用户只加载 `xirang-common` 后用自然语言声明阶段或表达对应工作意图，Agent SHALL 判断并读取相应阶段 skill；用户直接加载阶段 skill 时，Agent SHALL 补充加载尚未取得的 common。公共与阶段入口 SHALL NOT 循环加载：已选阶段在补读 common 后保持，继续当前阶段。"
+        },
+        {
+          "detail": "补读 common 保留已选阶段并继续当前阶段",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "Workflow templates SHALL 支持公共入口与阶段入口双向进入。用户只加载 `xirang-common` 后用自然语言声明阶段或表达对应工作意图，Agent SHALL 判断并读取相应阶段 skill；用户直接加载阶段 skill 时，Agent SHALL 补充加载尚未取得的 common。公共与阶段入口 SHALL NOT 循环加载：已选阶段在补读 common 后保持，继续当前阶段。"
+        },
+        {
+          "detail": "阶段切换不重复读取仍有效的指导",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "同一 Agent、同一项目且指导仍在有效上下文中时，Agent SHALL 跨阶段复用公共内容与专项指导，只补读新增需求；新 Agent、必要上下文丢失或指导更新时重新取得所需内容。仅有“曾读过”的摘要而必要正文不可用时，不得认为已具备指导。静态协议复用 SHALL NOT 取消当前 Record、模型、配置、Git 与 Quality 状态的适用门禁。"
+        },
+        {
+          "detail": "用户自然语言意图可进入后续阶段，手动调用非唯一入口",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "自然语言请求 SHALL 可用于进入后续阶段，交接提示不得将手动调用 skill 作为唯一入口。Agent SHALL 按用户意图选择阶段，继续执行该阶段的准备条件、设计确认及验证门禁；读取 skill 本身不授权跳过门禁或自行扩大工作范围。"
+        },
+        {
+          "detail": "阶段准备、设计确认和验证门禁继续执行",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "自然语言请求 SHALL 可用于进入后续阶段，交接提示不得将手动调用 skill 作为唯一入口。Agent SHALL 按用户意图选择阶段，继续执行该阶段的准备条件、设计确认及验证门禁；读取 skill 本身不授权跳过门禁或自行扩大工作范围。"
+        },
+        {
+          "detail": "加载或识别阶段不授权跳过门禁或扩大范围",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "自然语言请求 SHALL 可用于进入后续阶段，交接提示不得将手动调用 skill 作为唯一入口。Agent SHALL 按用户意图选择阶段，继续执行该阶段的准备条件、设计确认及验证门禁；读取 skill 本身不授权跳过门禁或自行扩大工作范围。"
+        },
+        {
+          "detail": "例：只加载 common 后说“探索一下这个需求”或“进入 Explore”，读取 Explore 并开展探索",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "- **自然语言探索**：用户只加载 common 后说“探索一下这个需求”或“进入 Explore”，Agent 读取 Explore 并开展探索，不要求再次手动调用 Explore。"
+        },
+        {
+          "detail": "例：直接加载 Explore 且缺少 common，补读后继续 Explore",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "- **直接进入**：用户直接加载 Explore 且缺少 common，Agent 补读 common 后继续 Explore，不重新选择阶段或回读已具备的 Explore。"
+        },
+        {
+          "detail": "例：Explore 后自然语言要求形成 Change，只补 Propose 等缺少指导，common 复用",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "- **连续切换**：Explore 后用户要求形成 Change，Agent 读取 Propose 并复用仍有效的 common，专项指导只补缺；Propose 的准备和确认门禁仍生效。"
+        },
+        {
+          "detail": "例：阶段已确定但必须确认的决策缺失时按阶段规则处理",
+          "location": {
+            "element": "workflow-templates",
+            "section": "阶段选择与公共指导复用"
+          },
+          "quote": "- **门禁未满足**：用户已表达进入阶段的意图但缺少该阶段必须确认的决策时，按阶段规则处理缺口，不能以路由成功代替语义就绪。"
+        }
+      ]
+    },
+    {
+      "identity": "current-generation-and-task-evidence",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "该条目仅保存 Agent 对现有生成代码与任务规则的调查背景，不含未决目标行为。目标全部由已接受 normative 条目与现行模型决定，设计文档保留其证据性质与验证限制，不将其编译为义务。"
+    }
+  ]
+}

@@ -1,0 +1,599 @@
+{
+  "schemaVersion": 1,
+  "kind": "one-time-apply-verification",
+  "change": "shared-xirang-skill",
+  "baseCommit": "5dd53d1ed3b78f9f6a441f338ecc24922080f272",
+  "implementationCommit": "1827ec2a02eda4f03e328073c4e4654771c614c0",
+  "environment": {
+    "platform": "Linux",
+    "harness": "Pi native fresh delegate; same-session resume for stage switching",
+    "model": "llmgw/gpt-6.1-sol",
+    "fixtures": "/tmp/xirang-common-behavior",
+    "variant": "tracked generated skills and references; baseline from baseCommit",
+    "scope": "Independent read-only project copies, same Semantic Model and config; no implementation source/changes; missing changes directory is an observed fixture limit.",
+    "cli": "All trials used the same locally installed current CLI; the controlled variant was skill/reference content, not the CLI binary."
+  },
+  "procedure": {
+    "entry": "Read baseline/candidate Explore directly, or candidate common only; user asks to explore an Element Kind filter in Semantic Browser. Stop after one clarification question. Two repetitions per entry.",
+    "transition": "Resume each session: enter Propose without confirmed filter scope or design; perform read-only preparation and report next step.",
+    "update": "Append fixture-only common revision requiring common-fixture-v2; notify resumed direct/common sessions of update; verify actual reread and marker, selected Propose and readiness boundary.",
+    "lostContext": "Fresh session with only an old loaded receipt, direct Propose request without confirmed design.",
+    "independent": "Fresh delegated evidence assessor reads own common and test-quality; retains read-only role, no user-stage dispatch. Explicit initial read is supplied, so this does not test automatic role-template bootstrap.",
+    "missing": "Fresh direct Explore in a copy lacking common; no other-project fallback permitted."
+  },
+  "observations": {
+    "entry": "All six entry trials entered Explore, asked one scope/problem question and read no later stage. Candidate direct entry read stage then common; common entry read common then stage; no loading loop.",
+    "transition": "All six Propose rounds stopped before writing due unconfirmed design. Four candidate sessions read Propose and Record protocol without rereading common/model/authoring references. Current Record/model checks continued.",
+    "boundary": "Updated common reread in both trials; v2 marker present, Propose retained. Missing common reported ENOENT and blocked before stage queries. Lost context reread common and needed references. Independent assessor read own common/test-quality and did not enter a user stage.",
+    "readingVolume": "Guidance characters for Explore+Propose: baseline 78962 each; direct 70269 and 74181; common 74181 each. First Explore increases by 3009–6921 characters; Propose reduces by 11702. Net guidance reduction 4781–8693 characters (6.1–11.0%).",
+    "efficiencyLimit": "Total tool output, tool calls, reported input/cache/output and elapsed time vary. The trials do not establish full-system token/cost/time improvement; character volume is not tokenizer output.",
+    "decision": "Retain shared entry and single guidance ownership based on observed routing/gates/reuse and duplicate-reading reduction. No general cost or speed claim. Sampling stopped after consistent gate/loading outcomes in both repeated entry variants and explicit boundary cases; wider task/tool/model coverage remains untested."
+  },
+  "checks": [
+    {
+      "command": "pnpm exec tsc --noEmit",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm build",
+      "result": "PASS"
+    },
+    {
+      "command": "pnpm exec vitest run",
+      "result": "PASS: 166 files, 2226 tests"
+    },
+    {
+      "command": "pnpm exec vitest run test/core/templates test/core/workflow-installation.test.ts test/skills/semantic-model-consistency.test.ts",
+      "result": "PASS after cleanup: 20 files, 254 tests"
+    },
+    {
+      "command": "node bin/xirang.js validate --change shared-xirang-skill --strict --preview --json",
+      "result": "PASS, 14 effective entries: 2 ADDED, 12 MODIFIED"
+    },
+    {
+      "command": "git diff --cached --check",
+      "result": "PASS before implementation commit"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit && pnpm exec vitest run",
+      "result": "PASS after Review correction: 166 files, 2226 tests"
+    }
+  ],
+  "windowsCI": {
+    "status": "PASS: completed workflow",
+    "url": "https://github.com/cp-yu/xirang/actions/runs/42987224888",
+    "workflow": "Candidate Views Windows",
+    "addedCoverage": [
+      "test/core/workflow-installation.test.ts",
+      "test/core/templates/skill-templates-parity.test.ts"
+    ],
+    "passedSteps": [
+      "Build root workspace",
+      "Run Candidate View runtime tests",
+      "Verify Windows record paths and build gates",
+      "Run Neovim Change review checks",
+      "Run Windows Candidate Contract handler tests"
+    ]
+  },
+  "entryMeasurements": [
+    {
+      "key": "baseline-1",
+      "runId": "157b0181-0484-40c6-8814-1fdb09b6ef67",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 16,
+      "toolResultChars": 32937,
+      "guidanceChars": 19178,
+      "cliOutputChars": 13375,
+      "reportedInput": 34955,
+      "reportedCacheRead": 69248,
+      "reportedOutput": 2159,
+      "elapsedMs": 96677,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-explore/SKILL.md",
+          "chars": 13317
+        },
+        {
+          "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5861
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/157b0181-0484-40c6-8814-1fdb09b6ef67/events.jsonl"
+    },
+    {
+      "key": "baseline-2",
+      "runId": "b0601c91-4813-4f8f-ade0-175e711d671b",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 13,
+      "toolResultChars": 34815,
+      "guidanceChars": 19178,
+      "cliOutputChars": 15568,
+      "reportedInput": 20655,
+      "reportedCacheRead": 61184,
+      "reportedOutput": 1536,
+      "elapsedMs": 70396,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-explore/SKILL.md",
+          "chars": 13317
+        },
+        {
+          "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5861
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/b0601c91-4813-4f8f-ade0-175e711d671b/events.jsonl"
+    },
+    {
+      "key": "direct-1",
+      "runId": "97373f3e-ed75-49fd-9d45-50d7d198f9ca",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 11,
+      "toolResultChars": 40290,
+      "guidanceChars": 22187,
+      "cliOutputChars": 11415,
+      "reportedInput": 16839,
+      "reportedCacheRead": 94464,
+      "reportedOutput": 1846,
+      "elapsedMs": 74059,
+      "reads": [
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.pi/skills/xirang-explore/SKILL.md",
+          "chars": 5785
+        },
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.pi/skills/xirang-common/SKILL.md",
+          "chars": 6251
+        },
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5890
+        },
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.xirang/references/xirang-model-context.md",
+          "chars": 4261
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/97373f3e-ed75-49fd-9d45-50d7d198f9ca/events.jsonl"
+    },
+    {
+      "key": "direct-2",
+      "runId": "de9b287b-e902-40df-be51-d41982adad2c",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 18,
+      "toolResultChars": 50885,
+      "guidanceChars": 26099,
+      "cliOutputChars": 16874,
+      "reportedInput": 37709,
+      "reportedCacheRead": 117504,
+      "reportedOutput": 2222,
+      "elapsedMs": 108061,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-explore/SKILL.md",
+          "chars": 5785
+        },
+        {
+          "path": ".pi/skills/xirang-common/SKILL.md",
+          "chars": 6251
+        },
+        {
+          "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5890
+        },
+        {
+          "path": ".xirang/references/xirang-model-context.md",
+          "chars": 4261
+        },
+        {
+          "path": ".xirang/references/xirang-semantic-authoring.md",
+          "chars": 3912
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/de9b287b-e902-40df-be51-d41982adad2c/events.jsonl"
+    },
+    {
+      "key": "common-1",
+      "runId": "3d95b4c5-48a7-4cef-8bfb-aab64e469c1a",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 16,
+      "toolResultChars": 48351,
+      "guidanceChars": 26099,
+      "cliOutputChars": 14523,
+      "reportedInput": 21842,
+      "reportedCacheRead": 122240,
+      "reportedOutput": 2753,
+      "elapsedMs": 107990,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-common/SKILL.md",
+          "chars": 6251
+        },
+        {
+          "path": ".pi/skills/xirang-explore/SKILL.md",
+          "chars": 5785
+        },
+        {
+          "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5890
+        },
+        {
+          "path": ".xirang/references/xirang-model-context.md",
+          "chars": 4261
+        },
+        {
+          "path": ".xirang/references/xirang-semantic-authoring.md",
+          "chars": 3912
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/3d95b4c5-48a7-4cef-8bfb-aab64e469c1a/events.jsonl"
+    },
+    {
+      "key": "common-2",
+      "runId": "5d2bf984-5f85-41e6-b8bb-c56eb1b08a33",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 18,
+      "toolResultChars": 62212,
+      "guidanceChars": 26099,
+      "cliOutputChars": 26704,
+      "reportedInput": 43465,
+      "reportedCacheRead": 95744,
+      "reportedOutput": 2134,
+      "elapsedMs": 95213,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-common/SKILL.md",
+          "chars": 6251
+        },
+        {
+          "path": ".pi/skills/xirang-explore/SKILL.md",
+          "chars": 5785
+        },
+        {
+          "path": ".xirang/references/xirang-explore-supperpowers-style.md",
+          "chars": 5890
+        },
+        {
+          "path": ".xirang/references/xirang-model-context.md",
+          "chars": 4261
+        },
+        {
+          "path": ".xirang/references/xirang-semantic-authoring.md",
+          "chars": 3912
+        },
+        {
+          "path": ".xirang/model/metamodel/element.md",
+          "chars": 189
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/5d2bf984-5f85-41e6-b8bb-c56eb1b08a33/events.jsonl"
+    },
+    {
+      "key": "baseline-1-propose",
+      "runId": "405cb1d1-3a8b-48f8-a0db-87d9bf2bc997",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 5,
+      "toolResultChars": 62644,
+      "guidanceChars": 59784,
+      "cliOutputChars": 2860,
+      "reportedInput": 13366,
+      "reportedCacheRead": 82176,
+      "reportedOutput": 1253,
+      "elapsedMs": 49936,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-propose/SKILL.md",
+          "chars": 39623
+        },
+        {
+          "path": ".xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/405cb1d1-3a8b-48f8-a0db-87d9bf2bc997/events.jsonl"
+    },
+    {
+      "key": "baseline-2-propose",
+      "runId": "88d87dfb-c13f-4971-8fb7-afb23b6ec4a7",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 5,
+      "toolResultChars": 62644,
+      "guidanceChars": 59784,
+      "cliOutputChars": 2860,
+      "reportedInput": 13113,
+      "reportedCacheRead": 83072,
+      "reportedOutput": 1241,
+      "elapsedMs": 44416,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-propose/SKILL.md",
+          "chars": 39623
+        },
+        {
+          "path": ".xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/88d87dfb-c13f-4971-8fb7-afb23b6ec4a7/events.jsonl"
+    },
+    {
+      "key": "direct-1-propose",
+      "runId": "8ff10200-ab4f-4fe9-aea5-22cf595c0c90",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 4,
+      "toolResultChars": 48223,
+      "guidanceChars": 48082,
+      "cliOutputChars": 141,
+      "reportedInput": 9982,
+      "reportedCacheRead": 84608,
+      "reportedOutput": 1321,
+      "elapsedMs": 43024,
+      "reads": [
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.pi/skills/xirang-propose/SKILL.md",
+          "chars": 27921
+        },
+        {
+          "path": "/tmp/xirang-common-behavior/direct-1/.xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/8ff10200-ab4f-4fe9-aea5-22cf595c0c90/events.jsonl"
+    },
+    {
+      "key": "direct-2-propose",
+      "runId": "6b2a774f-c837-4d35-8496-b6288dd39c3f",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 7,
+      "toolResultChars": 52234,
+      "guidanceChars": 48082,
+      "cliOutputChars": 3928,
+      "reportedInput": 11675,
+      "reportedCacheRead": 129024,
+      "reportedOutput": 2005,
+      "elapsedMs": 76320,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-propose/SKILL.md",
+          "chars": 27921
+        },
+        {
+          "path": ".xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/6b2a774f-c837-4d35-8496-b6288dd39c3f/events.jsonl"
+    },
+    {
+      "key": "common-1-propose",
+      "runId": "3abe2520-880f-479c-9eb8-73c96102922e",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 7,
+      "toolResultChars": 51166,
+      "guidanceChars": 48082,
+      "cliOutputChars": 2860,
+      "reportedInput": 11281,
+      "reportedCacheRead": 128768,
+      "reportedOutput": 2624,
+      "elapsedMs": 92110,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-propose/SKILL.md",
+          "chars": 27921
+        },
+        {
+          "path": ".xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/3abe2520-880f-479c-9eb8-73c96102922e/events.jsonl"
+    },
+    {
+      "key": "common-2-propose",
+      "runId": "b75ed6d2-921f-46f4-a54f-b938d0f304bd",
+      "model": "llmgw/gpt-6.1-sol",
+      "toolCalls": 6,
+      "toolResultChars": 50962,
+      "guidanceChars": 48082,
+      "cliOutputChars": 2860,
+      "reportedInput": 10975,
+      "reportedCacheRead": 114304,
+      "reportedOutput": 1455,
+      "elapsedMs": 44704,
+      "reads": [
+        {
+          "path": ".pi/skills/xirang-propose/SKILL.md",
+          "chars": 27921
+        },
+        {
+          "path": ".xirang/references/xirang-design-record.md",
+          "chars": 20161
+        }
+      ],
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/b75ed6d2-921f-46f4-a54f-b938d0f304bd/events.jsonl"
+    }
+  ],
+  "boundaryTrials": [
+    {
+      "scenario": "updated-direct",
+      "runId": "67e1c80a-248b-4b64-96c7-2a49f91f04bc",
+      "report": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/ba2d3ad2-f326-4dbb-b864-f01cd7f71e42/updated-direct.md",
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/67e1c80a-248b-4b64-96c7-2a49f91f04bc/events.jsonl",
+      "reads": [
+        {
+          "limit": 2000,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/direct-1/.pi/skills/xirang-common/SKILL.md"
+        }
+      ],
+      "commands": [
+        "xirang list --json",
+        "xirang record list --json",
+        "git status --short"
+      ]
+    },
+    {
+      "scenario": "updated-common",
+      "runId": "aa8dab5e-e851-446b-b2e7-2ddfe4d0cb02",
+      "report": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/ba2d3ad2-f326-4dbb-b864-f01cd7f71e42/updated-common.md",
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/aa8dab5e-e851-446b-b2e7-2ddfe4d0cb02/events.jsonl",
+      "reads": [
+        {
+          "limit": 2000,
+          "offset": 1,
+          "path": ".pi/skills/xirang-common/SKILL.md"
+        }
+      ],
+      "commands": [
+        "xirang list --json",
+        "xirang record list --json",
+        "xirang arch query semantic-browser --contract --json",
+        "git status --short"
+      ]
+    },
+    {
+      "scenario": "independent",
+      "runId": "51f699da-c20c-4aad-a29f-c76eed04a727",
+      "report": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/ba2d3ad2-f326-4dbb-b864-f01cd7f71e42/independent.md",
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/51f699da-c20c-4aad-a29f-c76eed04a727/events.jsonl",
+      "reads": [
+        {
+          "limit": 400,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/independent/.pi/skills/xirang-common/SKILL.md"
+        },
+        {
+          "limit": 400,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/independent/.xirang/references/xirang-test-quality.md"
+        }
+      ],
+      "commands": [
+        "pwd && rg --files -g 'AGENTS.md' -g 'SKILL.md' -g 'xirang-test-quality.md' -g '*test*' -g '*spec*' -g '*prompt*' -g '!node_modules' -g '!.git' .pi .xirang . 2>/dev/null | head -100",
+        "git status --short\nrg --files --hidden -g '!.git' -g '!node_modules' -g '*test*' -g '*spec*' -g 'package.json' -g 'AGENTS.md'\nnl -ba .pi/skills/xirang-common/SKILL.md\nnl -ba .xirang/references/xirang-test-quality.md"
+      ]
+    },
+    {
+      "scenario": "missing",
+      "runId": "0c86b711-709e-4d48-8ab0-cef78ffd9dc9",
+      "report": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/ba2d3ad2-f326-4dbb-b864-f01cd7f71e42/missing.md",
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/0c86b711-709e-4d48-8ab0-cef78ffd9dc9/events.jsonl",
+      "reads": [
+        {
+          "limit": 400,
+          "offset": 1,
+          "path": ".pi/skills/xirang-explore/SKILL.md"
+        },
+        {
+          "limit": 200,
+          "offset": 1,
+          "path": ".pi/skills/xirang-common/SKILL.md"
+        }
+      ],
+      "commands": [
+        "pwd && rg --files --hidden -g '!\\.git' -g 'AGENTS.md' -g '*xirang*' -g '*SKILL.md' -g '*element*' -g '*filter*' -g 'package.json' -g '*spec*' -g '*proposal*' -g '*design*' -g '*delta*' -g '*plan*'",
+        "ls -la .pi/skills && rg --files --hidden -g '!\\.git' -g '*common*' -g 'AGENTS.md'"
+      ]
+    },
+    {
+      "scenario": "lost-context",
+      "runId": "6437be1f-2775-492a-8601-8f6b46602aea",
+      "report": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/subagent-artifacts/outputs/ba2d3ad2-f326-4dbb-b864-f01cd7f71e42/lost-context.md",
+      "toolTrace": "/tmp/pi-subagents-uid-1000/async-subagent-runs/6437be1f-2775-492a-8601-8f6b46602aea/events.jsonl",
+      "reads": [
+        {
+          "limit": 400,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/lost-context/.pi/skills/xirang-propose/SKILL.md"
+        },
+        {
+          "limit": 500,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/lost-context/.pi/skills/xirang-common/SKILL.md"
+        },
+        {
+          "limit": 500,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/lost-context/.xirang/references/xirang-design-record.md"
+        },
+        {
+          "limit": 450,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/lost-context/.xirang/references/xirang-model-context.md"
+        },
+        {
+          "limit": 500,
+          "offset": 1,
+          "path": "/tmp/xirang-common-behavior/lost-context/.xirang/references/xirang-semantic-authoring.md"
+        }
+      ],
+      "commands": [
+        "pwd && rg --files -g AGENTS.md -g '*receipt*' -g '*收据*' -g '*record*' -g '*summary*' -g '*Summary*' -g '*kind*' -g '*Kind*' .pi .xirang | head -100",
+        "xirang list --json",
+        "xirang record list --json",
+        "rg --files -g AGENTS.md -g '*receipt*' -g '*context*' -g '*summary*' -g '!node_modules' -g '!references/**' . && command -v xirang",
+        "xirang arch outline --format markdown",
+        "xirang arch search Kind --limit 12",
+        "xirang arch query project.root --json",
+        "xirang arch search 过滤 --limit 10",
+        "git status --short",
+        "xirang arch query arch-search --contract --json",
+        "git status --short && git diff --cached --name-only"
+      ]
+    }
+  ],
+  "limits": [
+    "Only Pi and one model were exercised as actual agents; four tool installation paths have automated coverage.",
+    "Trials are small controlled samples and do not prove every stage, all user intents or probabilistic reliability.",
+    "Guidance update trial explicitly notifies the Agent; there is no new file-watching cache or load ledger.",
+    "Reports and event traces are retention-managed local artifacts; source versions, scenario procedure, measurements and observed conclusions are retained here.",
+    "Full-change Review failed for missing length-guard coverage; correction and full tests passed, new full-change Review pending. Windows and Ubuntu full CI passed; macOS browser E2E remains in progress. No PASS or Seal is claimed."
+  ],
+  "crossPlatformCI": {
+    "url": "https://github.com/cp-yu/xirang/actions/runs/42987224950",
+    "commit": "1827ec2a02eda4f03e328073c4e4654771c614c0",
+    "observed": "Windows and Ubuntu full jobs passed. macOS root tests, lint, build and vendored checks passed; macOS browser E2E still running."
+  },
+  "reviewCorrection": {
+    "reviewKind": "full-change",
+    "commit": "5ae994ba48f5d846c233c0fd18d5482653e2fc72",
+    "result": "FAIL",
+    "finding": "Existing length guard enumerated stages only, omitting common and 13 shared references. Files currently satisfy limits; regression protection was incomplete.",
+    "fix": "Use getInstallableSkillTemplates in the existing length guard; stage registry unchanged.",
+    "evidence": [
+      {
+        "kind": "skill",
+        "guard": "stage-only",
+        "exitCode": 0,
+        "log": "/tmp/common-length-skill-stage-only.log"
+      },
+      {
+        "kind": "skill",
+        "guard": "installable",
+        "exitCode": 1,
+        "log": "/tmp/common-length-skill-installable.log"
+      },
+      {
+        "kind": "reference",
+        "guard": "stage-only",
+        "exitCode": 0,
+        "log": "/tmp/common-length-reference-stage-only.log"
+      },
+      {
+        "kind": "reference",
+        "guard": "installable",
+        "exitCode": 1,
+        "log": "/tmp/common-length-reference-installable.log"
+      }
+    ],
+    "mutationProcedure": "Temporarily prepend 201 real lines to common instructions, then separately replace model-context reference content with 501 real lines. For each, run the existing guard using stage-only and installable enumeration. Old enumeration passes both oversized variants; corrected enumeration rejects both. Restore exact source/test bytes in finally; restored guard passes all four tests. No mocks or persistent mutation fixtures added.",
+    "validation": "pnpm exec tsc --noEmit and full vitest passed after correction: 166 files, 2226 tests.",
+    "disposition": "Required Correction completed; new full-change Review required before Opt/Seal."
+  },
+  "automaticInternalBootstrap": {
+    "runId": "2d9bca38-c691-4551-a8f3-9a161dbb6f28",
+    "role": "xirang-reviewer",
+    "evidence": "Native generated Reviewer, delegated only changeName/projectRoot/reviewKind/dimensions, independently read .pi/skills/xirang-common/SKILL.md at 2026-11-11T08:31:54.463Z and retained read-only Review role. This is actual role bootstrap evidence in addition to explicitly directed assessor trial.",
+    "sessionFile": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/2026-11-11T06-54-14-829Z_01a1c962-c12d-7768-851d-3d4771276b32/2d9bca38-c691-4551-a8f3-9a161dbb6f28/run-0/session.jsonl"
+  }
+}

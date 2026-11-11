@@ -53,28 +53,6 @@ relationships:
     target: <target element identity>
 ```
 
-For business-specification Elements, their Kind must declare `contract: required` and
-`contractFormat: business-specification`. The complete Expected Contract requires:
-
-```markdown
-### Section: Scope and Non-goals
-<responsibility boundary and exclusions>
-
-### Section: Business Logic
-<complete related mechanism, with internal headings and diagrams as useful>
-
-### Section: Edge Cases and Exception Handling
-<applicable exceptional inputs and failure outcomes>
-
-### Section: Key Acceptance Cases
-<acceptance commitments grounded in confirmed intent>
-
-#### Acceptance Case: <name>
-<conditions, action and observable expected result>
-```
-
-Keep these four titles in English regardless of proseLanguage. Each Section needs
-non-empty content and Key Acceptance Cases needs at least one non-empty case.
-Additional Sections have free names and require an independently maintainable
-boundary. Only include changed Sections in a delta; do not repeat unchanged ones.
-Generic concept Contracts are not automatically subject to this format.
+For business-specification Contracts, use the complete structure in project-root file
+`.xirang/references/xirang-business-specification-standard.md`. Include only changed
+Sections in the Delta; apply the format to the complete Expected Contract.

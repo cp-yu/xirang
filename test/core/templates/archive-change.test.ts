@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { XIRANG_PHILOSOPHY } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getArchiveChangeSkillTemplate } from '../../../src/core/templates/workflows/archive-change.js';
 
 describe('archive change workflow template', () => {
   it('includes the Xirang philosophy in the skill surface', () => {
-    expect(getArchiveChangeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
+    expect(getArchiveChangeSkillTemplate().instructions).toContain('xirang-common');
   });
 
   it('uses current Xirang workflow branding', () => {

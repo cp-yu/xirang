@@ -1,3 +1,4 @@
+import { COMMON_PREREQUISITE, MODEL_CONTEXT_ENTRY, SEMANTIC_AUTHORING_ENTRY, TEST_QUALITY_ENTRY, DECOMPOSITION_ENTRY } from '../fragments/guidance-loading.js';
 /**
  * Skill Template Workflow Modules
  *
@@ -6,14 +7,6 @@
  */
 import type { SkillTemplate } from '../types.js';
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
-import {
-  ELEMENT_DEFINITION_SEMANTICS,
-  SEMANTIC_REFINEMENT_REFERENCE,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
-  TEST_QUALITY_GUIDANCE,
-  XIRANG_PHILOSOPHY,
-  XIRANG_SHARED_CONTEXT,
-} from '../fragments/xirang-fragments.js';
 
 const CONVERSATION_LANGUAGE_GUIDANCE = `Output language: use the user's main language for prose and non-canonical section labels; keep commands, paths, artifact names, schema keys, and Xirang tokens unchanged.`;
 
@@ -44,9 +37,9 @@ Before a ready Summary:
 
 Present the Design Summary in the conversation only. Preserve confirmed scope, behavior, rationale, conditions, numbers, exceptions, timing and acceptance outcomes, with applicable architecture, technology, testing and risks. Distinguish confirmed decisions, recommendations, unresolved items and user-approved exclusions. When record-backed, identify its filename without copying the record. Do not create a separate decision ledger.
 
-Stop after presenting the Summary for user review. User changes return to the affected design section and dependent checks. Only after the user accepts the Summary may they trigger xirang-propose; Explore does not author a complete Change, update formal model/generated work surfaces, commit or implement. Design Record operations and delegated experimental writes follow their own permissions.`;
+Stop after presenting the Summary for user review. User changes return to the affected design section and dependent checks. After the user accepts the Summary, they may request Propose in natural language or invoke its skill; Explore does not author a complete Change, update formal model/generated work surfaces, commit or implement. Design Record operations and delegated experimental writes follow their own permissions.`;
 
-const DESIGN_RECORD_REFERENCE = `# Design Record Protocol
+export const DESIGN_RECORD_REFERENCE = `# Design Record Protocol
 
 Design Record is the shared method Build, Explore, and Propose use to maintain the current design and its decision basis. Entries may be pending, accepted, or excluded; an entry is not itself a confirmed obligation. Normative confirmations MUST reach the record before handoff unless the user explicitly grants an exemption. A record may hold only part of the design, and no record is needed to start discussion. Structure formation belongs to the configured decomposition guidance, not to this protocol. This protocol owns recording, conflict handling, reload, the record decision, writing rules, the coverage gate, and handoff.
 
@@ -174,35 +167,30 @@ export function getExploreSkillTemplate(): SkillTemplate {
     name: 'xirang-explore',
     description: 'Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.',
     referenceFiles: [
-      { path: 'references/semantic-refinement.md', content: SEMANTIC_REFINEMENT_REFERENCE },
       {
         path: 'references/explore-supperpowers-style.md',
         content: EXPLORE_SUPPERPOWERS_STYLE_REFERENCE,
       },
-      {
-        path: 'references/design-record.md',
-        content: DESIGN_RECORD_REFERENCE,
-      },
     ],
     instructions: `Explore the user's intent with project evidence, maintain the intermediate design, and confirm a design ready for Propose. Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts. CLI-managed records and delegated feasibility experiments are permitted within their protocols.
 
-${XIRANG_PHILOSOPHY}
+${COMMON_PREREQUISITE}
 
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
-${TEST_QUALITY_GUIDANCE}
+${TEST_QUALITY_ENTRY}
 
 ## Load and navigate
 
-Read \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring; it owns the design loop, question/confirmation discipline, experiments and Summary review.
+Read \`.xirang/references/xirang-explore-supperpowers-style.md\` before exploring unless already available and current; it owns the design loop, question/confirmation discipline, experiments and Summary review.
 
 Start with \`xirang list --json\` and \`xirang record list --json\`. Read relevant active Change artifacts completely. Ground code claims in current project evidence.
 
-${XIRANG_SHARED_CONTEXT}
+${MODEL_CONTEXT_ENTRY}
 
-${ELEMENT_DEFINITION_SEMANTICS}
+${SEMANTIC_AUTHORING_ENTRY}
 
-${STRUCTURAL_DECOMPOSITION_GUIDANCE}
+${DECOMPOSITION_ENTRY}
 
 For new or unfamiliar concepts affecting scope, search for finite candidates, inspect their refinement context and select focus identities; if ambiguity remains, ask one clarification question. Use \`arch impact <identities...> --depth 2 --json\` for relationship summary and refinement context, then query only the semantics needed to judge mustChange, mustVerify, contextual scope, unknowns and drift. Adjacency alone proves none of those conclusions. Do not pass a Change or Delta to impact. Before readiness, recheck focus Elements and evidence coverage and disclose gaps.
 
@@ -218,7 +206,7 @@ The shared protocol owns nature/decision states, user authority, complete and se
 
 Follow the design loop in the required reference. Delegate necessary practical questions to \`xirang-experimenter\` with the question, constraints and decision background, allowing independent experiment design and an appropriate location (workspace, temporary directory, copy or worktree). Finish necessary experiments before confirming dependent design. Maintain current design through the record rather than rewriting complete Change drafts.
 
-After the reference's self-review and record gates, present the conversation-only Design Summary for review and stop. Once accepted, the user triggers \`/xirang:propose <change-name>\`. Do not offer to start implementation.
+After the reference's self-review and record gates, present the conversation-only Design Summary for review and stop. Once accepted, the user may request Propose in natural language or invoke \`/xirang:propose <change-name>\`; load its skill only after that request. Do not offer to start implementation.
 
 ${ACTIVE_CHANGE_CAPTURE_GUIDANCE}`,
     license: 'MIT',

@@ -1,3 +1,4 @@
+import { getCommonSkillTemplate } from '../../../src/core/templates/workflows/common.js';
 import { describe, expect, it } from 'vitest';
 
 import { BUSINESS_SPECIFICATION_STANDARD_REFERENCE } from '../../../src/core/templates/fragments/business-specification-standard.js';
@@ -33,7 +34,10 @@ function activeGuidance(): string[] {
 describe('generated Xirang Semantic Model guidance', () => {
   it('reuses one shared context across relevant workflow surfaces', () => {
     for (const guidance of activeGuidance()) {
-      expect(guidance).toContain(XIRANG_SHARED_CONTEXT);
+      expect(guidance).toContain('xirang-common');
+      expect(guidance).toContain('xirang-model-context.md');
+      expect(guidance).not.toContain(XIRANG_SHARED_CONTEXT);
+      expect(getCommonSkillTemplate().referenceFiles?.find(file => file.path === 'references/model-context.md')?.content).toBe(XIRANG_SHARED_CONTEXT);
     }
   });
 
@@ -52,7 +56,8 @@ describe('generated Xirang Semantic Model guidance', () => {
     ];
 
     for (const guidance of structural) {
-      expect(guidance).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+      expect(guidance).toContain('xirang-decomposition-use.md');
+      expect(guidance).not.toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     }
     for (const guidance of nonStructural) {
       expect(guidance).not.toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
@@ -63,7 +68,7 @@ describe('generated Xirang Semantic Model guidance', () => {
     const reference = '.xirang/references/xirang-business-specification-standard.md';
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
       expect(template.instructions).toContain(reference);
-      expect(template.instructions).toContain('Before exploring such a Contract or authoring/revising its Kind or Contract');
+      expect(template.instructions).toContain('contractFormat: business-specification');
       expect(template.instructions).not.toContain('**Four mandatory Sections**');
     }
     for (const guidance of [getApplyChangeSkillTemplate().instructions, getArchiveChangeSkillTemplate().instructions, getReviewerSubagentTemplate().prompt, getOptimizerSubagentTemplate().prompt]) {

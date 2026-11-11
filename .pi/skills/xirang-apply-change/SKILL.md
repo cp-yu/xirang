@@ -11,25 +11,9 @@ metadata:
 
 Implement tasks from an Xirang change.
 
-**Xirang Philosophy**
+Before doing stage work, load the xirang-common skill from this tool's discovered skills or from ../xirang-common/SKILL.md relative to this skill file, unless its required guidance is already available and current in this Agent's project context. Keep the selected stage while loading it; do not route back or load this stage again. Follow common's on-demand guidance and reuse rules.
 
-1. Xirang is a structured representation of human intent that an Agent can compile.
-2. One Xirang Semantic Model is persisted as a single whole in the four partitions `metamodel/`, `elements/`, `relationships/`, and `views/`; a Semantic Delta uses the same four partitions and adds `operation`.
-3. A change reconciles a Semantic Delta toward the target steady state. `proposal.md`, `design.md`, and `tasks.md` are compilation scaffolding, not competing sources of truth.
-4. The Xirang Semantic Model is complete only when an Agent need not guess decisions that affect element hierarchy, contracts, or relationships.
-5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
-
-**Test Quality Guidance**
-
-Persistent tests protect observable behavior and provide fast, trustworthy feedback.
-
-1. Repeatable in isolation. A test creates and cleans up its own state, does not depend on execution order, shared mutable state, or external mutable sources, and is fast enough for its intended feedback loop.
-2. Coupled to behavior, decoupled from structure. A plausible behavioral mutation, such as changing a boundary comparison or deleting a required state update, must make the test fail. Refactoring, implementation replacement, prose changes, formatting changes, or semantic model prose changes must not fail the test when behavior is preserved.
-3. One clear failure reason. A failing test identifies one broken behavior. Do not split one behavior merely to mirror multiple specification sentences, and do not combine unrelated behaviors in one test.
-
-Design for testability: when behavior is difficult to test because of hidden global state, mixed responsibilities, or inaccessible results, improve the interface before writing the test. Do not compensate with internal mocks or implementation-coupled assertions.
-
-Before adding a persistent test: inspect existing tests and prefer extending or replacing an existing test that already owns the behavior; choose the cheapest test boundary that can detect the intended defect; one test may cover multiple Acceptance Cases when they describe the same behavior and failure reason; add a boundary case only when it can expose a distinct plausible defect; keep slower integration or end-to-end tests only for cross-boundary behavior a cheaper test cannot prove; use one-time verification for build, typecheck, migration inspection, and other evidence that does not justify a maintained test; update or delete tests whose behavior changed, disappeared, became duplicated, or became coupled to obsolete structure.
+When designing verification, changing tests or reviewing test evidence, read project-root file `.xirang/references/xirang-test-quality.md` unless already available and current.
 
 For workflow-managed artifact writes, load the matching `.xirang/references/xirang-artifact-<id>.md` only when needed, reading Definition before Guidance and Template. Do not copy guidance, configuration or reasoning into artifacts.
 
@@ -38,7 +22,7 @@ For workflow-managed artifact writes, load the matching `.xirang/references/xira
 1. Step 1: Preparation — read `.xirang/references/xirang-apply-step-1-preparation.md`. Follow `.xirang/references/xirang-quality-recovery.md` for interrupted optimization, an explicit request to start verification again, or a reported recovery gap.
 2. Step 2: Isolation router — skip this step when Preparation validated existing isolation; otherwise read the one method reference selected by Step 1. Do not load mutually exclusive methods.
 3. Implementation loop — process all pending goals and Required Corrections until they are complete; completing one goal does not leave the loop.
-4. [Mode: Delegate Review] Step 3: Review — after ordinary tasks and Required Corrections, read `.xirang/references/xirang-apply-step-3-review.md`, run required tests, commit the implementation and obtain a consolidated full-change Review across required dimensions. Resolve input errors and HEAD movement by correcting delegation and retrying, not by recording FAIL. A failed Review returns to ordinary implementation and requires a new commit and Review. Once optimization begins, use risk-based incremental Review and mandatory supplemental Review for a repaired baseline defect.
+4. [Mode: Delegate Review] Step 3: Review — after all ordinary goals and Required Corrections, read `.xirang/references/xirang-apply-step-3-review.md` and follow its independent Review, correction and post-Opt routing gates.
 5. Step 4: Optimization — read `.xirang/references/xirang-apply-step-4-optimization.md`. For optimization failures, use the optional guidance in .xirang/references/xirang-optimization-failure-diagnosis.md.
 6. Step 5: Seal — read `.xirang/references/xirang-apply-step-5-seal.md`.
 7. Step 6: Output — read `.xirang/references/xirang-apply-step-6-output.md`.
@@ -51,7 +35,7 @@ Main owns Review dimension assignments and consolidation, optimization scope, bo
 - `xirang-reviewer`: independently assess assigned quality dimensions from committed checkout HEAD in a fresh context; its instructions remain read-only while tool permissions match the main Agent.
 - CLI: persist Review opinions by reviewKind, Opt dispositions/opinions, versions and Seal; validate record structures, revisions, and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
 
-Your judgment and Opt's self-tests do not replace required full-change Review or supplemental Review after a confirmed baseline defect is repaired. Other post-optimization incremental Review is risk-based. Delegate changeName, projectRoot, reviewKind and quality dimensions; do not pass reviewId, scope, changeDir or a target commit. Pi Reviewer runs in the background. Wait for complete responses; a slow subagent is not a failed one, and terminating one requires asking the user. Invalid delegation or HEAD movement requires correction and re-delegation, not a FAIL opinion. Interrupted optimization resumes its original delegation after the old writer stops, unless main deliberately chooses new exploration. Ordinary Apply tasks keep their own discipline.
+Use Step 3 for delegation, consolidation and required independent Review gates; Step 4 owns Opt and risk-based follow-up; Step 5 owns Seal. Wait for complete child responses; a slow subagent is not failed, and terminating one requires asking the user. For interrupted optimization follow Quality Recovery after the old writer stops.
 
 ## Implementation Discipline
 
@@ -67,4 +51,4 @@ Your judgment and Opt's self-tests do not replace required full-change Review or
 - Update goal and Required Corrections checkboxes only after applicable evidence passes. Do not write implementation files, test actions, commands, outputs, or execution logs into tasks.md. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
 - For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same targeted verification. Pause after two consecutive identical normalized errors or three failed fixes in one goal.
 
-When the seal passes, end with an explicit call-to-action: `Archive ready. Run /skill:xirang-archive-change <change-name> to complete the workflow.`
+When the seal passes, end with an explicit call-to-action: `Archive ready. Request Archive in natural language or run /skill:xirang-archive-change <change-name> to complete the workflow.`

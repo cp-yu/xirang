@@ -1,10 +1,11 @@
+import { getCommonSkillTemplate } from '../../../src/core/templates/workflows/common.js';
 import { describe, expect, it } from 'vitest';
 import { getBuildSkillTemplate, getExploreSkillTemplate, getXirangProposeSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 import { collectSharedReferenceFiles } from '../../../src/core/templates/sync-engine.js';
 
 describe('Design Record reference projection', () => {
   const template = getExploreSkillTemplate();
-  const reference = template.referenceFiles?.find(file => file.path === 'references/design-record.md')?.content ?? '';
+  const reference = getCommonSkillTemplate().referenceFiles?.find(file => file.path === 'references/design-record.md')?.content ?? '';
 
   it('records on confirmation and reports only the change', () => {
     for (const phrase of [
@@ -104,7 +105,7 @@ describe('Design Record reference projection', () => {
   });
 
   it('publishes the reference at the stable project-owned path', () => {
-    const shared = collectSharedReferenceFiles([{ workflowId: 'explore', template }]);
+    const shared = collectSharedReferenceFiles([{ workflowId: 'common', template: getCommonSkillTemplate() }]);
     expect(shared).toContainEqual(expect.objectContaining({ fileName: 'xirang-design-record.md', sourcePath: 'references/design-record.md' }));
     for (const entry of [template, getBuildSkillTemplate(), getXirangProposeSkillTemplate()]) {
       expect(entry.instructions).toContain('.xirang/references/xirang-design-record.md');

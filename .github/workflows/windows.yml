@@ -41,6 +41,8 @@ jobs:
           pnpm exec vitest run
           test/core/project-config.test.ts
           test/core/setup.test.ts
+          test/core/workflow-installation.test.ts
+          test/core/templates/skill-templates-parity.test.ts
           test/core/update.test.ts
           test/core/quality/state.test.ts
           test/commands/quality.test.ts
