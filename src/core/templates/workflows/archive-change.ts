@@ -1,3 +1,4 @@
+import { COMMON_PREREQUISITE } from '../fragments/guidance-loading.js';
 /**
  * Skill Template Workflow Modules
  *
@@ -5,7 +6,6 @@
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import { XIRANG_PHILOSOPHY } from '../fragments/xirang-fragments.js';
 import {
   SUBAGENT_QUALITY_EXECUTION_MODEL,
   type QualityExecutionModel,
@@ -127,7 +127,7 @@ function buildArchiveInstructions(
 ): string {
   return `Archive a completed change in the Xirang change workflow.
 
-${XIRANG_PHILOSOPHY}
+${COMMON_PREREQUISITE}
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 

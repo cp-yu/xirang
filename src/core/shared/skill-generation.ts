@@ -1,3 +1,5 @@
+import { getCommonSkillTemplate } from '../templates/workflows/common.js';
+import { COMMON_SKILL_NAME } from '../templates/fragments/guidance-loading.js';
 /**
  * Skill Generation Utilities
  *
@@ -12,8 +14,6 @@ import {
 } from '../templates/workflows/archive-change.js';
 import { resolveQualityExecutionModel } from '../templates/workflows/quality-execution-model.js';
 import { getApplyChangeSkillTemplate } from '../templates/workflows/apply-change.js';
-import { CONFIGURATION_USE_GUIDANCE } from '../templates/fragments/configuration-use.js';
-import { artifactReferences } from '../templates/fragments/artifact-references.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
@@ -33,6 +33,7 @@ export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
 
 export function getManagedSkillDirNames(): string[] {
   return [
+    COMMON_SKILL_NAME,
     ...ALL_WORKFLOWS.map((workflowId) => WORKFLOW_TO_SKILL_DIR[workflowId]),
     ...MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES,
   ];
@@ -89,14 +90,21 @@ export function getSkillTemplates(
     ];
   }
 
-  if (workflowSurfaces.length && !workflowSurfaces.some(entry => entry.workflowId === 'propose')) {
-    const shared = workflowSurfaces[0].template;
-    shared.referenceFiles = [...(shared.referenceFiles ?? []), { path: 'references/configuration-use.md', content: CONFIGURATION_USE_GUIDANCE }];
-    const snack = workflowSurfaces.find(entry => entry.workflowId === 'snack');
-    if (snack) snack.template.referenceFiles = [...(snack.template.referenceFiles ?? []), ...artifactReferences()];
-  }
 
   return workflowSurfaces;
+}
+
+/** Installed skills include the explicitly registered shared prerequisite. */
+export function getInstallableSkillTemplates(
+  workflowFilter?: readonly string[],
+  toolId?: string
+): SkillTemplateEntry[] {
+  const workflows = getSkillTemplates(workflowFilter, toolId);
+  if (!workflows.length) return [];
+  return [
+    { template: getCommonSkillTemplate(), dirName: COMMON_SKILL_NAME, workflowId: COMMON_SKILL_NAME },
+    ...workflows,
+  ];
 }
 
 function escapeYamlString(value: string): string {

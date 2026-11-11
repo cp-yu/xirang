@@ -1,3 +1,4 @@
+import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 import {
   ELEMENT_CONTRACT_SEMANTICS,
@@ -8,7 +9,7 @@ import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/bui
 
 describe('xirang-build workflow', () => {
   it('records atomic coverage and consumes the Build source before final validation, independent review, and exact-digest promotion', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const coverage = instructions.indexOf('xirang record coverage <filename> --candidate --from <file> --json');
     const consume = instructions.indexOf('xirang record consume <filename> --candidate --json');
     expect(coverage).toBeGreaterThan(-1);
@@ -30,7 +31,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('keeps scope and starting-point decisions with the user', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.name).toBe('xirang-build');
     expect(skill.instructions).toContain('exploration scope');
@@ -43,7 +44,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('authors and reviews one four-partition Candidate', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).toContain('.xirang/candidate/{metamodel,elements,relationships,views}/');
     expect(skill.instructions).toContain('one Element has at most one Contract');
@@ -65,7 +66,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('initializes the selected baseline before writing build provenance', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const initIndex = instructions.indexOf('xirang candidate init');
     const buildIndex = instructions.indexOf('write `.xirang/candidate/build.md`');
 
@@ -75,7 +76,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('requires an explicit decision for an active Candidate', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
 
     expect(instructions).toContain('current baseline and status');
     expect(instructions).toContain('continue the active Candidate');
@@ -86,7 +87,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('runs the conditional Modeling Decision Gate before Candidate authoring', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const exploreIndex = instructions.indexOf('Explore the authorized scope');
     const gateIndex = instructions.indexOf('Modeling Decision Gate');
     const authorIndex = instructions.indexOf('Author the Candidate breadth-first');
@@ -102,7 +103,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('authors and independently reviews complete Definitions before Contracts', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const definitionIndex = instructions.indexOf('Element Definitions');
     const contractIndex = instructions.indexOf('Element Contracts', definitionIndex);
 
@@ -114,7 +115,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('authors the Candidate in breadth-first semantic layers', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
 
     expect(instructions).toContain('Metamodel → Element Declarations, hierarchy, and Element Definitions → Element Contracts → Relationships → Authored Views');
     expect(instructions).toContain('Do not require full `candidate validate` for an intentionally incomplete intermediate layer');
@@ -122,7 +123,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('requires a fresh clean-context semantic review after deterministic validation', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const validateIndex = instructions.indexOf('xirang candidate validate --json');
     const reviewIndex = instructions.indexOf('generic read-only subagent with a clean context');
     const presentIndex = instructions.indexOf('Present the Project Root');
@@ -157,7 +158,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('applies configured decomposition at authoring and semantic review gates', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
@@ -171,7 +172,7 @@ describe('xirang-build workflow', () => {
   });
 
   it('checks all post-promotion conditions without retrying promotion', () => {
-    const instructions = getBuildSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
     const promoteIndex = instructions.indexOf('xirang candidate promote --digest');
     const inactiveIndex = instructions.indexOf('`active === false`', promoteIndex);
     const partitionsIndex = instructions.indexOf('real directories', inactiveIndex);
@@ -188,7 +189,7 @@ describe('xirang-build workflow', () => {
 
 describe('xirang-build 2026-08-03 rebuild lessons', () => {
   it('selects the most specific project-defined Kind without encoding hierarchy policy', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).toContain('prefer the most specific existing Kind that accurately expresses the Element');
     expect(skill.instructions).toContain('add or refine a Kind through the Metamodel');
@@ -198,7 +199,7 @@ describe('xirang-build 2026-08-03 rebuild lessons', () => {
   });
 
   it('does not put project-specific perspective decomposition into the shared fragment', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).not.toContain('semantic-objects');
     expect(skill.instructions).not.toContain('realization-process');
@@ -207,7 +208,7 @@ describe('xirang-build 2026-08-03 rebuild lessons', () => {
   });
 
   it('detects subagent availability and asks which model to use in the initial question round', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).toContain('Detect whether subagents are available');
     expect(skill.instructions).toContain('which model the subagent should use');
@@ -215,7 +216,7 @@ describe('xirang-build 2026-08-03 rebuild lessons', () => {
   });
 
   it('requires agent-selected placement and subagent editing for non-verbatim recovery', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).toContain('which Element, which hierarchy level, which Contract Section');
     expect(skill.instructions).toContain('semantic choice that requires model understanding');
@@ -225,14 +226,14 @@ describe('xirang-build 2026-08-03 rebuild lessons', () => {
   });
 
   it('requires review to check recovered content against recorded exclusions', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
 
     expect(skill.instructions).toContain('recovered legacy/formal content matches current behavior');
     expect(skill.instructions).toContain('does not resurrect retired vocabulary or recorded exclusions');
   });
 
   it('treats a user-modified digest as approval but an Agent-modified digest as review-invalidating', () => {
-    const skill = getBuildSkillTemplate();
+    const skill = withCommonGuidance(getBuildSkillTemplate());
     const promoteIndex = skill.instructions.indexOf('xirang candidate promote --digest');
 
     expect(promoteIndex).toBeGreaterThanOrEqual(0);

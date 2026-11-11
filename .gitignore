@@ -153,6 +153,7 @@ CLAUDE.md
 !.pi/skills/
 .pi/skills/*
 !.pi/skills/xirang-build/
+!.pi/skills/xirang-common/
 !.pi/skills/xirang-project-decomposition/
 
 # Pnpm

@@ -1,3 +1,4 @@
+import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -10,7 +11,7 @@ import {
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('snack template code-change evidence collection', () => {
-  const template = getSnackSkillTemplate();
+  const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
   it('includes the Xirang philosophy and shared Contract semantics', () => {
@@ -38,7 +39,7 @@ describe('snack template code-change evidence collection', () => {
 });
 
 describe('snack template artifact reconciliation', () => {
-  const template = getSnackSkillTemplate();
+  const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
   it('creates a new change by default and updates only on explicit request', () => {
@@ -192,7 +193,7 @@ describe('snack Semantic Delta input boundary', () => {
 });
 
 describe('snack template evidence/artifact terminology', () => {
-  const template = getSnackSkillTemplate();
+  const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
   it('distinguishes Section Entries in the body from the Declaration Entry in frontmatter', () => {
@@ -203,7 +204,7 @@ describe('snack template evidence/artifact terminology', () => {
 });
 
 describe('snack template semantic diff gate', () => {
-  const template = getSnackSkillTemplate();
+  const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
   it('finishes reconciliation after validation without writing a presentation artifact', () => {
@@ -220,7 +221,7 @@ describe('snack template semantic diff gate', () => {
 });
 
 describe('snack template output hints', () => {
-  const template = getSnackSkillTemplate();
+  const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
   it('offers quick-sync, quick-archive, sync-and-archive, and continue-development paths after snack', () => {
@@ -234,11 +235,8 @@ describe('snack template output hints', () => {
 });
 
 describe('snack template length boundary', () => {
-  const template = getSnackSkillTemplate();
-  const instructions = template.instructions;
-
   it('keeps generated instructions within the 200-line limit', () => {
-    const lineCount = instructions.split('\n').length;
+    const lineCount = getSnackSkillTemplate().instructions.split('\n').length;
     expect(lineCount).toBeLessThanOrEqual(200);
   });
 });

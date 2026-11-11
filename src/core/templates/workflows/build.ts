@@ -1,13 +1,6 @@
+import { COMMON_PREREQUISITE, SEMANTIC_AUTHORING_ENTRY, DECOMPOSITION_ENTRY, MODEL_NOTATION_ENTRY } from '../fragments/guidance-loading.js';
 import type { SkillTemplate } from '../types.js';
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
-import { BUSINESS_SPECIFICATION_STANDARD_REFERENCE } from '../fragments/business-specification-standard.js';
-import {
-  ELEMENT_CONTRACT_SEMANTICS,
-  ELEMENT_DEFINITION_SEMANTICS,
-  SEMANTIC_MODEL_UNIT_NOTATION,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
-  XIRANG_PHILOSOPHY,
-} from '../fragments/xirang-fragments.js';
 
 export function getBuildSkillTemplate(): SkillTemplate {
   return {
@@ -15,17 +8,15 @@ export function getBuildSkillTemplate(): SkillTemplate {
     description: 'Build or rebuild the project Xirang Semantic Model as one reviewed Candidate.',
     instructions: `Build the project Xirang Semantic Model from user-authorized intent and evidence.
 
-${XIRANG_PHILOSOPHY}
+${COMMON_PREREQUISITE}
 
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
-${ELEMENT_DEFINITION_SEMANTICS}
+${SEMANTIC_AUTHORING_ENTRY}
 
-${ELEMENT_CONTRACT_SEMANTICS}
+${DECOMPOSITION_ENTRY}
 
-${STRUCTURAL_DECOMPOSITION_GUIDANCE}
-
-${SEMANTIC_MODEL_UNIT_NOTATION}
+${MODEL_NOTATION_ENTRY}
 
 Before authoring, load \`.xirang/references/xirang-configuration-use.md\` and query the effective configuration fields needed for this Build. Reuse current guidance and configuration.
 
@@ -58,7 +49,7 @@ MUST read \`.xirang/references/xirang-design-record.md\` before using or creatin
 10. When legacy documents or the formal model contain still-current behavior missing from the Candidate, recover it as authored semantic content. Deciding where each piece belongs (which Element, which hierarchy level, which Contract Section) is a semantic choice that requires model understanding: an Agent selects the placement, it is not derived by file name, heading match, or programmatic mapping. Copying content verbatim MAY be done directly; any rewriting or migration (including vocabulary migration: \`spec\` → \`contract\`, \`architecture-delta.c4\` → four-partition Semantic Delta, \`.opsx\` → \`.xirang\`) MUST go through a subagent when one is available, using the model the user selected when subagents were confirmed. Keep already-covered content, never resurrect retired behavior (for example: architecture-delta.c4 persistence, Spec store/registry/frontmatter, \`xirang change/spec/diff\` command groups, archive-time sync or \`--no-sync\`, impact-sweeper, scenario operation-label acceptance), and record which sources were covered, added, and retired in \`build.md\`.
 11. After all five layers exist, reload the complete latest record under **Inputs and authority**, reconcile conflicts, and apply the shared **Coverage gate** to current record → complete Candidate. Classify nature, decision, and applicability; resolve target-affecting pending issues and justify non-applicability or no effect. Excluded and informative material belongs in \`build.md\` or provenance, not invented Contract obligations. Coverage must pass before source handoff.
     - Run \`xirang candidate validate --json\`. Fix every ERROR in Candidate source and repeat deterministic validation until it succeeds. The CLI is read-only and must not author or normalize semantics.
-    - When an active Build record exists and validation passes, use \`result: covered\` with atomic details, exact Candidate locations, and excerpts copied from current Candidate files for each applicable accepted normative entry; \`result: not-applicable\` with a reason for accepted normative content outside this target; and \`result: pending\` with \`affectsTarget\` for every pending entry (true blocks, false requires a reason). Excluded and non-pending informative entries need no target locations. Run \`xirang record coverage <filename> --candidate --from <file> --json\`. On rejection, resolve missing decisions, correct classifications, or write missing details into the Candidate, then revalidate and recheck. Any source or Candidate change invalidates coverage and requires a new check.
+    - When an active Build record exists and validation passes, apply the shared **Coverage gate** to the complete latest record and Candidate, then run \`xirang record coverage <filename> --candidate --from <file> --json\`. Resolve rejection before continuing; any source or Candidate change requires renewed coverage.
     - After coverage is recorded, reload the complete record when needed, then run \`xirang record consume <filename> --candidate --json\`. It also compares the record's \`structure\` with the Candidate field by field. Follow the shared **Output and handoff** success and failure checks; any failure blocks promotion readiness.
     - Run \`xirang candidate validate --details --json\` again after handoff. Retain the actual Formal comparison and diff, or the explicit unavailable reason, for independent review and final presentation. Do not reuse a pre-handoff digest. The final \`reviewDigest\` includes \`record-source.md\` and \`record-coverage.json\`; review and user confirmation must use this final version. With no record, skip consumption, not validation or independent review, and confirm the declared record decision on \`build.md\` before promotion readiness.
 12. After deterministic validation succeeds, delegate one complete semantic review to a generic read-only subagent with a clean context.
@@ -110,9 +101,6 @@ MUST read \`.xirang/references/xirang-design-record.md\` before using or creatin
 - Do not modify formal \`.xirang/model/\` before digest-confirmed promotion.
 - Build and promotion provide no guarantee that Git status or index remain unchanged.
 - Preserve canonical identities, paths, commands, and schema keys.`,
-    referenceFiles: [
-      { path: 'references/business-specification-standard.md', content: BUSINESS_SPECIFICATION_STANDARD_REFERENCE },
-    ],
     license: 'MIT',
     compatibility: 'Requires xirang CLI with candidate commands.',
     metadata: { author: 'xirang', version: '1.0' },

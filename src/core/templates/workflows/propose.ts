@@ -1,18 +1,11 @@
+import { COMMON_PREREQUISITE, MODEL_CONTEXT_ENTRY, SEMANTIC_AUTHORING_ENTRY, TEST_QUALITY_ENTRY, DECOMPOSITION_ENTRY } from '../fragments/guidance-loading.js';
 /**
  * Propose workflow template.
  */
-import { artifactReferences } from '../fragments/artifact-references.js';
-import { CONFIGURATION_USE_GUIDANCE } from '../fragments/configuration-use.js';
 import type { SkillTemplate } from '../types.js';
 import { BUSINESS_SPECIFICATION_STANDARD_ROOT } from '../fragments/business-specification-standard-root.js';
 import {
   ARTIFACT_DOC_LANGUAGE_CONTRACT,
-  ELEMENT_CONTRACT_SEMANTICS,
-  ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
-  TEST_QUALITY_GUIDANCE,
-  XIRANG_PHILOSOPHY,
-  XIRANG_SHARED_CONTEXT,
 } from '../fragments/xirang-fragments.js';
 
 export function getXirangProposeSkillTemplate(): SkillTemplate {
@@ -25,19 +18,17 @@ export function getXirangProposeSkillTemplate(): SkillTemplate {
 
 Before creating or updating Change artifacts, check whether any unresolved decision affects this target. If one remains, complete the necessary read-only discovery and permitted record maintenance, then present the decision and stop. Do not draft the settled portions first: a partial Change does not make the whole target ready. Authorization to investigate or prepare is not an explicit override of this boundary. If the user explicitly authorizes drafting despite the blocker, stay within that authorization and leave dependent target semantics unwritten until decided; never turn an undecided outcome into accepted content.
 
-${XIRANG_PHILOSOPHY}
+${COMMON_PREREQUISITE}
 
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
-${TEST_QUALITY_GUIDANCE}
+${TEST_QUALITY_ENTRY}
 
-${XIRANG_SHARED_CONTEXT}
+${MODEL_CONTEXT_ENTRY}
 
-${ELEMENT_DEFINITION_SEMANTICS}
+${SEMANTIC_AUTHORING_ENTRY}
 
-${ELEMENT_CONTRACT_SEMANTICS}
-
-${STRUCTURAL_DECOMPOSITION_GUIDANCE}
+${DECOMPOSITION_ENTRY}
 
 ## Workflow Stage
 
@@ -49,7 +40,7 @@ ${STRUCTURAL_DECOMPOSITION_GUIDANCE}
 
 ## Confirmed design inputs
 
-MUST read \`.xirang/references/xirang-design-record.md\` at entry. It owns record discovery, confirmation authority, reload/selective reads, partial CLI updates, user-facing presentation, writing rules, coverage and consumption. Apply its **User-facing record presentation** rules at record loads and after updates; apply other gates at their flow points below. Do not duplicate full reads per section. A record is formation evidence, not a complete Delta. Local decisions and record revisions can stay in Propose; practical feasibility experiments or substantial redesign return to Explore.
+Load \`.xirang/references/xirang-design-record.md\` at entry unless already available and current. It owns record discovery, confirmation authority, reload/selective reads, partial CLI updates, user-facing presentation, writing rules, coverage and consumption. Apply its **User-facing record presentation** rules at record loads and after updates; apply other gates at their flow points below. Do not duplicate full reads per section. A record is formation evidence, not a complete Delta. Local decisions and record revisions can stay in Propose; practical feasibility experiments or substantial redesign return to Explore.
 
 ## Documentation and gap handling
 
@@ -74,7 +65,7 @@ Preserve artifact dependency order while using these review units. Discuss new i
    - Follow shared Semantic Model context: search finite candidates, use outline and impact for navigation, then query selected Declarations and needed Contracts. Do not expand every impact result. Recover global understanding with markdown outline and selected reads; use snapshot only when those are insufficient or model diagnostics require it.
    - Use implementation evidence only where needed to resolve current behavior or lowering constraints.
 3. Assess semantic readiness.
-   - Reuse a confirmed, still-current \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and the Declaration, Relationship, Metamodel, and View Delta units; route testing strategy to \`design.md\` and concrete test work to \`tasks.md\`; route risk and trade-off decisions to \`design.md\`.
+   - Reuse a confirmed, still-current \`Design Summary\` when the conversation contains one, and state that it is being reused. Route architecture decisions to proposal Architecture Source, \`design.md\`, and the Declaration, Relationship, Metamodel, and View Delta units; route testing strategy to \`design.md\` and goal-level verification directions to \`tasks.md\`; Apply chooses concrete test work; route risk and trade-off decisions to \`design.md\`.
    - Otherwise establish the problem, intended outcome, constraints, impact scope, approach and verification method through project evidence and focused questions, without treating a supplied approach as complete intent. Resolve material gaps, including Semantic Delta decisions across Definition, Contract and structural scope. Multi-subsystem scope is evidence, not an automatic Explore requirement; report a gap only when it cannot form one coherent change scope.
    - If readiness is incomplete, list the concrete missing items and use Documentation and gap handling: confirm an isolated decision here or recommend \`/xirang:explore\` for substantial design work. Apply the Readiness boundary before any Change artifact write; CLI-managed record maintenance follows the shared confirmation rules.
    - If the user explicitly overrides the readiness recommendation, continue within that authorization, but the override does not authorize guessing source decisions. Ask one focused question at a time for every unresolved material behavior or architecture decision before authoring dependent content.
@@ -90,14 +81,14 @@ Preserve artifact dependency order while using these review units. Discuss new i
    - Determine Contract impact for the whole Change from the confirmed commitments and formal model. Identify the existing Elements responsible for each affected behavior at their respective abstraction levels, including parents carrying that commitment, then read their current Contracts before deciding which change. Reuse their identities. For each parent carrying an affected commitment, determine its target obligations from the complete confirmed design, including the Design Summary even when the partial record has no separate entry for that parent; do not narrow those obligations to what its current Contract already says. Compare them with the parent's current clauses alone: identify the clause that determines each promised outcome with its required conditions and limits. Child refinement does not remove a commitment assigned to the parent; a generic delegation or a clause merely consistent with the child rules does not establish that the parent states those obligations. If those clauses still permit a ruled-out outcome or leave a confirmed outcome undetermined, include the missing or changed commitment in proposal Behavior Source and the corresponding Section Entries. Preserve the conditions, numbers, exceptions, and timing that determine the parent's promised outcomes; child implementation detail need not be repeated. A no-op needs existing clauses that already carry those commitments, even when the Declaration is unchanged. Review groups control drafting order, not the whole Change's source scope. An optional-contract Element without a Contract does not by itself require a new one.
    - Compare structural impact with the formal Xirang Semantic Model. Identify affected Element Declarations, refinement, Relationships, Element Kinds, Relationship Kinds, and Authored Views. For every added or modified Declaration, write the complete target Definition, not a summary of what changed. Implementation movement or call/import evidence alone is not a structural change.
    - Do not redo confirmed structural decisions. A partial record leaves room for unconfirmed structure: when source impact requires a new or reorganized hierarchy, apply the Structural Decomposition Guidance to the unresolved scope and obtain user confirmation before authoring target sibling sets. If the configured guidance is unavailable or insufficient, stop Formation and ask one focused question; do not fall back to another method or infer structure from implementation layout.
-   - Compile only accepted normative entries applicable to this target into the appropriate complete Delta targets under the shared **Writing rules**: confirmed examples become Acceptance Cases with the same concrete inputs and outcomes; numbers, timing, and exceptions stay exact in the host Contract. Compile the record's confirmed \`structure\` objects into matching Declaration, Relationship, or Kind entries (never re-derive kind or parent from implementation relationships), or confirm no-op when the formal model already matches. Resolve target-affecting pending questions with the user; retain reasons for entries outside this target. Excluded and informative material goes to Plan or provenance without inventing obligations. Missing behavior belongs in the host Contract, not Tasks.
+   - Compile the record through its shared **Writing rules**, including confirmed structure and concrete examples. Missing target behavior belongs in the host Contract, not Tasks. Resolve target-affecting pending decisions before dependent writing.
    - When Architecture Source is \`None\`, do not invoke decomposition guidance or invent hierarchy changes.
    - Determine the Contract and structural scopes of one Semantic Delta. Keep the compatible \`Behavior Source\` and \`Architecture Source\` proposal headings: \`Behavior Source\` lists \`New Specs\` or \`Modified Specs\` as the Element identities whose Element Contract is added or modified, and \`Architecture Source\` lists the identities whose Declaration, Relationship, Metamodel, or View semantics change. Both sections address the same identity space; they separate Contract impact from structural impact, not two kinds of identifier. Use \`None\` only when that scope truly does not change.
 6. Generate ready artifacts in dependency order, using the drafting and review units above. For each artifact, read only \`.xirang/references/xirang-artifact-<artifact-id>.md\`: Definition first, then Guidance and Template. Query \`xirang config project --artifact <artifact-id> --select proseLanguage --select context --select rules --json\` for current authoring configuration. Reuse loaded static guidance within the conversation.
    - Follow the reference Guidance; use status for dependency and existing output paths. Keep static Definition/Guidance, current configuration and target content separate; do not copy guidance or configuration into artifacts.
    - For \`proposal.md\`, write \`## Source Impact\` with the compatible Behavior Source and Architecture Source sections, referencing Elements by \`identity\`.
    - When creating \`specs\`, write the Element Contract delta into \`.xirang/changes/<name>/elements/<identity>.md\` for exactly the identities declared under proposal \`Behavior Source\`; the frontmatter locates the host Element and the body carries the Section Entries. Read the exact Section titles from the formal Element Contract before authoring ADDED, MODIFIED, or REMOVED deltas. Express a rename as REMOVED old Section plus ADDED new complete Section. Author only canonical \`### Section: <title>\` headings; a Section body is free-form. Rely on combined change validation for deterministic header compatibility. Follow the returned Specs authoring contract.
-   - Route obsolete-test rationale from **Test Maintenance** to \`design.md\` and concrete test updates/removals to \`tasks.md\`. Route **One-time Verification** items to goal verification directions as evidence-only checks with no persistent test file; absence assertions reference the removed Section.
+   - Route obsolete-test rationale from **Test Maintenance** to \`design.md\` and goal-level behavior/verification directions to \`tasks.md\`; Apply decides concrete test updates/removals. Route **One-time Verification** items to goal verification directions as evidence-only checks with no persistent test file; absence assertions reference the removed Section.
 7. Continue until all \`applyRequires\` artifacts are done, applying Documentation and gap handling to newly discovered omissions. If an Element's concept identity, independent modeling reason, scope, or hierarchy boundary remains unresolved, stop and ask one focused question instead of guessing the Definition. Handle only minor details autonomously and discuss substantive additions before settling them. Complete the applicable whole-draft or mechanism-group review before the closing gate.
 8. After Specs and Design are complete, reconcile structural scope before writing the remaining Delta units.
    - Re-read proposal Architecture Source, \`design.md\`, the formal Xirang Semantic Model, and current implementation evidence.
@@ -132,7 +123,6 @@ Preserve artifact dependency order while using these review units. Discuss new i
 ${ARTIFACT_DOC_LANGUAGE_CONTRACT}
 
 Tasks use a single goal-level checklist. Each goal states the intended outcome, references its target Contract Section, and identifies behavior, relevant boundary, and observable verification direction. Apply determines files, tests, commands, and technical ordering from repository evidence. Only explicit user-required ordering is encoded in goal order.`,
-    referenceFiles: [...artifactReferences(), { path: 'references/configuration-use.md', content: CONFIGURATION_USE_GUIDANCE }],
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },

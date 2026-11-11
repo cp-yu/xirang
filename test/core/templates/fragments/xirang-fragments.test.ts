@@ -17,6 +17,7 @@ import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   TEST_QUALITY_GUIDANCE,
+  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
@@ -337,8 +338,8 @@ describe('Xirang shared context fragment', () => {
 describe('默认语义精化路由', () => {
   it('结构形成入口指向统一默认指导', () => {
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
-      expect(template.instructions).toContain('xirang config project --select decomposition --json');
-      expect(template.instructions).toContain('Read the guidance file at that resolved path in full');
+      expect(template.instructions).toContain('xirang-decomposition-use.md');
+      expect(STRUCTURAL_DECOMPOSITION_GUIDANCE).toContain('Read the guidance file at that resolved path in full');
       expect(template.instructions).not.toContain('opaque method name');
     }
   });

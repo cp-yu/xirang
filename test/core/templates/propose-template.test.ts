@@ -1,3 +1,4 @@
+import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -13,20 +14,20 @@ import {
 
 function getProposeBodies(): string[] {
   return [
-    getXirangProposeSkillTemplate().instructions,
+    withCommonGuidance(getXirangProposeSkillTemplate()).instructions,
   ];
 }
 
 describe('propose template post-validation flow', () => {
   it('保持重大决策的确认门禁与规范写入权限边界', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('ask one focused question and wait before writing the choice as settled');
     expect(body).toContain('Forbidden');
     expect(body).not.toContain('Propose MUST NOT create, update, rename, or discard records');
   });
 
   it('checks mechanism counterexamples and reports supplements separately from confirmed input', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
     expect(body).toContain('try relevant boundary or competing-event sequences');
     expect(body).toContain('new decisions confirmed by the user during Propose');
@@ -35,7 +36,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('checks authored decisions, executable dependencies and the basis of completion claims', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
     expect(body).toContain('Then read the current proposal, Delta, design and tasks back to their authority');
     expect(body).toContain('For each target behavior needing implementation');
@@ -46,14 +47,14 @@ describe('propose template post-validation flow', () => {
   });
 
   it('leaves deterministic task structure checks to combined validation', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
     expect(instructions).not.toContain('equivalent to `validateTaskStructure`');
     expect(instructions).toContain('Validate that tasks use only the goal-level format');
   });
 
   it('authors and validates four-partition Semantic Delta units', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain('.xirang/changes/<name>/elements/<identity>.md');
     expect(instructions).toContain('relationships/<relationship kind identity>.yaml');
     expect(instructions).toContain('metamodel/<kind identity>.md');
@@ -74,13 +75,13 @@ describe('propose template post-validation flow', () => {
   });
 
   it('includes the Xirang philosophy and shared Contract semantics in the skill surface', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain(XIRANG_PHILOSOPHY);
     expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
   it('writes complete target Definitions and stops when their boundaries remain unresolved', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
     expect(instructions).toContain('complete target Definition');
     expect(instructions).toContain('not a summary of what changed');
@@ -88,7 +89,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain('explicitly requests a new change');
     expect(instructions).toContain('ask for a different ID');
     expect(instructions).toContain('explicitly requests an existing change');
@@ -100,7 +101,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('navigates the formal Semantic Model before authoring', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain('.xirang/model/{metamodel,elements,relationships,views}/');
     expect(instructions).toContain('xirang arch search <query> --limit <n>');
     expect(instructions).toContain('xirang arch impact <identity> --depth <n> --json');
@@ -112,7 +113,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('uses progressive model navigation before selected semantic expansion', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     for (const token of [
       'xirang arch outline --format markdown',
       'xirang arch impact <identity> --depth <n> --json',
@@ -130,7 +131,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('defers definition-first ordering to the artifact instruction projection', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain('Guidance');
     expect(instructions).toContain('Definition');
     expect(instructions).not.toContain('Use `content.includes` and `content.excludes` to decide');
@@ -152,7 +153,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('authors Contract deltas from formal section titles without check-delta', () => {
-    const template = getXirangProposeSkillTemplate();
+    const template = withCommonGuidance(getXirangProposeSkillTemplate());
     expect(template.instructions).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
@@ -175,7 +176,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('forms tasks around independently implementable and verifiable TDD loops', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
     expect(body).toContain('each goal has a stable');
     expect(body).toContain('Contract Section reference');
@@ -191,7 +192,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('`Design Summary`');
       expect(body).toContain('architecture decisions to proposal Architecture Source, `design.md`, and the Declaration, Relationship, Metamodel, and View Delta units');
       expect(body).toContain('testing strategy to `design.md`');
-      expect(body).toContain('concrete test work to `tasks.md`');
+      expect(body).toContain('goal-level verification directions to `tasks.md`');
       expect(body).toContain('risk and trade-off decisions to `design.md`');
       expect(body).toContain('problem');
       expect(body).toContain('impact scope');
@@ -210,14 +211,14 @@ describe('propose template post-validation flow', () => {
   });
 
   it('checks readiness before creating a new change', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body.indexOf('Assess semantic readiness')).toBeGreaterThanOrEqual(0);
     expect(body.indexOf('xirang new change "<name>"')).toBeGreaterThan(body.indexOf('Assess semantic readiness'));
     expect(body).toContain('existing artifacts, current input, the confirmed Design Summary, formal source, and implementation evidence');
   });
 
   it('keeps readiness and override state out of artifacts', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('Keep readiness, missing-item, and override state in the conversation only');
     expect(body).not.toContain('proposal HTML comment');
     expect(body).not.toContain('<!--');
@@ -237,7 +238,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('determines Contract and structural scopes as one Semantic Delta', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     for (const token of [
       'Contract and structural scopes of one Semantic Delta',
       'Behavior Source',
@@ -252,14 +253,14 @@ describe('propose template post-validation flow', () => {
   });
 
   it('uses proposal Behavior Source as the Element Contract delta input', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('for exactly the identities declared under proposal `Behavior Source`');
     expect(body).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(body).not.toContain('xirang check-delta');
   });
 
   it('reconciles Architecture Source after Specs and Design', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     const designIndex = body.indexOf('After Specs and Design are complete');
     const deltaIndex = body.indexOf('relationships/<relationship kind identity>.yaml', designIndex);
     expect(designIndex).toBeGreaterThanOrEqual(0);
@@ -270,13 +271,13 @@ describe('propose template post-validation flow', () => {
   });
 
   it('does not duplicate the resolved Specs content boundary', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('Follow the returned Specs authoring contract');
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
   it('uses decomposition only when Propose must form an unconfirmed hierarchy', () => {
-    const instructions = getXirangProposeSkillTemplate().instructions;
+    const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
     expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
@@ -290,7 +291,7 @@ describe('propose template post-validation flow', () => {
   });
 
   it('gates exact-version record handoff on CLI-recorded atomic coverage after final validation', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('xirang record list --json');
     expect(body).toContain('.xirang/references/xirang-design-record.md');
     expect(body).toContain('shared **Coverage gate**');
@@ -325,29 +326,21 @@ describe('propose template post-validation flow', () => {
   });
 
   it('limits workflow status output to readiness, blockers, and final summary', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('Report status only at readiness, blocker, and final-summary points');
     expect(body).not.toContain('announce each artifact');
   });
 
-  it('delegates document language boundaries to the runtime config projection', () => {
-    for (const body of getProposeBodies()) {
-      expect(body).toContain('Document Language Contract');
-      expect(body).toContain('Query effective `proseLanguage`');
-      expect(body).toContain('preserve IDs, schema keys, paths, commands');
-      expect(body).toContain('Keep the template structure unchanged');
-      expect(body).toContain('If no `proseLanguage` value is present');
-    }
-  });
-
   it('delivers one shared configuration-use protocol to artifact authors', () => {
-    const template = getXirangProposeSkillTemplate();
+    const template = withCommonGuidance(getXirangProposeSkillTemplate());
     const guidance = template.referenceFiles?.find(file => file.path === 'references/configuration-use.md')?.content;
     expect(template.instructions).toContain('.xirang/references/xirang-configuration-use.md');
     expect(guidance).toMatch(/proseLanguage[^\n]*context[^\n]*all applicable artifacts/);
     expect(guidance).toMatch(/rules\[artifactId\][^\n]*only[^\n]*matching artifact/);
     expect(guidance).toMatch(/additive[^\n]*built-in Definition, Guidance and Template[^\n]*never as replacements/);
     expect(guidance).toContain('MODIFIED Section must use its exact existing title');
+    expect(guidance).toContain('Preserve canonical tokens:');
+    expect(guidance).toContain('With no language override, retain default writing behavior.');
   });
 
   it('does not require per-artifact language self-checks', () => {
@@ -359,9 +352,9 @@ describe('propose template post-validation flow', () => {
   });
 
   it('routes Test Maintenance across design and tasks', () => {
-    const body = getXirangProposeSkillTemplate().instructions;
+    const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(body).toContain('obsolete-test rationale from **Test Maintenance** to `design.md`');
-    expect(body).toContain('concrete test updates/removals to `tasks.md`');
+    expect(body).toContain('goal-level behavior/verification directions to `tasks.md`');
   });
 
   it('routes one-time verification items to evidence-only checks without test files', () => {

@@ -1,5 +1,5 @@
+import { INTERNAL_COMMON_PREREQUISITE, MODEL_CONTEXT_ENTRY } from '../fragments/guidance-loading.js';
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
 
 export function getOptimizerSubagentTemplate(): SubagentTemplate {
   return {
@@ -9,9 +9,9 @@ export function getOptimizerSubagentTemplate(): SubagentTemplate {
 
 You are Xirang's delegated Optimizer. Independently inspect the authorized Change and implementation, choose and implement worthwhile behavior-preserving improvements, test the affected behavior, and report actual results to the main Agent. The main Agent owns scope, whether more Opt is useful, final Review decisions and Seal.
 
-${XIRANG_PHILOSOPHY}
+${INTERNAL_COMMON_PREREQUISITE}
 
-${XIRANG_SHARED_CONTEXT}
+${MODEL_CONTEXT_ENTRY}
 
 ## Authority and evidence
 

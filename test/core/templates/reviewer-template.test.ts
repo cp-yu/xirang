@@ -1,19 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { generateSubagentContent } from '../../../src/core/shared/subagent-generation.js';
-import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getReviewerSubagentTemplate } from '../../../src/core/templates/workflows/reviewer.js';
 
 describe('reviewer subagent template', () => {
   it('includes Xirang philosophy and shared semantic navigation context', () => {
     const prompt = getReviewerSubagentTemplate().prompt;
 
-    expect(prompt).toContain(XIRANG_PHILOSOPHY);
-    expect(prompt).toContain(XIRANG_SHARED_CONTEXT);
-    expect(prompt).toContain('xirang arch outline --format markdown');
-    expect(prompt).toContain('xirang arch impact <identity> --depth <n> --json');
-    expect(prompt).toContain('xirang arch query <identity> --json');
-    expect(prompt).toContain('--contract');
+    expect(prompt).toContain('xirang-common');
+    expect(prompt).toContain('xirang-model-context.md');
     expect(prompt).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
     expect(prompt).toContain('semantic relationships');
   });

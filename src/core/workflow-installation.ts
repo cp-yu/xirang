@@ -7,7 +7,7 @@ import {
   type WorkflowId,
 } from './workflow-surface.js';
 import {
-  getSkillTemplates,
+  getInstallableSkillTemplates,
   getManagedSkillDirNames,
   type SkillTemplateEntry,
 } from './shared/skill-generation.js';
@@ -39,7 +39,7 @@ export function createWorkflowArtifactPlan(
   const normalizedWorkflows = projectPath
     ? resolveEffectiveWorkflows(projectPath, workflows)
     : normalizeWorkflowIds(workflows);
-  const skillTemplates = getSkillTemplates(normalizedWorkflows);
+  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows);
 
   return {
     workflows: normalizedWorkflows,
@@ -59,7 +59,7 @@ export function createToolWorkflowArtifactPlan(
   const normalizedWorkflows = projectPath
     ? resolveEffectiveWorkflows(projectPath, workflows)
     : normalizeWorkflowIds(workflows);
-  const skillTemplates = getSkillTemplates(normalizedWorkflows, toolId);
+  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows, toolId);
 
   return {
     workflows: normalizedWorkflows,

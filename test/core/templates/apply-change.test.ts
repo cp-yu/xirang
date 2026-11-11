@@ -1,10 +1,9 @@
+import { getCommonSkillTemplate } from '../../../src/core/templates/workflows/common.js';
 import { describe, expect, it } from 'vitest';
 
 import {
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
   QUALITY_ERROR_RECOVERY_GUIDE,
-  TEST_QUALITY_GUIDANCE,
-  XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import {
   getApplyChangeSkillTemplate,
@@ -36,7 +35,7 @@ describe('apply change workflow template', () => {
   });
 
   it('routes recovery through impact discovery before batch semantic reads', () => {
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
     const impactIndex = preparation.indexOf('xirang arch impact <identity> --depth <n> --json');
     const queryIndex = preparation.indexOf('xirang arch query <identity> --json');
 
@@ -45,12 +44,12 @@ describe('apply change workflow template', () => {
   });
 
   it('keeps the Xirang philosophy in the skill surface', () => {
-    expect(getApplyChangeSkillTemplate().instructions).toContain(XIRANG_PHILOSOPHY);
+    expect(getApplyChangeSkillTemplate().instructions).toContain('xirang-common');
   });
 
   it('uses definition-first authoring without code-map navigation', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
     expect(instructions).toContain('reading Definition before Guidance and Template');
     expect(instructions).toContain('Do not copy guidance, configuration or reasoning');
     expect(preparation).toContain('xirang arch query');
@@ -100,12 +99,12 @@ describe('apply change workflow template', () => {
     const recovery = applyReference('references/quality-recovery.md');
     expect(recovery).toContain('a new full-change Review');
     expect(recovery).toContain('no reviewId, scope or target commit is supplied');
-    expect(recovery).toContain('Invalid delegation or HEAD movement is corrected and re-delegated');
+    expect(recovery).toContain('xirang-apply-step-3-review.md');
   });
 
   it('routes isolation without loading mutually exclusive method references', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
 
     expect(instructions).toContain('Step 2: Isolation router');
     expect(instructions).not.toContain('xirang-apply-step-2-branch-isolation.md');
@@ -122,7 +121,7 @@ describe('apply change workflow template', () => {
   it('applies shared test quality before writing or splitting tests', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain(TEST_QUALITY_GUIDANCE);
+    expect(instructions).toContain('xirang-test-quality.md');
     expect(instructions).toContain('inspect existing tests');
     expect(instructions).toContain('credible evidence of unmet behavior');
     expect(instructions).not.toContain('公共方法数量少于 5');
@@ -150,7 +149,7 @@ describe('apply change workflow template', () => {
 
   it('keeps flow details in step references instead of the skill outline', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
 
     expect(instructions).toContain('## Flow Outline');
     expect(instructions).toContain('Step 1: Preparation');
@@ -199,7 +198,7 @@ describe('apply change workflow template', () => {
   });
 
   it('defines native git isolation and keeps dirty-state routing out of method references', () => {
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
     const branch = applyReference('references/apply-step-2-branch-isolation.md');
     const worktree = applyReference('references/apply-step-2-worktree-isolation.md');
     const current = applyReference('references/apply-step-2-current-branch.md');
@@ -242,7 +241,7 @@ describe('apply change workflow template', () => {
   });
 
   it('validates and reuses isolation metadata before selecting a first-run method', () => {
-    const preparation = applyReference('references/apply-step-1-preparation.md');
+    const preparation = applyReference('references/apply-step-1-preparation.md') + '\n' + getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/model-context.md')!.content;
     const resumeIndex = preparation.indexOf('If `changeDir/.apply-isolation.json` exists');
     const initializeIndex = preparation.indexOf('Only when isolation metadata is absent');
 
@@ -285,24 +284,24 @@ describe('apply change workflow template', () => {
   it('uses canonical archive source reference for archive-ready handoff', () => {
     const instructions = getApplyChangeSkillTemplate().instructions;
 
-    expect(instructions).toContain('Archive ready. Run /xirang:archive <change-name> to complete the workflow.');
+    expect(instructions).toContain('Archive ready. Request Archive in natural language or run /xirang:archive <change-name> to complete the workflow.');
     expect(instructions).not.toContain('Archive ready. Run /xirang-archive');
   });
 
   it('allows archive-ready handoff to be adapted per tool', () => {
-    const source = 'Archive ready. Run /xirang:archive <change-name> to complete the workflow.';
+    const source = 'Archive ready. Request Archive in natural language or run /xirang:archive <change-name> to complete the workflow.';
 
     expect(runTransforms(source, { toolId: 'codex', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run $xirang-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Request Archive in natural language or run $xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'claude', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /xirang-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Request Archive in natural language or run /xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'pi', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /skill:xirang-archive-change <change-name> to complete the workflow.'
+      'Archive ready. Request Archive in natural language or run /skill:xirang-archive-change <change-name> to complete the workflow.'
     );
     expect(runTransforms(source, { toolId: 'opencode', workflowId: 'apply', artifactType: 'skill' })).toBe(
-      'Archive ready. Run /xirang-archive <change-name> to complete the workflow.'
+      'Archive ready. Request Archive in natural language or run /xirang-archive <change-name> to complete the workflow.'
     );
   });
 });

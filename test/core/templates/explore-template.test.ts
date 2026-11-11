@@ -1,3 +1,4 @@
+import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -9,7 +10,7 @@ import {
 import { getExploreSkillTemplate } from '../../../src/core/templates/skill-templates.js';
 
 describe('explore template integration', () => {
-  const skill = getExploreSkillTemplate();
+  const skill = withCommonGuidance(getExploreSkillTemplate());
   const template = skill.instructions;
   const reference = skill.referenceFiles!.find(file => file.path === 'references/explore-supperpowers-style.md')!.content;
 
@@ -35,14 +36,14 @@ describe('explore template integration', () => {
     }
     expect(template).toContain('`xirang-experimenter`');
     expect(template).toContain('/xirang:propose <change-name>');
-    expect(reference).toContain('xirang-propose');
+    expect(reference).toContain('request Propose in natural language');
     expect(reference).not.toContain('/xirang:propose');
     expect(reference).not.toContain('$xirang-propose');
   });
 
   it('preserves the formal implementation and handoff prohibitions', () => {
     expect(template).toContain('Do not implement the formal Change, write the formal model or generated work surfaces, or author complete Change artifacts.');
-    expect(reference).toContain('Only after the user accepts the Summary');
+    expect(reference).toContain('After the user accepts the Summary');
     expect(reference).toContain('User agreement is required to exclude or defer in-scope behavior.');
     expect(reference).toMatch(/experimental success is evidence, not user adoption/i);
     expect(template).toContain('only the user permits accepted/excluded decisions and substantive revisions of confirmed content or structure');

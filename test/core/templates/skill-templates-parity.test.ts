@@ -110,7 +110,7 @@ describe('skill templates split parity', () => {
       const rendered = generateSkillContent(createTemplate(), version, (instructions) =>
         runTransforms(instructions, { toolId: 'pi', workflowId, artifactType: 'skill' })
       );
-      expect(rendered).toContain('Xirang Semantic Model');
+      expect(rendered).toContain('xirang-common');
       expect(rendered).not.toContain('capabilityId');
       expect(rendered).not.toContain('metadata.specs');
       expect(rendered).not.toContain('capabilities: []');

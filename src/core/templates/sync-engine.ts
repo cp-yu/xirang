@@ -13,7 +13,7 @@ import { FileSystemUtils } from '../../utils/file-system.js';
 import { XIRANG_DIR_NAME } from '../config.js';
 import {
   generateSkillContent,
-  getSkillTemplates,
+  getInstallableSkillTemplates,
   getManagedSkillDirNames,
   MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES,
 } from '../shared/skill-generation.js';
@@ -119,7 +119,7 @@ function buildPlan(request: ArtifactSyncRequest): ToolSyncPlan | null {
 
   const normalizedWorkflows = resolveEffectiveWorkflows(request.projectPath, request.workflows);
 
-  const skillTemplates = getSkillTemplates(normalizedWorkflows, request.toolId);
+  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows, request.toolId);
 
   const skillEntries: SkillWriteEntry[] = skillTemplates.map((entry) => ({
     template: entry.template,

@@ -1,5 +1,5 @@
+import { INTERNAL_COMMON_PREREQUISITE, MODEL_CONTEXT_ENTRY } from '../fragments/guidance-loading.js';
 import type { SubagentTemplate } from '../../shared/subagent-generation.js';
-import { XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT } from '../fragments/xirang-fragments.js';
 import { renderQualityPayloadSchema } from '../../quality/protocol.js';
 
 export function getReviewerSubagentTemplate(): SubagentTemplate {
@@ -14,9 +14,9 @@ For every reviewKind, use the baseCommit-to-HEAD diff to identify the cumulative
 
 You are an independent clean-context Reviewer. Independently read the Change, Semantic Model and final committed implementation. Never rely on implementation conversation conclusions or the main Agent's assessment. Review only the assigned quality dimensions; each full-change dimension still covers the entire cumulative Change. Return an opinion bound to the HEAD commit you actually inspected. Do not modify project files, Change artifacts, tasks, Quality records or Git history, and do not create or recover checkpoints. Available tools do not grant permission to write.
 
-${XIRANG_PHILOSOPHY}
+${INTERNAL_COMMON_PREREQUISITE}
 
-${XIRANG_SHARED_CONTEXT}
+${MODEL_CONTEXT_ENTRY}
 
 ## Input and snapshot validation
 

@@ -63,9 +63,38 @@ describe('workflow installation planning', () => {
 
     expect(plan.shouldGenerateSkills).toBe(true);
     expect(plan.expectedSkillDirNames).toEqual([
+      'xirang-common',
       'xirang-propose',
       'xirang-explore',
     ]);
+  });
+
+  it.each(['claude', 'pi', 'opencode', 'codex'])('delivers common for a direct %s stage entry and preserves user skills on update', async toolId => {
+    const plan = createToolWorkflowArtifactPlan(toolId, ['explore'], testDir);
+    const artifacts = getPlannedToolArtifacts(testDir, toolId, plan);
+    const skillsDir = path.join(testDir, `.${toolId}`, 'skills');
+    const commonPath = path.join(skillsDir, 'xirang-common', 'SKILL.md');
+    expect(plan.workflows).toEqual(['explore']);
+    expect(plan.expectedSkillDirNames).toContain('xirang-common');
+    expect(artifacts.skillFiles).toContain(commonPath);
+    const userPath = path.join(skillsDir, 'user-skill', 'SKILL.md');
+    await fs.mkdir(path.dirname(userPath), { recursive: true });
+    await fs.writeFile(userPath, 'user-owned');
+    const sync = () => ArtifactSyncEngine.syncOne({ toolId, projectPath: testDir, workflows: ['explore'], version: 'test' });
+    expect((await sync()).error).toBeUndefined();
+    const common = await fs.readFile(commonPath, 'utf8');
+    const explore = await fs.readFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'utf8');
+    expect(common).toContain('Xirang Philosophy');
+    expect(common).toContain('xirang-explore');
+    expect(explore).toContain('xirang-common');
+    expect(explore).not.toContain('**Xirang Philosophy**');
+    await fs.writeFile(commonPath, 'stale generated skill');
+    expect((await sync()).error).toBeUndefined();
+    expect(await fs.readFile(commonPath, 'utf8')).toBe(common);
+    expect(await fs.readFile(userPath, 'utf8')).toBe('user-owned');
+    for (const fileName of ['xirang-model-context.md', 'xirang-semantic-authoring.md', 'xirang-test-quality.md']) {
+      expect(await exists(path.join(testDir, '.xirang', 'references', fileName))).toBe(true);
+    }
   });
 
   it('tracks stale internal skill directories by explicit name', () => {
