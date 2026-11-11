@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type SkillTemplateEntry,
   generateSkillContent,
-  getSkillTemplates,
+  getInstallableSkillTemplates,
 } from '../../src/core/shared/skill-generation.js';
 
 const MAX_SKILL_LINES = 200;
@@ -25,7 +25,7 @@ interface SkillFileLength {
 
 function collectSkillFileLengths(): SkillFileLength[] {
   return VARIANTS.flatMap(({ label, toolId }) =>
-    getSkillTemplates(undefined, toolId).flatMap(({ dirName, template }: SkillTemplateEntry) => [
+    getInstallableSkillTemplates(undefined, toolId).flatMap(({ dirName, template }: SkillTemplateEntry) => [
       {
         dirName,
         variant: label,

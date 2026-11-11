@@ -15,3 +15,7 @@
 - [x] G4: 形成与实施指导一致采用目标级任务及动态测试安排
   - Contract: `workflow-templates` / Section "Workflow Skills 声明 Internal Subagents 约束"
   - Verify: Propose 和相关 references 形成的 tasks 仅表达目标、Contract 与验证方向；测试动作由 Apply 根据当前项目决定，阶段交接支持自然语言进入且保留原有准备与确认门禁。
+
+## Required Corrections
+
+- [x] [code_fix] 将 common 及其共享 references 纳入既有生成长度约束，保持六阶段 registry。

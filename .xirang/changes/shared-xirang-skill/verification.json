@@ -53,10 +53,14 @@
     {
       "command": "git diff --cached --check",
       "result": "PASS before implementation commit"
+    },
+    {
+      "command": "pnpm exec tsc --noEmit && pnpm exec vitest run",
+      "result": "PASS after Review correction: 166 files, 2226 tests"
     }
   ],
   "windowsCI": {
-    "status": "Target steps passed; workflow post-checkout cleanup still in progress at observation.",
+    "status": "PASS: completed workflow",
     "url": "https://github.com/cp-yu/xirang/actions/runs/42987224888",
     "workflow": "Candidate Views Windows",
     "addedCoverage": [
@@ -543,6 +547,53 @@
     "Trials are small controlled samples and do not prove every stage, all user intents or probabilistic reliability.",
     "Guidance update trial explicitly notifies the Agent; there is no new file-watching cache or load ledger.",
     "Reports and event traces are retention-managed local artifacts; source versions, scenario procedure, measurements and observed conclusions are retained here.",
-    "Full Windows/macOS/Linux CI matrix and formal full-change Review are still pending; target Windows workflow checks have passed. No Quality PASS or Seal is claimed."
-  ]
+    "Full-change Review failed for missing length-guard coverage; correction and full tests passed, new full-change Review pending. Windows and Ubuntu full CI passed; macOS browser E2E remains in progress. No PASS or Seal is claimed."
+  ],
+  "crossPlatformCI": {
+    "url": "https://github.com/cp-yu/xirang/actions/runs/42987224950",
+    "commit": "1827ec2a02eda4f03e328073c4e4654771c614c0",
+    "observed": "Windows and Ubuntu full jobs passed. macOS root tests, lint, build and vendored checks passed; macOS browser E2E still running."
+  },
+  "reviewCorrection": {
+    "reviewKind": "full-change",
+    "commit": "5ae994ba48f5d846c233c0fd18d5482653e2fc72",
+    "result": "FAIL",
+    "finding": "Existing length guard enumerated stages only, omitting common and 13 shared references. Files currently satisfy limits; regression protection was incomplete.",
+    "fix": "Use getInstallableSkillTemplates in the existing length guard; stage registry unchanged.",
+    "evidence": [
+      {
+        "kind": "skill",
+        "guard": "stage-only",
+        "exitCode": 0,
+        "log": "/tmp/common-length-skill-stage-only.log"
+      },
+      {
+        "kind": "skill",
+        "guard": "installable",
+        "exitCode": 1,
+        "log": "/tmp/common-length-skill-installable.log"
+      },
+      {
+        "kind": "reference",
+        "guard": "stage-only",
+        "exitCode": 0,
+        "log": "/tmp/common-length-reference-stage-only.log"
+      },
+      {
+        "kind": "reference",
+        "guard": "installable",
+        "exitCode": 1,
+        "log": "/tmp/common-length-reference-installable.log"
+      }
+    ],
+    "mutationProcedure": "Temporarily prepend 201 real lines to common instructions, then separately replace model-context reference content with 501 real lines. For each, run the existing guard using stage-only and installable enumeration. Old enumeration passes both oversized variants; corrected enumeration rejects both. Restore exact source/test bytes in finally; restored guard passes all four tests. No mocks or persistent mutation fixtures added.",
+    "validation": "pnpm exec tsc --noEmit and full vitest passed after correction: 166 files, 2226 tests.",
+    "disposition": "Required Correction completed; new full-change Review required before Opt/Seal."
+  },
+  "automaticInternalBootstrap": {
+    "runId": "2d9bca38-c691-4551-a8f3-9a161dbb6f28",
+    "role": "xirang-reviewer",
+    "evidence": "Native generated Reviewer, delegated only changeName/projectRoot/reviewKind/dimensions, independently read .pi/skills/xirang-common/SKILL.md at 2026-11-11T08:31:54.463Z and retained read-only Review role. This is actual role bootstrap evidence in addition to explicitly directed assessor trial.",
+    "sessionFile": "/home/yunxin/.pi/agent/sessions/--home-yunxin-Documents-Code-tools-developmentFramework-OpenSpec--/2026-11-11T06-54-14-829Z_01a1c962-c12d-7768-851d-3d4771276b32/2d9bca38-c691-4551-a8f3-9a161dbb6f28/run-0/session.jsonl"
+  }
 }
