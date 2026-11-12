@@ -10,6 +10,7 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
 ## Specification
 
 ### Section: 以用户意图驱动项目演进
+
 息壤 SHALL 以 Semantic Model 表达用户意图，以 Change 承载新的演进意图，并通过 Realization 落实项目构建与变更。
 
 - **推进项目演进**
@@ -17,6 +18,7 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
   - Agent 依据相应 Semantic Model 或 Change 推进 Realization
 
 ### Section: 保留用户授权
+
 息壤 SHALL 由用户保留意图确认和无法由语义与项目证据确定之决策的授权权力。
 
 - **遇到未决语义**
@@ -24,6 +26,7 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
   - Agent 请求用户裁决而不自行猜测
 
 ### Section: 表达项目意图与范围
+
 息壤 SHALL 让用户表达项目行为、架构意图、所有权、边界与语义协作，构成 Agent 可在不发明重大决策的前提下编译的模型。
 
 - **Agent 编译一个 Change**
@@ -32,7 +35,8 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
   - SHALL 只把实现代码用作当前证据
 
 ### Section: 保持稳定成功标准
-息壤 SHALL 提供稳定的 CLI 与生成的 Agent 工作流表面，保留 Explore → Propose → Apply → Verify → Sync → Archive 生命周期，校验 Semantic Delta，并仅在证据支撑的审查后提升 source。
+
+息壤 SHALL 提供确定的 CLI 入口与生成的 Agent 工作流表面，保留 Explore → Propose → Apply → Verify → Sync → Archive 生命周期，校验 Semantic Delta，并仅在证据支撑的审查后提升 source。CLI 的旧版本用法不保证在新版本中继续可用，允许用户与 Agent 协作完成升级适配。
 
 - **Change 达到稳态**
   - 一个 Change 完成
@@ -41,6 +45,7 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
   - validation SHALL 在提升前检测不完整或矛盾的 source
 
 ### Section: 维护全局语义不变量
+
 Project Root SHALL 唯一；每个非根 Element SHALL 恰有一个 parent；稳定 Element identity SHALL 独立于 containment path；每个 Element Contract SHALL 有一个显式 owner Element；contract required 的 Elements SHALL 具有真实契约。
 
 - **source 不完整**
@@ -49,6 +54,7 @@ Project Root SHALL 唯一；每个非根 Element SHALL 恰有一个 parent；稳
   - SHALL NOT 从文件名、imports、calls、source 布局、文本相似性或 catch-all owner 推断该决策
 
 ### Section: 独立产品与持久工作区
+
 息壤 SHALL 通过唯一 `xirang` CLI 与 `.xirang` workspace 独立运行。Setup、Project Build、Candidate、formal source 与 history SHALL 具有明确边界，且不得存在 migration 或 history fallback semantic stores。
 
 - **项目 setup 或 build**
@@ -58,6 +64,7 @@ Project Root SHALL 唯一；每个非根 Element SHALL 恰有一个 parent；稳
   - runtime SHALL NOT 消费这些 retired inputs
 
 ### Section: 证据门禁的源提升
+
 Candidate 模型与本次用户要求 SHALL 在 `.xirang/candidate/` 中保持隔离，直到记法、identities、policies、relationships、平台行为与 rollback path 通过 validation，且用户明确授权当前 `reviewDigest`。
 
 - **Candidate 有未解决缺口**

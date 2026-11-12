@@ -104,6 +104,7 @@ definition: Framework Identity 定义息壤开发框架的统一产品身份：�
   - SHALL NOT 自动迁移该 workspace
 
 ### Section: Telemetry command identity SHALL 为 xirang
+
 Telemetry events SHALL 使用 `xirang` 作为 executable identity，并使用当前 command path 作为 command property。
 
 - **记录 setup**
@@ -125,3 +126,9 @@ npm package 的 bin entry SHALL 为 `xirang`。
   - 用户通过 npm 安装框架
   - 系统 SHALL 在 PATH 中创建 `xirang` 可执行链接
   - SHALL NOT 创建其他框架命令链接
+
+### Section: CLI 向后兼容边界
+
+息壤 CLI 的版本演进 MAY 直接改变既有用法，SHALL NOT 承诺旧版本用法在新版本中继续可用；不得仅因旧用法存在就要求 CLI 提供兼容层。升级后的适配由用户与 Agent 协作完成，CLI 不承担为旧用法提供兼容支持的义务。此边界不要求每次更新都破坏兼容性，也不撤销跨平台路径正确性和用户文件所有权保护。
+
+- **不兼容入口退役**：新版本不再提供旧入口时，用户与 Agent 处理既有工作区的适配；CLI 不必为该旧入口提供别名或自动迁移工具。
