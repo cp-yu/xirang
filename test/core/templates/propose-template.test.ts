@@ -79,12 +79,15 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
-  it('writes complete target Definitions and stops when their boundaries remain unresolved', () => {
+  it('writes complete target Definitions while gating only material boundary choices', () => {
     const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
     expect(instructions).toContain('complete target Definition');
     expect(instructions).toContain('not a summary of what changed');
-    expect(instructions).toContain('stop and ask one focused question instead of guessing the Definition');
+    expect(instructions).toContain('multiple compliant organizations alone are not blockers');
+    expect(instructions).toContain('would change Element identity, scope, confirmed commitments, or a substantive trade-off');
+    expect(instructions).toContain('Otherwise choose a supported organization and present structural changes, reasons, and semantic impact in draft review');
+    expect(instructions).not.toContain('hierarchy boundary remains unresolved, stop and ask one focused question');
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
