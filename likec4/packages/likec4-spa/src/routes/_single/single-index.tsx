@@ -9,7 +9,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import { Link } from '@tanstack/react-router'
 
-import { StaticLikeC4Diagram, type XirangViewSource, useXirangViewSources } from '@likec4/diagram'
+import {
+  StaticLikeC4Diagram,
+  type XirangViewSource,
+  listXirangDiffCategories,
+  summarizeXirangDiff,
+  useXirangViewSources,
+} from '@likec4/diagram'
 import { useEffect, useState, type PropsWithChildren } from 'react'
 
 import type { DiagramView } from '@likec4/core/types'
@@ -202,7 +208,7 @@ function SourceCard({
   source: Pick<XirangViewSource, 'label' | 'valid' | 'diagnostics' | 'diff'>
   onOpen: () => void
 }) {
-  const counts = source.diff?.summary
+  const categories = source.diff ? listXirangDiffCategories(summarizeXirangDiff(source.diff.entries)) : []
   const errorDiagnostics = source.diagnostics.filter(d => d.level === 'ERROR')
 
   return (
@@ -225,17 +231,19 @@ function SourceCard({
         <Badge size="sm" color={source.valid ? 'green' : 'red'}>{source.valid ? 'Valid' : 'Invalid'}</Badge>
       </Group>
 
-      <Group gap="xs" mb="xs">
-        {counts && counts.ADDED > 0 && <Badge size="sm" color="green">+{counts.ADDED}</Badge>}
-        {counts && counts.MODIFIED > 0 && <Badge size="sm" color="yellow">~{counts.MODIFIED}</Badge>}
-        {counts && counts.REMOVED > 0 && <Badge size="sm" color="red">-{counts.REMOVED}</Badge>}
+      <Group gap="xs" mb="xs" data-xirang-change-card-counts>
+        {categories.map(category => (
+          <Badge key={category.category} size="sm" variant="light" color="gray" tt="none">
+            {category.label} {category.text}
+          </Badge>
+        ))}
       </Group>
 
       {errorDiagnostics.map((d, i) => (
         <Text key={i} size="xs" c="red" className={css({ lineClamp: 2 })}>{d.message}</Text>
       ))}
 
-      {errorDiagnostics.length === 0 && counts && counts.total === 0 && (
+      {errorDiagnostics.length === 0 && source.diff && categories.length === 0 && (
         <Text size="xs" c="dimmed">No semantic graph changes</Text>
       )}
     </Card>

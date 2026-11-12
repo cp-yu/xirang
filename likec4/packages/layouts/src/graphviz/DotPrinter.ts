@@ -390,7 +390,7 @@ export abstract class DotPrinter<V extends ViewToPrint> {
       [_.fillcolor]: compoundColor(colorValues.fill, compound.depth),
       [_.color]: compoundColor(colorValues.stroke, compound.depth),
       [_.style]: 'filled',
-      [_.margin]: pxToPoints(compound.children.length > 1 ? 40 : 32),
+      [_.margin]: this.clusterMargin(compound),
     })
     if (!isEmpty(compound.title.trim())) {
       subgraph.set(_.label, compoundLabel(compound, textColor))
@@ -398,10 +398,33 @@ export abstract class DotPrinter<V extends ViewToPrint> {
     return subgraph
   }
 
+  /**
+   * Space between the cluster border and its content, in points
+   */
+  protected clusterMargin(compound: NodeOf<V>): number {
+    return pxToPoints(compound.children.length > 1 ? 40 : 32)
+  }
+
+  /**
+   * Node size in pixels, as passed to Graphviz
+   */
+  protected nodeSize(element: NodeOf<V>): { width: number; height: number } {
+    const { width, height } = this.styles.nodeSizes(element.style).values.sizes
+    switch (element.shape) {
+      case 'queue':
+        return { width, height: height - 8 }
+      case 'component':
+        return { width: width + 10, height }
+      default:
+        return { width, height }
+    }
+  }
+
   protected elementToNode(element: NodeOf<V>, node: NodeModel) {
     invariant(!isCompound(element), 'node should not be compound')
     const hasIcon = isTruthy(element.icon)
-    const { values: { padding, sizes: { width, height } } } = this.styles.nodeSizes(element.style)
+    const { values: { padding } } = this.styles.nodeSizes(element.style)
+    const { width, height } = this.nodeSize(element)
 
     let paddingX = hasIcon ? 8 : padding
 
@@ -447,15 +470,12 @@ export abstract class DotPrinter<V extends ViewToPrint> {
       }
       case 'queue': {
         node.attributes.apply({
-          [_.width]: pxToInch(width),
-          [_.height]: pxToInch(height - 8),
           [_.margin]: `${pxToInch(hasIcon ? paddingX : paddingX + 4)},${pxToInch(padding)}`,
         })
         break
       }
       case 'component': {
         node.attributes.apply({
-          [_.width]: pxToInch(width + 10),
           [_.margin]: `${pxToInch(paddingX + 20)},${pxToInch(padding)}`,
         })
         break

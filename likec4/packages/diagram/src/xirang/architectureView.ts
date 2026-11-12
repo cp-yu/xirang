@@ -17,7 +17,10 @@ type KindStyle = {
 
 const operations = new Set<XirangDiffOperation>(['ADDED', 'MODIFIED', 'REMOVED'])
 
-/** Diff-mode node opacity per operation; unchanged nodes (no operation) dim to 25. */
+/** Diff-mode opacity of unchanged nodes (no operation): dimmed but still legible, including inside nested compound fills. */
+export const UNCHANGED_NODE_OPACITY = 58
+
+/** Diff-mode node opacity per operation. */
 const diffNodeOpacity: Record<XirangDiffOperation, number> = { ADDED: 100, MODIFIED: 100, REMOVED: 45 }
 
 interface DiffClassification {
@@ -106,6 +109,7 @@ export function applyXirangPresentationOverlay(
     const style = declaration ? kindStyles.get(declaration.kind) : undefined
     const operation = identity ? elementOperations.get(identity) : undefined
     const counts = identity ? requirementCounts.get(identity) : undefined
+    const isCompound = (node.children?.length ?? 0) > 0
     const hasSemanticChildren = identity ? parentIdentities.has(identity) : false
     const hasCounts = counts !== undefined && (counts.added > 0 || counts.modified > 0 || counts.removed > 0)
     const metadata = {
@@ -122,7 +126,11 @@ export function applyXirangPresentationOverlay(
       style: {
         ...node.style,
         ...(style?.border ? { border: style.border } : {}),
-        ...(diffActive ? { opacity: operation ? diffNodeOpacity[operation] : 25 } : {}),
+        // A compound's opacity is its fill alpha, so diff dimming only applies to leaf nodes; dimming containers would
+        // turn their translucent fills solid and stack into a saturated wash across nested levels.
+        ...(diffActive && !isCompound
+          ? { opacity: operation ? diffNodeOpacity[operation] : UNCHANGED_NODE_OPACITY }
+          : {}),
       },
       metadata,
     } as ViewNode

@@ -113,16 +113,16 @@ describe('ContractsTab', () => {
     expect(states.at(-1)?.status).toBe('success')
   })
 
-  it('renders a MODIFIED Requirement as one diff containing its Scenarios', () => {
+  it('renders a MODIFIED Section as one diff containing all its Acceptance Cases', () => {
     const model = getStructuredContractDiff(
       changeVariant([{
         kind: 'section',
         identity: 'auth.core_v1#Login',
         operation: 'MODIFIED',
-        before: { body: 'The system SHALL use password login.', scenarios: [{ name: 'Legacy', body: 'legacy' }] },
+        before: { body: 'The system SHALL use password login.', acceptanceCases: [{ name: 'Legacy', body: 'legacy' }] },
         after: {
           body: 'The system SHALL use secure password login.',
-          scenarios: [
+          acceptanceCases: [
             { name: 'Legacy', body: 'legacy' },
             { name: 'MFA', body: 'mfa' },
           ],
@@ -139,18 +139,18 @@ describe('ContractsTab', () => {
         before: [
           'The system SHALL use password login.',
           '',
-          '#### Scenario: Legacy',
+          '#### Acceptance Case: Legacy',
           '',
           'legacy',
         ].join('\n'),
         after: [
           'The system SHALL use secure password login.',
           '',
-          '#### Scenario: Legacy',
+          '#### Acceptance Case: Legacy',
           '',
           'legacy',
           '',
-          '#### Scenario: MFA',
+          '#### Acceptance Case: MFA',
           '',
           'mfa',
         ].join('\n'),
@@ -158,13 +158,16 @@ describe('ContractsTab', () => {
     ])
   })
 
-  it('merges ADDED Requirement text with its Scenarios into one diff', () => {
+  it('merges ADDED Section text with its Acceptance Cases into one diff', () => {
     const model = getStructuredContractDiff(
       changeVariant([{
         kind: 'section',
         identity: 'cap.a#Own',
         operation: 'ADDED',
-        after: { body: 'own', scenarios: [{ name: 'Pseudo', body: 'if (a > 0) result = a + b' }] },
+        after: {
+          body: 'own',
+          acceptanceCases: [{ name: 'Pseudo', body: 'if (a > 0) result = a + b' }, { name: 'Second', body: 'second body' }],
+        },
       }]),
       'cap.a',
     )
@@ -173,7 +176,17 @@ describe('ContractsTab', () => {
       title: 'Own',
       operation: 'ADDED',
       before: '',
-      after: ['own', '', '#### Scenario: Pseudo', '', 'if (a > 0) result = a + b'].join('\n'),
+      after: [
+        'own',
+        '',
+        '#### Acceptance Case: Pseudo',
+        '',
+        'if (a > 0) result = a + b',
+        '',
+        '#### Acceptance Case: Second',
+        '',
+        'second body',
+      ].join('\n'),
     })
   })
 

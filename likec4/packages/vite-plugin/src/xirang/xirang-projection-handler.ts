@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import type { LayoutedView } from '@likec4/core/types'
 import { XirangContractError, assertXirangManifest, type XirangRuntimeManifestSnapshot } from './xirang-contract-handler'
 import { ProjectionCache } from './projection-cache'
+import { layoutProjectionView, type XirangLayoutSource } from './xirang-adhoc-layout'
 
 export type ProjectionModelSelection = 'semantic-model' | 'candidate' | `change:${string}`
 
@@ -221,8 +222,7 @@ export async function handleProjection(
     loadSources?: (sources: Record<string, string>, fingerprint: string) => Promise<{
       diagrams(projectId?: string): Promise<LayoutedView[]>
       parsedModel?: () => Promise<{ relationships(): Iterable<unknown> }>
-      viewsService?: { adhocView(predicates: any[], projectId?: string): Promise<LayoutedView> }
-    }>
+    } & XirangLayoutSource>
     cache: ProjectionCache<ProjectionResponse>
     projectId: string
   },
@@ -356,7 +356,9 @@ export async function handleProjection(
   let projectionView: LayoutedView | undefined
   if (adhocPredicates && likec4) {
     try {
-      projectionView = await likec4.viewsService!.adhocView(adhocPredicates, context.projectId)
+      projectionView = await layoutProjectionView(
+        likec4, adhocPredicates, context.projectId, request.viewId === 'full-model',
+      )
     } catch (error) {
       // The before-after union can exceed Graphviz routing capacity on large Candidates;
       // retry the diff-driven visible set against the candidate-only target sources.
@@ -367,7 +369,9 @@ export async function handleProjection(
       const targetBoundary = new Set((source.architecture?.elements ?? []).map(element => element.declaration.identity))
       const fallbackIncludes = diffDrivenIncludes(source.architecture, targetPaths, source.diff?.entries ?? [], targetBoundary)
       projectionView = fallbackIncludes.length > 0
-        ? await targetLikec4.viewsService!.adhocView([{ include: fallbackIncludes }], context.projectId)
+        ? await layoutProjectionView(
+          targetLikec4, [{ include: fallbackIncludes }], context.projectId, request.viewId === 'full-model',
+        )
         : await targetLikec4.diagrams(context.projectId).then(diagrams => diagrams.find(view => view.id === diagramId))
       usedLikec4 = targetLikec4
       usedPaths = targetPaths

@@ -1,5 +1,7 @@
+import { MantineProvider } from '@mantine/core'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { declarationFieldDiffs } from './DiffTab'
+import { declarationFieldDiffs, partitionDeclarationFields } from './DiffTab'
 
 describe('declarationFieldDiffs', () => {
   it('extracts field diffs from a MODIFIED entry', () => {
@@ -45,5 +47,22 @@ describe('declarationFieldDiffs', () => {
 
     expect(fields[0]).toMatchObject({ label: 'kind', before: 'capability', after: '', changed: true })
     expect(fields[3]).toMatchObject({ label: 'definition', before: 'Removed', after: '', changed: true })
+  })
+})
+
+describe('partitionDeclarationFields', () => {
+  it('keeps only changed fields for presentation and collapses unchanged fields', () => {
+    const fields = declarationFieldDiffs({
+      kind: 'element-declaration',
+      identity: 'authored-views',
+      operation: 'MODIFIED',
+      before: { kind: 'capability', parent: 'root', title: 'Views', definition: '旧定义' },
+      after: { kind: 'capability', parent: 'root', title: 'Views', definition: '旧定义。新增一句。' },
+    })
+
+    const { changed, unchanged } = partitionDeclarationFields(fields)
+
+    expect(changed.map(field => field.label)).toEqual(['definition'])
+    expect(unchanged.map(field => field.label)).toEqual(['kind', 'parent', 'title'])
   })
 })

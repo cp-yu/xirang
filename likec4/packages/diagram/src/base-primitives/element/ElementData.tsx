@@ -22,6 +22,8 @@ import type { MergeExclusive } from 'type-fest'
 import { IconRenderer } from '../../context/IconRenderer'
 import { useLikeC4Styles } from '../../hooks/useLikeC4Styles'
 import { Markdown } from '../Markdown'
+import type { ElementLod } from '../lod/elementLod'
+import { OVERVIEW_TITLE_LINE_HEIGHT } from '../lod/lodMath'
 
 type RequiredData = {
   id: NodeId
@@ -204,6 +206,17 @@ const Description = forwardRef<
   )
 })
 
+/** Overview title: fitted font size, all lines visible (no line clamp), long words may break. */
+function overviewTitleStyle(fontSize: number | undefined): CSSProperties {
+  return {
+    ...(fontSize !== undefined && { fontSize: `${fontSize}px` }),
+    lineHeight: OVERVIEW_TITLE_LINE_HEIGHT,
+    display: 'block',
+    WebkitLineClamp: 'unset',
+    overflowWrap: 'anywhere',
+  }
+}
+
 /**
  * Renders an element title, technology, description, and icon.
  *
@@ -224,8 +237,24 @@ const Description = forwardRef<
  * ```
  */
 export function ElementData(
-  { data, 'aria-hidden': ariaHidden }: ElementDataProps & { 'aria-hidden'?: boolean | undefined },
+  { data, lod, 'aria-hidden': ariaHidden }: ElementDataProps & {
+    'aria-hidden'?: boolean | undefined
+    /**
+     * Zoom-dependent level of detail. In `overview` only the title is rendered, at the fitted size;
+     * `detail` (default) renders icon, title, technology and description.
+     */
+    lod?: ElementLod | undefined
+  },
 ) {
+  if (lod?.level === 'overview') {
+    return (
+      <Root data={data} aria-hidden={ariaHidden}>
+        <Content>
+          <Title data={data} style={overviewTitleStyle(lod.titleFontSize)} />
+        </Content>
+      </Root>
+    )
+  }
   return (
     // `aria-hidden` is opt-in: the main diagram passes it because the node's
     // accessible label already conveys this text, so re-exposing the visible

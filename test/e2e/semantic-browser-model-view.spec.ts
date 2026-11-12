@@ -230,14 +230,14 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
 
   const nodeBadgeStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(node => {
     const style = getComputedStyle(node)
-    const rect = node.getBoundingClientRect()
-    // The badge box is measured in viewport pixels; divide by the diagram zoom
-    // so auto-fit zoom levels do not distort the diagram-space size assertions.
-    const viewport = document.querySelector('.react-flow__viewport')
-    const zoom = viewport ? new DOMMatrixReadOnly(getComputedStyle(viewport).transform).a : 1
+    const badge = node as HTMLElement
+    // Layout size excludes both the diagram zoom and the badge group's reverse-zoom scale.
+    const group = badge.parentElement
+    const groupTransform = group ? getComputedStyle(group).transform : 'none'
     return {
-      width: rect.width / zoom,
-      height: rect.height / zoom,
+      width: badge.offsetWidth,
+      height: badge.offsetHeight,
+      groupScale: groupTransform === 'none' ? 1 : new DOMMatrixReadOnly(groupTransform).a,
       backgroundColor: style.backgroundColor,
       color: style.color,
       fontSize: parseFloat(style.fontSize),
@@ -257,15 +257,23 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'ADDED')
   const addedStyle = await nodeStyle(added)
   expect(addedStyle.outlineStyle).toBe('dotted')
-  expect(addedStyle.outlineWidth).toBe(3)
-  expect(addedStyle.outlineColor).toMatch(/255, 159, 10/)
+  expect(addedStyle.outlineWidth).toBeGreaterThanOrEqual(3)
+  expect(addedStyle.outlineColor).toMatch(/47, 158, 68/)
+  const addedOperationBadge = page.locator(
+    '.react-flow__node[data-xirang-identity="capability.added-parent"] [data-xirang-node-operation-badge="ADDED"]',
+  )
+  await expect(addedOperationBadge).toHaveText('+')
+  await expect(addedOperationBadge).toHaveAttribute('aria-label', 'Element added')
   const addedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.added-parent"] [data-xirang-node-diff]')
   await expect(addedBadge).toBeVisible()
   expect(await addedBadge.textContent()).toBe('+2')
+  await expect(addedBadge).toHaveAttribute('aria-label', '2 sections added')
   expect(await addedBadge.evaluate(node => parseFloat(getComputedStyle(node).opacity))).toBe(1)
 
   expect((await nodeBadgeStyle(addedBadge)).width).toBeGreaterThanOrEqual(24)
-  expect((await nodeBadgeStyle(addedBadge)).height).toBeCloseTo(24, 3)
+  expect((await nodeBadgeStyle(addedBadge)).height).toBe(24)
+  // Below full-size zoom the badge group grows with a reverse-zoom scale; it never shrinks.
+  expect((await nodeBadgeStyle(addedBadge)).groupScale).toBeGreaterThanOrEqual(1)
   expect((await nodeBadgeStyle(addedBadge)).fontSize).toBeGreaterThanOrEqual(16)
   expect((await nodeBadgeStyle(addedBadge)).borderWidth).toBeGreaterThanOrEqual(2)
   expect((await nodeBadgeStyle(addedBadge)).backgroundColor).toMatch(/47, 158, 68/)
@@ -279,7 +287,7 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
   const unchangedLeaf = page.locator('.react-flow__node[data-xirang-identity="capability.assistant"] .likec4-element-node')
   await expect(unchangedLeaf).toBeVisible()
   const unchangedStyle = await nodeStyle(unchangedLeaf)
-  expect(unchangedStyle.opacity).toBeCloseTo(0.25, 2)
+  expect(unchangedStyle.opacity).toBeCloseTo(0.58, 2)
   expect(unchangedStyle.outlineStyle).toBe('none')
 
   // The only edge without a diff badge here is the unchanged assistant→leaf relationship, dimmed to 25%.
@@ -293,8 +301,11 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'MODIFIED')
   const modifiedStyle = await nodeStyle(leaf)
   expect(modifiedStyle.outlineStyle).toBe('solid')
-  expect(modifiedStyle.outlineWidth).toBe(5)
+  expect(modifiedStyle.outlineWidth).toBeGreaterThanOrEqual(5)
   expect(modifiedStyle.outlineColor).toMatch(/255, 159, 10/)
+  await expect(page.locator(
+    '.react-flow__node[data-xirang-identity="capability.leaf"] [data-xirang-node-operation-badge="MODIFIED"]',
+  )).toHaveText('~')
   const modifiedBadge = page.locator('.react-flow__node[data-xirang-identity="capability.leaf"] [data-xirang-node-diff]')
   await expect(modifiedBadge).toBeVisible()
   expect(await modifiedBadge.textContent()).toBe('~1')
@@ -313,10 +324,13 @@ test('renders four-state diff visuals on nodes and edges', async ({ page }) => {
     .toHaveAttribute('data-xirang-operation', 'REMOVED')
   const removedStyle = await nodeStyle(peer)
   expect(removedStyle.outlineStyle).toBe('dashed')
-  expect(removedStyle.outlineWidth).toBe(3)
-  expect(removedStyle.outlineColor).toMatch(/255, 159, 10/)
+  expect(removedStyle.outlineWidth).toBeGreaterThanOrEqual(3)
+  expect(removedStyle.outlineColor).toMatch(/224, 49, 49/)
   expect(removedStyle.opacity).toBeCloseTo(0.45, 2)
-  // peer 只有 element 级 REMOVED，无 section 变更：只有 outline，无计数徽章。
+  await expect(page.locator(
+    '.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-operation-badge="REMOVED"]',
+  )).toHaveText('\u2212')
+  // peer 只有 element 级 REMOVED，无 section 变更：只有 operation 徽章，无计数徽章。
   await expect(page.locator('.react-flow__node[data-xirang-identity="capability.peer"] [data-xirang-node-diff]')).toHaveCount(0)
 
   // The removed leaf→peer relationship keeps its diff badge.

@@ -4,7 +4,7 @@ import {
   useXirangViewSources,
 } from '../../xirang/ContractLoaderContext'
 import { getStructuredContractDiff } from './ContractsTab'
-import { XirangDiffViewer } from './XirangDiffViewer'
+import { XirangDiffViewer, XirangValueDiff } from './XirangDiffViewer'
 
 interface DeclarationFieldDiff {
   label: string
@@ -49,18 +49,51 @@ export function declarationFieldDiffs(
   ]
 }
 
+const shortValueLabels = new Set(['kind', 'parent', 'title'])
+
+/** Splits declaration fields into the changed ones (presented in full) and the unchanged ones (collapsed to a summary). */
+export function partitionDeclarationFields(fields: DeclarationFieldDiff[]): {
+  changed: DeclarationFieldDiff[]
+  unchanged: DeclarationFieldDiff[]
+} {
+  return {
+    changed: fields.filter(field => field.changed),
+    unchanged: fields.filter(field => !field.changed),
+  }
+}
+
 function DeclarationDiff({ fields }: { fields: DeclarationFieldDiff[] }) {
+  const { changed, unchanged } = partitionDeclarationFields(fields)
   return (
     <Stack gap="xs" data-xirang-declaration-diff>
-      {fields.map(field => (
-        <Box key={field.label} data-xirang-field-changed={field.changed || undefined}>
+      {changed.map(field => (
+        <Box key={field.label} data-xirang-field-changed>
           <Text size="xs" fw={600} c="dimmed" mb={2}>{field.label}</Text>
-          <XirangDiffViewer before={field.before} after={field.after} />
+          {shortValueLabels.has(field.label)
+            ? <XirangValueDiff before={field.before} after={field.after} />
+            : <XirangDiffViewer before={field.before} after={field.after} />}
         </Box>
       ))}
+      {unchanged.length > 0 && (
+        <Box component="details" data-xirang-unchanged-fields>
+          <Text component="summary" size="xs" c="dimmed" style={{ cursor: 'pointer' }}>
+            Unchanged: {unchanged.map(field => field.label).join(', ')}
+          </Text>
+          <Stack gap={4} mt={4}>
+            {unchanged.map(field => (
+              <Box key={field.label}>
+                <Text size="xs" fw={600} c="dimmed">{field.label}</Text>
+                <XirangValueDiff before={field.before} after={field.after} />
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
     </Stack>
   )
 }
+
+const operationBadge = { ADDED: 'Added', MODIFIED: 'Modified', REMOVED: 'Removed' } as const
 
 function ContractRequirementDiff({
   requirement,
@@ -68,8 +101,10 @@ function ContractRequirementDiff({
   requirement: ReturnType<typeof getStructuredContractDiff>['requirements'][number]
 }) {
   return (
-    <Box>
-      <Text size="xs" fw={600} c="dimmed" mb={2}>{requirement.title}</Text>
+    <Box data-xirang-requirement-diff={requirement.operation}>
+      <Text size="xs" fw={600} c="dimmed" mb={2}>
+        {requirement.title} · {operationBadge[requirement.operation]}
+      </Text>
       <XirangDiffViewer before={requirement.before} after={requirement.after} />
     </Box>
   )

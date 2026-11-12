@@ -1,21 +1,55 @@
-import type { AnyAux, ComputedEdge, ComputedElementView, ComputedNode, Fqn, HexColor } from '@likec4/core'
+import type {
+  AnyAux,
+  ComputedEdge,
+  ComputedElementView,
+  ComputedNode,
+  Fqn,
+  HexColor,
+  LikeC4Styles,
+  NodeId,
+} from '@likec4/core'
 import { nonNullable } from '@likec4/core/utils'
 import { createLogger } from '@likec4/log'
-import { chunk, filter, first, isNonNullish, last, map, pipe } from 'remeda'
+import { chunk, filter, first, isEmpty, isNonNullish, last, map, pipe } from 'remeda'
 import type { EdgeModel, NodeModel, RootGraphModel } from 'ts-graphviz'
 import { attribute as _ } from 'ts-graphviz'
-import { edgelabel } from './dot-labels'
+import { CompoundLabelFontSize, edgelabel } from './dot-labels'
 import { DotPrinter } from './DotPrinter'
 import { isCompound, toArrowType } from './utils'
+import { type Extent, chooseColumns, rowLinks, wrappedExtent } from './wrap-siblings'
 
 const rankLogger = createLogger('dot.rank')
 
+export type ElementViewPrinterOptions = {
+  /**
+   * Wrap sibling units of every cluster (and of the root) into rows,
+   * chained with invisible edges, to keep the aspect ratio of large views reasonable.
+   * @default false
+   */
+  wrapSiblings?: boolean | undefined
+}
+
+/**
+ * Cluster title takes a text line (font size x Graphviz line spacing)
+ * plus the label padding Graphviz adds for clusters (2 * GAP, GAP = 4)
+ */
+const CompoundTitleHeight = Math.ceil(CompoundLabelFontSize * 1.2) + 8
+
 export class ElementViewPrinter<A extends AnyAux> extends DotPrinter<ComputedElementView<A>> {
+  constructor(
+    view: ComputedElementView<A>,
+    styles: LikeC4Styles,
+    private readonly options: ElementViewPrinterOptions = {},
+  ) {
+    super(view, styles)
+  }
+
   protected override postBuild(): void {
     // Assign groups to improve layout
     this
       .assignGroups()
       .tileNodesWithoutEdges()
+      .wrapSiblingUnits()
       .applyExplicitRankBlocks()
       .enableNewRankIfNeeded()
   }
@@ -73,6 +107,64 @@ export class ElementViewPrinter<A extends AnyAux> extends DotPrinter<ComputedEle
           }
         })
       })
+    }
+    return this
+  }
+
+  /**
+   * Splits direct children of every cluster (and top-level nodes) into rows,
+   * choosing the number of columns that brings the estimated aspect ratio closest to the target.
+   * Rows are chained with invisible edges from a leaf of the unit above to a leaf of the unit below.
+   * Such edges have no `likec4_id`, so they are ignored when the layout is parsed.
+   */
+  private wrapSiblingUnits(): this {
+    if (!this.options.wrapSiblings) {
+      return this
+    }
+    const { direction, nodeSep = 110, rankSep = 120 } = this.view.autoLayout
+    const transposed = direction === 'LR' || direction === 'RL'
+    // Sizes are measured in rank coordinates:
+    // `w` runs across a rank, `h` runs along the rank axis (rows are stacked along it).
+    const toRank = (extent: Extent): Extent => transposed ? { w: extent.h, h: extent.w } : extent
+
+    const wraps = [] as Array<{ parent: NodeId | null; units: ComputedNode[]; columns: number }>
+    const planWrap = (parent: NodeId | null, units: ComputedNode[], cells: Extent[]) => {
+      const columns = chooseColumns(cells, { transposed })
+      wraps.push({ parent, units, columns })
+      return columns
+    }
+
+    // Size of a unit together with the spacing Graphviz keeps around it
+    const cellOf = (unit: ComputedNode): Extent => {
+      if (!isCompound(unit)) {
+        const { width, height } = this.nodeSize(unit)
+        const { w, h } = toRank({ w: width, h: height })
+        return { w: w + nodeSep, h: h + rankSep }
+      }
+      const units = unit.children.map(id => this.computedNode(id))
+      const cells = units.map(cellOf)
+      const body = wrappedExtent(cells, planWrap(unit.id, units, cells))
+      const title = isEmpty(unit.title.trim()) ? 0 : CompoundTitleHeight
+      const margin = this.clusterMargin(unit)
+      const border = toRank({ w: 2 * margin, h: 2 * margin + title })
+      return { w: body.w + border.w, h: body.h + border.h }
+    }
+
+    const topUnits = this.view.nodes.filter(n => n.parent === null)
+    planWrap(null, topUnits, topUnits.map(cellOf))
+
+    const leavesOf = (unit: ComputedNode) => isCompound(unit) ? this.leafElements(unit.id) : [unit]
+    for (const { parent, units, columns } of wraps) {
+      const container = parent === null ? this.G : nonNullable(this.getSubgraph(parent))
+      for (const [from, to] of rowLinks(units.length, columns)) {
+        const upper = leavesOf(units[from]!).at(-1)
+        const lower = leavesOf(units[to]!).at(0)
+        const upperNode = upper && this.getGraphNode(upper.id)
+        const lowerNode = lower && this.getGraphNode(lower.id)
+        if (upperNode && lowerNode) {
+          container.edge([upperNode, lowerNode], { [_.style]: 'invis' })
+        }
+      }
     }
     return this
   }

@@ -26,6 +26,7 @@ import { useCallbackRef } from '../../../hooks/useCallbackRef'
 import { useDiagram } from '../../../hooks/useDiagram'
 import { useSetState } from '../../../hooks/useSetState'
 import { useUpdateEffect } from '../../../hooks/useUpdateEffect'
+import { useEdgeLabelsHidden } from '../../../hooks/useZoomLod'
 import { useXYFlow, useXYStoreApi } from '../../../hooks/useXYFlow'
 import {
   isSamePoint,
@@ -57,6 +58,7 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
   const xyflow = useXYFlow()
   const xyflowStore = useXYStoreApi()
   const diagram = useDiagram()
+  const labelsHiddenByLod = useEdgeLabelsHidden()
   const {
     enableNavigateTo,
     enableReadOnly,
@@ -401,6 +403,7 @@ export const RelationshipEdge = memoEdge<Types.EdgeProps<'relationship'>>((props
         {labelBBox && (
           <EdgeLabelContainer
             edgeProps={props}
+            hideWhenIdle={labelsHiddenByLod}
             labelPosition={isControlPointDragging || isLabelDragging ? labelPos : { x: labelX, y: labelY }}
             {...enabledEditing && {
               onPointerDown: onLabelPointerDown,

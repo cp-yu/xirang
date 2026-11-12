@@ -139,6 +139,10 @@ export {
   useXirangViewSources,
 } from './xirang/ContractLoaderContext'
 export {
+  listDiffCategories as listXirangDiffCategories,
+  summarizeXirangDiff,
+} from './xirang/changePanelModel'
+export {
   XIRANG_EXPORT_SNAPSHOT_KEY,
   type XirangExportSnapshot,
   clearXirangExportSnapshotFromStorage,

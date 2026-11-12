@@ -16,27 +16,33 @@ const source = (
 })
 
 describe('getArchitectureOverlayModel', () => {
-  it('只统计 element-declaration 与 relationship 级变更', () => {
+  it('按 Elements/Relationships/Sections/Metamodel 分类计数，section 与 element 变更互不混淆', () => {
     const overlay = getArchitectureOverlayModel(source({
-      summary: { total: 5, ADDED: 2, MODIFIED: 2, REMOVED: 1 },
+      summary: { total: 6, ADDED: 3, MODIFIED: 2, REMOVED: 1 },
       entries: [
         { kind: 'element-declaration', identity: 'a', operation: 'ADDED' },
         { kind: 'element-declaration', identity: 'b', operation: 'MODIFIED' },
         { kind: 'relationship', identity: 'a|invokes|b', operation: 'REMOVED' },
         { kind: 'section', identity: 'a#新增', operation: 'ADDED' },
         { kind: 'section', identity: 'b#修改', operation: 'MODIFIED' },
+        { kind: 'element-kind', identity: 'k', operation: 'ADDED' },
       ],
     }))
-    expect(overlay.counts).toEqual({ ADDED: 1, MODIFIED: 1, REMOVED: 1 })
+    expect(overlay.categories.elements).toEqual({ ADDED: 1, MODIFIED: 1, REMOVED: 0 })
+    expect(overlay.categories.relationships).toEqual({ ADDED: 0, MODIFIED: 0, REMOVED: 1 })
+    expect(overlay.categories.sections).toEqual({ ADDED: 1, MODIFIED: 1, REMOVED: 0 })
+    expect(overlay.categories.metamodel).toEqual({ ADDED: 1, MODIFIED: 0, REMOVED: 0 })
   })
 
-  it('纯 requirement 变更不计入计数，也不标记 changed', () => {
+  it('纯 requirement 变更不标记 changed Declaration，但出现在 Changed Elements 与 Sections 计数中', () => {
     const overlay = getArchitectureOverlayModel(source({
       summary: { total: 1, ADDED: 0, MODIFIED: 1, REMOVED: 0 },
       entries: [{ kind: 'section', identity: 'a#修改', operation: 'MODIFIED' }],
     }))
-    expect(overlay.counts).toEqual({ ADDED: 0, MODIFIED: 0, REMOVED: 0 })
+    expect(overlay.categories.sections.MODIFIED).toBe(1)
+    expect(overlay.categories.elements).toEqual({ ADDED: 0, MODIFIED: 0, REMOVED: 0 })
     expect(overlay.changed).toEqual([])
+    expect(overlay.changedElements.map(element => [element.identity, element.sectionsOnly])).toEqual([['a', true]])
   })
 
   it('保持 diff entry 原始顺序并按 kind、identity 排序 metamodel', () => {

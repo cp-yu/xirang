@@ -20,6 +20,11 @@ type CompoundNodeContainerProps = // & Omit<HTMLMotionProps<'div'>, 'children'>
     HTMLAttributes<HTMLDivElement> & {
       layout?: boolean | 'position' | 'size' | 'preserve-aspect'
       layoutId?: string | undefined // from motion
+      /**
+       * Overrides the fill opacity (percent) while the border keeps following the node style opacity.
+       * Used to keep nested translucent compound fills from stacking into a saturated wash.
+       */
+      fillOpacity?: number | undefined
       nodeProps: BaseNodeProps<BaseNode<RequiredData>>
     }
   >
@@ -35,6 +40,7 @@ export function CompoundNodeContainer({
   className,
   children,
   style,
+  fillOpacity,
   ...rest
 }: CompoundNodeContainerProps) {
   const styles = useLikeC4Styles()
@@ -42,7 +48,8 @@ export function CompoundNodeContainer({
     min: 0,
     max: 100,
   })
-  const isTransparent = opacity < 98
+  const fill = clamp(fillOpacity ?? opacity, { min: 0, max: 100 })
+  const isTransparent = fill < 98
 
   const MIN_OPACITY = 50
   const borderOpacity = MIN_OPACITY + clamp((100 - MIN_OPACITY) * (opacity / 100), {
@@ -52,7 +59,7 @@ export function CompoundNodeContainer({
 
   const compoundClass = compoundNode({
     isTransparent,
-    inverseColor: opacity < 70,
+    inverseColor: fill < 70,
     borderStyle: data.style.border ?? (isTransparent ? styles.defaults.group.border : 'none'),
   })
 
@@ -90,7 +97,7 @@ export function CompoundNodeContainer({
       tabIndex={-1}
       animate={{
         ['--_border-transparency']: `${borderOpacity}%`,
-        ['--_compound-transparency']: `${opacity}%`,
+        ['--_compound-transparency']: `${fill}%`,
       }}
       style={{ ...hexStyle, ...style } as MotionStyle}
       {...rest as any}

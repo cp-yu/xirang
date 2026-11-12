@@ -1,9 +1,10 @@
-import { type Fqn, hasProp, isDynamicView, RichText } from '@likec4/core'
+import { type Fqn, type NodeId, hasProp, isDynamicView, RichText } from '@likec4/core'
 import { css } from '@likec4/styles/css'
-import { Badge, Box, Button, Group, Modal, Stack, Text, UnstyledButton } from '@mantine/core'
-import { IconGripVertical } from '@tabler/icons-react'
+import { ActionIcon, Badge, Box, Button, Group, Modal, Stack, Text, UnstyledButton } from '@mantine/core'
+import { IconChevronDown, IconChevronUp, IconGripVertical } from '@tabler/icons-react'
 import { useRerender } from '@react-hookz/web'
 import { motion, useDragControls } from 'motion/react'
+import { nodeToRect } from '@xyflow/system'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren, type ReactNode } from 'react'
 import { ErrorBoundary } from '../components/ErrorFallback'
 import { Markdown } from '../base-primitives'
@@ -25,8 +26,26 @@ import {
   useXirangViewSources,
   xirangViewSourceRevision,
 } from '../xirang/ContractLoaderContext'
+import {
+  type ChangedElement,
+  type ChangedRelationship,
+  collectChangedElements,
+  collectChangedRelationships,
+  type LocateUnavailableReason,
+  listDiffCategories,
+  resolveLocateTarget,
+  summarizeXirangDiff,
+  xirangViewTitle,
+} from '../xirang/changePanelModel'
+import {
+  computeLocateViewport,
+  NO_INSETS,
+  obstructionInsets,
+} from '../xirang/browserChromeModel'
 import { addedXirangProjectionIdentity } from '../xirang/projectionNode'
 import { setXirangExportSnapshot } from '../xirang/export-state'
+import { ChangeListPanel } from './ChangeListPanel'
+import { XirangMinimap } from './XirangMinimap'
 import { RelationshipPopover } from './relationship-popover/RelationshipPopover'
 import { FloatingSequenceActors, LayoutDriftFrame, NotationPanel, SequenceOutlinePanel } from './ui'
 
@@ -57,20 +76,18 @@ const structuralDiffKinds = new Set([
 ])
 
 /**
- * Right-side inspection panel model for the selected Change. Counts cover structural
- * diffs (element-declaration + relationship) only; requirement-level changes surface
- * as per-node count badges and Diff tabs, not panel counters.
+ * Right-side inspection panel model for the selected Change. `categories` counts every top-level diff
+ * entry by category (Elements, Relationships, Sections, Metamodel, Views) — the same classification the
+ * landing-page Change cards use. `changedElements` merges Section changes into their host Element.
  */
 export function getArchitectureOverlayModel(source: XirangViewSource) {
   const entries = (source.diff?.entries ?? []).filter(entry => structuralDiffKinds.has(entry.kind))
   const changed = new Set<string>()
   const context = new Set<string>()
-  const counts: Record<XirangDiffOperation, number> = { ADDED: 0, MODIFIED: 0, REMOVED: 0 }
   const metamodel = [] as typeof entries
   for (const entry of entries) {
     if (entry.kind === 'element-declaration') {
       changed.add(entry.identity)
-      counts[entry.operation] += 1
       const beforeParent = entry.before && typeof entry.before === 'object'
         ? (entry.before as { parent?: unknown }).parent
         : null
@@ -80,7 +97,6 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
       if (typeof beforeParent === 'string') context.add(beforeParent)
       if (typeof afterParent === 'string') context.add(afterParent)
     } else if (entry.kind === 'relationship') {
-      counts[entry.operation] += 1
       const [source, , target] = entry.identity.split('|')
       if (source) context.add(source)
       if (target) context.add(target)
@@ -89,11 +105,16 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
     }
   }
   for (const identity of changed) context.delete(identity)
+  const allEntries = source.diff?.entries ?? []
+  const declarations = new Map((source.architecture?.elements ?? [])
+    .map(element => [element.declaration.identity, element.declaration]))
   return {
     entries,
     changed: [...changed].sort(),
     context: [...context].sort(),
-    counts,
+    categories: summarizeXirangDiff(allEntries),
+    changedElements: collectChangedElements(allEntries, declarations),
+    changedRelationships: collectChangedRelationships(allEntries, identity => declarations.get(identity)?.title ?? identity),
     metamodel: metamodel.sort((left, right) => left.kind.localeCompare(right.kind) || left.identity.localeCompare(right.identity)),
     diagnostics: source.diagnostics.filter(diagnostic => !isXirangContractDiagnostic(diagnostic)),
   }
@@ -103,17 +124,42 @@ export function getArchitectureOverlayModel(source: XirangViewSource) {
 const changeDetailsPanel = css({
   position: 'absolute',
   top: '[64px]',
-  right: '4',
+  left: '2',
+  right: '2',
   zIndex: 5,
   pointerEvents: 'all',
-  width: 'max-content',
-  maxWidth: 'calc(100vw - 2 * {spacing.md})',
+  maxHeight: '[calc(100vh - 140px)]',
+  overflowY: 'auto',
   layerStyle: 'likec4.panel',
-  display: 'none',
+  display: 'flex',
+  flexDirection: 'column',
+  // Collapsed, the panel shrinks to its header and hugs the right edge on every screen size.
+  '&[data-xirang-change-panel-collapsed="true"]': {
+    left: '[auto]',
+    right: '4',
+    width: 'max-content',
+    maxWidth: '[calc(100vw - 16px)]',
+  },
   sm: {
-    display: 'block',
+    left: '[auto]',
+    right: '4',
+    width: 'max-content',
+    minWidth: '[280px]',
+    maxWidth: '[400px]',
   },
 })
+
+function locateUnavailableMessage(reason: LocateUnavailableReason, identity: string): string {
+  switch (reason) {
+    case 'removed-hidden':
+      return `${identity} is removed and not shown in this projection. Switch Mode to “Complete with diff” or “Diff only”.`
+    case 'out-of-scope':
+      return `${identity} is outside the current View Selection. Switch View to Full Model.`
+    case 'no-parent':
+    case 'hidden':
+      return `${identity} is not visible in the current projection.`
+  }
+}
 
 /** Metamodel entries above this count collapse into group summary rows. */
 export const METAMODEL_COLLAPSE_THRESHOLD = 6
@@ -190,6 +236,19 @@ function XirangArchitectureOverlay() {
   const [planFile, setPlanFile] = useState<{ name: string; content: string; opened: boolean } | null>(null)
   const [expandedMetamodelGroup, setExpandedMetamodelGroup] = useState<XirangDiffKind | null>(null)
   useEffect(() => setExpandedMetamodelGroup(null), [selectedRevision])
+  /** Narrow screens start with the Change panel collapsed so it does not cover the canvas. */
+  const [panelCollapsed, setPanelCollapsed] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia?.('(max-width: 48em)').matches === true,
+  )
+  const [locateNotice, setLocateNotice] = useState<string | null>(null)
+  /** Element waiting for a focus-driven projection update before it can be centered. */
+  const [pendingLocate, setPendingLocate] = useState<string | null>(null)
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const changePanelRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    setLocateNotice(null)
+    setPendingLocate(null)
+  }, [selectedRevision])
   const overlay = useMemo(() => getArchitectureOverlayModel(selected), [selected])
   const { declarations, childrenByIdentity, rootIdentity } = useMemo(() => {
     const declarations = new Map((selected.architecture?.elements ?? [])
@@ -227,7 +286,7 @@ function XirangArchitectureOverlay() {
     }
     return identities
   }, [declarations, focusIdentity, breadcrumbRoot, viewScope])
-  const breadcrumb = (selected.source === 'semantic-model' || selected.change === 'candidate') && breadcrumbIdentities.length > 0 && (
+  const breadcrumb = breadcrumbIdentities.length > 0 && (
     <FloatingChrome dragControls={breadcrumbDragControls} position={{ left: 60, bottom: 16 }}>
       <Group
         data-xirang-focus-breadcrumb
@@ -254,6 +313,104 @@ function XirangArchitectureOverlay() {
       </Group>
     </FloatingChrome>
   )
+
+  const projectionNodes = useMemo(
+    () => currentView.nodes.map(node => ({ id: node.id as string, identity: nodeIdentity(node) })),
+    [currentView.nodes],
+  )
+
+  /**
+   * Centers the node in the part of the canvas not covered by the expanded Change panel, then highlights it.
+   * Falls back to the plain diagram centering when the xyflow internals are not available yet.
+   */
+  const centerAndHighlight = useCallback((nodeId: string) => {
+    const { xystore } = diagram.getContext()
+    const state = xystore.getState()
+    const internalNode = state.nodeLookup.get(nodeId)
+    const canvas = state.domNode?.getBoundingClientRect()
+    if (internalNode && canvas && state.panZoom) {
+      const panel = !enableStaticView && !panelCollapsed ? changePanelRef.current?.getBoundingClientRect() ?? null : null
+      const insets = panel
+        ? obstructionInsets(
+          { x: panel.x, y: panel.y, width: panel.width, height: panel.height },
+          { x: canvas.x, y: canvas.y, width: canvas.width, height: canvas.height },
+        )
+        : NO_INSETS
+      const viewport = computeLocateViewport({
+        node: nodeToRect(internalNode),
+        container: { width: state.width, height: state.height },
+        insets,
+        minZoom: state.minZoom,
+        maxZoom: Math.max(state.transform[2], 1),
+      })
+      void state.panZoom.setViewport(viewport, { duration: 450, interpolate: 'smooth' })
+    } else {
+      diagram.centerViewportOnNode(nodeId as NodeId)
+    }
+    diagram.highlightNode(nodeId as NodeId)
+    if (highlightTimer.current) clearTimeout(highlightTimer.current)
+    highlightTimer.current = setTimeout(() => diagram.unhighlightAll(), 2500)
+  }, [diagram, enableStaticView, panelCollapsed])
+  useEffect(() => () => {
+    if (highlightTimer.current) clearTimeout(highlightTimer.current)
+  }, [])
+
+  /** Centers a projected node, or focuses its parent first; reports why an Element cannot be shown. */
+  const locate = useCallback((target: { identity: string; operation: XirangDiffOperation; parent: string | null }) => {
+    setLocateNotice(null)
+    const resolution = resolveLocateTarget({
+      ...target,
+      nodes: projectionNodes,
+      focusIdentity: focusIdentity ?? breadcrumbRoot ?? null,
+      declaredIdentities: new Set(declarations.keys()),
+      scope: viewScope,
+    })
+    if (resolution.type === 'center') {
+      setPendingLocate(null)
+      centerAndHighlight(resolution.nodeId)
+    } else if (resolution.type === 'focus') {
+      setPendingLocate(target.identity)
+      actorRef.send({ type: 'navigate.focus', focusIdentity: resolution.focusIdentity })
+    } else {
+      setPendingLocate(null)
+      setLocateNotice(locateUnavailableMessage(resolution.reason, target.identity))
+    }
+    return resolution
+  }, [actorRef, breadcrumbRoot, centerAndHighlight, declarations, focusIdentity, projectionNodes, viewScope])
+
+  useEffect(() => {
+    if (!pendingLocate) return
+    const node = projectionNodes.find(candidate => candidate.identity === pendingLocate)
+    if (node) {
+      // Wait for the layout of the re-projected view before moving the viewport.
+      const timer = setTimeout(() => {
+        setPendingLocate(null)
+        centerAndHighlight(node.id)
+      }, 450)
+      return () => clearTimeout(timer)
+    }
+    const timeout = setTimeout(() => {
+      setPendingLocate(null)
+      setLocateNotice(`${pendingLocate} did not appear in the current projection.`)
+    }, 8000)
+    return () => clearTimeout(timeout)
+  }, [centerAndHighlight, pendingLocate, projectionNodes])
+
+  const declarationParent = (identity: string) => declarations.get(identity)?.parent ?? null
+  const locateElement = (element: ChangedElement) => locate(element)
+  const openElementDetails = (element: ChangedElement) => {
+    const node = projectionNodes.find(candidate => candidate.identity === element.identity)
+    diagram.openElementDetails(element.identity as Fqn, node?.id as NodeId | undefined)
+  }
+  const locateRelationship = (relationship: ChangedRelationship) => {
+    const attempt = (identity: string) => locate({ identity, operation: relationship.operation, parent: declarationParent(identity) })
+    const resolution = attempt(relationship.source)
+    if (resolution.type === 'unavailable') attempt(relationship.target)
+  }
+  const openRelationshipDetails = (relationship: ChangedRelationship) => {
+    setRelationshipDetails([relationship.identity])
+    setRelationshipModalOpened(true)
+  }
 
   useOnDiagramEvent('nodeClick', event => {
     if (!event.ctrlKey) return
@@ -424,7 +581,8 @@ function XirangArchitectureOverlay() {
     <UnstyledButton
       key={`${entry.kind}:${entry.identity}`}
       onClick={() => setMetamodelEntry({ entry, opened: true })}
-      style={{ textAlign: 'left' }}
+      data-xirang-metamodel-entry={`${entry.kind}:${entry.identity}`}
+      style={{ textAlign: 'left', display: 'block', padding: '4px 4px', minHeight: 28 }}
     >
       <Text size="xs" c="dimmed">
         {entry.operation === 'ADDED' ? '+' : entry.operation === 'REMOVED' ? '−' : '~'} {entry.kind} {entry.identity}
@@ -432,13 +590,46 @@ function XirangArchitectureOverlay() {
     </UnstyledButton>
   )
 
+  const categories = useMemo(() => listDiffCategories(overlay.categories), [overlay.categories])
+
   const changeDetails = !enableStaticView && (selected.change || selected.diff || selected.changePlan) && (
-    <Stack className={changeDetailsPanel} p="xs" gap={4}>
-      <Group gap="xs">
-        <Text size="xs" fw={600}>Model · {selected.change ?? selected.label}</Text>
-        <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+    <Stack ref={changePanelRef} className={changeDetailsPanel} p="xs" gap={6} data-xirang-change-panel data-xirang-change-panel-collapsed={panelCollapsed}>
+      <Group gap="xs" wrap="nowrap" justify="space-between">
+        <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+          <Text size="xs" fw={600} truncate>Model · {selected.change ?? selected.label}</Text>
+          <Badge size="xs" color={selected.valid ? 'green' : 'red'}>{selected.valid ? 'Valid' : 'Invalid'}</Badge>
+        </Group>
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          color="gray"
+          aria-label={panelCollapsed ? 'Expand Change panel' : 'Collapse Change panel'}
+          aria-expanded={!panelCollapsed}
+          data-xirang-change-panel-toggle
+          onClick={() => setPanelCollapsed(value => !value)}
+        >
+          {panelCollapsed ? <IconChevronDown size={14} /> : <IconChevronUp size={14} />}
+        </ActionIcon>
       </Group>
-      <Text size="xs" c="dimmed">+{overlay.counts.ADDED} ~{overlay.counts.MODIFIED} −{overlay.counts.REMOVED}</Text>
+      <Text size="xs" c="dimmed" data-xirang-change-counts>
+        {categories.length === 0
+          ? 'No semantic changes'
+          : categories.map(category => `${category.label} ${category.text}`).join(' · ')}
+      </Text>
+      {!panelCollapsed && (
+        <>
+          <ChangeListPanel
+            elements={overlay.changedElements}
+            relationships={overlay.changedRelationships}
+            revision={selectedRevision}
+            onLocateElement={locateElement}
+            onOpenElementDetails={openElementDetails}
+            onLocateRelationship={locateRelationship}
+            onOpenRelationshipDetails={openRelationshipDetails}
+          />
+          {locateNotice && (
+            <Text size="xs" c="orange" data-xirang-locate-notice>{locateNotice}</Text>
+          )}
       {!metamodelGroups.collapsed && overlay.metamodel.map(metamodelEntryRow)}
       {metamodelGroups.collapsed && metamodelGroups.groups.map(group => (
         <Stack key={group.kind} gap={0}>
@@ -475,6 +666,8 @@ function XirangArchitectureOverlay() {
       {overlay.diagnostics.map((diagnostic, index) => (
         <Text key={index} size="xs" c={diagnostic.level === 'ERROR' ? 'red' : 'yellow'}>{diagnostic.message}</Text>
       ))}
+        </>
+      )}
     </Stack>
   )
 
@@ -483,6 +676,7 @@ function XirangArchitectureOverlay() {
       {!enableStaticView && breadcrumb}
       {relationshipPanel}
       {changeDetails}
+      {!enableStaticView && <XirangMinimap />}
       <MetamodelDiffModal
         entry={metamodelEntry?.entry ?? null}
         opened={metamodelEntry?.opened ?? false}

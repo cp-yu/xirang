@@ -3,7 +3,7 @@ import { LikeC4Model } from '@likec4/core/model'
 import type { ComputedElementView } from '@likec4/core/types'
 import { describe, expect, it } from 'vitest'
 import { ElementViewPrinter } from './ElementViewPrinter'
-import { GraphvizLayouter, type GraphvizPort } from './GraphvizLayoter'
+import { type GraphvizPort, GraphvizLayouter } from './GraphvizLayoter'
 import type { DotSource } from './types'
 
 class RecordingPort implements GraphvizPort {
@@ -115,7 +115,7 @@ function compoundNodesWithLeafEdgesView() {
 }
 
 describe('GraphvizLayouter element view preprocessing', () => {
-  it('skips unflatten when the view has compound endpoint edges', async () => {
+  it.each([false, true])('skips unflatten for compound endpoint edges (wrapSiblings=%s)', async wrapSiblings => {
     // cloud is a container (compound); the edge customer -> cloud has a compound endpoint
     const { view, styles } = compoundEndpointView()
     const printer = new ElementViewPrinter(view, styles as never)
@@ -126,7 +126,7 @@ describe('GraphvizLayouter element view preprocessing', () => {
     const port = new RecordingPort()
     const layouter = new GraphvizLayouter(port)
     try {
-      const dot = await layouter.dot({ view, styles: styles as never })
+      const dot = await layouter.dot({ view, styles: styles as never, wrapSiblings })
       expect(dot).not.toContain('50.1')
       expect(port.unflattenCalls).toBe(0)
     } finally {

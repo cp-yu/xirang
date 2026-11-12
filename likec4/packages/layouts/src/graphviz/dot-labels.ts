@@ -176,11 +176,13 @@ export function nodeLabel(
   return `<<TABLE BORDER="0" CELLPADDING="0" CELLSPACING="4">${rows}</TABLE>>`
 }
 
+export const CompoundLabelFontSize = 11
+
 export function compoundLabel(node: ComputedNode, color?: string) {
   const html = wrapWithFont({
     text: node.title.toUpperCase(),
     maxchars: 50,
-    fontsize: 11,
+    fontsize: CompoundLabelFontSize,
     maxLines: 1,
     bold: true,
     color,

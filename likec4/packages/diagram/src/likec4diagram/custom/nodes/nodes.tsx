@@ -24,8 +24,18 @@ import { useEnabledFeatures } from '../../../context/DiagramFeatures'
 import { useCallbackRef } from '../../../hooks'
 import { useDiagram } from '../../../hooks/useDiagram'
 import type { Types } from '../../types'
+import { compoundFillOpacity, diffMarkScale } from '../../../base-primitives/lod/lodMath'
+import { useCompoundLevel, useCompoundTitleFontSize, useElementLod, useQuantizedZoom } from '../../../hooks/useZoomLod'
 import type { XirangDiffOperation } from '../../../xirang/ContractLoaderContext'
 import type { XirangRequirementCounts } from '../../../xirang/projectionNode'
+import {
+  DIFF_OPERATION_COLOR,
+  DIFF_OPERATION_GLYPH,
+  diffOutlineStyle,
+  elementOperationLabel,
+  requirementCountBadges,
+  sectionCountLabel,
+} from './diffMarks'
 import { CompoundActions } from './CompoundActions'
 import { DeploymentElementActions, ElementActions } from './ElementActions'
 import { NodeDrifts } from './NodeDrifts'
@@ -100,17 +110,20 @@ export function CompoundDetailsButtonWithHandler(
 export function ElementNode(props: Types.NodeProps<'element'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
+  const lod = useElementLod(props.data)
+  const diffScale = useDiffMarkScale()
+  const operation = props.data.xirang?.operation
   return (
     <>
-      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
+      <NodeDiffBadge operation={operation} counts={props.data.xirang?.requirementCounts} scale={diffScale} />
       <ElementNodeContainer
-        className={diffOutlineByOperation(props.data.xirang?.operation)}
+                style={operation ? diffOutlineStyle(operation, diffScale) : undefined}
         nodeProps={props}
       >
         {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
         <ElementShape {...props} />
-        <ElementData {...props} aria-hidden />
-        {enableElementTags && <ElementTags {...props} />}
+        <ElementData {...props} lod={lod} aria-hidden />
+        {enableElementTags && lod.level === 'detail' && <ElementTags {...props} />}
         <ElementActions {...props} />
         {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
         {!enableReadOnly && <ElementToolbar {...props} />}
@@ -124,17 +137,20 @@ export function ElementNode(props: Types.NodeProps<'element'>) {
 export function DeploymentNode(props: Types.NodeProps<'deployment'>) {
   const { enableElementTags, enableElementDetails, enableReadOnly, enableCompareWithLatest, enableNotes } =
     useEnabledFeatures()
+  const lod = useElementLod(props.data)
+  const diffScale = useDiffMarkScale()
+  const operation = props.data.xirang?.operation
   return (
     <>
-      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
+      <NodeDiffBadge operation={operation} counts={props.data.xirang?.requirementCounts} scale={diffScale} />
       <ElementNodeContainer
-        className={diffOutlineByOperation(props.data.xirang?.operation)}
+                style={operation ? diffOutlineStyle(operation, diffScale) : undefined}
         nodeProps={props}
       >
         {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
         <ElementShape {...props} />
-        <ElementData {...props} aria-hidden />
-        {enableElementTags && <ElementTags {...props} />}
+        <ElementData {...props} lod={lod} aria-hidden />
+        {enableElementTags && lod.level === 'detail' && <ElementTags {...props} />}
         <DeploymentElementActions {...props} />
         {enableElementDetails && <ElementDetailsButtonWithHandler {...props} />}
         {!enableReadOnly && <DeploymentElementToolbar {...props} />}
@@ -152,28 +168,10 @@ const compoundHasDrifts = css({
   outlineOffset: '1.5',
 })
 
-const outlineBase = css({
-  outlineColor: '[#ff9f0a]',
-  outlineOffset: '2',
-})
-
-const diffOutline = {
-  ADDED: css({
-    outlineWidth: '3px',
-    outlineStyle: 'dotted',
-  }),
-  MODIFIED: css({
-    outlineWidth: '5px',
-    outlineStyle: 'solid',
-  }),
-  REMOVED: css({
-    outlineWidth: '3px',
-    outlineStyle: 'dashed',
-  }),
-} satisfies Record<XirangDiffOperation, string>
-
-const diffOutlineByOperation = (operation: XirangDiffOperation | undefined) =>
-  operation ? cx(outlineBase, diffOutline[operation]) : undefined
+/** Reverse-zoom scale for diff outlines and badges; changes only when the quantized zoom steps. */
+function useDiffMarkScale(): number {
+  return diffMarkScale(useQuantizedZoom())
+}
 
 const nodeDiffBadges = css({
   position: 'absolute',
@@ -184,6 +182,7 @@ const nodeDiffBadges = css({
   gap: '[4px]',
   pointerEvents: 'none',
   zIndex: '[20]',
+  transformOrigin: 'top left',
 })
 
 const nodeDiffBadge = css({
@@ -202,32 +201,54 @@ const nodeDiffBadge = css({
   boxShadow: '[0 1px 3px rgba(0, 0, 0, 0.35)]',
 })
 
-const requirementCountBadges = [
-  { key: 'added', glyph: '+', color: '#2f9e44', label: 'Added requirements' },
-  { key: 'modified', glyph: '~', color: '#ff9f0a', label: 'Modified requirements' },
-  { key: 'removed', glyph: '−', color: '#e03131', label: 'Removed requirements' },
-] as const
+const nodeOperationBadge = css({
+  minWidth: '[28px]',
+  height: '[28px]',
+  fontSize: '[20px]',
+  padding: '[0 4px]',
+})
 
 /**
- * 渲染 requirement 级变更计数徽章（`+N`/`~N`/`−N`）。三色区分，同一节点可并排多个，仅非零项可见。
- * 徽章容器独立于节点容器，即使容器被 dim（如 45% ghost）徽章仍保持完全不透明。
+ * 渲染节点 diff 徽章：左侧为 operation glyph（`+`/`~`/`−`，主徽章，表示该 element 自身被新增/修改/移除），
+ * 右侧为 section 级变更计数（`+N`/`~N`/`−N`，次级徽章，带 “N sections added” 文案）。三色区分，仅非零项可见。
+ * 徽章容器独立于节点容器，即使容器被 dim（如 45% ghost）徽章仍保持完全不透明；`scale` 为总览时的反向放大系数。
  */
-export function NodeDiffBadge({ counts }: { counts: XirangRequirementCounts | undefined }) {
-  if (!counts) return null
-  const badges = requirementCountBadges.filter(item => counts[item.key] > 0)
-  if (badges.length === 0) return null
+export function NodeDiffBadge(
+  { operation, counts, scale = 1 }: {
+    operation?: XirangDiffOperation | undefined
+    counts: XirangRequirementCounts | undefined
+    scale?: number | undefined
+  },
+) {
+  const countBadges = counts ? requirementCountBadges.filter(item => counts[item.key] > 0) : []
+  if (!operation && countBadges.length === 0) return null
   return (
-    <span className={nodeDiffBadges}>
-      {badges.map(item => (
+    <span className={nodeDiffBadges} style={scale > 1 ? { transform: `scale(${scale})` } : undefined}>
+      {operation && (
         <span
-          key={item.key}
-          className={nodeDiffBadge}
-          style={{ backgroundColor: item.color }}
-          data-xirang-node-diff
-          aria-label={`${counts[item.key]} ${item.label}`}>
-          {item.glyph}{counts[item.key]}
+          className={cx(nodeDiffBadge, nodeOperationBadge)}
+          style={{ backgroundColor: DIFF_OPERATION_COLOR[operation] }}
+          data-xirang-node-operation-badge={operation}
+          role="img"
+          title={elementOperationLabel(operation)}
+          aria-label={elementOperationLabel(operation)}>
+          {DIFF_OPERATION_GLYPH[operation]}
         </span>
-      ))}
+      )}
+      {counts && countBadges.map(item => {
+        const label = sectionCountLabel(counts[item.key], item.verb)
+        return (
+          <span
+            key={item.key}
+            className={nodeDiffBadge}
+            style={{ backgroundColor: item.color }}
+            data-xirang-node-diff
+            title={label}
+            aria-label={label}>
+            {item.glyph}{counts[item.key]}
+          </span>
+        )
+      })}
     </span>
   )
 }
@@ -239,15 +260,21 @@ const hasDrifts = (props: Types.NodeProps) => {
 export function CompoundElementNode(props: Types.NodeProps<'compound-element'>) {
   const { enableElementDetails, enableReadOnly, enableCompareWithLatest } = useEnabledFeatures()
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
+  const diffScale = useDiffMarkScale()
+  const titleFontSize = useCompoundTitleFontSize(props.id, props.data.title, !!props.data.icon && props.data.icon !== 'none')
+  const fillOpacity = compoundFillOpacity(props.data.style.opacity, useCompoundLevel(props.id))
+  const operation = props.data.xirang?.operation
   return (
     <>
-      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
+      <NodeDiffBadge operation={operation} counts={props.data.xirang?.requirementCounts} scale={diffScale} />
       <CompoundNodeContainer
-        className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
+        className={cx(showDrifts && compoundHasDrifts)}
+        style={operation ? diffOutlineStyle(operation, diffScale) : undefined}
+        fillOpacity={fillOpacity}
         nodeProps={props}
       >
         {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-        <CompoundTitle {...props} aria-hidden />
+        <CompoundTitle {...props} fontSize={titleFontSize} aria-hidden />
         <CompoundActions {...props} />
         {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
         {!enableReadOnly && <CompoundElementToolbar {...props} />}
@@ -260,15 +287,21 @@ export function CompoundElementNode(props: Types.NodeProps<'compound-element'>) 
 export function CompoundDeploymentNode(props: Types.NodeProps<'compound-deployment'>) {
   const { enableElementDetails, enableReadOnly, enableCompareWithLatest } = useEnabledFeatures()
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
+  const diffScale = useDiffMarkScale()
+  const titleFontSize = useCompoundTitleFontSize(props.id, props.data.title, !!props.data.icon && props.data.icon !== 'none')
+  const fillOpacity = compoundFillOpacity(props.data.style.opacity, useCompoundLevel(props.id))
+  const operation = props.data.xirang?.operation
   return (
     <>
-      <NodeDiffBadge counts={props.data.xirang?.requirementCounts} />
+      <NodeDiffBadge operation={operation} counts={props.data.xirang?.requirementCounts} scale={diffScale} />
       <CompoundNodeContainer
-        className={cx(showDrifts && compoundHasDrifts, diffOutlineByOperation(props.data.xirang?.operation))}
+        className={cx(showDrifts && compoundHasDrifts)}
+        style={operation ? diffOutlineStyle(operation, diffScale) : undefined}
+        fillOpacity={fillOpacity}
         nodeProps={props}
       >
         {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-        <CompoundTitle {...props} aria-hidden />
+        <CompoundTitle {...props} fontSize={titleFontSize} aria-hidden />
         <CompoundActions {...props} />
         {enableElementDetails && <CompoundDetailsButtonWithHandler {...props} />}
         {!enableReadOnly && <CompoundDeploymentToolbar {...props} />}
@@ -280,6 +313,7 @@ export function CompoundDeploymentNode(props: Types.NodeProps<'compound-deployme
 
 export function ViewGroupNode(props: Types.NodeProps<'view-group'>) {
   const { enableCompareWithLatest } = useEnabledFeatures()
+  const titleFontSize = useCompoundTitleFontSize(props.id, props.data.title, !!props.data.icon && props.data.icon !== 'none')
   const showDrifts = enableCompareWithLatest && hasDrifts(props)
   return (
     <CompoundNodeContainer
@@ -287,7 +321,7 @@ export function ViewGroupNode(props: Types.NodeProps<'view-group'>) {
       nodeProps={props}
     >
       {enableCompareWithLatest && <NodeDrifts nodeProps={props} />}
-      <CompoundTitle {...props} aria-hidden />
+      <CompoundTitle {...props} fontSize={titleFontSize} aria-hidden />
       <DefaultHandles direction={props.data.viewLayoutDir} />
     </CompoundNodeContainer>
   )

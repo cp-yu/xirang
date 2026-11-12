@@ -69,10 +69,10 @@ export interface StructuredContractDiff {
 
 interface RequirementLike {
   body?: string
-  scenarios?: Array<{ name?: string; body?: string }>
+  acceptanceCases?: Array<{ name?: string; body?: string }>
 }
 
-/** Full requirement text: requirement body plus every Scenario, so one requirement renders as one diff. */
+/** Full Section text: Section body plus every Acceptance Case (`acceptanceCases` in the diff payload), so one Section renders as one diff. */
 function requirementText(value: unknown): string {
   const requirement = value as RequirementLike | undefined
   if (!requirement || typeof requirement !== 'object') return ''
@@ -80,10 +80,10 @@ function requirementText(value: unknown): string {
   if (typeof requirement.body === 'string' && requirement.body.trim() !== '') {
     lines.push(requirement.body)
   }
-  for (const scenario of requirement.scenarios ?? []) {
-    lines.push('', `#### Scenario: ${scenario.name ?? ''}`)
-    if (typeof scenario.body === 'string' && scenario.body.trim() !== '') {
-      lines.push('', scenario.body)
+  for (const acceptanceCase of requirement.acceptanceCases ?? []) {
+    lines.push('', `#### Acceptance Case: ${acceptanceCase.name ?? ''}`)
+    if (typeof acceptanceCase.body === 'string' && acceptanceCase.body.trim() !== '') {
+      lines.push('', acceptanceCase.body)
     }
   }
   return lines.join('\n').trim()

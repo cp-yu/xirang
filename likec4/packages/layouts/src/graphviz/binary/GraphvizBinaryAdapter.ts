@@ -4,7 +4,7 @@ import spawn, { SubprocessError } from 'nano-spawn'
 import os from 'node:os'
 import { isEmpty, randomString } from 'remeda'
 import which from 'which'
-import type { GraphvizPort } from '../GraphvizLayoter'
+import type { GraphvizPort, LayoutJsonOptions } from '../GraphvizLayoter'
 import type { DotSource } from '../types'
 
 const rootLogger = mainLogger.getChild(['graphviz', 'binary'])
@@ -100,7 +100,7 @@ export class GraphvizBinaryAdapter implements GraphvizPort {
     return dot
   }
 
-  async layoutJson(dot: DotSource): Promise<string> {
+  async layoutJson(dot: DotSource, options?: LayoutJsonOptions): Promise<string> {
     const logger = rootLogger.getChild(['layoutJson', randomString(4)])
     let result: string | undefined
     try {
@@ -112,6 +112,7 @@ export class GraphvizBinaryAdapter implements GraphvizPort {
       })
       result = dotcmd.stdout
       if (!isEmpty(dotcmd.stderr)) {
+        options?.onWarning?.(dotcmd.stderr)
         logger.warn(`{command} has stderr:\n` + dotcmd.stderr, {
           command: dotcmd.command,
         })
@@ -122,9 +123,11 @@ export class GraphvizBinaryAdapter implements GraphvizPort {
         })
       }
     } catch (error) {
+      options?.onError?.(error)
       logger.debug('FAILED DOT', { dot })
       logger.error(loggable(error))
       if (error instanceof SubprocessError && !isEmpty(error.stdout)) {
+        options?.onWarning?.(error.stderr)
         logger.warn('{command} returned result but failed with exitcode {exitCode}:\n{stderr}', {
           command: error.command,
           exitCode: error.exitCode,

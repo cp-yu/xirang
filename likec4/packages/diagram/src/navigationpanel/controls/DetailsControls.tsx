@@ -17,24 +17,27 @@ import { ElementTag, Markdown } from '../../base-primitives'
 import { Link } from '../../components/Link'
 import { useDiagram, useOnDiagramEvent } from '../../hooks/useDiagram'
 import { useMantinePortalProps } from '../../hooks/useMantinePortalProps'
+import { useXirangViewTitle } from '../../xirang/useXirangViewTitle'
 import { selectNavigationContext, useNavigationActorSelector } from '../hooks'
 
 const selector = selectNavigationContext(context => {
   const view = context.view
   return {
     id: view.id,
-    title: context.viewModel?.title ?? (view.title && extractViewTitleFromPath(view.title)) ?? 'Untitled View',
+    title: context.viewModel?.title ?? (view.title && extractViewTitleFromPath(view.title)) ?? null,
     description: context.viewModel?.description ?? RichText.from(view.description),
     tags: view.tags ?? [],
     links: view.links ?? [],
   }
 })
 
-type ViewDetailsCardData = ReturnType<typeof selector['0']>
+type ViewDetailsCardData = Omit<ReturnType<typeof selector['0']>, 'title'> & { title: string }
 
 export const DetailsControls = (props: PopoverProps) => {
   const [opened, setOpened] = useState(false)
-  const data = useNavigationActorSelector(selector)
+  const { title, ...rest } = useNavigationActorSelector(selector)
+  const xirangTitle = useXirangViewTitle()
+  const data = { ...rest, title: title ?? xirangTitle ?? 'Untitled View' }
   const portalProps = useMantinePortalProps()
 
   return (

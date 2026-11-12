@@ -66,9 +66,22 @@ describe('applyXirangPresentationOverlay', () => {
     expect(after.nodes[1]!.style.opacity).toBe(45)
   })
 
-  it('dims nodes without a diff operation to 25% opacity when diff is active', () => {
+  it('dims nodes without a diff operation to a legible 58% opacity when diff is active', () => {
     const after = applyXirangPresentationOverlay(baseView(), source)
-    expect(after.nodes[2]!.style.opacity).toBe(25)
+    expect(after.nodes[2]!.style.opacity).toBe(58)
+    expect(after.nodes[2]!.style.opacity).toBeGreaterThan(after.nodes[1]!.style.opacity as number)
+  })
+
+  it('does not dim compound nodes: their opacity is fill alpha, so dimming would turn nested fills solid', () => {
+    const view = baseView()
+    const withCompound = {
+      ...view,
+      nodes: view.nodes.map(node => node.id === 'c' ? { ...node, children: ['d'], style: { opacity: 15 } } : node),
+    } as DiagramView
+    const after = applyXirangPresentationOverlay(withCompound, source)
+    expect(after.nodes[2]!.style.opacity).toBe(15)
+    // leaf nodes keep their operation-based opacity (b is a REMOVED ghost)
+    expect(after.nodes.find(node => node.id === 'b')!.style.opacity).toBe(45)
   })
 
   it('keeps ADDED and MODIFIED nodes at 100% opacity when diff is active', () => {
@@ -188,7 +201,7 @@ describe('applyXirangPresentationOverlay', () => {
       },
     }
     const after = applyXirangPresentationOverlay(baseView(), invalidOpSource)
-    expect(after.nodes.find(node => node.id === 'b')!.style.opacity).toBe(25)
+    expect(after.nodes.find(node => node.id === 'b')!.style.opacity).toBe(58)
     expect(after.nodes.every(node => !node.metadata?.['xirangOperation'])).toBe(true)
   })
 

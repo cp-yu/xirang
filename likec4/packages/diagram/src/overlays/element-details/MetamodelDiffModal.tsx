@@ -9,7 +9,7 @@ const operationLabel: Record<XirangDiffOperation, string> = {
 }
 
 function formatJson(value: unknown): string {
-  if (value === undefined || value === null) return '(empty)'
+  if (value === undefined || value === null) return ''
   return JSON.stringify(value, null, 2)
 }
 
@@ -38,6 +38,7 @@ export function MetamodelDiffModal({
         <XirangDiffViewer
           before={formatJson(entry.before)}
           after={formatJson(entry.after)}
+          monospace
         />
       </Stack>
     </Modal>

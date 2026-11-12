@@ -10,6 +10,7 @@ import { AnimatePresence } from 'motion/react'
 import * as m from 'motion/react-m'
 import { memo } from 'react'
 import { useEnabledFeatures } from '../context/DiagramFeatures'
+import { useXirangViewTitle } from '../xirang/useXirangViewTitle'
 import { BreadcrumbsSeparator } from './_common'
 import type { NavigationPanelActorSnapshot } from './actor'
 import {
@@ -34,7 +35,7 @@ const selectBreadcrumbs = ({ context }: NavigationPanelActorSnapshot) => {
       title: s.title,
     })),
     viewId: view.id,
-    viewTitle: context.viewModel?.title ?? (view.title && extractViewTitleFromPath(view.title)) ?? 'Untitled View',
+    viewTitle: context.viewModel?.title ?? (view.title && extractViewTitleFromPath(view.title)) ?? null,
     isDynamicView: (context.viewModel?._type ?? view._type) === 'dynamic',
   }
 }
@@ -49,9 +50,11 @@ export const NavigationPanelControls = memo(() => {
   } = useEnabledFeatures()
   const {
     folders,
-    viewTitle,
+    viewTitle: declaredViewTitle,
     isDynamicView,
   } = useSelector(actor.actorRef, selectBreadcrumbs, deepEqual)
+  const xirangTitle = useXirangViewTitle()
+  const viewTitle = declaredViewTitle ?? xirangTitle ?? 'Untitled View'
 
   const folderBreadcrumbs = folders.flatMap(({ folderPath, title }, i) => [
     <UnstyledButton

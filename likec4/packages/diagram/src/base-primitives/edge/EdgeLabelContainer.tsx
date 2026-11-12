@@ -10,6 +10,7 @@ import type { HTMLAttributes } from 'react'
 import { isNumber } from 'remeda'
 import type { UndefinedOnPartialDeep } from 'type-fest'
 import type { BaseEdgePropsWithData } from '../../base/types'
+import { shouldRenderEdgeLabel } from '../lod/lodMath'
 
 type Data = UndefinedOnPartialDeep<
   Pick<
@@ -30,6 +31,12 @@ type EdgeLabelContainerProps = HTMLAttributes<HTMLDivElement> & {
   } | undefined
 
   edgeProps: BaseEdgePropsWithData<Data>
+
+  /**
+   * Overview LOD: render nothing unless the edge is hovered, selected or active,
+   * so zoomed-out diagrams are not covered by unreadable label chips.
+   */
+  hideWhenIdle?: boolean | undefined
 }
 
 const toCssVarValue = (value: number | string | undefined) => {
@@ -51,6 +58,7 @@ export function EdgeLabelContainer({
     animated,
   },
   labelPosition: labelXY,
+  hideWhenIdle = false,
   className,
   style: contentStyle, // applied to inner content div, not the positioned container
   children,
@@ -60,6 +68,9 @@ export function EdgeLabelContainer({
     labelY = labelXY?.y ?? labelBBox?.y
 
   if (labelX === undefined || labelY === undefined) {
+    return null
+  }
+  if (!shouldRenderEdgeLabel({ hideWhenIdle, hovered: isHovered, selected: selected !== false, active: isActive })) {
     return null
   }
   const translate = labelXY?.translate ?? ''

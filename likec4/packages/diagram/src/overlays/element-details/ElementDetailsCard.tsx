@@ -133,6 +133,8 @@ export function ElementDefinitionProperties({
 }
 
 const MIN_PADDING = 24
+/** Wider reading width while the Diff tab is active, so Split view columns stay comfortable. */
+const DIFF_TAB_WIDTH = 900
 
 const TABS = ['Properties', 'Relationships', 'Views', 'Structure', 'Deployments'] as const
 type TabName = typeof TABS[number] | 'Contracts' | 'Diff'
@@ -285,7 +287,8 @@ export function ElementDetailsCard({
   const controls = useDragControls()
 
   const isCompound = (nodeModel?.$node.children?.length ?? 0) > 0
-  const _width = Math.min(700, windowWidth - MIN_PADDING * 2)
+  const showingDiff = hasDiff && activeTab === 'Diff'
+  const _width = Math.min(showingDiff ? DIFF_TAB_WIDTH : 700, windowWidth - MIN_PADDING * 2)
   const _height = Math.min(650, windowHeight - MIN_PADDING * 2)
 
   const fromPosition = rectFromNode

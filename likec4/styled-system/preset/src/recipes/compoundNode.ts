@@ -216,6 +216,19 @@ export const compoundNode = defineRecipe({
           borderColor: alpha(__v('palette.stroke'), borderTransparency.ref),
           [compoundColor.var]: `color-mix(in oklch, ${__v('palette.hiContrast')}, ${__v('palette.stroke')} 10%)`,
         },
+        // Translucent fills stack with nesting depth, so the title must not depend on the fill underneath:
+        // use a near-black / near-white tint of the palette stroke and a soft halo in the opposite tone.
+        title: {
+          color: {
+            base: `oklch(from ${__v('palette.stroke')} 0.27 calc(c * 0.9) h)`,
+            _dark: `oklch(from ${__v('palette.stroke')} 0.95 calc(c * 0.25) h)`,
+          },
+          textShadow: {
+            base: '0 0 0.12em rgb(255 255 255 / 90%), 0 0 0.4em rgb(255 255 255 / 75%)',
+            _dark: '0 0 0.12em rgb(0 0 0 / 85%), 0 0 0.4em rgb(0 0 0 / 70%)',
+          },
+          fontWeight: 700,
+        },
       }),
     },
     // When the compound node is too transparent, the text color should be inverted

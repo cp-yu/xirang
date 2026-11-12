@@ -25,25 +25,35 @@ import { ProjectsViewPrinter } from './ProjectsViewPrinter'
 import type { DotSource } from './types'
 import type { GraphvizJson } from './types-dot'
 import { GraphvizWasmAdapter } from './wasm/GraphvizWasmAdapter'
+import { findWrappedLayoutDisadvantage, findWrappedLayoutProblem } from './wrap-fallback'
+
+export type LayoutJsonOptions = {
+  /**
+   * Receives the stderr output Graphviz produced during this call
+   */
+  onWarning?: ((message: string) => void) | undefined
+  /** Includes failures recovered by an adapter retry or partial output. */
+  onError?: ((error: unknown) => void) | undefined
+}
 
 export interface GraphvizPort extends Disposable {
   get name(): string
   get concurrency(): number
   unflatten(dot: DotSource): Promise<DotSource>
   acyclic(dot: DotSource): Promise<DotSource>
-  layoutJson(dot: DotSource): Promise<string>
+  layoutJson(dot: DotSource, options?: LayoutJsonOptions): Promise<string>
   svg(dot: DotSource): Promise<string>
   dispose(): void
 }
 
-const getPrinter = <A extends AnyAux>({ view, styles }: LayoutTaskParams<A>) => {
+const getPrinter = <A extends AnyAux>({ view, styles, wrapSiblings }: LayoutTaskParams<A>) => {
   switch (true) {
     case isDynamicView(view):
       return new DynamicViewPrinter(view, styles)
     case isDeploymentView(view):
       return new DeploymentViewPrinter(view, styles)
     case isElementView(view):
-      return new ElementViewPrinter(view, styles)
+      return new ElementViewPrinter(view, styles, { wrapSiblings })
     default:
       nonexhaustive(view)
   }
@@ -52,6 +62,14 @@ const getPrinter = <A extends AnyAux>({ view, styles }: LayoutTaskParams<A>) => 
 export type LayoutTaskParams<A extends aux.Any = aux.Any> = {
   view: ComputedView<A>
   styles: LikeC4Styles
+  /**
+   * Wrap sibling units of element views into rows (see {@link ElementViewPrinter}).
+   * Keeps wrapping only when safe, with at least 5% better fit in a 1600x1000 viewport
+   * and at most 1.5 times the total edge length of the plain layout.
+   * Ignored for dynamic and deployment views.
+   * @default false
+   */
+  wrapSiblings?: boolean | undefined
 }
 
 export type LayoutResult<A extends aux.Any = aux.Any> = {
@@ -108,11 +126,11 @@ export class GraphvizLayouter implements Disposable {
     return rootLogger.getChild([operation, '_', randomString(4).toLowerCase()])
   }
 
-  async dotToJson(dot: DotSource): Promise<GraphvizJson> {
+  async dotToJson(dot: DotSource, options?: LayoutJsonOptions): Promise<GraphvizJson> {
     const logger = this.newScopedLogger('dotToJson')
     let json
     try {
-      json = await this.graphviz.layoutJson(dot)
+      json = await this.graphviz.layoutJson(dot, options)
     } catch (error) {
       logger.error(loggable(error))
       logger.error('Failed to convert DOT to JSON:\n' + dot)
@@ -130,27 +148,75 @@ export class GraphvizLayouter implements Disposable {
   async layout<A extends AnyAux>(params: LayoutTaskParams<A>): Promise<LayoutResult<A>> {
     const logger = this.newScopedLogger('layout')
     try {
-      logger.trace`layouting view ${params.view.id}...`
-      let dot = await this.dot(params)
-      const { view } = params
-      const json = await this.dotToJson(dot)
-      let diagram = parseGraphvizJson(json, view)
-
-      if (isDynamicView(diagram)) {
-        Object.assign(
-          diagram,
-          {
-            sequenceLayout: calcSequenceLayout(diagram),
-          } satisfies Partial<LayoutedDynamicView<A>>,
-        )
+      if (params.wrapSiblings && isElementView(params.view)) {
+        const wrapped = await this.layoutWrapped(params, logger)
+        const plain = await this.layoutOnce({ ...params, wrapSiblings: false }, logger)
+        if (wrapped) {
+          const disadvantage = findWrappedLayoutDisadvantage(wrapped.diagram, plain.diagram)
+          if (disadvantage === null) {
+            return wrapped
+          }
+          logger.debug(`Wrapped layout of view ${params.view.id} is discarded: ${disadvantage}`)
+        }
+        return plain
       }
-
-      logger.trace`layouting view ${params.view.id} done`
-      return { dot, diagram }
+      return await this.layoutOnce(params, logger)
     } catch (e) {
       logger.warn(loggable(e))
       throw wrapError(e, `Error during layout: ${params.view.id}`)
     }
+  }
+
+  private async layoutOnce<A extends AnyAux>(
+    params: LayoutTaskParams<A>,
+    logger: ReturnType<GraphvizLayouter['newScopedLogger']>,
+    options?: LayoutJsonOptions,
+  ): Promise<LayoutResult<A>> {
+    logger.trace`layouting view ${params.view.id}...`
+    let dot = await this.dot(params)
+    const { view } = params
+    const json = await this.dotToJson(dot, options)
+    let diagram = parseGraphvizJson(json, view)
+
+    if (isDynamicView(diagram)) {
+      Object.assign(
+        diagram,
+        {
+          sequenceLayout: calcSequenceLayout(diagram),
+        } satisfies Partial<LayoutedDynamicView<A>>,
+      )
+    }
+
+    logger.trace`layouting view ${params.view.id} done`
+    return { dot, diagram }
+  }
+
+  /**
+   * @returns `null` if the wrapped layout is discarded
+   */
+  private async layoutWrapped<A extends AnyAux>(
+    params: LayoutTaskParams<A>,
+    logger: ReturnType<GraphvizLayouter['newScopedLogger']>,
+  ): Promise<LayoutResult<A> | null> {
+    const warnings = [] as string[]
+    const errors = [] as unknown[]
+    let problem: string | null
+    try {
+      const result = await this.layoutOnce(params, logger, {
+        onWarning: message => warnings.push(message),
+        onError: error => errors.push(error),
+      })
+      problem = errors.length > 0
+        ? `Graphviz failed: ${loggable(errors[0])}`
+        : findWrappedLayoutProblem(params.view, result.diagram, warnings)
+      if (problem === null) {
+        return result
+      }
+    } catch (error) {
+      problem = `Graphviz failed: ${loggable(error)}`
+    }
+    logger.warn(`Wrapped layout of view ${params.view.id} is discarded, falling back to plain layout: ${problem}`)
+    return null
   }
 
   async aiLayout<A extends AnyAux>(

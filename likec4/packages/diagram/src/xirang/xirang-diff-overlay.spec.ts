@@ -92,8 +92,8 @@ describe('xirang diff overlay unifies Candidate and Change', () => {
     // MODIFIED node keeps 100% opacity with its operation badge metadata.
     expect(candidateView.nodes[1]!.style.opacity).toBe(100)
     expect(candidateView.nodes[1]).toMatchObject({ metadata: { xirangOperation: 'MODIFIED' } })
-    // Unchanged node dims to 25% when diff is active.
-    expect(candidateView.nodes[2]!.style.opacity).toBe(25)
+    // Unchanged node dims to 58% when diff is active.
+    expect(candidateView.nodes[2]!.style.opacity).toBe(58)
   })
 
   it('applies identical relationship diff logic for Candidate and Change edges', () => {
