@@ -32,6 +32,12 @@ describe('generated internal agent semantic context', () => {
     }
   });
 
+  it('keeps project-specific decomposition subordinate to workflow decision and authorization rules', () => {
+    const guidance = readFileSync(path.resolve('.pi/skills/xirang-project-decomposition/SKILL.md'), 'utf8');
+
+    expect(guidance).toContain('遵循当前 workflow 的决策与授权规则');
+  });
+
   it('keeps checked-in Pi skills and agents on the canonical vocabulary', () => {
     const generatedFiles = [
       '.pi/skills/xirang-apply-change/SKILL.md',

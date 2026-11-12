@@ -5,7 +5,7 @@ description: 使用本项目 Perspective 维度与 MECE 精化树纪律形成 Xi
 
 # Xirang Project Decomposition
 
-本方法在共享 semantic-authoring 所定义的父子精化、同层 MECE 与广度优先框架内，依据项目的 Perspective 维度组织息壤 Semantic Model。
+本方法在共享 semantic-authoring 所定义的父子精化、同层 MECE 与广度优先框架内，依据项目的 Perspective 维度组织息壤 Semantic Model；用户确认与 Agent 的局部组织权限始终遵循当前 workflow 的决策与授权规则。
 
 ## 顶层边界
 
