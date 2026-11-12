@@ -27,7 +27,7 @@ Before navigating or interpreting the Semantic Model, read project-root file `.x
 
 Before exploring or writing an Element Declaration or Contract, read project-root file `.xirang/references/xirang-semantic-authoring.md` unless already available and current.
 
-Only before forming or reorganizing a hierarchy, read project-root file `.xirang/references/xirang-decomposition-use.md` unless already available and current; then follow its normalized configuration routing. Contract-only work does not trigger it.
+Before forming or reorganizing a hierarchy, run `xirang config project --select decomposition --json`, read the normalized `decomposition` path from its output, and read that complete guidance file. Stop structural work if it is unavailable; do not substitute another method. Contract-only work does not trigger this step.
 
 For new or unfamiliar concepts affecting scope, search for finite candidates, inspect their refinement context and select focus identities; if ambiguity remains, ask one clarification question. Use `arch impact <identities...> --depth 2 --json` for relationship summary and refinement context, then query only the semantics needed to judge mustChange, mustVerify, contextual scope, unknowns and drift. Adjacency alone proves none of those conclusions. Do not pass a Change or Delta to impact. Before readiness, recheck focus Elements and evidence coverage and disclose gaps.
 

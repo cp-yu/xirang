@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "consolidate-model-evolution-guidance",
+  "originalBranch": "main",
+  "baseCommit": "9ad6914284d0cea48f1feb9d498c33f0382b817c"
+}

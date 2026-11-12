@@ -59,7 +59,7 @@ definition: Propose Workflow 定义 propose workflow 创建 change、分离 beha
 
 ### Section: Propose smart routing
 
-Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有有效 Summary 时 SHALL 通过项目证据与针对性提问建立对问题、期望结果、约束、影响范围、方案和验证方式的理解，不把用户给出的路线视为完整意图；解决影响目标的缺口及未决 Source decisions 后判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
+Propose SHALL 优先复用 conversation 中已确认的 `Design Summary`，忠实文档化已确认设计。它 MAY 依据已确认意图和建模规则完成局部模型组织，并在既定范围内自主处理细枝末节、组织案例和目标及修正表达或推导错误，不得自主大量扩写实质设计；新发现的重大决策点 SHALL 先说明选项与推荐，再一次一问等待用户确认。小范围内容与方案调整可在 Propose 内交互确认并维护记录；需要重新设计实验判断可行性或大幅重做设计时返回 Explore；完成披露不能代替决策前确认。没有有效 Summary 时 SHALL 通过项目证据与针对性提问建立对问题、期望结果、约束、影响范围、方案和验证方式的理解，不把用户给出的路线视为完整意图；解决影响目标且需要用户裁决的缺口及未决 Source decisions 后判断 semantic readiness，不得使用输入长度或技术关键词评分。Readiness 与 override 结果 SHALL 只存在于对话状态，不得写入 artifacts。
 
 Propose SHALL 复用已确认决定及仍适用的证据，在推荐方案或认定方案就绪前，独立判断方案是否可行、能否在约束下达成预期结果。SHALL 主动获取缺失证据并检查其可靠性与适用性，不限定证据来源，并向用户表达自己的判断和关键理由。
 
@@ -69,7 +69,7 @@ Propose SHALL 复用已确认决定及仍适用的证据，在推荐方案或认
   - SHALL NOT 重新执行字符数或 detail score 判断
 
 - **Semantic readiness 不完整**
-  - 任一 readiness 项缺失或 Source decision 未决
+  - 必要设计依据缺失或影响目标的实质 Source decision 未决
   - Propose 在对话中列出具体缺口；孤立决策可就地询问，大幅设计工作建议 Explore
   - readiness 通过或被明确 override 前 SHALL NOT 创建 change 或写入制品
   - 新决策确认前 SHALL NOT 将依赖它的内容写成确定方案
@@ -92,6 +92,8 @@ Propose SHALL 复用已确认决定及仍适用的证据，在推荐方案或认
   - 这些运行过程信息 SHALL 只保留在对话，不写入 Change 制品
 
 - **已有充分上下文**：复用已明确内容，继续成文，不为完成流程重复提问。
+
+可按已确认意图与框架规则完成的局部组织 SHALL NOT 作为独立的就绪阻塞；真正待裁决的承诺、范围或重大方案选择仍阻塞相关写入，显式 override 不提供缺失决策。
 
 ### Section: Proposal 分离 behavior 与 architecture source impact
 
@@ -133,8 +135,8 @@ Contracts 与 `design.md` 完成后，propose SHALL 重新读取 proposal graph 
 
 - **Design 改变 graph scope**
 
-  - design 记录的用户确认使 graph impact 与 proposal 初稿不同；写入 design 本身不构成确认
-  - SHALL 更新 proposal Architecture Source
+  - 已确认决定或允许自主完成的局部模型组织使结构影响及相关 Contract 归属与 proposal 初稿不同；写入 design 本身不构成确认
+  - SHALL 更新 proposal 中受影响的源范围，并同步调和 Delta 与 Plan
   - exact target graph SHALL 写入 Semantic Delta
 
 - **无 graph change**
@@ -182,27 +184,12 @@ Propose SHALL 默认只在 readiness、blocker 与 final summary 节点输出流
 
 ### Section: 仅在 Propose 形成结构目标时应用拆分指导
 
-Propose Workflow SHALL 在需要形成尚未确认的新增或重组 hierarchy 时消费 normalized decomposition；对已经确认的记录或 Summary 结构决策 SHALL 忠实编译而不重新裁决。精简记录的存在不表示全部结构都已确认；尚未决部分仍须指导和用户确认。Contract-only 变化不因默认方法制造 Architecture Source。
+Propose Workflow SHALL 仅在形成或重组 hierarchy 时读取 normalized decomposition 指向的完整方法，并在框架约束内组织结构；已经确认的记录或 Summary 结构决定 SHALL 复用，不静默重做。局部组织与实质选择的处理 SHALL 使用本阶段的统一决策规则，不因记录部分确认、答案不唯一或 BF 逐层推进自动暂停。
 
-- **无记录时形成结构 Delta**
-
-  - 设计要求新增或重组结构且不存在记录
-  - 使用配置指导确认目标结构，再编译对应 Delta。
-
-- **已确认记录优先**
-
-  - 记录结构部分已确认部分 identity、parent 或 Kind，但仍有未决结构
-  - 保持已确认决策；仅对未决部分使用指导并请求用户确认，不能跳过全部结构设计或静默重做旧决策。
-
-- **Architecture Source 为 None**
-
-  - Change 只改变 Contracts 或 implementation scaffolding
-  - 不调用拆分 skill，不从默认方法发明结构变化。
-
-- **拆分指导不可用时阻塞 Formation**
-
-  - 必须形成结构但方法不明确或 skill 不可用
-  - 停止相关结构写入并询问用户，不猜测默认方法或实现目录作为目标。
+- **记录只确认部分结构**：保留已确认字段，对其余部分依据当前模型、意图和配置方法继续组织；需要改变确认决定或作出实质选择时，先请求用户裁决。
+- **Contract-only**：没有 hierarchy 形成或重组需求时，不加载分解方法，不因存在默认方法制造结构变化。
+- **指导不可读**：停止相关结构形成，不替换为另一个方法或从实现目录猜测目标。
+- **方法存在语义疑点**：按本阶段决策规则取证和判断；需要用户裁决时等待，不能以方法内的笼统逐层确认要求替代该判断。
 
 ### Section: Propose 按 TDD 闭环划分 Tasks
 

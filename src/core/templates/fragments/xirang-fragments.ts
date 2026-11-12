@@ -20,42 +20,35 @@ export const XIRANG_PHILOSOPHY = `
 5. The Agent acts like a compiler and faithfully translates authorized human intent. Existing code is current implementation evidence and MUST NOT silently override the Xirang Semantic Model.
 `.trim();
 
-/**
- * Fragment: Structural decomposition selection
- * Used in: build, explore, propose, snack
- */
-export const STRUCTURAL_DECOMPOSITION_GUIDANCE = `
-**Structural Decomposition Guidance**
-
-- Before forming or reorganizing an Element hierarchy, run \`xirang config project --select decomposition --json\` and read the normalized \`decomposition\` value from its JSON output. Do not inspect or reinterpret the raw config, and do not substitute another method.
-- Read the guidance file at that resolved path in full. When it is missing or unreadable, stop hierarchy formation and ask the user once.
-- Decomposition guidance selects the dimension used for hierarchy abstraction and refinement. It does not override authorized user intent, the Xirang Semantic Model, Element Contracts, Relationships, evidence authority, or the current workflow's read/write boundary.
-- Keep every same sibling set on one dimension, make it MECE for the confirmed scope, and confirm breadth-first. Do not mix responsibility, lifecycle, deployment, or implementation dimensions within one sibling set.
-`.trim();
-
 export const SEMANTIC_REFINEMENT_REFERENCE = `
 # Semantic Refinement
 
-## Inputs and boundaries
+Use this default method only when the normalized \`decomposition\` configuration resolves to this file. A project-specific guidance file configured through \`decomposition\` takes precedence.
 
-This is the framework's default general-purpose semantic refinement method. It applies when the normalized \`decomposition\` value resolves to this file and a hierarchy must be formed or reorganized; a project-specific guidance file configured through \`decomposition\` takes precedence, and a Contract-only change never triggers structural decomposition.
+1. Identify the current abstraction from domain concepts, capabilities, or user goals, and choose a decomposition dimension for its children.
+2. Express semantic category through \`project\`, \`element\`, and \`perspective\` rather than prescribing levels. A Perspective must have a real semantic boundary that needs child refinement; when grouping merely presents the same set of concepts, use a View instead of duplicating Elements or Contracts.
+3. Express cross-view collaboration, dependency, or constraint as typed Relationships. Extend the Metamodel only when genuinely shared semantics cannot be expressed accurately by an existing Kind.
+4. Refine to the point where the model can be understood and decided on; C4's fixed technical levels and any fixed number of levels are not required.
 
-Take authorized user intent and semantic authority as input. Implementation files, deployment diagrams, and the technology stack are evidence only and do not become hierarchy on their own. This guidance cannot override formal semantics, confirmed design, Element Contracts, Relationships, or the current workflow's permissions; ask the user to rule when they conflict.
+Return the resulting model design and unresolved material decisions to the current workflow.
+`.trim();
 
-## Layer-by-layer formation
+export const DECOMPOSITION_AUTHORING_REFERENCE = `
+# Custom Decomposition Guidance
 
-1. Identify the current abstraction from domain concepts, capabilities, or user goals. For each Element, state what it is, why it stands alone, what it includes and excludes, and its boundary with its parent, children, and siblings. Ask one question at a time for each unresolved semantic choice.
-2. Choose exactly one dimension for the complete sibling set under one parent, then check mutual exclusivity and completeness (MECE) within the confirmed scope. Do not mix responsibility, lifecycle, deployment, and implementation coordinates; when several independent semantic views are needed, state each boundary explicitly.
-3. Express semantic category through \`project\`, \`element\`, and \`perspective\` rather than prescribing levels. A Perspective must have a real semantic boundary that needs child refinement; when grouping merely presents the same set of concepts, use a View instead of duplicating Elements or Contracts.
-4. Keep exactly one stable identity per concept. Express cross-view collaboration, dependency, or constraint as typed Relationships instead of solving a presentation problem with duplicated modeling. Extend the Metamodel only when genuinely shared semantics cannot be expressed accurately by an existing Kind.
-5. Work breadth-first: present all siblings of the current layer with their dimension, boundaries, and coverage, and descend only after the user confirms. C4's fixed technical levels and any fixed number of levels are not required; refine to the point where the model can be understood and decided on.
-6. Complete Declaration and Contract separately. Even when no further children are split, conditions, numbers, exceptions, timing, responsibilities, and guarantees still belong in the host Element Contract; do not mistake stopping structural refinement for omitting behavior. Implementation planning belongs to the Plan.
+Before creating or revising project decomposition guidance, read \`.xirang/references/xirang-semantic-authoring.md\` and follow its framework constraints.
 
-## Stop and hand off
+Describe how the project selects decomposition dimensions, identifies meaningful Element boundaries, and decides when further refinement is useful. Use project examples where they clarify the method.
 
-Stop writing the affected structure and ask the user when guidance is insufficient, concept identities overlap, the dimension is unclear, or authorities conflict. Do not default to an implementation directory or a similar method. Confirming a method grants no file-write or record-persistence permission.
+Store the guidance in a project-maintained Markdown file and select it through \`decomposition\`: use a project-root relative path, or a bare name resolved under \`.xirang/references/\` (\`.md\` is appended when absent). Use a separate file rather than editing the framework-generated default guidance.
+`.trim();
 
-Hand the confirmed identities, Kinds, complete Definitions, hierarchy, Contract detail, and Relationships back to the current workflow. Explore maintains intermediate design through the Design Record protocol and delegates feasibility experiments; its Design Summary remains conversation-only and complete Change authoring belongs to Propose. Build authors the authorized Candidate, and Propose compiles the Delta. Persistence follows each workflow's own permissions. This guidance does not replace any workflow's validation, review, confirmation, or promotion gate.
+export const SEMANTIC_MODEL_EVOLUTION_GUIDANCE = `
+**Model evolution and hierarchy formation**
+
+When the model changes, review affected Elements' Declarations and Contracts in the target model context. Revise them as needed to maintain semantic consistency and express complete, appropriate semantics at each abstraction level without redundant repetition.
+
+For hierarchy formation, every sibling set SHALL use one decomposition dimension and be MECE within the confirmed scope. Form and check the complete sibling set breadth-first before refining its children; this order does not require user approval at each layer and does not prevent revising an earlier layer when later evidence warrants it. Parent-child hierarchy SHALL express semantic refinement, with each parent Contract complete at its own abstraction level without mechanically copying child detail. Project methods select concrete dimensions and refinement depth within these constraints.
 `.trim();
 
 /**

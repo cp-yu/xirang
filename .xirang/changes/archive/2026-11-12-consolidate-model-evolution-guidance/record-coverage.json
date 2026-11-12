@@ -1,0 +1,695 @@
+{
+  "schemaVersion": 1,
+  "filename": "formation-model-structure-evolution.md",
+  "sourceVersion": "9153c543b82f55a84dea7fb7ae8692d8a1690a58fa9ec117c378d47005c511b6",
+  "targetFingerprint": "d9bc60e3d7860aa05561767cef976c721f748a0facb0145934945d17b097b733",
+  "recordedAt": "2026-11-12T07:50:06.347Z",
+  "entries": [
+    {
+      "identity": "formation-model-discussion-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Explore 澄清方向选择",
+          "location": {
+            "element": "explore",
+            "section": "澄清 Element Definition 影响"
+          },
+          "quote": "澄清影响目标、范围或方案的重要选择"
+        },
+        {
+          "detail": "Propose 完成局部组织",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "依据已确认意图和建模规则自主完成局部模型组织"
+        },
+        {
+          "detail": "重大设计返回 Explore",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "需要设计实验重新判断可行性、重选方向或大幅重做设计时"
+        },
+        {
+          "detail": "用户裁决实质决策",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "一次一问等待确认"
+        },
+        {
+          "detail": "结构变化在草稿审阅",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "草稿审阅 SHALL 呈现全部结构变化及其理由和语义影响"
+        },
+        {
+          "detail": "用户确认不代替结构判断",
+          "location": {
+            "element": "propose",
+            "section": "完成 Formation 审查与确认"
+          },
+          "quote": "用户确认不替代 Agent 对结构合理性和目标表达完整性的判断"
+        }
+      ]
+    },
+    {
+      "identity": "structure-evolution-throughout-development",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "持续演进不限于新增功能",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "覆盖持续开发中的增长、精化、重构和精简，不仅适用于新增功能"
+        },
+        {
+          "detail": "原一 Element 演进为父子",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "起初一个 Element 足以讲清楚的内容，随开发需要父子 Elements 表达"
+        },
+        {
+          "detail": "重构后节点消失",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "重构后某些 Element 或 Section 不再存在，内容更精简"
+        },
+        {
+          "detail": "非封闭场景清单",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "不以有限场景清单限制适用范围"
+        }
+      ]
+    },
+    {
+      "identity": "section-evolution-and-semantic-preservation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Section 变更",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "Sections MAY 调整、拆分、合并或消失"
+        },
+        {
+          "detail": "对象消失不等于语义取消",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "不能仅因节点消失就认定承诺已取消"
+        },
+        {
+          "detail": "实现重构不授权撤销业务语义",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "实现重构或文件删除不自动授权取消业务承诺"
+        },
+        {
+          "detail": "真实语义取消遵循决策权限",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "真正改变已确认承诺时遵循当前工作流的用户决策规则"
+        }
+      ]
+    },
+    {
+      "identity": "child-refinement-preserves-parent-responsibility",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "新增子级不减少父级职责",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "增加子 Element 本身不减少父级职责"
+        },
+        {
+          "detail": "父级仍表达本层承诺",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "父 Contract 仍须独立表达本层完整承诺"
+        },
+        {
+          "detail": "子级进一步精化",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "子级进一步精化，不要求逐项复制子级细节"
+        },
+        {
+          "detail": "取消承诺需用户决策",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "移除某个 Element 同时意味着取消已确认承诺；Agent 在编写依赖该决定的目标内容前询问用户"
+        }
+      ]
+    },
+    {
+      "identity": "affected-element-expression-appropriateness",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "目标模型联合检查声明契约",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "在目标模型上下文中联合审视受影响 Elements 的 Declaration 与 Contract"
+        },
+        {
+          "detail": "内容可迁移改写",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "内容 MAY 在适当的抽象层级间迁移、改写"
+        },
+        {
+          "detail": "Section 可重组或消失",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "Sections MAY 调整、拆分、合并或消失"
+        },
+        {
+          "detail": "不要求父级原文原位",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "原文、Section 数量或位置保持不变不是语义保持的判据"
+        },
+        {
+          "detail": "父级本层保证仍完整",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "父级仍独立表达其本层保证"
+        }
+      ]
+    },
+    {
+      "identity": "joint-target-expression-review",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "不擅改确认承诺",
+          "location": {
+            "element": "propose",
+            "section": "查缺补漏与决策确认"
+          },
+          "quote": "改变已确认承诺或结构决定、扩大范围或涉及重大业务及架构权衡时"
+        },
+        {
+          "detail": "检查位置粒度表达",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "在各自抽象层级表达完整、合适的语义"
+        },
+        {
+          "detail": "联合判断关系",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "声明、Contract 和关系须在同一目标模型中联合判断"
+        },
+        {
+          "detail": "承接范围不限新增删除",
+          "location": {
+            "element": "propose",
+            "section": "遵循共享 Contract 语义"
+          },
+          "quote": "影响范围包含承接或细化原有语义的 Elements，不限于新增或删除的节点"
+        },
+        {
+          "detail": "不改无关内容",
+          "location": {
+            "element": "propose",
+            "section": "遵循共享 Contract 语义"
+          },
+          "quote": "不因此改写无关内容"
+        }
+      ]
+    },
+    {
+      "identity": "coherent-complete-appropriate-nonredundant-expression",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "整体一致性",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "使语义一致"
+        },
+        {
+          "detail": "本层完整适当",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "在各自抽象层级表达完整、合适的语义"
+        },
+        {
+          "detail": "避免重复",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "避免重复"
+        },
+        {
+          "detail": "父子必要覆盖不为去重删除",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "精简 Contract 表达"
+          },
+          "quote": "父子 Contract 在不同抽象层级的必要覆盖保持完整，不为去重使父级依赖 children 才能理解承诺"
+        }
+      ]
+    },
+    {
+      "identity": "prompt-authoring-use-semantic-objects",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "声明与契约为检查对象",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "受影响 Elements 的 Declaration 与 Contract"
+        },
+        {
+          "detail": "目标模型上下文而非封闭维度枚举",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "在目标模型上下文中联合审视受影响 Elements 的 Declaration 与 Contract"
+        }
+      ]
+    },
+    {
+      "identity": "configured-decomposition-project-variation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "项目方法由有效配置选择",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "通过 `xirang config project --select decomposition --json` 取得有效指导路径并完整读取"
+        },
+        {
+          "detail": "项目具体分解可以不同",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "项目方法在这些框架约束内决定分解维度、概念边界和细化程度"
+        },
+        {
+          "detail": "项目专属内容不进通用规则",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "项目专属内容不进入通用规则"
+        }
+      ]
+    },
+    {
+      "identity": "decomposition-framework-foundation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "框架父子精化 MECE BF",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "父子语义精化、同层 MECE、BF 与方法权限边界 SHALL 由共享 semantic-authoring reference 承载"
+        },
+        {
+          "detail": "自定义不得取消基础",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "不能以自定义为由取消 MECE、父子精化或已确认承诺"
+        },
+        {
+          "detail": "项目可定制维度与细化",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "项目方法在这些框架约束内决定分解维度、概念边界和细化程度"
+        }
+      ]
+    },
+    {
+      "identity": "decomposition-method-and-confirmation-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "同层单维度 MECE",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "每个 sibling set 沿同一维度、在已确认范围内相互独立且完整"
+        },
+        {
+          "detail": "BF 先检查同层再深入",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "BF 先形成并检查完整同层结构再向下细化"
+        },
+        {
+          "detail": "BF 不逐层用户审批",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "不自动要求每层等待用户"
+        },
+        {
+          "detail": "后续可回修上层",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "也不禁止根据后续发现回修上层"
+        },
+        {
+          "detail": "用户决策按工作流",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "用户确认按当前工作流的决策与授权规则进行"
+        },
+        {
+          "detail": "实质未决不得推进",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "涉及未决实质选择时先裁决，不把该选择当作确定结构推进"
+        }
+      ]
+    },
+    {
+      "identity": "custom-decomposition-guidance-request",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "创建指南按需交付",
+          "location": {
+            "element": "skill-generation",
+            "section": "项目分解方法创建指导"
+          },
+          "quote": "交付按需读取的 `.xirang/references/xirang-decomposition-authoring.md`"
+        },
+        {
+          "detail": "项目方法受框架约束",
+          "location": {
+            "element": "skill-generation",
+            "section": "项目分解方法创建指导"
+          },
+          "quote": "创建指导 SHALL 引用共享 semantic-authoring 取得框架约束"
+        },
+        {
+          "detail": "可确定维度边界细化程度",
+          "location": {
+            "element": "skill-generation",
+            "section": "项目分解方法创建指导"
+          },
+          "quote": "说明项目如何选择分解维度、识别有意义的 Element 边界及判断何时继续细化"
+        },
+        {
+          "detail": "不逐层审批",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "不自动要求每层等待用户"
+        }
+      ]
+    },
+    {
+      "identity": "decomposition-reference-responsibility-revision",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "短入口替代独立使用文件",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "阶段直接使用该入口，不通过独立的 decomposition-use reference 再转发"
+        },
+        {
+          "detail": "共享基础归 semantic-authoring",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "父子语义精化、同层 MECE、BF 与方法权限边界 SHALL 由共享 semantic-authoring reference 承载"
+        },
+        {
+          "detail": "默认方法保留",
+          "location": {
+            "element": "workflow-templates",
+            "section": "交付并路由通用语义精化指导"
+          },
+          "quote": "框架 SHALL 交付可直接消费的 semantic-refinement 共享 reference"
+        },
+        {
+          "detail": "新指南按需",
+          "location": {
+            "element": "skill-generation",
+            "section": "项目分解方法创建指导"
+          },
+          "quote": "普通使用方法时不额外加载该指南"
+        },
+        {
+          "detail": "旧入口引用清理且不自动删除既有文件",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "更新 SHALL 停止生成和引用 xirang-decomposition-use.md，不新增自动删除既有旧文件的逻辑"
+        }
+      ]
+    },
+    {
+      "identity": "analogous-guidance-consolidation-authorization",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "方法不重复用户确认规则",
+          "location": {
+            "element": "workflow-templates",
+            "section": "交付并路由通用语义精化指导"
+          },
+          "quote": "用户确认规则由其负责的共享指导或工作流承载，方法不重复另设这些规则"
+        },
+        {
+          "detail": "统一阶段决策定义",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "Propose 的自主组织与实质选择边界由其决策段完整定义"
+        },
+        {
+          "detail": "不同阶段权限保留",
+          "location": {
+            "element": "skill-generation",
+            "section": "共享生成结构拆分 guidance"
+          },
+          "quote": "用户确认按当前工作流的决策与授权规则进行"
+        }
+      ]
+    },
+    {
+      "identity": "eliminate-redundant-prompt-rules",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每条规则唯一承载",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "完整规则 SHALL 在负责该规则的 skill 或 reference 中唯一维护"
+        },
+        {
+          "detail": "纯重复说明直接省略",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "阶段步骤保留实际动作，纯重复说明直接省略"
+        },
+        {
+          "detail": "不改成重复引用",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "不将每处重复改成另一条相同引用"
+        },
+        {
+          "detail": "独立入口仍获取必要依据",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "新 Agent 或独立入口仍取得完成任务所需指导"
+        }
+      ]
+    },
+    {
+      "identity": "integrated-design-acceptance",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "完整整合由单一规则负责",
+          "location": {
+            "element": "workflow-templates",
+            "section": "以行为门禁组织形成提示词"
+          },
+          "quote": "完整规则 SHALL 在负责该规则的 skill 或 reference 中唯一维护"
+        },
+        {
+          "detail": "Explore Propose 阶段职责",
+          "location": {
+            "element": "explore",
+            "section": "澄清 Element Definition 影响"
+          },
+          "quote": "Propose MAY 基于这些依据完成局部模型组织和完整目标 Definition"
+        },
+        {
+          "detail": "自定义创建指南",
+          "location": {
+            "element": "skill-generation",
+            "section": "项目分解方法创建指导"
+          },
+          "quote": "创建指导 SHALL 引用共享 semantic-authoring 取得框架约束"
+        },
+        {
+          "detail": "行为及效率比较",
+          "location": {
+            "element": "workflow-templates",
+            "section": "按消费目的控制上下文读取"
+          },
+          "quote": "覆盖同场景重复与不同场景"
+        },
+        {
+          "detail": "源语义保留",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "模型演进中的目标表达"
+          },
+          "quote": "Element 或 Section 消失时 SHALL 判断其承载的语义是被适当位置保留，还是确实移除"
+        }
+      ]
+    },
+    {
+      "identity": "cli-breaking-change-policy",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "CLI 不保证旧用法向后兼容",
+          "location": {
+            "element": "framework-identity",
+            "section": "CLI 向后兼容边界"
+          },
+          "quote": "息壤 CLI 的版本演进 MAY 直接改变既有用法，SHALL NOT 承诺旧版本用法在新版本中继续可用"
+        },
+        {
+          "detail": "不要求 CLI 提供旧用法兼容层",
+          "location": {
+            "element": "framework-identity",
+            "section": "CLI 向后兼容边界"
+          },
+          "quote": "不得仅因旧用法存在就要求 CLI 提供兼容层"
+        },
+        {
+          "detail": "升级适配由用户和 Agent 完成",
+          "location": {
+            "element": "framework-identity",
+            "section": "CLI 向后兼容边界"
+          },
+          "quote": "升级后的适配由用户与 Agent 协作完成"
+        },
+        {
+          "detail": "本次旧入口退役不再生成引用",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "更新 SHALL 停止生成和引用 xirang-decomposition-use.md"
+        },
+        {
+          "detail": "旧文件不由本次 update 自动删除",
+          "location": {
+            "element": "agent-workbench-projection",
+            "section": "物化共享片段与 references"
+          },
+          "quote": "不新增自动删除既有旧文件的逻辑"
+        },
+        {
+          "detail": "旧用法不影响跨平台和用户文件保护",
+          "location": {
+            "element": "framework-identity",
+            "section": "CLI 向后兼容边界"
+          },
+          "quote": "也不撤销跨平台路径正确性和用户文件所有权保护"
+        }
+      ]
+    }
+  ]
+}

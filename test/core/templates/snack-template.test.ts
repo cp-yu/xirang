@@ -5,7 +5,8 @@ import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  SEMANTIC_MODEL_EVOLUTION_GUIDANCE,
+  SEMANTIC_REFINEMENT_REFERENCE,
   XIRANG_PHILOSOPHY,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getSnackSkillTemplate } from '../../../src/core/templates/skill-templates.js';
@@ -154,8 +155,10 @@ describe('snack template artifact reconciliation', () => {
   });
 
   it('uses decomposition only for authorized durable hierarchy reconciliation', () => {
-    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    expect(instructions).toContain(SEMANTIC_MODEL_EVOLUTION_GUIDANCE);
+    expect(instructions).toContain(SEMANTIC_REFINEMENT_REFERENCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
+    expect(instructions).not.toContain('xirang-decomposition-use.md');
     expect(instructions).toContain('authorized evidence requires a new or reorganized durable hierarchy');
     expect(instructions).toContain('file moves, symbol renames, imports, or calls');
     expect(instructions).toContain('do not invoke decomposition guidance');

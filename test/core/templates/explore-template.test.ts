@@ -2,7 +2,6 @@ import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 
 import {
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
@@ -15,7 +14,7 @@ describe('explore template integration', () => {
   const reference = skill.referenceFiles!.find(file => file.path === 'references/explore-supperpowers-style.md')!.content;
 
   it('includes the shared model, decomposition and test protocols', () => {
-    for (const fragment of [XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT, STRUCTURAL_DECOMPOSITION_GUIDANCE, TEST_QUALITY_GUIDANCE]) {
+    for (const fragment of [XIRANG_PHILOSOPHY, XIRANG_SHARED_CONTEXT, TEST_QUALITY_GUIDANCE]) {
       expect(template).toContain(fragment);
     }
     for (const command of [
@@ -25,6 +24,8 @@ describe('explore template integration', () => {
       'xirang config project --select decomposition --json',
       'xirang record list --json',
     ]) expect(template).toContain(command);
+    expect(template).not.toContain('xirang-decomposition-use.md');
+    expect(template).toContain('read that complete guidance file');
     expect(template).toContain('--contract');
     expect(template).not.toMatch(/arch query[^\n]*(--relations|--depth)/);
   });

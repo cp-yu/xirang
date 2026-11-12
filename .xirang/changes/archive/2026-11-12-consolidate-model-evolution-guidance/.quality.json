@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 4,
+  "changeId": "consolidate-model-evolution-guidance",
+  "revision": 5,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "e8aad1eb1977e72af3ba1045e79b09e8ac37f3f8",
+      "result": "FAIL",
+      "summary": "Independent full-change Review found that the project decomposition method omits the confirmed current-workflow decision and authorization boundary.",
+      "findings": [
+        "CRITICAL: The project method opening constrains itself by parent refinement, MECE and breadth-first rules, but does not preserve the required current-workflow decision and authorization boundary. This conflicts with design.md Decision 4 and the skill-generation Contract. See .pi/skills/xirang-project-decomposition/SKILL.md:8 and .xirang/changes/consolidate-model-evolution-guidance/elements/skill-generation.md:14."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "05cc1dd02a949c6c83b101a0af93f5cebb1a4367",
+      "result": "FAIL",
+      "summary": "Independent full-change Review found that Propose retains a blanket stop for unresolved hierarchy boundaries, contradicting authorized local-organization behavior.",
+      "findings": [
+        "CRITICAL: src/core/templates/workflows/propose.ts step 7 requires asking whenever Element concept identity, independent modeling reason, scope, or hierarchy boundary remains unresolved. This conflicts with the confirmed rule that Propose chooses among reasonable local organizations absent a material trade-off. The matching test currently asserts the blanket stop. Revise workflow and test to stop only for choices changing Element identity, scope, confirmed commitments, or a substantive trade-off, and otherwise present a supported organization for review."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "156670d278b027b93e156e1175d91d9c282e2893",
+      "result": "PASS",
+      "summary": "Independent full-change Review passed on the complete cumulative Change at commit 156670d278b027b93e156e1175d91d9c282e2893. It confirmed consistent shared model-evolution and hierarchy rules, configured decomposition routing, and preservation of existing user files. The reviewer reported no findings and verified HEAD remained unchanged.",
+      "findings": []
+    }
+  ],
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "The cumulative Change is guidance/template consolidation. Full-change Review and verification found no additional implementation optimization with an evidence-backed benefit; avoid speculative edits outside the approved scope."
+  },
+  "seal": {
+    "commit": "156670d278b027b93e156e1175d91d9c282e2893",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "Linux local pnpm test (166 files, 2,228 tests), pnpm build, pnpm lint, targeted Propose and skill tests after corrections, xirang arch validate --change, and git diff --check.",
+    "assessment": "Independent full-change Review PASS is recorded for this exact commit. Full tests, build, lint and targeted correction checks passed. G5 was manually approved by the user; no additional experiment was run. Windows CI was not executed in this environment, and that platform evidence gap remains disclosed. Opt was not performed because Review and verification identified no evidence-backed implementation optimization within this guidance-only Change."
+  }
+}

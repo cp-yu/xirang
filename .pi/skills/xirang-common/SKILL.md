@@ -55,7 +55,8 @@ All paths below are project-root files. Read only what the current action requir
 | Navigate or interpret the Semantic Model | .xirang/references/xirang-model-context.md |
 | Explore or write Element Definitions and Contracts | .xirang/references/xirang-semantic-authoring.md |
 | Business-specification Kind or Contract with contractFormat: business-specification | .xirang/references/xirang-business-specification-standard.md |
-| Form or reorganize a hierarchy | .xirang/references/xirang-decomposition-use.md, then the guidance resolved by normalized decomposition |
+| Form or reorganize a hierarchy | Follow the stage's resolved decomposition guidance |
+| Create or revise project decomposition guidance | .xirang/references/xirang-decomposition-authoring.md |
 | Write Candidate model units | .xirang/references/xirang-model-notation.md |
 | Author a Change artifact or Delta | .xirang/references/xirang-artifact-<artifact-id>.md, Definition before Guidance and Template |
 | Design verification, change tests, or judge test evidence | .xirang/references/xirang-test-quality.md |

@@ -17,7 +17,7 @@ For a Kind or Contract with `contractFormat: business-specification`, read proje
 
 Before exploring or writing an Element Declaration or Contract, read project-root file `.xirang/references/xirang-semantic-authoring.md` unless already available and current.
 
-Only before forming or reorganizing a hierarchy, read project-root file `.xirang/references/xirang-decomposition-use.md` unless already available and current; then follow its normalized configuration routing. Contract-only work does not trigger it.
+Before forming or reorganizing a hierarchy, run `xirang config project --select decomposition --json`, read the normalized `decomposition` path from its output, and read that complete guidance file. Stop structural work if it is unavailable; do not substitute another method. Contract-only work does not trigger this step.
 
 Before writing Candidate model units, read project-root file `.xirang/references/xirang-model-notation.md` unless already available and current.
 

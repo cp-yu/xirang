@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
@@ -80,12 +79,15 @@ describe('propose template post-validation flow', () => {
     expect(instructions).toContain(ELEMENT_CONTRACT_SEMANTICS);
   });
 
-  it('writes complete target Definitions and stops when their boundaries remain unresolved', () => {
+  it('writes complete target Definitions while gating only material boundary choices', () => {
     const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
     expect(instructions).toContain(ELEMENT_DEFINITION_SEMANTICS);
     expect(instructions).toContain('complete target Definition');
     expect(instructions).toContain('not a summary of what changed');
-    expect(instructions).toContain('stop and ask one focused question instead of guessing the Definition');
+    expect(instructions).toContain('multiple compliant organizations alone are not blockers');
+    expect(instructions).toContain('would change Element identity, scope, confirmed commitments, or a substantive trade-off');
+    expect(instructions).toContain('Otherwise choose a supported organization and present structural changes, reasons, and semantic impact in draft review');
+    expect(instructions).not.toContain('hierarchy boundary remains unresolved, stop and ask one focused question');
   });
 
   it('resolves new and existing change identity without rename semantics', () => {
@@ -279,15 +281,14 @@ describe('propose template post-validation flow', () => {
   it('uses decomposition only when Propose must form an unconfirmed hierarchy', () => {
     const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
-    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
     expect(instructions).toContain('unconfirmed structure');
     expect(instructions).toContain('new or reorganized hierarchy');
-    expect(instructions).toContain('Do not redo confirmed structural decisions');
+    expect(instructions).toContain('form and check a complete sibling set breadth-first');
+    expect(instructions).toContain('do not require approval of each sibling set solely because it is being formed');
     expect(instructions).toContain('Architecture Source is `None`');
     expect(instructions).toContain('do not invoke decomposition guidance');
-    expect(instructions).toContain('stop Formation and ask one focused question');
-    expect(instructions).toContain('do not fall back to another method');
+    expect(instructions).toContain('Stop structural work if it is unavailable; do not substitute another method.');
   });
 
   it('gates exact-version record handoff on CLI-recorded atomic coverage after final validation', () => {

@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getBuildSkillTemplate } from '../../../src/core/templates/workflows/build.js';
 
@@ -160,15 +159,12 @@ describe('xirang-build workflow', () => {
   it('applies configured decomposition at authoring and semantic review gates', () => {
     const instructions = withCommonGuidance(getBuildSkillTemplate()).instructions;
 
-    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
-    expect(instructions).toContain('Read the guidance file at that resolved path in full');
-    expect(instructions).toContain('do not substitute another method');
-    expect(instructions).toContain('stop hierarchy formation and ask the user once');
+    expect(instructions).toContain('read the normalized `decomposition` path from its output');
+    expect(instructions).toContain('Stop structural work if it is unavailable; do not substitute another method.');
     expect(instructions).toContain('Modeling Decision Gate');
     expect(instructions).toContain('before the first Candidate hierarchy write');
     expect(instructions).toContain('same sibling set');
-    expect(instructions).toContain('responsibility, lifecycle, deployment, or implementation dimensions');
   });
 
   it('checks all post-promotion conditions without retrying promotion', () => {

@@ -6,11 +6,12 @@ import type { SkillTemplate } from '../types.js';
 import { getWorkflowSurfaces } from '../../workflow-surface.js';
 import { COMMON_SKILL_NAME } from '../fragments/guidance-loading.js';
 import {
+  DECOMPOSITION_AUTHORING_REFERENCE,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
+  SEMANTIC_MODEL_EVOLUTION_GUIDANCE,
   SEMANTIC_MODEL_UNIT_NOTATION,
   SEMANTIC_REFINEMENT_REFERENCE,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   TEST_QUALITY_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
@@ -58,7 +59,8 @@ All paths below are project-root files. Read only what the current action requir
 | Navigate or interpret the Semantic Model | .xirang/references/xirang-model-context.md |
 | Explore or write Element Definitions and Contracts | .xirang/references/xirang-semantic-authoring.md |
 | Business-specification Kind or Contract with contractFormat: business-specification | .xirang/references/xirang-business-specification-standard.md |
-| Form or reorganize a hierarchy | .xirang/references/xirang-decomposition-use.md, then the guidance resolved by normalized decomposition |
+| Form or reorganize a hierarchy | Follow the stage's resolved decomposition guidance |
+| Create or revise project decomposition guidance | .xirang/references/xirang-decomposition-authoring.md |
 | Write Candidate model units | .xirang/references/xirang-model-notation.md |
 | Author a Change artifact or Delta | .xirang/references/xirang-artifact-<artifact-id>.md, Definition before Guidance and Template |
 | Design verification, change tests, or judge test evidence | .xirang/references/xirang-test-quality.md |
@@ -74,9 +76,9 @@ Stage-specific flow and gates remain in the selected skill and its references. R
       { path: 'references/design-record.md', content: DESIGN_RECORD_REFERENCE },
       { path: 'references/semantic-refinement.md', content: SEMANTIC_REFINEMENT_REFERENCE },
       { path: 'references/model-context.md', content: XIRANG_SHARED_CONTEXT },
-      { path: 'references/semantic-authoring.md', content: `${ELEMENT_DEFINITION_SEMANTICS}\n\n${ELEMENT_CONTRACT_SEMANTICS}` },
+      { path: 'references/semantic-authoring.md', content: `${SEMANTIC_MODEL_EVOLUTION_GUIDANCE}\n\n${ELEMENT_DEFINITION_SEMANTICS}\n\n${ELEMENT_CONTRACT_SEMANTICS}` },
       { path: 'references/test-quality.md', content: TEST_QUALITY_GUIDANCE },
-      { path: 'references/decomposition-use.md', content: STRUCTURAL_DECOMPOSITION_GUIDANCE },
+      { path: 'references/decomposition-authoring.md', content: DECOMPOSITION_AUTHORING_REFERENCE },
       { path: 'references/model-notation.md', content: SEMANTIC_MODEL_UNIT_NOTATION },
     ],
     license: 'MIT',

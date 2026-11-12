@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { BUSINESS_SPECIFICATION_STANDARD_REFERENCE } from '../../../src/core/templates/fragments/business-specification-standard.js';
 import {
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  SEMANTIC_MODEL_EVOLUTION_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
 import { getApplyChangeSkillTemplate } from '../../../src/core/templates/workflows/apply-change.js';
@@ -41,27 +41,29 @@ describe('generated Xirang Semantic Model guidance', () => {
     }
   });
 
-  it('includes structural decomposition guidance only in hierarchy-forming workflows', () => {
+  it('routes hierarchy formation to the configured method and shares framework rules once', () => {
     const structural = [
-      getBuildSkillTemplate().instructions,
-      getExploreSkillTemplate().instructions,
-      getXirangProposeSkillTemplate().instructions,
-      getSnackSkillTemplate().instructions,
+      getBuildSkillTemplate(),
+      getExploreSkillTemplate(),
+      getXirangProposeSkillTemplate(),
+      getSnackSkillTemplate(),
     ];
-    const nonStructural = [
-      getApplyChangeSkillTemplate().instructions,
-      getArchiveChangeSkillTemplate().instructions,
-      getReviewerSubagentTemplate().prompt,
-      getOptimizerSubagentTemplate().prompt,
-    ];
+    const common = getCommonSkillTemplate();
+    const authoring = common.referenceFiles?.find(file => file.path === 'references/semantic-authoring.md')?.content ?? '';
+    const methods = common.referenceFiles?.find(file => file.path === 'references/semantic-refinement.md')?.content ?? '';
+    const createGuide = common.referenceFiles?.find(file => file.path === 'references/decomposition-authoring.md')?.content ?? '';
 
-    for (const guidance of structural) {
-      expect(guidance).toContain('xirang-decomposition-use.md');
-      expect(guidance).not.toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
+    for (const template of structural) {
+      expect(template.instructions).toContain('xirang config project --select decomposition --json');
+      expect(template.instructions).not.toContain('xirang-decomposition-use.md');
+      expect(template.instructions).not.toContain(methods);
     }
-    for (const guidance of nonStructural) {
-      expect(guidance).not.toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
-    }
+    expect(authoring).toContain(SEMANTIC_MODEL_EVOLUTION_GUIDANCE);
+    expect(authoring).toContain('be MECE within the confirmed scope');
+    expect(authoring).toContain('does not require user approval at each layer');
+    expect(methods).not.toContain('breadth-first');
+    expect(createGuide).toContain('Before creating or revising project decomposition guidance');
+    expect(createGuide).toContain('.xirang/references/xirang-semantic-authoring.md');
   });
 
   it('loads business-specification authoring rules only in formation workflows', () => {
