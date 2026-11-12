@@ -12,12 +12,13 @@ import {
   getXirangProposeSkillTemplate,
 } from '../../../../src/core/templates/skill-templates.js';
 import { INTERNAL_SUBAGENT_TEMPLATES } from '../../../../src/core/shared/subagent-generation.js';
+import { getCommonSkillTemplate } from '../../../../src/core/templates/workflows/common.js';
 import {
   ARCHITECTURE_GENERATE_DELTA,
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
   TEST_QUALITY_GUIDANCE,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
+  SEMANTIC_MODEL_EVOLUTION_GUIDANCE,
   XIRANG_SHARED_CONTEXT,
   XIRANG_PHILOSOPHY,
   QUALITY_CLI_JSON_SCHEMA_REFERENCE,
@@ -336,11 +337,21 @@ describe('Xirang shared context fragment', () => {
 
 
 describe('默认语义精化路由', () => {
-  it('结构形成入口指向统一默认指导', () => {
+  it('结构形成入口加载配置选中的方法，共享 reference 唯一承载框架纪律', () => {
+    const common = getCommonSkillTemplate();
+    const method = common.referenceFiles?.find(file => file.path === 'references/semantic-refinement.md')?.content ?? '';
+    const authoring = common.referenceFiles?.find(file => file.path === 'references/semantic-authoring.md')?.content ?? '';
+    const authoringGuide = common.referenceFiles?.find(file => file.path === 'references/decomposition-authoring.md')?.content ?? '';
     for (const template of [getBuildSkillTemplate(), getExploreSkillTemplate(), getXirangProposeSkillTemplate(), getSnackSkillTemplate()]) {
-      expect(template.instructions).toContain('xirang-decomposition-use.md');
-      expect(STRUCTURAL_DECOMPOSITION_GUIDANCE).toContain('Read the guidance file at that resolved path in full');
-      expect(template.instructions).not.toContain('opaque method name');
+      expect(template.instructions).toContain('xirang config project --select decomposition --json');
+      expect(template.instructions).not.toContain('xirang-decomposition-use.md');
     }
+    expect(authoring).toContain(SEMANTIC_MODEL_EVOLUTION_GUIDANCE);
+    expect(authoring).toContain('be MECE within the confirmed scope');
+    expect(authoring).toContain('breadth-first');
+    expect(authoring).toContain('does not require user approval at each layer');
+    expect(method).not.toContain('breadth-first');
+    expect(authoringGuide).toContain('Custom Decomposition Guidance');
+    expect(common.referenceFiles?.map(file => file.path)).not.toContain('references/decomposition-use.md');
   });
 });

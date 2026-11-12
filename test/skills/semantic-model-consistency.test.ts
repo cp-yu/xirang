@@ -24,11 +24,10 @@ describe('generated internal agent semantic context', () => {
       '.pi/skills/xirang-snack/SKILL.md',
     ]) {
       const content = readFileSync(path.resolve(file), 'utf8');
-      const configRead = content.indexOf('xirang-decomposition-use.md');
-      const resolvedGuidance = readFileSync(path.resolve('.xirang/references/xirang-decomposition-use.md'), 'utf8').indexOf('Read the guidance file at that resolved path in full');
+      const decompositionEntry = 'read the normalized `decomposition` path from its output';
 
-      expect(configRead, file).toBeGreaterThanOrEqual(0);
-      expect(resolvedGuidance, file).toBeGreaterThanOrEqual(0);
+      expect(content, file).toContain(decompositionEntry);
+      expect(content, file).not.toContain('xirang-decomposition-use.md');
       expect(content, file).toContain('decomposition');
     }
   });

@@ -77,6 +77,8 @@ describe('workflow installation planning', () => {
     expect(plan.workflows).toEqual(['explore']);
     expect(plan.expectedSkillDirNames).toContain('xirang-common');
     expect(artifacts.skillFiles).toContain(commonPath);
+    expect(artifacts.skillFiles).not.toContain(path.join(testDir, '.xirang', 'references', 'xirang-decomposition-use.md'));
+
     const userPath = path.join(skillsDir, 'user-skill', 'SKILL.md');
     await fs.mkdir(path.dirname(userPath), { recursive: true });
     await fs.writeFile(userPath, 'user-owned');
@@ -92,7 +94,7 @@ describe('workflow installation planning', () => {
     expect((await sync()).error).toBeUndefined();
     expect(await fs.readFile(commonPath, 'utf8')).toBe(common);
     expect(await fs.readFile(userPath, 'utf8')).toBe('user-owned');
-    for (const fileName of ['xirang-model-context.md', 'xirang-semantic-authoring.md', 'xirang-test-quality.md']) {
+    for (const fileName of ['xirang-model-context.md', 'xirang-semantic-authoring.md', 'xirang-decomposition-authoring.md', 'xirang-test-quality.md']) {
       expect(await exists(path.join(testDir, '.xirang', 'references', fileName))).toBe(true);
     }
   });
@@ -277,18 +279,12 @@ describe('workflow installation planning', () => {
         {
           workflowId: 'one',
           template: {
-            name: 'one',
-            description: 'one',
-            instructions: '',
             referenceFiles: [{ path: 'references/details.md', content: 'one' }],
           },
         },
         {
           workflowId: 'two',
           template: {
-            name: 'two',
-            description: 'two',
-            instructions: '',
             referenceFiles: [{ path: 'references/details.md', content: 'two' }],
           },
         },
@@ -302,9 +298,6 @@ describe('workflow installation planning', () => {
         {
           workflowId: 'archive',
           template: {
-            name: 'archive',
-            description: 'archive',
-            instructions: '',
             referenceFiles: [{ path: 'references/details.md', content: 'Run /xirang:archive.' }],
           },
         },

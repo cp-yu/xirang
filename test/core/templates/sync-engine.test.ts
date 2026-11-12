@@ -143,6 +143,29 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     }
   });
 
+  it('does not delete an existing decomposition reference when its generator is retired', async () => {
+    const referencesDir = path.join(testDir, '.xirang', 'references');
+    const retiredReference = path.join(referencesDir, 'xirang-decomposition-use.md');
+    const legacyContent = '# Previously generated decomposition guidance\n';
+    await fs.mkdir(referencesDir, { recursive: true });
+    await fs.writeFile(retiredReference, legacyContent);
+
+    const result = await ArtifactSyncEngine.syncOne({
+      toolId: 'pi',
+      projectPath: testDir,
+      workflows: ['explore'],
+      version: 'test',
+    });
+
+    expect(result.error).toBeUndefined();
+    await expect(fs.readFile(retiredReference, 'utf8')).resolves.toBe(legacyContent);
+    const common = await fs.readFile(path.join(testDir, '.pi', 'skills', 'xirang-common', 'SKILL.md'), 'utf8');
+    const explore = await fs.readFile(path.join(testDir, '.pi', 'skills', 'xirang-explore', 'SKILL.md'), 'utf8');
+    expect(common).toContain('xirang-decomposition-authoring.md');
+    expect(explore).toContain('xirang config project --select decomposition --json');
+    expect(explore).not.toContain('xirang-decomposition-use.md');
+  });
+
   it('removes only explicitly named stale shared references', async () => {
     const referencesDir = path.join(testDir, '.xirang', 'references');
     await fs.mkdir(referencesDir, { recursive: true });

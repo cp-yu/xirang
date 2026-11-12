@@ -1,3 +1,9 @@
+**Model evolution and hierarchy formation**
+
+When the model changes, review affected Elements' Declarations and Contracts in the target model context. Revise them as needed to maintain semantic consistency and express complete, appropriate semantics at each abstraction level without redundant repetition.
+
+For hierarchy formation, every sibling set SHALL use one decomposition dimension and be MECE within the confirmed scope. Form and check the complete sibling set breadth-first before refining its children; this order does not require user approval at each layer and does not prevent revising an earlier layer when later evidence warrants it. Parent-child hierarchy SHALL express semantic refinement, with each parent Contract complete at its own abstraction level without mechanically copying child detail. Project methods select concrete dimensions and refinement depth within these constraints.
+
 **Element Definition Semantics**
 
 - A Definition SHALL state what the Element is, why it is modeled as an independent Element, what it includes, what it excludes, and, where needed, how it differs from its parent, children, and siblings.

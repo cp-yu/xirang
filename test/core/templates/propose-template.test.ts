@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import {
   ELEMENT_CONTRACT_SEMANTICS,
   ELEMENT_DEFINITION_SEMANTICS,
-  STRUCTURAL_DECOMPOSITION_GUIDANCE,
   XIRANG_PHILOSOPHY,
   XIRANG_SHARED_CONTEXT,
 } from '../../../src/core/templates/fragments/xirang-fragments.js';
@@ -279,15 +278,14 @@ describe('propose template post-validation flow', () => {
   it('uses decomposition only when Propose must form an unconfirmed hierarchy', () => {
     const instructions = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
 
-    expect(instructions).toContain(STRUCTURAL_DECOMPOSITION_GUIDANCE);
     expect(instructions).toContain('xirang config project --select decomposition --json');
     expect(instructions).toContain('unconfirmed structure');
     expect(instructions).toContain('new or reorganized hierarchy');
-    expect(instructions).toContain('Do not redo confirmed structural decisions');
+    expect(instructions).toContain('form and check a complete sibling set breadth-first');
+    expect(instructions).toContain('do not require approval of each sibling set solely because it is being formed');
     expect(instructions).toContain('Architecture Source is `None`');
     expect(instructions).toContain('do not invoke decomposition guidance');
-    expect(instructions).toContain('stop Formation and ask one focused question');
-    expect(instructions).toContain('do not fall back to another method');
+    expect(instructions).toContain('Stop structural work if it is unavailable; do not substitute another method.');
   });
 
   it('gates exact-version record handoff on CLI-recorded atomic coverage after final validation', () => {
