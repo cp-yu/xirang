@@ -124,6 +124,8 @@ export class SetupCommand {
       await this.writeModelSkeleton(projectPath, xirangPath, projectDefinition!);
     }
 
+    await ArtifactSyncEngine.syncProjectReferences(projectPath);
+
     // Generate skills and commands for each tool
     const results = await this.generateSkillsAndCommands(projectPath, validatedTools);
 

@@ -99,6 +99,8 @@ export class UpdateCommand {
     this.cleanupObsoleteConfigFields();
     this.cleanupExpandedWorkflowRemnants(resolvedProjectPath);
 
+    await ArtifactSyncEngine.syncProjectReferences(resolvedProjectPath);
+
     // 5. Find configured tools (skills-only surface)
     const configuredTools = getConfiguredToolsForProfileSync(resolvedProjectPath);
 

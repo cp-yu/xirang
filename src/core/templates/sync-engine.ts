@@ -31,6 +31,7 @@ import {
 } from '../workflow-surface.js';
 import { ToolProfileRegistry } from './tool-profile/index.js';
 import { getApplyChangeSkillTemplate } from './workflows/apply-change.js';
+import { getCommonSkillTemplate } from './workflows/common.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -554,6 +555,12 @@ async function removeUnselectedSkillDirs(
 // ---------------------------------------------------------------------------
 
 export const ArtifactSyncEngine = {
+  async syncProjectReferences(projectPath: string): Promise<void> {
+    await writeSharedReferences(projectPath, collectSharedReferenceFiles([
+      { template: getCommonSkillTemplate(), workflowId: 'common' },
+    ]));
+  },
+
   /**
    * Execute a single tool sync.
    */

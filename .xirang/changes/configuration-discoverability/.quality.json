@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "configuration-discoverability",
-  "revision": 4,
+  "revision": 5,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -44,6 +44,15 @@
       "summary": "Reviewed the cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Two targeted verification batches passed (16 files/515 tests and 29 files/304 tests, with overlap), and TypeScript checking passed. One CRITICAL test-evidence gap remains in migration final-validation protection. HEAD remained unchanged and the worktree remained clean.",
       "findings": [
         "CRITICAL: The migration test does not exercise final semantic validation. In test/core/project-config.test.ts:131-146, the 'invalid final value' case appends 'unknown: true' during every migration step. On step two this produces duplicate YAML keys, so src/core/config-migration.ts:59-64 rejects the document before reaching final validation at lines 66-68. I independently reproduced the fixture sequence: step one parses successfully; step two reports DUPLICATE_KEY. The broad /invalid/ assertion therefore passes even if final semantic validation is removed. This leaves the required protection in .xirang/changes/configuration-discoverability/elements/project-config-management.md:35-54 without a meaningful owning test, despite design.md:144 explicitly requiring it. Search `git grep -n -E 'invalid-result|invalid final|inspectConfigValues|targetVersion:|migrations:' HEAD -- test src/core/config-migration.ts` found no alternative final-validation test. Replace this fixture with a migration chain that remains valid YAML throughout and introduces a semantically invalid field only once; assert an invalid-result diagnostic and unchanged original content/version."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "c4d04bd130f50a9cc1a4fdbb572aa0bcab689639",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change across completeness, correctness, coherence and cleanliness, including all Semantic Delta units and Required Corrections. TypeScript checking and 553 tests across 21 files passed. One configuration lifecycle defect remains. HEAD was unchanged throughout the review; the working tree remained clean.",
+      "findings": [
+        "CRITICAL: Fresh setup with --tools none produces a configuration that immediately fails the advertised config check. src/core/setup.ts:479-487 only schedules shared-reference generation through selected tools, so an empty selection writes no references; src/core/setup.ts:577-578 nevertheless creates configuration using the default decomposition value from src/core/project-config.ts:12-14. Reproduced in a temporary directory: `xirang setup --tools none --project-definition 'Review fixture'` exits 0, then `xirang config check --json` exits 1 with CONFIG_REFERENCE_UNREADABLE for .xirang/references/xirang-semantic-refinement.md; the references directory is empty. This violates the default-guidance readability guarantee in .xirang/changes/configuration-discoverability/elements/references-home.md:25-27 and the usable configuration/default-file commitments in .xirang/changes/configuration-discoverability/elements/workspace-init.md:15-23,41-43. The existing --tools none test at test/core/setup.test.ts:323-338 checks directory/config creation but misses reference availability and the subsequent check result. Materialize the required project-level default reference independently of tool installation, retain the no-tool-skills behavior, and extend the lifecycle test."
       ]
     }
   ],
