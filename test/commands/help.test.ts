@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
+import * as nodeFs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Command } from 'commander';
 import { AuthoringHelpCommand, registerHelpCommand } from '../../src/commands/help.js';
 import { minimalModel, writeProjectModel } from '../helpers/model-fixture.js';
+import { getSchemaDir, resolveSchema } from '../../src/core/artifact-graph/resolver.js';
+import { getCommonSkillTemplate } from '../../src/core/templates/workflows/common.js';
+
+vi.mock('node:fs', { spy: true });
 
 const captureLogs = async (run: () => Promise<void>): Promise<string> => {
   const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -63,6 +68,32 @@ describe('AuthoringHelpCommand', () => {
     expect(output).not.toContain('invokes');
     expect(output).toContain('xirang validate --change <name> --json');
     expect(output).toContain('xirang arch validate --change <name> --json');
+  });
+
+  it('delivers the same schema template through JSON, text and the shared reference', async () => {
+    await writeProjectModel(root, minimalModel());
+    const artifact = resolveSchema('semantic-model').artifacts.find(item => item.id === 'semantic-delta')!;
+    const expected = await fs.readFile(path.join(getSchemaDir('semantic-model')!, 'templates', artifact.template), 'utf8');
+    const json = JSON.parse(await captureLogs(() => new AuthoringHelpCommand(root).execute('semantic-delta', { json: true })));
+    expect(json.template).toBe(expected);
+    const text = await captureLogs(() => new AuthoringHelpCommand(root).execute('semantic-delta', {}));
+    expect(text).toContain(expected);
+    const reference = getCommonSkillTemplate().referenceFiles!.find(file => file.path === 'references/artifact-semantic-delta.md')!;
+    expect(reference.content).toContain(expected);
+  });
+
+  it('retains the template path and I/O cause when the template cannot be read', async () => {
+    await writeProjectModel(root, minimalModel());
+    const artifact = resolveSchema('semantic-model').artifacts.find(item => item.id === 'semantic-delta')!;
+    const templatePath = path.join(getSchemaDir('semantic-model')!, 'templates', artifact.template);
+    const { readFileSync: original } = await vi.importActual<typeof import('node:fs')>('node:fs');
+    const read = vi.mocked(nodeFs.readFileSync).mockImplementation(((file: any, ...args: any[]) => {
+      if (String(file) === templatePath) throw new Error(`EACCES: ${templatePath}`);
+      return (original as any)(file, ...args);
+    }) as typeof original);
+    try {
+      await expect(new AuthoringHelpCommand(root).execute('semantic-delta', { json: true })).rejects.toThrow(`EACCES: ${templatePath}`);
+    } finally { read.mockRestore(); }
   });
 
   it('reports an unavailable Semantic Model when the model root is absent or empty', async () => {

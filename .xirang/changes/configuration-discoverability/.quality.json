@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "configuration-discoverability",
-  "revision": 2,
+  "revision": 3,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -24,6 +24,17 @@
         "CRITICAL — G6/G7：CRLF Markdown Agent 刷新会删除用户 model。src/core/templates/sync-engine.ts:451–461 在所有权检查时将 CRLF 归一化，因此接受该受管文件；但 :336–350 的 extractUserModel 只匹配 LF frontmatter，随后 :463–476 未提取到 model 就覆盖文件。对已提交 writeSubagents 的内存执行确认：带合法受管 metadata 和 model: \"my-windows-model\" 的 CRLF 文件被刷新，written=1，模型设置消失。这违反 .xirang/changes/configuration-discoverability/elements/internal-subagent-generation.md:21–29、39–41 的模型保留及跨平台承诺。test/core/templates/sync-engine.test.ts:463–490 的模型保留案例仅使用 LF；需要统一换行处理并覆盖 CRLF 刷新。",
         "CRITICAL — G2/G5 及“检查报告与实际有效值一致”Required Correction：check 单独补出未进入共享有效配置的默认值。src/core/config-check.ts:82–88 在 normalized effective 缺少字段时调用 fieldDefault；src/core/config-projection.ts:124–128 则在 apply 缺失时省略整个节点。对 configVersion: 1、schema: semantic-model 的已提交源码探针确认：check.fields 将 apply.defaultIsolation 报为 value=ask、source=default，但 check.effective 和 config project 使用的共享结果均没有 apply，选择 apply 会得到空结果。非法隔离值也只显示 ignored，没有说明约定的默认策略。这违反 design.md 的 Decision 1“检查读取同一来源值和默认语义，不单独发明回退结果”，以及 project-config-loading Delta:27–29 的默认 ask 承诺。应在共享归一化层统一默认策略，使检查和消费者取得一致结果，并增加组合验证。",
         "CRITICAL — G2 及非法 schema 独立处理的 Required Correction：src/core/config-check.ts:55–63 仅在原始 schema 等于 semantic-model 时检查未知 artifact ID 和空规则字符串。已提交源码探针输入 schema: invalid、rules: {unknown: [Rule], proposal: [\"\"]}，结构化 issues 只返回 schema 错误，遗漏 rules.unknown 和 rules.proposal.0；空字符串是否合法完全可以独立判断，普通读取也已经使用 semantic-model 回退验证规则。该行为违反 config-command Delta:31、57 的独立问题聚合承诺。test/commands/config.test.ts:135–149 只验证非法 schema 时保留 context，未覆盖混合规则错误。应将独立规则内容检查移出 schema 条件，并依据共享解析结果验证可确定的 artifact IDs。"
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "d3f5ac5f7437581984c40774ec862abef2179c80",
+      "result": "FAIL",
+      "summary": "已独立审查完整累计 Change 的 Completeness、Correctness、Coherence、Cleanliness，读取 proposal/design/tasks、全部 32 个 Semantic Delta 单元及相关已提交实现。22 个针对性测试文件、541 个测试通过，但发现两个实现缺口和一个验证缺口。审查结束时 HEAD 未变化，工作区和暂存区均为空。",
+      "findings": [
+        "CRITICAL — G6/G7：CRLF 换行使受管 reference 无法刷新。src/core/templates/sync-engine.ts:230、262–286 使用包含 LF 的精确 ownership marker，未像 skill 和 Agent ownership 检查那样归一化 CRLF。临时目录复现：生成 xirang-configuration-edit.md，保留受管标记、修改正文并转为 CRLF，再次同步；同步返回成功，却报告该文件属于用户并保留陈旧正文。这违反 .xirang/changes/configuration-discoverability/elements/references-home.md:23、47–49 中对已编辑受管 reference 按模板刷新的承诺，以及跨平台交付要求。应让 ownership 标记识别兼容 LF/CRLF，并补充能证明正文确实刷新的回归测试；退役 reference 的标记识别同样需要检查。",
+        "CRITICAL — G8：help authoring semantic-delta 没有取得或交付 delta.md 模板。.xirang/changes/configuration-discoverability/elements/cli.md:18–20 和 elements/instruction-loader.md:14–19 明确要求 authoring help 使用统一制品的定义及模板。src/commands/help.ts:23–28、52–73 仅取得 definition 和 Relationship Kind 数据，150–175 的文本呈现也没有模板加载或输出。实际执行 help authoring semantic-delta --json，仅返回 file、definition、relationshipDelta、relationshipKinds。test/commands/help.test.ts:97–128 的断言没有覆盖模板，因此通过的测试无法证明该要求。应从 semantic-delta 的 schema/template 来源读取模板，在适用输出中交付，并验证模板内容及加载失败诊断。",
+        "CRITICAL — G4：新增配置编辑协议缺少能保护其关键行为的验证。src/core/templates/fragments/configuration-edit.ts:3–9 已写明只读权限、长期/本次范围、模型建议授权、版本保护及修改后重读，但现有测试仅检查文件存在、入口可达和用户文件保留（test/core/templates/sync-engine.test.ts:67–85、415–425）；test/core/templates/propose-template.test.ts:336–346 只检查 common 的使用规则。执行 git grep -n -E 'CONFIGURATION_EDIT_GUIDANCE|lasting preference|temporary request|Ordinary preference edits|read-only role remains|Reload the relevant effective|never silently make it permanent' HEAD -- test 返回空结果。删除编辑协议中的关键授权或重读条款仍能通过这些检查，无法支持 design.md:146 要求的协议保护及场景/加载轨迹验证。应补充针对关键门禁的验证，并提供长期要求、仅本次要求、模型建议及只读角色场景的实际证据；无需锁定普通散文措辞。"
       ]
     }
   ],

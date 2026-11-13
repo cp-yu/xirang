@@ -346,6 +346,27 @@ describe('propose template post-validation flow', () => {
     expect(guidance).toContain('With no language override, retain default writing behavior.');
   });
 
+  it.each([
+    ['role permissions', /read-only role[^.]*read-only/i],
+    ['lasting authorization', /explicit lasting preference[^.]*authorizes persistence[^.]*without another save confirmation/i],
+    ['temporary scope', /temporary request[^.]*only[^.]*current operation/i],
+    ['ambiguous scope', /clarify[^.]*ambiguous scope[^.]*never[^.]*permanent/i],
+    ['Agent recommendation confirmation', /Agent.s own recommendation[^.]*user confirmation[^.]*before persistence/i],
+    ['effective lookup', /xirang config project/],
+    ['supported-field lookup', /`xirang config`[^.]*supported fields/i],
+    ['unsupported-key stop', /no supported field[^.]*do not add[^.]*ineffective key/i],
+    ['version protection', /preference edits do not increment `configVersion`/i],
+    ['post-edit reload', /reload[^.]*effective values after editing[^.]*validate/i],
+    ['cache invalidation', /read the new values[^.]*cached/i],
+  ])('preserves the configuration edit gate: %s', (_gate, pattern) => {
+    const common = getCommonSkillTemplate();
+    const edit = common.referenceFiles?.find(file => file.path === 'references/configuration-edit.md');
+    expect(edit).toBeDefined();
+    expect(edit!.content).toMatch(pattern);
+    expect(common.instructions).toMatch(/User requests a project configuration edit[^\n]*xirang-configuration-edit\.md/);
+    expect(common.instructions).not.toContain(edit!.content);
+  });
+
   it('does not require per-artifact language self-checks', () => {
     for (const body of getProposeBodies()) {
       expect(body).not.toContain('non-canonical English prose scan');

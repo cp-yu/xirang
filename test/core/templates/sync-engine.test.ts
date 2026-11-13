@@ -64,14 +64,14 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     await fs.rm(testDir, { recursive: true, force: true });
   });
 
-  it('retires the old configuration and artifact references only when ownership is proven', async () => {
+  it.each(['\n', '\r\n'])('retires the old configuration and artifact references only when ownership is proven with %j', async newline => {
     const references = path.join(testDir, '.xirang', 'references');
     await fs.mkdir(references);
     const previous = {
       'xirang-configuration-use.md': 'H4sIAAAAAAACA3VVXY/bNhB8969YoA8BClt9PxcFDr1Leui5H7kEQVEUME2tpK0pUiGp8/nfd5aSlYuLvFiWtLucnZ0dfUc/B99IO0aTJXj6mHi1+nPkeCZuGrZZnpnsVyG5i2FsO9q/SDS+nd/SEMO/iN+vKbHTRLzKHVMj7OpEnrnmmnw4VXQXcM0UWXzmOETGf3Oiv253jxW95zExuWA0/OuTja9RUhK1o9TGW6ZTJw74xhjZ5y19LsBNawTBDWrjDMfPxuerSrYDck7VarWhPZAnfsSD0bS8L6fsEZ75JeNuGNyZciDjXLkRaw4408QsjbE5VfQ2OBdONKeQSZRGDeR6DVY4cXxWMiQn6tl4/F/TzsRjHU4ebA1sxTiFFFGPYyoI+tFlceJ5qutzRTtJSSbCy0E2sskMagOFg5O2tFZpR3F0nP6+QHyo/5n6EAQHP7Wjo+lNtp1WvESCfc3EPRqsa9Hp31Az9YeMHiwE3yapuRQ4jOLyBmTfcSNe9Pw1vbsMR9v4wP3ggHINATxjHiAnMp5Y7tFTIS8SvxhEIcaoioaQQIe2gNDPo8SCkCJQHIw9ErK9okuAYPIcU8pd+lpgLdWUMmV3iylQHQppeVYB1Zyk9eXEtLC8JiDPZwK80ReiIMcSMvN+RTv9MU2aiY3tSuQbsB2lFQ8A8+C/MVrM7Lbo7FqLaMjzCS/MmLsQASGopk9RMhLJmwxFu42bE6ikr0m8dWNdNlAyIK+1RxtlUKi4m7bAKOVtME6fSDpOwktj35soSsX9NJcExgpfAROMOnvJr/q1xgePrXBAe2Sfbujpl9vHxx92H58+rCnPAphq5zjaApk6NgoQRz/c4SeB397Qkc8Kht1sNedBwQ8md7jYAGS+nmDaoDhqsCdwmAi0vzIPk+OEMUIDmCKntCn71QBfqfikzoTr5XhQRfe+dZK6LUS2+/3u4e3D/d0S148pkxqSbi90ajN+JeWF24o+Se5UDMsQLjRpI1mtqObGYOakY9PEA3fmWULUub8HkGkp0xixg7xZLCsMfBnU7KI3s0wAKNG+WFM1F39IYSJtv6XbiLXGZKawFtPqObZcgX5Moj3Do8vTA/zbdqjgOPOt+uWcOZugxijpkndgEq1V3+8r+i34zatBnkI8flkp9W30iywsXjGExazh+yaby9cBL6730PjzlU0nCw5U8q/9bVUG/f8vw/JRCCO4a76szGLV2GSoWX2Dzxh8zQN7VRAYnfbjMNlaNmArv1FxZI2AcCFOKM1CZtPHcb/ZXMrSj1L/VFbVCaiaTeLADQ5/9S2cJriFJlROR3wIQY0Lh9md1NDRTAePhK3BjThOElXHatQk1VYWo179BwEgXGG5BwAA',
       'xirang-artifact-specs.md': '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',
     };
-    for (const [name, compressed] of Object.entries(previous)) await fs.writeFile(path.join(references, name), gunzipSync(Buffer.from(compressed, 'base64')));
+    for (const [name, compressed] of Object.entries(previous)) await fs.writeFile(path.join(references, name), gunzipSync(Buffer.from(compressed, 'base64')).toString('utf8').replace(/\n/g, newline));
     const request = { toolId: 'pi', projectPath: testDir, workflows: ['propose', 'snack'], version: 'test' };
     expect((await ArtifactSyncEngine.syncOne(request)).error).toBeUndefined();
     for (const name of Object.keys(previous)) {
@@ -192,6 +192,21 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     expect(common).toContain('xirang-decomposition-authoring.md');
     expect(explore).toContain('xirang config project --select decomposition --json');
     expect(explore).not.toContain('xirang-decomposition-use.md');
+  });
+
+  it.each(['\n', '\r\n'])('refreshes edited managed references and retires marked references with %j', async newline => {
+    const request = { toolId: 'pi', projectPath: testDir, workflows: ['explore'], version: 'test' };
+    await ArtifactSyncEngine.syncOne(request);
+    const references = path.join(testDir, '.xirang', 'references');
+    const active = path.join(references, 'xirang-configuration-edit.md');
+    const expected = await fs.readFile(active, 'utf8');
+    const retired = ['xirang-configuration-use.md', 'xirang-definition-framing.md'];
+    const edited = `<!-- Generated by Xirang -->${newline}Stale edited guidance${newline}`;
+    for (const file of [active, ...retired.map(name => path.join(references, name))]) await fs.writeFile(file, edited);
+    const result = await ArtifactSyncEngine.syncOne(request);
+    expect(result.error).toBeUndefined();
+    expect(await fs.readFile(active, 'utf8')).toBe(expected);
+    for (const name of retired) expect(await exists(path.join(references, name))).toBe(false);
   });
 
   it('removes only explicitly named stale shared references', async () => {

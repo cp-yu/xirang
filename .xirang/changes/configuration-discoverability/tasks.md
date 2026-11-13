@@ -64,3 +64,6 @@
 - [x] [code_fix] CRLF 与 LF Agent 刷新均保留用户 model。
 - [x] [code_fix] 检查与有效查询使用相同隔离默认及回退值。
 - [x] [code_fix] 非法 schema 不遮蔽独立规则内容与制品 ID 错误。
+- [x] [code_fix] CRLF 与 LF 受管 references 均可刷新及按明确清单退役。
+- [x] [code_fix] authoring help 交付统一来源模板并保留加载失败诊断。
+- [x] [code_fix] 配置编辑关键门禁具有保护及授权场景证据。
