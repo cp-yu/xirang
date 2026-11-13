@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "configuration-discoverability",
-  "revision": 5,
+  "revision": 8,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -54,8 +54,24 @@
       "findings": [
         "CRITICAL: Fresh setup with --tools none produces a configuration that immediately fails the advertised config check. src/core/setup.ts:479-487 only schedules shared-reference generation through selected tools, so an empty selection writes no references; src/core/setup.ts:577-578 nevertheless creates configuration using the default decomposition value from src/core/project-config.ts:12-14. Reproduced in a temporary directory: `xirang setup --tools none --project-definition 'Review fixture'` exits 0, then `xirang config check --json` exits 1 with CONFIG_REFERENCE_UNREADABLE for .xirang/references/xirang-semantic-refinement.md; the references directory is empty. This violates the default-guidance readability guarantee in .xirang/changes/configuration-discoverability/elements/references-home.md:25-27 and the usable configuration/default-file commitments in .xirang/changes/configuration-discoverability/elements/workspace-init.md:15-23,41-43. The existing --tools none test at test/core/setup.test.ts:323-338 checks directory/config creation but misses reference availability and the subsequent check result. Materialize the required project-level default reference independently of tool installation, retain the no-tool-skills behavior, and extend the lifecycle test."
       ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "ca47a4b6cabdef38033c51d7db78c9e95f56785c",
+      "result": "PASS",
+      "summary": "已独立审查完整累计 Change 的 Completeness、Correctness、Coherence 和 Cleanliness，覆盖 G1–G8、全部 Required Corrections、proposal/design/tasks 及所有 Semantic Delta 单元。配置检查与有效查询共享归一化结果（src/core/config-check.ts:65–99）；迁移链预检、最终校验及原子写回具有有效验证（src/core/config-migration.ts:32–74；test/core/project-config.test.ts:97–168）；无工具安装的 setup/update 生命周期能够交付可读默认指导且通过配置检查（test/core/setup.test.ts:323–355）。共运行 22 个测试文件、557 个测试，全部通过；TypeScript 检查通过。未发现阻断问题。审查前后 HEAD 相同，工作区保持干净。",
+      "findings": []
     }
   ],
-  "opt": null,
-  "seal": null
+  "opt": {
+    "disposition": "not_performed",
+    "reason": "完整累计 Change 已通过独立 Review；本次配置与工作面改动以必要修正为限，未发现证据充分且收益明确、足以抵偿额外改动和验证成本的行为保持优化，不执行 Opt。"
+  },
+  "seal": {
+    "commit": "ca47a4b6cabdef38033c51d7db78c9e95f56785c",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "完整 Vitest 套件：166 个文件、2280 项测试通过；TypeScript、针对性 ESLint、Change validate 通过。独立 full-change Review：22 个文件、557 项测试及 TypeScript 通过。构建后的 CLI 临时项目验证配置检查、共享默认值、混合错误、authoring help 模板、无工具 setup/check/update/check/重复 update；迁移最终语义门禁经变异验证。配置编辑四类场景由主 Agent 手动按协议走查并执行真实 CLI/文件操作。Windows CI 已配置，未在本地执行 Windows runner。",
+    "assessment": "G1–G8 及全部 Required Corrections 已完成。最新独立 full-change Review 对 ca47a4b6c 给出 PASS，无阻断 finding；此前失败意见及各轮修正均保留。最终全量测试与构建后 CLI 证据仍适用于当前实现；Review 后未修改实现。Opt 明确不执行，无 post-Opt 改动，因此无需 incremental 或 supplemental Review。模型和 Change 未同步或归档；当前实现及必要质量证据可进入 Archive 的独立门禁。"
+  }
 }
