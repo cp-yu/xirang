@@ -1,0 +1,589 @@
+{
+  "schemaVersion": 1,
+  "filename": "browser-presentation-refinement.md",
+  "sourceVersion": "30a11642e446d819c96ae551459341dedad4a6e5a6f195a877289a830529caa7",
+  "targetFingerprint": "2a9b2f7e4fd96f0c70e137ff6037b03fc8df1802e40529dcf691fe443331b74f",
+  "recordedAt": "2026-11-13T08:41:20.132Z",
+  "entries": [
+    {
+      "identity": "presentation-refinement",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "名称与摘要随缩放分级呈现",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "缩放分级呈现 SHALL 根据量化后的画布 zoom 分级呈现节点文本：当基础标题的屏幕字号小于 11px 时使用总览级，仅呈现名称；达到阈值时使用详情级，呈现名称与可用摘要。总览标题 SHALL 以 14px 屏幕字号为目标，在节点形状与内边距限定的文本空间内测量并选择可容纳的字号。标题 SHALL NOT 超出节点边框。"
+        },
+        {
+          "detail": "容器标题按可用空间适配并维持关系标签交互可见",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "容器标题 SHALL 随缩放趋向 13px 屏幕字号，并根据横向空间及与标题横向重叠的子节点顶部位置限制字号。关系标签 SHALL 在以 19.2px 基础标题计算的总览级隐藏，但被悬停、选中或激活的关系 SHALL 仍显示标签；关系本体和差异标记 SHALL 保持可见。"
+        },
+        {
+          "detail": "主题标题对比、分层填充上限及边框保持",
+          "location": {
+            "element": "nested-container-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "嵌套容器呈现 SHALL 使透明填充容器的标题具有随明暗主题变化的高对比度文字、粗体及反向辉光。对具有填充透明度的容器，系统 SHALL 按从根开始的嵌套层级将填充不透明度分别限制为 20%、14%、10%、7%、5%，第五层及更深层保持 5% 上限。该限制 SHALL 只作用于填充，不改变容器边框不透明度。"
+        },
+        {
+          "detail": "Full Model 中生成折行候选",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "Full Model 布局择优 SHALL 仅为 Full Model 的 Semantic Model、Candidate 与活动 Change runtime projections 启用兄弟单元折行择优；Authored projections、dynamic 与 deployment views SHALL 保留既有布局行为。系统 SHALL 在各 compound cluster 及 root 内按直接子单元的实际节点尺寸、容器间距与标题空间递归估算包围尺寸，选择估算宽高比最接近 1.6 的列数，并通过同一容器内相邻行之间的 invisible edges 约束 Graphviz；这些约束边 SHALL NOT 成为可见或语义 Relationships。"
+        },
+        {
+          "detail": "Graphviz routing 安全与重试错误检查",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "1. 本次 Graphviz 调用没有错误或 pathplan、triangulation 类 routing 告警；恢复成功的重试错误亦视为失败。"
+        },
+        {
+          "detail": "输出边数、路径点和父容器边界检查",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "2. 输出 edge 数不少于输入，每条输出 edge 至少有两个路径点；每个子节点均在父 compound bbox 内，允许 1px 坐标取整容差。"
+        },
+        {
+          "detail": "fit zoom 收益阈值",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "3. 按 `min(1600 / width, 1000 / height)` 计算的 fit zoom 至少为普通布局的 1.05 倍。"
+        },
+        {
+          "detail": "总边长阈值",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "4. 全部 edges 路径点折线长度之和不超过普通布局的 1.5 倍。"
+        },
+        {
+          "detail": "分类计数与首页共享口径",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Business Logic"
+          },
+          "quote": "差异面板 SHALL 将 diff entries 按 Elements、Relationships、Sections、Metamodel、Views 分别统计 ADDED、MODIFIED 与 REMOVED 数量，并仅显示非零操作计数。Elements SHALL 只包含 Element Declaration，Metamodel SHALL 只包含 Element Kind 与 Relationship Kind，Views SHALL 只包含 Authored View；Acceptance Cases 与其他内部子项 SHALL 不单独计数。面板与首页卡片 SHALL 共享该口径，未变化上下文 SHALL 不计入。"
+        },
+        {
+          "detail": "变化列表分组、Sections-only 合并及筛选",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Business Logic"
+          },
+          "quote": "差异面板 SHALL 按 ADDED、MODIFIED、REMOVED 分组列出变化 Elements 与 Relationships。Element 列表 SHALL 将 Declaration entries 与 Section entries 的宿主按 identity 合并；只有 Sections 变化的宿主 SHALL 作为 Contract 变化列出，不能据此增加 Declaration 计数。条目 SHALL 显示可读名称、稳定 identity 与操作，Element 同时显示父 identity 和非零 Section 数量，Relationship 显示 source、kind、target。Element 列表默认展开，Relationship 列表默认折叠；长列表 SHALL 在面板内滚动。总条目数超过 8 时 SHALL 提供不区分大小写的文本筛选，匹配 Element 的名称、identity、父 identity 或 Relationship 的三元组及端点名称。"
+        },
+        {
+          "detail": "对象定位与独立详情入口",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Business Logic"
+          },
+          "quote": "点击 Element 条目 SHALL 在节点已投影时居中并临时高亮；未投影且其父属于当前 View 选择边界时，SHALL 先将 focus 切换到该父，再待 projection 应用后定位。定位 SHALL 按已展开面板的遮挡区域计算可用画布，并受最小、最大 zoom 约束。系统 SHALL NOT 为定位而擅自扩大 View 边界或切换 mode。点击 Relationship 条目 SHALL 优先定位 source，source 无法定位时尝试 target。独立详情按钮 SHALL 打开对应 Element 或 Relationship 的详情。"
+        },
+        {
+          "detail": "窄屏面板折叠",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Business Logic"
+          },
+          "quote": "窄于或等于 48em 的视口 SHALL 默认折叠整个差异面板，并提供展开开关。"
+        },
+        {
+          "detail": "字段折叠、短值、词级高亮与 Inline/Split",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "Web SHALL 在 Element Details 的 Diff tab 中完整显示变化的 Declaration 字段，并将未变化字段折叠为可展开的汇总；kind、parent、title 等短值 SHALL 使用紧凑的 before→after 表达。长文本与 Section 差异 SHALL 按段落及行组织，MODIFIED 默认使用 Inline 呈现并提供 Split 切换，在修改行内按中英文词语突出实际插入与删除片段；插入和删除 SHALL 具有可辨识样式，删除内容使用删除线。"
+        },
+        {
+          "detail": "Section 连同全部验收案例合并呈现",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "每个 Section 的 diff SHALL 保持其正文与全部 Acceptance Cases 为一个整体；Acceptance Case 标题 SHALL 显示为子标题，代码式文本使用等宽字体。"
+        },
+        {
+          "detail": "不安全或收益不足时回退普通布局并记录原因",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "任一安全条件失败时 SHALL 记录含 view identity 与原因的 warning 并使用普通布局；收益或边长条件不满足时 SHALL 使用普通布局并记录 debug 原因。若普通布局本身失败，SHALL 沿用既有结构化错误与 retry 行为。"
+        },
+        {
+          "detail": "不可定位时报告原因，不扩大 View 边界或切换 mode",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "目标在当前 mode 隐藏、父不可用或超出当前 View 边界时 SHALL 显示原因；新 projection 未能呈现待定位节点时 SHALL 报告定位失败。"
+        },
+        {
+          "detail": "单侧差异与长内容末尾可达",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "ADDED 或 REMOVED 文本 SHALL 仅显示实际存在的一侧，不保留空白对照列。长内容 SHALL 可滚动到最后一个 Section 与 Acceptance Case，且桌面与移动视口均保持详情卡片 containment。"
+        },
+        {
+          "detail": "父 Element 在自身层级独立表达完整职责边界",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Visual Presentation SHALL 通过图形元素、空间组织与视觉编码传达 View 的语义信息，并 MAY 提供选择、导航和下钻交互；负责布局与关系呈现、尺度相关可读性和嵌套对比，不改变 View composition 或模型规范性语义。"
+        },
+        {
+          "detail": "父 Element 保留完整的上层机制及可观察保证",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "Visual Presentation SHALL 通过以下规则保持原生布局、业务样式、关系身份与运行时可读性。"
+        },
+        {
+          "detail": "父 Element 在自身层级独立表达完整职责边界",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Xirang Diff Overlay SHALL 为非 baseline Model 提供可识别的画布差异标记、变化概览与定位和完整文本审阅；不计算 projection 的语义选择边界，不修改 Semantic Model 或 Change。"
+        },
+        {
+          "detail": "父 Element 保留完整的上层机制及可观察保证",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Business Logic"
+          },
+          "quote": "Xirang Diff Overlay SHALL 在非 baseline Model（活动 Change 或 Candidate）的 Presentation Mode 为 `complete-with-diff` 或 `diff-only` 时，以 outline 颜色、diff badge 与 dim 透明度标记可见节点与边的 ADDED、MODIFIED、REMOVED operation。`complete-with-diff` projection SHALL 使用该 Model 的 target-only sources 并叠加差异标记；`diff-only` projection SHALL 使用 baseline 与该 Model 的 union sources 并仅投影 changed elements 与必要上下文。baseline 与任何 Model 的 `complete` Mode SHALL NOT 激活该 overlay。单字符 diff badge glyph 为 `+`（U+002B PLUS SIGN）、`~`（U+007E TILDE）、`−`（U+2212 MINUS SIGN），分别表示 ADDED、MODIFIED、REMOVED。"
+        }
+      ]
+    },
+    {
+      "identity": "contract-four-plus-n",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "zoom-level-presentation 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "缩放分级呈现 SHALL 负责随画布 zoom 调节节点名称、摘要、容器标题和关系标签的显示密度，保持文字在可用边界内；不改变节点身份、语义内容或布局。"
+        },
+        {
+          "detail": "zoom-level-presentation 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "缩放分级呈现 SHALL 根据量化后的画布 zoom 分级呈现节点文本：当基础标题的屏幕字号小于 11px 时使用总览级，仅呈现名称；达到阈值时使用详情级，呈现名称与可用摘要。总览标题 SHALL 以 14px 屏幕字号为目标，在节点形状与内边距限定的文本空间内测量并选择可容纳的字号。标题 SHALL NOT 超出节点边框。"
+        },
+        {
+          "detail": "zoom-level-presentation 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "文字空间不足时 SHALL 以节点边界约束为准，不保证任意长度名称在任意缩放下完整可读；容器标题必要时 SHALL 以省略号截断。"
+        },
+        {
+          "detail": "zoom-level-presentation 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "zoom-level-presentation",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "nested-container-presentation 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "nested-container-presentation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "嵌套容器呈现 SHALL 负责透明填充容器的标题对比和层级填充上限，不修改节点位置、子节点边界或语义层级。"
+        },
+        {
+          "detail": "nested-container-presentation 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "nested-container-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "嵌套容器呈现 SHALL 使透明填充容器的标题具有随明暗主题变化的高对比度文字、粗体及反向辉光。对具有填充透明度的容器，系统 SHALL 按从根开始的嵌套层级将填充不透明度分别限制为 20%、14%、10%、7%、5%，第五层及更深层保持 5% 上限。该限制 SHALL 只作用于填充，不改变容器边框不透明度。"
+        },
+        {
+          "detail": "nested-container-presentation 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "nested-container-presentation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "显式填充不透明度低于对应层级上限时 SHALL 保持原值，不因上限较高而增大填充。"
+        },
+        {
+          "detail": "nested-container-presentation 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "nested-container-presentation",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "full-model-layout-selection 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Full Model 布局择优 SHALL 只作用于 Semantic Model、Candidate 与活动 Change 的 Full Model runtime projections，在原生 Graphviz 候选之间选择；不通过手工 geometry 或 spline 替换结果。"
+        },
+        {
+          "detail": "full-model-layout-selection 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Business Logic"
+          },
+          "quote": "Full Model 布局择优 SHALL 仅为 Full Model 的 Semantic Model、Candidate 与活动 Change runtime projections 启用兄弟单元折行择优；Authored projections、dynamic 与 deployment views SHALL 保留既有布局行为。系统 SHALL 在各 compound cluster 及 root 内按直接子单元的实际节点尺寸、容器间距与标题空间递归估算包围尺寸，选择估算宽高比最接近 1.6 的列数，并通过同一容器内相邻行之间的 invisible edges 约束 Graphviz；这些约束边 SHALL NOT 成为可见或语义 Relationships。"
+        },
+        {
+          "detail": "full-model-layout-selection 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "任一安全条件失败时 SHALL 记录含 view identity 与原因的 warning 并使用普通布局；收益或边长条件不满足时 SHALL 使用普通布局并记录 debug 原因。若普通布局本身失败，SHALL 沿用既有结构化错误与 retry 行为。"
+        },
+        {
+          "detail": "full-model-layout-selection 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "full-model-layout-selection",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "diff-overview-navigation 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "差异概览与导航 SHALL 提供实体分类汇总与变化对象索引，并在当前 Model、View 与 mode 的边界内支持定位和打开详情；不修改差异条目、View 声明或 Presentation Mode。"
+        },
+        {
+          "detail": "diff-overview-navigation 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Business Logic"
+          },
+          "quote": "差异概览与导航 SHALL 按以下分类和定位机制组织变化对象。"
+        },
+        {
+          "detail": "diff-overview-navigation 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "目标在当前 mode 隐藏、父不可用或超出当前 View 边界时 SHALL 显示原因；新 projection 未能呈现待定位节点时 SHALL 报告定位失败。"
+        },
+        {
+          "detail": "diff-overview-navigation 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "diff-overview-navigation",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "text-diff-presentation 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "文本差异呈现 SHALL 负责非 baseline Model 的字段与 Section before/after 阅读，保持 Section 正文及全部 Acceptance Cases 的完整性；不产生独立 Acceptance Case diff 或改变目标语义。"
+        },
+        {
+          "detail": "text-diff-presentation 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "Web SHALL 在 Element Details 的 Diff tab 中完整显示变化的 Declaration 字段，并将未变化字段折叠为可展开的汇总；kind、parent、title 等短值 SHALL 使用紧凑的 before→after 表达。长文本与 Section 差异 SHALL 按段落及行组织，MODIFIED 默认使用 Inline 呈现并提供 Split 切换，在修改行内按中英文词语突出实际插入与删除片段；插入和删除 SHALL 具有可辨识样式，删除内容使用删除线。"
+        },
+        {
+          "detail": "text-diff-presentation 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "ADDED 或 REMOVED 文本 SHALL 仅显示实际存在的一侧，不保留空白对照列。长内容 SHALL 可滚动到最后一个 Section 与 Acceptance Case，且桌面与移动视口均保持详情卡片 containment。"
+        },
+        {
+          "detail": "text-diff-presentation 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "text-diff-presentation",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "visual-presentation 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Visual Presentation SHALL 通过图形元素、空间组织与视觉编码传达 View 的语义信息，并 MAY 提供选择、导航和下钻交互；负责布局与关系呈现、尺度相关可读性和嵌套对比，不改变 View composition 或模型规范性语义。"
+        },
+        {
+          "detail": "visual-presentation 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Business Logic"
+          },
+          "quote": "Visual Presentation SHALL 通过以下规则保持原生布局、业务样式、关系身份与运行时可读性。"
+        },
+        {
+          "detail": "visual-presentation 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "当前 projection 无法完成普通 Graphviz layout 时，Browser SHALL 显示结构化错误与 retry，不静默切换其他 renderer。折行候选路由失败或收益不足时 SHALL 使用普通候选；文本空间不足时 SHALL 优先保持节点边界，必要时截断。非法 Kind presentation SHALL 在 Xirang 输入校验阶段拒绝，缺失字段使用 LikeC4 默认值。"
+        },
+        {
+          "detail": "visual-presentation 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "visual-presentation",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "xirang-diff-overlay 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Xirang Diff Overlay SHALL 为非 baseline Model 提供可识别的画布差异标记、变化概览与定位和完整文本审阅；不计算 projection 的语义选择边界，不修改 Semantic Model 或 Change。"
+        },
+        {
+          "detail": "xirang-diff-overlay 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Business Logic"
+          },
+          "quote": "Xirang Diff Overlay SHALL 在非 baseline Model（活动 Change 或 Candidate）的 Presentation Mode 为 `complete-with-diff` 或 `diff-only` 时，以 outline 颜色、diff badge 与 dim 透明度标记可见节点与边的 ADDED、MODIFIED、REMOVED operation。`complete-with-diff` projection SHALL 使用该 Model 的 target-only sources 并叠加差异标记；`diff-only` projection SHALL 使用 baseline 与该 Model 的 union sources 并仅投影 changed elements 与必要上下文。baseline 与任何 Model 的 `complete` Mode SHALL NOT 激活该 overlay。单字符 diff badge glyph 为 `+`（U+002B PLUS SIGN）、`~`（U+007E TILDE）、`−`（U+2212 MINUS SIGN），分别表示 ADDED、MODIFIED、REMOVED。"
+        },
+        {
+          "detail": "xirang-diff-overlay 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "baseline 或任何 Model 的 `complete` mode SHALL 不激活画布差异 overlay。定位目标在当前 mode 隐藏或超出 View 边界时 SHALL 报告原因，不切换 mode 或扩大 View 范围。文本过长时 SHALL 保持末尾内容可滚动访问，空计数分组 SHALL 不显示。"
+        },
+        {
+          "detail": "xirang-diff-overlay 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "xirang-diff-overlay 保留独立承诺 节点差异标记",
+          "location": {
+            "element": "xirang-diff-overlay",
+            "section": "节点差异标记"
+          },
+          "quote": "节点 ADDED、MODIFIED、REMOVED 描边颜色 SHALL 分别为绿色 `#2f9e44`、橙色 `#ff9f0a`、红色 `#e03131`，描边形态 SHALL 分别为 dotted、solid、dashed，基础宽度分别为 3px、5px、3px。选中、键盘焦点或定位高亮 SHALL NOT 覆盖操作描边颜色。Element Declaration operation SHALL 具有独立单字符操作徽章；Section entries SHALL 在宿主节点按操作汇总为非零 `+N`、`~N`、`−N` 计数徽章，并通过 tooltip 与可访问文本说明操作或 Section 数量。只有 Section 变化时 SHALL 不制造 Declaration operation 徽章。"
+        },
+        {
+          "detail": "web 的 Scope and Non-goals 有独立非空内容",
+          "location": {
+            "element": "web",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Web SHALL 作为与 CLI 并列的 Interaction Surface，提供 Semantic Model、active Candidate 与活动 Change 的分层浏览和差异审阅；不构成规范性语义来源，不负责规范语义持久化、Candidate promotion 或 Change Closure。"
+        },
+        {
+          "detail": "web 的 Business Logic 有独立非空内容",
+          "location": {
+            "element": "web",
+            "section": "Business Logic"
+          },
+          "quote": "Web SHALL 将 Model Selection、View Selection 与 Presentation Mode 组合为单一 route 中的浏览状态，依据 View 边界和 focus 呈现层级、详情与差异，维持 URL 与导航历史一致。交互式页面 SHALL 提供可识别的视图标题、各 Model 的 breadcrumb、差异审阅入口和可收起的 minimap；静态呈现 SHALL 排除交互 chrome。当前状态、导出与刷新 SHALL 分别遵循本 Contract 的对应独立承诺。"
+        },
+        {
+          "detail": "web 的 Edge Cases and Exception Handling 有独立非空内容",
+          "location": {
+            "element": "web",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "找不到 Xirang 项目时 SHALL 以非零状态失败且不启动服务器；focus 失效时 SHALL 沿旧 ancestor 链回退至最近仍存在的 Element，无可用 ancestor 时回退 Project Root。新 View 不含当前 focus 时 SHALL 使用该 View 默认 root；新组合没有差异时 SHALL 显示空差异状态而不修改选择。没有可用图片 snapshot 时 SHALL 沿用默认导出行为。"
+        },
+        {
+          "detail": "web 的 Key Acceptance Cases 有独立非空内容",
+          "location": {
+            "element": "web",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下验收案例验证本 Contract 的承诺。"
+        },
+        {
+          "detail": "web 保留独立承诺 启动边界：项目根发现与无项目失败",
+          "location": {
+            "element": "web",
+            "section": "启动边界：项目根发现与无项目失败"
+          },
+          "quote": "`xirang view` SHALL 从嵌套目录沿父目录向上发现最近的 `.xirang/` 项目根，并仅在该项目根下启动嵌入式浏览器；不存在 `.xirang/` 项目时 SHALL 以非零状态失败。"
+        },
+        {
+          "detail": "web 保留独立承诺 支持分层语义浏览",
+          "location": {
+            "element": "web",
+            "section": "支持分层语义浏览"
+          },
+          "quote": "Web SHALL 在单一 route 中使用 Full Model 或 Authored View Selection，并可结合 Model Selection（active Candidate 或活动 Change 的 Expected Semantic Model），在被浏览 Model 实例内呈现不同抽象层级的 Elements、Element Contracts 与 Relationships；普通 Browser 的当前层 SHALL 由 View Selection 边界、focus、direct children、已就地展开后代与可映射到不同可见 endpoints 的 Relationships 共同确定。"
+        },
+        {
+          "detail": "web 保留独立承诺 保持 Authored View 声明视角",
+          "location": {
+            "element": "web",
+            "section": "保持 Authored View 声明视角"
+          },
+          "quote": "Authored View SHALL 以持久化 `include`、`exclude` 与可选 `of` 确定 View Selection 边界，并 SHALL 在该边界内支持与 Model 相同的 focus、下钻、breadcrumb 与就地展开；这些 runtime 状态 SHALL NOT 修改 View Definition。"
+        },
+        {
+          "detail": "web 保留独立承诺 focus 失效时确定性回退",
+          "location": {
+            "element": "web",
+            "section": "focus 失效时确定性回退"
+          },
+          "quote": "Semantic Model、Candidate 或 Semantic Delta 刷新使当前 focus 不再存在时，Web SHALL 沿刷新前的 ancestor 链回退到最近仍存在的 Element，并在没有可用 ancestor 时回退 Project Root。"
+        },
+        {
+          "detail": "web 保留独立承诺 URL 编码导航状态并响应浏览器前进后退",
+          "location": {
+            "element": "web",
+            "section": "URL 编码导航状态并响应浏览器前进后退"
+          },
+          "quote": "Web SHALL 在单一 route 的 URL 中编码 `view`、`model`、`mode` 与 `focus`，并将三维选择与 focus 变化呈现为浏览器历史步；expanded set SHALL 只存储于 Controller 会话和 browser history state，不进入 URL。浏览器前进/后退 SHALL 恢复对应状态，且同步 SHALL NOT 产生循环或重复历史条目。"
+        },
+        {
+          "detail": "web 保留独立承诺 focus breadcrumb 可拖动",
+          "location": {
+            "element": "web",
+            "section": "focus breadcrumb 可拖动"
+          },
+          "quote": "Web 的 focus breadcrumb 导航 SHALL 可通过拖动手柄在 diagram 容器内移动，使用户可将它移开以避免遮挡编辑器控件；拖动 SHALL NOT 触发 diagram 平移，且 breadcrumb 内元素按钮的 focus 导航 SHALL 保持可用。"
+        },
+        {
+          "detail": "web 保留独立承诺 提供当前 view 的层级树导出",
+          "location": {
+            "element": "web",
+            "section": "提供当前 view 的层级树导出"
+          },
+          "quote": "Web SHALL 为当前 view 提供层级树导出：按视图内呈现元素的父子层级构建树，根为视图根元素，子元素按声明层级嵌套，且树 SHALL 仅包含当前 view 呈现的元素。"
+        },
+        {
+          "detail": "web 保留独立承诺 层级树多格式与字段选择",
+          "location": {
+            "element": "web",
+            "section": "层级树多格式与字段选择"
+          },
+          "quote": "层级树导出 SHALL 支持三种序列化格式——纯文本缩进树（`├──`/`└──` 树形线）、Markdown 嵌套列表与 JSON 结构化层级——由用户在导出页选择；文本与 Markdown 每行内容 SHALL 按 `title`/`fqn`/`kind` 字段组合呈现，JSON SHALL 恒包含 `title`、`fqn`、`kind` 与 `children`。"
+        },
+        {
+          "detail": "web 保留独立承诺 图片导出所见即所得",
+          "location": {
+            "element": "web",
+            "section": "图片导出所见即所得"
+          },
+          "quote": "Web SHALL 通过既有图片导出入口导出当前 layouted projection：PNG/JPG SHALL 包含当前 View Selection、optional Change、Presentation Mode、focus、direct children 与已就地展开后代对应的画布内容；交互式 Browser chrome SHALL 被排除，在没有可用 snapshot 时 SHALL 回退到既有默认导出行为。"
+        },
+        {
+          "detail": "web 保留独立承诺 文件类导出保持完整模型结构",
+          "location": {
+            "element": "web",
+            "section": "文件类导出保持完整模型结构"
+          },
+          "quote": "Web 的 dot、d2、mmd、puml、Draw.io 与层级树导出 SHALL 导出当前所选 source 的完整模型结构（全部 Elements 与其层级），SHALL NOT 反映当前 focus 与就地展开状态；该行为是导出能力的既定范围而非缺陷，图片导出（PNG/JPG）按“图片导出所见即所得”呈现当前视图。"
+        },
+        {
+          "detail": "web 保留独立承诺 提供三维独立控制",
+          "location": {
+            "element": "web",
+            "section": "提供三维独立控制"
+          },
+          "quote": "Web SHALL 在单一 Browser route 中以持久可见且相互独立的 Model Selection、View Selection 与 Presentation Mode 控件形成当前浏览状态。Model Selection SHALL 为 baseline、active Candidate（若存在，`model=candidate`）或一个活动 Change 的 Expected Semantic Model（`model=change:<identity>`），Candidate 不存在时 SHALL NOT 出现该值；View Selection SHALL 只选择 Full Model 或一个对当前 Model 实例解析非空的 Authored View；Presentation Mode SHALL 在非 baseline Model 时提供 `complete`、`complete-with-diff` 与 `diff-only`，baseline 时锁定为 `complete`。"
+        },
+        {
+          "detail": "web 保留独立承诺 协调 View Selection 运行时状态",
+          "location": {
+            "element": "web",
+            "section": "协调 View Selection 运行时状态"
+          },
+          "quote": "Web SHALL 在切换 View Selection 时保留仍属于新选择边界的 focus，并将 expanded set 限制为新选择中仍有效且可达的 Elements；focus 不再有效时 SHALL 回到新 View 默认 root，Model Selection 与 Presentation Mode SHALL 保持不变。"
+        },
+        {
+          "detail": "web 保留独立承诺 静态渲染不呈现交互式 Browser Chrome",
+          "location": {
+            "element": "web",
+            "section": "静态渲染不呈现交互式 Browser Chrome"
+          },
+          "quote": "Web 的三个控制器、breadcrumb、loading/error controls 与其他交互式 Browser chrome SHALL 只在交互页面呈现；首页卡片、悬停预览与 PNG/JPG 导出 SHALL 只呈现当前 layouted projection。"
+        },
+        {
+          "detail": "web 保留独立承诺 首页提供 Candidate 与活动 Change 快速入口",
+          "location": {
+            "element": "web",
+            "section": "首页提供 Candidate 与活动 Change 快速入口"
+          },
+          "quote": "Web 首页 SHALL 为 active Candidate（若存在）与每个活动 Change 提供快速入口卡片；Candidate 卡片 SHALL 以 `model=candidate` 状态打开单一 route 并省略 `mode`；活动 Change 卡片 SHALL 以 `model=change:<name>&mode=diff-only` 状态打开单一 route；活动 Change 与 Candidate SHALL NOT 因首页入口而形成独立 View source。"
+        },
+        {
+          "detail": "web 保留独立承诺 切换 View、Model 或 Mode 后自动适配视口",
+          "location": {
+            "element": "web",
+            "section": "切换 View、Model 或 Mode 后自动适配视口"
+          },
+          "quote": "Web SHALL 在 View Selection、Model Selection 或 Presentation Mode 切换产生的新 projection 应用后，自动缩放并居中，使该 projection 的全部内容完整可见；由 focus 下钻或就地展开引起的 projection 更新 SHALL NOT 触发自动适配，SHALL 保持用户当前视口。"
+        },
+        {
+          "detail": "web 保留独立承诺 呈现 Model 目标与差异",
+          "location": {
+            "element": "web",
+            "section": "呈现 Model 目标与差异"
+          },
+          "quote": "Web SHALL 将 Model Selection、View Selection 与 Presentation Mode 确定性组合并呈现对应 projection；非 baseline Model SHALL 提供 `complete`、`complete-with-diff` 与 `diff-only` 三种 Presentation Mode，默认值按 Model 值区分（Candidate 为 `complete`，活动 Change 为 `complete-with-diff`），baseline SHALL 锁定为 `complete`；系统 SHALL NOT 为每个 Model 值创建独立可选 View source。`complete` 与 `complete-with-diff` projection SHALL 使用该 Model 的 target-only sources，`diff-only` projection SHALL 使用 baseline 与该 Model 的 union sources；REMOVED elements SHALL 仅在 `diff-only` 中以 ghost 保留。"
+        },
+        {
+          "detail": "web 保留独立承诺 提供可收起的交互式缩略图",
+          "location": {
+            "element": "web",
+            "section": "提供可收起的交互式缩略图"
+          },
+          "quote": "Web SHALL 在交互式 diagram 中提供可收起的 minimap，展示当前 projection 的节点分布与当前视口，并允许通过 minimap 平移和缩放画布。变化节点 SHALL 使用对应操作颜色，未变化节点 SHALL 使用中性灰色，容器 SHALL 使用透明填充以保留子节点辨识度；缩略图背景 SHALL 跟随明暗主题。"
+        }
+      ]
+    }
+  ]
+}
