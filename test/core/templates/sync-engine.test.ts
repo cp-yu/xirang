@@ -460,8 +460,8 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     await expect(fs.readFile(path.join(agentsDir, 'xirang-reviewer.md'), 'utf-8')).resolves.toBe('stale');
   });
 
-  it('preserves user-set model value on update', async () => {
-    const agentsDir = path.join(testDir, '.pi', 'agents');
+  it.each(['pi', 'claude', 'opencode'].flatMap(toolId => ['\n', '\r\n'].map(newline => ({ toolId, newline }))))('preserves user-set model on $toolId update with $newline', async ({ toolId, newline }) => {
+    const agentsDir = path.join(testDir, `.${toolId}`, 'agents');
     await fs.mkdir(agentsDir, { recursive: true });
 
     // Pre-create agent file with user-customized model
@@ -475,17 +475,19 @@ tools: read, grep
 model: "anthropic/claude-sonnet-4"
 ---
 
-User-changed prompt.`
+User-changed prompt.`.replace(/\n/g, newline)
     );
 
-    await ArtifactSyncEngine.syncOne({
-      toolId: 'pi',
+    const result = await ArtifactSyncEngine.syncOne({
+      toolId,
       projectPath: testDir,
       workflows: ['explore'],
       version: 'test',
     });
 
     const content = await fs.readFile(path.join(agentsDir, 'xirang-reviewer.md'), 'utf-8');
+    expect(result.error).toBeUndefined();
+    expect(content).not.toContain('User-changed prompt.');
     expect(content).toContain('model: "anthropic/claude-sonnet-4"');
   });
 

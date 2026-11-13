@@ -343,7 +343,7 @@ function extractUserModel(
   }
 
   // Markdown: parse YAML frontmatter
-  const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+  const fmMatch = content.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---\n/);
   if (!fmMatch) return undefined;
 
   const fm = parseYaml(fmMatch[1]) as Record<string, unknown>;

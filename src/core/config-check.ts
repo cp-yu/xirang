@@ -52,14 +52,12 @@ export function inspectConfigValues(raw: unknown, targetVersion = CURRENT_CONFIG
   else if (typeof version === 'number' && version > targetVersion) issue('configVersion', `Version ${version} requires a newer CLI (supported target ${targetVersion}); no downgrade is performed`);
   const context = configValue(raw, 'context');
   if (typeof context === 'string' && Buffer.byteLength(context, 'utf8') > 50 * 1024) issue('context', 'Context exceeds the 50KB limit; runtime ignores this field');
-  const schemaName = configValue(raw, 'schema') ?? 'semantic-model';
-  if (schemaName === 'semantic-model') {
-    const ids = resolveSchema(schemaName).artifacts.map(item => item.id);
-    const rules = configValue(raw, 'rules');
-    if (rules && typeof rules === 'object' && !Array.isArray(rules)) for (const [id, values] of Object.entries(rules)) {
-      if (!ids.includes(id)) issue(`rules.${id}`, `Unknown artifact rule; possible spelling mistake. Available: ${ids.join(', ')}`);
-      if (Array.isArray(values)) values.forEach((value, index) => { if (typeof value === 'string' && !value.trim()) issue(`rules.${id}.${index}`, 'Rule must be a nonempty string; runtime ignores this item'); });
-    }
+  const schema = ProjectConfigSchema.shape.schema.safeParse(configValue(raw, 'schema'));
+  const ids = resolveSchema(schema.success ? schema.data : 'semantic-model').artifacts.map(item => item.id);
+  const rules = configValue(raw, 'rules');
+  if (rules && typeof rules === 'object' && !Array.isArray(rules)) for (const [id, values] of Object.entries(rules)) {
+    if (!ids.includes(id)) issue(`rules.${id}`, `Unknown artifact rule; possible spelling mistake. Available: ${ids.join(', ')}`);
+    if (Array.isArray(values)) values.forEach((value, index) => { if (typeof value === 'string' && !value.trim()) issue(`rules.${id}.${index}`, 'Rule must be a nonempty string; runtime ignores this item'); });
   }
   return issues;
 }
@@ -81,8 +79,8 @@ export function checkProjectConfig(projectRoot: string) {
   const runtimeWarnings: string[] = [];
   const effective = parsed ? normalizeProjectConfig(readProjectConfig(projectRoot, message => runtimeWarnings.push(message))) : undefined;
   const fields = PROJECT_CONFIG_FIELDS.filter(field => field.path !== 'docLanguage').map(field => {
-    const value = effective ? configValue(effective, field.path) ?? (configValue(raw, field.path) === undefined && field.path !== 'configVersion' ? fieldDefault(field.path) : undefined) : undefined;
-    let source = configValue(raw, field.path) !== undefined ? 'explicit' : fieldDefault(field.path) !== undefined ? 'default' : 'absent';
+    const value = configValue(effective, field.path);
+    let source = configValue(raw, field.path) !== undefined ? 'explicit' : value !== undefined && fieldDefault(field.path) !== undefined ? 'default' : 'absent';
     if (field.path === 'proseLanguage' && configValue(raw, 'proseLanguage') === undefined && configValue(raw, 'docLanguage') !== undefined) source = 'docLanguage';
     if (issues.some(issue => issue.severity === 'error' && (issue.field === field.path || issue.field.startsWith(`${field.path}.`) || field.path.startsWith(`${issue.field}.`)))) source = value === undefined ? 'ignored' : 'fallback';
     return { ...field, allowedValues: allowedConfigValues(field.path), value, source, checkable: parsed };

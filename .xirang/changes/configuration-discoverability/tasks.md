@@ -61,3 +61,6 @@
 - [x] [code_fix] 非法 schema 不影响合法独立字段；检查报告与实际有效值一致。
 - [x] [code_fix] 仅精确退役 Git 路径为警告，旧容器内未知字段仍为错误。
 - [x] [code_fix] 全局默认值仅包含工具设置，项目策略不注入默认或常规管理路径。
+- [x] [code_fix] CRLF 与 LF Agent 刷新均保留用户 model。
+- [x] [code_fix] 检查与有效查询使用相同隔离默认及回退值。
+- [x] [code_fix] 非法 schema 不遮蔽独立规则内容与制品 ID 错误。

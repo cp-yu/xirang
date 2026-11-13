@@ -147,6 +147,51 @@ describe('config command integration', () => {
     expect(fs.readFileSync(file, 'utf8')).toBe(source);
   });
 
+  it.each([
+    { apply: undefined, expected: 'ask', sourceKind: 'default' },
+    { apply: {}, expected: 'ask', sourceKind: 'default' },
+    { apply: { defaultIsolation: 'invalid' }, expected: 'ask', sourceKind: 'fallback' },
+    { apply: false, expected: 'ask', sourceKind: 'fallback' },
+    { apply: { defaultIsolation: 'worktree' }, expected: 'worktree', sourceKind: 'explicit' },
+  ])('shares effective isolation defaults with check for $apply', async ({ apply, expected, sourceKind }) => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'references', 'xirang-semantic-refinement.md'), 'Guidance');
+    const file = path.join(dir, 'config.yaml');
+    const source = stringify({ configVersion: 1, schema: 'semantic-model', apply });
+    fs.writeFileSync(file, source);
+    const queried = await runCLI(['config', 'project', '--json'], { cwd: tempDir });
+    const effective = JSON.parse(queried.stdout);
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    const report = JSON.parse(checked.stdout);
+    expect(effective.apply).toEqual({ defaultIsolation: expected });
+    expect(report.effective).toEqual(effective);
+    expect(report.fields).toContainEqual(expect.objectContaining({ path: 'apply.defaultIsolation', value: expected, source: sourceKind }));
+    for (const field of report.fields) {
+      const actual = field.path.split('.').reduce((value: any, key: string) => value?.[key], effective);
+      expect(field.value, field.path).toEqual(actual);
+    }
+    const selected = await runCLI(['config', 'project', '--select', 'apply', '--json'], { cwd: tempDir });
+    expect(JSON.parse(selected.stdout)).toEqual({ apply: { defaultIsolation: expected } });
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each(['invalid', 123, ''])('aggregates independent rule errors with invalid schema %j', async schema => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const file = path.join(dir, 'config.yaml');
+    const source = stringify({ configVersion: 1, schema, rules: { unknown: ['Rule'], proposal: ['', 123, 'Valid'] } });
+    fs.writeFileSync(file, source);
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(checked.exitCode).toBe(1);
+    const fields = checked.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(issue => issue.severity === 'error').map(issue => issue.field);
+    expect(fields).toEqual(expect.arrayContaining(['schema', 'rules.unknown', 'rules.proposal.0', 'rules.proposal.1']));
+    const effective = JSON.parse(checked.stdout).effective;
+    expect(effective.schema).toBe('semantic-model');
+    expect(effective.rules.proposal).toEqual(['Valid']);
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
   it.each(['git.archive.typo', 'git.merge.commitMessage.typo'])('rejects unknown nested Git field %s', async key => {
     const dir = path.join(tempDir, '.xirang');
     fs.mkdirSync(dir);
@@ -405,6 +450,8 @@ rules:
     await runProjectCommand(['--json']);
     const json = JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]));
     expect(json).toEqual({
+      schema: 'semantic-model',
+      apply: { defaultIsolation: 'ask' },
       ...configured,
       ...(configured ? {
         decomposition: '.xirang/references/xirang-semantic-refinement.md',

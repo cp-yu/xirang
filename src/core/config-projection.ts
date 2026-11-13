@@ -100,8 +100,12 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
     },
   };
 
+  const apply = {
+    defaultIsolation: config?.apply?.defaultIsolation ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply.defaultIsolation,
+  };
+
   if (!config) {
-    return { architecture, rules: {} };
+    return { schema: 'semantic-model', architecture, apply, rules: {} };
   }
 
   const rules = Object.fromEntries(
@@ -116,16 +120,12 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
 
   return {
     configVersion: config.configVersion,
-    schema: normalizeString(config.schema),
+    schema: normalizeString(config.schema) ?? 'semantic-model',
     proseLanguage: normalizeString(config.proseLanguage),
     context: config.context,
     decomposition: config.decomposition ? resolveDecompositionPath(config.decomposition) : undefined,
     architecture,
-    apply: config.apply
-      ? {
-          defaultIsolation: config.apply.defaultIsolation ?? 'ask',
-        }
-      : undefined,
+    apply,
     git: config.git
       ? {
           ...(config.git.commitMessage ? { commitMessage: config.git.commitMessage } : {}),

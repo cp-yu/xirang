@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "configuration-discoverability",
-  "revision": 1,
+  "revision": 2,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -13,6 +13,17 @@
         "CRITICAL — An unsupported schema discards independently valid configuration. src/core/project-config.ts:275-282 returns null for any unsupported nonempty schema string, before processing context, isolation and other fields. With configVersion: 1, schema: invalid, context: Keep my background and apply.defaultIsolation: worktree, the independent probe returned only default architecture and empty rules; valid version, context and isolation disappeared. check then labels those missing values explicit/checkable at src/core/config-check.ts:76-82. This violates the field-level preservation commitment in .xirang/changes/configuration-discoverability/elements/project-config-management.md:29 and elements/project-config-loading.md:21-25,49. Reject the schema field while retaining and inspecting independent valid fields, with regression coverage for this combination.",
         "CRITICAL — Strict checking treats unknown nested Git fields as warning-only retired inputs. src/core/config-fields.ts:30-33 retires entire git.archive and git.merge.commitMessage parents; src/core/config-check.ts:26-32 recursively downgrades every descendant to a warning. Independent probes of git.archive.typo and git.merge.commitMessage.typo produced only IGNORED_CONFIG warnings, so an otherwise valid project passes check. The specified retired Git inputs are the particular paths listed in .xirang/changes/configuration-discoverability/elements/project-config-loading.md:67; unknown nested fields must fail under elements/config-command.md:31,55-59. Narrow the ignored paths and distinguish necessary legacy containers from unrecognized descendants; add a test asserting error status for nested typos.",
         "CRITICAL — Global defaults still include project development policies, contrary to the target global configuration contract. src/core/global-config.ts:19-24 injects apply.defaultIsolation into fresh global reads; src/core/config-schema.ts:50-85 injects both apply and git into schema/reset defaults and recognizes their management paths at lines 115-146. Independent execution confirmed fresh reads return featureFlags plus apply, while reset/schema defaults also return Git policy. The target explicitly places project preferences in project configuration and defines the global default as featureFlags: {} at .xirang/changes/configuration-discoverability/elements/global-config.md:15-21. Align the global defaults and recognized fields with that contract while preserving ordinary unknown user settings; update the tests that currently require the obsolete defaults."
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "4a3171420312931f22ee3088c3cc7a556eb3b9ed",
+      "result": "FAIL",
+      "summary": "已独立审查完整累计 Change 的 Completeness、Correctness、Coherence 和 Cleanliness，覆盖 G1–G8、四项 Required Corrections、全部 Semantic Delta 与相关已提交实现及测试。发现三项 CRITICAL：CRLF Agent 文件刷新会丢失用户模型设置；配置检查与有效查询的默认值不一致；非法 schema 会遗漏可独立检查的规则错误。审查前后 HEAD 相同，工作区保持干净。",
+      "findings": [
+        "CRITICAL — G6/G7：CRLF Markdown Agent 刷新会删除用户 model。src/core/templates/sync-engine.ts:451–461 在所有权检查时将 CRLF 归一化，因此接受该受管文件；但 :336–350 的 extractUserModel 只匹配 LF frontmatter，随后 :463–476 未提取到 model 就覆盖文件。对已提交 writeSubagents 的内存执行确认：带合法受管 metadata 和 model: \"my-windows-model\" 的 CRLF 文件被刷新，written=1，模型设置消失。这违反 .xirang/changes/configuration-discoverability/elements/internal-subagent-generation.md:21–29、39–41 的模型保留及跨平台承诺。test/core/templates/sync-engine.test.ts:463–490 的模型保留案例仅使用 LF；需要统一换行处理并覆盖 CRLF 刷新。",
+        "CRITICAL — G2/G5 及“检查报告与实际有效值一致”Required Correction：check 单独补出未进入共享有效配置的默认值。src/core/config-check.ts:82–88 在 normalized effective 缺少字段时调用 fieldDefault；src/core/config-projection.ts:124–128 则在 apply 缺失时省略整个节点。对 configVersion: 1、schema: semantic-model 的已提交源码探针确认：check.fields 将 apply.defaultIsolation 报为 value=ask、source=default，但 check.effective 和 config project 使用的共享结果均没有 apply，选择 apply 会得到空结果。非法隔离值也只显示 ignored，没有说明约定的默认策略。这违反 design.md 的 Decision 1“检查读取同一来源值和默认语义，不单独发明回退结果”，以及 project-config-loading Delta:27–29 的默认 ask 承诺。应在共享归一化层统一默认策略，使检查和消费者取得一致结果，并增加组合验证。",
+        "CRITICAL — G2 及非法 schema 独立处理的 Required Correction：src/core/config-check.ts:55–63 仅在原始 schema 等于 semantic-model 时检查未知 artifact ID 和空规则字符串。已提交源码探针输入 schema: invalid、rules: {unknown: [Rule], proposal: [\"\"]}，结构化 issues 只返回 schema 错误，遗漏 rules.unknown 和 rules.proposal.0；空字符串是否合法完全可以独立判断，普通读取也已经使用 semantic-model 回退验证规则。该行为违反 config-command Delta:31、57 的独立问题聚合承诺。test/commands/config.test.ts:135–149 只验证非法 schema 时保留 context，未覆盖混合规则错误。应将独立规则内容检查移出 schema 条件，并依据共享解析结果验证可确定的 artifact IDs。"
       ]
     }
   ],
