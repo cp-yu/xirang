@@ -11,9 +11,6 @@ export const GLOBAL_DATA_DIR_NAME = 'xirang';
 // TypeScript interfaces
 export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
-  optimization?: {
-    enabled?: boolean;
-  };
   apply?: {
     defaultIsolation?: 'ask' | 'branch' | 'worktree' | 'none';
   };
@@ -21,9 +18,6 @@ export interface GlobalConfig {
 
 const DEFAULT_CONFIG: GlobalConfig = {
   featureFlags: {},
-  optimization: {
-    enabled: true,
-  },
   apply: {
     defaultIsolation: 'ask',
   },
@@ -112,12 +106,9 @@ export function getGlobalConfig(): GlobalConfig {
 
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
-    if (parsed.optimization && typeof parsed.optimization === 'object') {
-      for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
-        if (key in parsed.optimization) diagnostic(`Warning: ${configPath}: optimization.${key} is retired and ignored.`, 'GLOBAL_CONFIG_WARNING');
-      }
-    }
+    if (parsed.optimization !== undefined) diagnostic(`Warning: ${configPath}: optimization is retired and ignored.`, 'GLOBAL_CONFIG_WARNING');
     const {
+      optimization: _retiredOptimization,
       propose: _retiredPropose,
       profile: _retiredProfile,
       workflows: _retiredWorkflows,
@@ -139,9 +130,6 @@ export function getGlobalConfig(): GlobalConfig {
         ...DEFAULT_CONFIG.featureFlags,
         ...(parsed.featureFlags || {})
       },
-      optimization: {
-        enabled: typeof parsed.optimization?.enabled === 'boolean' ? parsed.optimization.enabled : true,
-      },
       apply: {
         ...DEFAULT_CONFIG.apply,
         ...(parsed.apply || {})
@@ -149,9 +137,6 @@ export function getGlobalConfig(): GlobalConfig {
     };
 
     // Schema evolution: apply defaults for new fields if not present in loaded config
-    if (parsed.optimization === undefined) {
-      merged.optimization = DEFAULT_CONFIG.optimization;
-    }
     if (parsed.apply === undefined) {
       merged.apply = DEFAULT_CONFIG.apply;
     }

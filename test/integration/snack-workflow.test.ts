@@ -109,7 +109,7 @@ describe('snack workflow integration', () => {
     expect(snackSkill).toContain('ACE, `rg`, and `read`');
     expect(snackSkill).not.toContain('project.xirang.code-map.yaml');
     expect(snackSkill).toContain('.xirang/references/xirang-artifact-proposal.md');
-    expect(snackSkill).toContain('.xirang/references/xirang-artifact-specs.md');
+    expect(snackSkill).toContain('.xirang/references/xirang-artifact-semantic-delta.md');
     expect(snackSkill).toContain('.xirang/references/xirang-artifact-design.md');
     expect(snackSkill).toContain('xirang validate --change "<name>" --preview --json');
     expect(snackSkill).not.toContain('xirang diff --change "<name>" --write');

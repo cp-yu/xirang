@@ -121,13 +121,13 @@ describe('SetupCommand', () => {
       const parsed = parseYaml(content);
       expect(content).toContain('schema: semantic-model');
       expect(content).toContain('decomposition: xirang-semantic-refinement.md');
-      expect(content).toContain('optimization:');
-      expect(content).toContain('  enabled: true');
+      expect(content).not.toContain('optimization:');
+      expect(parsed.configVersion).toBe(1);
       expect(content).not.toContain('directionLimit:');
       expect(content).not.toContain('directionRetries:');
-      expect(parsed.optimization).toEqual({ enabled: true });
+      expect(parsed).not.toHaveProperty('optimization');
       expect(content).toContain('apply:');
-      expect(content).toContain('  defaultIsolation: ask  # ask / branch / worktree / none');
+      expect(parsed.apply.defaultIsolation).toBe('ask');
       expect(content).toContain('git:');
       expect(content).toContain('  merge:');
       expect(content).toContain('    strategy: no-ff');

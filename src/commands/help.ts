@@ -28,7 +28,7 @@ interface AuthoringHelp {
 }
 
 const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'semantic-model'; artifactId: string }> = {
-  'semantic-delta': { schema: 'semantic-model', artifactId: 'specs' },
+  'semantic-delta': { schema: 'semantic-model', artifactId: 'semantic-delta' },
 };
 
 export class AuthoringHelpCommand {

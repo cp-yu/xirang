@@ -62,14 +62,14 @@ Before navigating or interpreting the Semantic Model, read project-root file `.x
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve `## Why`, `## What Changes`, `## Source Impact`, and `## Impact`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in `elements/<identity>.md`.
-   - Read `.xirang/references/xirang-artifact-specs.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact specs --select proseLanguage --select context --select rules --json`.
+   - Read `.xirang/references/xirang-artifact-semantic-delta.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact semantic-delta --select proseLanguage --select context --select rules --json`.
    - Create or update only the identities declared by the Contract scope. The default unit name is `<identity>.md`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned `## ADDED Sections`, `## MODIFIED Sections`, and `## REMOVED Sections` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified `design.md`.
    - Read `.xirang/references/xirang-artifact-design.md` (Definition, Guidance, Template), then query current authoring configuration with `xirang config project --artifact design --select proseLanguage --select context --select rules --json`.
    - Preserve Context, Goals / Non-Goals, Decisions, and Risks / Trade-offs. Mark inferred content `[INFERRED FROM CODE]` and unresolved decisions `[REVIEW NEEDED]`.
 11. Reconcile the structural Delta units only after structural impact is resolved. Leave those partitions empty when the structure is confirmed unchanged; author validated Entries otherwise.
-   Before writing Semantic Delta units, read project-root file `.xirang/references/xirang-artifact-specs.md` (Definition, Guidance, Template) unless already available and current.
+   Before writing Semantic Delta units, read project-root file `.xirang/references/xirang-artifact-semantic-delta.md` (Definition, Guidance, Template) unless already available and current.
    - Distinguish Section Entries in an Element unit body from the Declaration Entry in its frontmatter.
 12. Do NOT generate `tasks.md` (code is already implemented).
 13. Run `xirang validate --change "<name>" --preview --json` and review the effective-diff entries against implementation evidence before completion. On ERROR/WARNING, repair once from artifact guidance, rerun the command, review the final preview, and report the final result.
@@ -86,6 +86,6 @@ Before navigating or interpreting the Semantic Model, read project-root file `.x
 
 ## Artifact Contract
 
-Before authoring, read `.xirang/references/xirang-configuration-use.md` unless already available and current; follow its effective configuration and document-language rules.
+Before authoring, follow common’s effective configuration and document-language rules.
 
 Preserve canonical headings, IDs, schema keys, paths, commands, and code identifiers.

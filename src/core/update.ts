@@ -84,9 +84,13 @@ export class UpdateCommand {
     if (configMigration.status === 'skipped') {
       diagnostic(
         chalk.yellow(
-          `Project config default migration skipped for ${path.relative(resolvedProjectPath, configMigration.path)} (${configMigration.reason})`
+          `Project config migration skipped for ${path.relative(resolvedProjectPath, configMigration.path)} (${configMigration.reason})`
         )
       );
+    }
+
+    if (configMigration.status === 'updated') {
+      diagnostic(`Project config updated: ${(configMigration.changes ?? []).join(', ')}`, 'CONFIG_MIGRATED');
     }
 
     const detectedTools = getAvailableTools(resolvedProjectPath);
@@ -210,8 +214,8 @@ export class UpdateCommand {
     try {
       if (!fs.existsSync(configPath)) return;
       const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      if (raw.profile === undefined && raw.workflows === undefined && raw.delivery === undefined) return;
-      diagnostic(chalk.yellow('Obsolete config fields detected (profile/workflows/delivery), auto-cleaning...'));
+      if (raw.profile === undefined && raw.workflows === undefined && raw.delivery === undefined && raw.optimization === undefined) return;
+      diagnostic(chalk.yellow(`Obsolete config fields detected (${['profile', 'workflows', 'delivery', 'optimization'].filter(key => raw[key] !== undefined).join('/')}); cleaning ignored settings...`));
       const config = getGlobalConfig();
       saveGlobalConfig(config);
 

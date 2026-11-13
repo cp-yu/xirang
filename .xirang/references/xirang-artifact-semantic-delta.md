@@ -1,4 +1,4 @@
-# specs
+# semantic-delta
 
 ## Definition
 

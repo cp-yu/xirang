@@ -1,27 +1,21 @@
 import { diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
-import {
-  isMap,
-  parse as parseYaml,
-  parseDocument,
-  stringify as stringifyYaml,
-  type Document,
-  type Node,
-} from 'yaml';
+import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
+import { resolveSchema } from './artifact-graph/resolver.js';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
+export const CURRENT_CONFIG_VERSION = 1;
+
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
+  configVersion: CURRENT_CONFIG_VERSION,
   decomposition: 'xirang-semantic-refinement.md' as const,
   architecture: {
     outline: {
-      elementDefinitionDepth: 2,
+      definitionDepth: 2,
     },
-  },
-  optimization: {
-    enabled: true,
   },
   apply: {
     defaultIsolation: 'ask' as const,
@@ -35,14 +29,6 @@ export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
     },
   },
 };
-
-const DEFAULT_PROJECT_SCHEMA = 'semantic-model';
-
-export type ProjectConfigDefaultsMigrationResult =
-  | { status: 'created'; path: string }
-  | { status: 'updated'; path: string }
-  | { status: 'unchanged'; path: string }
-  | { status: 'skipped'; path: string; reason: 'invalid-yaml' | 'non-object' };
 
 const decompositionBareNameField = z.string().regex(/^[A-Za-z0-9._-]+$/);
 const decompositionField = z.string().min(1).superRefine((value, ctx) => {
@@ -98,6 +84,7 @@ const gitCommitMessagePathField = z
  * - Consistent with other Xirang schemas
  */
 export const ProjectConfigSchema = z.object({
+  configVersion: z.number().int().min(1).optional(),
   // Required: which built-in workflow schema to use
   schema: BuiltInSchemaIdSchema.describe('The built-in workflow schema to use'),
 
@@ -130,8 +117,8 @@ export const ProjectConfigSchema = z.object({
     .object({
       outline: z
         .object({
-          elementDefinitionDepth: z.number().int().min(0).optional().default(
-            PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth
+          definitionDepth: z.number().int().min(0).optional().default(
+            PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.definitionDepth
           ),
         })
         .optional()
@@ -139,14 +126,6 @@ export const ProjectConfigSchema = z.object({
     })
     .optional()
     .describe('Agent semantic-model outline projection settings'),
-
-  // Optional: optimization policy
-  optimization: z
-    .object({
-      enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
-    })
-    .optional()
-    .describe('Project-level optimization policy'),
 
   // Optional: apply-stage implementation policy
   apply: z
@@ -200,27 +179,26 @@ export const ProjectConfigSchema = z.object({
 
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
 
+const emittedRuleWarnings = new Set<string>();
+
 const MAX_CONTEXT_SIZE = 50 * 1024; // 50KB hard limit
 
-type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> &
+type MaterializedProjectConfigDefaults = Pick<ProjectConfig, 'schema'> & { configVersion: number } &
   Partial<Pick<ProjectConfig, 'proseLanguage'>> & {
     decomposition: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition;
     architecture: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture;
-    optimization: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization;
     apply: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply;
     git: typeof PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.git;
   };
 
 function cloneFunctionalDefaults() {
   return {
+    configVersion: CURRENT_CONFIG_VERSION,
     decomposition: PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.decomposition,
     architecture: {
       outline: {
         ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline,
       },
-    },
-    optimization: {
-      ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization,
     },
     apply: {
       ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply,
@@ -245,116 +223,11 @@ export function materializeProjectConfigDefaults(
     : { schema: config.schema, ...defaults };
 }
 
-function findProjectConfigPath(projectRoot: string): { path: string; exists: boolean } {
-  const yamlPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yaml');
-  if (existsSync(yamlPath)) {
-    return { path: yamlPath, exists: true };
-  }
-
-  const ymlPath = path.join(projectRoot, XIRANG_DIR_NAME, 'config.yml');
-  if (existsSync(ymlPath)) {
-    return { path: ymlPath, exists: true };
-  }
-
-  return { path: yamlPath, exists: false };
-}
-
-function setMissingPath(document: Document, keys: readonly string[], value: unknown): boolean {
-  let current: Node | null | undefined = document.contents;
-  for (const key of keys.slice(0, -1)) {
-    if (!current || !isMap(current)) {
-      return false;
-    }
-    if (!current.has(key)) {
-      current.set(key, document.createNode({}));
-    }
-    current = current.get(key, true);
-  }
-
-  if (!current || !isMap(current)) {
-    return false;
-  }
-
-  const leaf = keys[keys.length - 1];
-  if (current.has(leaf)) {
-    return false;
-  }
-
-  current.set(leaf, value);
-  return true;
-}
-
-function deletePath(document: Document, keys: readonly string[]): boolean {
-  let current: Node | null | undefined = document.contents;
-  for (const key of keys.slice(0, -1)) {
-    if (!current || !isMap(current)) {
-      return false;
-    }
-    current = current.get(key, true);
-  }
-
-  if (!current || !isMap(current)) {
-    return false;
-  }
-
-  const leaf = keys[keys.length - 1];
-  if (!current.has(leaf)) {
-    return false;
-  }
-
-  current.delete(leaf);
-  return true;
-}
-
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function migrateProjectConfigDefaults(projectRoot: string): ProjectConfigDefaultsMigrationResult {
-  const configPath = findProjectConfigPath(projectRoot);
-  if (!configPath.exists) {
-    const defaults = materializeProjectConfigDefaults({ schema: DEFAULT_PROJECT_SCHEMA });
-    writeFileSync(configPath.path, stringifyYaml(defaults), 'utf-8');
-    return { status: 'created', path: configPath.path };
-  }
-
-  const content = readFileSync(configPath.path, 'utf-8');
-  const document = parseDocument(content);
-  if (document.errors.length > 0) {
-    return { status: 'skipped', path: configPath.path, reason: 'invalid-yaml' };
-  }
-  if (!document.contents || !isMap(document.contents)) {
-    return { status: 'skipped', path: configPath.path, reason: 'non-object' };
-  }
-
-  const defaults = materializeProjectConfigDefaults({ schema: DEFAULT_PROJECT_SCHEMA });
-  let changed = false;
-  changed = setMissingPath(document, ['schema'], defaults.schema) || changed;
-  changed = setMissingPath(document, ['decomposition'], defaults.decomposition) || changed;
-  changed = setMissingPath(
-    document,
-    ['architecture', 'outline', 'elementDefinitionDepth'],
-    defaults.architecture.outline.elementDefinitionDepth
-  ) || changed;
-  changed = setMissingPath(document, ['optimization', 'enabled'], defaults.optimization.enabled) || changed;
-  changed = setMissingPath(document, ['apply', 'defaultIsolation'], defaults.apply.defaultIsolation) || changed;
-  changed = deletePath(document, ['git', 'autoCommit']) || changed;
-  changed = deletePath(document, ['git', 'archive', 'commitMessage', 'convention']) || changed;
-  changed = deletePath(document, ['git', 'archive', 'commitMessage']) || changed;
-  changed = deletePath(document, ['git', 'archive']) || changed;
-  changed = setMissingPath(document, ['git', 'merge', 'strategy'], defaults.git.merge.strategy) || changed;
-  changed = deletePath(document, ['git', 'merge', 'messageFrom']) || changed;
-  changed = deletePath(document, ['git', 'merge', 'commitMessage', 'convention']) || changed;
-  changed = deletePath(document, ['git', 'merge', 'commitMessage']) || changed;
-  changed = setMissingPath(document, ['git', 'branch', 'deleteAfterArchive'], defaults.git.branch.deleteAfterArchive) || changed;
-
-  if (!changed) {
-    return { status: 'unchanged', path: configPath.path };
-  }
-
-  writeFileSync(configPath.path, String(document), 'utf-8');
-  return { status: 'updated', path: configPath.path };
-}
+export { migrateProjectConfigDefaults } from './config-migration.js';
 
 /**
  * Read and parse .xirang/config.yaml from project root.
@@ -395,6 +268,9 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
     }
 
     const config: Partial<ProjectConfig> = {};
+    const version = ProjectConfigSchema.shape.configVersion.safeParse(raw.configVersion);
+    if (version.success && version.data !== undefined) config.configVersion = version.data;
+    else if (raw.configVersion !== undefined) warn('Invalid configVersion: expected an integer >= 1');
 
     const schemaResult = BuiltInSchemaIdSchema.safeParse(raw.schema);
     if (schemaResult.success) {
@@ -403,7 +279,7 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
       warn(
         `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: semantic-model`
       );
-      return null;
+      if (typeof raw.schema === 'string' && raw.schema.trim()) return null;
     }
 
     // Parse proseLanguage field using Zod, with docLanguage as a legacy fallback.
@@ -466,12 +342,12 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
       const architectureField = z.object({
         outline: z
           .object({
-            elementDefinitionDepth: z
+            definitionDepth: z
               .number()
               .int()
               .min(0)
               .optional()
-              .default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth),
+              .default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.definitionDepth),
           })
           .optional()
           .default({ ...PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline }),
@@ -483,30 +359,13 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
       } else {
         config.architecture = cloneFunctionalDefaults().architecture;
         warn(
-          `Invalid 'architecture.outline.elementDefinitionDepth' field in config (must be a non-negative integer)`
+          `Invalid 'architecture.outline.definitionDepth' field in config (must be a non-negative integer)`
         );
       }
     }
 
-    // Parse optimization field using Zod
-    if (raw.optimization !== undefined) {
-      const optimizationField = z.object({
-        enabled: z.boolean().optional().default(PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.optimization.enabled),
-      });
-      if (raw.optimization && typeof raw.optimization === 'object' && !Array.isArray(raw.optimization)) {
-        for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
-          if (key in raw.optimization) warn(`optimization.${key} is retired and ignored`);
-        }
-      }
-      const optimizationResult = optimizationField.safeParse(raw.optimization);
-
-      if (optimizationResult.success) {
-        config.optimization = optimizationResult.data;
-      } else {
-        warn(
-          `Invalid 'optimization' field in config (must be an object with boolean 'enabled')`
-        );
-      }
+    for (const key of ['profile', 'workflows', 'delivery', 'optimization']) {
+      if (raw[key] !== undefined) warn(`${key} is retired and ignored; remove it from project configuration`);
     }
 
     // Parse apply field using Zod
@@ -629,24 +488,12 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
         let hasValidRules = false;
 
         for (const [artifactId, rules] of Object.entries(raw.rules)) {
-          const rulesArrayResult = z.array(z.string()).safeParse(rules);
-
-          if (rulesArrayResult.success) {
-            // Filter out empty strings
-            const validRules = rulesArrayResult.data.filter((r) => r.length > 0);
-            if (validRules.length > 0) {
-              parsedRules[artifactId] = validRules;
-              hasValidRules = true;
-            }
-            if (validRules.length < rulesArrayResult.data.length) {
-              warn(
-                `Some rules for '${artifactId}' are empty strings, ignoring them`
-              );
-            }
+          if (Array.isArray(rules)) {
+            const validRules = rules.filter((rule): rule is string => typeof rule === 'string' && rule.trim().length > 0);
+            if (validRules.length) { parsedRules[artifactId] = validRules; hasValidRules = true; }
+            if (validRules.length !== rules.length) warn(`Rules for '${artifactId}' contain invalid or empty strings, ignoring those entries`);
           } else {
-            warn(
-              `Rules for '${artifactId}' must be an array of strings, ignoring this artifact's rules`
-            );
+            warn(`Rules for '${artifactId}' must be an array of strings, ignoring this artifact's rules`);
           }
         }
 
@@ -655,6 +502,13 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
         }
       } else {
         warn(`Invalid 'rules' field in config (must be object)`);
+      }
+    }
+
+    if (config.rules) {
+      const ids = new Set(resolveSchema(config.schema ?? 'semantic-model').artifacts.map(artifact => artifact.id));
+      for (const warning of validateConfigRules(config.rules, ids, config.schema ?? 'semantic-model')) {
+        if (!emittedRuleWarnings.has(warning)) { emittedRuleWarnings.add(warning); warn(warning); }
       }
     }
 

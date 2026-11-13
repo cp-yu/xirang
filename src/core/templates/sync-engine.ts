@@ -204,6 +204,8 @@ const STALE_SHARED_REFERENCE_FILES = [
 ] as const;
 
 const RETIRED_MANAGED_REFERENCE_HASHES: Readonly<Record<string, string>> = {
+  'xirang-configuration-use.md': '290c84f4fa3296985ec0d462ea9d8c15356dfc3028b75dea3630fb0d2720f802',
+  'xirang-artifact-specs.md': '67ce28b1dec2286b9961e7912e59762f5bc73f18c3dec7db2ea441d2a8e854fd',
   'xirang-self-read-protocol.md': '60441cc8f4477c03c9eb89fbd3c18aeb5959d7cf5a25ddf8264cff77eaced901',
   'xirang-decision-rules.md': 'f6f5364e560aa9bf22b88c72734f9dcb9188db21832b3c0301b028e484449ae9',
   'xirang-output-protocol.md': 'c840a954078cc0a5dc8c1932d2efb78fe4d0223dec8c8b7ba32bcfd4677e1932',

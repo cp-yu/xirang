@@ -112,20 +112,12 @@ describe('UpdateCommand', () => {
       );
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization).toEqual({ enabled: true });
-      expect(config.apply.defaultIsolation).toBe('ask');
-      expect(config.git.merge.strategy).toBe('no-ff');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
+      await expect(fs.access(configPath)).rejects.toThrow();
 
       consoleSpy.mockRestore();
     });
 
-    it('should preserve existing config fields while adding missing defaults', async () => {
+    it('preserves unversioned user fields without guessing a baseline', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -138,28 +130,12 @@ rules:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.schema).toBe('custom-schema');
-      expect(config.docLanguage).toBe('zh-CN');
-      expect(config.context).toBe('keep me');
-      expect(config.rules.proposal).toEqual(['keep this rule']);
-      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization).toEqual({ enabled: true });
-      expect(config.apply.defaultIsolation).toBe('ask');
-      expect(config.git.merge.strategy).toBe('no-ff');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
-      expect(config).not.toHaveProperty('propose');
-      expect(config.apply).toEqual({
-        defaultIsolation: 'ask',
-      });
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
-    it('should preserve existing apply isolation while adding missing defaults', async () => {
+    it('preserves unversioned isolation and Git preferences', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -178,23 +154,12 @@ git:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.schema).toBe('custom-schema');
-      expect(config.decomposition).toBe('project-modeling.md');
-      expect(config.optimization.enabled).toBe(false);
-      expect(config.optimization).toMatchObject({ directionRetries: 1 });
-      expect(config.apply.defaultIsolation).toBe('worktree');
-      expect(config.git.commitMessage.archive).toBe('docs/archive.md');
-      expect(config.git.merge.strategy).toBe('squash');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
-    it('should remove obsolete git fields while adding new defaults', async () => {
+    it('does not partially clean unversioned configuration', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -214,16 +179,9 @@ git:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge.strategy).toBe('squash');
-      expect(config.git.merge).not.toHaveProperty('messageFrom');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
-      expect(config.git.commitMessage.merge).toBe('docs/merge.md');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
     it('should warn and continue refreshing tools when project config migration is skipped', async () => {
@@ -242,7 +200,7 @@ git:
 
       expect(await fs.readFile(configPath, 'utf-8')).toBe(originalConfig);
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Project config default migration skipped')
+        expect.stringContaining('Project config migration skipped')
       );
       expect(consoleSpy).not.toHaveBeenCalled();
 

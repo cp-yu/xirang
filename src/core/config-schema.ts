@@ -53,10 +53,6 @@ export const GlobalConfigSchema = z
       .record(z.string(), z.boolean())
       .optional()
       .default({}),
-    optimization: z
-      .object({ enabled: z.boolean().optional().default(true) })
-      .optional()
-      .default({ enabled: true }),
     apply: z
       .object({
         defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
@@ -66,7 +62,7 @@ export const GlobalConfigSchema = z
     git: GitConfigSchema,
   })
   .passthrough()
-  .transform(({ propose: _retiredPropose, ...config }) => config);
+  .transform(({ propose: _retiredPropose, optimization: _retiredOptimization, profile: _profile, workflows: _workflows, delivery: _delivery, ...config }) => config);
 
 export type GlobalConfigType = z.infer<typeof GlobalConfigSchema>;
 
@@ -75,9 +71,6 @@ export type GlobalConfigType = z.infer<typeof GlobalConfigSchema>;
  */
 export const DEFAULT_CONFIG: GlobalConfigType = {
   featureFlags: {},
-  optimization: {
-    enabled: true,
-  },
   apply: {
     defaultIsolation: 'ask',
   },
@@ -105,8 +98,8 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
   }
 
   const rootKey = rawKeys[0];
-  if (rootKey === 'propose') {
-    return { valid: false, retired: true, reason: 'The propose routing configuration has been retired' };
+  if (rootKey === 'propose' || rootKey === 'optimization') {
+    return { valid: false, retired: true, reason: `The ${rootKey} configuration has been retired` };
   }
   if (!KNOWN_TOP_LEVEL_KEYS.has(rootKey)) {
     return { valid: false, reason: `Unknown top-level key "${rootKey}"` };
@@ -117,20 +110,6 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
       return { valid: false, reason: 'featureFlags values are booleans and do not support nested keys' };
     }
     return { valid: true };
-  }
-
-  if (rootKey === 'optimization') {
-    if (rawKeys.length === 1) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 2 && rawKeys[1] === 'enabled') {
-      return { valid: true };
-    }
-    return {
-      valid: false,
-      retired: rawKeys.length === 2 && ['directionLimit', 'directionRetries', 'minImpactLevel'].includes(rawKeys[1]),
-      reason: 'optimization only supports "enabled"; directionLimit, directionRetries, and minImpactLevel are retired',
-    };
   }
 
   if (rootKey === 'apply') {

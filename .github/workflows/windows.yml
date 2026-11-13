@@ -40,6 +40,10 @@ jobs:
         run: >-
           pnpm exec vitest run
           test/core/project-config.test.ts
+          test/core/config-schema.test.ts
+          test/core/global-config.test.ts
+          test/commands/arch-outline.test.ts
+          test/commands/artifact-workflow.test.ts
           test/core/setup.test.ts
           test/core/workflow-installation.test.ts
           test/core/templates/skill-templates-parity.test.ts

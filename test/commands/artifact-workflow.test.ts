@@ -35,7 +35,7 @@ describe('artifact-workflow CLI commands', () => {
    */
   async function createTestChange(
     changeName: string,
-    artifacts: ('proposal' | 'design' | 'specs' | 'tasks')[] = []
+    artifacts: ('proposal' | 'design' | 'semantic-delta' | 'tasks')[] = []
   ): Promise<string> {
     const changeDir = path.join(changesDir, changeName);
     await fs.mkdir(changeDir, { recursive: true });
@@ -51,7 +51,7 @@ describe('artifact-workflow CLI commands', () => {
       await fs.writeFile(path.join(changeDir, 'design.md'), '# Design\n\nTechnical design.');
     }
 
-    if (artifacts.includes('specs')) {
+    if (artifacts.includes('semantic-delta')) {
       const elementsDir = path.join(changeDir, 'elements');
       await fs.mkdir(elementsDir, { recursive: true });
       await fs.writeFile(path.join(elementsDir, 'test-element.md'), `## ADDED Sections
@@ -84,7 +84,7 @@ it('outputs needs_optimize state in JSON when the optimization loop is not final
       const changeDir = await createTestChange('needs-seal-apply', [
         'proposal',
         'design',
-        'specs',
+        'semantic-delta',
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: Completed target\n  - Contract: `test-element` / Section "Target"\n  - Verify: Observable behavior is complete.');
@@ -104,7 +104,7 @@ it('reports needs_review after rotation even when history holds a matching pass'
       const changeDir = await createTestChange('rotated-apply', [
         'proposal',
         'design',
-        'specs',
+        'semantic-delta',
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
@@ -129,7 +129,7 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       const changeDir = await createTestChange('all-done-apply', [
         'proposal',
         'design',
-        'specs',
+        'semantic-delta',
         'tasks',
       ]);
       await fs.writeFile(path.join(changeDir, 'tasks.md'), '## Goals\n\n- [x] G1: First completed goal\n  - Contract: `test-element` / Section "First goal"\n  - Verify: Behavior is complete.\n- [x] G2: Second completed goal\n  - Contract: `test-element` / Section "Second goal"\n  - Verify: Behavior is complete.');
@@ -145,7 +145,7 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       expect(json.state).toBe('all_done');
     });
     it('reports goal counts and Quality state without echoing goals', async () => {
-      const dir = await createTestChange('goal-state', ['proposal', 'design', 'specs', 'tasks']);
+      const dir = await createTestChange('goal-state', ['proposal', 'design', 'semantic-delta', 'tasks']);
       let result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
       let data = JSON.parse(result.stdout);
       expect(data).toMatchObject({ state: 'ready', goals: { total: 1, completed: 0, remaining: 1 } });
@@ -215,7 +215,7 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
     });
 
     it('shows complete status when all artifacts are done', async () => {
-      await createTestChange('complete-change', ['proposal', 'design', 'specs', 'tasks']);
+      await createTestChange('complete-change', ['proposal', 'design', 'semantic-delta', 'tasks']);
 
       const result = await runCLI(['status', '--change', 'complete-change'], { cwd: tempDir });
       expect(result.exitCode).toBe(0);
@@ -316,7 +316,7 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       expect(result.stdout).toContain('Schema: semantic-model');
       expect(result.stdout).toContain('proposal:');
       expect(result.stdout).toContain('design:');
-      expect(result.stdout).toContain('specs:');
+      expect(result.stdout).toContain('semantic-delta:');
       expect(result.stdout).toContain('tasks:');
     });
 

@@ -19,9 +19,12 @@ import {
   validateConfig,
   DEFAULT_CONFIG,
 } from '../core/config-schema.js';
-import { readProjectConfig, ProjectConfigSchema, validateConfigRules } from '../core/project-config.js';
+import { readProjectConfig, ProjectConfigSchema } from '../core/project-config.js';
 import { resolveSchema } from '../core/artifact-graph/index.js';
 import { normalizeProjectConfig } from '../core/config-projection.js';
+
+import { describeProjectConfig } from '../core/config-fields.js';
+import { checkProjectConfig } from '../core/config-check.js';
 
 function isProjectSelection(key: string, artifactIds: string[]): boolean {
   const parts = key.split('.');
@@ -51,12 +54,13 @@ function isPromptCancellationError(error: unknown): boolean {
 export function registerConfigCommand(program: Command): void {
   const configCmd = program
     .command('config')
-    .description('View and modify global Xirang configuration')
+    .description('Project configuration documentation (config), effective values (project), validation (check); global tool settings via path/list/get/set/unset/reset/edit')
+    .action(() => console.log(describeProjectConfig()))
     .option('--scope <scope>', 'Config scope (only "global" supported currently)')
     .hook('preAction', (thisCommand) => {
       const opts = thisCommand.opts();
       if (opts.scope && opts.scope !== 'global') {
-        diagnostic('Error: Project-local config is not yet implemented');
+        diagnostic('Global management supports only --scope global; use config project/check for project configuration.');
         process.exit(1);
       }
     });
@@ -102,9 +106,6 @@ export function registerConfigCommand(program: Command): void {
         process.exitCode = 1;
         return;
       }
-      for (const warning of validateConfigRules(normalized.rules, new Set(artifactIds), normalized.schema ?? 'semantic-model')) {
-        report(warning, 'CONFIG_WARNING');
-      }
       if (options.artifact) {
         const rules = normalized.rules[options.artifact];
         normalized.rules = rules?.length ? { [options.artifact]: rules } : {};
@@ -123,6 +124,19 @@ export function registerConfigCommand(program: Command): void {
         }
       }
       console.log(options.json ? JSON.stringify(result) : formatValueYaml(result));
+    });
+
+  configCmd
+    .command('check')
+    .description('Read-only detailed project configuration validation, effective values, sources and scopes')
+    .option('--json', 'Output as JSON')
+    .action((options: { json?: boolean }) => {
+      const { issues, ...report } = checkProjectConfig(process.cwd());
+      console.log(options.json ? JSON.stringify(report) : formatValueYaml(report));
+      for (const issue of issues) {
+        console.error(options.json ? JSON.stringify(issue) : `${issue.severity}: ${issue.field}: ${issue.message}. ${issue.suggestion}`);
+      }
+      if (!report.valid) process.exitCode = 1;
     });
 
   // config get

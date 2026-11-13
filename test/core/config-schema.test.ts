@@ -229,8 +229,8 @@ describe('config-schema', () => {
       expect(result.success).toBe(true);
     });
 
-    it('uses enabled as the only optimization policy field', () => {
-      expect(GlobalConfigSchema.parse({ optimization: { enabled: false, directionLimit: 5, directionRetries: 3 } }).optimization).toEqual({ enabled: false });
+    it('excludes retired optimization input', () => {
+      expect(GlobalConfigSchema.parse({ optimization: { enabled: false, directionLimit: 5, directionRetries: 3 } })).not.toHaveProperty('optimization');
     });
 
     it('should accept empty featureFlags', () => {
@@ -346,9 +346,9 @@ describe('config-schema', () => {
       expect(result.featureFlags).toEqual({});
     });
 
-    it('should provide default optimization config without retired propose policy', () => {
+    it('omits retired optimization and propose policy', () => {
       const result = GlobalConfigSchema.parse({});
-      expect(result.optimization).toEqual({ enabled: true });
+      expect(result).not.toHaveProperty('optimization');
       expect(result).not.toHaveProperty('propose');
     });
 
@@ -389,8 +389,8 @@ describe('config-schema', () => {
       expect(DEFAULT_CONFIG.featureFlags).toEqual({});
     });
 
-    it('should enable optimization without retired propose defaults', () => {
-      expect(DEFAULT_CONFIG.optimization).toEqual({ enabled: true });
+    it('omits retired policies from defaults', () => {
+      expect(DEFAULT_CONFIG).not.toHaveProperty('optimization');
       expect(DEFAULT_CONFIG).not.toHaveProperty('propose');
     });
 
@@ -407,9 +407,9 @@ describe('config-schema', () => {
   });
 
   describe('validateConfigKeyPath', () => {
-    it('allows optimization root key and enabled subkey, and identifies retired keys', () => {
-      expect(validateConfigKeyPath('optimization').valid).toBe(true);
-      expect(validateConfigKeyPath('optimization.enabled').valid).toBe(true);
+    it('rejects the entire retired optimization subtree', () => {
+      expect(validateConfigKeyPath('optimization')).toMatchObject({ valid: false, retired: true });
+      expect(validateConfigKeyPath('optimization.enabled')).toMatchObject({ valid: false, retired: true });
       for (const key of ['directionLimit', 'directionRetries', 'minImpactLevel']) {
         expect(validateConfigKeyPath(`optimization.${key}`)).toMatchObject({ valid: false, retired: true });
       }

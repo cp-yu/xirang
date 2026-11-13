@@ -130,7 +130,7 @@ export class SetupCommand {
     // Create config.yaml if needed
     await this.createConfig(xirangPath, proseLanguage);
 
-    this.displaySuccessMessage(results);
+    this.displaySuccessMessage(results, projectPath);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -587,11 +587,13 @@ export class SetupCommand {
       createdTools: readonly unknown[];
       refreshedTools: readonly unknown[];
       failedTools: Array<{ name: string; error: Error }>;
-    }
+    },
+    projectPath: string
   ): void {
     if (results.failedTools.length) {
       throw new Error(`Failed: ${results.failedTools.map(f => `${f.name} (${f.error.message})`).join(', ')}`);
     }
+    diagnostic(`Project configuration: ${fs.existsSync(path.join(projectPath, '.xirang', 'config.yaml')) ? path.join(projectPath, '.xirang', 'config.yaml') : path.join(projectPath, '.xirang', 'config.yml')}. Configure prose language, project context and artifact rules, decomposition guidance, Apply isolation, Git merge strategy and branch retention. Run xirang config for documentation, xirang config project for effective values, and xirang config check for read-only validation.`, 'CONFIG_GUIDANCE');
     if (results.createdTools.length || results.refreshedTools.length) {
       diagnostic('Restart your IDE or current session for refreshed skills to take effect.', 'RESTART_REQUIRED');
     }

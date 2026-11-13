@@ -1,3 +1,4 @@
+import { getCommonSkillTemplate } from '../../../src/core/templates/workflows/common.js';
 import { withCommonGuidance } from '../../helpers/common-guidance.js';
 import { describe, expect, it } from 'vitest';
 
@@ -159,7 +160,7 @@ describe('propose template post-validation flow', () => {
     expect(template.instructions).toMatch(/read the exact Section titles from the formal Element Contract/i);
     expect(template.instructions).toContain('combined change validation');
     expect(template.instructions).not.toContain('xirang check-delta');
-    expect(template.referenceFiles?.map(file => file.path)).toContain('references/artifact-specs.md');
+    expect(template.referenceFiles?.map(file => file.path)).toContain('references/artifact-semantic-delta.md');
   });
 
   it('uses current schema templates for lightweight proposal/design/tasks checks', () => {
@@ -274,7 +275,7 @@ describe('propose template post-validation flow', () => {
 
   it('does not duplicate the resolved Specs content boundary', () => {
     const body = withCommonGuidance(getXirangProposeSkillTemplate()).instructions;
-    expect(body).toContain('Follow the returned Specs authoring contract');
+    expect(body).toContain('Follow the static Semantic Delta authoring contract');
     expect(body).not.toContain('route non-behavior content to design/tasks/proposal/opsx-delta');
   });
 
@@ -334,8 +335,9 @@ describe('propose template post-validation flow', () => {
 
   it('delivers one shared configuration-use protocol to artifact authors', () => {
     const template = withCommonGuidance(getXirangProposeSkillTemplate());
-    const guidance = template.referenceFiles?.find(file => file.path === 'references/configuration-use.md')?.content;
-    expect(template.instructions).toContain('.xirang/references/xirang-configuration-use.md');
+    const guidance = getCommonSkillTemplate().instructions;
+    expect(guidance).toContain('xirang config project --select context --json');
+    expect(template.referenceFiles?.some(file => file.path === 'references/configuration-use.md')).toBe(false);
     expect(guidance).toMatch(/proseLanguage[^\n]*context[^\n]*all applicable artifacts/);
     expect(guidance).toMatch(/rules\[artifactId\][^\n]*only[^\n]*matching artifact/);
     expect(guidance).toMatch(/additive[^\n]*built-in Definition, Guidance and Template[^\n]*never as replacements/);

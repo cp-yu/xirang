@@ -68,7 +68,7 @@ ${MODEL_CONTEXT_ENTRY}
    - Reuse the confirmed Contract scope as the Element Contract delta input; preserve \`## Why\`, \`## What Changes\`, \`## Source Impact\`, and \`## Impact\`.
    - If the proposal already matches evidence and source impact, leave it unchanged.
 9. Reconcile Element Contract deltas in \`elements/<identity>.md\`.
-   - Read \`.xirang/references/xirang-artifact-specs.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact specs --select proseLanguage --select context --select rules --json\`.
+   - Read \`.xirang/references/xirang-artifact-semantic-delta.md\` (Definition, Guidance, Template), then query current authoring configuration with \`xirang config project --artifact semantic-delta --select proseLanguage --select context --select rules --json\`.
    - Create or update only the identities declared by the Contract scope. The default unit name is \`<identity>.md\`; a file name expresses nothing, so deviating from the default changes no model semantics.
    - Follow returned \`## ADDED Sections\`, \`## MODIFIED Sections\`, and \`## REMOVED Sections\` rules with exact title matching. Express a rename as REMOVED old Section plus ADDED new complete Section. Preserve unrelated current delta content.
 10. Reconcile simplified \`design.md\`.

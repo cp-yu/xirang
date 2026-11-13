@@ -1,133 +1,28 @@
-import {
-  materializeProjectConfigDefaults,
-  type ProjectConfig,
-} from './project-config.js';
+import { stringify } from 'yaml';
+import { materializeProjectConfigDefaults, type ProjectConfig } from './project-config.js';
+import { PROJECT_CONFIG_FIELDS, configValue, fieldDefault, allowedConfigValues } from './config-fields.js';
 
-/**
- * Serialize config to YAML string with helpful comments.
- *
- * @param config - Partial config object (schema required, context/rules optional)
- * @returns YAML string ready to write to file
- */
 export function serializeConfig(config: Partial<ProjectConfig>): string {
-  const lines: string[] = [];
-  const materialized = config.schema
-    ? materializeProjectConfigDefaults({
-        schema: config.schema,
-        proseLanguage: config.proseLanguage,
-      })
-    : config;
-
-  // Schema (required)
-  lines.push(`schema: ${materialized.schema}`);
-  lines.push('');
-
-  // Document language with comments
-  lines.push('# Xirang document prose language (optional)');
-  lines.push('# Applies only to natural-language body text in artifacts.');
-  lines.push('# Keep template headings, IDs, schema keys, commands, and code tokens unchanged.');
-  lines.push('# Example:');
-  lines.push('#   proseLanguage: zh-CN');
-  if (materialized.proseLanguage) {
-    lines.push(`proseLanguage: ${materialized.proseLanguage}`);
-  }
-  lines.push('');
-
-  // Hierarchy decomposition selection
-  lines.push('# Hierarchy decomposition guidance: a project-root relative path, or a bare name resolved under .xirang/references/');
-  if (materialized.decomposition) {
-    lines.push(`decomposition: ${materialized.decomposition}`);
-  }
-  lines.push('');
-
-  // Context section with comments
-  lines.push('# Project context (optional)');
-  lines.push('# This is shown to AI when creating artifacts.');
-  lines.push('# Add your tech stack, conventions, style guides, domain knowledge, etc.');
-  lines.push('# Example:');
-  lines.push('#   context: |');
-  lines.push('#     Tech stack: TypeScript, React, Node.js');
-  lines.push('#     We use conventional commits');
-  lines.push('#     Domain: e-commerce platform');
-  lines.push('');
-
-  // Architecture outline projection
-  lines.push('# Agent semantic-model outline projection (optional)');
-  if (materialized.architecture) {
-    lines.push('architecture:');
-    lines.push('  outline:');
-    lines.push(`    elementDefinitionDepth: ${materialized.architecture.outline.elementDefinitionDepth}`);
-  }
-  lines.push('');
-
-  // Optimization section with comments
-  lines.push('# Optimization policy (optional)');
-  lines.push('# Set enabled: false to skip optimization; record the disabled reason through quality delegation.');
-  lines.push('# Independent full-change Review, applicable tests and final completion evidence are still required.');
-  lines.push('# Example:');
-  lines.push('#   optimization:');
-  lines.push('#     enabled: true');
-  if (materialized.optimization) {
-    lines.push('optimization:');
-    lines.push(`  enabled: ${materialized.optimization.enabled !== false}`);
-  }
-  lines.push('');
-
-  // Apply isolation policy
-  lines.push('# Apply-stage implementation policy (optional)');
-  lines.push('# Example:');
-  lines.push('#   apply:');
-  lines.push('#     defaultIsolation: ask  # ask / branch / worktree / none');
-  if (materialized.apply) {
-    lines.push('apply:');
-    lines.push(`  defaultIsolation: ${materialized.apply.defaultIsolation}  # ask / branch / worktree / none`);
-  }
-  lines.push('');
-
-  // Git archive and merge policy
-  lines.push('# Git archive and merge policy (optional)');
-  lines.push('# Example:');
-  lines.push('#   git:');
-  lines.push('#     commitMessage:');
-  lines.push('#       boundary: docs/commit-boundary.md');
-  lines.push('#       archive: docs/archive-commit.md');
-  lines.push('#       merge: docs/merge-summary.md');
-  lines.push('#     merge:');
-  lines.push('#       strategy: no-ff');
-  lines.push('#     branch:');
-  lines.push('#       deleteAfterArchive: false');
-  if (materialized.git) {
-    lines.push('git:');
-    const commitMessage = 'commitMessage' in materialized.git ? materialized.git.commitMessage : undefined;
-    if (commitMessage) {
-      lines.push('  commitMessage:');
-      if (commitMessage.boundary) {
-        lines.push(`    boundary: ${commitMessage.boundary}`);
-      }
-      if (commitMessage.archive) {
-        lines.push(`    archive: ${commitMessage.archive}`);
-      }
-      if (commitMessage.merge) {
-        lines.push(`    merge: ${commitMessage.merge}`);
-      }
+  const materialized = config.schema ? { ...materializeProjectConfigDefaults(config as ProjectConfig), ...config } : config;
+  return PROJECT_CONFIG_FIELDS.flatMap(field => {
+    const value = configValue(materialized, field.path);
+    const defaultValue = fieldDefault(field.path);
+    const allowed = allowedConfigValues(field.path);
+    const lines = [`# ${field.path}: ${field.description}${allowed ? ` Allowed: ${allowed.join(", ")}.` : ""}`, `# Scope: ${field.scope}. ${defaultValue === undefined ? 'Optional; no additional requirement when absent.' : `Default: ${JSON.stringify(defaultValue)}.`}`];
+    if (field.path === 'docLanguage') return [];
+    const object: Record<string, unknown> = {};
+    let node = object;
+    const parts = field.path.split('.');
+    for (const part of parts.slice(0, -1)) { const child = {}; node[part] = child; node = child; }
+    node[parts.at(-1)!] = value ?? field.example;
+    // Nested fields are emitted together below to avoid duplicate YAML keys.
+    if (parts.length === 1 || value === undefined) {
+      const yaml = stringify(object).trimEnd();
+      lines.push(value === undefined ? yaml.split('\n').map(line => `# ${line}`).join('\n') : yaml);
     }
-    lines.push('  merge:');
-    lines.push(`    strategy: ${materialized.git.merge.strategy}`);
-    lines.push('  branch:');
-    lines.push(`    deleteAfterArchive: ${materialized.git.branch.deleteAfterArchive}`);
-  }
-  lines.push('');
-
-  // Rules section with comments
-  lines.push('# Per-artifact rules (optional)');
-  lines.push('# Add custom rules for specific artifacts.');
-  lines.push('# Example:');
-  lines.push('#   rules:');
-  lines.push('#     proposal:');
-  lines.push('#       - Keep proposals under 500 words');
-  lines.push('#       - Always include a "Non-goals" section');
-  lines.push('#     tasks:');
-  lines.push('#       - Break tasks into chunks of max 2 hours');
-
-  return lines.join('\n') + '\n';
+    return [...lines, ''];
+  }).join('\n') + ['architecture', 'apply', 'git'].flatMap(key => {
+    const value = configValue(materialized, key);
+    return value === undefined ? [] : [stringify({ [key]: value }).trimEnd(), ''];
+  }).join('\n') + '\n';
 }
