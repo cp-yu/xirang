@@ -67,3 +67,4 @@
 - [x] [code_fix] CRLF 与 LF 受管 references 均可刷新及按明确清单退役。
 - [x] [code_fix] authoring help 交付统一来源模板并保留加载失败诊断。
 - [x] [code_fix] 配置编辑关键门禁具有保护及授权场景证据。
+- [x] [code_fix] 迁移最终语义校验用例到达目标门禁并证明失败时内容及版本不变。

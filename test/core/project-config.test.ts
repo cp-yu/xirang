@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import { parseDocument } from 'yaml';
 import { atomicWriteConfig } from '../../src/core/config-migration.js';
 import {
   materializeProjectConfigDefaults,
@@ -128,6 +129,28 @@ describe('project-config', () => {
       expect(fs.readdirSync(tempDir)).toEqual(['destination']);
       expect(fs.readFileSync(path.join(destination, 'user.txt'), 'utf8')).toBe('keep');
     });
+    it('rejects a semantically invalid final result after every migration completes without writing', () => {
+      const source = '# Keep my comment\nconfigVersion: 5 # original version\nschema: semantic-model\n';
+      const file = write(source);
+      const outputs: string[] = [];
+      const migrations = steps.map(step => ({
+        ...step,
+        migrate: (text: string) => {
+          const next = step.fromVersion === 6 ? text + 'architecture: { outline: { definitionDepth: -1 } }\n' : text;
+          outputs.push(next);
+          return next;
+        },
+      }));
+      const writeBoundary = vi.fn();
+      const result = migrateProjectConfigDefaults(tempDir, { targetVersion: 15, migrations, write: writeBoundary });
+      expect(outputs).toHaveLength(10);
+      for (const output of outputs) expect(parseDocument(output).errors).toEqual([]);
+      expect(result).toMatchObject({ status: 'skipped', reason: expect.stringMatching(/^invalid-result: architecture\.outline\.definitionDepth:/) });
+      expect(writeBoundary).not.toHaveBeenCalled();
+      expect(fs.readFileSync(file, 'utf8')).toBe(source);
+      expect(parseDocument(fs.readFileSync(file, 'utf8')).get('configVersion')).toBe(5);
+    });
+
     it.each([
       ['outside window', 'configVersion: 3\nschema: semantic-model\n', steps, undefined, /current 3, target 15, minimum supported start 5/],
       ['missing step', 'configVersion: 5\nschema: semantic-model\n', steps.filter(step => step.fromVersion !== 7), undefined, /unsupported-chain/],
@@ -137,7 +160,6 @@ describe('project-config', () => {
       ['newer version', 'configVersion: 16\n', steps, undefined, /newer-version/],
       ['invalid yaml', 'configVersion: [', steps, undefined, /invalid-yaml/],
       ['second step failure', 'configVersion: 5\n', steps.map(step => step.fromVersion === 6 ? { ...step, migrate: () => { throw new Error('step failure'); } } : step), undefined, /step failure/],
-      ['invalid final value', 'configVersion: 5\n', steps.map(step => ({ ...step, migrate: (text: string) => text + 'unknown: true\n' })), undefined, /invalid/],
       ['write failure', 'configVersion: 5\n', steps, () => { throw new Error('write failure'); }, /write failure/],
     ])('keeps original bytes on %s', (_name, source, migrations, writeBoundary, reason) => {
       const file = write(source as string);

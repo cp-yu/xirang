@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "changeId": "configuration-discoverability",
-  "revision": 3,
+  "revision": 4,
   "reviews": [
     {
       "reviewKind": "full-change",
@@ -35,6 +35,15 @@
         "CRITICAL — G6/G7：CRLF 换行使受管 reference 无法刷新。src/core/templates/sync-engine.ts:230、262–286 使用包含 LF 的精确 ownership marker，未像 skill 和 Agent ownership 检查那样归一化 CRLF。临时目录复现：生成 xirang-configuration-edit.md，保留受管标记、修改正文并转为 CRLF，再次同步；同步返回成功，却报告该文件属于用户并保留陈旧正文。这违反 .xirang/changes/configuration-discoverability/elements/references-home.md:23、47–49 中对已编辑受管 reference 按模板刷新的承诺，以及跨平台交付要求。应让 ownership 标记识别兼容 LF/CRLF，并补充能证明正文确实刷新的回归测试；退役 reference 的标记识别同样需要检查。",
         "CRITICAL — G8：help authoring semantic-delta 没有取得或交付 delta.md 模板。.xirang/changes/configuration-discoverability/elements/cli.md:18–20 和 elements/instruction-loader.md:14–19 明确要求 authoring help 使用统一制品的定义及模板。src/commands/help.ts:23–28、52–73 仅取得 definition 和 Relationship Kind 数据，150–175 的文本呈现也没有模板加载或输出。实际执行 help authoring semantic-delta --json，仅返回 file、definition、relationshipDelta、relationshipKinds。test/commands/help.test.ts:97–128 的断言没有覆盖模板，因此通过的测试无法证明该要求。应从 semantic-delta 的 schema/template 来源读取模板，在适用输出中交付，并验证模板内容及加载失败诊断。",
         "CRITICAL — G4：新增配置编辑协议缺少能保护其关键行为的验证。src/core/templates/fragments/configuration-edit.ts:3–9 已写明只读权限、长期/本次范围、模型建议授权、版本保护及修改后重读，但现有测试仅检查文件存在、入口可达和用户文件保留（test/core/templates/sync-engine.test.ts:67–85、415–425）；test/core/templates/propose-template.test.ts:336–346 只检查 common 的使用规则。执行 git grep -n -E 'CONFIGURATION_EDIT_GUIDANCE|lasting preference|temporary request|Ordinary preference edits|read-only role remains|Reload the relevant effective|never silently make it permanent' HEAD -- test 返回空结果。删除编辑协议中的关键授权或重读条款仍能通过这些检查，无法支持 design.md:146 要求的协议保护及场景/加载轨迹验证。应补充针对关键门禁的验证，并提供长期要求、仅本次要求、模型建议及只读角色场景的实际证据；无需锁定普通散文措辞。"
+      ]
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "202a2ffbc0b3564e4c4800b82912a5ff7db736c9",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Two targeted verification batches passed (16 files/515 tests and 29 files/304 tests, with overlap), and TypeScript checking passed. One CRITICAL test-evidence gap remains in migration final-validation protection. HEAD remained unchanged and the worktree remained clean.",
+      "findings": [
+        "CRITICAL: The migration test does not exercise final semantic validation. In test/core/project-config.test.ts:131-146, the 'invalid final value' case appends 'unknown: true' during every migration step. On step two this produces duplicate YAML keys, so src/core/config-migration.ts:59-64 rejects the document before reaching final validation at lines 66-68. I independently reproduced the fixture sequence: step one parses successfully; step two reports DUPLICATE_KEY. The broad /invalid/ assertion therefore passes even if final semantic validation is removed. This leaves the required protection in .xirang/changes/configuration-discoverability/elements/project-config-management.md:35-54 without a meaningful owning test, despite design.md:144 explicitly requiring it. Search `git grep -n -E 'invalid-result|invalid final|inspectConfigValues|targetVersion:|migrations:' HEAD -- test src/core/config-migration.ts` found no alternative final-validation test. Replace this fixture with a migration chain that remains valid YAML throughout and introduces a semantically invalid field only once; assert an invalid-result diagnostic and unchanged original content/version."
       ]
     }
   ],
