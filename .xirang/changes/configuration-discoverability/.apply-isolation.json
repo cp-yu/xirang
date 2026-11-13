@@ -1,0 +1,6 @@
+{
+  "method": "branch",
+  "branchName": "configuration-discoverability",
+  "originalBranch": "main",
+  "baseCommit": "76c55a25345e335207ee6ff00b5ef69f4b525d22"
+}
