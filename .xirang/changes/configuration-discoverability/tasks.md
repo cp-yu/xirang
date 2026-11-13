@@ -54,3 +54,10 @@
   - Contract: `skill-generation` / Section "Business Logic"
   - Contract: `references-home` / Section "Business Logic"
   - Verify: schema、依赖、状态、模板、authoring help、rules.semantic-delta 与生成指导均使用 semantic-delta；原有项目规则原文有效且不泄漏到其他制品；仅关系或 View 的差量可完成，无差量用 .delta-noop，完全缺失保持未完成并阻塞依赖；四分区和模板载体不变，源指导、生成文件及受管清理同步，无悬空引用。
+
+## Required Corrections
+
+- [x] [code_fix] 同步前取得所有权证据，保留同名非受管 skills、内部 Agent 与用户 references。
+- [x] [code_fix] 非法 schema 不影响合法独立字段；检查报告与实际有效值一致。
+- [x] [code_fix] 仅精确退役 Git 路径为警告，旧容器内未知字段仍为错误。
+- [x] [code_fix] 全局默认值仅包含工具设置，项目策略不注入默认或常规管理路径。

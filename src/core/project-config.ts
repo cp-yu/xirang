@@ -279,7 +279,6 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
       warn(
         `Unsupported schema '${String(raw.schema)}' in .xirang/config.yaml. Available: semantic-model`
       );
-      if (typeof raw.schema === 'string' && raw.schema.trim()) return null;
     }
 
     // Parse proseLanguage field using Zod, with docLanguage as a legacy fallback.

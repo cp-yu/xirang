@@ -29,7 +29,7 @@ export const PROJECT_CONFIG_FIELDS: readonly ProjectConfigField[] = [
 
 export const IGNORED_PROJECT_CONFIG_PATHS = [
   'profile', 'workflows', 'delivery', 'propose', 'optimization',
-  'git.autoCommit', 'git.archive', 'git.merge.messageFrom', 'git.merge.commitMessage',
+  'git.autoCommit', 'git.archive.commitMessage.convention', 'git.merge.messageFrom', 'git.merge.commitMessage.convention',
 ] as const;
 
 export function configValue(value: unknown, key: string): unknown {

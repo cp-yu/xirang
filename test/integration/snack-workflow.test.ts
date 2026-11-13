@@ -148,7 +148,7 @@ describe('snack workflow integration', () => {
     await fs.mkdir(path.join(testDir, '.xirang'), { recursive: true });
     await fs.mkdir(path.join(testDir, '.claude', 'skills', 'xirang-snack'), { recursive: true });
     const staleSkill = path.join(testDir, '.claude', 'skills', 'xirang-snack', 'SKILL.md');
-    await fs.writeFile(staleSkill, 'STALE CONTENT');
+    await fs.writeFile(staleSkill, '---\nmetadata: { generatedBy: stale }\n---\nSTALE CONTENT');
 
     const updateCommand = new UpdateCommand({ force: true });
     await updateCommand.execute(testDir);

@@ -1,47 +1,5 @@
-import path from 'path';
 import { z } from 'zod';
 import { stringify } from 'yaml';
-
-const GitCommitMessagePathSchema = z
-  .string()
-  .min(1)
-  .refine(
-    (value) =>
-      !path.posix.isAbsolute(value) &&
-      !path.win32.isAbsolute(value) &&
-      !value.includes('\\') &&
-      path.posix.normalize(value) !== '..' &&
-      !path.posix.normalize(value).startsWith('../'),
-    'must be a POSIX relative path without ..'
-  );
-
-const GitConfigSchema = z
-  .object({
-    commitMessage: z
-      .object({
-        boundary: GitCommitMessagePathSchema.optional(),
-        archive: GitCommitMessagePathSchema.optional(),
-        merge: GitCommitMessagePathSchema.optional(),
-      })
-      .optional(),
-    merge: z
-      .object({
-        strategy: z.enum(['no-ff', 'ff-only', 'squash']).optional().default('no-ff'),
-      })
-      .optional()
-      .default({ strategy: 'no-ff' }),
-    branch: z
-      .object({
-        deleteAfterArchive: z.boolean().optional().default(false),
-      })
-      .optional()
-      .default({ deleteAfterArchive: false }),
-  })
-  .optional()
-  .default({
-    merge: { strategy: 'no-ff' },
-    branch: { deleteAfterArchive: false },
-  });
 
 /**
  * Zod schema for global Xirang configuration.
@@ -53,13 +11,6 @@ export const GlobalConfigSchema = z
       .record(z.string(), z.boolean())
       .optional()
       .default({}),
-    apply: z
-      .object({
-        defaultIsolation: z.enum(['ask', 'branch', 'worktree', 'none']).optional().default('ask'),
-      })
-      .optional()
-      .default({ defaultIsolation: 'ask' }),
-    git: GitConfigSchema,
   })
   .passthrough()
   .transform(({ propose: _retiredPropose, optimization: _retiredOptimization, profile: _profile, workflows: _workflows, delivery: _delivery, ...config }) => config);
@@ -71,17 +22,6 @@ export type GlobalConfigType = z.infer<typeof GlobalConfigSchema>;
  */
 export const DEFAULT_CONFIG: GlobalConfigType = {
   featureFlags: {},
-  apply: {
-    defaultIsolation: 'ask',
-  },
-  git: {
-    merge: {
-      strategy: 'no-ff',
-    },
-    branch: {
-      deleteAfterArchive: false,
-    },
-  },
 };
 
 const KNOWN_TOP_LEVEL_KEYS = new Set(Object.keys(DEFAULT_CONFIG));
@@ -110,41 +50,6 @@ export function validateConfigKeyPath(path: string): { valid: boolean; reason?: 
       return { valid: false, reason: 'featureFlags values are booleans and do not support nested keys' };
     }
     return { valid: true };
-  }
-
-  if (rootKey === 'apply') {
-    if (rawKeys.length === 1) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 2 && rawKeys[1] === 'defaultIsolation') {
-      return { valid: true };
-    }
-    return {
-      valid: false,
-      reason: 'apply only supports the nested key "defaultIsolation"',
-    };
-  }
-
-  if (rootKey === 'git') {
-    if (rawKeys.length === 1) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 2 && (rawKeys[1] === 'commitMessage' || rawKeys[1] === 'merge' || rawKeys[1] === 'branch')) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 3 && rawKeys[1] === 'commitMessage' && ['boundary', 'archive', 'merge'].includes(rawKeys[2])) {
-      return { valid: true };
-    }
-    if (rawKeys.length === 3 && rawKeys[1] === 'merge' && rawKeys[2] === 'strategy') {
-      return { valid: true };
-    }
-    if (rawKeys.length === 3 && rawKeys[1] === 'branch' && rawKeys[2] === 'deleteAfterArchive') {
-      return { valid: true };
-    }
-    return {
-      valid: false,
-      reason: 'git only supports the nested keys "commitMessage.boundary", "commitMessage.archive", "commitMessage.merge", "merge.strategy", and "branch.deleteAfterArchive"',
-    };
   }
 
   if (rawKeys.length > 1) {

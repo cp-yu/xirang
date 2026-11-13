@@ -11,16 +11,10 @@ export const GLOBAL_DATA_DIR_NAME = 'xirang';
 // TypeScript interfaces
 export interface GlobalConfig {
   featureFlags?: Record<string, boolean>;
-  apply?: {
-    defaultIsolation?: 'ask' | 'branch' | 'worktree' | 'none';
-  };
 }
 
 const DEFAULT_CONFIG: GlobalConfig = {
   featureFlags: {},
-  apply: {
-    defaultIsolation: 'ask',
-  },
 };
 
 /**
@@ -130,16 +124,7 @@ export function getGlobalConfig(): GlobalConfig {
         ...DEFAULT_CONFIG.featureFlags,
         ...(parsed.featureFlags || {})
       },
-      apply: {
-        ...DEFAULT_CONFIG.apply,
-        ...(parsed.apply || {})
-      }
     };
-
-    // Schema evolution: apply defaults for new fields if not present in loaded config
-    if (parsed.apply === undefined) {
-      merged.apply = DEFAULT_CONFIG.apply;
-    }
 
     return merged;
   } catch (error) {

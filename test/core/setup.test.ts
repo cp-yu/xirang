@@ -438,7 +438,7 @@ context: |
       const originalContent = await fs.readFile(skillFile, 'utf-8');
 
       // Modify the file
-      await fs.writeFile(skillFile, '# Modified content\n');
+      await fs.writeFile(skillFile, '---\nmetadata: { generatedBy: test }\n---\n# Modified managed content\n');
 
       // Run init again
       const initCommand2 = createSetupCommand({ tools: 'claude', force: true });

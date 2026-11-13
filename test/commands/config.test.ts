@@ -132,6 +132,45 @@ describe('config command integration', () => {
     }
   });
 
+  it('preserves independent valid fields when the schema is invalid', async () => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const source = 'configVersion: 1\nschema: invalid\ncontext: Keep my background\napply: { defaultIsolation: worktree }\n';
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'project', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ configVersion: 1, context: 'Keep my background', apply: { defaultIsolation: 'worktree' } });
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(checked.exitCode).toBe(1);
+    expect(JSON.parse(checked.stdout).fields).toContainEqual(expect.objectContaining({ path: 'context', value: 'Keep my background', source: 'explicit' }));
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each(['git.archive.typo', 'git.merge.commitMessage.typo'])('rejects unknown nested Git field %s', async key => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const value: Record<string, unknown> = { configVersion: 1 };
+    const { setNestedValue } = await import('../../src/core/config-schema.js');
+    setNestedValue(value, key, true);
+    fs.writeFileSync(path.join(dir, 'config.yaml'), stringify(value));
+    const result = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(result.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line))).toContainEqual(expect.objectContaining({ field: key, severity: 'error' }));
+  });
+
+  it('keeps global defaults free of project policies and preserves existing unknown settings', async () => {
+    const fresh = await runCLI(['config', 'list', '--json']);
+    expect(JSON.parse(fresh.stdout)).toEqual({ featureFlags: {} });
+    const reset = await runCLI(['config', 'reset', '--all', '--yes']);
+    expect(reset.exitCode).toBe(0);
+    const file = path.join(tempDir, 'xirang', 'config.json');
+    expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual({ featureFlags: {} });
+    const existing = { custom: 'keep', apply: { defaultIsolation: 'worktree' }, git: { custom: true } };
+    fs.writeFileSync(file, JSON.stringify(existing));
+    const result = await runCLI(['config', 'list', '--json']);
+    expect(JSON.parse(result.stdout)).toEqual({ featureFlags: {}, ...existing });
+  });
+
   it('should use XDG_CONFIG_HOME for config path', async () => {
     const { getGlobalConfigPath } = await import('../../src/core/global-config.js');
     const configPath = getGlobalConfigPath();

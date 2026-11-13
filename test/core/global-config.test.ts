@@ -102,14 +102,13 @@ describe('global-config', () => {
 
       // Should contain at least the core default fields
       expect(config).toHaveProperty('featureFlags');
-      expect(config).toHaveProperty('apply');
+      expect(config).not.toHaveProperty('apply');
       expect(config).not.toHaveProperty('optimization');
       expect(config).not.toHaveProperty('profile');
       expect(config).not.toHaveProperty('workflows');
       expect(config).not.toHaveProperty('delivery');
       expect(config).not.toHaveProperty('propose');
       expect(config.featureFlags).toEqual({});
-      expect(config.apply).toHaveProperty('defaultIsolation');
       expect(config).not.toHaveProperty('optimization');
     });
 
@@ -149,13 +148,12 @@ describe('global-config', () => {
 
       // Should contain at least the core default fields
       expect(config).toHaveProperty('featureFlags');
-      expect(config).toHaveProperty('apply');
+      expect(config).not.toHaveProperty('apply');
       expect(config).not.toHaveProperty('optimization');
       expect(config).not.toHaveProperty('profile');
       expect(config).not.toHaveProperty('workflows');
       expect(config).not.toHaveProperty('delivery');
       expect(config.featureFlags).toEqual({});
-      expect(config.apply).toHaveProperty('defaultIsolation');
       expect(config).not.toHaveProperty('optimization');
     });
 

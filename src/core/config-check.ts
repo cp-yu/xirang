@@ -15,6 +15,11 @@ export function projectConfigPath(projectRoot: string) {
   return { path: fs.existsSync(yaml) || !fs.existsSync(yml) ? yaml : yml, ignoredPaths: fs.existsSync(yaml) && fs.existsSync(yml) ? [yml] : [] };
 }
 
+const legacyContainers: Record<string, z.ZodType> = {
+  'git.archive': z.object({ commitMessage: z.object({ convention: z.unknown() }) }),
+  'git.merge.commitMessage': z.object({ convention: z.unknown() }),
+};
+
 export function inspectConfigValues(raw: unknown, targetVersion = CURRENT_CONFIG_VERSION): ConfigIssue[] {
   const issues: ConfigIssue[] = [];
   const issue = (field: string, message: string, warning = false) => issues.push({ severity: warning ? 'warning' : 'error', code: warning ? 'IGNORED_CONFIG' : 'INVALID_CONFIG', field, message, suggestion: warning ? `Remove ${field}; it is ignored.` : `Check the spelling and supported value of ${field}; run xirang config.` });
@@ -31,6 +36,7 @@ export function inspectConfigValues(raw: unknown, targetVersion = CURRENT_CONFIG
           ignored(child, name);
           continue;
         }
+        if (Object.hasOwn(legacyContainers, name)) { visit(child, legacyContainers[name], name); continue; }
         if (!Object.hasOwn(schema.shape, key)) { issue(name, `Unknown field ${name}; possible spelling mistake`); continue; }
         visit(child, schema.shape[key], name);
       }

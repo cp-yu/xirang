@@ -522,7 +522,7 @@ git:
         );
       });
 
-      it('should warn and return null when schema is invalid', () => {
+      it('rejects an invalid schema independently of valid context', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
@@ -532,7 +532,8 @@ context: Valid context here
 `
         );
 
-        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(readProjectConfig(tempDir)).toMatchObject({ context: 'Valid context here' });
+        expect(readProjectConfig(tempDir)).not.toHaveProperty('schema');
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           "Unsupported schema 'custom-schema' in .xirang/config.yaml. Available: semantic-model"
         );
@@ -898,7 +899,8 @@ context: |
           'schema: bootstrap\ncontext: from yml\n'
         );
 
-        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(readProjectConfig(tempDir)).toMatchObject({ context: 'from yml' });
+        expect(readProjectConfig(tempDir)).not.toHaveProperty('schema');
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           "Unsupported schema 'bootstrap' in .xirang/config.yaml. Available: semantic-model"
         );

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 4,
+  "changeId": "configuration-discoverability",
+  "revision": 1,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "f33ca9a7176af4a42438aefa48d3c73f3545260b",
+      "result": "FAIL",
+      "summary": "Assessed Completeness, Correctness, Coherence and Cleanliness across the cumulative Change. Configuration discovery, migration boundaries, Semantic Delta identity and generated guidance have substantial passing coverage: 520 tests across 21 files passed, and TypeScript checking passed. Four contract violations remain. HEAD stayed unchanged and the worktree remained clean throughout assessment.",
+      "findings": [
+        "CRITICAL — Synchronization overwrites same-name user files without ownership evidence. src/core/templates/sync-engine.ts:265-279 unconditionally replaces workflow SKILL.md and removes its references directory; lines 395-414 similarly replace internal Agent files. An independent temporary-project probe populated .pi/skills/xirang-explore/SKILL.md and .pi/agents/xirang-reviewer.md with user instructions and no managed marker; syncOne overwrote both without error. This violates .xirang/changes/configuration-discoverability/elements/agent-workbench-projection.md:25-45 and elements/internal-subagent-generation.md:23-29,47-49. The existing test at test/core/templates/sync-engine.test.ts:415-430 actually expects an unmarked same-name Agent file to be overwritten. Establish ownership before replacement or recursive removal, and replace that contradictory assertion with user-file preservation coverage.",
+        "CRITICAL — An unsupported schema discards independently valid configuration. src/core/project-config.ts:275-282 returns null for any unsupported nonempty schema string, before processing context, isolation and other fields. With configVersion: 1, schema: invalid, context: Keep my background and apply.defaultIsolation: worktree, the independent probe returned only default architecture and empty rules; valid version, context and isolation disappeared. check then labels those missing values explicit/checkable at src/core/config-check.ts:76-82. This violates the field-level preservation commitment in .xirang/changes/configuration-discoverability/elements/project-config-management.md:29 and elements/project-config-loading.md:21-25,49. Reject the schema field while retaining and inspecting independent valid fields, with regression coverage for this combination.",
+        "CRITICAL — Strict checking treats unknown nested Git fields as warning-only retired inputs. src/core/config-fields.ts:30-33 retires entire git.archive and git.merge.commitMessage parents; src/core/config-check.ts:26-32 recursively downgrades every descendant to a warning. Independent probes of git.archive.typo and git.merge.commitMessage.typo produced only IGNORED_CONFIG warnings, so an otherwise valid project passes check. The specified retired Git inputs are the particular paths listed in .xirang/changes/configuration-discoverability/elements/project-config-loading.md:67; unknown nested fields must fail under elements/config-command.md:31,55-59. Narrow the ignored paths and distinguish necessary legacy containers from unrecognized descendants; add a test asserting error status for nested typos.",
+        "CRITICAL — Global defaults still include project development policies, contrary to the target global configuration contract. src/core/global-config.ts:19-24 injects apply.defaultIsolation into fresh global reads; src/core/config-schema.ts:50-85 injects both apply and git into schema/reset defaults and recognizes their management paths at lines 115-146. Independent execution confirmed fresh reads return featureFlags plus apply, while reset/schema defaults also return Git policy. The target explicitly places project preferences in project configuration and defines the global default as featureFlags: {} at .xirang/changes/configuration-discoverability/elements/global-config.md:15-21. Align the global defaults and recognized fields with that contract while preserving ordinary unknown user settings; update the tests that currently require the obsolete defaults."
+      ]
+    }
+  ],
+  "opt": null,
+  "seal": null
+}
