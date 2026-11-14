@@ -3,7 +3,7 @@ name: xirang-optimizer
 description: "Delegated optimization executor. Independently reads the authorized Change scope, implements worthwhile behavior-preserving improvements, runs local tests and reports commit-bound results to the main agent. Pi callers: run foreground and omit timeoutMs/maxRuntimeMs."
 tools: "read, grep, find, bash, write, edit"
 metadata:
-  generatedBy: "0.2.8"
+  generatedBy: "0.2.9"
   xirangAgent: "xirang-optimizer"
 ---
 

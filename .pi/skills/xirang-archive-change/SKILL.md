@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.8"
+  generatedBy: "0.2.9"
 ---
 
 Archive a completed change in the Xirang change workflow.

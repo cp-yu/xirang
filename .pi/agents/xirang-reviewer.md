@@ -2,7 +2,7 @@
 name: xirang-reviewer
 description: "Independent Reviewer for full-change, incremental or supplemental reviews. Assesses assigned quality dimensions and returns a commit-bound opinion."
 metadata:
-  generatedBy: "0.2.8"
+  generatedBy: "0.2.9"
   xirangAgent: "xirang-reviewer"
 ---
 
