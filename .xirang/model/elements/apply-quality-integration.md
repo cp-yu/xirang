@@ -17,10 +17,6 @@ definition: Apply Quality Integration 是 Apply 对基线独立审查、可选�
 
 Apply SHALL 由主 Agent负责提交、适用测试、质量维度分工、完整结果等待、后续投入和最终验证范围；Reviewer 独立判断已提交状态的目标实现及测试充分性，保持只读但不设专属工具白名单或硬只读权限。Opt 负责委托内优化及局部测试，缺少对应测试时先补后改。主 Agent 和 Opt 不替代必需独立 Review；Pi Reviewer 在后台运行以使用环境中可用的扩展工具，Opt 的调用方式不因此改变。
 
-### Section: 配置驱动优化控制
-
-optimization.enabled SHALL 控制是否启动优化；配置禁用或用户明确拒绝时记录明确跳过。Opt 与主 Agent 按证据、收益、成本、风险和进展判断继续或停止，遵守用户和委托预算；无新证据或实质进展的重复尝试 SHALL 停止并记录。directionLimit、directionRetries、minImpactLevel 等退役输入给出明确诊断，不继续参与控制。
-
 ### Section: Apply 读取 Quality 诊断信息
 
 当新 Quality JSON 存在时，Apply SHALL 读取 Review opinions、Opt disposition/opinions、Seal 与具体诊断，将其作为修复或收口上下文。失败 Review 的 findings 交由主 Agent 判断并安排修正；主 Agent 可更新对应 task 与 Required Corrections，形成修正 commit 后重新 Review。Quality/CLI SHALL NOT 自动 unmark task 或追加 task section。没有新 Quality JSON 时，Apply SHALL 按新协议取得基线 Review，不得从旧 snapshot/log/evidence 推断已通过。

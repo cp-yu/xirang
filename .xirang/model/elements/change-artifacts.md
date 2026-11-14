@@ -38,42 +38,14 @@ definition: Change Artifacts 定义 Change 制品集合的结构化语义：prop
 
 ### Section: 制品语义边界
 
-Change 的语义来源 SHALL 由四分区 Semantic Delta 承载：`elements/` 与 `metamodel/` 承载 Declaration 与 Kind 目标，`relationships/` 承载 Relationship 目标；proposal/design/tasks 定义为 scaffolding；effective diff 仅由只读 `xirang validate --change` 输出，不持久化。
+Change 的语义来源 SHALL 由 semantic-delta 制品承载，它是 elements、metamodel、relationships、views 四分区的完整 Semantic Delta；elements 单元携带 Declaration 与 Section Entries，其余分区携带相应 Kind、Relationship 和 Authored View Entries。proposal、design、tasks 为辅助制品，不独立定义目标语义。
 
-- **语义来源与脚手架分离**
+semantic-delta SHALL 按实体身份表达目标内容，不包含派生 diff。effective diff 由当前 Formal Model 与 Change 确定性派生，通过只读 validate --change 或 Browser 呈现，不作为持久语义输入。
 
-  - Agent 获取制品定义
-  - semantic source SHALL 使用稳定 identities
-  - scaffolding 与只读 preview SHALL 不参与目标语义推导
-
-- **无语义变化时不伪造制品**
-
-  - 某类 source 无变化
-  - workflow SHALL 使用现有完成标记契约且不生成空 delta 单元
-
-- **无持久化 review artifact 输入**
-
-  - 遗留 review 文件存在
-  - compiler SHALL 只读取 formal 与 change semantic sources
-
-- **Contract 与结构 delta 不争夺语义所有权**
-
-  - Agent 获取 Contracts 与结构 delta definitions
-  - `elements/` 单元正文 SHALL 包含完整 target Sections 与 Acceptance Cases
-  - `metamodel/`、`relationships/`、`views/` 与 Declaration Entry SHALL 包含 identity-level operations
-  - 两者 SHALL 排除 derived diff projections
-
-- **Behavior Source 无变化**
-
-  - Behavior Source 为 None
-  - workflow SHALL 使用现有 completion marker contract
-  - MUST NOT 伪造 delta Contract 单元
-
-- **Diff 实时计算不依赖 review artifact**
-
-  - 用户查看 change 的 effective diff
-  - Web diff SHALL 从 Formal 与 change source 实时计算
-  - SHALL NOT 展示或依赖任何持久化 review artifact 内容作为 authoritative diff
+- 仅 Relationship 或 Authored View 变化：对应分区完整表达变化，不伪造 Element Contract 差量或 .delta-noop。
+- 所有语义对象均无变化：使用 .delta-noop 完成标记，不生成空差量单元。
+- 某分区无变化：该分区可为空；其余真实差量仍共同推导目标模型。
+- 查看差异：从当前正式模型及差量派生，不以历史 review 文档作为规范来源。
 
 ### Section: Candidate file definitions 分离 authoring 与 workflow state
 
@@ -102,37 +74,9 @@ Candidate workspace SHALL 为 CLI-owned `candidate.yaml`、Agent-authored `build
 
 ### Section: 制品定义先行写作
 
-Artifact instructions SHALL 按制品定义先行顺序投影 inputs；通用 artifact instruction SHALL 不编排 validate、diff write、sync 或 archive workflow。
+工作面 SHALL 以制品 Definition、Guidance、Template 的顺序交付静态写作依据。semantic-delta 的指导完整说明四分区对象、修改语与完整目标内容；项目 proseLanguage、context 和匹配的 rules 由 config project 独立查询，不改变制品 purpose、compilationRole、content boundary 或 writePolicy。
 
-- **Instructions JSON 返回 definition 与 current state**
+制品依赖与完成状态通过 status 查询。依赖尚未完成时，静态定义仍可读取，但不得把指导可读当作依赖已完成。通用静态制品指导不编排 sync 或 archive 等状态转换。
 
-  - Agent 请求 artifact instructions
-  - JSON SHALL 分别返回 definition、instruction、template、dependencies、outputPath、currentState 与 configProjection
-
-- **Blocked artifact 仍可理解**
-
-  - dependencies 未完成
-  - instructions SHALL 仍返回 definition 与 current state
-
-- **通用 guidance 不编排派生操作**
-
-  - Agent 获取语义制品 instruction
-  - SHALL 要求完整目标 Sections
-  - MUST NOT 调用独立 metadata command
-
-- **文本输出按制品定义先行顺序展示**
-
-  - Agent 请求文本 instructions
-  - definition SHALL 位于 artifact-specific instruction 与 template 前
-
-- **Instructions JSON 包含 definition**
-
-  - 用户执行 `xirang instructions specs --change <id> --json`
-  - 输出 SHALL 匹配扩展后的 `ArtifactInstructions` interface
-  - `definition` SHALL 与当前内置 Schema 的 specs artifact definition 一致
-
-- **Definition 不受 config rules 覆盖**
-
-  - project config 为 artifact 提供 context、rules 或 prose projection
-  - 这些字段 SHALL 与 definition 分开返回
-  - MUST NOT 改变 file purpose、compilation role、content boundary 或 write policy
+- Agent 编写 semantic-delta：先读取对应静态 reference，再查询 --artifact semantic-delta 的项目规则；规则作为附加要求，不覆盖定义。
+- Change 尚缺 proposal：可读取差量定义，status 仍按制品图报告 blocked。

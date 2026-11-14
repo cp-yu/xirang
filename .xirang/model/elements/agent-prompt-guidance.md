@@ -2,20 +2,24 @@
 entity: element-declaration
 identity: agent-prompt-guidance
 kind: element
-parent: agent-workbench-projection
-title: Agent Prompt Guidance
-definition: Agent Prompt Guidance 是 Apply、Quality 与 Archive 共用的质量协议呈现，独立承载委托、证据、完成条件及恢复诊断的共享指引，并提供可选失败定位方法。它从实现协议投影机械信息，不维护重复 schema，不将模型的优化取舍固化为逐方向状态机。
+parent: references-home
+title: 质量协作指导
+definition: 质量协作指导是 Apply、Quality 与 Archive 共用的工作协议表达。它独立承载基于证据的角色委派、Review/Opt/Seal 交付、诊断消费及 Git 恢复指引，使主 Agent 和内部角色按各自职责协作；角色完整定义由内部 Agent 制品承担，CLI 记录格式由确定性操作约束。
 ---
 
 ## Specification
 
-### Section: 简单变更快速路径识别
-
-Optimization 启用且用户未明确拒绝时，提示词 SHALL 委托 Opt 进行初次优化，即使是纯删除或重命名也不由主 Agent 虚构无优化结论。Opt 可以交付无保留改动及依据；交付后主 Agent 判断是否继续，不强制再启动 fresh Opt 或证明全部机会耗尽。配置禁用/用户拒绝时明确记录跳过。
-
 ### Section: 共享 quality gate 指引片段
 
-系统 SHALL 从统一实现协议源向 Apply/Archive 投影 v4 Review opinion、按 `reviewKind` 的 Reviewer 委派与主 Agent 汇总、Opt 处置、Seal、status 和 Archive commit 检查指引，示例与实际 schema 一致；不维护平行的 `reviewId`/`scope` 说明、独立测试输出存储或 freshness ledger。阶段指引包含通过的 `full-change` Review、可选 Opt、必要的后续 Review 与 Seal。
+质量协作指导 SHALL 以 Review、可选 Opt、Opt 处置和 Seal 表达完整质量流程，并从统一协议源交付 opinion schema、委派与持久化边界。流程表 SHALL 表达：先取得通过的 full-change Review；主 Agent 决定是否 Opt；执行时交付 opinion，未执行时记录理由；Seal 绑定 commit 并声明可运行及适用测试预期。
+
+Reviewer、Optimizer 的完整角色定义和判断标准由其内部 Agent 制品承载。Apply/Archive 指导 SHALL 明确委派 clean-context 对应角色，传入所需模型、Change、commit、委托范围和证据，等待完整结果；主 Agent 不通过读取或内联角色制品替代独立委派。工具专属 API 语法由工具适配承担。
+
+指引 SHALL 区分 full-change、incremental、supplemental Review，并使示例与实际 schema 一致。意见与 commit 由 CLI 关联，代码恢复由 Git 承载，Archive 的 Quality 门禁确认 Seal commit 对象存在。
+
+- 进入 Review：委派 Reviewer，等待意见后再作汇总，不把主 Agent 判断写成 Reviewer PASS。
+- 用户不执行 Opt：记录明确处置，仍满足基线 Review、适用验证和 Seal 要求。
+- Opt 交付存在未解决问题：交由主 Agent 判断修正或恢复，不推断已经完成。
 
 ### Section: Archive 模板未收口恢复路径
 

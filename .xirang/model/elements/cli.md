@@ -211,3 +211,13 @@ CLI SHALL 保留 Semantic Model 的 identity 引用语义、Quality revision 的
 ### Section: 保持非交互输出简洁
 
 非交互调用 SHALL 不输出 spinner、加载进度、颜色装饰或成功装饰文本。真实警告、错误、必要后续凭据及显式请求的完整数据 SHALL 保留。显式请求详细信息时，输出 SHALL 仅展开该命令请求的范围，不因 --json 自动增加额外内容。
+
+### Section: 配置发现与只读检查
+
+CLI SHALL 从 setup 完成引导、顶层 help 及 config 命令提供项目配置入口；config 说明可独立于已初始化项目使用，config project 返回有效值，config check 详细检查并解释配置来源和作用范围。配置检查 SHALL 支持 JSON、聚合独立问题，错误返回 1，仅忽略字段警告返回 0；不修改文件，也不证明 Agent 已执行自然语言要求。
+
+只有 setup 创建项目配置。update SHALL 按有版本的完整迁移链演进已有文件，最近 10 次迁移操作支持范围外提示旧 CLI 分段迁移；缺失/损坏/非法版本或迁移失败不修复、猜测或部分写回。成功迁移原子提交内容与版本，明确清单清理陈旧项并提示，保留仍适用用户内容。必要配置引导与迁移改动提示属于使用结果，不作为泛化成功装饰；stdout SHALL 交付请求数据，stderr SHALL 交付警告、错误及必要引导。
+
+### Section: Semantic Delta 制品身份
+
+CLI SHALL 以 semantic-delta 统一标识 semantic-model schema 的四分区语义差量制品；状态、依赖、模板映射、authoring help 与项目规则选择使用同一身份。help authoring semantic-delta SHALL 从该制品取得定义及模板，config project --artifact semantic-delta SHALL 取得 rules.semantic-delta；只读查询不改写模型、Change 或配置。

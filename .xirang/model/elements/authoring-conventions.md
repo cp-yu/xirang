@@ -2,9 +2,9 @@
 entity: element-declaration
 identity: authoring-conventions
 kind: element
-parent: agent-workbench-projection
-title: Authoring Conventions
-definition: Authoring Conventions 定义契约与变更写作规范：Section 结构与自由载体、behavior-first 边界、稳态命名、progressive rigor、Header 即 identity、verb-first CLI 与 structure token/填充 prose 区分。其中项目目录结构语义已被 Semantic Model 四分区存储吸收，不在此重复。
+parent: references-home
+title: 共享语义写作指导
+definition: 共享语义写作指导是息壤 Declaration、Contract、Change 与相关交互表达的写作契约。它独立承载抽象层级完整性、目标状态表达、Section 身份与自由载体、规范标记、制品职责分工及精简规则，并由业务规格标准进一步细化专用格式；生成路径与加载入口由共享 Reference 交付负责。
 ---
 
 ## Specification
@@ -70,85 +70,26 @@ Section 标题 SHALL 作为 Formal 与 change-local 源之间的 unique identity
 
 ### Section: 变更内 Contract 表达目标稳态
 
-Change-local Contracts SHALL 仅使用 `ADDED`、`MODIFIED`、`REMOVED` Section sections；Section 与 Acceptance Case body SHALL 描述目标稳态。Acceptance Case operation metadata MUST NOT 写入 source。
+Change-local Section Entries SHALL 使用 ADDED、MODIFIED、REMOVED。ADDED/MODIFIED 携带目标状态下成立的完整内容；正文不承载相对其他状态的变更叙述，MODIFIED 保留该目标中仍成立的案例及 exact Section title。REMOVED 只声明所移除 Section 的 identity，不携带正文、理由或迁移安排；这些安排属于 Change Plan。
 
-- **ADDED 正文直接描述行为**
-  - change 引入新行为
-  - ADDED Section SHALL 使用 durable capability name 与 normative target-state text
-  - SHALL NOT 使用 change-log narration
+Acceptance Cases 是宿主 Section 的内部结构，不独立携带修改语。目标中不存在的案例在完整目标 Section 中省略；呈现层可根据两状态派生案例差异，不把派生操作写回源。
 
-- **MODIFIED 包含完整目标状态**
-  - existing Section 的行为或 Acceptance Case set 变化
-  - MODIFIED block SHALL 包含完整 target Section
-  - SHALL 包含全部 surviving Acceptance Cases
-  - existing Section 标题 SHALL 保持 exact matching
-
-- **Acceptance Case operations 由 Diff IR 派生**
-  - validate、diff 或 view 比较 Formal 与 Target Section
-  - SHALL 派生 Acceptance Case ADDED、MODIFIED、REMOVED 或 UNCHANGED presentation
-  - derived operation SHALL NOT 写回 change-local source
-
-- **行为定义不引用变更上下文**
-  - Section 依赖“原有”“本次”等 change narration 才能理解
-  - SHALL 改写为 target steady state
-
-- **Creating change proposals with additions**
-  - change 增加 Section
-  - `## ADDED Sections` SHALL 包含完整 target Section 与 Acceptance Cases
-
-- **Delta operation 使用三种 sections**
-  - change-local Contract 增加、修改或删除 Section
-  - SHALL 只使用 `ADDED`、`MODIFIED`、`REMOVED` sections
-  - body SHALL 描述 target steady state
-
-- **Creating change proposals with modifications**
-  - change 修改 existing Section
-  - `## MODIFIED Sections` SHALL 使用 exact existing title
-  - SHALL 包含完整 target statement 与全部 surviving Acceptance Cases
-
-- **Creating change proposals with removals**
-  - change 删除 Section
-  - `## REMOVED Sections` SHALL 声明 exact title、Reason 与 Migration
-
-- **Acceptance Case 删除通过省略表达**
-  - existing Acceptance Case 在目标稳态中不再存在
-  - Agent-authored MODIFIED Section SHALL 省略该 Acceptance Case
-  - MUST NOT 编写 removed Acceptance Case block 或 operation label
-
-- **Acceptance Case operation 派生**
-  - `MODIFIED Section` 的 target Acceptance Case set 与 Formal 不同
-  - 浏览器 SHALL 通过 title 与 body 比较派生 Acceptance Case ADDED、MODIFIED、REMOVED 或 UNCHANGED 状态
-  - SHALL NOT 读取 change-local Acceptance Case operation labels
-
-Change `elements/` 分区的 delta 单元 SHALL：
-- 只表达变化本身，每个受影响的 Element 一个单元
-- 以 `## ADDED`、`## MODIFIED`、`## REMOVED` Sections 分节；rename 表达为 REMOVED 旧标题加 ADDED 新标题
-- 以 normalized header 匹配 Section identity
-- ADDED 与 MODIFIED 的 Section 携带完整目标内容
-- 每个 Section 的修改语明确
+- 删除一个 Section：REMOVED 只含其标题；Expected Model 不保留该 Section 或删除叙述。
+- 修改一个 Section 并取消其中一个案例：目标正文直接表达仍成立的承诺和案例。
+- 改名 Section：REMOVED 声明旧身份，ADDED 声明新身份及完整目标内容。
 
 ### Section: semantic-model instruction 区分结构 token 和填充 prose
 
-Semantic-model artifact instructions SHALL 明确 parse-sensitive 结构 token 保持 canonical，agent 填充的新写或改写 prose 跟随 `proseLanguage`。
+写作指导 SHALL 区分解析所需的 canonical tokens 与作者填充的自然语言。`### Section:`、`#### Acceptance Case:`、修改语、identity、schema keys、路径、命令及代码标识保持原文；自然语言遵循有效 proseLanguage。业务规格的四个固定标题保持英文，MODIFIED Section 保持 exact title。
 
-- **specs instruction 标注 Section 与 Acceptance Case 标题语言**
-  - agent 创建 delta contract
-  - instructions SHALL 指出 `### Section:` 和 `#### Acceptance Case:` 标记保持 canonical
-  - new Section 标题 与 new Acceptance Case 标题 SHALL 跟随 `proseLanguage`，但业务规格的四个固定 Section 标题 SHALL 保留英文 canonical 形式
-  - MODIFIED section 中 exact matching 所需的 existing Section 标题 SHALL 保持原文
+tasks.md SHALL 以 `## Goals`、稳定的 G<n> checkbox、Contract 引用与 Verify 方向组织目标。目标内容使用配置语言，具体实现文件、测试动作及执行日志由 Apply 根据项目证据安排，不写成任务制品的固定格式。
 
-- **tasks instruction 标注 task 与 check prose 语言**
-  - agent 创建 `tasks.md`
-  - instructions SHALL 指出 `### Task N:`、`Goal`、`Files`、`Sections`、`Checks`、`Verifies:`、`Command:`、`Evidence:` 与 `Expect:` 等结构标签保持 canonical
-  - task titles、check names、Sections bullet prose、`Evidence:` 与 `Expect:` descriptions SHALL 跟随 `proseLanguage`
+- 中文目标正文可包含 canonical 英文标记；标记不得为迎合 proseLanguage 而翻译。
+- 任务引用精确指向 Element 与 Section，验证方向说明条件和可观察结果。
 
 ### Section: Proposal 格式
 
-Proposal SHALL 显式记录全部变化，并提供清晰的 from/to 对比。
-
-- **记录变化**
-  - 记录 what changes
-  - proposal SHALL 为每项变化描述 `From:` 当前状态、`To:` 目标状态、`Reason:` 变更原因与 `Impact:` 破坏性/影响范围
+Proposal SHALL 说明发起 Change 的原因、变化范围、来源影响及实施影响，区分 Contract 影响与 Declaration、Relationship、Metamodel、View 的结构影响。说明须足以让用户理解当前问题、目标及破坏性影响，完整目标语义由 Semantic Delta 承载，关键决策由 design.md 承载。
 
 ### Section: Change Review 使用统一 Diff IR
 
@@ -165,22 +106,11 @@ Proposal SHALL 显式记录全部变化，并提供清晰的 from/to 对比。
 
 ### Section: Verb–Noun CLI Command Structure
 
-Xirang CLI SHALL 优先使用动作明确的顶层 commands，但 MAY 为具有内聚 lifecycle 的 durable resource 提供稳定 noun namespace。
+CLI 命名指导 SHALL 优先采用动作明确的顶层命令；具有内聚生命周期的持久资源可使用稳定名词命名空间，命名空间只聚合该资源的相关操作。
 
-- **Setup 使用动词 command**
-  - 用户创建或刷新 project setup
-  - SHALL 使用 `xirang setup`
-  - SHALL NOT 保留退役命令 alias
-
-- **Candidate 使用 resource namespace**
-  - 用户管理 active Semantic Model Candidate
-  - SHALL 使用 `xirang candidate init|status|validate|promote`
-  - noun namespace SHALL 只聚合该 resource 的内聚 lifecycle operations
-
-- **退役 command family**
-  - 用户请求退役命令
-  - CLI SHALL 报告 command 不存在
-  - SHALL NOT 自动转发到其他命令
+- setup 表达工作区初始化动作。
+- candidate init/status/validate/promote 聚合 Candidate 生命周期。
+- 未注册命令应报告不存在，不隐式转发到其他操作。
 
 ### Section: 精简 Contract 表达
 

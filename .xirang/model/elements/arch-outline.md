@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: arch-outline
-kind: element
+kind: capability-specification
 parent: deterministic-operations
 title: Arch Outline
 definition: Arch Outline 定义 `xirang arch outline` 的确定性模型结构总览能力：它为 Agent 的整体语义认知与遗忘恢复投影全部 Element identities 和 hierarchy、全部 persisted Relationships 及完整 Metamodel Kinds，并只在配置深度内携带完整 Element Definition；它不返回 Authored Views、Element Contracts、实现证据或 Agent 判断，也不维护跨调用状态。
@@ -9,107 +9,42 @@ definition: Arch Outline 定义 `xirang arch outline` 的确定性模型结构�
 
 ## Specification
 
-### Section: arch outline SHALL 投影完整模型结构
+### Section: Scope and Non-goals
 
-`xirang arch outline` SHALL 默认投影全部 Element identities 与 hierarchy，包含 identity、kind、title、parent、children 与 depth；默认不返回 Relationships、Metamodel 或 Element Definitions。通过明确的命令选项，调用方 MAY 展开完整 Relationships、Metamodel Kinds 与配置深度内的完整 Definitions。无论 projection 如何选择，Element hierarchy SHALL 完整，不得因 Definition 未加载而省略 Element；任何被展开的规范内容 SHALL 原样完整，不得摘要或截断。
+Arch Outline SHALL 只读投影当前 Formal Semantic Model 的完整层级及显式选择的语义展开，供导航与认知恢复。它不返回 Authored Views、Contracts、Sections 或 Acceptance Cases，不读取活动 Change、实现代码或 Git 证据。
 
-- **默认层级导航**
+### Section: Business Logic
 
-  - 用户运行 `xirang arch outline --format json`
-  - 输出 SHALL 包含全部 Element identities、kind、title、parent、children 与 depth
-  - 默认不包含 Relationships、Metamodel 或 Definitions
+默认输出 SHALL 包含全部 Elements 的 identity、kind、title、parent、children、depth 与规模统计，不返回 Relationships、Metamodel 或 Definitions。显式选择关系或元模型时返回全部持久 Relationships 及完整 Element/Relationship Kind 声明；关系保持 canonical source、kind、target。任何 projection 选择都不裁剪 hierarchy，展开的规范内容不摘要或截断。
 
-- **显式展开 Relationships 与 Metamodel**
+Definition projection SHALL 使用有效 architecture.outline.definitionDepth，默认 2；Project Root depth 为 0。显式 --definition-depth 为当前调用选择并覆盖深度，不改项目配置。深度内返回完整 definition 和 definitionState: loaded，深处返回 unloaded 并省略 definition。未选择 Definitions 时省略 Definition 内容及顶层深度字段；选择时 canonical result 与 JSON 用 definitionDepth 表达实际深度。该配置不控制浏览器展开。
 
-  - 调用方显式选择相应 outline projection
-  - 返回全部 persisted Relationships 与完整 Element Kind、Relationship Kind declarations
-  - relationships 保持 canonical `source`、`kind`、`target`
+--format SHALL 支持 text、markdown、json，默认为 text；三者从同一 canonical result 生成，呈现完整层级、选定展开及统计，明确区分未加载 Definition。模型、配置和参数不变时集合与顺序确定。每次调用重新读取当前模型和配置，不创建 cache、fingerprint、session state、report 或项目文件；Windows、macOS、Linux 的身份及排序语义一致。
 
-- **显式展开 Definitions**
+### Section: Edge Cases and Exception Handling
 
-  - 用户通过现有 `--definition-depth <n>` 选择 Definition 深度
-  - 深度范围内返回完整 Definition 并标记 loaded，其他 Element 保持可发现且不带 Definition
-  - 不生成摘要或截断 Definition
+非法 --definition-depth（负数或非整数）SHALL 非零退出并说明合法值，不静默替换为默认。配置字段非法时按项目配置普通读取规则告警并回退 2。Formal Model 缺失或无效 SHALL 非零退出并报告模型错误，不以空 outline 代替完整模型。depth 0 是合法值，仅加载 Project Root Definition，全部 descendants 仍可发现，其他展开按各自选项返回。
 
-- **排除 Contracts 与 Views**
+### Section: Key Acceptance Cases
 
-  - Formal Semantic Model 同时包含 Authored Views 与 Element Contracts
-  - outline SHALL NOT 返回 Authored Views、Sections 或 Acceptance Cases
-  - SHALL NOT 将 Contract 存在状态误作 Contract 内容返回
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-### Section: arch outline SHALL 按深度加载 Element Definition
+#### Acceptance Case: 默认完整导航
 
-Outline SHALL 使用有效 `architecture.outline.elementDefinitionDepth` 决定显式请求的 Element Definition projection，默认配置值 SHALL 为 `2`。Project Root depth SHALL 为 `0`；显式选择 Definition projection 时，配置深度内的 Element SHALL 返回完整 `definition` 与 `definitionState: loaded`，更深 Element SHALL 返回 `definitionState: unloaded` 并省略 `definition`。未选择 Definition projection 时所有 Element 仅用于层级导航。命令 SHALL NOT 生成摘要或截断 Definition。
+运行 outline --format json，返回全部层级字段及统计，无 Definitions、Relationships 或 Metamodel，Contracts 和 Views 不出现。
 
-- **默认不加载 Definition**
+#### Acceptance Case: 默认与显式深度
 
-  - 用户未传入 Definition projection 选项
-  - outline 返回完整 hierarchy，但省略所有 Definition 正文
+选择 Definitions 且无命令覆盖时，默认加载 depth 0、1、2，深于 2 的节点仍存在但 unloaded。配置值 4 时采用 4；显式 --definition-depth 1 时仅加载 0、1，后续调用默认不变。
 
-- **显式加载配置深度**
+#### Acceptance Case: 零深度
 
-  - 用户显式选择 Definition projection 且未传入 `--definition-depth`
-  - depth `0`、`1`、`2` 的 Elements 携带完整 Definition
-  - depth 大于 `2` 的 Elements 保持可发现且不携带 Definition
+显式深度 0 只加载 Project Root；全部 descendants 保持导航可见，所选 Relationships/Metamodel 完整返回。
 
-- **显式覆盖本次调用**
+#### Acceptance Case: 非法深度与模型缺失
 
-  - 用户运行 `xirang arch outline --definition-depth 1` 并选择 Definition projection
-  - 本次 projection 只为 depth `0` 与 `1` 的 Elements 加载 Definition
-  - SHALL NOT 修改项目配置或后续调用默认值
+命令深度 -1 或非整数时失败；模型缺失时失败并诊断，均不输出伪造空模型。
 
-- **零深度只加载 Project Root**
+#### Acceptance Case: 确定性与跨平台只读
 
-  - 有效 Definition depth 为 `0` 且已选择 Definition projection
-  - 只有唯一 Project Root 携带完整 Definition
-  - 所有 descendants、Relationships 与 Metamodel Kinds SHALL 继续按各自显式选项返回
-
-- **非法命令深度失败**
-
-  - `--definition-depth` 不是非负整数
-  - 命令 SHALL 非零退出并报告合法值约束
-  - SHALL NOT 静默替换为默认值
-
-### Section: arch outline SHALL 支持确定性多格式输出
-
-命令 SHALL 通过 `--format` 支持 `text`、`markdown` 与 `json`，默认 SHALL 为 `text`。三种格式从同一个 canonical result object 生成，Element hierarchy、显式选择的 semantic expansions 与 statistics 在模型及参数不变时保持集合与顺序确定。
-
-- **JSON 返回导航和所选投影**
-
-  - 用户运行 `xirang arch outline --format json`
-  - 输出 SHALL 包含完整 Element hierarchy 与规模统计
-  - Relationships、Metamodel 与 Definition 字段仅在对应 projection 被显式选择时出现
-  - 未加载 Definition SHALL 与层级节点保持可区分
-
-- **文本格式遵循 projection 选择**
-
-  - 用户选择 `text` 或 `markdown`
-  - formatter SHALL 呈现完整 Element hierarchy 与显式选择的 semantic expansions
-  - 未加载 Definition SHALL 明确区分，且不得以截断文本代替
-
-- **重复执行保持确定性**
-
-  - Formal Semantic Model、配置与命令参数未变化
-  - repeated execution 的 semantic content 与 collection order SHALL 相同
-
-### Section: arch outline SHALL 保持无状态只读
-
-命令 SHALL 每次直接读取 Formal Semantic Model 与当前项目配置，SHALL NOT 创建 cache、fingerprint、session state、report 或其他项目文件。命令 SHALL NOT 读取 active Changes、Semantic Delta、实现代码或 Git evidence。
-
-- **上下文遗忘后重新调用**
-
-  - Agent 在上下文压缩或长会话后重新执行相同 outline command
-  - CLI SHALL 从当前 Formal Semantic Model 重新计算完整 projection
-  - 结果 SHALL NOT 依赖此前调用历史
-
-- **模型缺失失败**
-
-  - Formal Semantic Model 不存在或校验失败
-  - 命令 SHALL 非零退出并报告模型错误
-  - SHALL NOT 以空 outline 表示完整模型
-
-- **跨平台读取项目配置与模型**
-
-  - 在 Windows、macOS 或 Linux 上执行 outline
-  - CLI SHALL 使用 Node.js path utilities 定位项目配置和 Formal Semantic Model
-  - SHALL 返回相同 logical identities 与确定性排序
+相同模型、配置、选项重复执行，在 text/markdown/json 中保持相同规范内容及确定顺序；Windows/POSIX 定位差异不改变 logical identities，工作区无新文件。
