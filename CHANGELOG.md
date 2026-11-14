@@ -1,5 +1,15 @@
 # xirang
 
+## 0.2.9
+
+### Patch Changes
+
+- 配置发现与只读检查：`xirang config` 说明可独立于已初始化项目使用；`config project` 返回共享归一化的有效值（含 `apply`、`schema` 默认），`config check` 聚合独立问题、区分 explicit/default/fallback/ignored 来源，错误退出 1、仅忽略警告退出 0，不修改任何文件。
+- 项目配置版本演进：新增有版本迁移链（最近 10 次操作），超窗口或缺链提示所需版本范围；缺失、非法或较新版本不猜测，步骤、最终校验或写入失败保留原文件与版本，成功原子写回；陈旧内容仅按明确清单清理并提示。
+- 退役 Git 路径精确化：`git.autoCommit`、`git.archive.commitMessage.convention`、`git.merge.commitMessage.convention`、`git.merge.messageFrom` 按精确路径警告忽略，旧容器内未知嵌套字段仍为错误；全局默认值仅保留 `featureFlags`，项目策略不再注入全局配置。
+- `rules.semantic-delta` 统一四分区差量规则键：`config project --artifact semantic-delta` 选择完整差量规则；`help authoring semantic-delta` 的 JSON 与文本输出交付统一 schema 模板，模板读取失败保留路径诊断。
+- 工作面同步所有权保护：同名用户 skills、内部 Agent 与 references 不再被覆盖；受管文件携带生成标记，LF/CRLF 下已编辑受管文件按模板刷新，无工具 `setup`/`update` 也交付可读默认项目指导；内部 Agent 刷新保留用户 `model` 设置。
+
 ## 0.2.8
 
 ### Patch Changes
