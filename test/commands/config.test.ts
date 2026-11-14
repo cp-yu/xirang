@@ -65,7 +65,8 @@ describe('config command integration', () => {
   });
 
   it('aggregates strict project errors without changing either config file', async () => {
-    const dir = path.join(tempDir, '.xirang');
+    // macOS getcwd resolves /var → /private/var; compare against the real path the CLI reports.
+    const dir = path.join(fs.realpathSync(tempDir), '.xirang');
     fs.mkdirSync(dir);
     const source = 'configVersion: 1\nschema: semantic-model\napply:\n  defaultIsolaton: branch\nrules:\n  unknown: [Rule]\n';
     fs.writeFileSync(path.join(dir, 'config.yaml'), source);
