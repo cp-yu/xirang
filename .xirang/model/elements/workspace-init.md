@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: workspace-init
-kind: element
+kind: capability-specification
 parent: workspace-init-update
 title: Workspace Init
 definition: Workspace Init 是 setup 创建完整息壤工作区的能力。它创建或保留 .xirang durable core、model 四分区骨架、changes、references 及固定 Agent workflow 集合，支持跨平台和非交互使用；后续 Project Build 通过工作面指导衔接，不以初始化完成代替模型构建。Element Declaration 与 Contract 共用 elements 单元，不存在独立 Contract store。
@@ -9,111 +9,46 @@ definition: Workspace Init 是 setup 创建完整息壤工作区的能力。它�
 
 ## Specification
 
-### Section: Xirang Setup SHALL 创建可用的 formal skeleton
+### Section: Scope and Non-goals
 
-`xirang setup` SHALL 创建或保留 `.xirang` durable core、project configuration、versioned formal Semantic Model skeleton，且不得声称 Project Build 已完成。Setup SHALL 创建 `.xirang/model/{metamodel,elements,relationships,views}` 四个模型分区、`changes`、`references` 与 Project Root Declaration；无 Contract 的 optional Element SHALL 作为 `elements/` 中的 declaration-only 单元表达，不得创建 `.xirang/specs`、`contracts` 或其他平行 Contract store。
+Workspace Init SHALL 通过 setup 创建可用工作区骨架、带说明的项目配置及所选工具工作面，并保留已有用户内容。它不推断项目的完整 Elements/Contracts，不把 setup 完成等同 Project Build 完成。
 
-- **新项目 setup**
+### Section: Business Logic
 
-  - project 中不存在 `.xirang/` workspace
-  - setup SHALL 创建 config、`model/{metamodel,elements,relationships,views}` 四分区、changes 与 references
-  - SHALL 创建 Project Root Declaration 骨架
-  - SHALL NOT 创建独立的 Contracts 目录或平行 Contract store
-  - SHALL NOT 从 project evidence 推断 Candidate 语义
+新工作区 SHALL 包含 .xirang/model/{metamodel,elements,relationships,views}、changes、changes/archive、references；seed 为 project、element、perspective Kind 及稳定 identity 的 project.root Declaration。Root 采用完整 Project Definition，optional 且无 Contract 的 Element 以 declaration-only 单元表达；Contract 与 Declaration 共用 elements 单元，不建独立 Contract store。默认 Kinds 不预设固定层数或 C4 层级。
 
-- **Existing project setup**
+setup SHALL 为显式选择的工具交付 common、六个阶段 skills 和适用内部角色/共享 references。Project Build 使用 xirang-build，调用指导由工具适配按需提供，不在无必要结果的回执中重复整套 onboarding。所有路径使用平台 API，非交互场景要求显式合法 --tools。
 
-  - `.xirang/` 已存在
-  - setup SHALL 保留 existing formal source、配置和用户内容
-  - 仅在用户明确选择工具后刷新 managed Agent surfaces
+setup SHALL 创建带完整字段说明、功能性默认值和可选注释示例的项目配置，configVersion 为 1，definitionDepth 为 2，decomposition 为 xirang-semantic-refinement.md；可选项不为介绍而启用。仅 setup 创建项目配置，其他命令不恢复缺失或损坏文件。
 
-- **First-run skeleton**
+已有工作区 SHALL 保留模型、配置及用户内容；有 .yml 时沿用，不另造 .yaml。保留用户明确 decomposition（包括 c4 或自定义路径），只在用户明确选择工具后刷新受管工作面，不把重跑 setup 当隐式配置迁移。
 
-  - `xirang setup` 在没有 Xirang workspace 的项目中运行
-  - SHALL 创建 `model/{metamodel,elements,relationships,views}` 四分区与 seed 单元（`metamodel/project.md`、`metamodel/element.md`、`metamodel/perspective.md`、`elements/project.root.md`）
-  - SHALL 创建 Project Root 骨架
-  - SHALL NOT 推断 project elements 或 Contracts
-  - SHALL NOT 创建 `.c4` 文件或 `.xirang/architecture/`
+完成后 SHALL 给出简短配置引导：实际位置、文档语言、项目背景与制品规则、分解指导、实现隔离、Git 合并策略与归档后分支保留，以及 config/config project/config check 入口。可用英文；必要引导、警告与错误写 stderr，无其他请求结果时 stdout 为空，JSON 模式不混入请求数据流，不输出泛化成功装饰或全部生成路径。
 
-- **初始化 Semantic Model 结构**
+### Section: Edge Cases and Exception Handling
 
-  - `xirang setup` runs
-  - it SHALL create `model/{metamodel,elements,relationships,views}` 四分区与 `changes`、`changes/archive`、`references` 目录
-  - SHALL 使用稳定 Project Root identity
-  - MUST NOT 创建 legacy Xirang YAML 文件
+非法或缺少必需的非交互 tools 选择 SHALL 给出可操作诊断，不能猜测安装对象。已有模型与用户文件不因初始化被覆盖；配置文件存在时保留原内容，损坏文件交由用户或授权 Agent 处理。路径分隔符差异不得改变 seed 语义。发现需要迁移的非活动 workspace 时遵循明确名单和用户确认边界，不未经确认删除或部分移动。
 
-- **Existing source preservation**
+### Section: Key Acceptance Cases
 
-  - setup 在 existing workspace 中运行
-  - existing model 分区、配置和用户内容 SHALL NOT 被覆盖
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-- **默认 Kind 不预设层级**
+#### Acceptance Case: 新项目骨架
 
-  - setup 创建默认 metamodel seed
-  - project、element 与 perspective 表达语义类别，不要求固定层数或 C4 层级；除 Project Root 骨架外不推断项目 Elements 或 Contracts。
+无 .xirang 时 setup 创建四分区、changes/archive、references、默认 Kinds 和 project.root；不产生独立 Contracts 目录、.c4 或平行模型 store，不推断项目语义。
 
-### Section: Xirang Setup SHALL 安装固定 Agent workflow 集合
+#### Acceptance Case: 新配置与发现入口
 
-`xirang setup` 与 `xirang update` SHALL 安装 fixed workflow set：propose、explore、apply、archive、build 和 snack。Build workflow SHALL 使用 skill name 与 directory `xirang-build`，并 SHALL NOT 生成 slash-command artifacts。
+新 YAML 有 configVersion 1、definitionDepth 2、默认分解文件及完整说明，可选内容为注释示例；完成提示含实际路径、代表性能力和三个配置入口。
 
-- **安装 Build workflow**
+#### Acceptance Case: 保留已有配置
 
-  - configured tool 支持 skills
-  - setup SHALL 生成 `xirang-build`
-  - SHALL NOT 生成退役的 bootstrap workflow
+已有 .yml 及 decomposition: c4 或 .pi/skills/xirang-project-decomposition/SKILL.md：原样保留，不另造 .yaml、不覆盖为默认方法。
 
-### Section: Xirang Setup SHALL 支持跨平台与 non-interactive 运行
+#### Acceptance Case: 工具选择与调用
 
-Setup SHALL 对所有 workspace paths 使用 Node.js path APIs，并 SHALL 提供显式 non-interactive tool selection。
+合法非交互 --tools 交付固定六阶段和 common，Build invocation 使用工具适配的 xirang-build；非法值有可操作错误。
 
-- **Windows setup**
+#### Acceptance Case: 跨平台及输出通道
 
-  - setup 在 Windows、macOS 或 Linux 上运行
-  - generated workspace paths 与 formal source content 等价
-  - filesystem operations SHALL 使用 path-aware APIs
-
-- **Non-interactive setup**
-
-  - setup 在无 prompts 环境中运行
-  - SHALL 要求显式 supported `--tools` value
-  - invalid values SHALL 返回 actionable diagnostics
-
-- **跨平台路径处理**
-
-  - setup runs on POSIX or Windows
-  - filesystem paths SHALL use `path.join()` or `path.resolve()`
-  - generated model seed content SHALL 在平台上保持一致
-
-### Section: Setup success guidance SHALL 暴露 Project Build
-
-Setup 交付的工作面 SHALL 通过按需读取的工具适配指导暴露 Project Build invocation，不在无结果成功回执中重复整套 onboarding。指导 SHALL 使用当前工具的 xirang-build invocation，不引用退役 bootstrap workflow。
-
-### Section: Setup output messaging
-
-Setup SHALL 在无必要结果的成功操作后保持 stdout 为空，--json 同样适用；不得默认列出全部生成路径、工具名或成功摘要。真实警告与错误 SHALL 写入 stderr。用户显式请求的交互选择与帮助 SHALL 保留，成功静默不改变工作区和受管制品的实际创建职责。
-
-### Section: Setup 物化默认结构拆分方法
-
-`xirang setup` SHALL 通过共享 project config default materialization contract 在新工作区配置中写入 `decomposition: xirang-semantic-refinement.md`，并 SHALL 保留 existing workspace 中用户已配置的 `decomposition` 值。
-
-- **新项目获得显式默认指导文件**
-
-  - setup 创建新的 `.xirang/config.yaml`
-  - 配置包含 `decomposition: xirang-semantic-refinement.md`
-
-- **Existing project 保留用户配置**
-
-  - existing workspace 配置包含 `decomposition: .pi/skills/xirang-project-decomposition/SKILL.md` 或其他合法字符串值
-  - setup 保留该值
-  - 不添加默认指导文件
-
-- **跨平台 setup 写入相同默认值**
-
-  - setup 在 Windows、macOS 或 Linux 上创建项目配置
-  - 使用 Node.js path API 定位配置文件
-  - 写入语义相同的 `decomposition: xirang-semantic-refinement.md`
-
-- **显式 C4 仍被保留**
-
-  - existing workspace 明确配置 `decomposition: c4`
-  - setup 保留该选择，不用默认指导文件替换用户值。
+Windows、macOS、Linux 获得等价逻辑骨架与默认值；必要配置引导进入 stderr，无请求数据时 stdout 空，JSON 不混成功装饰。

@@ -1,257 +1,108 @@
 ---
 entity: element-declaration
 identity: config-command
-kind: element
+kind: capability-specification
 parent: cli
 title: Config Command
-definition: Config Command 是配置查询与管理的 CLI 命令族。它包含全局配置的 path、list、get、set、unset、reset、edit，以及查询当前归一化项目配置的 project，负责配置值转换、选择读取、写入校验与作用域边界。它提供有效配置数据，不以重复提示词交付工作流的静态遵循规则。
+definition: Config Command 是息壤配置说明、查询、检查与管理的命令族。它以 config 介绍项目配置、以 project 查询有效数据、以 check 只读诊断可用性和作用范围，并保留全局工具设置的 path、list、get、set、unset、reset、edit。它区分项目配置和全局工具配置，不编写用户意图或重复交付工作流静态提示词。
 ---
 
 ## Specification
 
-### Section: Command Structure
+### Section: Scope and Non-goals
 
-The config command SHALL provide subcommands for all configuration operations.
+Config Command SHALL 提供项目配置说明、查询、只读检查和全局工具配置管理，明确各入口作用域。项目配置修改由用户或授权 Agent 完成；全局管理命令不作为项目写入接口。
 
-- **Available subcommands**
+### Section: Business Logic
 
-  - user executes `xirang config --help`
-  - display available subcommands:
-  - `path` - Show config file location
-  - `list` - Show all current settings
-  - `get <key>` - Get a specific value
-  - `set <key> <value>` - Set a value
-  - `unset <key>` - Remove a key (revert to default)
-  - `reset` - Reset configuration to defaults
-  - `edit` - Open config in editor
-  - `project` - Query normalized project configuration
-  - SHALL NOT include `profile` subcommand
+`config project --artifact semantic-delta --select rules` SHALL 返回项目 `rules.semantic-delta` 的有效原文，保持制品匹配与选择语义；config check SHALL 将 semantic-delta 识别为合法规则名。
 
-### Section: Config Path
+命令族 SHALL 按项目读取与全局管理的作用域交付数据、诊断和操作结果。
 
-The config command SHALL display the config file location.
+#### 项目入口
 
-- **Show config path**
+无子命令的 `xirang config` SHALL 展示配置路径、全部受支持字段、用途、默认值、合法值或示例及作用范围；未初始化也可查看，不创建文件。说明与 YAML 来自同一字段定义，可使用英文。顶层 help 与 config --help SHALL 区分 config、config project、config check 和全局管理命令。
 
-  - 执行 `xirang config path`
-  - 打印 config 文件的绝对路径
-  - 以 exit code 0 退出
+`config project` SHALL 读取当前磁盘并返回共享归一化数据，完整查询包含适用的 configVersion、proseLanguage、context、decomposition、architecture、apply、git、rules。可重复 --select 按点路径选择并保留原嵌套结构；--artifact 先限定 rules，再投影选择字段，其他选中有效字段不因制品过滤而丢失。合法未配置可选字段省略，无字段时返回 {}。匹配规则为空时返回空 rules。
 
-### Section: Config List
+文本以紧凑 YAML-like 表达，JSON 只返回所请求数据；context/rules 原文、换行及特殊字符在解码后相同，不附 prompt fragments、compiledLines 或重复静态指导。git 保持 commitMessage、merge.strategy、branch.deleteAfterArchive 结构，语言、背景、制品规则和操作配置遵守共享消费范围。
 
-The config command SHALL display all current configuration values.
+`config check` SHALL 只读详细检查 YAML、嵌套字段名、类型/取值、当前 schema 的 rules 制品名、版本元数据，以及有效 decomposition 和选用模板引用的存在性/可读性。报告实际路径、最终有效值、显式/默认来源、忽略与回退内容、作用阶段/制品/操作、问题原因与修正建议；支持 --json，不提供精简模式或专用筛选，Agent 可自行处理 JSON。独立可检查部分须全部完成，不能解析的部分说明不可检查，不伪造值。检查不证明自然语言规则已执行。
 
-- **List config in human-readable format**
+文件选择 SHALL 为 .yaml 优先、.yml 回退，同时存在时标明 .yml 未采用，不合并。请求数据写 stdout，警告/错误写 stderr，JSON 模式诊断结构化；跨平台定位和判断一致。
 
-  - 执行 `xirang config list`
-  - 以 YAML-like 格式显示全部 config values
-  - 以缩进显示嵌套对象
+#### 全局入口
 
-- **List config as JSON**
+全局 path/list/get/set/unset/reset/edit SHALL 使用实际 JSON camelCase 键及点路径，帮助明确标注全局作用域。其 --scope 默认为 global，只支持 global；项目读取使用 project/check 的显式入口。
 
-  - 执行 `xirang config list --json`
-  - 以合法 JSON 输出完整 config
-  - 只输出 JSON（无额外文本）
+| 命令 | 行为 |
+|---|---|
+| path | 返回全局配置绝对路径，退出 0 |
+| list | 返回全部有效配置，文本为缩进 YAML-like，--json 为纯 JSON 数据 |
+| get <key> | 返回原始标量；对象用 JSON；支持 featureFlags.someFlag 等嵌套路径 |
+| set <key> <value> | true/false 转布尔，合法整数/浮点转数字，其余为字符串；--string 强制字符串；必要时创建中间对象，写入前校验 |
+| unset <key> | 移除覆盖后采用默认；不存在则保持文件不变并退出 0 |
+| reset --all | 确认后删除全局文件或重置默认；-y 跳过本次确认 |
+| edit | 使用 EDITOR 或 VISUAL 打开全局配置，缺失时以默认值创建，等待 editor 关闭 |
 
-### Section: Config Get
+无返回数据且无警告的成功写操作 SHALL 使 stdout/stderr 均为空，以退出 0 表示完成。set 默认拒绝未知键，--allow-unknown 只允许普通未知键，不能绕过字段值校验或已知禁止路径。
 
-The config command SHALL retrieve specific configuration values.
+### Section: Edge Cases and Exception Handling
 
-- **Get top-level key**
+命令 SHALL 按以下边界给出具体诊断，并保持只读操作及失败写入的文件不变。
 
-  - user executes `xirang config get <key>` with a valid top-level key
-  - print the raw value only (no labels or formatting)
-  - exit with code 0
+| 条件 | 结果 |
+|---|---|
+| check 未初始化、配置缺失/不可读、YAML 失败、未知嵌套字段/规则名、非法值、引用缺失/不可读 | 报检查位置、原因和修正建议，退出 1；存在回退时说明真实回退，未知名提示可能拼写错误，其余独立检查继续 |
+| check configVersion 缺失、非整数、小于 1 或高于 CLI 支持版本 | 错误退出 1，不修复版本 |
+| check 仅有明确忽略名单中的输入 | 逐项警告并建议删除，退出 0，不作为有效值 |
+| 可选字段未填写 | 正常默认或无附加要求，无错误时退出 0 |
+| project 的 --select 路径或 --artifact 非法 | 非零退出并给出诊断；合法但未配置字段仍是有效空查询 |
+| get 请求不存在的键 | stdout 为空，stderr 定位键，退出 1 |
+| set 未允许的未知键或非法值 | 错误退出 1，不写文件；featureFlags 的值须为布尔 |
+| set propose、propose.smartRouting、propose.requireExplore、optimization 及其子键 | 即使 --allow-unknown 也拒绝并不写入 |
+| reset 缺少 --all | 错误退出 1 |
+| edit 未配置 EDITOR/VISUAL | 提示设置 editor 并退出 1 |
+| 全局管理请求 --scope project | 报不支持该管理作用域，退出 1，不执行配置操作 |
 
-- **Get nested key with dot notation**
+检查、查询和说明 SHALL NOT 创建、修改、恢复或修理项目配置。全局 edit 创建全局文件不改变 setup 独占项目配置创建的边界。
 
-  - user executes `xirang config get featureFlags.someFlag`
-  - traverse the nested structure using dot notation and print the value
+### Section: Key Acceptance Cases
 
-- **Get non-existent key**
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-  - user executes `xirang config get <key>` with a key that does not exist
-  - stdout 保持为空，在 stderr 报告该 key 不存在的具体诊断
-  - exit with code 1
+#### Acceptance Case: 非项目目录查看说明
 
-- **Get object value**
-  - user executes `xirang config get <key>` where the value is an object
-  - print the object as JSON
+未 setup 的目录运行 config，能看到字段、默认值、范围与三个入口，磁盘不产生项目配置。
 
-### Section: Config Set
+#### Acceptance Case: 项目组合查询
 
-The config command SHALL set configuration values with automatic type coercion.
+--select proseLanguage --select rules --artifact proposal 只返回有效语言和 proposal 规则，不返回 semantic-delta 规则。修改语言后再次查询，返回新值。
 
-- **Set string value**
+#### Acceptance Case: Semantic Delta 规则贯通
 
-  - user executes `xirang config set <key> <value>`
-  - value does not match boolean or number patterns
-  - store value as a string
-  - 成功且无警告时 stdout 与 stderr 均为空，以退出码 0 表示完成
+rules.semantic-delta 为 ["保持完整目标内容"] 且 rules.proposal 为 ["说明动机"] 时，`config project --artifact semantic-delta --select rules --json` 只返回 ["保持完整目标内容"] 对应的规则，proposal 查询只返回自己的规则；check 不把 semantic-delta 判为未知制品。
 
-- **Set boolean value**
+#### Acceptance Case: 有效空查询与拼写错误
 
-  - user executes `xirang config set <key> true` or `xirang config set <key> false`
-  - store value as boolean (not string)
+合法可选字段未配置时返回 {} 且退出 0；拼错选择路径时 stdout 不冒充空结果，stderr 诊断且非零退出。
 
-- **Force string with --string flag**
+#### Acceptance Case: 独立问题聚合
 
-  - user executes `xirang config set <key> <value> --string`
-  - store value as string regardless of content
+apply.defaultIsolaton 与 rules.unknown 同时存在：两项均被定位，check 退出 1，原文件不变。
 
-- **Set numeric value**
-  - user executes `xirang config set <key> <value>`
-  - value is a valid number (integer or float)
-  - store value as number (not string)
+#### Acceptance Case: 警告与可选缺失
 
-- **Set nested key**
-  - user executes `xirang config set featureFlags.newFlag true`
-  - create intermediate objects if they don't exist
-  - set the value at the nested path
+其他配置合法且含 optimization 时，check 警告列出节点、有效值不包含它、退出 0；未配置 context 不产生背景义务。
 
-### Section: Config Unset
+#### Acceptance Case: 双扩展名与引用
 
-The config command SHALL remove configuration overrides.
+同时有 .yaml/.yml 时只检查 .yaml 并列出 .yml 未采用；活动配置引用不存在文件时报具体路径并退出 1，不修改配置。
 
-- **Unset existing key**
+#### Acceptance Case: 全局类型与保护
 
-  - 执行 `xirang config unset <key>` 且该 key 存在于 config
-  - 从 config 文件移除该 key
-  - 值回退为默认值
-  - 成功且无警告时 stdout 与 stderr 均为空
+set featureFlags.newFlag true 保存布尔并保持成功静默；set someFutureKey 123 默认拒绝，--allow-unknown 可保存数字；该选项不能保存 propose.smartRouting 或 optimization，也不能接受非法 featureFlags 值。
 
-- **Unset non-existent key**
+#### Acceptance Case: 全局读取与编辑
 
-  - 执行 `xirang config unset <key>` 且该 key 不存在
-  - 保持配置不变，不输出确认消息
-  - 以 exit code 0 退出
-
-### Section: Config Reset
-
-The config command SHALL reset configuration to defaults.
-
-- **Reset all with confirmation**
-
-  - 执行 `xirang config reset --all`
-  - 继续前提示确认
-  - 确认后删除 config 文件或重置为默认值
-
-- **Reset all with -y flag**
-
-  - 执行 `xirang config reset --all -y`
-  - 不提示确认直接 reset
-
-- **Reset without --all flag**
-
-  - 执行 `xirang config reset` 而不带 `--all`
-  - 显示指示需要 `--all` 的错误
-  - 以 exit code 1 退出
-
-### Section: Config Edit
-
-The config command SHALL open the config file in the user's editor.
-
-- **Open editor successfully**
-
-  - 执行 `xirang config edit` 且设置了 `$EDITOR` 或 `$VISUAL`
-  - 在该 editor 中打开 config 文件
-  - 若文件不存在则以默认值创建
-  - 等待 editor 关闭后才返回
-
-- **No editor configured**
-
-  - 执行 `xirang config edit` 且 `$EDITOR` 与 `$VISUAL` 均未设置
-  - 显示建议设置 `$EDITOR` 的错误消息
-  - 以 exit code 1 退出
-
-### Section: Key Naming Convention
-
-The config command SHALL use camelCase keys matching the JSON structure.
-
-- **Keys match JSON structure**
-
-  - 通过 CLI 访问配置 keys
-  - 使用匹配实际 JSON property names 的 camelCase
-  - 支持嵌套访问的 dot notation（如 `featureFlags.someFlag`）
-
-### Section: Schema Validation
-
-The config command SHALL validate configuration writes against the config schema using zod, while rejecting unknown keys for `config set` unless explicitly overridden.
-
-- **Unknown key rejected by default**
-
-  - user executes `xirang config set someFutureKey 123`
-  - display a descriptive error message indicating the key is invalid
-  - do not modify the config file
-  - exit with code 1
-
-- **Unknown key accepted with override**
-
-  - user executes `xirang config set someFutureKey 123 --allow-unknown`
-  - the value is saved successfully
-
-- **Invalid feature flag value rejected**
-  - user executes `xirang config set featureFlags.someFlag notABoolean`
-  - display a descriptive error message
-  - do not modify the config file
-  - exit with code 1
-
-### Section: Reserved Scope Flag
-
-The config command SHALL reserve the `--scope` flag for future extensibility，当前仅支持 `global`。
-
-- **Scope flag defaults to global**
-
-  - 执行任何 config command 而不带 `--scope`
-  - 操作 global configuration（默认行为）
-
-- **Project scope 尚未实现**
-
-  - 用户执行 `xirang config --scope project <subcommand>`
-  - 命令输出错误："Error: Project-local config is not yet implemented"
-  - 以 exit code 1 退出，不执行任何 config 操作
-
-### Section: Config CLI 拒绝写入退役的 Propose routing 路径
-
-`xirang config set` SHALL 将 `propose`、`propose.smartRouting` 与 `propose.requireExplore` 视为已移除的配置路径，不得将其写入 global config。
-
-- **默认拒绝退役 Propose 路径**
-  - 用户执行 `xirang config set propose.smartRouting false` 或 `xirang config set propose.requireExplore false`
-  - command SHALL 报告该路径已移除或无效
-  - SHALL NOT 修改 config file
-  - SHALL 以 exit code 1 退出
-
-- **allow-unknown 不恢复退役路径**
-  - 用户对 `propose` routing 路径使用 `--allow-unknown`
-  - command SHALL 仍拒绝该已知退役路径
-  - SHALL NOT 将其作为普通未知字段保存
-
-### Section: 查询项目配置
-
-系统 SHALL 提供 xirang config project，使用共享配置加载与归一化规则返回当前有效项目配置。未指定选择范围时 SHALL 返回完整配置；包含适用的 proseLanguage、context、decomposition、architecture、optimization、apply、git 和 rules，不包含已退役的 Propose routing。每次调用 SHALL 读取当前磁盘配置，先前查询结果不得遮蔽后续修改。
-
---select <key> SHALL 可重复使用，按配置字段的点路径选择数据，并保持原嵌套对象形状；不选择时不缩小范围。--artifact <id> SHALL 将 rules 限于匹配制品，未匹配或空规则以空 rules 对象表达，不注入其它制品规则。--artifact 与 --select 可组合：先归一化并限定 rules，再投影选中路径；存在且非空的其它字段不因 --artifact 被省略。非法选择路径或未知 artifact ID SHALL 非零退出并给出具体诊断；合法但未配置的可选字段 SHALL 省略，结果无字段时返回 {}，作为有效查询结果。
-
-JSON SHALL 返回所请求的配置数据；文本 SHALL 以紧凑 YAML-like 表达同一范围。context 与 rules 的内容 SHALL 保持原文及换行；JSON 语法转义解码后内容相同。不输出 prompt fragments、compiledLines 或重复的语言强化段落。未配置字段和默认值 SHALL 遵循共享归一化规则，不由输出层制造新的默认值。
-
-- 查询 --select proseLanguage --select rules --artifact proposal：只返回有效 proseLanguage 与 proposal 对应 rules，不返回 specs rules 或完整配置。
-- 已查询配置后修改项目语言或 rules：下一次相同查询返回新有效值。
-- context 含 Markdown、URL、<、>、& 或多行文本：输出解码后内容完整保持。
-- 配置含退役 Propose routing：输出不包含 propose，其他有效字段正常返回；真实配置警告进入 stderr。
-- 查询合法可选字段但没有配置：返回 {} 且退出码 0；拼错字段名则在 stderr 报错，不能将错误当作空结果。
-
-### Section: 命令集成于 config 子命令体系
-
-`config project` 命令 SHALL 作为 `xirang config` 的子命令注册。
-
-- **帮助信息**
-
-  - 用户执行 `xirang config --help`
-  - 显示 `project` 作为可用子命令
-  - 描述该命令为查询项目级配置
-
-### Section: 保持有效配置的统一表示
-
-config project SHALL 使用共享 NormalizedProjectConfig 表示。工作流 SHALL 从该有效数据读取配置，遵循共享 skill/reference 中的配置适用规则，不直接解析 raw YAML 重新解释默认值。
-
-git 字段 SHALL 保持 commitMessage、merge.strategy 与 branch.deleteAfterArchive 结构，不包含 autoCommit 或退役的 convention 字段。语言、context、匹配 artifact rules、Apply isolation 与 Archive git 配置 SHALL 在适用工作流中保持同一语义。
+get 不存在键时退出 1 且 stdout 空；unset 不存在键退出 0 且文件不变。配置 EDITOR 且全局文件缺失时 edit 可创建全局默认文件，不创建项目配置。

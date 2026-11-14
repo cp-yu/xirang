@@ -40,7 +40,7 @@ describe('config command integration', () => {
   });
 
   it.each([
-    ['retired optimization', JSON.stringify({ optimization: { enabled: false, directionLimit: 4 } }), 'optimization.directionLimit'],
+    ['retired optimization', JSON.stringify({ optimization: { enabled: false, directionLimit: 4 } }), 'optimization is retired'],
     ['obsolete fields', JSON.stringify({ profile: 'expanded', workflows: [], delivery: 'skills' }), 'obsolete config fields'],
     ['malformed JSON', '{ invalid }', 'Invalid JSON'],
   ])('keeps requested config data separate from JSON diagnostics for %s', async (_name, source, warning) => {
@@ -53,6 +53,167 @@ describe('config command integration', () => {
     const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
     expect(diagnostics).toContainEqual(expect.objectContaining({ message: expect.stringContaining(warning) }));
     expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it('documents project configuration without creating a workspace', async () => {
+    const result = await runCLI(['config'], { cwd: tempDir });
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('configVersion');
+    expect(result.stdout).toContain('architecture.outline.definitionDepth');
+    expect(result.stdout).toContain('config check');
+    expect(fs.existsSync(path.join(tempDir, '.xirang'))).toBe(false);
+  });
+
+  it('aggregates strict project errors without changing either config file', async () => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const source = 'configVersion: 1\nschema: semantic-model\napply:\n  defaultIsolaton: branch\nrules:\n  unknown: [Rule]\n';
+    fs.writeFileSync(path.join(dir, 'config.yaml'), source);
+    fs.writeFileSync(path.join(dir, 'config.yml'), 'ignored: true\n');
+    const result = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(1);
+    const report = JSON.parse(result.stdout);
+    expect(report.path).toBe(path.join(dir, 'config.yaml'));
+    expect(report.ignoredPaths).toEqual([path.join(dir, 'config.yml')]);
+    const errors = result.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line));
+    expect(errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: 'apply.defaultIsolaton', severity: 'error' }),
+      expect.objectContaining({ field: 'rules.unknown', severity: 'error' }),
+    ]));
+    expect(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8')).toBe(source);
+    expect(fs.readFileSync(path.join(dir, 'config.yml'), 'utf8')).toBe('ignored: true\n');
+  });
+
+  it('reports ignored inputs as warnings and keeps effective rule contents and sources', async () => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'references', 'xirang-semantic-refinement.md'), 'Guidance');
+    const source = stringify({ configVersion: 1, schema: 'semantic-model', context: 'URL <x> & "quoted"\nline', optimization: { enabled: false }, rules: { 'semantic-delta': ['A < B\nsecond line'], proposal: ['Other'] } });
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(0);
+    const report = JSON.parse(result.stdout);
+    expect(report.effective).not.toHaveProperty('optimization');
+    expect(report.effective.context).toBe('URL <x> & "quoted"\nline');
+    expect(report.fields).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'context', source: 'explicit' }),
+      expect.objectContaining({ path: 'apply.defaultIsolation', source: 'default', value: 'ask' }),
+    ]));
+    expect(result.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line))).toContainEqual(expect.objectContaining({ field: 'optimization.enabled', severity: 'warning' }));
+    const selected = await runCLI(['config', 'project', '--artifact', 'semantic-delta', '--select', 'rules', '--json'], { cwd: tempDir });
+    expect(JSON.parse(selected.stdout)).toEqual({ rules: { 'semantic-delta': ['A < B\nsecond line'] } });
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each([
+    ['missing', undefined, 'CONFIG_UNREADABLE'],
+    ['malformed', 'configVersion: [', 'CONFIG_UNREADABLE'],
+    ['non-object', '[]', 'INVALID_CONFIG'],
+    ['missing version', 'schema: semantic-model\n', 'INVALID_CONFIG'],
+    ['newer version', 'configVersion: 2\n', 'INVALID_CONFIG'],
+    ['bad values and reference', 'configVersion: 1\narchitecture: { outline: { definitionDepth: -1 } }\ndecomposition: missing.md\n', 'INVALID_CONFIG'],
+  ])('reports %s configuration without creating or repairing files', async (_name, source, code) => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const file = path.join(dir, 'config.yaml');
+    if (source !== undefined) fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(1);
+    const report = JSON.parse(result.stdout);
+    expect(report.valid).toBe(false);
+    const errors = result.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line));
+    expect(errors).toContainEqual(expect.objectContaining({ code, severity: 'error' }));
+    if (source === undefined) expect(fs.existsSync(file)).toBe(false);
+    else expect(fs.readFileSync(file, 'utf8')).toBe(source);
+    if (_name === 'bad values and reference') {
+      expect(errors).toContainEqual(expect.objectContaining({ field: 'decomposition', code: 'CONFIG_REFERENCE_UNREADABLE' }));
+      expect(report.fields).toContainEqual(expect.objectContaining({ path: 'architecture.outline.definitionDepth', source: 'fallback', value: 2 }));
+    }
+  });
+
+  it('preserves independent valid fields when the schema is invalid', async () => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const source = 'configVersion: 1\nschema: invalid\ncontext: Keep my background\napply: { defaultIsolation: worktree }\n';
+    const file = path.join(dir, 'config.yaml');
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'project', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ configVersion: 1, context: 'Keep my background', apply: { defaultIsolation: 'worktree' } });
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(checked.exitCode).toBe(1);
+    expect(JSON.parse(checked.stdout).fields).toContainEqual(expect.objectContaining({ path: 'context', value: 'Keep my background', source: 'explicit' }));
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each([
+    { apply: undefined, expected: 'ask', sourceKind: 'default' },
+    { apply: {}, expected: 'ask', sourceKind: 'default' },
+    { apply: { defaultIsolation: 'invalid' }, expected: 'ask', sourceKind: 'fallback' },
+    { apply: false, expected: 'ask', sourceKind: 'fallback' },
+    { apply: { defaultIsolation: 'worktree' }, expected: 'worktree', sourceKind: 'explicit' },
+  ])('shares effective isolation defaults with check for $apply', async ({ apply, expected, sourceKind }) => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'references', 'xirang-semantic-refinement.md'), 'Guidance');
+    const file = path.join(dir, 'config.yaml');
+    const source = stringify({ configVersion: 1, schema: 'semantic-model', apply });
+    fs.writeFileSync(file, source);
+    const queried = await runCLI(['config', 'project', '--json'], { cwd: tempDir });
+    const effective = JSON.parse(queried.stdout);
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    const report = JSON.parse(checked.stdout);
+    expect(effective.apply).toEqual({ defaultIsolation: expected });
+    expect(report.effective).toEqual(effective);
+    expect(report.fields).toContainEqual(expect.objectContaining({ path: 'apply.defaultIsolation', value: expected, source: sourceKind }));
+    for (const field of report.fields) {
+      const actual = field.path.split('.').reduce((value: any, key: string) => value?.[key], effective);
+      expect(field.value, field.path).toEqual(actual);
+    }
+    const selected = await runCLI(['config', 'project', '--select', 'apply', '--json'], { cwd: tempDir });
+    expect(JSON.parse(selected.stdout)).toEqual({ apply: { defaultIsolation: expected } });
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each(['invalid', 123, ''])('aggregates independent rule errors with invalid schema %j', async schema => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const file = path.join(dir, 'config.yaml');
+    const source = stringify({ configVersion: 1, schema, rules: { unknown: ['Rule'], proposal: ['', 123, 'Valid'] } });
+    fs.writeFileSync(file, source);
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(checked.exitCode).toBe(1);
+    const fields = checked.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(issue => issue.severity === 'error').map(issue => issue.field);
+    expect(fields).toEqual(expect.arrayContaining(['schema', 'rules.unknown', 'rules.proposal.0', 'rules.proposal.1']));
+    const effective = JSON.parse(checked.stdout).effective;
+    expect(effective.schema).toBe('semantic-model');
+    expect(effective.rules.proposal).toEqual(['Valid']);
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
+  });
+
+  it.each(['git.archive.typo', 'git.merge.commitMessage.typo'])('rejects unknown nested Git field %s', async key => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const value: Record<string, unknown> = { configVersion: 1 };
+    const { setNestedValue } = await import('../../src/core/config-schema.js');
+    setNestedValue(value, key, true);
+    fs.writeFileSync(path.join(dir, 'config.yaml'), stringify(value));
+    const result = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(result.stderr.split('\n').filter(Boolean).map(line => JSON.parse(line))).toContainEqual(expect.objectContaining({ field: key, severity: 'error' }));
+  });
+
+  it('keeps global defaults free of project policies and preserves existing unknown settings', async () => {
+    const fresh = await runCLI(['config', 'list', '--json']);
+    expect(JSON.parse(fresh.stdout)).toEqual({ featureFlags: {} });
+    const reset = await runCLI(['config', 'reset', '--all', '--yes']);
+    expect(reset.exitCode).toBe(0);
+    const file = path.join(tempDir, 'xirang', 'config.json');
+    expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual({ featureFlags: {} });
+    const existing = { custom: 'keep', apply: { defaultIsolation: 'worktree' }, git: { custom: true } };
+    fs.writeFileSync(file, JSON.stringify(existing));
+    const result = await runCLI(['config', 'list', '--json']);
+    expect(JSON.parse(result.stdout)).toEqual({ featureFlags: {}, ...existing });
   });
 
   it('should use XDG_CONFIG_HOME for config path', async () => {
@@ -257,11 +418,8 @@ rules:
       decomposition: '.xirang/references/xirang-project-decomposition.md',
       architecture: {
         outline: {
-          elementDefinitionDepth: 2,
+          definitionDepth: 2,
         },
-      },
-      optimization: {
-        enabled: false,
       },
       apply: {
         defaultIsolation: 'branch',
@@ -292,12 +450,14 @@ rules:
     await runProjectCommand(['--json']);
     const json = JSON.parse(String(consoleLogSpy.mock.calls.at(-1)![0]));
     expect(json).toEqual({
+      schema: 'semantic-model',
+      apply: { defaultIsolation: 'ask' },
       ...configured,
       ...(configured ? {
         decomposition: '.xirang/references/xirang-semantic-refinement.md',
         git: { merge: { strategy: 'no-ff' }, branch: { deleteAfterArchive: false } },
       } : {}),
-      architecture: { outline: { elementDefinitionDepth: 2 } },
+      architecture: { outline: { definitionDepth: 2 } },
       rules: {},
     });
     await runProjectCommand([]);
@@ -343,9 +503,9 @@ describe('config key validation', () => {
     expect(validateConfigKeyPath('propose.requireExplore')).toMatchObject({ valid: false, retired: true });
   });
 
-  it('allows optimization.enabled key', async () => {
+  it('rejects retired optimization.enabled key', async () => {
     const { validateConfigKeyPath } = await import('../../src/core/config-schema.js');
-    expect(validateConfigKeyPath('optimization.enabled').valid).toBe(true);
+    expect(validateConfigKeyPath('optimization.enabled')).toMatchObject({ valid: false, retired: true });
   });
 
   it('rejects retired optimization direction limit keys', async () => {

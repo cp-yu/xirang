@@ -1,255 +1,91 @@
 ---
 entity: element-declaration
 identity: workspace-update
-kind: element
+kind: capability-specification
 parent: workspace-init-update
 title: Workspace Update
-definition: Workspace Update 定义 `xirang update` 刷新项目受管表面与迁移配置的行为：根据全局配置刷新 skills 指令、清理过时配置字段、迁移项目配置默认值、同步固定 workflow 集合、归档退役 workspace 并报告新检测工具。
+definition: Workspace Update 是 xirang update 对现有息壤工作区的维护能力。它刷新已配置工具的受管工作面、按版本演进已有项目配置并报告陈旧内容清理，处理固定工作流集合和受管历史；它不创建或修理缺失、损坏的项目配置，也不承担用户语义判断。
 ---
 
 ## Specification
 
-### Section: Update Behavior
+### Section: Scope and Non-goals
 
-该命令 SHALL 根据全局配置刷新项目中的受管 skills 指令文件。
+Workspace Update SHALL 维护已有工作区的受管工具工作面和有版本项目配置，保护用户内容并报告实际变化。它不创建缺失工作区或项目配置，不修复损坏配置，不改写根级 AGENTS stub。
 
-- **刷新现有工具制品**
+### Section: Business Logic
 
-  - 项目中已配置 AI 工具
-  - 检测已安装的工具 skills 目录
-  - 为检测到的每个工具重新生成固定 workflow skills
-  - 成功无必要结果时静默，不重复列出刷新的工具
-  - SHALL NOT refresh slash command workflow artifacts
+update SHALL 在已有工作区内维护受管工作面、演进合法版本配置，并按确认和所有权边界处理非活动内容。
 
-- **清理过时配置字段**
+#### 工具工作面维护
 
-  - 全局配置包含 `profile`、`workflows` 或 `delivery` 字段
-  - 自动删除这些字段并保存清理后的配置
-  - 在 stderr 报告具体被清理的过时字段，不重复输出开始与完成回执
+update SHALL 要求 .xirang workspace，根据全局工具设置、显式元数据和已生成 skills 识别配置工具，为其刷新 common、固定六阶段及适用角色/references。精确 skill 集合为 xirang-propose、xirang-explore、xirang-apply-change、xirang-archive-change、xirang-build、xirang-snack，不使用全局 workflow-selection 设置选择子集。
 
-### Section: Prerequisites
+工作面 SHALL 由共享生成流程按当前模板同步；不属于固定集合的受管技能仅按明确清理名单及所有权依据处理，保留用户 skills。全局 profile、workflows、delivery 输入按明确名单清理保存，stderr 报告实际字段。项目配置的正常迁移与全局字段清理不承担缺失/损坏项目文件恢复。
 
-Update command SHALL 要求现有 `.xirang/` workspace，才能刷新 managed surfaces。
+工具已有 command 文件但无 skills 时，不据此认定已配置，不刷新或删除那些 command 文件。发现支持的工具目录但无受管 skills 时，报告并引导 setup，不静默安装。
 
-- **Workspace 缺失**
+无精确 invocation 元数据的工具使用中性 skill 文案并标明 skillDirName；Codex 引导使用精确的 $xirang-propose、$xirang-explore、$xirang-apply-change、$xirang-archive-change、$xirang-build、$xirang-snack。必要重启提示说明 skills/workflow files 的生效，不使用 slash-command 语义。成功无必要结果时静默，实际修改、警告和必要生效提示遵循 stderr 通道。
 
-  - `.xirang/` 不存在
-  - update SHALL 失败，并指引运行 `xirang setup`
-  - SHALL NOT 创建 partial workspace
+#### 项目配置迁移
 
-- **在 Xirang 项目外运行**
+update SHALL 选择原有 .yaml 优先、.yml 回退的活动文件，只对可解析、具有合法 configVersion 的配置迁移，不新建第二份文件。配置版本独立软件发布，CLI 只保留最近 10 次迁移操作；先完整验证版本、所需链和窗口，再执行所有步骤及最终结果校验。已是目标版本不重复迁移。
 
-  - `.xirang/` directory 不存在
-  - update SHALL 报告 Xirang project 缺失，并提供 `xirang setup` Required Corrections
-  - SHALL 以非零状态退出
+迁移 SHALL 按明确字段与受管说明清单补必要结构/说明、删除陈旧内容，不按模式猜用户内容；保留仍适用值、context、rules、decomposition、自定义文件、注释和排版。全部成功后内容与版本一次原子写回；报告实际修改，重复执行不重复插入或报告。Windows、macOS、Linux 的定位与迁移语义一致。
 
-### Section: Core Files Always Updated
+所需早期操作不在窗口时，诊断 SHALL 给出当前版本、目标版本、最低支持起始版本，提示用户先安装合适旧 CLI 中转再用最新版；跨多个窗口可分段继续，不自动安装旧 CLI，不跳过缺失步骤。
 
-update SHALL 通过共享 ArtifactSyncEngine 以最新模板整体替换已配置工具的受管 workflow skills，不管理或改写根级 AGENTS stub。成功且无必要结果时 SHALL 静默，不输出 Updated、版本或 Tools 汇总。
+#### 非活动工作区
 
-刷新需要重启 IDE 或当前 session 才生效时，SHALL 保留简短、具体的生效提示，不将重启必要性混入成功装饰。真实配置迁移警告进入 stderr；查询/交互请求与必要交付结果遵循统一通道。
+对明确支持迁移的非活动 workspace，setup/update SHALL 在用户确认后完整移动到 .xirang/history/legacy-<timestamp>/，manifest 记录原始相对路径；运行时使用当前活动目录。物理定位使用平台路径 API，不按目录名模式猜测清理对象。
 
-### Section: 工具感知的更新提示
+### Section: Edge Cases and Exception Handling
 
-`xirang update` SHALL 使用已刷新 workflow skills 的调用语义来展示 onboarding 与 restart guidance。
+update SHALL 按以下情况保护原状态并给出具体诊断。
 
-- **无精确 skill 调用语法时使用中性文案**
+| 条件 | 结果 |
+|---|---|
+| .xirang 不存在 | 非零退出并指引 setup，不创建部分 workspace |
+| 项目配置缺失、不可读或 YAML 损坏 | 报告并跳过配置修改，不创建或修复；可独立刷新受管工具工作面 |
+| configVersion 缺失、非整数或小于 1 | 不猜测或补 1，原文件不变 |
+| configVersion 高于当前 CLI 目标 | 不降级或删除较新字段，原文件不变，提示支持该版本的新 CLI |
+| 链不完整或超窗口 | 原文件不变，不先执行部分步骤，报告所需版本范围 |
+| 任一步、最终校验或写入失败 | 原内容及原版本保持完整，无半迁移文件 |
+| 文件权限/写入失败 | 错误携带可定位路径 |
+| AI 工具的用户配置文件不存在 | 不创建该用户配置文件，跳过对应更新 |
+| 用户拒绝非活动 workspace 迁移 | setup/update 失败，不删除或部分移动原目录 |
+| 同名但非受管的用户文件 | 不覆盖或清理 |
 
-  - `xirang update` 为没有精确 skill invocation metadata 的工具输出 onboarding guidance
-  - guidance SHALL 使用中性 skill invocation 文案
-  - SHALL reference the explicit `skillDirName`
-  - SHALL NOT fall back to command syntax
+工作区使用已定义的默认目录布局，不由 update 推测自定义目录名。必要诊断不以工具列表、版本或无变化成功摘要替代。
 
-- **刷新 Codex skills 时显示精确的 skill 调用名**
+### Section: Key Acceptance Cases
 
-  - `xirang update` 刷新或新配置了受管的 Codex workflow skills
-  - 所有 getting-started 或 onboarding guidance SHALL 使用精确的受管 Codex skill 调用名：`$xirang-propose`、`$xirang-explore`、`$xirang-apply-change`、`$xirang-archive-change`、`$xirang-build` 与 `$xirang-snack`（由 WorkflowManifestRegistry 的 `skillDirName` 派生）
-  - 显示给用户的 Codex 引用 SHALL 使用 workflow 的 `skillDirName`，而不是 command slug
-  - SHALL NOT tell the user to run `/xirang:*`
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-- **skills-only 重启提示避免 slash-command 文案**
+#### Acceptance Case: 缺失工作区或配置
 
-  - `xirang update` 完成时刷新了 workflow skills
-  - 所有 restart guidance SHALL 描述为刷新的 skills 或 workflow files 生效
-  - SHALL NOT mention slash commands taking effect
+项目外运行 update 失败并提示 setup，不留下部分目录；工作区存在但项目配置被删除时不重建，可独立刷新受管 skills。
 
-### Section: Update respects removed workflow-selection config
+#### Acceptance Case: 工具发现边界
 
-The update command SHALL refresh the fixed workflow skill set and SHALL ignore removed workflow-selection settings。
+仅有 command 文件的工具不视为已配置；支持目录存在但无 managed skills 时，提示 setup，未静默安装或删 command 文件。
 
-- **Update with no changes needed**
+#### Acceptance Case: 固定工作流与引导
 
-  - installed skills match the fixed workflow set
-  - all templates are current
-  - 系统 SHALL 显示 "Already up to date."
+已配置 Codex 刷新六个精确 skill 名称，必要引导使用 $xirang-apply-change 等名称；未登记用户 skill 原样保留。
 
-- **Workflow drift with current templates**
+#### Acceptance Case: 十次链与超窗口
 
-  - workflow templates 对已安装 skills 为最新
-  - global config 包含退役的 profile、workflows 或 delivery 字段
-  - 系统 SHALL 将 stale config cleanup 视为需要更新状态
+目标 15、保留 5→6 至 14→15：版本 5 全部成功后升 15；版本 3 原样并报告当前 3、目标 15、最低 5 及旧 CLI 中转；版本 15 不重复迁移。
 
-- **Update summary output**
+#### Acceptance Case: 异常版本与执行失败
 
-  - update 完成且有变化
-  - 系统 SHALL 显示新增或更新 skills 的摘要
-  - SHALL 列出受影响的工具
-  - 摘要 SHALL NOT 报告 command files 被生成、刷新或移除
+缺少版本、字符串版本、0 或较新版本均不改写；第二步失败、最终校验失败或写入失败时，原内容和原 configVersion 完整不变。
 
-- **Update adds missing workflows from config**
+#### Acceptance Case: Yml 内容保护与幂等
 
-  - user runs `xirang update`
-  - global config specifies workflows not currently installed in the project
-  - the system SHALL ignore the removed workflows setting
-  - generate missing fixed workflow skill files
-  - display added skill workflows when applicable
+只有 .yml 且有用户 context、rules、项目方法及注释：在原文件迁移，保留适用内容，不新增 .yaml；再次 update 不重复修改或报告清理。
 
-- **Fixed workflow refresh**
+#### Acceptance Case: 非活动 workspace 确认
 
-  - update 在 configured project 中运行
-  - SHALL 收敛到 `xirang-propose`、`xirang-explore`、`xirang-apply-change`、`xirang-archive-change`、`xirang-build`、`xirang-snack`
-  - SHALL NOT 创建 bootstrap slash commands
-
-- **Update refreshes existing workflows**
-
-  - user runs `xirang update`
-  - workflows are already installed in the project
-  - the system SHALL refresh those workflow skill files with latest templates
-  - display refreshed workflow names when applicable
-
-### Section: Update detects configured tools from skills only
-
-The update command SHALL treat a tool as configured only when it has generated skill files。
-
-- **Commands-only installation**
-
-  - 某工具已生成 command files 但没有 skill files
-  - 该工具 SHALL NOT 被当作已配置（仅凭 command files）
-  - 系统 SHALL NOT 刷新或删除那些 command files
-
-### Section: Update detects new tool directories
-
-Update command SHALL 报告新检测到的 AI tool directories，并指引用户运行 `xirang setup` 进行配置。
-
-- **检测到新工具**
-
-  - supported tool directory 存在但没有 managed skills
-  - update SHALL 报告该工具
-  - SHALL NOT 静默配置该工具
-  - SHALL 指引用户运行 `xirang setup`
-
-### Section: Extra workflows synchronized to the fixed workflow set
-
-Update SHALL 使用显式 managed-name list 删除不属于 propose、explore、apply、archive、build、snack 的 managed skill artifacts。
-
-- **Retired Build skill**
-
-  - managed 退役 build skill 存在
-  - update SHALL 删除该 skill
-  - SHALL 生成或刷新 `xirang-build`
-  - SHALL NOT 删除 user-authored skills
-
-### Section: Migrate project config defaults
-
-`xirang update` SHALL 在现有项目中迁移项目配置默认值：物化缺失的 `decomposition: xirang-semantic-refinement.md` 与其他功能性默认值（不覆盖用户值），并移除过时的 git 字段；SHALL NOT 对既有 `decomposition` 值做格式迁移。
-
-- **配置缺失时创建**
-
-  - 项目包含 `.xirang/` 目录且 config 文件不存在
-  - 用户运行 `xirang update`
-  - 命令 SHALL 创建 `.xirang/config.yaml`
-  - 创建的文件 SHALL 包含 `schema`、`decomposition`、`optimization`、`apply` 与 `git` 默认节点
-  - `decomposition` SHALL 为 `xirang-semantic-refinement.md`
-  - SHALL NOT 包含退役的 git 字段
-
-- **添加缺失的嵌套默认值而不覆盖现有值**
-
-  - config 包含部分用户值且缺少其他默认值
-  - 用户运行 `xirang update`
-  - 命令 SHALL 保留用户值并补齐缺失默认值
-  - 已存在 `decomposition` 值时 SHALL NOT 覆盖
-
-- **移除过时的 git 字段**
-
-  - config 包含退役的 git 字段
-  - 用户运行 `xirang update`
-  - 命令 SHALL 移除这些过时字段
-  - SHALL NOT 将其值映射到任何新字段
-  - SHALL 保留其他用户 git 字段
-
-- **迁移 config.yml 别名**
-
-  - `.xirang/config.yaml` 不存在且 `.xirang/config.yml` 存在且有效
-  - 用户运行 `xirang update`
-  - 命令 SHALL 在该 `.xirang/config.yml` 中补齐 `decomposition: xirang-semantic-refinement.md` 与其他缺失默认值
-  - SHALL NOT 创建第二个 `.xirang/config.yaml`
-
-- **项目配置默认值迁移**
-
-  - 项目 `.xirang/config.yaml` 缺少功能性默认值
-  - 以 missing-only 方式补齐 `decomposition: xirang-semantic-refinement.md` 与其他默认值
-  - SHALL NOT 覆盖用户已设置的值
-  - 删除陈旧的 `git.merge.messageFrom`, `git.autoCommit` 与 `commitMessage.convention` 节点
-  - 补齐新的 git 功能性默认结构
-
-- **Windows 上迁移项目配置路径**
-
-  - `xirang update` 在 Windows 上迁移 `.xirang/config.yaml` 或 `.xirang/config.yml`
-  - 命令 SHALL 使用 Node.js path 工具构建配置路径
-  - SHALL 添加与 Unix 系统相同的 `decomposition: xirang-semantic-refinement.md` 默认值
-  - SHALL 移除过时 git 字段并添加其他新默认值
-
-- **添加缺失的顶层默认值**
-
-  - `.xirang/config.yaml` 存在，包含有效 YAML 对象内容，但缺少 `decomposition`、`optimization`、`apply` 和 `git`
-  - 用户运行 `xirang update`
-  - 命令 SHALL 添加 `decomposition: xirang-semantic-refinement.md`
-  - 命令 SHALL 添加 `optimization` 默认节点
-  - 命令 SHALL 添加 `apply` 默认节点
-  - 命令 SHALL 添加 `git` 默认节点
-  - 命令 SHALL 保留现有字段如 `schema`、`docLanguage`、`context` 和 `rules`
-  - 命令 SHALL 保留插入默认值之外的用户值
-
-- **跳过无效配置而不阻塞工具刷新**
-
-  - `.xirang/config.yaml` 包含无效 YAML 或非对象 YAML 文档
-  - 用户运行 `xirang update`
-  - 命令 SHALL 保持该配置文件不变
-  - 命令 SHALL 警告项目配置默认值迁移被跳过
-  - 命令 SHALL 继续进行已配置工具的 artifact 刷新
-
-- **保留显式方法与项目 skill**
-
-  - update 遇到既有显式 `decomposition` 值（路径形态或裸名称）
-  - 保留原值，不做格式转换，也不覆盖。
-
-### Section: Update SHALL 归档退役的 legacy workspace
-
-当 update 或 setup 发现退役 workspace 时，SHALL 在用户确认后将其移动到显式 `.xirang/history/legacy-<timestamp>/` entry。
-
-- **Retired workspace cleanup**
-
-  - 检测到退役 workspace 且用户确认 cleanup
-  - SHALL 完整移动该 directory，并用 manifest 记录原始 relative path
-  - runtime SHALL 不再读取旧 active path
-
-- **用户拒绝 cleanup**
-
-  - 用户拒绝 cleanup
-  - setup/update SHALL 失败
-  - SHALL NOT 删除或部分移动退役 workspace
-
-- **文件权限错误**
-
-  - 文件写入失败
-  - 让错误自然冒泡并携带文件路径
-
-- **缺失 AI 工具文件**
-
-  - AI 工具配置文件不存在
-  - 跳过更新该文件且不创建它
-
-- **自定义目录名不支持**
-
-  - 考虑自定义目录名
-  - 本次不支持，默认目录名 `xirang` SHALL 被使用
+确认后原目录完整迁入 history 并可由 manifest 找到原路径；拒绝时命令失败，原目录未部分移动。

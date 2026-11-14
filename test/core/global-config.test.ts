@@ -102,15 +102,14 @@ describe('global-config', () => {
 
       // Should contain at least the core default fields
       expect(config).toHaveProperty('featureFlags');
-      expect(config).toHaveProperty('apply');
-      expect(config).toHaveProperty('optimization');
+      expect(config).not.toHaveProperty('apply');
+      expect(config).not.toHaveProperty('optimization');
       expect(config).not.toHaveProperty('profile');
       expect(config).not.toHaveProperty('workflows');
       expect(config).not.toHaveProperty('delivery');
       expect(config).not.toHaveProperty('propose');
       expect(config.featureFlags).toEqual({});
-      expect(config.apply).toHaveProperty('defaultIsolation');
-      expect(config.optimization).toEqual({ enabled: true });
+      expect(config).not.toHaveProperty('optimization');
     });
 
     it('should not create directory when reading non-existent config', () => {
@@ -149,14 +148,13 @@ describe('global-config', () => {
 
       // Should contain at least the core default fields
       expect(config).toHaveProperty('featureFlags');
-      expect(config).toHaveProperty('apply');
-      expect(config).toHaveProperty('optimization');
+      expect(config).not.toHaveProperty('apply');
+      expect(config).not.toHaveProperty('optimization');
       expect(config).not.toHaveProperty('profile');
       expect(config).not.toHaveProperty('workflows');
       expect(config).not.toHaveProperty('delivery');
       expect(config.featureFlags).toEqual({});
-      expect(config.apply).toHaveProperty('defaultIsolation');
-      expect(config.optimization).toEqual({ enabled: true });
+      expect(config).not.toHaveProperty('optimization');
     });
 
     it('should log warning for invalid JSON', () => {
@@ -203,9 +201,9 @@ describe('global-config', () => {
       const config = getGlobalConfig();
       const warnings = consoleErrorSpy.mock.calls.flat().join('\\n');
 
-      expect(config.optimization).toEqual({ enabled: false });
-      expect(warnings).toContain('optimization.directionLimit is retired and ignored');
-      expect(warnings).toContain('optimization.minImpactLevel is retired and ignored');
+      expect(config).not.toHaveProperty('optimization');
+      expect(warnings).toContain('optimization is retired and ignored');
+      expect(warnings).toContain('optimization is retired and ignored');
       expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
     });
 

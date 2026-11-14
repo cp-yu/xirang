@@ -113,7 +113,7 @@ describe('architecture outline', () => {
     expect(navigation).not.toHaveProperty('metamodel');
 
     const expanded = await outlineArchitecture(root, { definitions: true, relationships: true, metamodel: true });
-    expect(expanded.elementDefinitionDepth).toBe(2);
+    expect(expanded.definitionDepth).toBe(2);
     expect(expanded.relations).toEqual([{ source: 'authorize-payment', kind: 'invokes', target: 'audit-payment' }]);
     expect(expanded.metamodel).toBeDefined();
     expect(expanded.metamodel!.elementKinds).toHaveLength(4);
@@ -178,7 +178,7 @@ describe('architecture outline', () => {
   it('loads complete Definitions through configured depth when selected', async () => {
     const result = await outlineArchitecture(root, { definitions: true });
 
-    expect(result.elementDefinitionDepth).toBe(2);
+    expect(result.definitionDepth).toBe(2);
     for (const element of result.elements.filter(element => element.depth <= 2)) {
       expect(element.definitionState).toBe('loaded');
       expect(element.definition).toBeTypeOf('string');
@@ -195,21 +195,21 @@ describe('architecture outline', () => {
     await fs.writeFile(configPath, `schema: semantic-model
 architecture:
   outline:
-    elementDefinitionDepth: 1
+    definitionDepth: 1
 `);
 
     const configured = await outlineArchitecture(root, { definitions: true });
     const overridden = await outlineArchitecture(root, { definitionDepth: 0 });
     const repeated = await outlineArchitecture(root, { definitions: true });
 
-    expect(configured.elementDefinitionDepth).toBe(1);
+    expect(configured.definitionDepth).toBe(1);
     expect(configured.elements.filter(element => element.definitionState === 'loaded').map(element => element.depth))
       .toEqual([1, 0]);
-    expect(overridden.elementDefinitionDepth).toBe(0);
+    expect(overridden.definitionDepth).toBe(0);
     expect(overridden.elements.filter(element => element.definitionState === 'loaded').map(element => element.identity))
       .toEqual(['project.root']);
     expect(repeated).toEqual(configured);
-    expect(await fs.readFile(configPath, 'utf8')).toContain('elementDefinitionDepth: 1');
+    expect(await fs.readFile(configPath, 'utf8')).toContain('definitionDepth: 1');
   });
 
   it('renders text and markdown from the canonical result without truncating Definitions', async () => {

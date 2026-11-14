@@ -101,3 +101,10 @@ The workflow SHALL 使用 `xirang status` 输出来确定下一步可创建的 a
 静态制品定义、写作指导和模板 SHALL 由按需加载的 skill/reference 提供；config project SHALL 提供当前有效配置，status --change SHALL 提供制品与推进状态，quality status SHALL 提供当前质量详情。CLI SHALL 不注册 instructions 命令或用另一统一 context 命令重新聚合这些提示词与数据。
 
 缺少必需制品或有效目标清单时，Apply workflow SHALL 根据 status 的具体缺口返回 Propose 调和输入，不自行创建缺失的形成制品。制品依赖与校验 SHALL 继续由 CLI 确定，静态指导不替代动态门禁。
+
+### Section: Semantic Delta 制品查询
+
+semantic-model 的 status、templates 及后续制品发现 SHALL 使用 semantic-delta 标识四分区语义差量。status SHALL 在对应制品上返回四分区输出范围和实际输出路径，以 semantic-delta 表达 tasks 缺失的差量依赖；templates SHALL 将 semantic-delta 映射到 schema 的 delta.md。
+
+- proposal 与 design 已存在，差量和 .delta-noop 均缺失：semantic-delta 为 ready，tasks 为 blocked 且缺失依赖为 semantic-delta。
+- 仅关系差量存在：状态在 semantic-delta 下列出实际关系文件，完成判定不要求 Element Contract 差量。

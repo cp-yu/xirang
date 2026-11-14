@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { parse as parseYaml } from 'yaml';
+import { parseDocument } from 'yaml';
+import { atomicWriteConfig } from '../../src/core/config-migration.js';
 import {
   materializeProjectConfigDefaults,
   migrateProjectConfigDefaults,
@@ -58,15 +59,13 @@ describe('project-config', () => {
       const defaults = materializeProjectConfigDefaults({ schema: 'semantic-model' });
 
       expect(defaults).toEqual({
+        configVersion: 1,
         schema: 'semantic-model',
         decomposition: 'xirang-semantic-refinement.md',
         architecture: {
           outline: {
-            elementDefinitionDepth: 2,
+            definitionDepth: 2,
           },
-        },
-        optimization: {
-          enabled: true,
         },
         apply: {
           defaultIsolation: 'ask',
@@ -96,215 +95,77 @@ describe('project-config', () => {
   });
 
   describe('migrateProjectConfigDefaults', () => {
-    it('should create config.yaml with functional defaults when config is missing', () => {
+    const steps = Array.from({ length: 10 }, (_, index) => ({
+      fromVersion: index + 5, toVersion: index + 6,
+      migrate: (content: string) => content.replace('# managed old', '# managed current'),
+      changes: ['Refresh managed description'],
+    }));
+    function write(source: string, name = 'config.yaml') {
       fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
-
-      const result = migrateProjectConfigDefaults(tempDir);
-      const configPath = path.join(tempDir, '.xirang', 'config.yaml');
-      const content = fs.readFileSync(configPath, 'utf-8');
-      const parsed = parseYaml(content);
-
-      expect(result).toEqual({
-        status: 'created',
-        path: configPath,
-      });
-      expect(parsed).toEqual({
-        schema: 'semantic-model',
-        decomposition: 'xirang-semantic-refinement.md',
-        architecture: {
-          outline: {
-            elementDefinitionDepth: 2,
-          },
+      const file = path.join(tempDir, '.xirang', name);
+      fs.writeFileSync(file, source);
+      return file;
+    }
+    it('does not restore missing project configuration', () => {
+      fs.mkdirSync(path.join(tempDir, '.xirang'));
+      expect(migrateProjectConfigDefaults(tempDir).status).toBe('skipped');
+      expect(fs.existsSync(path.join(tempDir, '.xirang', 'config.yaml'))).toBe(false);
+    });
+    it('executes ten migrations atomically in the selected yml while preserving user bytes', () => {
+      const source = '# my comment\r\nconfigVersion: 5 # version\r\nschema: semantic-model\r\ncontext: |\r\n  Keep this background\r\napply: { defaultIsolation: worktree }\r\n# managed old\r\n';
+      const file = write(source, 'config.yml');
+      expect(migrateProjectConfigDefaults(tempDir, { targetVersion: 15, migrations: steps })).toMatchObject({ status: 'updated', path: file });
+      const expected = source.replace('configVersion: 5', 'configVersion: 15').replace('# managed old', '# managed current');
+      expect(fs.readFileSync(file, 'utf8')).toBe(expected);
+      expect(fs.existsSync(path.join(tempDir, '.xirang', 'config.yaml'))).toBe(false);
+      expect(migrateProjectConfigDefaults(tempDir, { targetVersion: 15, migrations: steps }).status).toBe('unchanged');
+      expect(fs.readFileSync(file, 'utf8')).toBe(expected);
+    });
+    it('cleans the exclusive temporary file when an atomic rename fails', () => {
+      const destination = path.join(tempDir, 'destination');
+      fs.mkdirSync(destination);
+      fs.writeFileSync(path.join(destination, 'user.txt'), 'keep');
+      expect(() => atomicWriteConfig(destination, 'new content')).toThrow();
+      expect(fs.readdirSync(tempDir)).toEqual(['destination']);
+      expect(fs.readFileSync(path.join(destination, 'user.txt'), 'utf8')).toBe('keep');
+    });
+    it('rejects a semantically invalid final result after every migration completes without writing', () => {
+      const source = '# Keep my comment\nconfigVersion: 5 # original version\nschema: semantic-model\n';
+      const file = write(source);
+      const outputs: string[] = [];
+      const migrations = steps.map(step => ({
+        ...step,
+        migrate: (text: string) => {
+          const next = step.fromVersion === 6 ? text + 'architecture: { outline: { definitionDepth: -1 } }\n' : text;
+          outputs.push(next);
+          return next;
         },
-        optimization: {
-          enabled: true,
-        },
-        apply: {
-          defaultIsolation: 'ask',
-        },
-        git: gitConfig(),
-      });
+      }));
+      const writeBoundary = vi.fn();
+      const result = migrateProjectConfigDefaults(tempDir, { targetVersion: 15, migrations, write: writeBoundary });
+      expect(outputs).toHaveLength(10);
+      for (const output of outputs) expect(parseDocument(output).errors).toEqual([]);
+      expect(result).toMatchObject({ status: 'skipped', reason: expect.stringMatching(/^invalid-result: architecture\.outline\.definitionDepth:/) });
+      expect(writeBoundary).not.toHaveBeenCalled();
+      expect(fs.readFileSync(file, 'utf8')).toBe(source);
+      expect(parseDocument(fs.readFileSync(file, 'utf8')).get('configVersion')).toBe(5);
     });
 
-    it('should add nested missing defaults without overwriting existing values', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      fs.writeFileSync(
-        configPath,
-        `schema: custom-schema
-optimization:
-  enabled: false
-git:
-  merge:
-    strategy: squash
-context: keep me
-`
-      );
-
-      const result = migrateProjectConfigDefaults(tempDir);
-      const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
-
-      expect(result).toEqual({
-        status: 'updated',
-        path: configPath,
-      });
-      expect(parsed.schema).toBe('custom-schema');
-      expect(parsed.context).toBe('keep me');
-      expect(parsed.optimization).toEqual({ enabled: false });
-      expect(parsed.git.merge.strategy).toBe('squash');
-      expect(parsed.git.branch.deleteAfterArchive).toBe(false);
-      expect(parsed.git).not.toHaveProperty('autoCommit');
-      expect(parsed.git).not.toHaveProperty('archive');
-      expect(parsed.git.merge).not.toHaveProperty('commitMessage');
-      expect(parsed).not.toHaveProperty('propose');
-      expect(parsed.apply.defaultIsolation).toBe('ask');
-    });
-
-    it('should add defaults through missing nested parents', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      fs.writeFileSync(
-        configPath,
-        `schema: semantic-model
-git:
-  merge:
-    strategy: ff-only
-`
-      );
-
-      const result = migrateProjectConfigDefaults(tempDir);
-      const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
-
-      expect(result).toEqual({
-        status: 'updated',
-        path: configPath,
-      });
-      expect(parsed.optimization).toEqual({
-        enabled: true,
-      });
-      expect(parsed.apply).toEqual({
-        defaultIsolation: 'ask',
-      });
-      expect(parsed.git).toEqual(gitConfig({ strategy: 'ff-only' }));
-    });
-
-    it('should not overwrite non-map parents during nested default migration', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      fs.writeFileSync(
-        configPath,
-        `schema: semantic-model
-optimization:
-git: disabled
-`
-      );
-
-      const result = migrateProjectConfigDefaults(tempDir);
-      const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
-
-      expect(result).toEqual({
-        status: 'updated',
-        path: configPath,
-      });
-      expect(parsed.optimization).toBeNull();
-      expect(parsed.git).toBe('disabled');
-      expect(parsed.apply).toEqual({
-        defaultIsolation: 'ask',
-      });
-    });
-
-    it('should mutate config.yml when config.yaml is missing', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const ymlPath = path.join(configDir, 'config.yml');
-      fs.writeFileSync(ymlPath, `schema: semantic-model
-architecture:
-  outline:
-    elementDefinitionDepth: 4
-`);
-
-      const result = migrateProjectConfigDefaults(tempDir);
-
-      expect(result).toEqual({
-        status: 'updated',
-        path: ymlPath,
-      });
-      expect(fs.existsSync(path.join(configDir, 'config.yaml'))).toBe(false);
-      const parsed = parseYaml(fs.readFileSync(ymlPath, 'utf-8'));
-      expect(parsed.architecture.outline.elementDefinitionDepth).toBe(4);
-      expect(parsed.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(parsed.git.merge.strategy).toBe('no-ff');
-    });
-
-    it('should preserve an existing decomposition value during missing-only migration', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      fs.writeFileSync(
-        configPath,
-        `schema: semantic-model
-decomposition: project-modeling.md
-`
-      );
-
-      migrateProjectConfigDefaults(tempDir);
-      const parsed = parseYaml(fs.readFileSync(configPath, 'utf-8'));
-
-      expect(parsed.decomposition).toBe('project-modeling.md');
-    });
-
-    it('should leave invalid yaml unchanged and report skipped migration', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      const original = 'schema: [unclosed';
-      fs.writeFileSync(configPath, original);
-
-      const result = migrateProjectConfigDefaults(tempDir);
-
-      expect(result).toEqual({
-        status: 'skipped',
-        path: configPath,
-        reason: 'invalid-yaml',
-      });
-      expect(fs.readFileSync(configPath, 'utf-8')).toBe(original);
-    });
-
-    it('should leave non-object yaml unchanged and report skipped migration', () => {
-      const configDir = path.join(tempDir, '.xirang');
-      fs.mkdirSync(configDir, { recursive: true });
-      const configPath = path.join(configDir, 'config.yaml');
-      const original = '"just a string"\n';
-      fs.writeFileSync(configPath, original);
-
-      const result = migrateProjectConfigDefaults(tempDir);
-
-      expect(result).toEqual({
-        status: 'skipped',
-        path: configPath,
-        reason: 'non-object',
-      });
-      expect(fs.readFileSync(configPath, 'utf-8')).toBe(original);
-    });
-
-    it('should preserve runtime defaults after disk materialization round trip', () => {
-      fs.mkdirSync(path.join(tempDir, '.xirang'), { recursive: true });
-
-      migrateProjectConfigDefaults(tempDir);
-      const config = readProjectConfig(tempDir);
-      const runtime = projectConfigForRuntime(config, { consumer: 'archive' });
-
-      expect(config?.optimization).toEqual({
-        enabled: true,
-      });
-      expect(runtime.git).toEqual(gitConfig());
-      expect(config).not.toHaveProperty('propose');
-      expect(config?.apply).toEqual({
-        defaultIsolation: 'ask',
-      });
+    it.each([
+      ['outside window', 'configVersion: 3\nschema: semantic-model\n', steps, undefined, /current 3, target 15, minimum supported start 5/],
+      ['missing step', 'configVersion: 5\nschema: semantic-model\n', steps.filter(step => step.fromVersion !== 7), undefined, /unsupported-chain/],
+      ['missing version', 'schema: semantic-model\n', steps, undefined, /invalid-version/],
+      ['string version', 'configVersion: "5"\n', steps, undefined, /invalid-version/],
+      ['zero version', 'configVersion: 0\n', steps, undefined, /invalid-version/],
+      ['newer version', 'configVersion: 16\n', steps, undefined, /newer-version/],
+      ['invalid yaml', 'configVersion: [', steps, undefined, /invalid-yaml/],
+      ['second step failure', 'configVersion: 5\n', steps.map(step => step.fromVersion === 6 ? { ...step, migrate: () => { throw new Error('step failure'); } } : step), undefined, /step failure/],
+      ['write failure', 'configVersion: 5\n', steps, () => { throw new Error('write failure'); }, /write failure/],
+    ])('keeps original bytes on %s', (_name, source, migrations, writeBoundary, reason) => {
+      const file = write(source as string);
+      const result = migrateProjectConfigDefaults(tempDir, { targetVersion: 15, migrations: migrations as typeof steps, write: writeBoundary as undefined });
+      expect(result).toMatchObject({ status: 'skipped', reason: expect.stringMatching(reason as RegExp) });
+      expect(fs.readFileSync(file, 'utf8')).toBe(source);
     });
   });
 
@@ -361,8 +222,8 @@ decomposition: project-modeling.md
 
     describe('resilient parsing', () => {
       it.each([
-        ['negative', '  outline:\n    elementDefinitionDepth: -1'],
-        ['non-integer', '  outline:\n    elementDefinitionDepth: 1.5'],
+        ['negative', '  outline:\n    definitionDepth: -1'],
+        ['non-integer', '  outline:\n    definitionDepth: 1.5'],
         ['invalid outline shape', '  outline: invalid'],
       ])('should fall back for %s architecture outline config', (_label, architectureValue) => {
         const configDir = path.join(tempDir, '.xirang');
@@ -380,12 +241,12 @@ ${architectureValue}
 
         expect(config?.architecture).toEqual({
           outline: {
-            elementDefinitionDepth: 2,
+            definitionDepth: 2,
           },
         });
         expect(config?.context).toBe('keep me');
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Invalid 'architecture.outline.elementDefinitionDepth'")
+          expect.stringContaining("Invalid 'architecture.outline.definitionDepth'")
         );
       });
 
@@ -397,13 +258,13 @@ ${architectureValue}
           `schema: semantic-model
 architecture:
   outline:
-    elementDefinitionDepth: 4
+    definitionDepth: 4
 `
         );
 
         expect(readProjectConfig(tempDir)?.architecture).toEqual({
           outline: {
-            elementDefinitionDepth: 4,
+            definitionDepth: 4,
           },
         });
       });
@@ -422,7 +283,7 @@ rules:
   proposal:
     - Include rollback plan
     - Identify affected teams
-  specs:
+  semantic-delta:
     - Use Given/When/Then format
 `
         );
@@ -437,7 +298,7 @@ rules:
           git: gitConfig(),
           rules: {
             proposal: ['Include rollback plan', 'Identify affected teams'],
-            specs: ['Use Given/When/Then format'],
+            'semantic-delta': ['Use Given/When/Then format'],
           },
         });
         expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -509,9 +370,6 @@ optimization:
         expect(config).toEqual({
           schema: 'semantic-model',
           decomposition: 'xirang-semantic-refinement.md',
-          optimization: {
-            enabled: false,
-          },
           git: gitConfig(),
         });
       });
@@ -531,9 +389,9 @@ optimization:
 
         const config = readProjectConfig(tempDir);
 
-        expect(config?.optimization).toEqual({ enabled: false });
-        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization.directionLimit is retired and ignored');
-        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization.minImpactLevel is retired and ignored');
+        expect(config).not.toHaveProperty('optimization');
+        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization is retired and ignored');
+        expect(consoleWarnSpy.mock.calls.flat().join('\\n')).toContain('optimization is retired and ignored');
         expect(fs.readFileSync(configPath, 'utf-8')).toBe(source);
       });
 
@@ -686,7 +544,7 @@ git:
         );
       });
 
-      it('should warn and return null when schema is invalid', () => {
+      it('rejects an invalid schema independently of valid context', () => {
         const configDir = path.join(tempDir, '.xirang');
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(
@@ -696,7 +554,8 @@ context: Valid context here
 `
         );
 
-        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(readProjectConfig(tempDir)).toMatchObject({ context: 'Valid context here' });
+        expect(readProjectConfig(tempDir)).not.toHaveProperty('schema');
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           "Unsupported schema 'custom-schema' in .xirang/config.yaml. Available: semantic-model"
         );
@@ -798,7 +657,7 @@ context: Valid context
           git: gitConfig(),
         });
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Invalid 'optimization' field")
+          expect.stringContaining("optimization is retired and ignored")
         );
       });
 
@@ -885,7 +744,7 @@ rules:
           },
         });
         expect(consoleWarnSpy).toHaveBeenCalledWith(
-          expect.stringContaining("Some rules for 'proposal' are empty strings")
+          expect.stringContaining("Rules for 'proposal' contain invalid or empty strings")
         );
       });
 
@@ -899,7 +758,7 @@ rules:
   proposal:
     - ""
     - ""
-  specs:
+  semantic-delta:
     - Valid rule
 `
         );
@@ -911,7 +770,7 @@ rules:
           decomposition: 'xirang-semantic-refinement.md',
           git: gitConfig(),
           rules: {
-            specs: ['Valid rule'],
+            'semantic-delta': ['Valid rule'],
           },
         });
       });
@@ -1062,7 +921,8 @@ context: |
           'schema: bootstrap\ncontext: from yml\n'
         );
 
-        expect(readProjectConfig(tempDir)).toBeNull();
+        expect(readProjectConfig(tempDir)).toMatchObject({ context: 'from yml' });
+        expect(readProjectConfig(tempDir)).not.toHaveProperty('schema');
         expect(consoleWarnSpy).toHaveBeenCalledWith(
           "Unsupported schema 'bootstrap' in .xirang/config.yaml. Available: semantic-model"
         );
@@ -1215,7 +1075,7 @@ rules:
 
       expect(normalizeProjectConfig(config).architecture).toEqual({
         outline: {
-          elementDefinitionDepth: 2,
+          definitionDepth: 2,
         },
       });
     });
@@ -1225,9 +1085,6 @@ rules:
         schema: ' semantic-model ',
         proseLanguage: ' 中文 ',
         context: '  Team context  ',
-        optimization: {
-          enabled: false,
-        },
         propose: {
           smartRouting: false,
           requireExplore: false,
@@ -1257,11 +1114,8 @@ rules:
         context: '  Team context  ',
         architecture: {
           outline: {
-            elementDefinitionDepth: 2,
+            definitionDepth: 2,
           },
-        },
-        optimization: {
-          enabled: false,
         },
         apply: {
           defaultIsolation: 'worktree',

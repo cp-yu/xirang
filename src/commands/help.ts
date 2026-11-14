@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import type { Command } from 'commander';
 import { resolveSchema } from '../core/artifact-graph/resolver.js';
+import { loadTemplate } from '../core/artifact-graph/instruction-loader.js';
 import type { FileDefinition } from '../core/artifact-graph/types.js';
 import { compareUtf8Bytes } from '../core/candidate/canonical.js';
 import { modelRoot } from '../core/model/paths.js';
@@ -23,12 +24,13 @@ interface HelpOptions {
 interface AuthoringHelp {
   file: AuthoringTopic;
   definition: FileDefinition;
+  template: string;
   relationshipDelta: typeof RELATIONSHIP_DELTA;
   relationshipKinds: RelationshipKind[];
 }
 
 const FILE_LOOKUP: Record<AuthoringTopic, { schema: 'semantic-model'; artifactId: string }> = {
-  'semantic-delta': { schema: 'semantic-model', artifactId: 'specs' },
+  'semantic-delta': { schema: 'semantic-model', artifactId: 'semantic-delta' },
 };
 
 export class AuthoringHelpCommand {
@@ -52,8 +54,10 @@ export class AuthoringHelpCommand {
   private async buildHelp(file: AuthoringTopic): Promise<AuthoringHelp> {
     const lookup = FILE_LOOKUP[file];
     const schema = resolveSchema(lookup.schema);
-    const definition = schema.artifacts.find((candidate) => candidate.id === lookup.artifactId)?.definition;
-    if (!definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
+    const artifact = schema.artifacts.find((candidate) => candidate.id === lookup.artifactId);
+    const definition = artifact?.definition;
+    if (!artifact || !definition) throw new Error(`Missing file definition for '${file}' in built-in schema '${lookup.schema}'.`);
+    const template = loadTemplate(schema.name, artifact.template, this.projectRoot);
 
     const semanticModelRoot = modelRoot(this.projectRoot);
     await fs.access(semanticModelRoot).catch(() => {
@@ -70,7 +74,7 @@ export class AuthoringHelpCommand {
     if (errors.length > 0) throw new Error(errors.map(formatDiagnostic).join('\n'));
     const relationshipKinds = [...parsed.model.relationshipKinds]
       .sort((left, right) => compareUtf8Bytes(left.identity, right.identity));
-    return { file, definition, relationshipDelta: RELATIONSHIP_DELTA, relationshipKinds };
+    return { file, definition, template, relationshipDelta: RELATIONSHIP_DELTA, relationshipKinds };
   }
 }
 
@@ -170,6 +174,7 @@ function renderTextHelp(help: AuthoringHelp): string {
     '',
     definition.writePolicy,
   ];
+  lines.push('', '## Template', '', help.template);
   lines.push('', renderSemanticDeltaRelationships(help.relationshipKinds));
   lines.push('', '## Validation commands', '', ...definition.validation.map((command) => `- ${command}`));
   return lines.join('\n');

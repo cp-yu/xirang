@@ -18,7 +18,7 @@ ${DECOMPOSITION_ENTRY}
 
 ${MODEL_NOTATION_ENTRY}
 
-Before authoring, load \`.xirang/references/xirang-configuration-use.md\` and query the effective configuration fields needed for this Build. Reuse current guidance and configuration.
+Before authoring, follow common’s configuration-use rules and query the effective configuration fields needed for this Build. Reuse current guidance and configuration.
 
 ## Confirmed design inputs
 

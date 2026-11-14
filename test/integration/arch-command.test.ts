@@ -300,7 +300,7 @@ describe('arch commands', () => {
     expect(markdown.exitCode).toBe(0);
     expect(markdown.stdout).toContain('- project.root (semanticProject) Project');
     expect(json.exitCode).toBe(0);
-    expect(JSON.parse(json.stdout)).not.toHaveProperty('elementDefinitionDepth');
+    expect(JSON.parse(json.stdout)).not.toHaveProperty('definitionDepth');
     expect(JSON.parse(json.stdout).elements.every((element: object) => !('definition' in element))).toBe(true);
 
     for (const depth of ['-1', '1.5', 'invalid']) {

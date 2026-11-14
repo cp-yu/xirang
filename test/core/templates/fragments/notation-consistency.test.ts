@@ -35,7 +35,7 @@ function fieldRows(surface: string): string[] {
 
 describe('Semantic Model notation consistency', () => {
   it('keeps shared entity fields, identity syntax, and retired notation aligned', () => {
-    const reference = artifactReferences().find(item => item.path === 'references/artifact-specs.md')!;
+    const reference = artifactReferences().find(item => item.path === 'references/artifact-semantic-delta.md')!;
     const surfaces = [
       SEMANTIC_MODEL_UNIT_NOTATION,
       ARCHITECTURE_GENERATE_DELTA,
@@ -52,7 +52,7 @@ describe('Semantic Model notation consistency', () => {
   });
 
   it('keeps the specs output partitions aligned with the model compiler', () => {
-    const outputPath = resolveSchema('semantic-model').artifacts.find(artifact => artifact.id === 'specs')!.generates;
+    const outputPath = resolveSchema('semantic-model').artifacts.find(artifact => artifact.id === 'semantic-delta')!.generates;
     const projectedPartitions = outputPath.match(/^\{([^}]+)\}/)?.[1].split(',').sort();
 
     expect(projectedPartitions).toEqual([...PARTITIONS].sort());

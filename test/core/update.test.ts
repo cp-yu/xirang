@@ -11,6 +11,8 @@ import os from 'os';
 import { randomUUID } from 'crypto';
 import { parse as parseYaml } from 'yaml';
 
+const managedOldSkill = '---\nmetadata:\n  generatedBy: "0.0.0"\n---\n\nold content';
+
 // Shared mutable mock config state
 const mockState = {
   config: {
@@ -112,20 +114,12 @@ describe('UpdateCommand', () => {
       );
 
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization).toEqual({ enabled: true });
-      expect(config.apply.defaultIsolation).toBe('ask');
-      expect(config.git.merge.strategy).toBe('no-ff');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
+      await expect(fs.access(configPath)).rejects.toThrow();
 
       consoleSpy.mockRestore();
     });
 
-    it('should preserve existing config fields while adding missing defaults', async () => {
+    it('preserves unversioned user fields without guessing a baseline', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -138,28 +132,12 @@ rules:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.schema).toBe('custom-schema');
-      expect(config.docLanguage).toBe('zh-CN');
-      expect(config.context).toBe('keep me');
-      expect(config.rules.proposal).toEqual(['keep this rule']);
-      expect(config.decomposition).toBe('xirang-semantic-refinement.md');
-      expect(config.optimization).toEqual({ enabled: true });
-      expect(config.apply.defaultIsolation).toBe('ask');
-      expect(config.git.merge.strategy).toBe('no-ff');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
-      expect(config).not.toHaveProperty('propose');
-      expect(config.apply).toEqual({
-        defaultIsolation: 'ask',
-      });
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
-    it('should preserve existing apply isolation while adding missing defaults', async () => {
+    it('preserves unversioned isolation and Git preferences', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -178,23 +156,12 @@ git:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.schema).toBe('custom-schema');
-      expect(config.decomposition).toBe('project-modeling.md');
-      expect(config.optimization.enabled).toBe(false);
-      expect(config.optimization).toMatchObject({ directionRetries: 1 });
-      expect(config.apply.defaultIsolation).toBe('worktree');
-      expect(config.git.commitMessage.archive).toBe('docs/archive.md');
-      expect(config.git.merge.strategy).toBe('squash');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
-    it('should remove obsolete git fields while adding new defaults', async () => {
+    it('does not partially clean unversioned configuration', async () => {
       const configPath = path.join(testDir, '.xirang', 'config.yaml');
       await fs.writeFile(
         configPath,
@@ -214,16 +181,9 @@ git:
 `
       );
 
+      const original = await fs.readFile(configPath, 'utf-8');
       await updateCommand.execute(testDir);
-
-      const config = parseYaml(await fs.readFile(configPath, 'utf-8'));
-      expect(config.git).not.toHaveProperty('autoCommit');
-      expect(config.git).not.toHaveProperty('archive');
-      expect(config.git.merge.strategy).toBe('squash');
-      expect(config.git.merge).not.toHaveProperty('messageFrom');
-      expect(config.git.merge).not.toHaveProperty('commitMessage');
-      expect(config.git.commitMessage.merge).toBe('docs/merge.md');
-      expect(config.git.branch.deleteAfterArchive).toBe(false);
+      expect(await fs.readFile(configPath, 'utf-8')).toBe(original);
     });
 
     it('should warn and continue refreshing tools when project config migration is skipped', async () => {
@@ -233,7 +193,7 @@ git:
 
       const skillsDir = path.join(testDir, '.claude', 'skills', 'xirang-explore');
       await fs.mkdir(skillsDir, { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'SKILL.md'), 'old content');
+      await fs.writeFile(path.join(skillsDir, 'SKILL.md'), managedOldSkill);
 
       const warnSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const consoleSpy = vi.spyOn(console, 'log');
@@ -242,7 +202,7 @@ git:
 
       expect(await fs.readFile(configPath, 'utf-8')).toBe(originalConfig);
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Project config default migration skipped')
+        expect.stringContaining('Project config migration skipped')
       );
       expect(consoleSpy).not.toHaveBeenCalled();
 
@@ -267,6 +227,7 @@ compatibility: Requires xirang CLI.
 metadata:
   author: xirang
   version: "0.9"
+  generatedBy: "0.0.0"
 ---
 
 Old instructions content
@@ -307,7 +268,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old content'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -358,7 +319,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old content'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -374,7 +335,7 @@ Old instructions content
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
         'utf-8'
       );
-      expect(skillContent).not.toBe('old content');
+      expect(skillContent).not.toBe(managedOldSkill);
     });
 
     it('should NOT generate any xirang commands even with all workflows installed', async () => {
@@ -384,7 +345,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old content'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -408,7 +369,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       // Set up Cursor
@@ -418,7 +379,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(cursorSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       const consoleSpy = vi.spyOn(console, 'log');
@@ -453,7 +414,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(qwenSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -484,7 +445,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(windsurfSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -517,7 +478,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       // Mock writeFile to fail for skills
@@ -548,7 +509,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       const cursorSkillsDir = path.join(testDir, '.cursor', 'skills');
@@ -557,7 +518,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(cursorSkillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       // Mock writeFile to fail only for Claude
@@ -575,7 +536,7 @@ Old instructions content
 
       await expect(updateCommand.execute(testDir)).rejects.toThrow('Failed');
 
-      expect(await fs.readFile(path.join(cursorSkillsDir, 'xirang-explore', 'SKILL.md'), 'utf8')).not.toBe('old');
+      expect(await fs.readFile(path.join(cursorSkillsDir, 'xirang-explore', 'SKILL.md'), 'utf8')).not.toBe(managedOldSkill);
 
       writeSpy.mockRestore();
       consoleSpy.mockRestore();
@@ -609,7 +570,7 @@ Old instructions content
         'xirang-archive-change'
       );
       await fs.mkdir(skillDir, { recursive: true });
-      await fs.writeFile(path.join(skillDir, 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillDir, 'SKILL.md'), managedOldSkill);
 
       const consoleSpy = vi.spyOn(console, 'log');
 
@@ -631,7 +592,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -661,7 +622,7 @@ Old instructions content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-apply-change', 'SKILL.md'),
-        'old'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -760,7 +721,7 @@ Old version content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old content without version'
+        managedOldSkill
       );
 
       await updateCommand.execute(testDir);
@@ -817,7 +778,7 @@ Content
       });
       await fs.writeFile(
         path.join(skillsDir, 'xirang-explore', 'SKILL.md'),
-        'old content'
+        managedOldSkill
       );
 
       const consoleSpy = vi.spyOn(console, 'log');
@@ -917,7 +878,7 @@ metadata:
       // Set up a configured tool
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       await updateCommand.execute(testDir);
 
@@ -946,7 +907,7 @@ metadata:
 
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       await updateCommand.execute(testDir);
 
@@ -970,7 +931,7 @@ metadata:
 
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       await updateCommand.execute(testDir);
 
@@ -1001,7 +962,7 @@ metadata:
 
       const skillsDir = path.join(testDir, someTool.skillsDir, 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       await expect(updateCommand.execute(testDir)).resolves.toBeUndefined();
 
@@ -1044,17 +1005,17 @@ content
       // Set up tool with extra workflows not in registry
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       // Add a removed workflow skill
       await fs.mkdir(path.join(skillsDir, 'opsx-new-change'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'opsx-new-change', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'opsx-new-change', 'SKILL.md'), managedOldSkill);
       // Pre-existing command file for one of the 7 explicitly-removed workflows
       // (new, continue, ff, sync, bulk-archive, verify, onboard) IS cleaned up
       // by cleanupExpandedWorkflowRemnants.
       const extraCommandFile = path.join(testDir, '.claude', 'commands', 'xirang', 'new.md');
       await fs.mkdir(path.dirname(extraCommandFile), { recursive: true });
-      await fs.writeFile(extraCommandFile, 'old');
+      await fs.writeFile(extraCommandFile, managedOldSkill);
 
       const consoleSpy = vi.spyOn(console, 'log');
 
@@ -1087,7 +1048,7 @@ content
 
       const skillsDir = path.join(testDir, '.codex', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
       const legacyCommand = await writeLegacyCodexCommand('explore');
       const consoleSpy = vi.spyOn(console, 'log');
 
@@ -1112,7 +1073,7 @@ content
 
       const skillsDir = path.join(testDir, '.codex', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
       const legacyCommand = await writeLegacyCodexCommand('explore');
 
       await updateCommand.execute(testDir);
@@ -1147,7 +1108,7 @@ content
       // Set up a configured Claude tool
       const claudeSkillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(claudeSkillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       // Create a Cursor directory (not configured — no skills)
       await fs.mkdir(path.join(testDir, '.cursor'), { recursive: true });
@@ -1172,7 +1133,7 @@ content
       // Set up a configured Claude tool
       const claudeSkillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(claudeSkillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(claudeSkillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       // Create two unconfigured tool directories
       await fs.mkdir(path.join(testDir, '.github'), { recursive: true });
@@ -1207,7 +1168,7 @@ content
       // Set up a configured tool (only Claude, no other tool directories)
       const skillsDir = path.join(testDir, '.claude', 'skills');
       await fs.mkdir(path.join(skillsDir, 'xirang-explore'), { recursive: true });
-      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), 'old');
+      await fs.writeFile(path.join(skillsDir, 'xirang-explore', 'SKILL.md'), managedOldSkill);
 
       const consoleSpy = vi.spyOn(console, 'error');
 

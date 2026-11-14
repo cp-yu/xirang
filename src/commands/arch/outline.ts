@@ -24,7 +24,7 @@ export interface OutlineElement {
 }
 
 export interface ArchitectureOutlineResult {
-  elementDefinitionDepth?: number;
+  definitionDepth?: number;
   elements: OutlineElement[];
   relations?: Relationship[];
   metamodel?: {
@@ -111,8 +111,8 @@ export async function outlineArchitecture(
   const definitionsSelected = options.definitions === true || options.definitionDepth !== undefined;
   const configuredDepth = definitionsSelected
     ? validateDefinitionDepth(options.definitionDepth
-      ?? readProjectConfig(projectRoot)?.architecture?.outline.elementDefinitionDepth
-      ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth)
+      ?? readProjectConfig(projectRoot)?.architecture?.outline.definitionDepth
+      ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.definitionDepth)
     : undefined;
   const declarations = new Map(
     model.elements.map(element => [element.declaration.identity, element.declaration]),
@@ -145,7 +145,7 @@ export async function outlineArchitecture(
   } : undefined;
 
   return {
-    ...(configuredDepth === undefined ? {} : { elementDefinitionDepth: configuredDepth }),
+    ...(configuredDepth === undefined ? {} : { definitionDepth: configuredDepth }),
     elements,
     ...(relations === undefined ? {} : { relations }),
     ...(metamodel === undefined ? {} : { metamodel }),

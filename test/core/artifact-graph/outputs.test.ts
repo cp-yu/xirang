@@ -110,7 +110,7 @@ describe('artifact-graph/outputs', () => {
   });
 
   it('expands the specs artifact brace pattern across all Semantic Delta partitions', () => {
-    const generates = resolveSchema('semantic-model').artifacts.find(({ id }) => id === 'specs')?.generates;
+    const generates = resolveSchema('semantic-model').artifacts.find(({ id }) => id === 'semantic-delta')?.generates;
     expect(generates).toBe('{elements,metamodel,relationships,views}/**/*');
 
     const files = [

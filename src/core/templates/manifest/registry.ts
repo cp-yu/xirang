@@ -89,7 +89,7 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
     commandSlug: 'snack',
     promptMeta: {
       name: 'Snack sync',
-      description: 'Quick sync from code to specs',
+      description: 'Reconcile implemented code with the complete Semantic Delta',
     },
     getSkillTemplate: getSnackSkillTemplate,
   },

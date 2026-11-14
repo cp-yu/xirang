@@ -1,5 +1,6 @@
 import { artifactReferences } from '../fragments/artifact-references.js';
 import { CONFIGURATION_USE_GUIDANCE } from '../fragments/configuration-use.js';
+import { CONFIGURATION_EDIT_GUIDANCE } from '../fragments/configuration-edit.js';
 import { BUSINESS_SPECIFICATION_STANDARD_REFERENCE } from '../fragments/business-specification-standard.js';
 import { DESIGN_RECORD_REFERENCE } from './explore.js';
 import type { SkillTemplate } from '../types.js';
@@ -50,6 +51,8 @@ Load guidance on first applicable use, not every stage entry. In the same Agent 
 
 Static guidance reuse never replaces current Record, model, configuration, Git or Quality checks. Follow their applicable reload, revision and handoff gates. Keep each complete rule in its single skill or reference; consumers retain only triggers and necessary short reminders.
 
+${CONFIGURATION_USE_GUIDANCE}
+
 ## On-demand guidance
 
 All paths below are project-root files. Read only what the current action requires and reuse it while available and current; do not preload this table.
@@ -64,14 +67,14 @@ All paths below are project-root files. Read only what the current action requir
 | Write Candidate model units | .xirang/references/xirang-model-notation.md |
 | Author a Change artifact or Delta | .xirang/references/xirang-artifact-<artifact-id>.md, Definition before Guidance and Template |
 | Design verification, change tests, or judge test evidence | .xirang/references/xirang-test-quality.md |
-| Author artifacts or consume project configuration | .xirang/references/xirang-configuration-use.md |
+| User requests a project configuration edit | .xirang/references/xirang-configuration-edit.md |
 | Use or maintain a design record, or close its record decision | .xirang/references/xirang-design-record.md |
 | Execute Quality operations, recover interrupted Quality work | .xirang/references/xirang-quality-cli.md; recovery only when applicable: .xirang/references/xirang-quality-recovery.md |
 
 Stage-specific flow and gates remain in the selected skill and its references. Read them at their applicable steps. tasks.md carries goals, Contract references and verification directions; Apply chooses concrete implementation and test actions from current project evidence.`,
     referenceFiles: [
       ...artifactReferences(),
-      { path: 'references/configuration-use.md', content: CONFIGURATION_USE_GUIDANCE },
+      { path: 'references/configuration-edit.md', content: CONFIGURATION_EDIT_GUIDANCE },
       { path: 'references/business-specification-standard.md', content: BUSINESS_SPECIFICATION_STANDARD_REFERENCE },
       { path: 'references/design-record.md', content: DESIGN_RECORD_REFERENCE },
       { path: 'references/semantic-refinement.md', content: SEMANTIC_REFINEMENT_REFERENCE },

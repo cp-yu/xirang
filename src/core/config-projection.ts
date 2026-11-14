@@ -5,17 +5,15 @@ import {
 } from './project-config.js';
 
 export interface NormalizedProjectConfig {
+  configVersion?: number;
   schema?: string;
   proseLanguage?: string;
   context?: string;
   decomposition?: string;
   architecture: {
     outline: {
-      elementDefinitionDepth: number;
+      definitionDepth: number;
     };
-  };
-  optimization?: {
-    enabled: boolean;
   };
   apply?: {
     defaultIsolation: 'ask' | 'branch' | 'worktree' | 'none';
@@ -96,14 +94,18 @@ function normalizeString(value: string | undefined): string | undefined {
 export function normalizeProjectConfig(config: ProjectConfig | null): NormalizedProjectConfig {
   const architecture = {
     outline: {
-      elementDefinitionDepth:
-        config?.architecture?.outline?.elementDefinitionDepth
-        ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.elementDefinitionDepth,
+      definitionDepth:
+        config?.architecture?.outline?.definitionDepth
+        ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.architecture.outline.definitionDepth,
     },
   };
 
+  const apply = {
+    defaultIsolation: config?.apply?.defaultIsolation ?? PROJECT_CONFIG_FUNCTIONAL_DEFAULTS.apply.defaultIsolation,
+  };
+
   if (!config) {
-    return { architecture, rules: {} };
+    return { schema: 'semantic-model', architecture, apply, rules: {} };
   }
 
   const rules = Object.fromEntries(
@@ -117,21 +119,13 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
   );
 
   return {
-    schema: normalizeString(config.schema),
+    configVersion: config.configVersion,
+    schema: normalizeString(config.schema) ?? 'semantic-model',
     proseLanguage: normalizeString(config.proseLanguage),
     context: config.context,
     decomposition: config.decomposition ? resolveDecompositionPath(config.decomposition) : undefined,
     architecture,
-    optimization: config.optimization
-      ? {
-          enabled: config.optimization.enabled !== false,
-        }
-      : undefined,
-    apply: config.apply
-      ? {
-          defaultIsolation: config.apply.defaultIsolation ?? 'ask',
-        }
-      : undefined,
+    apply,
     git: config.git
       ? {
           ...(config.git.commitMessage ? { commitMessage: config.git.commitMessage } : {}),

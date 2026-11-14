@@ -26,7 +26,7 @@ import {
 } from './workflow-installation.js';
 import { ALL_WORKFLOWS, WORKFLOW_TO_SKILL_DIR } from './workflow-surface.js';
 import { migrateProjectConfigDefaults } from './project-config.js';
-import { ArtifactSyncEngine } from './templates/sync-engine.js';
+import { ArtifactSyncEngine, hasGeneratedSkillOwnership } from './templates/sync-engine.js';
 import { WorkflowManifestRegistry } from './templates/manifest/index.js';
 
 const require = createRequire(import.meta.url);
@@ -84,9 +84,13 @@ export class UpdateCommand {
     if (configMigration.status === 'skipped') {
       diagnostic(
         chalk.yellow(
-          `Project config default migration skipped for ${path.relative(resolvedProjectPath, configMigration.path)} (${configMigration.reason})`
+          `Project config migration skipped for ${path.relative(resolvedProjectPath, configMigration.path)} (${configMigration.reason})`
         )
       );
+    }
+
+    if (configMigration.status === 'updated') {
+      diagnostic(`Project config updated: ${(configMigration.changes ?? []).join(', ')}`, 'CONFIG_MIGRATED');
     }
 
     const detectedTools = getAvailableTools(resolvedProjectPath);
@@ -94,6 +98,8 @@ export class UpdateCommand {
     // 4. Reconcile obsolete managed settings and workflow remnants after approval.
     this.cleanupObsoleteConfigFields();
     this.cleanupExpandedWorkflowRemnants(resolvedProjectPath);
+
+    await ArtifactSyncEngine.syncProjectReferences(resolvedProjectPath);
 
     // 5. Find configured tools (skills-only surface)
     const configuredTools = getConfiguredToolsForProfileSync(resolvedProjectPath);
@@ -210,8 +216,8 @@ export class UpdateCommand {
     try {
       if (!fs.existsSync(configPath)) return;
       const raw = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-      if (raw.profile === undefined && raw.workflows === undefined && raw.delivery === undefined) return;
-      diagnostic(chalk.yellow('Obsolete config fields detected (profile/workflows/delivery), auto-cleaning...'));
+      if (raw.profile === undefined && raw.workflows === undefined && raw.delivery === undefined && raw.optimization === undefined) return;
+      diagnostic(chalk.yellow(`Obsolete config fields detected (${['profile', 'workflows', 'delivery', 'optimization'].filter(key => raw[key] !== undefined).join('/')}); cleaning ignored settings...`));
       const config = getGlobalConfig();
       saveGlobalConfig(config);
 
@@ -254,8 +260,11 @@ export class UpdateCommand {
       for (const dirName of removedSkillDirNames) {
         const skillDir = path.join(skillsBase, dirName);
         try {
-          if (fs.existsSync(skillDir)) {
-            fs.rmSync(skillDir, { recursive: true, force: true });
+          if (fs.existsSync(path.join(skillDir, 'SKILL.md')) && hasGeneratedSkillOwnership(fs.readFileSync(path.join(skillDir, 'SKILL.md'), 'utf8'))) {
+            fs.rmSync(path.join(skillDir, 'SKILL.md'));
+            try { fs.rmdirSync(skillDir); } catch (error) {
+              if (!['ENOTEMPTY', 'EEXIST'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+            }
             cleaned++;
           }
         } catch {
@@ -270,7 +279,7 @@ export class UpdateCommand {
           for (const ext of ['.md', '.toml', '.prompt', '.prompt.md']) {
             const cmdFile = path.join(commandsBase, `xirang-${slug}${ext}`);
             try {
-              if (fs.existsSync(cmdFile)) {
+              if (fs.existsSync(cmdFile) && hasGeneratedSkillOwnership(fs.readFileSync(cmdFile, 'utf8'))) {
                 fs.rmSync(cmdFile, { force: true });
                 cleaned++;
               }
@@ -281,7 +290,7 @@ export class UpdateCommand {
           // Claude-style flat slug commands
           const flatCmdFile = path.join(commandsBase, `${slug}.md`);
           try {
-            if (fs.existsSync(flatCmdFile)) {
+            if (fs.existsSync(flatCmdFile) && hasGeneratedSkillOwnership(fs.readFileSync(flatCmdFile, 'utf8'))) {
               fs.rmSync(flatCmdFile, { force: true });
               cleaned++;
             }

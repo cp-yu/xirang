@@ -1,3 +1,4 @@
+configVersion: 1
 schema: semantic-model
 
 decomposition: .pi/skills/xirang-project-decomposition/SKILL.md
@@ -14,16 +15,13 @@ context: |
   - Tests must use path.join() for expected path values, not hardcoded strings
   - Consider case sensitivity differences in file systems
 
-# Optimization policy.
-# Set enabled: false to record SKIPPED without running the optimization loop.
-optimization:
-  enabled: true
-  directionLimit: 3
-  directionRetries: 2
-  minImpactLevel: low
-
 rules:
-  specs:
+  proposal:
+    - 在 Propose 检查本次涉及的 Elements 时，若发现应采用业务规格格式的具体能力
+      仍使用非 4+N 的陈旧 Contract，应向用户说明涉及范围，并询问是否在本次 Change
+      中进行局部重构；用户确认后再调整 Kind、Declaration、完整 Contract 与相关引用。
+      通用概念、组织性 Element 和规范指导不因未采用 4+N 而被判为陈旧格式。
+  semantic-delta:
     - Include scenarios for Windows path handling when dealing with file paths
     - Requirements involving paths must specify cross-platform behavior
     - Be explicit about mechanisms, not just outcomes (say HOW, not just WHAT)
@@ -53,4 +51,4 @@ apply:
   defaultIsolation: ask
 architecture:
   outline:
-    elementDefinitionDepth: 2
+    definitionDepth: 2

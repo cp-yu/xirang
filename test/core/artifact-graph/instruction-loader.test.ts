@@ -175,7 +175,7 @@ describe('instruction-loader', () => {
       expect(proposal?.status).toBe('ready');
 
       // specs depends on proposal, should be blocked
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find(a => a.id === 'semantic-delta');
       expect(specs?.status).toBe('blocked');
       expect(specs?.missingDeps).toContain('proposal');
     });
@@ -192,7 +192,7 @@ describe('instruction-loader', () => {
       expect(proposal?.status).toBe('done');
 
       // specs should now be ready
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find(a => a.id === 'semantic-delta');
       expect(specs?.status).toBe('ready');
     });
 
@@ -203,7 +203,7 @@ describe('instruction-loader', () => {
       const proposal = status.artifacts.find(a => a.id === 'proposal');
       expect(proposal?.outputPath).toBe('proposal.md');
 
-      const specs = status.artifacts.find(a => a.id === 'specs');
+      const specs = status.artifacts.find(a => a.id === 'semantic-delta');
       expect(specs?.outputPath).toBe('{elements,metamodel,relationships,views}/**/*');
 
       expect(status.artifacts.some(a => a.id === 'architecture-delta')).toBe(false);
@@ -235,7 +235,7 @@ describe('instruction-loader', () => {
       // tasks requires specs and design
       const tasks = status.artifacts.find(a => a.id === 'tasks');
       expect(tasks?.status).toBe('blocked');
-      expect(tasks?.missingDeps).toContain('specs');
+      expect(tasks?.missingDeps).toContain('semantic-delta');
       expect(tasks?.missingDeps).toContain('design');
     });
 
@@ -245,7 +245,7 @@ describe('instruction-loader', () => {
 
       const ids = status.artifacts.map(a => a.id);
       const proposalIdx = ids.indexOf('proposal');
-      const specsIdx = ids.indexOf('specs');
+      const specsIdx = ids.indexOf('semantic-delta');
       const tasksIdx = ids.indexOf('tasks');
 
       // proposal must come before specs, specs before tasks

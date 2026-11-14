@@ -1,146 +1,68 @@
 ---
 entity: element-declaration
 identity: references-home
-kind: element
+kind: capability-specification
 parent: agent-workbench-projection
-title: References Home
-definition: References Home 定义内置 reference 物化到 `.xirang/references/` 目录的行为：唯一物理位置、`xirang-` 前缀所有权边界、文件名唯一与工具中立校验，以及 `git.commitMessage` 路径覆盖路由。
+title: 共享 Reference 交付
+definition: 共享 Reference 交付是息壤完整专项指导的项目级交付契约。它按指导主题组织唯一内容来源，承载语义写作与质量协作等独立指导，维护项目根引用、文件唯一性、工具中立、按需加载和用户模板路由；公共基础与阶段流程由 skills 承担，物理同步由工作面整体执行。
 ---
 
 ## Specification
 
-### Section: 内置 reference 物化到 .xirang/references 目录
+### Section: Scope and Non-goals
 
-系统 SHALL 将全部 skill reference 文件以受管前缀命名物化到项目级 `.xirang/references/` 目录，作为唯一物理位置；各工具 skill 目录 SHALL NOT 再包含 `references/` 子目录。生成的 SKILL.md 中对该目录的引用 SHALL 附带显式 project-root 标记。
+共享 Reference 交付 SHALL 在项目级提供工具中立、按主题唯一维护的完整专项指导，并支持按需读取和用户模板路由。公共基础与阶段流程由 skills 承担，实际角色执行由 Agent 承担。
 
-- **update 物化全部内置 reference**
+### Section: Business Logic
 
-  - 用户在已配置工具的项目中运行 `xirang update`
-  - `.xirang/references/` SHALL 包含全部模板声明的 reference 文件，文件名为受管前缀形式
-  - 每个文件内容 SHALL 与对应模板常量一致
-  - 各工具 skill 目录 SHALL NOT 包含 `references/` 子目录
+四分区差量的 Definition、Guidance、Template SHALL 从 schema 中的 semantic-delta 制品投影到项目根 `.xirang/references/xirang-artifact-semantic-delta.md`，文件名与工作面入口一致，Windows、macOS、Linux 上均可按项目根定位。
 
-- **skill 指令引用项目级路径**
+内置 reference SHALL 唯一物化于项目根 .xirang/references/，文件使用显式登记的 xirang-<name>.md 名称；各工具 skill 目录不保存副本。生成入口标明 project-root file，以项目根解析路径。内容与规范生成源一致，同一完整规则只在一个位置维护。
 
-  - 读取生成的 skill 中对 reference 的引用
-  - 引用路径 SHALL 为 `.xirang/references/xirang-<name>.md` 形式
-  - SHALL NOT 引用 skill 目录相对的 `references/<name>.md` 路径
+同步 SHALL 逐文件覆盖清单内的受管文件，不做目录级删除；清理只作用于显式登记及受管依据可确认的对象，不按名称模式猜测所有权。用户修改的受管文件按源模板重新交付，自定义方法和模板使用独立文件。
 
-- **内联引用附带 project-root 标记**
+完整专项指导 SHALL 覆盖模型导航、语义写作及业务规格、结构分解及方法编写、测试质量、配置修改、Design Record、Quality 与恢复。共享语义写作指导规定当前状态、Declaration/Contract 边界、Section/Acceptance Case 与源意图忠实性；质量协作指导规定证据、角色委派、意见、Seal 与恢复。common 直接承载基本配置使用规则，用户修改请求按需读取 xirang-configuration-edit.md。
 
-  - 生成的 skill 指令内联引用某个 `.xirang/references/xirang-<name>.md` 文件
-  - 引用 SHALL 以 `project-root file` 前缀标注该文件位于项目根
-  - SHALL NOT 按工具 skill 目录相对路径解析该引用
+默认结构分解指导 SHALL 可通过默认 decomposition 值解析读取，按领域概念、能力或用户目标形成任意深度结构，区分有语义边界的 Perspective 与仅呈现的 View，使用类型化 Relationships 表达跨视角联系，在 Kind 不足时扩展元模型；不限制 C4 或固定层数。用户显式项目方法优先，框架身份、父子精化、MECE、广度优先与确认纪律由共享语义写作/工作流承担。本项目方法保留 semantic-objects/realization 及 realization-process/collaboration-structure 维度，项目专属划分不成为所有项目默认要求。
 
-- **update 清理 skill 目录残留 references**
+指导 SHALL 按实际工作需要读取，当前有效可用时复用，换项目、正文丢失或指导变化时重读；common 不预加载全部 references。业务规格写作前加载完整标准，Apply 仅消费 Contract 时不额外加载 4+N 编写规则。
 
-  - 项目中存在旧布局生成的 skill 目录内 references 残留
-  - 用户运行 `xirang update`
-  - 系统 SHALL 按生成清单显式删除这些受管残留
-  - SHALL NOT 删除生成清单之外的用户文件
+Git 提交模板 SHALL 支持 git.commitMessage.boundary/archive/merge 的用户路径覆盖，路径为项目根相对 POSIX 字符串。已配置时读取用户文件，否则分别读取 xirang-boundary-commit-message.md、xirang-archive-commit-message.md、xirang-merge-summary-message.md；Agent 生成相应提交前读取对应模板，不在主 skill 内联完整格式，不以 archive CLI 的推荐文字替代读取。boundary 模板说明 subject、Why、Changes、Implementation footer 及信息来源；archive 模板说明 subject/Why/Changes；merge 模板说明 merge/squash 汇总格式。Windows、macOS、Linux 的物理定位使用平台路径解析，声明路径保持 POSIX 记法。
 
-### Section: xirang 前缀作为 update 写入所有权边界
+### Section: Edge Cases and Exception Handling
 
-`xirang update` 对 `.xirang/references/` 目录 SHALL 只逐文件覆盖生成清单内的受管前缀文件，SHALL NOT 执行目录级删除，SHALL NOT 触碰任何非受管前缀文件。
+写入前 SHALL 校验全部 reference 文件名全局唯一及内容工具中立。文件名冲突须报告文件与来源且不写入；包含需专门转换的工具语法时报告 reference 与匹配内容，不写入该 reference。未登记用户文件保持原样，受管前缀本身不证明可删除。
 
-- **用户自定义模板在 update 后幸存**
+非法 Git 模板路径（绝对路径、.. 上溯、反斜杠或非字符串）SHALL 告警并省略覆盖，回退内置模板；合法路径在实际读取时不可用则报告读取问题，不假称指导已取得。配置选中的结构分解指导不可读时停止结构工作，不替换方法。
 
-  - `.xirang/references/` 中存在用户创建的非受管文件
-  - 用户运行 `xirang update`
-  - 用户文件 SHALL 原样保留
-  - 受管前缀文件 SHALL 被覆盖为最新模板内容
+### Section: Key Acceptance Cases
 
-- **用户改动的受管文件被覆盖**
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-  - 用户手动修改了受管 reference 文件
-  - 用户运行 `xirang update`
-  - 该文件 SHALL 被覆盖为最新模板内容
+#### Acceptance Case: 唯一物理位置
 
-### Section: reference 生成校验文件名唯一与工具中立
+不同工具生成的 skill 都用项目根标记指向 .xirang/references，同一指南只有一个项目级文件，skill 目录没有 references 副本。
 
-生成管线 SHALL 在写入前校验全部 reference 文件名全局唯一，并校验 reference 内容工具中立；任一校验失败 SHALL 抛出带可定位信息的错误且不写入。
+#### Acceptance Case: 保护用户内容
 
-- **文件名冲突时生成失败**
+存在自定义方法及用户模板：update 后原样保留；被编辑的受管 reference 按模板刷新，显式 decomposition 配置不被替换。
 
-  - 两个 skill 模板声明了相同的 reference 文件名
-  - 生成 SHALL 抛出错误并指明冲突的文件名与来源 skill
-  - SHALL NOT 写入任何 reference 文件
+#### Acceptance Case: 默认和用户分解方法
 
-- **含工具特定语法的内容生成失败**
+默认方法文件可读并支持任意深度语义精化；配置其他合法方法路径时入口读取该路径，不用默认内容覆盖。
 
-  - 某个 reference 模板内容包含需要 per-tool 转换的调用语法
-  - 生成 SHALL 抛出错误并指明违规的 reference 与匹配内容
-  - SHALL NOT 写入该 reference 文件
+#### Acceptance Case: 配置修改按需入口
 
-### Section: git.commitMessage 路径覆盖路由
+普通 context 读取直接遵循 common；用户要求修改配置时，common 指向可读 edit reference，包含授权、范围、字段选择、保留内容、重读校验与报告协议。
 
-项目配置 SHALL 支持可选的 `git.commitMessage.boundary`、`git.commitMessage.archive`、`git.commitMessage.merge` 字符串字段，取值为项目根相对 POSIX 路径，指向用户自有 commit message 模板；已配置时消费方 SHALL 读取用户文件，未配置时 SHALL 读取 `.xirang/references/` 下对应内置模板。
+#### Acceptance Case: 文件名与工具中立校验
 
-- **配置路径覆盖时读取用户模板**
+两个模板声明同名 reference 时，生成报告冲突且不写入；reference 含未转换工具语法时定位该文件并拒绝写入。
 
-  - config 包含 `git.commitMessage.archive` 且指向用户文件
-  - archive 流程需要生成归档制品 commit message
-  - agent 指令 SHALL 路由到读取用户文件
-  - SHALL NOT 读取对应的内置模板
+#### Acceptance Case: 用户提交模板路由
 
-- **非法路径被拒绝并回退**
+git.commitMessage.archive: .xirang/references/my-boundary.md 指向合法用户文件时，归档制品提交前读取该文件，不读内置 archive 模板；未配置时读取对应内置文件。
 
-  - `git.commitMessage.merge` 为绝对路径、包含 `..` 上溯或使用反斜杠分隔
-  - 配置加载 SHALL 输出 warning 指明非法路径
-  - SHALL 丢弃该字段并回退到内置模板路由
+#### Acceptance Case: 跨平台与非法路径
 
-- **未配置时读取内置模板**
-
-  - config 不含 `git.commitMessage.archive`
-  - archive 流程需要生成归档制品 commit message
-  - agent 指令 SHALL 路由到读取 `.xirang/references/` 下对应内置模板
-
-- **boundary commit 模板路由**
-
-  - agent 生成 semantic boundary commit message
-  - agent SHALL 在生成前读取 `git.commitMessage.boundary` 指向的用户模板，未配置时读取 `.xirang/references/xirang-boundary-commit-message.md`
-  - 主 `SKILL.md` SHALL NOT 内联 boundary commit body 的格式规则
-
-- **agent 处理 merge message**
-
-  - agent 后续 git 流程需要创建 merge 或 squash commit message
-  - agent SHALL 在生成 message 前读取 `git.commitMessage.merge` 指向的用户模板，未配置时读取 `.xirang/references/xirang-merge-summary-message.md`
-  - SHALL NOT 使用 archive CLI 输出的推荐 message
-
-- **boundary 提交读取 boundary reference**
-
-  - 生成 `xirang-archive-change` skill
-  - 主 `SKILL.md` SHALL 要求 agent 在创建 semantic boundary commit 前读取 `git.commitMessage.boundary` 指向的模板，未配置时读取 `.xirang/references/xirang-boundary-commit-message.md`
-  - `.xirang/references/xirang-boundary-commit-message.md` SHALL 说明 boundary commit 的 subject、`## Why`、`## Changes` 与 `Implementation:` footer 格式及其信息来源
-
-- **boundary 覆盖路由到用户模板**
-
-  - config 包含 `git.commitMessage.boundary: .xirang/references/my-boundary.md`
-  - 消费方流程需要生成 implementation boundary commit message
-  - agent 指令 SHALL 路由到读取 `.xirang/references/my-boundary.md`
-  - SHALL NOT 读取对应的内置模板
-
-- **Windows 上路径行为一致**
-
-  - 在 Windows 上解析 `git.commitMessage.*` 配置与物化 `.xirang/references/` 文件
-  - 系统 SHALL 通过 Node.js path 工具构建实际文件路径
-  - 配置值与 skill 指令中的路径 SHALL 保持 POSIX 正斜杠形式
-  - 行为 SHALL 与 Unix 系统一致
-
-- **archive 制品提交读取 archive reference**
-
-  - 生成 `xirang-archive-change` skill
-  - 主 `SKILL.md` SHALL 要求 agent 在创建 Xirang/docs 归档制品 commit 前读取 `git.commitMessage.archive` 指向的模板，未配置时读取 `.xirang/references/xirang-archive-commit-message.md`
-  - `.xirang/references/xirang-archive-commit-message.md` SHALL 说明归档制品 commit 的 subject、`## Why` 与 `## Changes` 格式
-
-- **merge 步骤读取 merge summary reference**
-
-  - 生成 `xirang-archive-change` skill
-  - 主 `SKILL.md` SHALL 要求 agent 在创建 merge 或 squash commit message 前读取 `git.commitMessage.merge` 指向的模板，未配置时读取 `.xirang/references/xirang-merge-summary-message.md`
-  - `.xirang/references/xirang-merge-summary-message.md` SHALL 说明 merge summary 的 subject、`## Why` 与 `## Changes` 格式
-
-- **主 skill 保留流程边界**
-
-  - 生成 `xirang-archive-change` skill
-  - 主 `SKILL.md` SHALL 保留 archive 流程、quality gate、sync、CLI archive、agent git 流程与 references 读取步骤
-  - 主 `SKILL.md` SHALL NOT 内联 commit message 格式的完整说明
+Windows/POSIX 均能按项目根定位同一 reference；commitMessage 为绝对路径或含 .. 时省略覆盖并用内置路由，不影响其他合法配置。

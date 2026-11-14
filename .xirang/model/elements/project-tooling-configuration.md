@@ -1,7 +1,7 @@
 ---
 entity: element-declaration
 identity: project-tooling-configuration
-kind: element
+kind: capability-specification
 parent: cli
 title: Project and Tooling Configuration
 definition: Project and Tooling Configuration 是 CLI 中建立和维护息壤项目及其工具环境的能力。它通过相应 CLI commands 初始化和更新息壤工作区，读取和管理项目配置，选择、安装、刷新与同步 Agent 工具集成，并维护息壤托管的 Agent 工作面及其 instructions、templates 与 references。
@@ -9,101 +9,50 @@ definition: Project and Tooling Configuration 是 CLI 中建立和维护息壤�
 
 ## Specification
 
-### Section: 管理项目与 Agent 工作面
+### Section: Scope and Non-goals
 
-Project and Tooling Configuration SHALL 建立和维护息壤工作区、项目配置与所选 Agent 工具集成，并持续管理息壤托管的 Agent 工作面。工作面 SHALL 提供公共前置 skill 与六个阶段 skills：用户可只加载公共 skill 后用自然语言表达阶段或工作意图，由 Agent 读取相应阶段指导；也可直接加载阶段 skill，由 Agent 补齐公共指导。阶段确认与验证门禁 SHALL 继续适用。
+Project and Tooling Configuration SHALL 建立和维护工作区、配置及所选 Agent 工具集成，交付完整公共/阶段工作面和所需专项指导。它负责配置与交付的一致性，用户设计判断、Candidate 语义编写及项目实现由相应工作身份承担。
 
-公共基础、阶段职责与专项指导 SHALL 分别组织，同一完整规则只在一个位置维护。指导 SHALL 按需加载；同一 Agent、同一项目中仍有效且可用的指导跨阶段复用，新 Agent、必要上下文丢失或指导更新时重新取得所需内容。静态指导复用 SHALL NOT 取消当前 Record、模型、配置、Git 或 Quality 状态的适用检查。
+### Section: Business Logic
 
-- **建立新项目**：用户选择项目与 Agent 工具后，CLI 建立工作区、项目配置与对应工具集成，公共及阶段指导均可达。
-- **自然语言入口**：用户只加载 common 后说“探索一下这个需求”，Agent 读取 Explore 指导；用户直接加载 Explore 时补齐缺少的 common，保留已选阶段，不循环加载。
+系统 SHALL 通过 setup 建立新工作区并保留已有用户内容，以用户提供的完整 Project Definition 初始化 Project Root Declaration，不用紧凑 summary 或实现推断代替规范定义；Project Build 负责后续完整模型。所选工具获得 common、六个阶段 skills、支持的内部 Agent 制品及共享 references。
 
-### Section: 保持配置一致
+工作面 SHALL 支持 common 的自然语言阶段入口与直接阶段入口。补齐缺少公共指导时保留已选阶段，不循环加载；公共基础、阶段流程、专项规则各有唯一来源，按需加载并在同项目有效上下文中复用。复用不取消模型、Record、配置、Git 或 Quality 状态检查。
 
-Project and Tooling Configuration SHALL 通过 CLI 维护项目配置和 Agent 工具集成的一致状态。
+语义写作、Design Record 和默认 semantic-refinement SHALL 由框架单一来源交付，Build/Explore/Propose/Snack 按工作触发读取，不运行时依赖用户级 problem-framing skill。受管新增/更新/删除按明确名单定位，保留用户方法、skill 和未登记内容。物理路径通过平台 API 定位，Windows、macOS、Linux 等价。
 
-- **更新已配置项目**
+项目配置 SHALL 承载当前项目基础设置和作用域明确的偏好，AGENTS.md 承载普遍约定，全局工具设置单独管理。setup/help/config/YAML 使配置可发现；config project 返回有效值，config check 只读详细解释有效性、来源、范围与诊断；字段定义、说明和默认值一致。common 取得 context，修改协议按需加载，授权修改后重读验证，不自动保存模型建议。
 
-  - 用户请求维护现有项目配置与工具集成
-  - CLI 依据当前配置刷新息壤托管的工作面
+architecture.outline.definitionDepth SHALL 为非负整数，默认 2，共享默认值用于 setup、有效数据和 outline；显式 Definition projection 使用该默认，--definition-depth 仅覆盖当前调用，不裁剪层级树或控制浏览器展开。
 
-### Section: 投影共享 Element Contract 语义
+只有 setup SHALL 创建项目配置；update 对已有合法版本配置先验证完整链，仅保留最近 10 次迁移操作，全部成功后原子写回内容与版本。按明确清单补说明/结构、清理陈旧内容并报告，保护仍适用用户值、注释和排版，重复执行不重复修改。
 
-Project and Tooling Configuration SHALL 从单一共享生成源向项目级 reference 交付 Element Definition 与 Element Contract 的边界及写作规则。Build、Explore、Propose 与 Snack SHALL 在涉及相应语义编写时通过明确入口读取该指导，并复用仍有效的已加载内容；阶段正文 SHALL NOT 承载同一完整规则。存储记法 SHALL 保持独立并按完整模型或 Delta 的当前编写需要读取。
+### Section: Edge Cases and Exception Handling
 
-- **刷新 Agent 工作面**：四个入口指向可达的一致语义写作指导；普通阶段切换不重新注入完整正文。
+配置缺失/损坏时 SHALL 由用户或委托 Agent 处理，查询/check/update 不恢复。版本缺失、非法、较新、链不完整或执行失败时原文件不变，不猜测或填 1；超窗口报告当前/目标/最低起始版本并提示旧 CLI 中转，不自动安装或跳步骤。
 
-### Section: 以 Project Definition 初始化根 Element
+非法 definitionDepth 的普通读取 SHALL 告警并回退 2，check 报错误；其他合法配置可用。指导不可用、状态已变或正文丢失时须重新取得，不能用静态复用绕过适用门禁。受管同步只更新明确对象，不覆盖用户专用指导。
 
-Project and Tooling Configuration SHALL 在建立新 Xirang 工作区时收集 Project Definition，并以该完整 Definition 初始化 Project Root Declaration，SHALL NOT 将紧凑 summary 作为根 Element 的规范性概念表述。
+### Section: Key Acceptance Cases
 
-- **跨平台初始化项目**
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-  - 用户在 macOS、Linux 或 Windows 上建立新项目
-  - CLI 通过平台路径 API 写入包含 `definition` 的 Project Root 单元，且结果不依赖路径分隔符
+#### Acceptance Case: 项目与工具建立
 
-### Section: 管理 Outline Element Definition 深度配置
+用户提供 Project Definition 并选择工具后，建立模型骨架、配置和对应工作面；Root 使用完整 Definition，所有公共/阶段入口可达。
 
-Project and Tooling Configuration SHALL 将 `architecture.outline.elementDefinitionDepth` 作为项目级 functional configuration 管理。该字段 SHALL 为非负整数，缺失时有效默认值 SHALL 为 `2`；默认值 SHALL 由同一配置常量用于 setup/update 磁盘物化、resilient parsing 后的 effective config、normalized projection 与 `arch outline` command resolution。
+#### Acceptance Case: 自然语言与直接入口
 
-- **新项目物化默认值**
+只加载 common 后说“探索一下这个需求”时进入 Explore；直接加载 Explore 时补齐 common，已选阶段不变。
 
-  - `xirang setup` 或 config default migration 创建项目配置
-  - `.xirang/config.yaml` SHALL 包含 `architecture.outline.elementDefinitionDepth: 2`
-  - SHALL 使用现有 functional default materialization path，而不是独立硬编码
+#### Acceptance Case: 默认深度与覆盖
 
-- **既有项目补充缺失默认值**
+配置 definitionDepth 为 4 时有效查询和未被参数覆盖的 Definitions 使用 4；缺失默认 2，非法值普通读取回退 2 且 check 报错，命令覆盖不改配置。
 
-  - update 或 default migration 处理未声明 outline config 的既有 `.yaml` 或 `.yml` 配置
-  - CLI SHALL 只补充缺失的 nested mapping keys
-  - SHALL NOT 覆盖用户已有的合法 `elementDefinitionDepth`
+#### Acceptance Case: 版本演进与内容保护
 
-- **读取合法配置值**
+已有合法版本配置升级成功后原子提交内容/版本，用户方法、注释、排版保留；缺链或步骤失败不改变原文件。
 
-  - 项目配置包含 `architecture.outline.elementDefinitionDepth: 4`
-  - normalized project config 与未显式覆盖的 `arch outline` SHALL 使用值 `4`
-  - SHALL NOT 将该值解释为模型结构裁剪深度
+#### Acceptance Case: 跨平台受管交付
 
-- **非法配置回退有效默认值**
-
-  - 配置值为负数、非整数或 nested shape 非法
-  - resilient parser SHALL 输出 field-specific warning
-  - effective normalized projection 与 `arch outline` SHALL 使用默认值 `2`
-  - 其他有效项目配置字段 SHALL 继续可用
-
-- **config project 显示有效值**
-
-  - 用户运行 `xirang config project --json`
-  - normalized output SHALL 包含有效 `architecture.outline.elementDefinitionDepth`
-  - 缺失 raw config 时 SHALL 仍显示默认值 `2`
-
-- **Agent config projection 显示有效值**
-
-  - CLI 为 Agent-facing artifact instructions 构建 `configProjection.prompt.fragments`
-  - projection SHALL 包含 `architecture` fragment 与 `architecture.outline.elementDefinitionDepth: <effective value>`
-  - fragment SHALL 只投影有效值，不重复静态 Semantic Model 恢复协议
-
-- **跨平台配置路径一致**
-
-  - 在 Windows、macOS 或 Linux 上读取、创建或迁移 `.xirang/config.yaml` 或 `.xirang/config.yml`
-  - CLI SHALL 使用 Node.js path utilities
-  - 两种扩展名 SHALL 产生相同 outline configuration semantics
-
-### Section: 投影共享 Design Record 协议
-
-Project and Tooling Configuration SHALL 从 Xirang-owned 单一生成源向 Build、Explore、Propose 及共享 references 投影同版本 Design Record 协议与默认 semantic-refinement 指导，不运行时依赖用户级 problem-framing skill。受管生成面的新增、更新和删除 SHALL 按显式 manifest 名单定位，不按名称模式扫描替换；更名后不再投影的旧 Definition Framing reference SHALL 作为受管生成面被删除，用户专用拆分 skill 不受覆盖。
-
-- **共享协议在三入口可用**
-
-  - CLI 同步所选 Agent 工具集成
-  - Build、Explore、Propose 指向同版本可达的 Design Record reference，入口包含适用的读取与重读条件。
-
-- **旧受管 reference 被清理**
-
-  - 工作区中存在由框架投影的旧 Definition Framing reference
-  - 同步后该文件被删除，新 Design Record reference 可达，用户自有文件不受影响。
-
-- **受管同步不覆盖用户内容**
-
-  - 刷新受本 Change 影响的模板、reference 与生成面
-  - 只按登记名单更新相关工作面，保留用户 skill 与未登记内容，不直接修改生成文件代替源模板。
+Windows、macOS、Linux 同步后，语义写作/Design Record/default refinement 引用指向可读同版本指导，用户文件不被覆盖。

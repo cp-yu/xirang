@@ -50,27 +50,27 @@ describe('artifact-graph workflow integration', () => {
       expect(graph.getNextArtifacts(completed)).toEqual(['proposal']);
       expect(graph.isComplete(completed)).toBe(false);
       expect(normalizeBlocked(graph.getBlocked(completed))).toEqual({
-        specs: ['proposal'],
+        'semantic-delta': ['proposal'],
         design: ['proposal'],
-        tasks: ['design', 'specs'],
+        tasks: ['design', 'semantic-delta'],
       });
 
       // 3. Create proposal.md - now specs and design become ready
       fs.writeFileSync(path.join(tempDir, 'proposal.md'), '# Proposal\n\nInitial proposal content.');
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal']));
-      expect(graph.getNextArtifacts(completed).sort()).toEqual(['design', 'specs']);
+      expect(graph.getNextArtifacts(completed).sort()).toEqual(['design', 'semantic-delta']);
       expect(normalizeBlocked(graph.getBlocked(completed))).toEqual({
-        tasks: ['design', 'specs'],
+        tasks: ['design', 'semantic-delta'],
       });
 
       // 4. Create design.md - specs still needed for tasks
       fs.writeFileSync(path.join(tempDir, 'design.md'), '# Design\n\nTechnical design content.');
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal', 'design']));
-      expect(graph.getNextArtifacts(completed)).toEqual(['specs']);
+      expect(graph.getNextArtifacts(completed)).toEqual(['semantic-delta']);
       expect(graph.getBlocked(completed)).toEqual({
-        tasks: ['specs'],
+        tasks: ['semantic-delta'],
       });
 
       // 5. Create an Element Delta unit - tasks becomes ready
@@ -78,14 +78,14 @@ describe('artifact-graph workflow integration', () => {
       fs.mkdirSync(elementsDir, { recursive: true });
       fs.writeFileSync(path.join(elementsDir, 'feature.auth.md'), '# Auth Delta');
       completed = detectCompleted(graph, tempDir);
-      expect(completed).toEqual(new Set(['proposal', 'design', 'specs']));
+      expect(completed).toEqual(new Set(['proposal', 'design', 'semantic-delta']));
       expect(graph.getNextArtifacts(completed)).toEqual(['tasks']);
       expect(graph.getBlocked(completed)).toEqual({});
 
       // 6. Create tasks.md - workflow complete
       fs.writeFileSync(path.join(tempDir, 'tasks.md'), '# Tasks\n\n- [ ] Implement feature');
       completed = detectCompleted(graph, tempDir);
-      expect(completed).toEqual(new Set(['proposal', 'design', 'specs', 'tasks']));
+      expect(completed).toEqual(new Set(['proposal', 'design', 'semantic-delta', 'tasks']));
       expect(graph.getNextArtifacts(completed)).toEqual([]);
       expect(graph.isComplete(completed)).toBe(true);
       expect(graph.getBlocked(completed)).toEqual({});
@@ -109,7 +109,7 @@ describe('artifact-graph workflow integration', () => {
       completed = detectCompleted(graph, tempDir);
       expect(completed).toEqual(new Set(['proposal', 'design']));
       // specs is the only thing ready now (design already done)
-      expect(graph.getNextArtifacts(completed)).toEqual(['specs']);
+      expect(graph.getNextArtifacts(completed)).toEqual(['semantic-delta']);
     });
 
     it('marks specs done for a relationships-only Semantic Delta', () => {
@@ -121,7 +121,7 @@ describe('artifact-graph workflow integration', () => {
       fs.writeFileSync(path.join(relationshipsDir, 'invokes.yaml'), 'relationships: []');
 
       const completed = detectCompleted(graph, tempDir);
-      expect(completed.has('specs')).toBe(true);
+      expect(completed.has('semantic-delta')).toBe(true);
     });
 
     it('marks specs done and tasks ready for a no-Delta completion marker', () => {
@@ -132,7 +132,7 @@ describe('artifact-graph workflow integration', () => {
       fs.writeFileSync(path.join(tempDir, '.delta-noop'), '');
 
       const completed = detectCompleted(graph, tempDir);
-      expect(completed.has('specs')).toBe(true);
+      expect(completed.has('semantic-delta')).toBe(true);
       expect(graph.getNextArtifacts(completed)).toContain('tasks');
       expect(graph.getBlocked(completed)).not.toHaveProperty('tasks');
     });
@@ -177,13 +177,13 @@ describe('artifact-graph workflow integration', () => {
       const graph = ArtifactGraph.fromSchema(schema);
 
       // Create specs directory with wrong file types
-      const specsDir = path.join(tempDir, 'specs');
+      const specsDir = path.join(tempDir, 'semantic-delta');
       fs.mkdirSync(specsDir, { recursive: true });
       fs.writeFileSync(path.join(specsDir, 'notes.txt'), 'not a markdown file');
       fs.writeFileSync(path.join(specsDir, 'data.json'), '{}');
 
       const completed = detectCompleted(graph, tempDir);
-      expect(completed.has('specs')).toBe(false);
+      expect(completed.has('semantic-delta')).toBe(false);
     });
   });
 });

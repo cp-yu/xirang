@@ -133,7 +133,7 @@ For workflow-managed writes, read the resolved file definition before its instru
 
 **Input**: ${inputLine}
 
-Before archiving, load \`.xirang/references/xirang-configuration-use.md\`, then run \`xirang config project --select git --json\` and consume git policy from its normalized project config: \`git.commitMessage.archive\`, \`git.commitMessage.merge\`, \`git.merge.strategy\`, and \`git.branch.deleteAfterArchive\`; do not parse raw YAML inside the skill.
+Before archiving, follow common’s configuration-use rules, then run \`xirang config project --select git --json\` and consume git policy from its normalized project config: \`git.commitMessage.archive\`, \`git.commitMessage.merge\`, \`git.merge.strategy\`, and \`git.branch.deleteAfterArchive\`; do not parse raw YAML inside the skill.
 
 **Steps**
 

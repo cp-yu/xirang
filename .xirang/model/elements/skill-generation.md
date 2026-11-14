@@ -1,104 +1,92 @@
 ---
 entity: element-declaration
 identity: skill-generation
-kind: element
+kind: capability-specification
 parent: agent-workbench-projection
-title: Skill Generation
-definition: Skill Generation 是息壤公共与阶段 skill 的生成能力。它独立承载公共基础、专项指导入口和合法 frontmatter 的交付边界，供各工作流在需要时获得同源规则；阶段业务流程与用户决策由对应工作身份承担，工具安装与同步由工作面投影承担。
+title: 公共与阶段 Skill 交付
+definition: 公共与阶段 Skill 交付是息壤工作指导面向用户 Agent 的投影契约。它独立承载 common 与六个阶段的入口、内容分工、配置和语义读取、按需指导、阶段行为及合法 frontmatter；共享生成与同步由工作面整体负责，内部角色和专项 reference 的完整内容由各自交付能力承担。
 ---
 
 ## Specification
 
-### Section: Xirang Philosophy 片段定义
+### Section: Scope and Non-goals
 
-系统 SHALL 在共享片段常量中提供 `XIRANG_PHILOSOPHY` 共享片段。该片段 SHALL 以英文书写，不受 prose language projection 管辖，并 SHALL 只表达项目定义：Xirang 是可被 Agent 编译的 human intent 的结构化表述；Semantic Model 是唯一权威语义，由模型分区与 Element-owned Contract modules 共同构成；Change 将 Semantic Delta reconcile 到 target steady state，proposal/design/tasks 是 compilation scaffolding；模型只有在 Agent 无需猜测影响 hierarchy、contracts 或 relationships 的决策时才完整；Agent 执行类似 compiler 的操作，现有代码是 current implementation evidence。
+公共与阶段 Skill 交付 SHALL 提供 common 及六个用户阶段的合法 skill 制品、入口和工作指导，组织公共依赖、阶段行为及按需协议。内部角色完整定义和专项 reference 内容由对应交付能力承担；共享同步与工具适配由工作面整体负责。
 
-- **片段定义统一 Semantic Model**
+### Section: Business Logic
 
-  - `XIRANG_PHILOSOPHY` 被读取
-  - 文本 SHALL 声明 Xirang 是可被 Agent 编译的 human intent 的结构化表述
-  - SHALL 声明模型分区与 Element-owned Contracts 共同组成一个 Semantic Model
-  - MUST NOT 使用双源作为核心定义
+Propose、Snack 及共享差量写作入口 SHALL 以 `semantic-delta` 标识完整 Semantic Delta，读取项目根 `.xirang/references/xirang-artifact-semantic-delta.md`，并通过 `config project --artifact semantic-delta` 取得适用规则。制品依赖及完成状态使用同一身份。
 
-- **片段定义 completeness 与 Agent compiler 类比**
+Skill 交付 SHALL 联合组织公共入口、阶段动作和按需指导，使独立入口获得所需依据并保留适用工作边界。
 
-  - model 缺少会改变 hierarchy、contracts 或 relationships 的决策
-  - 文本 SHALL 说明 Semantic Model 尚不完整
-  - SHALL 禁止 Agent 通过猜测补足该决策
-  - SHALL 将 compiler 表述为 Agent 操作类比，而非真实 compiler 或持久化 IR
+#### 入口、公共内容与复用
 
-- **片段排除操作规则**
+common SHALL 交付英文 Philosophy，表达结构化人类意图、统一 Semantic Model、Change 的目标状态及 Plan 的辅助角色、关键语义决策完整性和 Agent 依意图落实项目。该定义片段不承载真实编译器管线、语法细则或阶段执行步骤，不受制品 proseLanguage 覆盖。
 
-  - `XIRANG_PHILOSOPHY` 被读取
-  - 文本 MUST NOT 包含制品定义先行写作、canonical syntax 或 validation gate 指令
-  - MUST NOT 包含独立 AST/IR pipeline、static analysis pass 或 decompilation 类比
+用户只加载 common 并表达阶段意图时，Agent SHALL 读取相应阶段 skill；直接加载阶段时补齐缺失 common，保留已选阶段。阶段正文保留职责、动作、输入权威、停止/确认条件及输出交接，完整规则仅在负责的 common/reference 维护，入口保留触发和必要提醒。自然语言可用于进入后续阶段，不要求用户手动调用 skill；路由不取消适用门禁。
 
-- **片段定义统一 Xirang Semantic Model**
+同 Agent、同项目且指导仍有效可用时跨阶段复用；新 Agent、必要正文丢失或指导变化时取得所需内容。独立 Reviewer/Optimizer 从各自上下文判断公共依据是否可用，保留受托角色及权限，不重新选择用户阶段。主 Agent 已读不等于子 Agent 已读。
 
-  - `XIRANG_PHILOSOPHY` 被读取
-  - 文本 SHALL 声明 Xirang 是可被 Agent 编译的 human intent 的结构化表述
-  - SHALL 声明 模型分区 与 element-owned Contracts 共同组成一个 Semantic Model
-  - MUST NOT 使用 `durable semantic source` 或 Behavior/Architecture 双源作为核心定义
+#### 配置与模型读取
 
-- **片段定义 scaffolding 与 reconciliation**
+common SHALL 直接包含配置使用规则和 `xirang config project --select context --json` 入口；加载后读取项目背景，同项目当前内容未变可复用，自行修改、换项目或上下文丢失后重读。不重解 raw YAML；proseLanguage/context、canonical tokens、附加且匹配的 rules 和按需 Apply/Archive 配置依各自作用域生效。
 
-  - `XIRANG_PHILOSOPHY` 被读取
-  - 文本 SHALL 声明 change 朝 target steady state reconciliation Semantic Delta
-  - SHALL 声明 proposal、design、tasks 是 compilation scaffolding，而非竞争性的 source of truth
+用户请求修改配置时 SHALL 按需加载项目根 xirang-configuration-edit.md，取得授权范围、长期/本次、字段选择、内容保留、重读校验与简短报告规则；此入口不授予只读角色写权限。
 
-### Section: Xirang Philosophy 注入 workflow skill 模板
+模型导航 SHALL 按有限 search 候选、outline 整体层级、impact 局部影响和显式 identities 的 query/query --contract 展开。读取仅涵盖当前决策需要的对象，完整 Declaration/Contract 不摘要、不截断、不从名字或代码猜测。不批量 query 全部 impact 结果；snapshot 保留给必要全局诊断，默认 onboarding 不使用它。整体理解丢失时先恢复 outline，具体语义缺失时查询其 identity。
 
-Skill Generation SHALL 将完整 `XIRANG_PHILOSOPHY` 交付于 `xirang-common`，六个阶段 skills SHALL 声明公共前置依赖，正文不内联该完整片段。common SHALL 承载统一语义依据、identity 等基本约束，以及阶段选择、按需加载和复用规则；专项细则通过单一 reference 提供。
+Agent 阅读优先请求范围完整且紧凑的文本，程序需精确字段时使用 JSON，不假定两者信息等价。扩大读取前说明具体问题，代码/测试先定位拥有行为的符号或用例，再读必要范围。并发只用于独立小查询，不输出过量原始嵌套 JSON。
 
-用户可以只加载 common 后通过自然语言选择阶段，也可以直接加载任一阶段 skill；Agent SHALL 在开展该阶段工作前取得缺少的公共指导，已加载且仍有效时复用。单独加载 common SHALL NOT 无条件加载全部阶段或专项指导。
+#### 分解与阶段工作
 
-- **common 入口**：只加载 common 后说“进入 Explore”，Agent 读取 Explore 并按其职责工作。
-- **阶段入口**：直接加载 Explore 且 common 尚不可用，Agent 补读 common 后继续 Explore；不得要求用户先手动调用 common。
+Build/Explore/Propose/Snack 仅在形成或重组 hierarchy 时，通过 `config project --select decomposition --json` 取得有效方法并完整读取；普通 Contract-only 工作不加载它。框架父子精化、同级 MECE、广度优先和用户授权纪律由 semantic-authoring 承载，项目方法决定具体分解维度；不要求每层机械等待确认。
 
-### Section: Xirang Philosophy 注入 internal subagent 模板
+创建或修改项目方法时，common SHALL 路由到 decomposition-authoring 指导；方法是项目维护的独立 Markdown，通过 decomposition 选择。日常使用方法不预加载编写指南，不修改受管默认文件替代自定义方法。
 
-Reviewer 与 Optimizer 的生成角色指导 SHALL 引用公共 skill 取得 Philosophy 和适用的公共基础，不内联其完整副本。每个独立 Agent SHALL 从自己的有效上下文判断是否已取得指导，主 Agent 已加载不代表子 Agent 已加载。加载公共 skill SHALL 保留受托角色与范围，不重新选择用户阶段，也不改变独立取证和角色权限。
+Build SHALL 确定探索范围与权威依据，编写 build.md 和四分区 Candidate，使用 candidate validate 并经用户确认提升；不依赖内部 Agent 可用性。Apply 按目标模型、任务与当前代码实施；Propose/Apply 的 tasks 以 Goals、Contract、Verify 对齐，具体测试工作由 Apply 决定。适用工作身份按需读取测试质量和语义写作指导，复用有效内容。
 
-其他 internal surfaces SHALL 只加载自身职责实际需要的指导，不因公共 skill 存在而预加载全部协议。公共内容生成源 SHALL 显式记录使用方与适用边界。
+Snack SHALL 明确适用于已发生代码变化，可接收显式 Change 名或检测活动 Change。证据包括 conversation context、working-tree、staged、HEAD 及用户指定 commit/range；对照模型识别影响和 Contract 覆盖，按缺失、陈旧、不一致或已一致状态有条件地调和 proposal、design、Semantic Delta，不生成 tasks.md，已一致内容不重写。描述与正文均须表达此边界。
 
-- **独立 Reviewer**：主 Agent 已读 common，fresh Reviewer 仍取得自身需要的公共指导，再按只读审查角色取证。
-- **恢复上下文**：必要指导已不可用时，子 Agent 补读对应内容，角色与委托范围保持不变。
+#### 生成与验证
 
-### Section: skill frontmatter 必须生成合法 YAML
+skill 的 name、description、license、compatibility、metadata SHALL 写为合法 YAML 字符串，解析后保持模板值。源模板、工具投影与行为验证一致；不以自然语言全文、标题顺序或字节快照代替关键协议、门禁和禁止操作的验证。
 
-系统 SHALL 将 skill template 的 `name`、`description`、`license`、`compatibility` 与 metadata 字段作为可解析的 YAML 字符串写入 `SKILL.md` frontmatter。
+上下文优化 SHALL 先取消无必要调用和读取，再删无用回执与重复内容，再缩小范围，最后选择紧凑表示。相同任务目的和场景比较 stdout/stderr、文件读取及累计开销，未运行 tokenizer 不报告 token 节省；不把同量内容从 CLI 搬到文件当收益。行为比较控制模型和设置，覆盖重复及不同场景，检查产物、加载、暂停、返工、耗时与可得 token；必要语义或确认缺失属于回归。
 
-- **description 包含 YAML 敏感字符**
+### Section: Edge Cases and Exception Handling
 
-  - skill template 的 `description` 包含 `sync:`、双引号或换行
-  - 生成的 frontmatter MUST 能被 YAML parser 解析
-  - 解析后的字段值 MUST 与原始 template 字符串语义一致
+指导 SHALL 对实际缺口采用下列边界：缺少 context 不制造要求，查询失败报告且不伪称成功，不引入监听；无法读取配置选中的分解方法时停止结构工作，不替换方法。模型缺失/无效时，只读探索可声明限制并使用部分证据，编译或写入语义的工作不得视为空完整模型。
 
-- **init 和 update 生成的 skill 文件**
+来源或目标变化、相关 drift、状态未知及上下文丢失 SHALL 触发所需当前依据重读；普通阶段复用不取消 Record、模型、配置、Git 或 Quality 检查。读取输出被截断时缩小或分批取得缺失内容，不能当作完整证据。缺少实质用户决策时停在适用确认点，已进入阶段不代表获得决定授权。生成 frontmatter 含特殊字符时必须仍可解析，不能以表面无引号文本假定正确。
 
-  - 用户运行 `xirang setup` 或 `xirang update` 生成 skill files
-  - 生成的 frontmatter MUST 能被 YAML parser 解析
-  - 测试通过解析后的字段校验语义，而不是依赖未加引号的 YAML 表面格式
+### Section: Key Acceptance Cases
 
-### Section: 共享生成结构拆分 guidance
+以下 Acceptance Cases SHALL 验证本 Contract 的机制、边界及可观察结果。
 
-Skill Generation SHALL 从单一生成源为 Build、Explore、Propose、Snack 交付短加载入口：仅在形成或重组 hierarchy 时，通过 `xirang config project --select decomposition --json` 取得有效指导路径并完整读取；不可读时停止相关结构形成，不替换方法。阶段直接使用该入口，不通过独立的 decomposition-use reference 再转发。
+#### Acceptance Case: 双向入口不循环
 
-父子语义精化、同层 MECE、BF 与方法权限边界 SHALL 由共享 semantic-authoring reference 承载。项目方法在这些框架约束内决定分解维度、概念边界和细化程度；项目专属内容不进入通用规则。框架方法要求每个 sibling set 沿同一维度、在已确认范围内相互独立且完整；BF 先形成并检查完整同层结构再向下细化，不自动要求每层等待用户，也不禁止根据后续发现回修上层。用户确认按当前工作流的决策与授权规则进行。
+只加载 common 后说“进入 Explore”：加载 Explore。直接加载 Explore 且 common 缺失：补读 common 后继续 Explore，不重新路由或要求用户手动补调。
 
-- **项目自定义**：配置指向项目方法时采用该方法的具体分解选择，仍遵守框架基础；不能以自定义为由取消 MECE、父子精化或已确认承诺。
-- **BF 与裁决**：同层结构已有依据且符合约束时可以继续细化；涉及未决实质选择时先裁决，不把该选择当作确定结构推进。
-- **无结构需求**：Contract-only 工作及不形成 hierarchy 的阶段不因公共依赖加载分解方法。
-- **一致投影**：各工具的加载语义一致，并遵守已有 skills/references 长度约束。
+#### Acceptance Case: 阶段复用与新 Agent
 
-### Section: 项目分解方法创建指导
+同项目从 Explore 到 Propose，公共指导仍有效则只补新增需求；fresh Reviewer 独立取得自己的公共依据，保持只读角色。
 
-Skill Generation SHALL 交付按需读取的 `.xirang/references/xirang-decomposition-authoring.md`，并在 common 的按需指导表提供创建或修改项目 decomposition 的入口；普通使用方法时不额外加载该指南。
+#### Acceptance Case: 配置按需消费
 
-创建指导 SHALL 引用共享 semantic-authoring 取得框架约束，指导作者说明项目如何选择分解维度、识别有意义的 Element 边界及判断何时继续细化，必要时使用项目例子。它不重复定义框架规则、不要求固定方法模板、不新增工作流。
+进入 Explore 后读取 context，不无条件加载 Apply 隔离或 Archive Git；用户请求修改配置才加载 edit reference。
 
-方法 SHALL 保存在项目维护的独立 Markdown 文件中，通过现有 decomposition 配置选择，而非修改框架生成的默认方法。现有项目根相对路径和 references 裸名称解析语义保持；在 macOS、Linux 和 Windows 上均通过同一有效配置与投影机制定位文件。
+#### Acceptance Case: 分解方法与缺口
 
-- **创建或修改方法**：读取创建指南和仍缺少的共享依据，再编写项目特有方法；已有且仍有效的指导复用。
-- **日常使用**：阶段加载配置选中的方法，创建指南不因它存在而被预加载。
-- **用户内容保留**：刷新框架指导时，项目方法文件与显式 decomposition 值保持；新指南不把用户方法变成受管默认文件。
+Contract-only 修改不读分解方法；结构工作取得配置路径后文件不可读，则停止该工作；用户创建方法时加载编写指南并保存独立项目文件。
+
+#### Acceptance Case: 渐进模型读取
+
+impact 返回多个身份时，只 query 当前判断需要的完整语义；整体上下文丢失时恢复 outline，输出截断时取得缺失内容，不用旧摘要补猜。
+
+#### Acceptance Case: Snack 证据和条件调和
+
+仅有 staged 变更时也能定位影响；制品与实现、模型一致时不重写，缺失语义时形成 Delta；任一情形都不生成 tasks.md。
+
+#### Acceptance Case: 合法 Frontmatter
+
+description 含 sync:、双引号或换行，在 setup/update 交付的 YAML 中可解析，字段值与原模板语义一致。
