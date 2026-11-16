@@ -38,7 +38,7 @@ Section identity SHALL 由宿主 Element identity 与 Section 标题共同确定
 
 ### Section: 完整表达自身抽象层级语义
 
-Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、提供的保证、遵循的约束与表现的行为，并 SHALL 以业务规格内容标准要求的容器承载各类细节，使规范细节不因表达简略而丢失。
+Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的职责、提供的保证、遵循的约束与表现的行为；属于 business-specification Contract 时 SHALL 以业务规格内容标准要求的容器承载各类细节，使规范细节不因表达简略而丢失。通用概念与组织性 Contract 不因具有 Contract 而强制适用 4+N；Root 的层级位置不决定格式适用性。
 
 #### Acceptance Case: 独立判断 Element 承诺
 
@@ -47,7 +47,7 @@ Element Contract SHALL 完整表达宿主 Element 在自身抽象层级承担的
 
 #### Acceptance Case: 细节缺失在读取时可见
 
-- **WHEN** Contract 未表达业务目标、范围边界、边界值与异常防御或适用的 +N 大点
+- **WHEN** business-specification Contract 未表达业务目标、范围边界、边界值与异常防御或适用的 +N 大点
 - **THEN** 读取者可从缺失的容器直接识别未撰写内容
 
 ### Section: 允许 Children 精化与共同实现
