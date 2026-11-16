@@ -48,6 +48,70 @@
     }
   ],
   "limitations": [
-    "Checks prove approved prompt delivery and deterministic model/Kind validation. No repeated fresh-Agent formation experiment was run; stable improvement in Agent classification or full Change generation is not established."
-  ]
+    "Approved prompt delivery, 95 existing tests and deterministic model/Kind validation passed. The bounded fresh-Agent attempt produced only connection errors, with zero model messages and zero tool events; classification, standard loading and target formation remain unverified. No reliability or comparative improvement claim is supported."
+  ],
+  "freshAgentExperiment": {
+    "status": "BLOCKED",
+    "runId": "a58996e5-c1b8-4b66-98c2-93ad1dc069fe",
+    "root": "/tmp/xirang-contract-04765fcc-JvULNU",
+    "report": "/tmp/xirang-contract-04765fcc-JvULNU/report.md",
+    "observations": {
+      "result": "BLOCKED",
+      "cli_invocations": 1,
+      "reconnect_error_events": 4,
+      "agent_messages": 0,
+      "tool_events": 0,
+      "turn_completed": false,
+      "final_output_exists": false,
+      "model_requested": "gpt-5.5",
+      "model_actual_version": "unverified; no inference response",
+      "cli_version": "codex-cli 0.153.4",
+      "repository_status_unchanged": true,
+      "input_manifest_unchanged": true,
+      "termination": "kill -TERM 1333502; native Codex process stopped; Node wrapper reported exit status 0 without completed turn",
+      "scenarios": {
+        "A": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        },
+        "B": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        },
+        "C": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        }
+      }
+    },
+    "reportSha256": "d2298859f56fee78ca89030693914262a2749affd5be1e3fd372858a15575f2e",
+    "disposition": "No product changes. Required Correction remains open; full-change Review is FAIL. No successful behavior evidence or Quality Seal. No retry or executor switch performed."
+  },
+  "userAcceptance": {
+    "decision": "不需要验证了，现在这样就可以",
+    "accepted": "Current implementation and disclosed missing fresh-Agent behavior evidence",
+    "action": "Stop additional experiments and repeated reviews; deliver current implementation",
+    "qualityDisposition": "Preserve full-change Review FAIL; no passing opinion or Quality Seal is claimed"
+  }
 }
