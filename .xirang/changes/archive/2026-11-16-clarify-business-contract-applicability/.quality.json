@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 4,
+  "changeId": "clarify-business-contract-applicability",
+  "revision": 1,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "04765fcc7bfe07eab1cdc61ab3c709eedf292cdf",
+      "result": "FAIL",
+      "summary": "Reviewed the complete cumulative Change for Completeness, Correctness, Coherence and Cleanliness. The four approved replacements are consistently delivered through the shared source, four formation skills, common index and project reference. Required evidence for the new Agent classification and compilation behavior remains missing. HEAD stayed unchanged and the working tree remained clean.",
+      "findings": [
+        "CRITICAL — Required Agent behavior has no credible execution evidence. tasks.md:3–5 and elements/business-specification-standard.md:14–28 under .xirang/changes/clarify-business-contract-applicability/ require an Agent to identify an unmarked firmware Root as carrying a business-specification Contract, read the standard, and compile the required Kind declarations and complete 4+N Contract while preserving Root identity. However, verification.json:20–48 records only validation of preconstructed models, and verification.json:50–51 limits the evidence to prompt delivery and deterministic model/Kind validation. Existing test/core/templates/semantic-model-consistency.test.ts:69–79 checks reference routing and format tokens; test/core/model/business-specification.test.ts:94–104,131–139 checks explicit declaration behavior. These checks would still pass if an Agent continued skipping classification for unmarked Roots. The committed search `git grep -n -E 'AirwayManagementDevice|root-contract-smoke|fresh.Agent|Agent classification|classif.*business|business.*classif' HEAD -- test` returned no matches. Retain a bounded, one-time fresh-Agent formation experiment showing classification, standard loading, and the resulting Kind/Contract for the unmarked Root, with relevant generic/mixed-Kind controls. A persistent prose assertion or repeated experiment proving stable improvement is not required; an observed execution of the required behavior is needed."
+      ]
+    }
+  ],
+  "opt": null,
+  "seal": null
+}

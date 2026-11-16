@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "filename": "business-contract-applicability.md",
+  "sourceVersion": "bbe485b5dd130a05686b43a91b6b329df2425a8a637ba83489a1f038ce7b7b46",
+  "targetFingerprint": "031b49cf4cdd2970a94c40a5ecf6f709baaddeac93d3fdb97fae26701a656c92",
+  "recordedAt": "2026-11-16T14:25:07.809Z",
+  "entries": [
+    {
+      "identity": "business-contract-applicability",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "探索或编写前按目标承诺判断业务规格，缺少既有声明不豁免",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "Agent 在探索或编写 Element Contract 前 SHALL 根据其目标承诺判断是否属于此类 Contract，不以既有 Kind 缺少格式声明作为豁免，也不以 Element 的层级位置决定适用性。"
+        },
+        {
+          "detail": "Kind 同时声明 required 与 business-specification，允许更新或新建",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "承载 business-specification Contract 的 Element SHALL 使用同时声明 `contract: required` 与 `contractFormat: business-specification` 的 Kind；撰写者按目标语义更新既有 Kind 或声明合适的 Kind。"
+        },
+        {
+          "detail": "完整四个固定 Section 及必要 +N，沿用标准既有基础承诺",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "此 Kind 的全部实例 SHALL 满足 4+N 结构。"
+        },
+        {
+          "detail": "通用概念与组织性 Element 不强制，混合类型分离 Kind",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "通用概念及组织性 Element 无需采用该格式；与承载 business-specification Contracts 的 Elements 并存时 SHALL 使用不同 Kinds。"
+        },
+        {
+          "detail": "上级共享写作指导独立表达分类义务",
+          "location": {
+            "element": "authoring-conventions",
+            "section": "Behavior-First Specification Boundary"
+          },
+          "quote": "Agent 在探索或编写 Element Contract 前 SHALL 根据其目标承诺判断业务规格适用性。"
+        },
+        {
+          "detail": "通用 Contract 的完整性条款不强制业务规格容器",
+          "location": {
+            "element": "element-contract",
+            "section": "完整表达自身抽象层级语义"
+          },
+          "quote": "通用概念与组织性 Contract 不因具有 Contract 而强制适用 4+N；Root 的层级位置不决定格式适用性。"
+        }
+      ]
+    },
+    {
+      "identity": "root-business-contract-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Root 可直接承载业务 Contract，保持 root true、parent null、identity 及 Kind 名",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "Project Root MAY 直接承载 business-specification Contract，同时保留 Kind 的 `root: true` 和 Element 的 `parent: null`；Element identity SHALL 保持，不要求将 Kind 重命名为 business，也不为采用该格式强制增加子 Element。"
+        },
+        {
+          "detail": "增加 children 后仍按 Root 自身业务承诺适用，不统一更改初始化模板",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "Root 在具有 children 后仍承载本层业务承诺时同样适用；通用 Root 不因位于根层级而自动成为业务规格，框架初始化不要求统一生成业务规格 Root。"
+        },
+        {
+          "detail": "用户的极简项目把控制承诺写在 Root 的具体例子",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明",
+            "acceptanceCase": "简单固件项目由 Root 承载"
+          },
+          "quote": "AirwayManagementDevice 仅有 `project.root`，使用未声明 contractFormat 的 project Kind，新增 Contract 规定输入消抖、脉冲波形及启停行为。Agent 判断其属于 business-specification Contract，读取完整标准，并在有写权限的编译阶段为项目内 project Kind 声明 `contract: required` 与 `contractFormat: business-specification`；保留 `project.root`、`parent: null` 与 Kind 的 `root: true`，目标 Contract 使用四个固定基础 Section，不要求额外创建子 Element 或改名 Kind。以后新增 children 时，Root 自身层级的业务承诺继续保留。"
+        },
+        {
+          "detail": "通用类型反例保留豁免并分离 Kind",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明",
+            "acceptanceCase": "通用概念与业务承诺并存"
+          },
+          "quote": "同一项目同时有 Section 概念定义与承载可验收功能行为的 Element。两者使用不同 Kinds；概念 Contract 不强制 4+N，承载业务承诺的 Kind 显式声明必需 Contract 与业务格式。框架默认通用 Root 不因根层级位置被强制改为业务规格。"
+        }
+      ]
+    },
+    {
+      "identity": "contract-terminology",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "统一业务规格类 Element Contract 英文称谓，不引入并列语义对象",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "结构门禁与语义审查"
+          },
+          "quote": "自然语言 SHALL 使用 business-specification Contract 指代该类 Element Contract，不作为与 Contract 并列的语义对象；机器字段、文件路径及 `## Specification` 记法保持。"
+        },
+        {
+          "detail": "描述宿主与 Contract 的关系",
+          "location": {
+            "element": "business-specification-standard",
+            "section": "适用范围显式声明"
+          },
+          "quote": "承载 business-specification Contract 的 Element SHALL 使用同时声明 `contract: required` 与 `contractFormat: business-specification` 的 Kind；撰写者按目标语义更新既有 Kind 或声明合适的 Kind。"
+        }
+      ]
+    }
+  ]
+}

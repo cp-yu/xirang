@@ -1,0 +1,117 @@
+{
+  "type": "one-time verification",
+  "fixtureRoot": "/tmp/xirang-root-contract-smoke-2mnxjh8y",
+  "commands": [
+    "pnpm build",
+    "pnpm exec vitest run test/core/templates/semantic-model-consistency.test.ts test/core/templates/sync-engine.test.ts test/core/update.test.ts test/core/model/business-specification.test.ts",
+    "node bin/xirang.js update --force --json",
+    "node bin/xirang.js validate --change clarify-business-contract-applicability --preview --json"
+  ],
+  "results": {
+    "build": "passed",
+    "existingTests": {
+      "files": 4,
+      "passed": 95
+    },
+    "typescriptDiagnostics": "no diagnostics in three edited source files",
+    "approvedTextComparison": "four replacements match source and six generated files; retired entry absent",
+    "initialComparisonCorrection": "An initial one-time comparison assumed a trailing newline in generated reference. Inspection found the existing renderer emits no trailing newline; comparison was corrected to compare content after stripping boundary whitespace. No product change was needed."
+  },
+  "rootModelObservations": [
+    {
+      "scenario": "Unmarked default Root accepts generic sections; reproduces the original deterministic validation gap",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "scenario": "Marked Root rejects the same incomplete Contract",
+      "expectedExit": 1,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "{\"issues\":[{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Scope and Non-goals\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Business Logic\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Edge Cases and Exception Handling\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Key Acceptance Cases\\\"\",\"element\":\"project.root\"}]}\n"
+    },
+    {
+      "scenario": "Root with required business format and four complete sections passes without a child or Kind rename",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "scenario": "Business Root and generic concept coexist under separate Kinds without forcing 4+N on the concept",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "limitations": [
+    "Approved prompt delivery, 95 existing tests and deterministic model/Kind validation passed. The bounded fresh-Agent attempt produced only connection errors, with zero model messages and zero tool events; classification, standard loading and target formation remain unverified. No reliability or comparative improvement claim is supported."
+  ],
+  "freshAgentExperiment": {
+    "status": "BLOCKED",
+    "runId": "a58996e5-c1b8-4b66-98c2-93ad1dc069fe",
+    "root": "/tmp/xirang-contract-04765fcc-JvULNU",
+    "report": "/tmp/xirang-contract-04765fcc-JvULNU/report.md",
+    "observations": {
+      "result": "BLOCKED",
+      "cli_invocations": 1,
+      "reconnect_error_events": 4,
+      "agent_messages": 0,
+      "tool_events": 0,
+      "turn_completed": false,
+      "final_output_exists": false,
+      "model_requested": "gpt-5.5",
+      "model_actual_version": "unverified; no inference response",
+      "cli_version": "codex-cli 0.153.4",
+      "repository_status_unchanged": true,
+      "input_manifest_unchanged": true,
+      "termination": "kill -TERM 1333502; native Codex process stopped; Node wrapper reported exit status 0 without completed turn",
+      "scenarios": {
+        "A": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        },
+        "B": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        },
+        "C": {
+          "business_specification_classification": "unverified: no model response or tool execution",
+          "standard_actually_read": "unverified: no model response or tool execution",
+          "target_kind_fields": "unverified: no model response or tool execution",
+          "root_identity_preserved": "unverified: no model response or tool execution",
+          "root_flag_preserved": "unverified: no model response or tool execution",
+          "parent_preserved": "unverified: no model response or tool execution",
+          "four_plus_N_complete": "unverified: no model response or tool execution",
+          "generic_exemption": "unverified: no model response or tool execution",
+          "mixed_kinds": "unverified: no model response or tool execution"
+        }
+      }
+    },
+    "reportSha256": "d2298859f56fee78ca89030693914262a2749affd5be1e3fd372858a15575f2e",
+    "disposition": "No product changes. Required Correction remains open; full-change Review is FAIL. No successful behavior evidence or Quality Seal. No retry or executor switch performed."
+  },
+  "userAcceptance": {
+    "decision": "不需要验证了，现在这样就可以",
+    "accepted": "Current implementation and disclosed missing fresh-Agent behavior evidence",
+    "action": "Stop additional experiments and repeated reviews; deliver current implementation",
+    "qualityDisposition": "Preserve full-change Review FAIL; no passing opinion or Quality Seal is claimed"
+  }
+}

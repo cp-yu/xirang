@@ -3,7 +3,7 @@
 
 ## Applicability and notation
 
-The Metamodel declares applicability on an Element Kind, not on a filename, title or inferred business vocabulary. Business-specification Elements MUST use a Kind declaring both `contract: required` and `contractFormat: business-specification`; declare an appropriate Kind when needed, never omit the format to bypass validation. For example:
+Elements with business-specification Contracts MUST use a Kind declaring both `contract: required` and `contractFormat: business-specification`; update an existing Kind or declare an appropriate one when needed. For example:
 
 ```yaml
 entity: element-kind
@@ -12,7 +12,9 @@ contract: required
 contractFormat: business-specification
 ```
 
-Every instance of this Kind requires the 4+N Contract. Generic concepts (such as Section, Metamodel or View definitions) and organizational Elements need not use this format. If a Kind mixes business specifications and generic concepts, separate their Kinds instead of forcing business structure onto all instances.
+Generic concepts and organizational Elements need not use this format; use separate Kinds when they coexist with Elements carrying business-specification Contracts.
+
+A Project Root may carry a business-specification Contract while retaining `root: true` on its Kind and `parent: null` on the Element.
 
 ```text
 ## Specification

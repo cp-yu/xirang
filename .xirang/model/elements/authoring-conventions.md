@@ -37,6 +37,8 @@ Element Contracts SHALL 表达其 owner Element 在对应 abstraction level 的�
   - candidate Section 覆盖多个互不相关 guarantees 或 behaviors
   - SHALL 拆分为独立 Sections
 
+Agent 在探索或编写 Element Contract 前 SHALL 根据其目标承诺判断业务规格适用性。business-specification Contract 表达目标项目的功能行为、约束与可观察验收结果，其宿主 Kind SHALL 声明相应必需 Contract 与格式；缺少既有格式声明不免除该判断，已有业务格式声明仍要求加载标准。Project Root MAY 直接承载该类 Contract；通用概念及组织性 Contract 无需强制 4+N，同一 Kind 不混用两类语义。自然语言使用 business-specification Contract，现有机器格式标识与记法保持。
+
 ### Section: Progressive Rigor
 
 息壤 conventions SHALL 默认保持轻量，只在风险或协调复杂度要求时按比例提升严谨度。
