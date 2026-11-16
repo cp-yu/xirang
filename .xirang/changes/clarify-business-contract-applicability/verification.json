@@ -1,0 +1,53 @@
+{
+  "type": "one-time verification",
+  "fixtureRoot": "/tmp/xirang-root-contract-smoke-2mnxjh8y",
+  "commands": [
+    "pnpm build",
+    "pnpm exec vitest run test/core/templates/semantic-model-consistency.test.ts test/core/templates/sync-engine.test.ts test/core/update.test.ts test/core/model/business-specification.test.ts",
+    "node bin/xirang.js update --force --json",
+    "node bin/xirang.js validate --change clarify-business-contract-applicability --preview --json"
+  ],
+  "results": {
+    "build": "passed",
+    "existingTests": {
+      "files": 4,
+      "passed": 95
+    },
+    "typescriptDiagnostics": "no diagnostics in three edited source files",
+    "approvedTextComparison": "four replacements match source and six generated files; retired entry absent",
+    "initialComparisonCorrection": "An initial one-time comparison assumed a trailing newline in generated reference. Inspection found the existing renderer emits no trailing newline; comparison was corrected to compare content after stripping boundary whitespace. No product change was needed."
+  },
+  "rootModelObservations": [
+    {
+      "scenario": "Unmarked default Root accepts generic sections; reproduces the original deterministic validation gap",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "scenario": "Marked Root rejects the same incomplete Contract",
+      "expectedExit": 1,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "{\"issues\":[{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Scope and Non-goals\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Business Logic\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Edge Cases and Exception Handling\\\"\",\"element\":\"project.root\"},{\"code\":\"MISSING_BUSINESS_SECTION\",\"message\":\"Business Contract project.root requires Section \\\"Key Acceptance Cases\\\"\",\"element\":\"project.root\"}]}\n"
+    },
+    {
+      "scenario": "Root with required business format and four complete sections passes without a child or Kind rename",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "scenario": "Business Root and generic concept coexist under separate Kinds without forcing 4+N on the concept",
+      "expectedExit": 0,
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "limitations": [
+    "Checks prove approved prompt delivery and deterministic model/Kind validation. No repeated fresh-Agent formation experiment was run; stable improvement in Agent classification or full Change generation is not established."
+  ]
+}
