@@ -340,7 +340,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
     }
     const projection = contractRuntime(compiled.target ?? compiledDelta.base.model,
       (identity, section) => sectionPaths.get(`${identity}#${section}`) ?? basePaths.get(identity), units);
-    const runtime = runtimeProjectionFor(compiledDelta.base.model, compiled.target, true, projection);
+    const runtime = runtimeProjectionFor(compiledDelta.base.model, compiled.target, compiled.valid, projection);
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
     const planResults = await Promise.allSettled(
@@ -459,6 +459,16 @@ async function buildCandidateSources(
   }
 }
 
+function retainLastKnownGood<T extends ViewRuntimeChangeDerivedView | ViewRuntimeCandidateSource>(next: T, previous?: T): T {
+  if (next.valid || !previous?.contracts) return next;
+  return {
+    ...previous,
+    valid: false,
+    diagnostics: next.diagnostics,
+    ...('changePlan' in next ? { changePlan: next.changePlan } : {}),
+  };
+}
+
 export async function buildViewRuntimeSnapshot(
   projectRoot: string,
   options: { previous?: ViewRuntimeSnapshot; onlyChange?: string; onlyCandidate?: boolean } = {},
@@ -473,7 +483,8 @@ export async function buildViewRuntimeSnapshot(
     if (previous && previous.model.sourceFingerprint === formalFingerprint
       && previous.model.contractFingerprint === parsedContracts(formal, path.join(projectRoot, XIRANG_DIR_NAME, 'model')).contractFingerprint) {
       const { candidate: _previousCandidate, ...rest } = previous;
-      const candidate = await buildCandidateSources(projectRoot, formal);
+      const nextCandidate = await buildCandidateSources(projectRoot, formal);
+      const candidate = nextCandidate ? retainLastKnownGood(nextCandidate, previous.candidate) : undefined;
       return { ...rest, ...(candidate ? { candidate } : {}) };
     }
   }
@@ -482,7 +493,7 @@ export async function buildViewRuntimeSnapshot(
   const entries = await Promise.all(
     changes.map(async change => {
       const cached = options.onlyChange && options.onlyChange !== change ? previous[change] : undefined;
-      return [change, cached ?? await buildChangeDerivedView(projectRoot, change, formal)] as const;
+      return [change, cached ?? retainLastKnownGood(await buildChangeDerivedView(projectRoot, change, formal), previous[change])] as const;
     }),
   );
   const sources = Object.fromEntries(entries);
@@ -501,7 +512,7 @@ export async function buildViewRuntimeSnapshot(
     modelFingerprint: semanticModel.sourceFingerprint,
     model: semanticModel,
     authoredViews,
-    ...(candidateSources ? { candidate: candidateSources } : {}),
+    ...(candidateSources ? { candidate: retainLastKnownGood(candidateSources, options.previous?.candidate) } : {}),
     changes: sources,
   };
 }
@@ -573,7 +584,7 @@ export class ViewCommand {
         refreshChanges.clear();
         refreshing = refreshing.then(async () => {
           let next = runtimeSnapshot;
-          if (all) next = await buildViewRuntimeSnapshot(projectRoot);
+          if (all) next = await buildViewRuntimeSnapshot(projectRoot, { previous: runtimeSnapshot });
           else {
             for (const change of changes) {
               next = await buildViewRuntimeSnapshot(projectRoot, { previous: next, onlyChange: change });

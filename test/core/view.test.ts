@@ -863,30 +863,60 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
 });
 
 describe('buildViewRuntimeSnapshot last-known-good', () => {
-  it('preserves the previous snapshot when a change source cannot be compiled', async () => {
+  it.each(['change', 'candidate'] as const)('retains the successful %s projection through invalid refreshes and replaces it after recovery', async source => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-lkg-'));
     try {
-      await writeProjectModel(tempDir, minimalModel());
-      await writeChangeDelta(tempDir, 'valid-change', {
-        'elements/root.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root definition.\n---\n',
-      });
-
+      const fixture = minimalModel({ elements: [
+        { identity: 'analysis', sections: '## Specification\n\n### Section: Read\n[evidence](evidence.md)' },
+        { identity: 'evidence', sections: CONTRACT },
+      ] });
+      await writeProjectModel(tempDir, fixture);
+      let file: string;
+      if (source === 'change') {
+        await writeChangeDelta(tempDir, 'valid-change', {
+          'elements/analysis.md': '---\nentity: element-declaration\nidentity: analysis\nkind: capability\nparent: root\ntitle: analysis\ndefinition: Definition of analysis.\n---\n\n## MODIFIED Sections\n\n### Section: Read\n[evidence](../../../model/elements/evidence.md)',
+        });
+        file = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements', 'analysis.md');
+      } else {
+        const candidate = path.join(tempDir, '.xirang', 'candidate');
+        await fs.mkdir(candidate, { recursive: true });
+        await fs.writeFile(path.join(candidate, 'candidate.yaml'), 'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n');
+        await fs.writeFile(path.join(candidate, 'build.md'), '# Build\n');
+        await writeModel(candidate, fixture);
+        file = path.join(candidate, 'elements', 'analysis.md');
+      }
+      const select = (snapshot: ViewRuntimeSnapshot) => source === 'change' ? snapshot.changes['valid-change']! : snapshot.candidate!;
       const before = await buildViewRuntimeSnapshot(tempDir);
-      const beforeFingerprint = before.model.sourceFingerprint;
-
-      // Break the change delta — e.g. truncate it so it cannot parse.
-      const changeDir = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements');
-      await fs.writeFile(path.join(changeDir, 'root.md'), '---\nentity: BROKEN\n');
-
-      // Even though the source is broken, a partial re-build with the previous snapshot still
-      // returns the old model source fingerprint because the broken source yields diagnostics
-      // but does not throw — the manifest is emitted with `valid: false` for that change.
-      const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'valid-change' });
-
-      // The model fingerprint must not change when only a change source breaks.
-      expect(after.model.sourceFingerprint).toBe(beforeFingerprint);
-      // The broken change is represented with valid: false, not silently dropped.
-      expect(after.changes['valid-change']!.valid).toBe(false);
+      const good = select(before);
+      expect(good.valid).toBe(true);
+      expect(good.contractLinks?.analysis?.[0]?.element).toBe('evidence');
+      const original = await fs.readFile(file, 'utf8');
+      await fs.writeFile(file, '---\nentity: BROKEN\n');
+      let previous = before;
+      for (const partial of [true, false]) {
+        if (!partial) await fs.writeFile(file, (source === 'change'
+          ? original.replace('### Section: Read', '### Section: Missing')
+          : original.replace('parent: root', 'parent: missing-parent')).replace('[evidence]', '[half-updated]'));
+        const freshInvalid = select(await buildViewRuntimeSnapshot(tempDir));
+        expect(freshInvalid.valid).toBe(false);
+        expect(freshInvalid.contracts).toBeUndefined();
+        const after = await buildViewRuntimeSnapshot(tempDir, { previous, ...(partial ? source === 'change' ? { onlyChange: 'valid-change' } : { onlyCandidate: true } : {}) });
+        const broken = select(after);
+        expect(broken.valid).toBe(false);
+        expect(broken.diagnostics.length).toBeGreaterThan(0);
+        expect(broken.contracts).toEqual(good.contracts);
+        expect(broken.contractLinks).toEqual(good.contractLinks);
+        expect(broken.contractFingerprint).toBe(good.contractFingerprint);
+        expect(broken.sourceFingerprint).toBe(good.sourceFingerprint);
+        expect(broken.architecture).toEqual(good.architecture);
+        previous = after;
+      }
+      await fs.writeFile(file, original.replace('evidence.md)', 'evidence.md#recovered)'));
+      const recovered = select(await buildViewRuntimeSnapshot(tempDir, { previous }));
+      expect(recovered.valid).toBe(true);
+      expect(recovered.contracts?.analysis).toContain('#recovered');
+      expect(recovered.contractLinks?.analysis?.[0]).toMatchObject({ element: 'evidence', fragment: 'recovered' });
+      expect(recovered.contractFingerprint).not.toBe(good.contractFingerprint);
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
     }

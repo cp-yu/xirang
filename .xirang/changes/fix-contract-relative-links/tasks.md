@@ -28,3 +28,4 @@
 - [x] [code_fix] 以行为验证保证带标题的旧导航被 source 版本更新或后续选择替代后，过期响应及定位意图不能改变当前正文或滚动位置。
 - [x] [code_fix] 目标 identity 与其他 Element 的原生 FQN 碰撞时，目标 Contract、详情属性及可用标签仍属于同一目标 Element。
 - [x] [code_fix] Contract 导航切换 Element 后，Relationships 浏览器同步绑定正确目标，不保留前一个 Element 的关系内容。
+- [x] [code_fix] Change 或 Candidate source 无效时保留最近成功且一致的正文、链接、展示版本和可读详情，同时呈现新诊断；恢复有效后采用新投影。

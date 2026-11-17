@@ -206,3 +206,51 @@ test('opens relative Contract references by identity when another Element owns t
   await expect(dialog).toContainText('Collision Evidence')
   await expect(dialog).not.toContainText('Native Neighbour')
 })
+
+for (const model of ['candidate', 'change:browser-change']) {
+  test(`opens relative Contract references while retaining readable ${model} content through an invalid source`, async ({ page }) => {
+    const candidate = model === 'candidate'
+    const file = path.resolve(candidate
+      ? 'test/fixtures/contract-browser/.xirang/candidate/elements/single.md'
+      : 'test/fixtures/contract-browser/.xirang/changes/browser-change/elements/capability.leaf.md')
+    const original = await fs.readFile(file, 'utf8')
+    try {
+      await page.goto(`/view/full-model/?model=${model}`)
+      const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+      await expect(node).toBeVisible({ timeout: 20_000 })
+      await node.click()
+      await expect(node).toHaveClass(/selected/)
+      await node.getByRole('button', { name: 'Open details', exact: true }).click()
+      const dialog = page.locator('dialog[open]')
+      await dialog.getByRole('tab', { name: 'Contracts' }).click()
+      const body = dialog.locator('[data-xirang-contract-content]')
+      await expect(body).toContainText('Browser renders this Contract content')
+      const goodText = await body.textContent()
+      const changedManifest = (valid: boolean) => page.waitForResponse(async response => {
+        if (new URL(response.url()).pathname !== '/__xirang/changes') return false
+        try {
+          const manifest = await response.json()
+          const source = candidate ? manifest.candidate : manifest.changes['browser-change']
+          return source?.valid === valid && (valid || source.diagnostics.length > 0)
+        } catch { return false }
+      })
+      const invalid = changedManifest(false)
+      await fs.writeFile(file, '---\nentity: BROKEN\n')
+      await invalid
+      await expect(page.locator('[data-xirang-change-panel]')).toContainText('Invalid')
+      await expect(dialog.getByRole('tab', { name: 'Contracts' })).toHaveAttribute('aria-selected', 'true')
+      await expect.poll(() => body.textContent()).toBe(goodText)
+      if (!candidate) {
+        await body.getByRole('link', { name: '证据', exact: true }).click()
+        await expect(body).toContainText('focused parent context and Change-derived View')
+      }
+      const recovered = changedManifest(true)
+      await fs.writeFile(file, original + '\n\nRecovered source content.\n')
+      await recovered
+      await expect(body).toContainText('Recovered source content.')
+      await expect(page.getByLabel('Model Selection')).toHaveValue(model)
+    } finally {
+      await fs.writeFile(file, original)
+    }
+  })
+}
