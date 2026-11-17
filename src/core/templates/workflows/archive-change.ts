@@ -112,7 +112,7 @@ Rules:
 `.trim();
 
 function buildArchiveFullQualityContract(_executionModel: QualityExecutionModel): string {
-  return `   Review the shared Apply/Quality references only when status identifies an outstanding obligation. A passing full-change Review must be recorded in .quality.json and bind an existing Git commit. The main Agent records either delivered Opt opinions bound to baseCommit/resultCommit or a non-empty not_performed reason, then decides from risk whether incremental Review or mandatory supplemental Review is needed. Only the main Agent writes Seal, declaring canRun and testsExpectedToPass for an existing commit. The CLI does not run tests, compare HEAD/workspace freshness or make these judgments. Preserve legacy Quality files unchanged. Do not run a completion review or modify the record during Archive; its Quality gate only checks that the Seal commit object exists.`;
+  return `   Review the shared Apply/Quality references only when status identifies an outstanding obligation. A passing full-change Review must be recorded in .quality.json and bind an existing Git commit. Apply records actual delivered Opt opinions, including no-change inspections, or a reason only when Opt did not run. Retained unreviewed changes require full-change or incremental Review before Seal; risk determines scope, not whether Review occurs. Baseline-defect repairs still require supplemental Review. The CLI checks recordedRevision order and Git result/descendant association to the reviewed Seal commit. Only the coordinating Apply Agent writes Seal, declaring canRun and testsExpectedToPass for an existing commit. The CLI does not run tests, compare HEAD/workspace freshness or make these judgments. Preserve legacy Quality files unchanged. Do not run a completion review or modify the record during Archive; its Quality gate only checks that the Seal commit object exists.`;
 }
 
 function buildAgentGitFlowStep(): string {
@@ -128,6 +128,8 @@ function buildArchiveInstructions(
   return `Archive a completed change in the Xirang change workflow.
 
 ${COMMON_PREREQUISITE}
+
+Read this stage's additional guidance with \`xirang config project --select stageRules.archive --json\`. Apply only this stage's rules under common's configuration scope.
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
@@ -166,7 +168,7 @@ ${buildArchiveFullQualityContract(executionModel)}
 ${buildAgentGitFlowStep()}
 
 9. **Display summary**
-   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. Distinguish full-change Review, additional incremental or supplemental Reviews actually performed, main reasons for omitted optional Review, actual test evidence and Seal commit assessment. Disclose abandoned optimization attempts/reasons/treatment and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
+   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. Distinguish full-change Review, additional incremental or supplemental Reviews actually performed, no-change deliveries that added no Review obligation without clearing earlier cumulative obligations, actual test evidence and Seal commit assessment. Disclose abandoned optimization attempts/reasons/treatment and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
 
 **Output On Success**
 

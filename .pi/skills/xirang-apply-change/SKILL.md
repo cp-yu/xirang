@@ -13,6 +13,8 @@ Implement tasks from an Xirang change.
 
 Before doing stage work, load the xirang-common skill from this tool's discovered skills or from ../xirang-common/SKILL.md relative to this skill file, unless its required guidance is already available and current in this Agent's project context. Keep the selected stage while loading it; do not route back or load this stage again. Follow common's on-demand guidance and reuse rules.
 
+Read this stage's additional guidance with `xirang config project --select stageRules.apply --json`. Apply only this stage's rules under common's configuration scope.
+
 When designing verification, changing tests or reviewing test evidence, read project-root file `.xirang/references/xirang-test-quality.md` unless already available and current.
 
 For workflow-managed artifact writes, load the matching `.xirang/references/xirang-artifact-<id>.md` only when needed, reading Definition before Guidance and Template. Do not copy guidance, configuration or reasoning into artifacts.
@@ -30,24 +32,24 @@ For workflow-managed artifact writes, load the matching `.xirang/references/xira
 ## Quality Coordinator
 
 Main owns Review dimension assignments and consolidation, optimization scope, boundary decisions, follow-up investment and final verification. Read actual code and evidence to make those judgments.
-- Main: run required tests before Review delegation; delegate non-conflicting dimensions, wait for complete results, consolidate them into one v4 opinion, decide whether to run Opt and select required incremental/supplemental Reviews, then record the final Seal declaration.
+- Run required tests before Review delegation; delegate non-conflicting dimensions, wait for complete results and consolidate one v5 opinion. Start independent read-only Opt discovery, authorize implementation groups, check and commit retained results, arrange mandatory cumulative Review and record Seal.
 - `xirang-optimizer`: independently discover/group/implement/test within the delegation and report actual results, preservation, evidence, failures and recommendations.
 - `xirang-reviewer`: independently assess assigned quality dimensions from committed checkout HEAD in a fresh context; its instructions remain read-only while tool permissions match the main Agent.
 - CLI: persist Review opinions by reviewKind, Opt dispositions/opinions, versions and Seal; validate record structures, revisions, and referenced commits. It does not rank opportunities, choose work or judge prose adequacy.
 
-Use Step 3 for delegation, consolidation and required independent Review gates; Step 4 owns Opt and risk-based follow-up; Step 5 owns Seal. Wait for complete child responses; a slow subagent is not failed, and terminating one requires asking the user. For interrupted optimization follow Quality Recovery after the old writer stops.
+Use Step 3 for delegation, consolidation and required independent Review gates; Step 4 owns independent Opt discovery, authorization and mandatory cumulative Review; Step 5 owns Seal. Wait for complete child responses; a slow subagent is not failed, and terminating one requires asking the user. For interrupted optimization follow Quality Recovery after the old writer stops.
 
 ## Implementation Discipline
 
 - Before implementation, run `xirang arch impact <identity> --depth 2 --json` to discover affected identities and relationships, then run `xirang arch query <selected-identities...> --contract --json` for the explicit Elements whose Contracts and Declarations are needed; read the returned Element Contracts and current code.
-- Process unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending goals. Each goal is one implementation and verification loop based on its Contract and repository evidence. A goal is complete only after implementation and credible evidence for its verification direction. Completing one ordinary goal MUST NOT trigger a change-level Review, an optimization round, or a workflow handoff. Only after all ordinary goals and Required Corrections are complete may Apply enter change-level Review. Ordinary implementation and baseline-Review corrections require change-level Review after that loop. Optimization edits/recovery follow Step 4's risk-based verification and mandatory baseline-defect repair Review. The ordinary task failure counters and interface-first advice below do not govern Optimizer execution.
+- Process unfinished `## Required Corrections` `[code_fix]` and `[artifact_fix]` items before pending goals. Each goal is one implementation and verification loop based on its Contract and repository evidence. A goal is complete only after implementation and credible evidence for its verification direction. Completing one ordinary goal MUST NOT trigger a change-level Review, an optimization round, or a workflow handoff. Only after all ordinary goals and Required Corrections are complete may Apply enter change-level Review. Ordinary implementation and baseline-Review corrections require change-level Review after that loop. Optimization edits/recovery follow Step 4's mandatory cumulative independent Review, impact-based scope and baseline-defect repair Review. The ordinary task failure counters and interface-first advice below do not govern Optimizer execution.
 - Assess interface testability before changing behavior: inject external dependencies, prefer returned results over hidden side effects, and keep the public interface minimal. If behavior is hard to test, improve the interface first.
 - For each pending goal, inspect existing tests and current behavior; establish credible evidence of unmet behavior when applicable, then implement minimally and verify the same observable behavior. Exercise public behavior; mock only injected system boundaries, never internal collaborators. Split tests only when failure reasons are independent.
 - For behavior changes, establish credible evidence of unmet behavior before implementation when applicable, make the minimal implementation, then verify the same observable behavior afterward. Do not manufacture RED with syntax errors, wrong paths, broken fixtures, or unrelated failures.
 
 - Non-runtime artifact changes require final-state evidence, not artificial failing tests.
 - Config, schema, generated template, workflow template, and agent instruction template changes default to behavior verification unless evidence shows there is no runtime or generated-surface consumer.
-- Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Add no abstraction, dependency, or file unless required.
+- Prefer deletion, standard library, native platform support, installed dependencies, direct expressions, then minimal new code. Choose abstractions and code organization that make responsibilities and control flow clear and changes easier to localize. Avoid added structure without a concrete benefit to the current implementation.
 - Update goal and Required Corrections checkboxes only after applicable evidence passes. Do not write implementation files, test actions, commands, outputs, or execution logs into tasks.md. Preserve canonical headings, schema keys, IDs, commands, template tokens, and document-language projection.
 - For unexpected failures, read the full error, classify the layer, compare a working pattern, state one hypothesis, change one variable, and rerun the same targeted verification. Pause after two consecutive identical normalized errors or three failed fixes in one goal.
 

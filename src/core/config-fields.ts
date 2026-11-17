@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { resolveSchema } from './artifact-graph/resolver.js';
-import { ProjectConfigSchema, PROJECT_CONFIG_FUNCTIONAL_DEFAULTS } from './project-config.js';
+import { ProjectConfigSchema, PROJECT_CONFIG_FUNCTIONAL_DEFAULTS, PROJECT_CONFIG_STAGES } from './project-config.js';
 
 export interface ProjectConfigField {
   path: string;
@@ -24,6 +24,7 @@ export const PROJECT_CONFIG_FIELDS: readonly ProjectConfigField[] = [
   { path: 'git.commitMessage.boundary', description: 'Project-root relative POSIX path to a boundary commit template.', scope: 'Git boundary commit', reference: true, example: 'docs/commit-boundary.md' },
   { path: 'git.commitMessage.archive', description: 'Project-root relative POSIX path to an archive commit template.', scope: 'Archive', reference: true, example: 'docs/archive-commit.md' },
   { path: 'git.commitMessage.merge', description: 'Project-root relative POSIX path to a merge commit template.', scope: 'Archive merge', reference: true, example: 'docs/merge-summary.md' },
+  { path: 'stageRules', description: 'Additive stage-only string arrays; absent or empty adds no obligation. Internal agents do not inherit Apply rules.', scope: 'matching user stage only', example: { explore: ['Discuss one question at a time'] } },
   { path: 'rules', description: 'Additive per-artifact string arrays, keyed by current schema artifact IDs; semantic-delta covers all four partitions.', scope: 'matching artifact only', example: { 'semantic-delta': ['Preserve complete target content'], tasks: ['Include observable verification outcomes'] } },
 ];
 
@@ -45,6 +46,7 @@ export function fieldDefault(key: string): unknown {
 }
 
 export function allowedConfigValues(key: string): readonly unknown[] | undefined {
+  if (key === 'stageRules') return PROJECT_CONFIG_STAGES;
   if (key === 'rules') return resolveSchema('semantic-model').artifacts.map(artifact => artifact.id);
   let schema: z.ZodType = ProjectConfigSchema;
   for (const part of key.split('.')) {

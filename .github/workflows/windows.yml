@@ -49,6 +49,8 @@ jobs:
           test/core/templates/skill-templates-parity.test.ts
           test/core/update.test.ts
           test/core/quality/state.test.ts
+          test/core/quality/engine.test.ts
+          test/core/templates/optimizer-template.test.ts
           test/commands/quality.test.ts
           test/core/expected-model-writeback.test.ts
           test/integration/nvim-writeback.test.ts

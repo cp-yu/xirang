@@ -31,6 +31,7 @@ export interface NormalizedProjectConfig {
       deleteAfterArchive: boolean;
     };
   };
+  stageRules?: ProjectConfig['stageRules'];
   rules: Record<string, string[]>;
 }
 
@@ -137,6 +138,7 @@ export function normalizeProjectConfig(config: ProjectConfig | null): Normalized
           },
         }
       : undefined,
+    ...(config.stageRules !== undefined ? { stageRules: config.stageRules } : {}),
     rules,
   };
 }

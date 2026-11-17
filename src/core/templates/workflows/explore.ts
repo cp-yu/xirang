@@ -176,6 +176,8 @@ export function getExploreSkillTemplate(): SkillTemplate {
 
 ${COMMON_PREREQUISITE}
 
+Read this stage's additional guidance with \`xirang config project --select stageRules.explore --json\`. Apply only this stage's rules under common's configuration scope.
+
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${TEST_QUALITY_ENTRY}

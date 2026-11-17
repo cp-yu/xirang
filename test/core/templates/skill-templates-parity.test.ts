@@ -111,6 +111,9 @@ describe('skill templates split parity', () => {
         runTransforms(instructions, { toolId: 'pi', workflowId, artifactType: 'skill' })
       );
       expect(rendered).toContain('xirang-common');
+      expect(rendered).toContain(`config project --select stageRules.${workflowId} --json`);
+      const stageQueries = [...rendered.matchAll(/--select stageRules\.([a-z]+)/g)].map(match => match[1]);
+      expect(new Set(stageQueries)).toEqual(new Set([workflowId]));
       expect(rendered).not.toContain('capabilityId');
       expect(rendered).not.toContain('metadata.specs');
       expect(rendered).not.toContain('capabilities: []');

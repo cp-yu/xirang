@@ -84,14 +84,14 @@ describe('apply change workflow template', () => {
     }
   });
 
-  it('delegates Review dimensions and records one consolidated v4 opinion', () => {
+  it('delegates Review dimensions and records one consolidated v5 opinion', () => {
     const review = applyReference('references/apply-step-3-review.md');
 
     expect(review).toContain('run the required tests, then commit the implementation');
     expect(review).toContain('non-conflicting quality dimensions');
     expect(review).toContain('Do not pass reviewId, scope, changeDir or a target commit');
     expect(review).toContain('Pi Reviewers run in the background');
-    expect(review).toContain('consolidates all required dimension results into one opinion');
+    expect(review).toContain('Consolidate all required dimension results into one opinion');
     expect(review).toContain('reviewKind: full-change');
     expect(review).toContain('incremental');
     expect(review).toContain('supplemental');
@@ -100,6 +100,17 @@ describe('apply change workflow template', () => {
     expect(recovery).toContain('a new full-change Review');
     expect(recovery).toContain('no reviewId, scope or target commit is supplied');
     expect(recovery).toContain('xirang-apply-step-3-review.md');
+  });
+
+  it('requires independent discovery and cumulative post-Opt Review before Seal', () => {
+    const opt = applyReference('references/apply-step-4-optimization.md');
+    expect(opt).toContain('initial read-only inspection');
+    expect(opt).toContain('Before Seal, obtain independent Review for all retained changes not yet reviewed');
+    expect(opt).not.toContain('decides whether to run Opt');
+    expect(opt).not.toContain('whether incremental independent Review is needed');
+    const seal = applyReference('references/apply-step-5-seal.md');
+    expect(seal).toContain('recordedRevision');
+    expect(seal).toContain('Git descendant');
   });
 
   it('routes isolation without loading mutually exclusive method references', () => {

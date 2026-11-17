@@ -64,6 +64,31 @@ describe('config command integration', () => {
     expect(fs.existsSync(path.join(tempDir, '.xirang'))).toBe(false);
   });
 
+  it('selects isolated stage rules and diagnoses invalid stages without losing valid content', async () => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'references', 'xirang-semantic-refinement.md'), 'Guidance');
+    const source = stringify({ configVersion: 1, schema: 'semantic-model', stageRules: {
+      explore: ['One question\nKeep <content>'], apply: ['Scope', 123, ''], snack: [], optimizer: ['Unsupported'],
+    }, rules: { design: ['Artifact rule'] } });
+    fs.writeFileSync(path.join(dir, 'config.yaml'), source);
+    const selected = await runCLI(['config', 'project', '--select', 'stageRules.explore', '--json'], { cwd: tempDir });
+    expect(selected.exitCode).toBe(0);
+    expect(JSON.parse(selected.stdout)).toEqual({ stageRules: { explore: ['One question\nKeep <content>'] } });
+    const combined = await runCLI(['config', 'project', '--artifact', 'design', '--select', 'stageRules.apply', '--select', 'rules', '--json'], { cwd: tempDir });
+    expect(JSON.parse(combined.stdout)).toEqual({ stageRules: { apply: ['Scope'] }, rules: { design: ['Artifact rule'] } });
+    const empty = await runCLI(['config', 'project', '--select', 'stageRules.snack', '--json'], { cwd: tempDir });
+    expect(JSON.parse(empty.stdout)).toEqual({ stageRules: { snack: [] } });
+    const bad = await runCLI(['config', 'project', '--select', 'stageRules.optimizer', '--json'], { cwd: tempDir });
+    expect(bad.exitCode).not.toBe(0);
+    const checked = await runCLI(['config', 'check', '--json'], { cwd: tempDir });
+    expect(checked.exitCode).toBe(1);
+    expect(JSON.parse(checked.stdout).effective.stageRules).toEqual({ explore: ['One question\nKeep <content>'], apply: ['Scope'], snack: [] });
+    const fields = checked.stderr.trim().split('\n').map(line => JSON.parse(line).field);
+    expect(fields).toEqual(expect.arrayContaining(['stageRules.optimizer', 'stageRules.apply.1', 'stageRules.apply.2']));
+    expect(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8')).toBe(source);
+  });
+
   it('aggregates strict project errors without changing either config file', async () => {
     // macOS getcwd resolves /var → /private/var; compare against the real path the CLI reports.
     const dir = path.join(fs.realpathSync(tempDir), '.xirang');
