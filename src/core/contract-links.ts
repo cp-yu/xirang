@@ -52,7 +52,7 @@ export function projectContractLinks(
     if (exact) return exact;
     for (const managed of folded.get(file.toLowerCase()) ?? []) {
       try {
-        if (realpathSync(file) === realpathSync(managed)) return units.get(managed);
+        if (realpathSync.native(file) === realpathSync.native(managed)) return units.get(managed);
       } catch { /* An absent alias is unresolved on this filesystem. */ }
     }
     return undefined;

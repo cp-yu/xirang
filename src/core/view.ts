@@ -585,7 +585,7 @@ export class ViewCommand {
           if (all) await generateLikeC4Artifacts(projectRoot);
           await writeViewRuntimeSnapshot(next, snapshotDirectory);
           runtimeSnapshot = next;
-        }).catch(() => undefined);
+        }).catch(error => { console.error('Contract link CI refresh diagnostic:', error); });
       };
       try {
         sourceWatcher = watch(path.join(projectRoot, XIRANG_DIR_NAME), { recursive: true }, (_event, filename) => {
