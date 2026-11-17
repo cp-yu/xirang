@@ -37,6 +37,22 @@ describe('Contract link projection', () => {
     expect(result.analysis).toEqual([{ href: 'case.md', element: 'evidence.id' }, { href: 'case.md', element: 'evidence.id' }]);
   });
 
+  it.each([
+    ['nested footnote', '> [^note]: [note evidence](case.md)\n>\n> [^note]\n\n[body evidence](other.md)', [
+      { href: 'case.md', element: 'evidence.id' }, { href: 'other.md', element: 'other.id' },
+    ]],
+    ['duplicate footnote', '[^note]: [first evidence](case.md)\n\n[^note]: [second evidence](other.md)\n\n[^note]', [
+      { href: 'case.md', element: 'evidence.id' },
+    ]],
+  ])('resolves %s with the same definition precedence as rendered Markdown', (_name, body, expected) => {
+    const target = model();
+    target.elements.find(e => e.declaration.identity === 'analysis')!.sections = [{ name: 'Read', body, acceptanceCases: [] }];
+    const result = projectContractLinks(target, () => path.resolve('demo', 'analysis.md'), new Map([
+      [path.resolve('demo', 'case.md'), 'evidence.id'], [path.resolve('demo', 'other.md'), 'other.id'],
+    ]));
+    expect(result.analysis).toEqual(expected);
+  });
+
   it('keeps identical hrefs in inherited and delta Sections bound to their own origins', () => {
     const target = model();
     target.elements.find(e => e.declaration.identity === 'analysis')!.sections.forEach(s => { s.body = '[e](evidence.md)'; });

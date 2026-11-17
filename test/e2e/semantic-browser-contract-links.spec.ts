@@ -86,3 +86,26 @@ test('opens relative Contract references using the refreshed map after a file re
     await fs.rename(renamed, file)
   }
 })
+
+test('opens relative Contract references from nested and duplicate footnotes by their rendered targets', async ({ page }) => {
+  await page.goto('/view/full-model/?view=index')
+  const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(node).toBeVisible({ timeout: 20_000 })
+  await node.click()
+  await expect(node).toHaveClass(/selected/)
+  await node.click()
+  const dialog = page.locator('dialog[open]')
+  await dialog.getByRole('tab', { name: 'Contracts' }).click()
+  const body = dialog.locator('[data-xirang-contract-content]')
+  const url = page.url()
+  await expect(body.getByRole('link', { name: '被忽略的定义', exact: true })).toHaveCount(0)
+  for (const name of ['嵌套脚注证据', '首次定义证据']) {
+    await body.getByRole('link', { name, exact: true }).click()
+    await expect(dialog.getByText('capability.leaf', { exact: true })).toBeVisible()
+    await expect(body).toContainText('第一份时间证据')
+    await body.getByRole('link', { name: '返回', exact: true }).click()
+  }
+  await body.getByRole('link', { name: '普通正文证据', exact: true }).click()
+  await expect(dialog.getByText('long', { exact: true })).toBeVisible()
+  await expect(page).toHaveURL(url)
+})

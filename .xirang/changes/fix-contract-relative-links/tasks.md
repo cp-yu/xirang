@@ -20,3 +20,7 @@
   - Contract: `xirang-contract-delivery` / Section "Business Logic"
   - Contract: `xirang-contract-delivery` / Section "Key Acceptance Cases"
   - Verify: Windows CI 结果证明原生 Windows 源路径结合 Markdown `/` 引用可定位正确 identity；同一受管相对目录在 macOS/Linux 路径规则下结果一致，大小写遵循宿主文件系统语义，索引外引用不会触发任意文件读取。
+
+## Required Corrections
+
+- [x] [code_fix] 脚注定义按递归发现与首次定义优先规则解析，使嵌套脚注、重复定义和普通正文中的链接 occurrence 始终打开各自对应的目标 Contract。

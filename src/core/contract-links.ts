@@ -21,13 +21,13 @@ const parser = unified().use(remarkParse).use(remarkGfm);
 function links(markdown: string): Array<{ href: string; offset: number }> {
   const tree = parser.parse(markdown);
   const definitions = new Map<string, string>();
+  const footnotes = new Map<string, Extract<typeof tree.children[number], { type: 'footnoteDefinition' }>>();
   const collect = (node: typeof tree.children[number] | typeof tree): void => {
     if (node.type === 'definition' && !definitions.has(node.identifier)) definitions.set(node.identifier, node.url);
+    if (node.type === 'footnoteDefinition' && !footnotes.has(node.identifier)) footnotes.set(node.identifier, node);
     if ('children' in node) node.children.forEach(collect);
   };
   collect(tree);
-  const footnotes = new Map<string, Extract<typeof tree.children[number], { type: 'footnoteDefinition' }>>();
-  for (const node of tree.children) if (node.type === 'footnoteDefinition') footnotes.set(node.identifier, node);
   const usedFootnotes = new Set<string>();
   const result: Array<{ href: string; offset: number }> = [];
   const visit = (node: typeof tree.children[number] | typeof tree): void => {
