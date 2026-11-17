@@ -85,9 +85,13 @@ Web SHALL 作为与 CLI 并列的 Interaction Surface，提供 Semantic Model、
 
 Web SHALL 将 Model Selection、View Selection 与 Presentation Mode 组合为单一 route 中的浏览状态，依据 View 边界和 focus 呈现层级、详情与差异，维持 URL 与导航历史一致。交互式页面 SHALL 提供可识别的视图标题、各 Model 的 breadcrumb、差异审阅入口和可收起的 minimap；静态呈现 SHALL 排除交互 chrome。当前状态、导出与刷新 SHALL 分别遵循本 Contract 的对应独立承诺。
 
+正文中的模型内相对 Markdown 文档引用 SHALL 定位到当前 Model Selection 内目标 Element 的 Contracts，文件名不得作为 identity；源 Markdown 保持原样，外部网页链接保持正常行为。目标在当前 View 边界之外时也 SHALL 可阅读其 Contracts，且 Model、View、Mode、focus 与图形视口保持不变，不把目标加入当前图形。带标题 fragment 的引用 SHALL 在正文加载完成后定位到对应标题。
+
 ### Section: Edge Cases and Exception Handling
 
 找不到 Xirang 项目时 SHALL 以非零状态失败且不启动服务器；focus 失效时 SHALL 沿旧 ancestor 链回退至最近仍存在的 Element，无可用 ancestor 时回退 Project Root。新 View 不含当前 focus 时 SHALL 使用该 View 默认 root；新组合没有差异时 SHALL 显示空差异状态而不修改选择。没有可用图片 snapshot 时 SHALL 沿用默认导出行为。
+
+点击无法解析的本地文档引用、当前所选模型中不存在的目标或无 Contract 的目标时，Web SHALL 在正文附近显示“无法定位引用目标”，保留当前页面，不跳入无效 diagram 路由。目标 Contract 存在而标题 fragment 不存在时 SHALL 打开目标正文并提示未找到定位位置；该反馈为界面提示。
 
 ### Section: Key Acceptance Cases
 
@@ -365,6 +369,22 @@ Web SHALL 将 Model Selection、View Selection 与 Presentation Mode 组合为�
 - 用户在窄屏打开 Browser
 - minimap 默认隐藏，仍可通过开关展开
 - 静态预览与图片导出不包含 minimap 或开关
+
+#### Acceptance Case: 正文跨 View 阅读证据
+
+- 当前页面为 `/view/full-model/?view=scenario`，正文含 `[ftape 驱动迁移案例](ftape-linux-timing.md)`，当前所选模型存在目标 Contract，但当前 View 不含该证据 Element。
+- 点击 SHALL 打开 `ftape-linux-timing` 的 Contracts，保持当前 Model、View、Mode、focus 与图形视口；不访问 `/view/full-model/ftape-linux-timing.md`，源 Markdown 保持原样。
+
+#### Acceptance Case: 正文标题定位与失败反馈
+
+- 目标 Contract 存在且 fragment 对应标题存在时，点击 SHALL 在正文加载后定位到该标题。
+- 目标正文存在而标题缺失时 SHALL 打开正文并提示未找到定位位置。
+- 本地引用目标不存在、无法解析或无 Contract 时 SHALL 在正文附近显示“无法定位引用目标”，保留当前页面，不进入无效 diagram 路由。
+
+#### Acceptance Case: 当前模型内的证据阅读
+
+- Semantic Model、Candidate 或 Change 中的同一目标 identity 有不同正文，用户正在其中一个 Model Selection 阅读。
+- 点击有效本地引用 SHALL 打开当前所选模型的目标正文并保持该选择；外部网页引用保持正常行为。
 
 ### Section: 提供可收起的交互式缩略图
 
