@@ -75,6 +75,11 @@ describe('config command integration', () => {
     const selected = await runCLI(['config', 'project', '--select', 'stageRules.explore', '--json'], { cwd: tempDir });
     expect(selected.exitCode).toBe(0);
     expect(JSON.parse(selected.stdout)).toEqual({ stageRules: { explore: ['One question\nKeep <content>'] } });
+    const warnings = selected.stderr.trim().split('\n').map(line => JSON.parse(line));
+    for (const field of ["stageRules stage 'optimizer'", 'stageRules.apply']) {
+      expect(warnings).toContainEqual(expect.objectContaining({ code: 'CONFIG_WARNING', message: expect.stringContaining(field) }));
+    }
+
     const combined = await runCLI(['config', 'project', '--artifact', 'design', '--select', 'stageRules.apply', '--select', 'rules', '--json'], { cwd: tempDir });
     expect(JSON.parse(combined.stdout)).toEqual({ stageRules: { apply: ['Scope'] }, rules: { design: ['Artifact rule'] } });
     const empty = await runCLI(['config', 'project', '--select', 'stageRules.snack', '--json'], { cwd: tempDir });
@@ -87,6 +92,27 @@ describe('config command integration', () => {
     const fields = checked.stderr.trim().split('\n').map(line => JSON.parse(line).field);
     expect(fields).toEqual(expect.arrayContaining(['stageRules.optimizer', 'stageRules.apply.1', 'stageRules.apply.2']));
     expect(fs.readFileSync(path.join(dir, 'config.yaml'), 'utf8')).toBe(source);
+  });
+
+  it.each([
+    ['scalar container', 'invalid', undefined, 'stageRules'],
+    ['null container', null, undefined, 'stageRules'],
+    ['array container', ['invalid'], undefined, 'stageRules'],
+    ['non-array stage', { explore: 'invalid', apply: ['  Preserve <content>\nsecond line  '], snack: [] },
+      { apply: ['  Preserve <content>\nsecond line  '], snack: [] }, 'stageRules.explore'],
+  ])('warns on %s during ordinary project reads and preserves valid siblings', async (_name, stageRules, expected, field) => {
+    const dir = path.join(tempDir, '.xirang');
+    fs.mkdirSync(dir);
+    const file = path.join(dir, 'config.yaml');
+    const source = stringify({ configVersion: 1, schema: 'semantic-model', context: 'Shared context', stageRules,
+      rules: { design: ['Artifact rule'] } });
+    fs.writeFileSync(file, source);
+    const result = await runCLI(['config', 'project', '--select', 'stageRules', '--select', 'context', '--select', 'rules', '--json'], { cwd: tempDir });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ ...(expected === undefined ? {} : { stageRules: expected }), context: 'Shared context', rules: { design: ['Artifact rule'] } });
+    const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+    expect(diagnostics).toContainEqual(expect.objectContaining({ code: 'CONFIG_WARNING', message: expect.stringContaining(field as string) }));
+    expect(fs.readFileSync(file, 'utf8')).toBe(source);
   });
 
   it('aggregates strict project errors without changing either config file', async () => {
