@@ -38,6 +38,11 @@ test('opens relative Contract references outside the View and preserves the diag
   await expect(body.locator('[data-xirang-heading="时间依据-1"]')).toBeInViewport()
   await body.getByRole('link', { name: '仅标题', exact: true }).click()
   await expect(body.locator('[data-xirang-heading="时间依据"]')).toBeInViewport()
+  // Reactivating Contracts reloads the body; the newer local anchor must win.
+  await dialog.getByRole('tab', { name: 'Properties', exact: true }).click()
+  await dialog.getByRole('tab', { name: 'Contracts', exact: true }).click()
+  await expect(body.locator('[data-xirang-heading="时间依据"]')).toBeInViewport()
+  await expect(body.locator('[data-xirang-heading="时间依据-1"]')).not.toBeInViewport()
   await body.getByRole('link', { name: '返回', exact: true }).click()
   await body.getByRole('link', { name: '丢失标题', exact: true }).click()
   await expect(body.getByRole('status')).toHaveText('未找到定位位置')

@@ -29,3 +29,4 @@
 - [x] [code_fix] 目标 identity 与其他 Element 的原生 FQN 碰撞时，目标 Contract、详情属性及可用标签仍属于同一目标 Element。
 - [x] [code_fix] Contract 导航切换 Element 后，Relationships 浏览器同步绑定正确目标，不保留前一个 Element 的关系内容。
 - [x] [code_fix] Change 或 Candidate source 无效时保留最近成功且一致的正文、链接、展示版本和可读详情，同时呈现新诊断；恢复有效后采用新投影。
+- [x] [code_fix] 正文内选择新标题后，标签往返导致重新加载时仍定位新标题，早先跨 Contract 的标题意图不再覆盖后续选择。

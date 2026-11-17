@@ -24,6 +24,7 @@ export function ContractMarkdown({ content, navigation, onNavigate }: {
   useEffect(() => {
     setMessage('')
     if (navigation?.fragment) locate(navigation.fragment)
+    else if (navigation) ref.current?.parentElement?.scrollTo({ top: 0 })
   }, [content, navigation])
 
   return (
@@ -57,12 +58,7 @@ export function ContractMarkdown({ content, navigation, onNavigate }: {
             return
           }
           setMessage('')
-          if (link.element === content.element) {
-            if (link.fragment) locate(link.fragment)
-            else ref.current.parentElement?.scrollTo({ top: 0 })
-          } else {
-            onNavigate(link.element, link.fragment)
-          }
+          onNavigate(link.element, link.fragment)
         }}
       />
     </>
