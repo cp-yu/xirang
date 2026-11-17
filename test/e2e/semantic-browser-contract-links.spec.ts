@@ -7,11 +7,15 @@ import path from 'node:path'
  * remounting the details content mid-click ("element is not stable / detached").
  * Wait until two consecutive manifest fetches match, so in-flight rebuilds have settled.
  */
-async function waitForRuntimeSettled(page: Page, cycles = 20): Promise<void> {
+async function waitForRuntimeSettled(page: Page, cycles = 24): Promise<void> {
   let previous: string | undefined
   for (let i = 0; i < cycles; i++) {
     await page.waitForTimeout(1_500)
-    const current = await page.request.get('/__xirang/changes').then(response => response.text())
+    // The embedded server occasionally resets idle keep-alive connections under CI load.
+    const current = await page.request.get('/__xirang/changes')
+      .then(response => response.text())
+      .catch(() => null)
+    if (current === null) continue
     if (current === previous) return
     previous = current
   }
