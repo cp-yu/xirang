@@ -30,3 +30,5 @@
 - [x] [code_fix] Contract 导航切换 Element 后，Relationships 浏览器同步绑定正确目标，不保留前一个 Element 的关系内容。
 - [x] [code_fix] Change 或 Candidate source 无效时保留最近成功且一致的正文、链接、展示版本和可读详情，同时呈现新诊断；恢复有效后采用新投影。
 - [x] [code_fix] 正文内选择新标题后，标签往返导致重新加载时仍定位新标题，早先跨 Contract 的标题意图不再覆盖后续选择。
+- [x] [code_fix] 预加载 Contract manifest 只接受当前协议版本，当前版本的正文与引用映射无需等待 HTTP 刷新即可使用。
+- [x] [code_fix] 标题定位意图绑定实际 Model/source identity，切换到指纹相同的其他来源后不重放先前标题。

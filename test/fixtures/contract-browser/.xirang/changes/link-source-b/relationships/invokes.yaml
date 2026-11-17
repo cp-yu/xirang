@@ -1,0 +1,5 @@
+relationships:
+  - operation: REMOVED
+    source: capability.leaf
+    kind: invokes
+    target: capability.peer

@@ -1,7 +1,10 @@
 import type { DiagramView } from '@likec4/core/types'
-import { describe, expect, it } from 'vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { describe, expect, it, vi } from 'vitest'
 import type { XirangChangeSource, XirangRuntimeManifest, XirangViewSource } from './ContractLoaderContext'
 import {
+  XirangContractLoaderProvider,
+  useXirangViewSources,
   isKnownViewId,
   resolveEffectiveMode,
   resolveSelectedViewSource,
@@ -263,5 +266,48 @@ describe('Contract location refresh', () => {
     const source = { ...candidateSource, contractFingerprint: 'old-location' }
     expect(xirangViewSourceRevision({ ...source, contractFingerprint: 'new-location' }))
       .not.toBe(xirangViewSourceRevision(source))
+  })
+})
+
+
+describe('embedded Contract runtime protocol', () => {
+  it.each([[5, true], [4, false]] as const)('initializes embedded version %i only when current', (version, accepted) => {
+    const contracts = { 'project.root': 'Preloaded Contract' }
+    const contractLinks = { 'project.root': [{ href: '#heading', element: 'project.root', fragment: 'heading' }] }
+    vi.stubGlobal('__OPSX_RUNTIME__', {
+      ...v4ManifestWithoutCandidate,
+      version,
+      model: { ...modelSource, contracts, contractLinks },
+    })
+    function Probe() {
+      const { selected } = useXirangViewSources()
+      return <span>{JSON.stringify({ contracts: selected.contracts, links: selected.contractLinks })}</span>
+    }
+    try {
+      const html = renderToStaticMarkup(
+        <XirangContractLoaderProvider loader={{ load: async () => null }}><Probe /></XirangContractLoaderProvider>,
+      )
+      expect(html.includes('Preloaded Contract')).toBe(accepted)
+      expect(html.includes('#heading')).toBe(accepted)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
+describe('Contract navigation source isolation', () => {
+  it('distinguishes fingerprint-equivalent Models selected in the same View', () => {
+    const source = {
+      ...modelSource,
+      source: 'change-derived-view' as const,
+      partitionFingerprints: { elements: 'same-elements', relationships: 'same-relationships' },
+      contractFingerprint: 'same-locations',
+    }
+    const first = { ...source, change: 'change:link-source-a' }
+    const second = { ...source, change: 'change:link-source-b' }
+    expect(first.id).toBe(second.id)
+    expect(xirangViewSourceRevision(first)).not.toBe(xirangViewSourceRevision(second))
+    expect(xirangViewSourceRevision({ ...source, change: 'candidate' })).not.toBe(xirangViewSourceRevision(first))
+    expect(xirangViewSourceRevision(modelSource)).not.toBe(xirangViewSourceRevision({ ...modelSource, source: 'change-derived-view', change: 'candidate' }))
   })
 })

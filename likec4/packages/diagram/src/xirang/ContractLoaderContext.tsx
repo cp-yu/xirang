@@ -132,7 +132,7 @@ export function xirangViewSourceRevision(source: XirangViewSource): string {
   const semantic = fingerprints
     ? Object.keys(fingerprints).sort().map(partition => fingerprints[partition]).join('|')
     : source.sourceFingerprint ?? source.changeFingerprint ?? source.id
-  return source.contractFingerprint ? `${semantic}|${source.contractFingerprint}` : semantic
+  return JSON.stringify([source.source, source.change ?? source.id, semantic, source.contractFingerprint])
 }
 
 export interface XirangAuthoredViewDescriptor {
@@ -292,7 +292,7 @@ export function XirangContractLoaderProvider({
   const initialRuntime = initialManifest
     ?? (embeddedManifest
       && typeof embeddedManifest === 'object'
-      && (embeddedManifest as { version?: unknown }).version === 4
+      && (embeddedManifest as { version?: unknown }).version === 5
       && 'model' in embeddedManifest
       && 'authoredViews' in embeddedManifest
       && 'changes' in embeddedManifest

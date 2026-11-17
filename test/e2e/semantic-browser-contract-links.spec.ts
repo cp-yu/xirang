@@ -259,3 +259,30 @@ for (const model of ['candidate', 'change:browser-change']) {
     }
   })
 }
+
+test('opens relative Contract references without replaying anchors across fingerprint-equivalent sources', async ({ page }) => {
+  await page.goto('/view/full-model/?model=change:link-source-a&view=index')
+  const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(node).toBeVisible({ timeout: 20_000 })
+  await node.click()
+  await expect(node).toHaveClass(/selected/)
+  await node.getByRole('button', { name: 'Open details', exact: true }).click()
+  const dialog = page.locator('dialog[open]')
+  await dialog.getByRole('tab', { name: 'Contracts' }).click()
+  await dialog.getByRole('link', { name: '重复标题', exact: true }).click()
+  const body = dialog.locator('[data-xirang-contract-content]')
+  await expect(body.locator('[data-xirang-heading="时间依据-1"]')).toBeInViewport()
+  const manifest = await page.request.get('/__xirang/changes').then(response => response.json())
+  const first = manifest.changes['link-source-a']
+  const second = manifest.changes['link-source-b']
+  expect(first.valid).toBe(true)
+  expect(second.valid).toBe(true)
+  expect(first.partitionFingerprints).toEqual(second.partitionFingerprints)
+  expect(first.contractFingerprint).toBe(second.contractFingerprint)
+  await page.getByLabel('Model Selection').selectOption('change:link-source-b')
+  await expect(page.getByLabel('Model Selection')).toHaveValue('change:link-source-b')
+  await expect(dialog).toBeVisible()
+  await expect(body).toContainText('第一份时间证据')
+  await expect.poll(() => body.evaluate(el => el.scrollTop)).toBe(0)
+  await expect(body.locator('[data-xirang-heading="时间依据-1"]')).not.toBeInViewport()
+})
