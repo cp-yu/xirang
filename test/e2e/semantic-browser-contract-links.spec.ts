@@ -199,13 +199,15 @@ test('opens relative Contract references without replaying a pending anchor afte
     await oldCaptured
     await fs.writeFile(file, original + '\n\n刷新后的证据正文。\n')
     const body = dialog.locator('[data-xirang-contract-content]')
-    await expect(body).toContainText('刷新后的证据正文。')
+    // The source write triggers a full rebuild whose loader remount can outlast the
+    // default assertion timeout on slow CI; wait for the refreshed body explicitly.
+    await expect(body).toContainText('刷新后的证据正文。', { timeout: 20_000 })
     await expect.poll(() => body.evaluate(el => el.scrollTop)).toBe(0)
     await expect(body.locator('[data-xirang-heading="时间依据-1"]')).not.toBeInViewport()
     release()
     await oldFinished
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
-    await expect(body).toContainText('刷新后的证据正文。')
+    await expect(body).toContainText('刷新后的证据正文。', { timeout: 20_000 })
     await expect.poll(() => body.evaluate(el => el.scrollTop)).toBe(0)
     await expect(page).toHaveURL(/view=index/)
   } finally {
