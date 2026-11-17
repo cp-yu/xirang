@@ -26,8 +26,16 @@ function links(markdown: string): Array<{ href: string; offset: number }> {
     if ('children' in node) node.children.forEach(collect);
   };
   collect(tree);
+  const footnotes = new Map<string, Extract<typeof tree.children[number], { type: 'footnoteDefinition' }>>();
+  for (const node of tree.children) if (node.type === 'footnoteDefinition') footnotes.set(node.identifier, node);
+  const usedFootnotes = new Set<string>();
   const result: Array<{ href: string; offset: number }> = [];
   const visit = (node: typeof tree.children[number] | typeof tree): void => {
+    if (node.type === 'footnoteDefinition') return;
+    if (node.type === 'footnoteReference' && !usedFootnotes.has(node.identifier)) {
+      usedFootnotes.add(node.identifier);
+      footnotes.get(node.identifier)?.children.forEach(visit);
+    }
     if (node.type === 'link') result.push({ href: node.url, offset: node.position?.start.offset ?? 0 });
     if (node.type === 'linkReference') {
       const url = definitions.get(node.identifier);
@@ -36,7 +44,7 @@ function links(markdown: string): Array<{ href: string; offset: number }> {
     if ('children' in node) node.children.forEach(visit);
   };
   visit(tree);
-  return result;
+  return result.sort((a, b) => a.offset - b.offset);
 }
 
 export function projectContractLinks(

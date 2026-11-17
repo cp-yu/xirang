@@ -28,6 +28,15 @@ describe('Contract link projection', () => {
     expect(JSON.stringify(target)).toBe(original);
   });
 
+  it('matches rendered footnote links without counting unused definitions', () => {
+    const target = model();
+    target.elements.find(e => e.declaration.identity === 'analysis')!.sections[0]!.body =
+      '[^unused]: [unused](missing.md)\n\n[^used]: [note](case.md)\n\n[body](case.md) [^used]';
+    target.elements.find(e => e.declaration.identity === 'analysis')!.sections.splice(1);
+    const result = projectContractLinks(target, () => path.resolve('demo', 'analysis.md'), new Map([[path.resolve('demo', 'case.md'), 'evidence.id']]));
+    expect(result.analysis).toEqual([{ href: 'case.md', element: 'evidence.id' }, { href: 'case.md', element: 'evidence.id' }]);
+  });
+
   it('keeps identical hrefs in inherited and delta Sections bound to their own origins', () => {
     const target = model();
     target.elements.find(e => e.declaration.identity === 'analysis')!.sections.forEach(s => { s.body = '[e](evidence.md)'; });
