@@ -1,6 +1,21 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+
+/**
+ * Watcher-driven full rebuilds are slow on CI and land while later tests interact,
+ * remounting the details content mid-click ("element is not stable / detached").
+ * Wait until two consecutive manifest fetches match, so in-flight rebuilds have settled.
+ */
+async function waitForRuntimeSettled(page: Page, cycles = 20): Promise<void> {
+  let previous: string | undefined
+  for (let i = 0; i < cycles; i++) {
+    await page.waitForTimeout(1_500)
+    const current = await page.request.get('/__xirang/changes').then(response => response.text())
+    if (current === previous) return
+    previous = current
+  }
+}
 
 test('opens relative Contract references outside the View and preserves the diagram', async ({ page }) => {
   await page.goto('/view/full-model/?view=index')
@@ -94,6 +109,7 @@ test('opens relative Contract references using the refreshed map after a file re
 
 test('opens relative Contract references from nested and duplicate footnotes by their rendered targets', async ({ page }) => {
   await page.goto('/view/full-model/?view=index')
+  await waitForRuntimeSettled(page)
   const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
   await expect(node).toBeVisible({ timeout: 20_000 })
   await node.click()
@@ -196,6 +212,7 @@ test('opens relative Contract references without replaying a pending anchor afte
 
 test('opens relative Contract references by identity when another Element owns that native FQN', async ({ page }) => {
   await page.goto('/view/full-model/?view=index')
+  await waitForRuntimeSettled(page)
   const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
   await expect(node).toBeVisible({ timeout: 20_000 })
   await node.click()
