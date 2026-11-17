@@ -11,7 +11,7 @@ definition: Review 是 Quality 中由 clean-context Reviewer 独立评估实现�
 
 ### Section: 在每次 Apply 修改后执行
 
-普通 Apply 完成所有目标与 Required Corrections 后 SHALL 在 Opt 前执行 `full-change` Review；被审查实现 SHALL 先提交为 Git commit 且本次所需测试已由主 Agent 运行通过。Review 不通过时，主 Agent SHALL 处理修正、形成新的修正 commit 并重新执行完整 Change Review，直到通过。Opt 后的 `incremental` Review 按主 Agent 对累计改动及其影响的风险判断安排；完整 Review 漏掉的既有 Change 缺陷经修复后 SHALL 执行针对缺陷及其影响的 `supplemental` Review。
+普通 Apply 完成所有目标与 Required Corrections 后 SHALL 在 Opt 前执行 `full-change` Review；被审查实现 SHALL 先提交为 Git commit 且本次所需测试已由主 Agent 运行通过。Review 不通过时，主 Agent SHALL 处理修正、形成新的修正 commit 并重新执行完整 Change Review，直到通过。Opt 后累计保留且尚未审查的变更 SHALL 在 Seal 前通过 full-change 或 incremental Review，主 Agent 按累计影响选择范围，可累计多批后审查或提前审查，不能以低风险免审；完整 Review 漏掉的既有 Change 缺陷经修复后 SHALL 执行针对缺陷及其影响的 `supplemental` Review。
 
 ### Section: 在 Clean Context 中独立评估
 
@@ -63,4 +63,6 @@ Review opinion SHALL 关联实际审查 checkout 的 HEAD Git commit、`reviewKi
 
 ### Section: 修改后重新 Review
 
-失败的 `full-change` Review 所需修正 SHALL 形成不同 Git commit，并针对新 commit 重新 Review。Opt 改动不自动触发独立 Review；主 Agent判断是否安排 `incremental`，但已确认的当前 Change 原有缺陷的修复必须安排 `supplemental` Review。已经执行且失败的 Review 不得因不同类别的意见而被掩盖；后续意见准确绑定各自审查的 commit 与类别。
+失败的 full-change Review 修正 SHALL 形成不同 Git commit 并重新完整 Review。Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。
+
+已确认的基线缺陷修复 SHALL 接受 supplemental Review；该意见只证明对应缺陷及其影响，不自动代替累计优化的 full-change/incremental Review。任何类别未解决的 FAIL 不能被其他类别意见掩盖，后续意见绑定真实受审 commit。

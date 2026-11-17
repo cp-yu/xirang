@@ -11,7 +11,9 @@ definition: Optimizer Findings 是 Quality 中优化实际结果与证据的交�
 
 ### Section: 交付实际结果与验证建议
 
-Opt opinion SHALL 包含四类必要信息：实际保留改动、改善及影响范围与行为保持依据；测试覆盖行为、实际结果及证据位置；放弃事项及原因、是否撤销、遗留问题，无此类事项时明确说明；是否值得继续及是否扩大测试或追加 Review 的建议与理由。多项小优化可共享简短说明及测试证据，复杂算法按实际行为约束展开。Opinion SHALL 绑定 `baseCommit` 与 `resultCommit`；Quality JSON 保存意见，不保存测试输出或代码快照，CLI 不评价自然语言充分性。
+实际完成的只读检查或无改动工作 SHALL 使用 delivered，not_performed 仅表示 Opt 确实未运行，并记录简短理由。没有值得实施的机会，与发现机会但协调者选择不实施须区分；后一情况保留发现与实际取舍理由，不能写成未发现机会。
+
+inspection opinion SHALL 报告具体证据、机会、预期收益、成本风险与验证方法，或停止依据。implementation opinion 报告实际保留改动、改善及影响、行为保持依据、实际测试结果和证据位置、放弃事项与撤销原因、遗留问题，以及继续投入和验证范围的建议。没有相关结果时如实说明，不制造测试或改动。多项小改进可共享说明与证据，复杂算法按实际约束展开；opinion 绑定真实 baseCommit/resultCommit，Quality 不保存原始测试输出或代码快照。
 
 ### Section: 证据分工与机械关联
 
@@ -23,4 +25,6 @@ Opt opinion SHALL 包含四类必要信息：实际保留改动、改善及影�
 
 ### Section: 交付不代替最终判断
 
-Opt MAY 交付本次委托完成且无遗留问题，但主 Agent SHALL 判断是否继续投入、是否追加 Review 与如何 Seal，可交回具体修正或启动 fresh-context 新探索。Opt opinion 不表示 Change 完成；最终 Seal 由主 Agent 绑定一个 Git commit 并声明可运行及预期通过适用测试，CLI 不执行测试或决定后续工作。
+Opt MAY 交付本次委托完成且无遗留问题，但主 Agent SHALL 判断是否继续投入、必需 Review 的范围与时机，以及如何 Seal，可交回具体修正或启动 fresh-context 新探索。Opt opinion 不表示 Change 完成；最终 Seal 由主 Agent 绑定一个 Git commit 并声明可运行及预期通过适用测试，CLI 不执行测试或决定后续工作。
+
+Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。

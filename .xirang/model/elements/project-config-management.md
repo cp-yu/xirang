@@ -37,6 +37,8 @@ update SHALL 在执行前验证完整所需迁移链。全部步骤和最终校�
 
 超窗口须给出项目当前版本、目标版本及 CLI 最低支持起始版本，用户先安装合适旧 CLI 完成前段迁移，再用最新版继续；跨多个窗口可重复分段迁移。CLI 不自动安装或运行旧 CLI，不跳过缺失步骤。
 
+项目 SHALL 以 context 表达共同背景、rules 表达制品附加要求、stageRules 表达仅 explore/propose/apply/archive/build/snack 对应阶段的附加指导。阶段仅加载自身规则，离开后不继续作为后续阶段规则；未配置或为空无附加要求，内部受托角色不自动继承。说明、有效查询与检查保持同一字段和作用域定义，用户确认的设计决定可正常交接。
+
 ### Section: Edge Cases and Exception Handling
 
 系统 SHALL 按下列条件交付诊断与结果，不以默认值冒充已验证配置。
@@ -79,3 +81,7 @@ setup 后，提示含配置路径及 config、config project、config check 三�
 #### Acceptance Case: 缺失与双扩展名
 
 配置缺失时 check 说明位置并退出 1，update 不重建；两种扩展名同时存在时只使用 .yaml 并列出 .yml 未采用。
+
+#### Acceptance Case: 阶段与制品要求分离
+
+只为 stageRules.explore 配置讨论方法时，Explore 使用它，Propose/Apply 不作为自己的阶段规则执行；rules.design 继续仅约束 design 制品，check 说明两种作用域。

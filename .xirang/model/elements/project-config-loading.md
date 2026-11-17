@@ -43,6 +43,12 @@ decomposition SHALL 为非空字符串。含 `/` 时保留为项目根相对路�
 
 git.merge.strategy 接受 no-ff、ff-only、squash；branch.deleteAfterArchive 为布尔值。commitMessage.boundary/archive/merge 为可选项目根相对 POSIX 路径，无默认覆盖值；Archive 按场景读取已配置用户模板，否则读取 references 中对应内置模板。路径字符串不改写，平台差异仅影响物理定位。
 
+#### 阶段规则
+
+stageRules SHALL 为独立于 context 和 rules 的阶段名到字符串数组映射，仅支持 explore、propose、apply、archive、build、snack 六个键。每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。离开阶段后不将其作为后续阶段规则执行，不声称清除会话记忆；规则本身不自动成为 Semantic Model 或设计制品，期间用户确认的设计决定正常交接。内部 Optimizer、Reviewer、Experimenter 不设阶段规则键，也不自动继承 stageRules.apply；协调者传入与受托任务相关的项目约束。
+
+stageRules 与 rules 同样保留有效字符串的原文、Markdown 和换行，空数组有效。合法阶段名来自已登记的六阶段集合，不按路径或名称模式推断。context 为共同背景，rules 只约束对应制品，不借 rules.design 承载 Explore 阶段指导。
+
 ### Section: Edge Cases and Exception Handling
 
 字段解析 SHALL 保留其他合法值，并将可定位诊断交付 stderr；check 对相同非法输入按其错误规则处理。
@@ -64,6 +70,8 @@ git.merge.strategy 接受 no-ff、ff-only、squash；branch.deleteAfterArchive �
 | context 查询失败 | 报告失败，不声称已加载，也不阻断获取诊断或编辑指导 |
 
 加载 SHALL 忽略 profile、workflows、delivery、propose、optimization 及其子项；前三者给出可操作警告，propose 静默忽略。git.autoCommit、git.archive.commitMessage.convention、git.merge.commitMessage.convention 告警并省略；git.merge.messageFrom 不进入有效值。普通读取不改写磁盘，check 对明确忽略名单逐项警告并建议删除，仅有此类问题且其他配置合法时退出 0。
+
+stageRules SHALL 沿用字段独立校验：非映射值告警并省略该字段；未知阶段键逐项告警并省略，其他合法阶段保留；某阶段非数组则告警并省略该项，数组内非字符串或空字符串告警并过滤。空数组合法且无附加义务。config check 将未知阶段或非法值按既有错误规则退出 1；不修改配置，不制造内部角色键。
 
 ### Section: Key Acceptance Cases
 
@@ -108,3 +116,11 @@ decomposition 为绝对路径或含 .. 穿越时告警并省略，不隐式注�
 #### Acceptance Case: 版本与忽略输入
 
 configVersion: 1 保留真实整数；字符串 "1"、0 或缺失不变成 1。optimization 输入不进入有效值，仅有此问题时 check 警告并退出 0，文件不变。
+
+#### Acceptance Case: 阶段规则隔离与交接
+
+stageRules.explore 为 ["每次只讨论一个问题"]，stageRules.apply 为 ["优先遵循本项目实现边界"]：Explore 仅取得前者，Apply 仅取得后者；Explore 中已确认的设计可交接，Explore 的执行规则不继续约束 Apply，内部 Optimizer 不自动继承 Apply 规则。
+
+#### Acceptance Case: 空规则及非法阶段
+
+stageRules.explore 为 [] 时沿用内置指导；stageRules.optimizer 为 ["自动优化"] 是未知键，普通读取告警并省略、check 退出 1；合法 apply 规则仍保留。数组 ["保留原文",123,""] 仅保留第一项并报告无效成员。

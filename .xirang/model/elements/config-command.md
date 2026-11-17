@@ -23,7 +23,7 @@ Config Command SHALL 提供项目配置说明、查询、只读检查和全局�
 
 无子命令的 `xirang config` SHALL 展示配置路径、全部受支持字段、用途、默认值、合法值或示例及作用范围；未初始化也可查看，不创建文件。说明与 YAML 来自同一字段定义，可使用英文。顶层 help 与 config --help SHALL 区分 config、config project、config check 和全局管理命令。
 
-`config project` SHALL 读取当前磁盘并返回共享归一化数据，完整查询包含适用的 configVersion、proseLanguage、context、decomposition、architecture、apply、git、rules。可重复 --select 按点路径选择并保留原嵌套结构；--artifact 先限定 rules，再投影选择字段，其他选中有效字段不因制品过滤而丢失。合法未配置可选字段省略，无字段时返回 {}。匹配规则为空时返回空 rules。
+`config project` SHALL 读取当前磁盘并返回共享归一化数据，完整查询包含适用的 configVersion、proseLanguage、context、decomposition、architecture、apply、git、rules、stageRules。可重复 --select 按点路径选择并保留原嵌套结构；--artifact 先限定 rules，再投影选择字段，其他选中有效字段不因制品过滤而丢失。合法未配置可选字段省略，无字段时返回 {}。匹配规则为空时返回空 rules。
 
 文本以紧凑 YAML-like 表达，JSON 只返回所请求数据；context/rules 原文、换行及特殊字符在解码后相同，不附 prompt fragments、compiledLines 或重复静态指导。git 保持 commitMessage、merge.strategy、branch.deleteAfterArchive 结构，语言、背景、制品规则和操作配置遵守共享消费范围。
 
@@ -46,6 +46,8 @@ Config Command SHALL 提供项目配置说明、查询、只读检查和全局�
 | edit | 使用 EDITOR 或 VISUAL 打开全局配置，缺失时以默认值创建，等待 editor 关闭 |
 
 无返回数据且无警告的成功写操作 SHALL 使 stdout/stderr 均为空，以退出 0 表示完成。set 默认拒绝未知键，--allow-unknown 只允许普通未知键，不能绕过字段值校验或已知禁止路径。
+
+stageRules SHALL 可通过既有 --select 点路径查询，例如 config project --select stageRules.explore --json 保留 stageRules.explore 嵌套结构并只交付该阶段规则。--artifact 只过滤 rules，不将制品名解释为阶段名；--select stageRules 返回有效映射。config 说明、注释示例与 check 使用同一六阶段定义，说明其作用域、空值和内部角色边界；不增加专用查询命令。
 
 ### Section: Edge Cases and Exception Handling
 
@@ -106,3 +108,7 @@ set featureFlags.newFlag true 保存布尔并保持成功静默；set someFuture
 #### Acceptance Case: 全局读取与编辑
 
 get 不存在键时退出 1 且 stdout 空；unset 不存在键退出 0 且文件不变。配置 EDITOR 且全局文件缺失时 edit 可创建全局默认文件，不创建项目配置。
+
+#### Acceptance Case: 阶段点路径与制品命名空间
+
+配置 stageRules.explore、stageRules.apply 与 rules.design：--select stageRules.explore 只返回 Explore 规则；--artifact design --select stageRules.apply --select rules 同时保留 Apply 阶段规则与 design 制品规则，不交付 Explore 规则。合法未配置 stageRules.snack 是空查询，stageRules.optimizer 为非法选择路径而报错，check 对非法配置键也报告错误。
