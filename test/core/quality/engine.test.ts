@@ -165,6 +165,31 @@ describe('quality v5 single-file protocol', () => {
     await expect(seal(further.revision, d)).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
   });
 
+  it('requires Review to be recorded after delivery even when it already assessed the exact result commit', async () => {
+    const baseline = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+      result: 'PASS', summary: 'Baseline.', findings: [] });
+    await execFileAsync('git', ['commit', '--allow-empty', '-qm', 'Opt result'], { cwd: root });
+    const resultCommit = (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const premature = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: baseline.revision, reviewKind: 'incremental', commit: resultCommit,
+      result: 'PASS', summary: 'Recorded before delivery.', findings: [] });
+    const delivered = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: premature.revision, disposition: 'delivered',
+      opinions: [{ opinionId: 'late-delivery', baseCommit: commit, resultCommit, summary: 'Delivery recorded after the earlier Review.', findings: [] }],
+    });
+    const file = path.join(changeDir, QUALITY_FILE);
+    const before = await fs.readFile(file);
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('needs_review');
+    await expect(recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: delivered.revision,
+      seal: { commit: resultCommit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Needs later Review.' },
+    })).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+    expect(await fs.readFile(file)).toEqual(before);
+    const reviewed = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: delivered.revision, reviewKind: 'incremental', commit: resultCommit,
+      result: 'PASS', summary: 'Recorded after delivery.', findings: [] });
+    await recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: reviewed.revision,
+      seal: { commit: resultCommit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Later Review covers delivery.' },
+    });
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('all_done');
+  });
+
   it('assigns one write revision to a batch and preserves the last changed obligation across no-change deliveries', async () => {
     const baseline = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
       result: 'PASS', summary: 'Baseline.', findings: [] });
