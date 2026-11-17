@@ -133,3 +133,58 @@ test('opens relative Contract references with explicit feedback when an advertis
   await expect(dialog.getByRole('tab', { name: 'Properties', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(dialog).toContainText('Single Contract')
 })
+
+test('opens relative Contract references without replaying a pending anchor after a source refresh', async ({ page }) => {
+  let captured!: () => void
+  const oldCaptured = new Promise<void>(resolve => { captured = resolve })
+  let release!: () => void
+  const released = new Promise<void>(resolve => { release = resolve })
+  let finished!: () => void
+  const oldFinished = new Promise<void>(resolve => { finished = resolve })
+  let first = true
+  await page.route('**/__xirang/contract?**', async route => {
+    if (new URL(route.request().url()).searchParams.get('element') !== 'capability.leaf' || !first) {
+      await route.continue()
+      return
+    }
+    first = false
+    try {
+      const response = await route.fetch()
+      captured()
+      await released
+      await route.fulfill({ response })
+    } catch {
+      // Superseding the source may abort the obsolete request before fulfillment.
+    } finally {
+      finished()
+    }
+  })
+  const file = path.resolve('test/fixtures/contract-browser/.xirang/model/elements/capability.leaf.md')
+  const original = await fs.readFile(file, 'utf8')
+  try {
+    await page.goto('/view/full-model/?view=index')
+    const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+    await expect(node).toBeVisible({ timeout: 20_000 })
+    await node.click()
+    await expect(node).toHaveClass(/selected/)
+    await node.click()
+    const dialog = page.locator('dialog[open]')
+    await dialog.getByRole('tab', { name: 'Contracts' }).click()
+    await dialog.getByRole('link', { name: '重复标题', exact: true }).click()
+    await oldCaptured
+    await fs.writeFile(file, original + '\n\n刷新后的证据正文。\n')
+    const body = dialog.locator('[data-xirang-contract-content]')
+    await expect(body).toContainText('刷新后的证据正文。')
+    await expect.poll(() => body.evaluate(el => el.scrollTop)).toBe(0)
+    await expect(body.locator('[data-xirang-heading="时间依据-1"]')).not.toBeInViewport()
+    release()
+    await oldFinished
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    await expect(body).toContainText('刷新后的证据正文。')
+    await expect.poll(() => body.evaluate(el => el.scrollTop)).toBe(0)
+    await expect(page).toHaveURL(/view=index/)
+  } finally {
+    release()
+    await fs.writeFile(file, original)
+  }
+})
