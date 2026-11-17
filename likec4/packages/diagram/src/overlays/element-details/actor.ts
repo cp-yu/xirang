@@ -16,6 +16,7 @@ export type ElementDetailsInput = {
   subject: Fqn
   currentView: DiagramView
   identity?: string | undefined
+  contract?: { fragment?: string; revision: string } | undefined
   initiatedFrom?: {
     node?: NodeId
     clientRect?: Rect
@@ -26,6 +27,7 @@ export type Context = {
   subject: Fqn
   currentView: DiagramView
   identity: string | null
+  contract: { fragment?: string; revision: string } | null
   initiatedFrom: {
     node: NodeId | null
     clientRect: Rect | null
@@ -34,6 +36,7 @@ export type Context = {
 
 export type Events =
   | { type: 'change.subject'; subject: Fqn }
+  | { type: 'open.contract'; subject: Fqn; identity: string; fragment?: string; revision: string }
   | { type: 'close' }
 
 const _elementDetailsLogic = setup({
@@ -53,6 +56,7 @@ const _elementDetailsLogic = setup({
   context: ({ input }) => ({
     ...input,
     identity: input.identity ?? null,
+    contract: input.contract ?? null,
     initiatedFrom: {
       node: input.initiatedFrom?.node ?? null,
       clientRect: input.initiatedFrom?.clientRect ?? null,
@@ -77,6 +81,14 @@ const _elementDetailsLogic = setup({
         stopChild(({ self }) => `${self.id}-relationships`),
       ],
       on: {
+        'open.contract': {
+          actions: assign({
+            subject: ({ event }) => event.subject,
+            identity: ({ event }) => event.identity,
+            contract: ({ event }) => ({ revision: event.revision, ...(event.fragment ? { fragment: event.fragment } : {}) }),
+            initiatedFrom: () => ({ node: null, clientRect: null }),
+          }),
+        },
         'change.subject': {
           actions: assign({
             subject: ({ event }) => event.subject,

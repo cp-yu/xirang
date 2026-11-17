@@ -17,3 +17,6 @@ The fixture SHALL expose one Element Contract through the Semantic Browser.
 
 - **WHEN** the user opens the Contract tab
 - **THEN** the Browser renders this Contract content
+
+
+[证据](capability.leaf.md#时间依据) [重复标题](capability.leaf.md#时间依据-1) [丢失标题](capability.leaf.md#不存在) [无目标](missing-evidence.md) [无正文](none.md) [外部网页](https://example.com) [本文](#section-single-contract-behavior)

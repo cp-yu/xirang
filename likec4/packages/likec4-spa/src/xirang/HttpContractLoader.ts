@@ -22,7 +22,13 @@ export class HttpContractLoader implements XirangContractLoader {
       if (response.status === 404) return null
       throw new Error('error' in payload && payload.error ? payload.error : `Unable to load Contract (${response.status})`)
     }
-    if (!('element' in payload) || !('md' in payload)) {
+    if (!payload || typeof payload !== 'object' || !('element' in payload) || !('md' in payload)
+      || payload.element !== element || typeof payload.md !== 'string'
+      || ('links' in payload && (!Array.isArray(payload.links) || payload.links.some(link =>
+        !link || typeof link !== 'object' || typeof link.href !== 'string'
+        || (link.element !== undefined && typeof link.element !== 'string')
+        || (link.fragment !== undefined && typeof link.fragment !== 'string')
+        || (link.external !== undefined && link.external !== true))))) {
       throw new Error('Invalid Contract response')
     }
     return payload

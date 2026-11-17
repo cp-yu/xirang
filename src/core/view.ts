@@ -15,6 +15,7 @@ import {
 import { resolveViewSelection, type ResolvedViewSelection } from './likec4/runtime-projection.js';
 import { serializeElementUnit } from './model/serializer.js';
 import { PARTITIONS, relationshipIdentity, type Partition, type SemanticModel } from './model/types.js';
+import { projectContractLinks, type ContractLink, type ContractOrigin } from './contract-links.js';
 import type { ChangeDiagnostic, ChangeDiff } from './semantic-diff.js';
 import { runLikeC4 } from '../commands/arch/runner.js';
 import { validateCandidateSnapshot } from './candidate/validator.js';
@@ -84,6 +85,8 @@ export interface ViewRuntimeSemanticModel {
   partitionFingerprints: Record<Partition, string>;
   architecture: BrowserSemanticModel;
   contracts: Record<string, string>;
+  contractLinks: Record<string, ContractLink[]>;
+  contractFingerprint: string;
   likec4Sources: Record<string, string>;
   likec4ElementPaths: Record<string, string>;
   diagnostics: ChangeDiagnostic[];
@@ -103,6 +106,8 @@ export interface ViewRuntimeChangeDerivedView {
   diffArchitecture?: BrowserSemanticModel;
   /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
+  contractLinks?: Record<string, ContractLink[]>;
+  contractFingerprint?: string;
   likec4Sources?: Record<string, string>;
   likec4ElementPaths?: Record<string, string>;
   diffLikec4Sources?: Record<string, string>;
@@ -128,6 +133,8 @@ export interface ViewRuntimeCandidateSource {
   diffArchitecture?: BrowserSemanticModel;
   /** element identity → Contract markdown; the only Contract transport to the Browser. */
   contracts?: Record<string, string>;
+  contractLinks?: Record<string, ContractLink[]>;
+  contractFingerprint?: string;
   likec4Sources?: Record<string, string>;
   likec4ElementPaths?: Record<string, string>;
   diffLikec4Sources?: Record<string, string>;
@@ -175,6 +182,29 @@ export function projectContracts(model: SemanticModel): Record<string, string> {
   return contracts;
 }
 
+function sourceUnits(parsed: ParsedModel, root: string): Map<string, string> {
+  return new Map(parsed.model.elements.flatMap(element => {
+    const module = parsed.index.moduleOf('element-declaration', element.declaration.identity);
+    return module ? [[path.resolve(root, ...module.path.split('/')), element.declaration.identity] as const] : [];
+  }));
+}
+
+function contractRuntime(model: SemanticModel, origin: ContractOrigin, units: ReadonlyMap<string, string>) {
+  const contractLinks = projectContractLinks(model, origin, units);
+  const origins = model.elements.flatMap(e => e.sections.map(s => [e.declaration.identity, s.name, origin(e.declaration.identity, s.name)]));
+  return {
+    contracts: projectContracts(model),
+    contractLinks,
+    contractFingerprint: runtimeFingerprint({ origins, units: [...units].sort(), contractLinks }),
+  };
+}
+
+function parsedContracts(parsed: ParsedModel, root: string) {
+  const units = sourceUnits(parsed, root);
+  const paths = new Map([...units].map(([file, identity]) => [identity, file]));
+  return contractRuntime(parsed.model, identity => paths.get(identity), units);
+}
+
 export function projectBrowserDiff(diff: ChangeDiff): ChangeDiff {
   const projectEntry = (entry: ChangeDiff['entries'][number]): ChangeDiff['entries'][number] => ({
     ...entry,
@@ -204,7 +234,7 @@ export function partitionFingerprints(model: SemanticModel): Record<Partition, s
   ) as Record<Partition, string>;
 }
 
-async function buildSemanticModelSource(formal: ParsedModel): Promise<ViewRuntimeSemanticModel> {
+async function buildSemanticModelSource(formal: ParsedModel, projectRoot: string): Promise<ViewRuntimeSemanticModel> {
   const { model } = formal;
   const fingerprints = partitionFingerprints(model);
   return {
@@ -215,7 +245,7 @@ async function buildSemanticModelSource(formal: ParsedModel): Promise<ViewRuntim
     sourceFingerprint: hashString(JSON.stringify(fingerprints)),
     partitionFingerprints: fingerprints,
     architecture: projectBrowserArchitecture(model),
-    contracts: projectContracts(model),
+    ...parsedContracts(formal, path.join(projectRoot, XIRANG_DIR_NAME, 'model')),
     ...runtimeLikeC4(model),
     diagnostics: [],
   };
@@ -262,10 +292,13 @@ function runtimeProjectionFor(
   formalModel: SemanticModel | null | undefined,
   target: SemanticModel | null | undefined,
   includeRuntime: boolean,
+  contractProjection: ReturnType<typeof contractRuntime>,
 ): {
   partitionFingerprints?: Record<Partition, string>;
   architecture?: BrowserSemanticModel;
   contracts?: Record<string, string>;
+  contractLinks?: Record<string, ContractLink[]>;
+  contractFingerprint?: string;
   likec4Sources?: Record<string, string>;
   likec4ElementPaths?: Record<string, string>;
   authoredViews?: Record<string, ViewRuntimeAuthoredView>;
@@ -278,7 +311,7 @@ function runtimeProjectionFor(
   return {
     ...(target && includeRuntime ? { partitionFingerprints: partitionFingerprints(target) } : {}),
     ...(target ? { architecture: projectBrowserArchitecture(target) } : {}),
-    ...(target && includeRuntime ? { contracts: projectContracts(target) } : {}),
+    ...(target && includeRuntime ? contractProjection : {}),
     ...(target && includeRuntime ? runtimeLikeC4(target) : {}),
     ...(target ? { authoredViews: sourceAuthoredViews(target) } : {}),
     ...(unionModel && includeRuntime ? { diffSourceFingerprint: hashString(JSON.stringify(partitionFingerprints(unionModel))) } : {}),
@@ -291,7 +324,23 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
   try {
     const compiledDelta = await compileChangeDelta(projectRoot, change, { base: formal });
     const compiled = compiledDelta.compiled;
-    const runtime = runtimeProjectionFor(compiledDelta.base.model, compiled.target, true);
+    const formalUnits = sourceUnits(formal, path.join(projectRoot, XIRANG_DIR_NAME, 'model'));
+    const basePaths = new Map([...formalUnits].map(([file, identity]) => [identity, file]));
+    const sectionPaths = new Map<string, string>();
+    const units = new Map(formalUnits);
+    for (const source of compiledDelta.sources) {
+      const file = path.resolve(projectRoot, XIRANG_DIR_NAME, 'changes', change, ...source.path.split('/'));
+      for (const entity of source.entities) {
+        if (entity.entity === 'element-declaration') units.set(file, entity.identity);
+        if (entity.entity === 'section') {
+          sectionPaths.set(entity.identity, file);
+          units.set(file, entity.identity.slice(0, entity.identity.indexOf('#')));
+        }
+      }
+    }
+    const projection = contractRuntime(compiled.target ?? compiledDelta.base.model,
+      (identity, section) => sectionPaths.get(`${identity}#${section}`) ?? basePaths.get(identity), units);
+    const runtime = runtimeProjectionFor(compiledDelta.base.model, compiled.target, true, projection);
     const changeRoot = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', change);
     const planFiles = ['design.md', 'proposal.md', 'tasks.md'] as const;
     const planResults = await Promise.allSettled(
@@ -322,7 +371,7 @@ async function buildChangeDerivedView(projectRoot: string, change: string, forma
       ...(runtime.diffLikec4Sources && runtime.diffLikec4ElementPaths
         ? { diffLikec4Sources: runtime.diffLikec4Sources, diffLikec4ElementPaths: runtime.diffLikec4ElementPaths }
         : {}),
-      ...(runtime.contracts ? { contracts: runtime.contracts } : {}),
+      ...(runtime.contracts ? { contracts: runtime.contracts, contractLinks: runtime.contractLinks, contractFingerprint: runtime.contractFingerprint } : {}),
       ...(runtime.authoredViews ? { authoredViews: runtime.authoredViews } : {}),
       diagnostics: compiled.diagnostics,
       ...(Object.keys(changePlan).length > 0 ? { changePlan } : {}),
@@ -363,6 +412,7 @@ async function buildCandidateSources(
       result.comparison.baseline === 'formal' ? formal.model : undefined,
       candidateModel.model,
       result.valid,
+      parsedContracts(candidateModel, candidateRoot),
     );
     // The combined fingerprint includes both candidate content and the formal model baseline
     // so the candidate source invalidates when either changes.
@@ -386,7 +436,7 @@ async function buildCandidateSources(
       ...(runtime.diffLikec4Sources && runtime.diffLikec4ElementPaths
         ? { diffLikec4Sources: runtime.diffLikec4Sources, diffLikec4ElementPaths: runtime.diffLikec4ElementPaths }
         : {}),
-      ...(runtime.contracts ? { contracts: runtime.contracts } : {}),
+      ...(runtime.contracts ? { contracts: runtime.contracts, contractLinks: runtime.contractLinks, contractFingerprint: runtime.contractFingerprint } : {}),
       ...(runtime.likec4Sources && runtime.likec4ElementPaths
         ? { likec4Sources: runtime.likec4Sources, likec4ElementPaths: runtime.likec4ElementPaths }
         : {}),
@@ -420,7 +470,8 @@ export async function buildViewRuntimeSnapshot(
     // dropped watcher event during promotion).
     const formalFingerprint = hashString(JSON.stringify(partitionFingerprints(formal.model)));
     const previous = options.previous;
-    if (previous && previous.model.sourceFingerprint === formalFingerprint) {
+    if (previous && previous.model.sourceFingerprint === formalFingerprint
+      && previous.model.contractFingerprint === parsedContracts(formal, path.join(projectRoot, XIRANG_DIR_NAME, 'model')).contractFingerprint) {
       const { candidate: _previousCandidate, ...rest } = previous;
       const candidate = await buildCandidateSources(projectRoot, formal);
       return { ...rest, ...(candidate ? { candidate } : {}) };
@@ -438,7 +489,7 @@ export async function buildViewRuntimeSnapshot(
 
   const [candidateSources, semanticModel] = await Promise.all([
     buildCandidateSources(projectRoot, formal),
-    buildSemanticModelSource(formal),
+    buildSemanticModelSource(formal, projectRoot),
   ]);
 
   // The Browser server consumes the resolved selection directly, so closure, exclude precedence

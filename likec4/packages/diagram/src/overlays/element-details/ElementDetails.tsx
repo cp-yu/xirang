@@ -1,8 +1,10 @@
+import type { Fqn } from '@likec4/core/types'
 import { useSelector } from '@xstate/react'
 import { shallowEqual } from 'fast-equals'
 import type { ElementDetailsActorRef, ElementDetailsSnapshot } from './actor'
 import { ElementDetailsActorContext } from './actorContext'
 import { ElementDetailsCard } from './ElementDetailsCard'
+import { useXirangViewSources, xirangViewSourceRevision } from '../../xirang/ContractLoaderContext'
 
 export type ElementDetailsProps = {
   actorRef: ElementDetailsActorRef
@@ -15,6 +17,7 @@ const selector = (s: ElementDetailsSnapshot) => ({
   rectFromNode: s.context.initiatedFrom.clientRect,
   fqn: s.context.subject,
   identity: s.context.identity,
+  contract: s.context.contract,
 })
 
 export function ElementDetails({
@@ -26,10 +29,13 @@ export function ElementDetails({
     selector,
     shallowEqual,
   )
+  const { selected } = useXirangViewSources()
+  const revision = `${selected.id}:${xirangViewSourceRevision(selected)}`
   return (
     <ElementDetailsActorContext.Provider value={actorRef}>
       <ElementDetailsCard
         onClose={onClose}
+        onContractNavigate={(identity, fragment) => actorRef.send({ type: 'open.contract', subject: identity as Fqn, identity, revision, ...(fragment ? { fragment } : {}) })}
         {...props} />
     </ElementDetailsActorContext.Provider>
   )

@@ -57,7 +57,7 @@ import { useDiagram } from '../../hooks/useDiagram'
 import { useLikeC4ProjectId } from '../../hooks/useLikeC4Project'
 import type { OnNavigateTo } from '../../LikeC4Diagram.props'
 import { stopPropagation } from '../../utils'
-import { type XirangElementDeclaration, type XirangModelElement, type XirangViewSource, useXirangViewSources } from '../../xirang/ContractLoaderContext'
+import { type XirangElementDeclaration, type XirangModelElement, type XirangViewSource, useXirangViewSources, xirangViewSourceRevision } from '../../xirang/ContractLoaderContext'
 import { ContractsTab } from './ContractsTab'
 import { DiffTab } from './DiffTab'
 import * as styles from './ElementDetailsCard.css'
@@ -103,6 +103,8 @@ type ElementDetailsCardProps = {
   onClose: () => void
   fqn: Fqn
   identity: string | null
+  contract: { fragment?: string; revision: string } | null
+  onContractNavigate: (identity: string, fragment?: string) => void
 }
 
 type ElementDefinitionPropertiesProps = {
@@ -204,6 +206,8 @@ export function ElementDetailsCard({
   rectFromNode,
   fqn,
   identity,
+  contract,
+  onContractNavigate,
   onClose,
 }: ElementDetailsCardProps) {
   const [opened, setOpened] = useState(false)
@@ -215,6 +219,9 @@ export function ElementDetailsCard({
     key: `likec4:element-details:active-tab`,
     defaultValue: 'Properties',
   })
+  useEffect(() => {
+    if (contract) setActiveTab('Contracts')
+  }, [contract, setActiveTab])
   const diagram = useDiagram()
   const viewModel = useCurrentViewModel()
   const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
@@ -234,14 +241,14 @@ export function ElementDetailsCard({
   const elementTitle = declaration?.title ?? elementModel?.title ?? fqn
   const elementKind = declaration?.kind ?? elementModel?.kind ?? '—'
   const elementIcon = elementModel
-    ? IconRenderer({
-      element: {
+    ? <IconRenderer
+      element={{
         id: fqn,
         title: elementModel.title,
         icon: nodeModel?.icon ?? elementModel.icon,
-      },
-      className: styles.elementIcon,
-    })
+      }}
+      className={styles.elementIcon}
+    />
     : null
   const elementTags = elementModel?.tags ?? []
   const elementTechnology = elementModel?.technology ?? null
@@ -672,6 +679,9 @@ export function ElementDetailsCard({
               {hasContract && (
                 <TabsPanel value="Contracts">
                   <ContractsTab
+                    key={`${stableElementId}:${runtime.selected.change ?? 'model'}:${xirangViewSourceRevision(runtime.selected)}`}
+                    navigation={contract?.revision === `${runtime.selected.id}:${xirangViewSourceRevision(runtime.selected)}` ? contract : null}
+                    onNavigate={onContractNavigate}
                     project={elementProjectId}
                     element={stableElementId}
                     active={activeTab === 'Contracts'}

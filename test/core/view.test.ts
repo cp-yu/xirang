@@ -892,3 +892,66 @@ describe('buildViewRuntimeSnapshot last-known-good', () => {
     }
   });
 });
+
+describe('source-aware Contract references', () => {
+  let root: string;
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-contract-links-')); });
+  afterEach(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const contract = (text: string) => `## Specification\n\n### Section: Read\n${text}`;
+  const fixture = () => minimalModel({ elements: [
+    { identity: 'analysis.id', fileName: 'analysis', sections: contract('[evidence](case.md#时间依据)') + '\n\n### Section: Modified\n[baseline](case.md)' },
+    { identity: 'evidence.id', fileName: 'case', sections: contract('Formal evidence.') },
+  ] });
+
+  it('isolates Formal, Candidate and mixed inherited/modified Change origins', async () => {
+    await writeProjectModel(root, fixture());
+    const candidate = path.join(root, '.xirang', 'candidate');
+    await fs.mkdir(candidate, { recursive: true });
+    await fs.writeFile(path.join(candidate, 'candidate.yaml'), 'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n');
+    await fs.writeFile(path.join(candidate, 'build.md'), '# Build\n');
+    const candidateFixture = fixture();
+    candidateFixture.elements!.find(e => e.identity === 'evidence.id')!.sections = contract('Candidate evidence.');
+    await writeModel(candidate, candidateFixture);
+    await writeChangeDelta(root, 'references', {
+      'elements/analysis.md': '## MODIFIED Sections\n\n### Section: Modified\nUpdated [evidence](case.md).\n\n## ADDED Sections\n\n### Section: Delta\n[evidence](case.md)\n\n#### Acceptance Case: Detail\n[formal](../../../model/elements/case.md) [analysis](analysis.md)\n',
+      'elements/case.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: delta.id\nkind: capability\nparent: root\ntitle: Delta\ndefinition: Delta evidence\n---\n\n## ADDED Sections\n\n### Section: Read\nDelta evidence.\n',
+    });
+    // A section-only Delta declares its host identity explicitly.
+    const deltaPath = path.join(root, '.xirang', 'changes', 'references', 'elements', 'analysis.md');
+    await fs.writeFile(deltaPath, '---\nentity: element-declaration\nidentity: analysis.id\nkind: capability\nparent: root\ntitle: analysis.id\ndefinition: Definition of analysis.id.\n---\n\n' + await fs.readFile(deltaPath, 'utf8'));
+    const snapshot = await buildViewRuntimeSnapshot(root);
+    expect(snapshot.model.contractLinks['analysis.id']?.[0]).toMatchObject({ element: 'evidence.id', fragment: '时间依据' });
+    expect(snapshot.candidate?.contractLinks?.['analysis.id']?.[0]).toMatchObject({ element: 'evidence.id' });
+    expect(snapshot.candidate?.contracts?.['evidence.id']).toContain('Candidate evidence.');
+    expect(snapshot.changes.references?.valid, JSON.stringify(snapshot.changes.references?.diagnostics)).toBe(true);
+    expect(snapshot.changes.references?.contractLinks?.['analysis.id']).toEqual([
+      { href: 'case.md#时间依据', element: 'evidence.id', fragment: '时间依据' },
+      { href: 'case.md', element: 'delta.id' },
+      { href: 'case.md', element: 'delta.id' },
+      { href: '../../../model/elements/case.md', element: 'evidence.id' },
+      { href: 'analysis.md', element: 'analysis.id' },
+    ]);
+  });
+
+  it('follows the managed filesystem case behavior without treating paths as identities', async () => {
+    await writeProjectModel(root, fixture());
+    const source = path.join(root, '.xirang', 'model', 'elements', 'analysis.md');
+    await fs.writeFile(source, (await fs.readFile(source, 'utf8')).replace('case.md#时间依据', 'CASE.md'));
+    const exists = await fs.realpath(path.join(path.dirname(source), 'CASE.md')).then(() => true, () => false);
+    const snapshot = await buildViewRuntimeSnapshot(root);
+    expect(snapshot.model.contractLinks['analysis.id']?.[0]).toEqual(exists
+      ? { href: 'CASE.md', element: 'evidence.id' } : { href: 'CASE.md' });
+  });
+
+  it('invalidates the presentation on a file rename without changing semantic fingerprints', async () => {
+    await writeProjectModel(root, fixture());
+    const before = await buildViewRuntimeSnapshot(root);
+    const elements = path.join(root, '.xirang', 'model', 'elements');
+    await fs.rename(path.join(elements, 'case.md'), path.join(elements, 'renamed.md'));
+    const after = await buildViewRuntimeSnapshot(root, { previous: before, onlyCandidate: true });
+    expect(after.model.sourceFingerprint).toBe(before.model.sourceFingerprint);
+    expect(after.model.contractFingerprint).not.toBe(before.model.contractFingerprint);
+    expect(after.model.contractLinks['analysis.id']?.[0]).toEqual({ href: 'case.md#时间依据', fragment: '时间依据' });
+  });
+});

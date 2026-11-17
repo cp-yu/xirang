@@ -257,3 +257,11 @@ describe('keeps instance-local view ids across manifest refresh', () => {
     expect(isKnownViewId(manifestWithCandidateView, 'full-model')).toBe(true)
   })
 })
+
+describe('Contract location refresh', () => {
+  it('invalidates a source when only its Contract location fingerprint changed', () => {
+    const source = { ...candidateSource, contractFingerprint: 'old-location' }
+    expect(xirangViewSourceRevision({ ...source, contractFingerprint: 'new-location' }))
+      .not.toBe(xirangViewSourceRevision(source))
+  })
+})

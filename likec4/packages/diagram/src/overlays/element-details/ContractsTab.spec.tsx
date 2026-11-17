@@ -242,3 +242,29 @@ describe('ContractsTab', () => {
     expect(value.html).not.toContain('onerror')
   })
 })
+
+describe('Contract source request races', () => {
+  it('ignores a late response for the same identity from a previous model selection', async () => {
+    const candidate = deferred<XirangContractContent | null>()
+    const formal = deferred<XirangContractContent | null>()
+    const signals: AbortSignal[] = []
+    const loader: XirangContractLoader = {
+      load: (_project, _element, signal, source) => {
+        signals.push(signal)
+        return source === 'candidate' ? candidate.promise : formal.promise
+      },
+    }
+    const states: ContractLoadState[] = []
+    const controller = new XirangContractLoadController(state => states.push(state))
+    controller.load(loader, 'default', 'same.id', 'candidate')
+    controller.load(loader, 'default', 'same.id')
+    expect(signals[0]?.aborted).toBe(true)
+    formal.resolve({ element: 'same.id', md: 'Formal', links: [{ href: 'case.md', element: 'formal.target' }] })
+    await formal.promise
+    await Promise.resolve()
+    candidate.resolve({ element: 'same.id', md: 'Candidate', links: [{ href: 'case.md', element: 'candidate.target' }] })
+    await candidate.promise
+    await Promise.resolve()
+    expect(states.at(-1)).toMatchObject({ content: { md: 'Formal', links: [{ element: 'formal.target' }] } })
+  })
+})

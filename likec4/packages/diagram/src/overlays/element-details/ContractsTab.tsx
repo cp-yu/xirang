@@ -1,7 +1,6 @@
-import { RichText } from '@likec4/core'
 import { Box, Stack, Text } from '@mantine/core'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
-import { Markdown } from '../../base-primitives'
+import { ContractMarkdown } from './ContractMarkdown'
 import {
   type XirangContractContent,
   type XirangContractLoader,
@@ -106,18 +105,18 @@ export function getStructuredContractDiff(source: XirangViewSource, element: str
   }
 }
 
-function stripFrontmatter(md: string): string {
-  return md.replace(/^---\n[\s\S]*?\n---\n?/, '')
-}
-
 export function ContractsTab({
   project,
   element,
   active,
+  navigation,
+  onNavigate,
 }: {
   project: string
   element: string
   active: boolean
+  navigation?: { fragment?: string } | null
+  onNavigate: (element: string, fragment?: string) => void
 }) {
   const loader = useXirangContractLoader()
   const runtime = useXirangViewSources()
@@ -156,7 +155,7 @@ export function ContractsTab({
             {displayState.content.element}
           </Text>
           <Box data-xirang-contract-content style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            <Markdown value={RichText.from({ md: stripFrontmatter(displayState.content.md) })} />
+            <ContractMarkdown content={displayState.content} navigation={navigation} onNavigate={onNavigate} />
           </Box>
         </>
       )}

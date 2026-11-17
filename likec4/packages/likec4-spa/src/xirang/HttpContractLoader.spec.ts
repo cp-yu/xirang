@@ -125,3 +125,16 @@ describe('HttpContractLoader', () => {
     })
   })
 })
+
+describe('Contract link transport', () => {
+  it('preserves ordered identity targets and fragments', async () => {
+    const payload = { element: 'core.api', md: '[e](case.md#标题)', links: [{ href: 'case.md#标题', element: 'evidence.id', fragment: '标题' }] }
+    const loader = new HttpContractLoader(vi.fn<typeof fetch>().mockResolvedValue(json(payload)))
+    await expect(loader.load('default', 'core.api', new AbortController().signal)).resolves.toEqual(payload)
+  })
+
+  it.each([null, {}, [{ href: 12 }], [{ href: 'case.md', element: 12 }]])('rejects malformed link metadata %j', async links => {
+    const loader = new HttpContractLoader(vi.fn<typeof fetch>().mockResolvedValue(json({ element: 'core.api', md: '', links })))
+    await expect(loader.load('default', 'core.api', new AbortController().signal)).rejects.toThrow('Invalid Contract response')
+  })
+})
