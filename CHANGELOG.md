@@ -1,5 +1,14 @@
 # xirang
 
+## 0.2.10
+
+### Patch Changes
+
+- Contract 正文相对引用按 identity 导航：浏览器在生成展示数据时把正文中的相对 Markdown 引用解析为稳定 Element identity 与标题 fragment，点击打开目标 Element 的 Contracts，不再进入图形路由；外部链接保持网页行为，无法解析或目标无 Contract 时就地提示。
+- 三种 Model Selection 正文隔离：Semantic Model、Candidate 与活动 Change 各自使用来源目录的显式路径映射解析引用，合成 Contract 中继承与修改 Section 按各自来源定位；文件名不作为 identity，Windows/macOS/Linux 按宿主路径规则匹配大小写。
+- 正文导航确定性与来源一致：较早的响应或定位不得覆盖后续的 Element、模型或标题选择；导航意图绑定实际 Model source 身份，等价内容的不同 Change 之间不重放旧标题。
+- 无效 source 保留最近成功投影：Change 或 Candidate 源无效时保留上次成功的正文、引用映射与展示版本，仅更新诊断；恢复有效后采用新投影。预加载 manifest 只接受当前协议版本。
+- Quality 流程强化：独立优化检查（Optimization inspection）与累计 Review 门禁进入 Quality JSON 协议，Seal 绑定被审查提交。
 ## 0.2.9
 
 ### Patch Changes
