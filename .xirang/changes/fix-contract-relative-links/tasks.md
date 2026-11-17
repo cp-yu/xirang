@@ -24,3 +24,4 @@
 ## Required Corrections
 
 - [x] [code_fix] 脚注定义按递归发现与首次定义优先规则解析，使嵌套脚注、重复定义和普通正文中的链接 occurrence 始终打开各自对应的目标 Contract。
+- [x] [code_fix] 已声明存在的 Contract 请求返回缺失结果时，详情展示请求的 Element identity 和明确缺失提示，其他详情标签保持可用。

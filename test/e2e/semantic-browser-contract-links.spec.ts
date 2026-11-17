@@ -109,3 +109,27 @@ test('opens relative Contract references from nested and duplicate footnotes by 
   await expect(dialog.getByText('long', { exact: true })).toBeVisible()
   await expect(page).toHaveURL(url)
 })
+
+test('opens relative Contract references with explicit feedback when an advertised Contract disappears', async ({ page }) => {
+  await page.route('**/__xirang/contract?**', async route => {
+    if (new URL(route.request().url()).searchParams.get('element') === 'single') {
+      await route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Contract not found' }) })
+    } else {
+      await route.continue()
+    }
+  })
+  await page.goto('/view/full-model/?view=index')
+  const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(node).toBeVisible({ timeout: 20_000 })
+  await node.click()
+  await expect(node).toHaveClass(/selected/)
+  await node.click()
+  const dialog = page.locator('dialog[open]')
+  await dialog.getByRole('tab', { name: 'Contracts' }).click()
+  const contracts = dialog.locator('[data-xirang-contracts]')
+  await expect(contracts.getByText('single', { exact: true })).toBeVisible()
+  await expect(contracts).toContainText('Contract not found')
+  await dialog.getByRole('tab', { name: 'Properties', exact: true }).click()
+  await expect(dialog.getByRole('tab', { name: 'Properties', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(dialog).toContainText('Single Contract')
+})

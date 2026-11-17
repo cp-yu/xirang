@@ -149,6 +149,9 @@ export function ContractsTab({
       {displayState.status === 'error' && (
         <ContractPath path={displayState.element} color="red">{displayState.message}</ContractPath>
       )}
+      {displayState.status === 'success' && !displayState.content && (
+        <ContractPath path={displayState.element} color="red">Contract not found</ContractPath>
+      )}
       {displayState.status === 'success' && displayState.content && (
         <>
           <Text size="xs" c="dimmed" style={{ userSelect: 'all' }}>
