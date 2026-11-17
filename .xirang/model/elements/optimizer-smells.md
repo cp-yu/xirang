@@ -4,29 +4,17 @@ identity: optimizer-smells
 kind: element
 parent: optimization
 title: Optimizer Smells
-definition: Optimizer Smells 定义 Quality 优化活动的结构坏味道候选信号：长方法、浅模块、原始类型、重复、Feature Envy、深层嵌套、死代码等作为非穷尽候选信号，阈值或信号本身不强制产生方向；未预定义的算法、数据结构、I/O 或资源效率机会可用开放文本描述。
+definition: Optimizer Smells 是 Optimization 发现机会时使用的开放评估维度与候选信号，独立表达结构、可读性、维护性、性能、资源、健壮性、封装、类型和扩展性等观察线索。它不定义固定清单、指标门槛或自动重构决定；是否值得实施由当前证据、收益、成本风险及授权范围共同判断。
 ---
 
 ## Specification
 
 ### Section: 优化候选信号
 
-Optimizer SHALL 将长方法、浅模块、原始类型、重复、Feature Envy、深层嵌套、死代码及其他结构指标作为非穷尽候选信号。阈值或信号本身 MUST NOT 强制产生 finding；optimizer MUST 结合实际收益、代码证据、风险和 preservation constraints 判断是否 actionable。Optimizer MAY 发现未列出的算法、数据结构、I/O、分配或资源效率机会，并 SHALL 使用开放文本描述，不受固定枚举限制。
+inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。返回具有具体代码证据的机会、预期收益、成本、风险和验证方法，或说明无需继续。结构信号本身不能证明修改价值，程序体积小不能作为无需维护质量评估的依据。
 
-- **长方法不自动要求拆分**
+Optimizer SHALL 将圈复杂度、长方法或职责过载、浅模块、原始类型、重复、Feature Envy、深层嵌套、长判断分支、补丁式冗余实现与死代码等视为候选信号。也可调查 Hot Path、Inner Loop、I/O 阻塞、O(n^2) 遍历、大内存分配、重复计算、批处理，以及错误处理/降级、竞态/死锁、连接或句柄泄漏、模块封装、过宽类型、any 或弱类型。示例不穷尽，不要求固定分类或生成 finding；必须结合具体收益、证据、成本风险与保持约束判断。
 
-  - 方法超过 30 行但职责单一、流程清晰且拆分会增加间接性
-  - optimizer SHALL NOT 仅因行数生成 actionable finding
-
-- **重复逻辑产生候选 finding**
-
-  - 两处以上存在语义相同且维护时必须同步的逻辑
-  - optimizer 可证明共享边界不会改变行为
-  - optimizer MAY 生成 duplication finding
-  - SHALL 提供位置、影响、关键设计和保持约束
-
-- **发现未预定义的算法机会**
-
-  - optimizer 从当前代码证明某算法存在可避免的更高时间复杂度
-  - SHALL 允许使用开放文本描述该 finding
-  - SHALL NOT 要求映射到固定 smell 类型
+- 方法超过 30 行但职责单一、流程清晰且拆分增加间接性：不得仅因行数生成 actionable finding。
+- 两处语义相同且维护必须同步的逻辑：证明共享边界不改变行为后可形成候选，说明位置、影响、设计与保持约束。
+- 发现未列出的算法效率机会：允许开放文本描述，不要求映射固定 smell。

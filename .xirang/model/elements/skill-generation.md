@@ -53,6 +53,12 @@ skill 的 name、description、license、compatibility、metadata SHALL 写为�
 
 上下文优化 SHALL 先取消无必要调用和读取，再删无用回执与重复内容，再缩小范围，最后选择紧凑表示。相同任务目的和场景比较 stdout/stderr、文件读取及累计开销，未运行 tokenizer 不报告 token 节省；不把同量内容从 CLI 搬到文件当收益。行为比较控制模型和设置，覆盖重复及不同场景，检查产物、加载、暂停、返工、耗时与可得 token；必要语义或确认缺失属于回归。
 
+#### 阶段指导加载
+
+stageRules SHALL 为独立于 context 和 rules 的阶段名到字符串数组映射，仅支持 explore、propose、apply、archive、build、snack 六个键。每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。离开阶段后不将其作为后续阶段规则执行，不声称清除会话记忆；规则本身不自动成为 Semantic Model 或设计制品，期间用户确认的设计决定正常交接。内部 Optimizer、Reviewer、Experimenter 不设阶段规则键，也不自动继承 stageRules.apply；协调者传入与受托任务相关的项目约束。
+
+每个阶段入口 SHALL 在选定阶段后通过 config project --select stageRules.<阶段> --json 获取有效数据，common 统一解释作用域；直接入口与 common 路由均遵守。仅因补齐 common 不重新选阶段，也不批量预读其他阶段规则。跨阶段切换重新选择当前阶段数据；同阶段、同项目且内容仍可用未变时复用，查询失败报告，不伪称已加载。
+
 ### Section: Edge Cases and Exception Handling
 
 指导 SHALL 对实际缺口采用下列边界：缺少 context 不制造要求，查询失败报告且不伪称成功，不引入监听；无法读取配置选中的分解方法时停止结构工作，不替换方法。模型缺失/无效时，只读探索可声明限制并使用部分证据，编译或写入语义的工作不得视为空完整模型。
@@ -90,3 +96,7 @@ impact 返回多个身份时，只 query 当前判断需要的完整语义；整
 #### Acceptance Case: 合法 Frontmatter
 
 description 含 sync:、双引号或换行，在 setup/update 交付的 YAML 中可解析，字段值与原模板语义一致。
+
+#### Acceptance Case: 直接入口与跨阶段隔离
+
+直接进入 Propose 时加载 stageRules.propose；从 Explore 切换 Apply 时取得 stageRules.apply，不沿用 Explore 执行规则。common 的 context 可以复用，已确认的设计决定继续交接。内部 Reviewer/Optimizer 保持受托角色，不自动加载 stageRules.apply。

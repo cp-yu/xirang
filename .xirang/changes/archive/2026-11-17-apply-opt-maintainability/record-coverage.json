@@ -1,0 +1,1031 @@
+{
+  "schemaVersion": 1,
+  "filename": "apply-opt-maintainability.md",
+  "sourceVersion": "aaa3796cc67cfbd16f0255e4664eaf8267b3a81e7c8d798eaada20c5d08ab649",
+  "targetFingerprint": "0b2fa9e5d1f97d31e51e62b9e8f1739c4af1df375880c6949aa98a9838399fb8",
+  "recordedAt": "2026-11-17T06:21:05.485Z",
+  "entries": [
+    {
+      "identity": "opt-size-inference-correction",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "小体积不能支持不作维护质量评估",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "结构信号本身不能证明修改价值，程序体积小不能作为无需维护质量评估的依据。"
+        },
+        {
+          "detail": "维护性纳入评估，资源维度仍可评估",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。"
+        }
+      ]
+    },
+    {
+      "identity": "abstraction-and-maintainability-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "职责与控制流清晰",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "Apply SHALL 选择使职责与控制流清晰、使修改集中于相关位置的抽象与代码组织，避免增加对当前实现没有具体收益的结构。"
+        },
+        {
+          "detail": "修改集中于相关位置",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "Apply SHALL 选择使职责与控制流清晰、使修改集中于相关位置的抽象与代码组织，避免增加对当前实现没有具体收益的结构。"
+        },
+        {
+          "detail": "结构需当前具体收益",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "Apply SHALL 选择使职责与控制流清晰、使修改集中于相关位置的抽象与代码组织，避免增加对当前实现没有具体收益的结构。"
+        },
+        {
+          "detail": "允许增加提取合并删除",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "合理的提取、增加、合并或删除抽象均可；不以文件、函数、层数或代码行数直接判断优劣，也不为假想未来扩展增加结构。"
+        },
+        {
+          "detail": "不按函数文件层数行数判优劣",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "合理的提取、增加、合并或删除抽象均可；不以文件、函数、层数或代码行数直接判断优劣，也不为假想未来扩展增加结构。"
+        },
+        {
+          "detail": "不为假想未来扩展增加结构",
+          "location": {
+            "element": "apply",
+            "section": "实现取舍与维护质量"
+          },
+          "quote": "合理的提取、增加、合并或删除抽象均可；不以文件、函数、层数或代码行数直接判断优劣，也不为假想未来扩展增加结构。"
+        }
+      ]
+    },
+    {
+      "identity": "explore-scoped-project-guidance",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "Explore指导仅在对应阶段生效",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。"
+        },
+        {
+          "detail": "不混入全局背景或design规则",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "context 为共同背景，rules 只约束对应制品，不借 rules.design 承载 Explore 阶段指导。"
+        }
+      ]
+    },
+    {
+      "identity": "prompt-recipient-addressing",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "当前执行者用祈使或you",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "Coordinator 角色声明"
+          },
+          "quote": "面向当前执行者的提示词 SHALL 使用直接祈使或 you，不用 The main Agent 含混自指；内部角色指向另一协调角色时保留明确角色区别，不机械全局替换。"
+        },
+        {
+          "detail": "内部角色对协调者称谓保留区别，非机械替换",
+          "location": {
+            "element": "quality-orchestration",
+            "section": "Coordinator 角色声明"
+          },
+          "quote": "面向当前执行者的提示词 SHALL 使用直接祈使或 you，不用 The main Agent 含混自指；内部角色指向另一协调角色时保留明确角色区别，不机械全局替换。"
+        }
+      ]
+    },
+    {
+      "identity": "post-opt-change-requires-review",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "保留累计改动必须独立审查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。"
+        },
+        {
+          "detail": "风险决定全量或增量范围而非免审",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。"
+        },
+        {
+          "detail": "允许累计审查而非每次编辑立即审查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。"
+        },
+        {
+          "detail": "后续改动重新审查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。"
+        },
+        {
+          "detail": "保留既有缺陷supplemental义务",
+          "location": {
+            "element": "review",
+            "section": "修改后重新 Review"
+          },
+          "quote": "已确认的基线缺陷修复 SHALL 接受 supplemental Review；该意见只证明对应缺陷及其影响，不自动代替累计优化的 full-change/incremental Review。"
+        }
+      ]
+    },
+    {
+      "identity": "open-opt-assessment-dimensions",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "开放维度动态选择，包括维护性",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。"
+        },
+        {
+          "detail": "圈复杂度、嵌套、判断分支、过长或过载函数与补丁式冗余",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "Optimizer SHALL 将圈复杂度、长方法或职责过载、浅模块、原始类型、重复、Feature Envy、深层嵌套、长判断分支、补丁式冗余实现与死代码等视为候选信号。"
+        },
+        {
+          "detail": "Hot Path/Inner Loop/I/O/O(n^2)/分配/重复计算/批处理",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "也可调查 Hot Path、Inner Loop、I/O 阻塞、O(n^2) 遍历、大内存分配、重复计算、批处理，以及错误处理/降级、竞态/死锁、连接或句柄泄漏、模块封装、过宽类型、any 或弱类型。"
+        },
+        {
+          "detail": "错误降级/竞态/死锁/连接句柄泄漏",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "也可调查 Hot Path、Inner Loop、I/O 阻塞、O(n^2) 遍历、大内存分配、重复计算、批处理，以及错误处理/降级、竞态/死锁、连接或句柄泄漏、模块封装、过宽类型、any 或弱类型。"
+        },
+        {
+          "detail": "封装/过宽类型/any/弱类型",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "也可调查 Hot Path、Inner Loop、I/O 阻塞、O(n^2) 遍历、大内存分配、重复计算、批处理，以及错误处理/降级、竞态/死锁、连接或句柄泄漏、模块封装、过宽类型、any 或弱类型。"
+        },
+        {
+          "detail": "非固定穷尽信号，不自动触发重构",
+          "location": {
+            "element": "optimizer-smells",
+            "section": "优化候选信号"
+          },
+          "quote": "示例不穷尽，不要求固定分类或生成 finding；必须结合具体收益、证据、成本风险与保持约束判断。"
+        },
+        {
+          "detail": "确认缺陷不能作为可放弃优化",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "保留失败依据并停止无进展尝试"
+          },
+          "quote": "优化问题可修正或撤销；基线缺陷的证据 SHALL 交给主 Agent 判断并安排修复，可继续委托 Opt 或由主 Agent 处理，确认缺陷解决并完成针对问题及影响的独立 Review 前不得收尾，不得把真实缺陷作为可放弃优化。"
+        }
+      ]
+    },
+    {
+      "identity": "open-dimension-wording",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "列举是非穷尽示例，允许未列相关维度",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。"
+        }
+      ]
+    },
+    {
+      "identity": "independent-opt-discovery-loop",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "full-change通过后默认干净上下文只读检查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "通过基线 full-change Review 后，协调 Agent SHALL 默认委托干净上下文的 Optimizer 执行一次只读 inspection，再依据证据、项目目标、约束、预期收益、成本和风险授权一组相关改进或说明停止理由；无需先找到具体改法才委托检查。"
+        },
+        {
+          "detail": "独立依据与机会或停止依据",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "返回具有具体代码证据的机会、预期收益、成本、风险和验证方法，或说明无需继续。"
+        },
+        {
+          "detail": "协调者决定授权组实施或停止",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "通过基线 full-change Review 后，协调 Agent SHALL 默认委托干净上下文的 Optimizer 执行一次只读 inspection，再依据证据、项目目标、约束、预期收益、成本和风险授权一组相关改进或说明停止理由；无需先找到具体改法才委托检查。"
+        },
+        {
+          "detail": "无需实现者先找到具体改法",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "通过基线 full-change Review 后，协调 Agent SHALL 默认委托干净上下文的 Optimizer 执行一次只读 inspection，再依据证据、项目目标、约束、预期收益、成本和风险授权一组相关改进或说明停止理由；无需先找到具体改法才委托检查。"
+        },
+        {
+          "detail": "不要求必须产生改动",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "既有发现和尝试是结合当前实现重新评估的证据，不是必须保留的结论；没有改动是合法结果，不为证明任务价值制造工作。"
+        }
+      ]
+    },
+    {
+      "identity": "fresh-opt-context-discretion",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "可以继续当前或请求新干净上下文检查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "每批 implementation 交付后，协调者核对实际改动与验证证据，决定继续当前 Opt、请求新的干净上下文 inspection 或停止；后续实施保持明确授权范围，以实际进展和预期价值判断继续，不强制每轮重启或固定轮数。"
+        },
+        {
+          "detail": "按实际进展与预期价值判断，不每轮强制重启",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "每批 implementation 交付后，协调者核对实际改动与验证证据，决定继续当前 Opt、请求新的干净上下文 inspection 或停止；后续实施保持明确授权范围，以实际进展和预期价值判断继续，不强制每轮重启或固定轮数。"
+        },
+        {
+          "detail": "请求检查不要求预先具体改法",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "通过基线 full-change Review 后，协调 Agent SHALL 默认委托干净上下文的 Optimizer 执行一次只读 inspection，再依据证据、项目目标、约束、预期收益、成本和风险授权一组相关改进或说明停止理由；无需先找到具体改法才委托检查。"
+        }
+      ]
+    },
+    {
+      "identity": "opt-batch-delegation-granularity",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "一次授权一组相关改进",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "implementation SHALL 仅实施获授权的一组相关改进并验证行为，保持目标语义和项目行为；可在组内连续修改、合并与局部验证后统一交付，不要求每个函数修改后交回。"
+        },
+        {
+          "detail": "组内连续工作统一交付，不逐函数返回",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "implementation SHALL 仅实施获授权的一组相关改进并验证行为，保持目标语义和项目行为；可在组内连续修改、合并与局部验证后统一交付，不要求每个函数修改后交回。"
+        },
+        {
+          "detail": "范围外机会只报告",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "范围外机会只报告、不自行实施。"
+        },
+        {
+          "detail": "报告保留改动收益证据及后续建议",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "implementation opinion 报告实际保留改动、改善及影响、行为保持依据、实际测试结果和证据位置、放弃事项与撤销原因、遗留问题，以及继续投入和验证范围的建议。"
+        },
+        {
+          "detail": "收到交付后继续当前、另启或停止",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "每批 implementation 交付后，协调者核对实际改动与验证证据，决定继续当前 Opt、请求新的干净上下文 inspection 或停止；后续实施保持明确授权范围，以实际进展和预期价值判断继续，不强制每轮重启或固定轮数。"
+        }
+      ]
+    },
+    {
+      "identity": "post-opt-review-timing-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "多批累计或提前审查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。"
+        },
+        {
+          "detail": "Seal前保留未审变更通过独立Review",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。"
+        },
+        {
+          "detail": "全量或增量由协调者选择，无低风险豁免",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。"
+        },
+        {
+          "detail": "审查后继续修改触发重新审查",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。"
+        },
+        {
+          "detail": "原有缺陷审查义务不取消",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。"
+        }
+      ]
+    },
+    {
+      "identity": "inspection-only-opt-recording-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "实际无修改检查使用delivered，not_performed只用于未运行",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "实际完成的只读检查或无改动工作 SHALL 使用 delivered，not_performed 仅表示 Opt 确实未运行，并记录简短理由。"
+        },
+        {
+          "detail": "无保留改动复用同一commit",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "没有保留改动时复用原提交，不创建空提交；baseCommit == resultCommit 仅表示未交付新的实现状态，不证明过程只读，尝试后完全撤销也可复用原提交并如实报告。"
+        },
+        {
+          "detail": "报告机会证据或停止依据",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "inspection opinion SHALL 报告具体证据、机会、预期收益、成本风险与验证方法，或停止依据。"
+        },
+        {
+          "detail": "发现未采纳与没有机会必须区分",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "没有值得实施的机会，与发现机会但协调者选择不实施须区分；后一情况保留发现与实际取舍理由，不能写成未发现机会。"
+        },
+        {
+          "detail": "未采纳保留理由和发现",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "没有值得实施的机会，与发现机会但协调者选择不实施须区分；后一情况保留发现与实际取舍理由，不能写成未发现机会。"
+        },
+        {
+          "detail": "无变更不新增义务且不抹去旧义务",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。"
+        }
+      ]
+    },
+    {
+      "identity": "stage-guidance-config-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "独立stageRules映射，区别context/rules",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "stageRules SHALL 为独立于 context 和 rules 的阶段名到字符串数组映射，仅支持 explore、propose、apply、archive、build、snack 六个键。"
+        },
+        {
+          "detail": "阶段进入只加载自身附加指导",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。"
+        },
+        {
+          "detail": "跨阶段停止作为后续规则，不声称清除记忆",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "离开阶段后不将其作为后续阶段规则执行，不声称清除会话记忆；规则本身不自动成为 Semantic Model 或设计制品，期间用户确认的设计决定正常交接。"
+        },
+        {
+          "detail": "规则不自动进入模型或制品",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "离开阶段后不将其作为后续阶段规则执行，不声称清除会话记忆；规则本身不自动成为 Semantic Model 或设计制品，期间用户确认的设计决定正常交接。"
+        },
+        {
+          "detail": "期间确认设计正常交接",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "离开阶段后不将其作为后续阶段规则执行，不声称清除会话记忆；规则本身不自动成为 Semantic Model 或设计制品，期间用户确认的设计决定正常交接。"
+        },
+        {
+          "detail": "共同背景和制品规则保持原范围",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "context 为共同背景，rules 只约束对应制品，不借 rules.design 承载 Explore 阶段指导。"
+        }
+      ]
+    },
+    {
+      "identity": "stage-rules-supported-stages",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "六阶段及字符串数组",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "stageRules SHALL 为独立于 context 和 rules 的阶段名到字符串数组映射，仅支持 explore、propose、apply、archive、build、snack 六个键。"
+        },
+        {
+          "detail": "只读自身规则",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。"
+        },
+        {
+          "detail": "缺失或空数组无附加要求",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "每个阶段仅加载 stageRules.<当前阶段>，作为内置指导之外的附加要求；缺失或空数组不增加义务。"
+        },
+        {
+          "detail": "内部三角色无配置键且不自动继承Apply",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "内部 Optimizer、Reviewer、Experimenter 不设阶段规则键，也不自动继承 stageRules.apply；协调者传入与受托任务相关的项目约束。"
+        },
+        {
+          "detail": "委托传递相关项目约束",
+          "location": {
+            "element": "project-config-loading",
+            "section": "Business Logic"
+          },
+          "quote": "内部 Optimizer、Reviewer、Experimenter 不设阶段规则键，也不自动继承 stageRules.apply；协调者传入与受托任务相关的项目约束。"
+        }
+      ]
+    },
+    {
+      "identity": "seal-review-enforcement-choice",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "共享CAS revision由CLI分配并记录到意见",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "每次成功写入全局 revision 增加一，失败不增加；CLI 在同一锁、CAS、原子事务内分配并保存序号，调用方不传意见序号。"
+        },
+        {
+          "detail": "无时间戳或第二计数器",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "多条 Opt 在同事务共享 recordedRevision，按数组保留顺序；跨事务先后用 revision，不新增时间戳或独立计数器。"
+        },
+        {
+          "detail": "顺序联合commit祖先关联",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "保留未解决FAIL",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "xirang quality seal SHALL 要求最新 full-change 为 PASS、每类最新 Review 无未解决 FAIL、真实 Opt 处置及合法 Seal 声明。"
+        },
+        {
+          "detail": "CLI不判断优化价值或理由",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "CLI 不保存进度、恢复位置或原始测试输出，不评价跳过理由或优化价值。"
+        },
+        {
+          "detail": "协调者选择审查范围",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。"
+        }
+      ]
+    },
+    {
+      "identity": "shared-quality-order-gate-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "每次成功事务递增，失败不增",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "每次成功写入全局 revision 增加一，失败不增加；CLI 在同一锁、CAS、原子事务内分配并保存序号，调用方不传意见序号。"
+        },
+        {
+          "detail": "Review与Opt记录本次CLI分配序号",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "记录包含 schemaVersion: 5、Change identity、单调递增 revision、Review opinions、Opt 处置/意见及当前 Seal；每条 Review/Opt opinion 有正整数 recordedRevision，等于写入它的成功事务 revision，不大于记录 revision。"
+        },
+        {
+          "detail": "找最后一次变更而非最后一次Opt",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "存在 baseCommit != resultCommit 的 Opt 时，取写入顺序中最后一条此类交付 O（同事务按数组顺序）。"
+        },
+        {
+          "detail": "后审顺序与提交关系联合",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "Review①→Opt修改②需要Review",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- Review①→Opt修改②：缺少后审，拒绝 Seal。"
+        },
+        {
+          "detail": "Review①→Opt修改②→Review通过③且关联正确结果可满足",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- Review①→Opt修改②→Review通过③，提交关联正确：其他门禁满足时允许 Seal。"
+        },
+        {
+          "detail": "Review①→Opt只读检查②不新增义务",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- Review①→Opt只读检查②：不新增后审义务。"
+        },
+        {
+          "detail": "Review①→Opt修改②→Opt只读检查③仍须审查②",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- Review①→Opt修改②→Opt只读检查③：仍须审查②。"
+        },
+        {
+          "detail": "未解决失败不被掩盖",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "后续变更交付使旧 PASS 不再满足顺序条件；未解决 FAIL 仍按原类别处理。"
+        },
+        {
+          "detail": "不新增时间戳",
+          "location": {
+            "element": "quality-writeback",
+            "section": "状态快照持久化"
+          },
+          "quote": "多条 Opt 在同事务共享 recordedRevision，按数组保留顺序；跨事务先后用 revision，不新增时间戳或独立计数器。"
+        },
+        {
+          "detail": "CLI不判断自然语言优化价值",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "CLI 不保存进度、恢复位置或原始测试输出，不评价跳过理由或优化价值。"
+        }
+      ]
+    },
+    {
+      "identity": "quality-order-versioning-candidate",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "新Quality版本拒绝旧版本",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "Quality JSON SHALL 使用 schemaVersion: 5。"
+        },
+        {
+          "detail": "旧文件保留不迁移不补序号不重写删除",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "v4 及更早记录均返回 UNSUPPORTED_QUALITY_VERSION 并保留原文件，不迁移、不补造意见顺序、不重写或删除；历史 snapshot/event log/evidence 不解释为新协议结果。"
+        },
+        {
+          "detail": "无旧活动Change升级和历史顺序恢复",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "本次不提供活动旧 Change 升级路径或历史顺序恢复，既有忽略规则和归档保持原样。"
+        },
+        {
+          "detail": "保留忽略规则与归档",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "拒绝退役协议"
+          },
+          "quote": "本次不提供活动旧 Change 升级路径或历史顺序恢复，既有忽略规则和归档保持原样。"
+        }
+      ]
+    },
+    {
+      "identity": "optimizer-mode-behavior",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "两种委派模式",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "xirang-optimizer SHALL 按委派的 inspection 或 implementation 模式执行。"
+        },
+        {
+          "detail": "inspection独立只读当前实现",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。"
+        },
+        {
+          "detail": "开放动态评估维度",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "inspection SHALL 独立只读评估当前实现，动态选择可读性、可维护性、认知与结构复杂度、性能、资源、健壮性、封装、类型安全、扩展性等适用维度，允许评估未列出的相关维度。"
+        },
+        {
+          "detail": "具体证据、收益成本风险验证或停止依据",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "返回具有具体代码证据的机会、预期收益、成本、风险和验证方法，或说明无需继续。"
+        },
+        {
+          "detail": "结构信号非修改理由",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "结构信号本身不能证明修改价值，程序体积小不能作为无需维护质量评估的依据。"
+        },
+        {
+          "detail": "implementation授权组保持语义行为并验证",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "implementation SHALL 仅实施获授权的一组相关改进并验证行为，保持目标语义和项目行为；可在组内连续修改、合并与局部验证后统一交付，不要求每个函数修改后交回。"
+        },
+        {
+          "detail": "报告实际保留结果收益与验证",
+          "location": {
+            "element": "optimizer-findings",
+            "section": "交付实际结果与验证建议"
+          },
+          "quote": "implementation opinion 报告实际保留改动、改善及影响、行为保持依据、实际测试结果和证据位置、放弃事项与撤销原因、遗留问题，以及继续投入和验证范围的建议。"
+        },
+        {
+          "detail": "越界机会报告不实施",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "范围外机会只报告、不自行实施。"
+        },
+        {
+          "detail": "历史结论重评",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "既有发现和尝试是结合当前实现重新评估的证据，不是必须保留的结论；没有改动是合法结果，不为证明任务价值制造工作。"
+        },
+        {
+          "detail": "无改动合法，不制造工作",
+          "location": {
+            "element": "optimizer-protocol",
+            "section": "Optimizer 角色与硬约束"
+          },
+          "quote": "既有发现和尝试是结合当前实现重新评估的证据，不是必须保留的结论；没有改动是合法结果，不为证明任务价值制造工作。"
+        }
+      ]
+    },
+    {
+      "identity": "opt-delivery-commit-ownership",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "协调者核对提交后记录交付",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "每批交付后，协调 Agent SHALL 核对并提交保留改动，再用真实 baseCommit/resultCommit 记录 Opt opinion；不要求每次编辑提交。"
+        },
+        {
+          "detail": "不每次编辑立即提交",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "每批交付后，协调 Agent SHALL 核对并提交保留改动，再用真实 baseCommit/resultCommit 记录 Opt opinion；不要求每次编辑提交。"
+        },
+        {
+          "detail": "Optimizer负责受托修改验证报告",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "Optimizer 负责受托修改、验证与报告，结果提交由协调者负责。"
+        },
+        {
+          "detail": "无保留改动复用原提交，不空提交",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "没有保留改动时复用原提交，不创建空提交；baseCommit == resultCommit 仅表示未交付新的实现状态，不证明过程只读，尝试后完全撤销也可复用原提交并如实报告。"
+        },
+        {
+          "detail": "相等commit不是只读证明，完全撤销可复用并如实报告",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "没有保留改动时复用原提交，不创建空提交；baseCommit == resultCommit 仅表示未交付新的实现状态，不证明过程只读，尝试后完全撤销也可复用原提交并如实报告。"
+        },
+        {
+          "detail": "不同commit产生新Review义务",
+          "location": {
+            "element": "apply",
+            "section": "集成受托优化执行"
+          },
+          "quote": "不同提交表示新的交付状态，产生后续 Review 义务；不通过内容等价比较免除此义务。"
+        },
+        {
+          "detail": "不新增readonly或提交树扫描",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "结果提交由协调者核对并提交；相等提交不代表过程只读，不同提交形成新交付状态，无需 readonly 字段或提交树比较。"
+        },
+        {
+          "detail": "不比较工作区HEAD",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "CLI 不比较 HEAD/工作区，不执行测试，不要求 Quality JSON 单独提交。"
+        }
+      ]
+    },
+    {
+      "identity": "review-commit-after-correction",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "适用full-change或incrementalPASS",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "序号晚于最后一次变更Opt",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "受审提交相同或Git后继",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "Seal绑定通过Review提交",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "必须存在当前通过的 full-change 或 incremental 意见 R，满足 R.recordedRevision > O.recordedRevision，且 R.commit 等于 O.resultCommit 或 O.resultCommit 是 R.commit 的 Git 祖先；Seal.commit 必须等于 R.commit。"
+        },
+        {
+          "detail": "保留FAIL及supplemental边界",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "supplemental 不能单独满足累计优化门禁。"
+        },
+        {
+          "detail": "A基线→B交付→B失败→C修正通过允许SealC",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- 基线Review(A)通过→Opt交付B→Review(B)失败→协调者提交修正C→Review(C)通过：B是C的祖先、同类FAIL已解决且其他门禁满足，允许Seal(C)。"
+        },
+        {
+          "detail": "晚写旧A不能覆盖B",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "晚写旧A的Review不能覆盖B。"
+        },
+        {
+          "detail": "无祖先的重写历史不能沿用关联",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "- B经重写历史变为与B无祖先关系的C：该Review不能沿用B的关联；拒绝Seal，不自动补造Opt或迁移历史。"
+        },
+        {
+          "detail": "不比较工作区HEAD",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Seal 校验"
+          },
+          "quote": "CLI 不比较 HEAD/工作区，不执行测试，不要求 Quality JSON 单独提交。"
+        },
+        {
+          "detail": "受审修正commit可作为后续起点，无虚构交付",
+          "location": {
+            "element": "quality-cli-gate",
+            "section": "Optimization 记录入口"
+          },
+          "quote": "baseCommit SHALL 承接最近已交付结果；该交付之后有基于其结果或后继提交的通过 Review 时，可承接该最新受审提交，无既有交付则承接通过的 full-change 基线。"
+        }
+      ]
+    },
+    {
+      "identity": "opt-maintenance-benefit-candidate",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "历史汇总候选已由后续确认的检查、实施、累计Review和CLI条目覆盖；不承载当前未决目标。"
+    },
+    {
+      "identity": "opt-entry-prompt-candidate",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "历史两句追加候选已被用户确认的完整核心prompt取代；最终文字保留在design。"
+    },
+    {
+      "identity": "self-evaluation-bias-hypothesis",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "主观偏差成因及稳定效果仍未被实验证明；设计不依赖证明该假设，风险和验证限制保留在design。"
+    },
+    {
+      "identity": "review-opt-time-order-hypothesis",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "时间戳方案为历史分析，已确认采用共享revision及提交关联，不存在待选机制。"
+    },
+    {
+      "identity": "explore-verification-and-impact-assessment",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "记录探索阶段证据限制和验证建议，目标已在整体Summary确认；具体实际验证留Apply，未运行不宣称有效。"
+    }
+  ]
+}

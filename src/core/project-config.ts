@@ -5,9 +5,12 @@ import path from 'path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { resolveSchema } from './artifact-graph/resolver.js';
+import { WorkflowManifestRegistry } from './templates/manifest/registry.js';
 import { BuiltInSchemaIdSchema } from './artifact-graph/types.js';
 
 export const CURRENT_CONFIG_VERSION = 1;
+
+export const PROJECT_CONFIG_STAGES = WorkflowManifestRegistry.getAllWorkflowIds();
 
 export const PROJECT_CONFIG_FUNCTIONAL_DEFAULTS = {
   configVersion: CURRENT_CONFIG_VERSION,
@@ -166,6 +169,10 @@ export const ProjectConfigSchema = z.object({
     })
     .optional()
     .describe('Git archive and merge policy'),
+
+  stageRules: z.object(Object.fromEntries(PROJECT_CONFIG_STAGES.map(stage =>
+    [stage, z.array(z.string().refine(value => value.trim().length > 0, 'Rule must be a nonempty string')).optional()]
+  ))).strict().optional(),
 
   // Optional: per-artifact rules (additive to schema's built-in guidance)
   rules: z
@@ -476,6 +483,25 @@ export function readProjectConfig(projectRoot: string, warn: (message: string) =
             warn(`Invalid 'git.branch' field in config (must be an object)`);
           }
         }
+      }
+    }
+
+    if (raw.stageRules !== undefined) {
+      if (isPlainRecord(raw.stageRules)) {
+        const stageRules: Record<string, string[]> = {};
+        for (const [stage, values] of Object.entries(raw.stageRules)) {
+          if (!PROJECT_CONFIG_STAGES.includes(stage)) {
+            warn(`Unknown stageRules stage '${stage}'. Available: ${PROJECT_CONFIG_STAGES.join(', ')}`);
+          } else if (!Array.isArray(values)) {
+            warn(`stageRules.${stage} must be an array of strings`);
+          } else {
+            stageRules[stage] = values.filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+            if (stageRules[stage].length !== values.length) warn(`stageRules.${stage} contains invalid or empty strings, ignoring those entries`);
+          }
+        }
+        config.stageRules = stageRules;
+      } else {
+        warn(`Invalid 'stageRules' field in config (must be object)`);
       }
     }
 

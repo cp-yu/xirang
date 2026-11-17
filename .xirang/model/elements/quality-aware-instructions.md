@@ -11,6 +11,6 @@ definition: Quality-aware Instructions 是 Change 推进状态与 Quality 门禁
 
 ### Section: 联合目标与 Quality 判定推进状态
 
-status --change SHALL 联合目标完成度与 v4 Quality 门禁给出 state。全部目标完成但缺少通过的 full-change Review，或任一 reviewKind 的失败意见未由该类别不同 commit 上的 PASS 解决时为 needs_review；完整 Review 通过但缺少 Opt disposition 或 Seal 时为 needs_optimize；完整 Review、适用的其他 Review、Opt disposition 和绑定现存 Git commit 的 Seal 均满足时为 all_done。无 apply.tracks 且 required artifacts 完整时保留 ready。
+status --change SHALL 联合目标完成度与 v5 Quality 门禁给出 state。全部目标完成但缺少通过的 full-change、存在未解决的同类 FAIL，或累计变更 Opt 缺少其后的且提交关联有效的 full-change/incremental PASS 时为 needs_review；Review 满足但缺少 Opt 处置或 Seal 时为 needs_optimize；完整门禁及 Seal commit 均有效时为 all_done。无 apply.tracks 且 required artifacts 完整时保留 ready。
 
-该判断 SHALL 不比较 HEAD/工作区与 Seal commit，也不因 Opt 代码变化自动要求完整 Review；旧 v3 或更早的 Quality 格式 SHALL 不推定为已通过，并报告具体诊断。Change status SHALL 只携带必要概况，Quality 的具体当前结论和缺口由 quality status 查询。
+判断 SHALL 复用 Quality 门禁，不比较 HEAD/工作区，不把只读 Opt 当新增审查义务，也不要求所有优化都重做完整 Review。v4 及更旧格式明确诊断且不推定通过；Change status 只带必要概况，详情由 quality status 提供。

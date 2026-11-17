@@ -23,4 +23,4 @@ Apply Role SHALL 接收普通实现 Required Corrections 并再次执行 Apply�
 
 ### Section: 交付状态与证据
 
-Apply Role SHALL 将普通 Apply 产出的项目状态与可复现证据交付独立 Review。进入优化后 SHALL 委托可写 Opt 并检查实际交付，依据累计改动和风险判断最终验证；所需验证通过且证据对应当前状态后保存最终 successful checkpoint。
+Apply Role SHALL 将普通实现及可复现证据交付独立 Review；通过后默认委托干净上下文 Opt 只读发现，再决定授权组实施、重新独立检查或停止。协调者检查每批实际结果并提交保留改动，记录真实交付；累计未审改动必须独立 Review，按影响选择全量或增量，风险不免审。所需验证通过且证据适用后才完成 Seal。

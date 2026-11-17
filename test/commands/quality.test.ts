@@ -9,7 +9,7 @@ import { removeTempDir } from '../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
-describe('quality v4 public CLI', () => {
+describe('quality v5 public CLI', () => {
   let root: string;
   let changeDir: string;
   let commit: string;
@@ -75,8 +75,8 @@ describe('quality v4 public CLI', () => {
     expect(history.record.reviews).toHaveLength(1);
     expect(await fs.readFile(path.join(changeDir, 'tasks.md'))).toEqual(tasksBefore);
     const quality = JSON.parse(await fs.readFile(path.join(changeDir, '.quality.json'), 'utf8'));
-    expect(quality).toMatchObject({ schemaVersion: 4, changeId: 'c1', revision: 3, opt: { disposition: 'not_performed' }, seal: { commit } });
-    expect(quality.reviews).toEqual([{ reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [] }]);
+    expect(quality).toMatchObject({ schemaVersion: 5, changeId: 'c1', revision: 3, opt: { disposition: 'not_performed' }, seal: { commit } });
+    expect(quality.reviews).toEqual([{ reviewKind: 'full-change', commit, result: 'PASS', summary: 'Reviewed whole Change.', findings: [], recordedRevision: 1 }]);
     expect(await fs.readdir(changeDir)).toEqual(['.quality.json', 'tasks.md']);
   });
 

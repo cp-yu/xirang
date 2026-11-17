@@ -4,14 +4,15 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
-import { reviewSchema, type ReviewPayload } from './command-schema.js';
+import { reviewSchema, optSchema, type ReviewPayload, type OptPayload } from './command-schema.js';
 
 const execFileAsync = promisify(execFile);
 export const QUALITY_FILE = '.quality.json';
 
-export type QualityReviewOpinion = ReviewPayload;
+export type QualityReviewOpinion = ReviewPayload & { recordedRevision: number };
 
 export interface QualityOptOpinion {
+  recordedRevision: number;
   opinionId: string;
   baseCommit: string;
   resultCommit: string;
@@ -30,7 +31,7 @@ export interface QualitySeal {
 export type QualityStatus = 'needs_review' | 'needs_optimize' | 'all_done';
 
 export interface QualityRecord {
-  schemaVersion: 4;
+  schemaVersion: 5;
   changeId: string;
   revision: number;
   reviews: QualityReviewOpinion[];
@@ -56,31 +57,41 @@ export interface QualityRecordWriteOptions {
   beforeReplace?: (temporaryFile: string, targetFile: string) => Promise<void>;
 }
 
-const optOpinionSchema = z.object({
-  opinionId: z.string().trim().min(1), baseCommit: z.string().min(1), resultCommit: z.string().min(1),
-  summary: z.string().trim().min(1), findings: z.array(z.string()),
-}).strict();
+const recordedRevision = z.number().int().positive();
+const storedReviewSchema = reviewSchema.extend({ recordedRevision });
+const optOpinionSchema = optSchema.options[1].shape.opinions.element.extend({ recordedRevision });
 const sealSchema = z.object({
   commit: z.string().min(1), canRun: z.literal(true), testsExpectedToPass: z.literal(true),
   testScope: z.string().trim().min(1), assessment: z.string().trim().min(1),
 }).strict();
 const qualityRecordSchema = z.object({
-  schemaVersion: z.literal(4), changeId: z.string().min(1), revision: z.number().int().nonnegative(),
-  reviews: z.array(reviewSchema),
+  schemaVersion: z.literal(5), changeId: z.string().min(1), revision: z.number().int().nonnegative(),
+  reviews: z.array(storedReviewSchema),
   opt: z.union([
     z.null(),
     z.object({ disposition: z.literal('not_performed'), reason: z.string().trim().min(1) }).strict(),
     z.object({ disposition: z.literal('delivered'), opinions: z.array(optOpinionSchema).min(1) }).strict(),
   ]),
   seal: sealSchema.nullable(),
-}).strict();
+}).strict().superRefine((record, ctx) => {
+  const reviews = record.reviews.map(opinion => opinion.recordedRevision);
+  const opts = record.opt?.disposition === 'delivered' ? record.opt.opinions.map(opinion => opinion.recordedRevision) : [];
+  for (const [name, revisions] of [['reviews', reviews], ['opt', opts]] as const) {
+    revisions.forEach((revision, index) => {
+      if (revision > record.revision || (index > 0 && (name === 'reviews' ? revision <= revisions[index - 1] : revision < revisions[index - 1]))) {
+        ctx.addIssue({ code: 'custom', path: [name, index, 'recordedRevision'], message: 'Opinion revisions must follow write order and not exceed the record revision.' });
+      }
+    });
+  }
+  if (opts.some(revision => reviews.includes(revision))) ctx.addIssue({ code: 'custom', message: 'Review and Opt cannot share a write revision.' });
+});
 
 function fail(code: string, message: string, pathName?: string): never {
   throw new QualityEngineError(code, message, pathName);
 }
 
 function emptyRecord(changeDir: string): QualityRecord {
-  return { schemaVersion: 4, changeId: path.basename(path.resolve(changeDir)), revision: 0, reviews: [], opt: null, seal: null };
+  return { schemaVersion: 5, changeId: path.basename(path.resolve(changeDir)), revision: 0, reviews: [], opt: null, seal: null };
 }
 
 async function assertNoSymlinkPath(base: string, target: string): Promise<void> {
@@ -128,8 +139,8 @@ export async function readQualityRecord(changeDir: string): Promise<QualityRecor
   let parsedJson: unknown;
   try { parsedJson = JSON.parse(text); }
   catch { return fail('MALFORMED_QUALITY_RECORD', `Malformed JSON in ${QUALITY_FILE}.`, file); }
-  if (parsedJson && typeof parsedJson === 'object' && 'schemaVersion' in parsedJson && parsedJson.schemaVersion !== 4) {
-    fail('UNSUPPORTED_QUALITY_VERSION', `Unsupported Quality record schemaVersion ${String(parsedJson.schemaVersion)}; expected version 4. The file was left unchanged.`, file);
+  if (parsedJson && typeof parsedJson === 'object' && 'schemaVersion' in parsedJson && parsedJson.schemaVersion !== 5) {
+    fail('UNSUPPORTED_QUALITY_VERSION', `Unsupported Quality record schemaVersion ${String(parsedJson.schemaVersion)}; expected version 5. The file was left unchanged.`, file);
   }
   const parsed = qualityRecordSchema.safeParse(parsedJson);
   if (!parsed.success) fail('INVALID_QUALITY_RECORD', parsed.error.issues.map(item => `${item.path.join('.')}: ${item.message}`).join('; '), file);
@@ -161,7 +172,7 @@ export async function transactQualityRecord(
     const current = await readQualityRecord(changeDir);
     if (current.revision !== expectedRevision) fail('STALE_QUALITY_REVISION', `Expected revision ${expectedRevision}, current revision is ${current.revision}.`);
     const proposed = update(structuredClone(current));
-    const candidate = { ...proposed, schemaVersion: 4 as const, changeId: current.changeId, revision: current.revision + 1 };
+    const candidate = { ...proposed, schemaVersion: 5 as const, changeId: current.changeId, revision: current.revision + 1 };
     const parsed = qualityRecordSchema.safeParse(candidate);
     if (!parsed.success) fail('INVALID_QUALITY_RECORD', parsed.error.issues.map(item => `${item.path.join('.')}: ${item.message}`).join('; '));
     const target = path.join(changeDir, QUALITY_FILE);
@@ -207,7 +218,7 @@ export async function recordQualityReview(input: {
     fail('REVIEW_COMMIT_NOT_ADVANCED', 'A passing re-review after failure must bind a different Git commit.');
   }
   return transactQualityRecord(input.changeDir, input.expectedRevision, record => ({
-    ...record, reviews: [...record.reviews, opinion.data], seal: null,
+    ...record, reviews: [...record.reviews, { ...opinion.data, recordedRevision: record.revision + 1 }], seal: null,
   }));
 }
 
@@ -219,13 +230,14 @@ function latestReviewsByKind(reviews: QualityReviewOpinion[]): Map<QualityReview
 
 export async function recordQualityOpt(input: {
   changeDir: string; projectRoot: string; expectedRevision: number;
-  disposition: 'not_performed' | 'delivered'; reason?: string; opinions?: QualityOptOpinion[];
+  disposition: 'not_performed' | 'delivered'; reason?: string; opinions?: Extract<OptPayload, { disposition: 'delivered' }>['opinions'];
 }): Promise<QualityRecord> {
   const current = await readQualityRecord(input.changeDir);
   if (current.revision !== input.expectedRevision) fail('STALE_QUALITY_REVISION', `Expected revision ${input.expectedRevision}, current revision is ${current.revision}.`);
   const fullChange = latestReviewsByKind(current.reviews).get('full-change');
   if (!fullChange || fullChange.result !== 'PASS') fail('FULL_CHANGE_REVIEW_REQUIRED', 'A passing full-change Review is required before recording Opt disposition.');
   if (input.disposition === 'not_performed') {
+    if (current.opt?.disposition === 'delivered') fail('OPT_ALREADY_DELIVERED', 'Delivered Opt history cannot be replaced by not_performed.');
     if (!input.reason?.trim()) fail('INVALID_OPT_DISPOSITION', 'not_performed requires a non-empty reason.');
     return transactQualityRecord(input.changeDir, input.expectedRevision, record => ({
       ...record, opt: { disposition: 'not_performed', reason: input.reason!.trim() }, seal: null,
@@ -234,16 +246,24 @@ export async function recordQualityOpt(input: {
   if (!input.opinions?.length) fail('INVALID_OPT_OPINION', 'Delivered Opt disposition requires at least one opinion.');
   const prior = current.opt?.disposition === 'delivered' ? current.opt.opinions : [];
   const previousIds = new Set(prior.map(item => item.opinionId));
-  let expectedBase = prior.at(-1)?.resultCommit ?? fullChange.commit;
+  const last = prior.at(-1);
+  let expectedBase = last?.resultCommit ?? fullChange.commit;
+  if (last) {
+    for (const review of current.reviews) {
+      if (review.result === 'PASS' && review.recordedRevision > last.recordedRevision && await isAncestor(input.projectRoot, last.resultCommit, review.commit)) {
+        expectedBase = review.commit;
+      }
+    }
+  }
   const validated: QualityOptOpinion[] = [];
   for (const raw of input.opinions) {
-    const opinion = optOpinionSchema.safeParse(raw);
+    const opinion = optSchema.options[1].shape.opinions.element.safeParse(raw);
     if (!opinion.success) fail('INVALID_OPT_OPINION', opinion.error.issues.map(item => `${item.path.join('.')}: ${item.message}`).join('; '));
     if (previousIds.has(opinion.data.opinionId) || validated.some(item => item.opinionId === opinion.data.opinionId)) fail('DUPLICATE_OPT_ID', 'Opt opinion identity already exists.');
     if (opinion.data.baseCommit !== expectedBase) fail('OPT_COMMIT_SEQUENCE_INVALID', 'Each Opt baseCommit must match the prior reviewed or delivered result commit.');
     await requireExistingCommit(input.projectRoot, opinion.data.baseCommit);
     const resultCommit = await requireExistingCommit(input.projectRoot, opinion.data.resultCommit);
-    validated.push({ ...opinion.data, resultCommit });
+    validated.push({ ...opinion.data, resultCommit, recordedRevision: current.revision + 1 });
     expectedBase = resultCommit;
   }
   return transactQualityRecord(input.changeDir, input.expectedRevision, record => ({
@@ -251,6 +271,32 @@ export async function recordQualityOpt(input: {
     opt: { disposition: 'delivered', opinions: [...prior, ...validated] },
     seal: null,
   }));
+}
+
+async function isAncestor(projectRoot: string, ancestor: string, descendant: string): Promise<boolean> {
+  await requireExistingCommit(projectRoot, ancestor);
+  await requireExistingCommit(projectRoot, descendant);
+  try {
+    await execFileAsync('git', ['merge-base', '--is-ancestor', ancestor, descendant], { cwd: projectRoot });
+    return true;
+  } catch (cause) {
+    if ((cause as { code?: number }).code === 1) return false;
+    fail('GIT_ANCESTRY_CHECK_FAILED', 'Unable to determine Git commit ancestry.');
+  }
+}
+
+async function postOptReviewGap(record: QualityRecord, projectRoot: string, sealCommit?: string): Promise<string | undefined> {
+  const changed = record.opt?.disposition === 'delivered'
+    ? record.opt.opinions.filter(opinion => opinion.baseCommit !== opinion.resultCommit).at(-1) : undefined;
+  if (!changed) return;
+  let covered = false;
+  for (const review of latestReviewsByKind(record.reviews).values()) {
+    if (review.result !== 'PASS' || review.reviewKind === 'supplemental' || review.recordedRevision <= changed.recordedRevision) continue;
+    if (!await isAncestor(projectRoot, changed.resultCommit, review.commit)) continue;
+    covered = true;
+    if (!sealCommit || review.commit === sealCommit) return;
+  }
+  return covered ? 'SEAL_REVIEW_COMMIT_MISMATCH' : 'POST_OPT_REVIEW_REQUIRED';
 }
 
 export async function recordQualitySeal(input: {
@@ -267,6 +313,8 @@ export async function recordQualitySeal(input: {
   const seal = sealSchema.safeParse(input.seal);
   if (!seal.success) fail('SEAL_ASSERTION_REQUIRED', seal.error.issues.map(item => `${item.path.join('.')}: ${item.message}`).join('; '));
   const commit = await requireExistingCommit(input.projectRoot, seal.data.commit);
+  const gap = await postOptReviewGap(current, input.projectRoot, commit);
+  if (gap) fail(gap, gap === 'POST_OPT_REVIEW_REQUIRED' ? 'A later full-change or incremental PASS on the delivered result or its Git descendant is required.' : 'Seal must bind the post-Opt reviewed commit.');
   return transactQualityRecord(input.changeDir, input.expectedRevision, record => ({ ...record, seal: { ...seal.data, commit } }));
 }
 
@@ -277,11 +325,12 @@ export async function readQualityRecordStatus(changeDir: string, projectRoot: st
   if (record.revision === 0) return { status: 'needs_review', qualityStatus: 'missing', revision: 0, record, gaps: ['FULL_CHANGE_REVIEW_REQUIRED'] };
   const latestReviews = latestReviewsByKind(record.reviews);
   const fullChange = latestReviews.get('full-change');
-  const status: QualityStatus = !fullChange || fullChange.result !== 'PASS' || [...latestReviews.values()].some(item => item.result !== 'PASS')
+  const postOptGap = await postOptReviewGap(record, projectRoot, record.seal?.commit);
+  const status: QualityStatus = !fullChange || fullChange.result !== 'PASS' || [...latestReviews.values()].some(item => item.result !== 'PASS') || postOptGap
     ? 'needs_review'
     : !record.opt || !record.seal ? 'needs_optimize' : 'all_done';
   if (record.seal) await requireExistingCommit(projectRoot, record.seal.commit);
-  const gaps: string[] = [];
+  const gaps: string[] = postOptGap ? [postOptGap] : [];
   if (!fullChange) gaps.push('FULL_CHANGE_REVIEW_REQUIRED');
   for (const review of latestReviews.values()) if (review.result !== 'PASS') gaps.push(`${review.reviewKind.toUpperCase().replaceAll('-', '_')}_REVIEW_REQUIRED`);
   if (!record.opt) gaps.push('OPT_DISPOSITION_REQUIRED');

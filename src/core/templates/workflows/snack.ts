@@ -19,6 +19,8 @@ export function getSnackSkillTemplate(): SkillTemplate {
 
 ${COMMON_PREREQUISITE}
 
+Read this stage's additional guidance with \`xirang config project --select stageRules.snack --json\`. Apply only this stage's rules under common's configuration scope.
+
 ${BUSINESS_SPECIFICATION_STANDARD_ROOT}
 
 ${SEMANTIC_AUTHORING_ENTRY}

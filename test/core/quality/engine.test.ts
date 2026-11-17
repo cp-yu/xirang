@@ -19,7 +19,7 @@ import { removeTempDir } from '../../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
 
-describe('quality v4 single-file protocol', () => {
+describe('quality v5 single-file protocol', () => {
   let root: string;
   let changeDir: string;
   let commit: string;
@@ -43,7 +43,7 @@ describe('quality v4 single-file protocol', () => {
     const legacySnapshot = Buffer.from('legacy snapshot bytes\n');
     await fs.writeFile(path.join(changeDir, '.quality-state.json'), legacySnapshot);
     const initial = await readQualityRecord(changeDir);
-    expect(initial).toMatchObject({ schemaVersion: 4, changeId: 'c1', revision: 0, reviews: [], opt: null, seal: null });
+    expect(initial).toMatchObject({ schemaVersion: 5, changeId: 'c1', revision: 0, reviews: [], opt: null, seal: null });
 
     const first = await transactQualityRecord(changeDir, 0, current => ({ ...current, revision: 1 }));
     expect(first.revision).toBe(1);
@@ -122,6 +122,153 @@ describe('quality v4 single-file protocol', () => {
       .rejects.toMatchObject({ code: 'STALE_QUALITY_REVISION' });
   });
 
+  it('requires cumulative post-Opt Review and binds Seal to the reviewed descendant', async () => {
+    const review = (revision: number, at: string, result: 'PASS' | 'FAIL' = 'PASS', reviewKind: 'full-change' | 'incremental' | 'supplemental' = 'incremental') =>
+      recordQualityReview({ changeDir, projectRoot: root, expectedRevision: revision, reviewKind, commit: at, result, summary: 'Independent assessment.', findings: [] });
+    const deliver = (revision: number, base: string, result: string, id: string) => recordQualityOpt({
+      changeDir, projectRoot: root, expectedRevision: revision, disposition: 'delivered',
+      opinions: [{ opinionId: id, baseCommit: base, resultCommit: result, summary: 'Actual delivery.', findings: [] }],
+    });
+    const save = async (value: number) => {
+      await fs.writeFile(path.join(root, 'source.ts'), `export const value = ${value};\n`);
+      await execFileAsync('git', ['add', 'source.ts'], { cwd: root });
+      await execFileAsync('git', ['commit', '-qm', `value ${value}`], { cwd: root });
+      return (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    };
+    const seal = (revision: number, at: string) => recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: revision,
+      seal: { commit: at, canRun: true, testsExpectedToPass: true, testScope: 'affected behavior', assessment: 'Verified.' } });
+    const baseline = await review(0, commit, 'PASS', 'full-change');
+    const inspection = await deliver(baseline.revision, commit, commit, 'inspection');
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('needs_optimize');
+    expect(inspection.opt).toMatchObject({ opinions: [{ recordedRevision: 2 }] });
+    const b = await save(2);
+    const changed = await deliver(inspection.revision, commit, b, 'implementation');
+    await expect(seal(changed.revision, b)).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+    const unchanged = await deliver(changed.revision, b, b, 'inspection-2');
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('needs_review');
+    const oldReview = await review(unchanged.revision, commit);
+    await expect(seal(oldReview.revision, b)).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+    const supplemental = await review(oldReview.revision, b, 'PASS', 'supplemental');
+    await expect(seal(supplemental.revision, b)).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+    const failed = await review(supplemental.revision, b, 'FAIL');
+    const c = await save(3);
+    const corrected = await review(failed.revision, c);
+    await expect(seal(corrected.revision, b)).rejects.toMatchObject({ code: 'SEAL_REVIEW_COMMIT_MISMATCH' });
+    const sealed = await seal(corrected.revision, c);
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('all_done');
+    expect(sealed.reviews.at(-1)).toMatchObject({ recordedRevision: corrected.revision, commit: c });
+    const next = await deliver(sealed.revision, c, c, 'inspection-after-correction');
+    await expect(recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: next.revision,
+      disposition: 'not_performed', reason: 'Cannot erase delivery history.' })).rejects.toMatchObject({ code: 'OPT_ALREADY_DELIVERED' });
+    const d = await save(4);
+    const further = await deliver(next.revision, c, d, 'implementation-2');
+    await expect(seal(further.revision, d)).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+  });
+
+  it('requires Review to be recorded after delivery even when it already assessed the exact result commit', async () => {
+    const baseline = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+      result: 'PASS', summary: 'Baseline.', findings: [] });
+    await execFileAsync('git', ['commit', '--allow-empty', '-qm', 'Opt result'], { cwd: root });
+    const resultCommit = (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const premature = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: baseline.revision, reviewKind: 'incremental', commit: resultCommit,
+      result: 'PASS', summary: 'Recorded before delivery.', findings: [] });
+    const delivered = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: premature.revision, disposition: 'delivered',
+      opinions: [{ opinionId: 'late-delivery', baseCommit: commit, resultCommit, summary: 'Delivery recorded after the earlier Review.', findings: [] }],
+    });
+    const file = path.join(changeDir, QUALITY_FILE);
+    const before = await fs.readFile(file);
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('needs_review');
+    await expect(recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: delivered.revision,
+      seal: { commit: resultCommit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Needs later Review.' },
+    })).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+    expect(await fs.readFile(file)).toEqual(before);
+    const reviewed = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: delivered.revision, reviewKind: 'incremental', commit: resultCommit,
+      result: 'PASS', summary: 'Recorded after delivery.', findings: [] });
+    await recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: reviewed.revision,
+      seal: { commit: resultCommit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Later Review covers delivery.' },
+    });
+    expect((await readQualityRecordStatus(changeDir, root)).status).toBe('all_done');
+  });
+
+  it('assigns one write revision to a batch and preserves the last changed obligation across no-change deliveries', async () => {
+    const baseline = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+      result: 'PASS', summary: 'Baseline.', findings: [] });
+    await execFileAsync('git', ['commit', '--allow-empty', '-qm', 'new delivery state'], { cwd: root });
+    const b = (await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root })).stdout.trim();
+    const batch = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: baseline.revision, disposition: 'delivered',
+      opinions: [
+        { opinionId: 'change', baseCommit: commit, resultCommit: b, summary: 'Changed delivery.', findings: [] },
+        { opinionId: 'inspection', baseCommit: b, resultCommit: b, summary: 'Inspection only.', findings: [] },
+      ],
+    });
+    expect(batch.opt).toMatchObject({ opinions: [{ recordedRevision: 2 }, { recordedRevision: 2 }] });
+    expect((await readQualityRecordStatus(changeDir, root)).gaps).toContain('POST_OPT_REVIEW_REQUIRED');
+    const file = path.join(changeDir, QUALITY_FILE);
+    const before = await fs.readFile(file);
+    await expect(recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: batch.revision, disposition: 'delivered',
+      opinions: [
+        { opinionId: 'valid', baseCommit: b, resultCommit: b, summary: 'Valid first item.', findings: [] },
+        { opinionId: 'invalid', baseCommit: commit, resultCommit: b, summary: 'Broken chain.', findings: [] },
+      ],
+    })).rejects.toMatchObject({ code: 'OPT_COMMIT_SEQUENCE_INVALID' });
+    expect(await fs.readFile(file)).toEqual(before);
+    // Independent root commit cannot cover the delivered result merely by being written later.
+    const tree = (await execFileAsync('git', ['rev-parse', `${b}^{tree}`], { cwd: root })).stdout.trim();
+    const unrelated = (await execFileAsync('git', ['commit-tree', tree, '-m', 'rewritten root'], { cwd: root })).stdout.trim();
+    const review = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: batch.revision, reviewKind: 'incremental', commit: unrelated,
+      result: 'PASS', summary: 'Rewritten history.', findings: [] });
+    await expect(recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: review.revision,
+      seal: { commit: unrelated, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Not a descendant.' },
+    })).rejects.toMatchObject({ code: 'POST_OPT_REVIEW_REQUIRED' });
+  });
+
+  it('rejects missing and impossible persisted opinion revisions without rewriting the record', async () => {
+    const result = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+      result: 'PASS', summary: 'Baseline.', findings: [] });
+    const file = path.join(changeDir, QUALITY_FILE);
+    for (const sequence of [undefined, 0, result.revision + 1]) {
+      const invalid = structuredClone(result);
+      Object.assign(invalid.reviews[0], { recordedRevision: sequence });
+      const bytes = JSON.stringify(invalid);
+      await fs.writeFile(file, bytes);
+      await expect(readQualityRecord(changeDir)).rejects.toMatchObject({ code: 'INVALID_QUALITY_RECORD' });
+      expect(await fs.readFile(file, 'utf8')).toBe(bytes);
+    }
+  });
+
+  it.each(['decreasing Review', 'duplicate Review', 'decreasing Opt', 'shared Review/Opt'])
+    ('rejects %s revisions in persisted history without rewriting bytes', async malformed => {
+      const first = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+        result: 'PASS', summary: 'Baseline.', findings: [] });
+      const reviewed = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: first.revision, reviewKind: 'incremental', commit,
+        result: 'PASS', summary: 'Independent assessment.', findings: [] });
+      const opinion = { baseCommit: commit, resultCommit: commit, summary: 'Read-only inspection.', findings: [] };
+      const batch = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: reviewed.revision, disposition: 'delivered',
+        opinions: [{ ...opinion, opinionId: 'inspection-1' }, { ...opinion, opinionId: 'inspection-2' }] });
+      const valid = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: batch.revision, disposition: 'delivered',
+        opinions: [{ ...opinion, opinionId: 'inspection-3' }] });
+      expect(await readQualityRecord(changeDir)).toEqual(valid);
+      if (valid.opt?.disposition !== 'delivered') throw new Error('Expected delivered fixture');
+      expect(valid.opt.opinions.map(item => item.recordedRevision)).toEqual([3, 3, 4]);
+      const invalid = structuredClone(valid);
+      if (invalid.opt?.disposition !== 'delivered') throw new Error('Expected delivered fixture');
+      if (malformed === 'decreasing Review') {
+        invalid.reviews[0].recordedRevision = 2;
+        invalid.reviews[1].recordedRevision = 1;
+      } else if (malformed === 'duplicate Review') {
+        invalid.reviews[0].recordedRevision = 2;
+      } else if (malformed === 'decreasing Opt') {
+        invalid.opt.opinions[0].recordedRevision = 4;
+      } else {
+        invalid.opt.opinions[0].recordedRevision = 2;
+      }
+      const file = path.join(changeDir, QUALITY_FILE);
+      const bytes = JSON.stringify(invalid);
+      await fs.writeFile(file, bytes);
+      await expect(readQualityRecord(changeDir)).rejects.toMatchObject({ code: 'INVALID_QUALITY_RECORD' });
+      expect(await fs.readFile(file, 'utf8')).toBe(bytes);
+    });
+
   it.each(['canRun', 'testsExpectedToPass'] as const)('rejects a stored Seal with %s=false', async field => {
     const review = await recordQualityReview({
       changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
@@ -182,13 +329,13 @@ describe('quality v4 single-file protocol', () => {
     const sealed = await recordQualitySeal({ changeDir, projectRoot: root, expectedRevision: opt.revision,
       seal: { commit: nextCommit, canRun: true, testsExpectedToPass: true, testScope: 'unit tests', assessment: 'Ready.' },
     });
-    expect(sealed.schemaVersion).toBe(4);
+    expect(sealed.schemaVersion).toBe(5);
     expect((await readQualityRecordStatus(changeDir, root)).status).toBe('all_done');
   });
 
-  it('rejects v3 .quality.json explicitly without changing its bytes', async () => {
+  it.each([3, 4])('rejects v%s .quality.json explicitly without changing its bytes', async version => {
     const file = path.join(changeDir, QUALITY_FILE);
-    const v3Bytes = Buffer.from(JSON.stringify({ schemaVersion: 3, changeId: 'c1', revision: 0, reviews: [], opt: null, seal: null }, null, 2));
+    const v3Bytes = Buffer.from(JSON.stringify({ schemaVersion: version, changeId: 'c1', revision: 0, reviews: [], opt: null, seal: null }, null, 2));
     await fs.writeFile(file, v3Bytes);
     await expect(readQualityRecordStatus(changeDir, root)).rejects.toMatchObject({ code: 'UNSUPPORTED_QUALITY_VERSION' });
     await expect(recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
@@ -196,14 +343,14 @@ describe('quality v4 single-file protocol', () => {
     expect(await fs.readFile(file)).toEqual(v3Bytes);
   });
 
-  it('does not read legacy files and fails closed for malformed or mismatched v4 JSON', async () => {
+  it('does not read legacy files and fails closed for malformed or mismatched v5 JSON', async () => {
     const legacyLog = Buffer.from('legacy log bytes\n');
     await fs.writeFile(path.join(changeDir, '.quality-log.jsonl'), legacyLog);
     expect((await readQualityRecordStatus(changeDir, root)).qualityStatus).toBe('missing');
     expect(await fs.readFile(path.join(changeDir, '.quality-log.jsonl'))).toEqual(legacyLog);
     await fs.writeFile(path.join(changeDir, QUALITY_FILE), '{broken');
     await expect(readQualityRecord(changeDir)).rejects.toMatchObject({ code: 'MALFORMED_QUALITY_RECORD' });
-    await fs.writeFile(path.join(changeDir, QUALITY_FILE), JSON.stringify({ schemaVersion: 4, changeId: 'other', revision: 0, reviews: [], opt: null, seal: null }));
+    await fs.writeFile(path.join(changeDir, QUALITY_FILE), JSON.stringify({ schemaVersion: 5, changeId: 'other', revision: 0, reviews: [], opt: null, seal: null }));
     await expect(readQualityRecord(changeDir)).rejects.toMatchObject({ code: 'QUALITY_CHANGE_MISMATCH' });
     await expect(readQualityRecord(path.join(root, 'outside'))).rejects.toBeInstanceOf(QualityEngineError);
   });

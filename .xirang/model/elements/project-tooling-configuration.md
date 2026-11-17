@@ -27,6 +27,8 @@ architecture.outline.definitionDepth SHALL 为非负整数，默认 2，共享�
 
 只有 setup SHALL 创建项目配置；update 对已有合法版本配置先验证完整链，仅保留最近 10 次迁移操作，全部成功后原子写回内容与版本。按明确清单补说明/结构、清理陈旧内容并报告，保护仍适用用户值、注释和排版，重复执行不重复修改。
 
+公共与阶段工作面 SHALL 支持独立的 stageRules，覆盖 explore、propose、apply、archive、build、snack；各阶段仅读取自身附加指导，与共同 context、制品 rules 分离。未配置或为空采用内置指导，内部角色不自动继承；规则不自动形成模型内容，已确认设计正常交接。配置说明、查询、校验和生成面保持一致。
+
 ### Section: Edge Cases and Exception Handling
 
 配置缺失/损坏时 SHALL 由用户或委托 Agent 处理，查询/check/update 不恢复。版本缺失、非法、较新、链不完整或执行失败时原文件不变，不猜测或填 1；超窗口报告当前/目标/最低起始版本并提示旧 CLI 中转，不自动安装或跳步骤。
@@ -56,3 +58,7 @@ architecture.outline.definitionDepth SHALL 为非负整数，默认 2，共享�
 #### Acceptance Case: 跨平台受管交付
 
 Windows、macOS、Linux 同步后，语义写作/Design Record/default refinement 引用指向可读同版本指导，用户文件不被覆盖。
+
+#### Acceptance Case: 阶段指导贯通
+
+项目只配置 stageRules.explore，setup/update 生成的 Explore 入口读取该项；Apply 入口读取自己的阶段项，不沿用 Explore 规则，配置查询与 check 显示正确作用域。

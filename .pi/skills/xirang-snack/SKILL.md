@@ -13,6 +13,8 @@ Reconcile Xirang artifacts from already-written code (code-first artifact reconc
 
 Before doing stage work, load the xirang-common skill from this tool's discovered skills or from ../xirang-common/SKILL.md relative to this skill file, unless its required guidance is already available and current in this Agent's project context. Keep the selected stage while loading it; do not route back or load this stage again. Follow common's on-demand guidance and reuse rules.
 
+Read this stage's additional guidance with `xirang config project --select stageRules.snack --json`. Apply only this stage's rules under common's configuration scope.
+
 A business-specification Contract defines the target project's functional behavior, constraints and observable acceptance outcomes. Before exploring or authoring an Element Contract, assess whether it serves this purpose. If so, or if its Kind already declares `contractFormat: business-specification`, read project-root file `.xirang/references/xirang-business-specification-standard.md`.
 
 Before exploring or writing an Element Declaration or Contract, read project-root file `.xirang/references/xirang-semantic-authoring.md` unless already available and current.

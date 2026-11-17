@@ -39,6 +39,8 @@ common SHALL 提供 Philosophy、统一语义依据、identity 基本约束、�
 
 生成的每个 workflow SKILL.md SHALL 不超过 200 行，每个 reference 不超过 500 行，逐文件计算、覆盖所有已定义工具变体。超限诊断按文件与变体报告实际行数、限值和超出量，按最大行数降序；同文件同长度变体合并，不同长度分别列出。拆分/精简保持协议及可达入口，长度通过不证明行为改善。
 
+公共和阶段工作面 SHALL 从同一阶段登记交付 stageRules 的作用域与当前阶段查询入口；只查询本阶段，不把规则复制进内部角色或模型。受管生成继续按显式名称登记替换，在 Windows、macOS、Linux 上保持相同阶段规则语义。
+
 ### Section: Edge Cases and Exception Handling
 
 生成与同步 SHALL 对工具配置和能力定义不匹配给出可操作错误。未支持内部 Agent 制品的工具不生成该类型，但仍交付支持的 skills/references，Project Build 不因缺少 subagent 制品受阻。未登记或缺少受管依据的用户文件不得删除或覆盖；同名不构成所有权。不可用或失效指导不能凭已加载的历史记录替代，应重新取得所需内容。超限文件须明确报告，不能以目录总行数掩盖单文件问题。
@@ -70,3 +72,7 @@ Explore 的 default/claude/codex 均为 541 行时合并报告，超 200 行限�
 #### Acceptance Case: 不支持内部 Agent 的工具
 
 工具只支持 skills：仍交付公共和阶段指导，Build 可通过 Candidate 编写、校验、确认与提升推进。
+
+#### Acceptance Case: 跨平台阶段规则入口
+
+Windows 与 POSIX 的工具目录分隔符不同，但生成的六个阶段均查询各自 stageRules.<阶段>；工作面按平台路径 API 定位，用户自定义未登记文件不受修改。
