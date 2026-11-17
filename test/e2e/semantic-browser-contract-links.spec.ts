@@ -101,12 +101,12 @@ test('opens relative Contract references from nested and duplicate footnotes by 
   await expect(body.getByRole('link', { name: '被忽略的定义', exact: true })).toHaveCount(0)
   for (const name of ['嵌套脚注证据', '首次定义证据']) {
     await body.getByRole('link', { name, exact: true }).click()
-    await expect(dialog.getByText('capability.leaf', { exact: true })).toBeVisible()
+    await expect(dialog.locator('[data-xirang-contracts]').getByText('capability.leaf', { exact: true })).toBeVisible()
     await expect(body).toContainText('第一份时间证据')
     await body.getByRole('link', { name: '返回', exact: true }).click()
   }
   await body.getByRole('link', { name: '普通正文证据', exact: true }).click()
-  await expect(dialog.getByText('long', { exact: true })).toBeVisible()
+  await expect(dialog.locator('[data-xirang-contracts]').getByText('long', { exact: true })).toBeVisible()
   await expect(page).toHaveURL(url)
 })
 
@@ -187,4 +187,22 @@ test('opens relative Contract references without replaying a pending anchor afte
     release()
     await fs.writeFile(file, original)
   }
+})
+
+test('opens relative Contract references by identity when another Element owns that native FQN', async ({ page }) => {
+  await page.goto('/view/full-model/?view=index')
+  const node = page.locator('.react-flow__node[data-xirang-identity="single"]')
+  await expect(node).toBeVisible({ timeout: 20_000 })
+  await node.click()
+  await expect(node).toHaveClass(/selected/)
+  await node.click()
+  const dialog = page.locator('dialog[open]')
+  await dialog.getByRole('tab', { name: 'Contracts' }).click()
+  await dialog.getByRole('link', { name: '碰撞目标', exact: true }).click()
+  await expect(dialog.locator('[data-xirang-contract-content]')).toContainText('Collision target evidence')
+  await expect(dialog).toContainText('Collision Evidence')
+  await expect(dialog).not.toContainText('Native Neighbour')
+  await dialog.getByRole('tab', { name: 'Properties', exact: true }).click()
+  await expect(dialog).toContainText('Collision Evidence')
+  await expect(dialog).not.toContainText('Native Neighbour')
 })

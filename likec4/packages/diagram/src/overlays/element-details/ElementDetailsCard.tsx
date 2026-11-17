@@ -101,7 +101,7 @@ type ElementDetailsCardProps = {
   fromNode: NodeId | null
   rectFromNode: Rect | null
   onClose: () => void
-  fqn: Fqn
+  fqn: Fqn | null
   identity: string | null
   contract: { fragment?: string; revision: string } | null
   onContractNavigate: (identity: string, fragment?: string) => void
@@ -155,7 +155,7 @@ export interface ElementDetailsResolutionInput {
 export interface ElementDetailsResolution {
   /** 语义 identity：优先投影节点 metadata，回退 element model，再回退 fqn。 */
   stableElementId: string
-  /** 元素不在基础 LikeC4 model 中时，从所选 architecture 按 identity 解析的 declaration。 */
+  /** 显式 identity 或无原生对象时，使用所选 architecture 的 declaration。 */
   declaration: XirangElementDeclaration | null
   /** 元素不在基础 LikeC4 model 中且 declaration 存在时为 true。 */
   isProjectionElement: boolean
@@ -177,7 +177,7 @@ export function resolveElementDetails(input: ElementDetailsResolutionInput): Ele
       : null
   const stableElementId = metadataIdentity
     ?? (typeof input.elementId === 'string' && input.elementId !== '' ? input.elementId : input.fqn)
-  const declaration = !input.hasBaseModelElement
+  const declaration = input.identity || !input.hasBaseModelElement
     ? input.architectureElements?.find(element => element.declaration.identity === stableElementId)?.declaration ?? null
     : null
   return { stableElementId, declaration, isProjectionElement: !input.hasBaseModelElement && declaration !== null }
@@ -224,13 +224,13 @@ export function ElementDetailsCard({
   }, [contract, setActiveTab])
   const diagram = useDiagram()
   const viewModel = useCurrentViewModel()
-  const nodeModel = fromNode ? viewModel.findNode(fromNode) : viewModel.findNodeWithElement(fqn)
+  const nodeModel = fromNode ? viewModel.findNode(fromNode) : fqn ? viewModel.findNodeWithElement(fqn) : null
 
-  const elementModel = viewModel.$model.findElement(fqn) ?? null
+  const elementModel = fqn ? viewModel.$model.findElement(fqn) : null
   const projectId = useLikeC4ProjectId()
   const runtime = useXirangViewSources()
   const { stableElementId, declaration, isProjectionElement } = resolveElementDetails({
-    fqn,
+    fqn: fqn ?? identity ?? '',
     identity,
     nodeMetadata: nodeModel?.$node.metadata,
     elementMetadata: elementModel?.$element.metadata,
@@ -243,7 +243,7 @@ export function ElementDetailsCard({
   const elementIcon = elementModel
     ? <IconRenderer
       element={{
-        id: fqn,
+        id: elementModel.id,
         title: elementModel.title,
         icon: nodeModel?.icon ?? elementModel.icon,
       }}
@@ -509,7 +509,7 @@ export function ElementDetailsCard({
                     <IconExternalLink stroke={1.6} style={{ width: '65%' }} />
                   </ActionIcon>
                 )}
-                <IfEnabled feature="Vscode">
+                {elementModel && <IfEnabled feature="Vscode">
                   <Tooltip label="Open source">
                     <ActionIcon
                       size="lg"
@@ -518,13 +518,13 @@ export function ElementDetailsCard({
                       onClick={e => {
                         e.stopPropagation()
                         diagram.openSource({
-                          element: elementModel?.id ?? fqn,
+                          element: elementModel.id,
                         })
                       }}>
                       <IconFileSymlink stroke={1.8} style={{ width: '62%' }} />
                     </ActionIcon>
                   </Tooltip>
-                </IfEnabled>
+                </IfEnabled>}
                 {viewId !== ('full-model' as ViewId) && !isProjectionElement && (
                   <Tooltip label="Open in Full Model">
                     <ActionIcon

@@ -64,6 +64,20 @@ describe('resolveElementDetails', () => {
     expect(result.isProjectionElement).toBe(true)
   })
 
+  it('uses the selected declaration for an identity-addressed native target', () => {
+    const result = resolveElementDetails({
+      fqn: 'root.alpha_id',
+      identity: 'alpha.id',
+      nodeMetadata: null,
+      elementMetadata: { elementId: 'alpha.id' },
+      elementId: 'root.alpha_id',
+      hasBaseModelElement: true,
+      architectureElements: elements,
+    })
+    expect(result.declaration?.title).toBe('Alpha')
+    expect(result.isProjectionElement).toBe(false)
+  })
+
   it('xirangIdentity 优先于 elementId', () => {
     const result = resolveElementDetails({
       fqn: 'root.project.alpha_id',

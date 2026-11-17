@@ -5,9 +5,8 @@ import {
   type SnapshotFrom,
   type StateMachine,
   assign,
-  sendTo,
+  enqueueActions,
   setup,
-  spawnChild,
   stopChild,
 } from 'xstate'
 import { type RelationshipsBrowserActorRef, relationshipsBrowserLogic } from '../relationships-browser/actor'
@@ -24,7 +23,7 @@ export type ElementDetailsInput = {
 }
 
 export type Context = {
-  subject: Fqn
+  subject: Fqn | null
   currentView: DiagramView
   identity: string | null
   contract: { fragment?: string; revision: string } | null
@@ -36,7 +35,7 @@ export type Context = {
 
 export type Events =
   | { type: 'change.subject'; subject: Fqn }
-  | { type: 'open.contract'; subject: Fqn; identity: string; fragment?: string; revision: string }
+  | { type: 'open.contract'; subject: Fqn | null; identity: string; fragment?: string; revision: string }
   | { type: 'close' }
 
 const _elementDetailsLogic = setup({
@@ -65,23 +64,25 @@ const _elementDetailsLogic = setup({
   initial: 'active',
   states: {
     'active': {
-      entry: spawnChild('relationshipsBrowserLogic', {
-        id: ({ self }) => `${self.id}-relationships`,
-        input: ({ context }) => ({
-          subject: context.subject,
-          viewId: context.currentView.id,
-          scope: 'view',
-          enableSelectSubject: false,
-          enableChangeScope: true,
-          closeable: false,
-        }),
+      entry: enqueueActions(({ context, self, enqueue }) => {
+        if (context.subject === null) return
+        enqueue.spawnChild('relationshipsBrowserLogic', {
+          id: `${self.id}-relationships`,
+          input: {
+            subject: context.subject,
+            viewId: context.currentView.id,
+            scope: 'view',
+            enableSelectSubject: false,
+            enableChangeScope: true,
+            closeable: false,
+          },
+        })
       }),
-      exit: [
-        sendTo(({ self }) => `${self.id}-relationships`, { type: 'close' }),
-        stopChild(({ self }) => `${self.id}-relationships`),
-      ],
+      exit: stopChild(({ self }) => `${self.id}-relationships`),
       on: {
         'open.contract': {
+          target: 'active',
+          reenter: true,
           actions: assign({
             subject: ({ event }) => event.subject,
             identity: ({ event }) => event.identity,

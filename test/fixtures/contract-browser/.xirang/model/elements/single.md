@@ -30,3 +30,5 @@ The fixture SHALL expose one Element Contract through the Semantic Browser.
 [^duplicate]: [被忽略的定义](long.md)
 
 重复注释[^duplicate]。[普通正文证据](long.md)
+
+[碰撞目标](root.a.md)

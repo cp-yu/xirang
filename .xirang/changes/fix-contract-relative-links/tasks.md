@@ -26,3 +26,5 @@
 - [x] [code_fix] 脚注定义按递归发现与首次定义优先规则解析，使嵌套脚注、重复定义和普通正文中的链接 occurrence 始终打开各自对应的目标 Contract。
 - [x] [code_fix] 已声明存在的 Contract 请求返回缺失结果时，详情展示请求的 Element identity 和明确缺失提示，其他详情标签保持可用。
 - [x] [code_fix] 以行为验证保证带标题的旧导航被 source 版本更新或后续选择替代后，过期响应及定位意图不能改变当前正文或滚动位置。
+- [x] [code_fix] 目标 identity 与其他 Element 的原生 FQN 碰撞时，目标 Contract、详情属性及可用标签仍属于同一目标 Element。
+- [x] [code_fix] Contract 导航切换 Element 后，Relationships 浏览器同步绑定正确目标，不保留前一个 Element 的关系内容。
