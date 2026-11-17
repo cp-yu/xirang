@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 5,
+  "changeId": "apply-opt-maintainability",
+  "revision": 6,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "477a5c464b8e6632a56b3bb36009834fc88dd4c8",
+      "result": "FAIL",
+      "summary": "已独立检查从 b326403f0cac250053c378f82f8d9850272324f3 到所列 HEAD 的整个累计 Change，覆盖 Completeness、Correctness、Coherence、Cleanliness，读取全部 29 个 Element Delta 及适用模型、最终实现和相关调用方。实现总体落实了抽象取舍、Optimizer 双模式、协调者提交、累计 Review 门禁及六阶段 stageRules；未发现明确的实现行为错误或未授权行为变更。但 G3 的写入顺序门禁缺少能独立发现回归的测试，且设计要求的实际 Agent 行为观察尚无可审阅证据，当前不能 PASS。审查开始与结束 HEAD 相同，git status --short 均为空；未修改项目、Change、Quality 或 Git 状态。未重跑测试，协调者报告的测试通过未被当作行为充分性的替代证据；Windows 执行和稳定 Agent 效果均未获验证。",
+      "findings": [
+        "CRITICAL — G3 的 recordedRevision 顺序约束缺少独立回归保护。Contract 明确要求 R.recordedRevision > O.recordedRevision（.xirang/changes/apply-opt-maintainability/elements/quality-cli-gate.md:29-33），实现守卫位于 src/core/quality/engine.ts:288-299。现有 test/core/quality/engine.test.ts:140-165、168-197 中的拒绝场景同时可由旧提交/无关提交的祖先关系或 supplemental 类别过滤拒绝；按已读测试控制流分析，即使删除第 294 行中的 revision 比较，这些断言仍成立（本审查未实际执行 mutation）。test/commands/quality.test.ts:83-96 仅断言交付投影，也未隔离顺序门禁。检索 git grep -n -i -E 'review.*before.*(opt|delivery)|review.*predat|earlier.*review.*(result|descendant)|recordedRevision.*(<=|>=|<|>)' HEAD -- test/core/quality test/commands/quality.test.ts 返回空；并已读取上述完整行为测试及 test/core/quality/completion.test.ts:32-43。需补充可区分顺序与祖先关系的持久行为测试，例如 full-change PASS(A) → 提前记录 incremental PASS(B) → 首次交付 A→B，确认 status 仍为 needs_review、Seal 拒绝且记录不变；在交付之后补录 PASS(B) 才允许通过。该测试应在仅移除写入顺序守卫时失败。",
+        "CRITICAL — G2/G4 缺少设计要求的实际 Agent 行为观察证据。.xirang/changes/apply-opt-maintainability/design.md:98-100 明确区分字符串符合性与实际观察，要求观察 inspection 只读、implementation 授权范围及越界报告、无收益停止、变更后独立 Review 和阶段隔离；tasks.md:7-9、15-17 将对应行为列为验证方向。当前 test/core/templates/optimizer-template.test.ts:14-20、test/core/templates/apply-change.test.ts:105-113 和 test/core/templates/skill-templates-parity.test.ts:98-116 仅检查生成文本及查询 token，不能证明这些运行行为。协调者在本次证据询问中明确确认此前没有实际观察制品，并表示另行安排实验；截至本意见形成，尚未提供可独立审阅的运行记录。请提供使用最终生成指导的隔离场景、模型/设置、实际动作与产物、结果和局限；一次性观察证据可以接受，无需据此声称稳定收益。"
+      ],
+      "recordedRevision": 1
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "bfede4bb18a139419981d4ca08fa613d5d49ab0e",
+      "result": "FAIL",
+      "summary": "Independently reviewed Completeness, Correctness, Coherence and Cleanliness across the cumulative Change from validated isolation base b326403f0cac250053c378f82f8d9850272324f3. Read proposal, design, tasks and every Delta unit; metamodel, relationships and views contain no committed units. The implementation expresses the intended abstraction discipline, Optimizer mode boundaries and mandatory cumulative Review (src/core/templates/workflows/apply-change.ts:186-210,264-274; src/core/templates/workflows/optimizer.ts:7-40). Configuration parsing, projection and six-stage guidance align with the scoped stageRules design (src/core/project-config.ts:173-175,489-505; src/core/config-projection.ts:141; test/core/templates/skill-templates-parity.test.ts:98-122). Quality implements revision assignment, delivery continuity and ancestry-bound Seal/status gates (src/core/quality/engine.ts:204-338). The earlier temporal-regression gap is addressed by test/core/quality/engine.test.ts:168-190; inspected logs show 15 engine tests passing and the specific predicate mutation failing that new test. Independently inspected the actual stage and role reports, sibling handoffs and raw fixture transaction evidence referenced by .xirang/changes/apply-opt-maintainability/verification.md:11-35. They substantiate bounded stage consumption, read-only inspection, authorized implementation, coordinator commits, renewed independent Review and reasoned stopping without claiming stable effects. No additional functional deviation, unauthorized behavior or Change-introduced cleanup defect was identified. One required persisted-history validation behavior remains without adequate regression protection. HEAD remained unchanged; the expected untracked Quality control file was preserved.",
+      "findings": [
+        "CRITICAL — Persisted opinion-history ordering lacks regression protection. The Change explicitly requires rejecting illegal history order (.xirang/changes/apply-opt-maintainability/elements/quality-writeback.md:14-16). The new guards enforce increasing Review revisions, nondecreasing Opt revisions and disjoint Review/Opt transaction revisions (src/core/quality/engine.ts:76-86), but the malformed-record test only supplies undefined, zero and record.revision+1 to one Review (test/core/quality/engine.test.ts:224-237). The new temporal test at lines 168-190 exercises post-delivery Review eligibility using valid histories; it does not exercise malformed persisted ordering. `git grep -n recordedRevision HEAD -- test` returned only valid-output assertions at test/commands/quality.test.ts:79 and test/core/quality/engine.test.ts:143,159,204, the single malformed-value assignment at line 231, and a template token assertion; no test supplies duplicate/decreasing histories or a shared Review/Opt revision. In read-only, in-memory evaluation of the committed schema, decreasing Review revisions, duplicate Review revisions, decreasing Opt revisions and shared Review/Opt revisions were all rejected; removing their respective guards accepted those inputs. This demonstrates distinct required behaviors that the existing asserted scenarios do not protect. Extend the existing malformed-record test with these histories, asserting INVALID_QUALITY_RECORD and unchanged bytes, while retaining acceptance of equal revisions within an Opt batch."
+      ],
+      "recordedRevision": 2
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "cf06dc06e72aed59009f59febe65d4a63b5fcd5e",
+      "result": "FAIL",
+      "summary": "Independently assessed Completeness, Correctness, Coherence and Cleanliness across the cumulative Change from validated isolation base b326403f0cac250053c378f82f8d9850272324f3. Read proposal, design, tasks, all 29 Element Delta units, applicable model context, committed implementation and relevant unchanged consumers; the other three Delta partitions are empty. The implementation expresses the intended abstraction discipline, Optimizer mode boundaries, coordinator commits and mandatory cumulative Review (src/core/templates/workflows/apply-change.ts:186-205,264-274; src/core/templates/workflows/optimizer.ts:10-40). Quality implements atomic opinion revisions, delivery continuity and ancestry-bound Review/Seal gates (src/core/quality/engine.ts:60-86,204-338). Both prior FAIL corrections are supported: the temporal test isolates transaction ordering (test/core/quality/engine.test.ts:168-190), and the four malformed-history cases reject illegal revisions without rewriting bytes while accepting equal revisions within an Opt batch (test/core/quality/engine.test.ts:239-269). Independently inspected the 23-test pass log, corresponding mutation failure logs, actual stage and role reports, and raw fixture transaction evidence referenced by .xirang/changes/apply-opt-maintainability/verification.md:11-43. These support the bounded observations claimed. No functional implementation deviation or unauthorized behavior change was identified, but a separate G4 regression-protection gap prevents PASS. HEAD remained unchanged; the pre-existing untracked coordinator Quality file was preserved. No files or Git history were modified, and the reported suites were not rerun. Windows execution and stable Agent effects remain unverified.",
+      "findings": [
+        "CRITICAL — G4 ordinary-read stageRules diagnostics lack regression protection. The Contract requires warnings and omission/filtering for a non-mapping stageRules value, unknown stage keys, non-array stage values and invalid array members, while preserving valid siblings (.xirang/changes/apply-opt-maintainability/elements/project-config-loading.md:48-70). The implementation supplies these warnings at src/core/project-config.ts:489-505, and config project forwards them to stderr as CONFIG_WARNING at src/commands/config.ts:99-102. However, the owning test asserts projected values and separate config check diagnostics without asserting ordinary config project stderr; it also supplies neither a malformed stageRules container nor a non-array stage value (test/commands/config.test.ts:67-89). Repository-wide `git grep -n 'stageRules' HEAD -- test` finds only this owner test and generated-selector assertions at test/core/templates/skill-templates-parity.test.ts:114-116; no corresponding ordinary-read warning assertions or malformed-shape inputs were found. In read-only in-memory execution of the committed parser block, suppressing its warning calls removed the required diagnostics while leaving projected values identical for the existing mixed-invalid fixture, a non-array stage with a valid sibling, and a scalar stageRules container. This was an isolated parser experiment, not a whole-suite mutation run. Extend the existing configuration behavior tests to assert structured ordinary-read warnings and retained valid data, including malformed container and non-array-stage cases, with unchanged configuration bytes. Protect diagnostic behavior without requiring exact prose."
+      ],
+      "recordedRevision": 3
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "819806e95edf898b9d80f413bce98cd749f18bc1",
+      "result": "PASS",
+      "summary": "Independently reviewed the complete cumulative Change from isolation base b326403f0cac250053c378f82f8d9850272324f3 across Completeness, Correctness, Coherence and Cleanliness. G1/G2 are supported by the abstraction guidance, explicit Optimizer modes, coordinator-owned commits and mandatory cumulative Review in src/core/templates/workflows/apply-change.ts:186-205,264-275, src/core/templates/workflows/optimizer.ts:10-40 and the delivered .xirang/references/xirang-apply-step-4-optimization.md:4-20. G3 is supported by atomic revision assignment, persisted-history validation, delivery continuity and shared ancestry/Seal/status gates in src/core/quality/engine.ts:60-87,153-190,204-338; behavior coverage includes isolated temporal ordering, malformed histories, unchanged deliveries, descendants, unrelated history and byte preservation in test/core/quality/engine.test.ts:125-270,306-344. G4 is supported by shared registered stage keys, independent filtering/warnings and configuration projection/check consumers in src/core/project-config.ts:13,173-175,489-505, src/commands/config.ts:29-39,99-126 and src/core/config-check.ts:23-62. The corrected owning tests protect ordinary CONFIG_WARNING stderr, malformed-field omission, valid siblings and original bytes (test/commands/config.test.ts:67-115); generated entry coverage spans all six stages (test/core/templates/skill-templates-parity.test.ts:98-122). Actual bounded stage and role observations and their limitations are retained in .xirang/changes/apply-opt-maintainability/verification.md:11-35, with readable source reports and raw fixture execution inspected independently. All 116 tests in seven focused suites passed; source TypeScript checking and cumulative diff whitespace checking passed. No remaining blocking finding. HEAD remained unchanged, tracked checkout remained clean, and the untracked coordinator Quality record was left untouched. Windows execution and stable Agent effects are not claimed.",
+      "findings": [],
+      "recordedRevision": 4
+    }
+  ],
+  "opt": {
+    "disposition": "delivered",
+    "opinions": [
+      {
+        "opinionId": "OPT-1-inspection",
+        "baseCommit": "819806e95edf898b9d80f413bce98cd749f18bc1",
+        "resultCommit": "819806e95edf898b9d80f413bce98cd749f18bc1",
+        "summary": "独立 inspection 已完成，累计检查 G1–G4，未确认正确性缺陷，未改动项目/历史；协调者对 10903 个 tracked 文件、HEAD 和 Quality 的前后快照复核一致。未运行项目测试，既有审查证据不冒充本次执行。",
+        "findings": [
+          "OPT-1: src/core/templates/workflows/apply-change.ts 的三份未使用指导正文及 void 引用造成维护干扰；内存候选的16次模板比较及11个交付 reference 字节匹配支持可选清理。协调者本次不采纳：这些正文不参与生成，不影响已验收行为；项目全局约束要求仅做需求改动、不顺手删除死代码。保留为后续单独清理机会，不能写成没有发现机会。",
+          "G1/G2 有效指导、G3 共享顺序/祖先门禁、G4 阶段解析与隔离未发现需新增结构的具体收益；无代表性性能问题，停止进一步投入。",
+          "权威报告：Pi session subagent-artifacts/outputs/a460f0a9-783a-4e70-b23d-e858fdbb9fee/optimization/apply-opt-maintainability-inspection.md；首次内存 loader 因 import.meta.url 失败，修正实验 loader 后通过，零实现修改。Windows/macOS、完整安装和稳定 Agent 效果未验证。"
+        ],
+        "recordedRevision": 5
+      }
+    ]
+  },
+  "seal": {
+    "commit": "819806e95edf898b9d80f413bce98cd749f18bc1",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "初次实现完整套件166文件/2287测试通过；随后仅新增测试与验证说明，最终独立 Reviewer 运行7组聚焦套件116测试通过，覆盖 Quality engine/CLI、config、Apply/Optimizer/阶段投影。源码 tsc、lint、build 及 Change preview 曾通过，最终源码 tsc 与累计 diff check 通过；新顺序、非法历史和警告用例的定向突变均被发现。实际阶段和角色行为观察为一次性隔离场景。未在 Windows 执行；编辑器对未修改旧测试有四项类型诊断，源码编译通过。",
+    "assessment": "G1–G4 均完成，三次真实 full-change FAIL 已按发现修正并保留，最新独立累计 full-change Review PASS 绑定当前提交。实际独立 Opt 为无改动 delivered，已识别可选死代码清理因项目范围约束不采纳；无未审查保留改动或确认缺陷。正式模型未晋升，保持当前 Apply 分支供后续 Archive。稳定 Agent 效果和性能提升未声称。"
+  }
+}
