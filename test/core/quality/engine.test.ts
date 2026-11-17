@@ -236,6 +236,39 @@ describe('quality v5 single-file protocol', () => {
     }
   });
 
+  it.each(['decreasing Review', 'duplicate Review', 'decreasing Opt', 'shared Review/Opt'])
+    ('rejects %s revisions in persisted history without rewriting bytes', async malformed => {
+      const first = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
+        result: 'PASS', summary: 'Baseline.', findings: [] });
+      const reviewed = await recordQualityReview({ changeDir, projectRoot: root, expectedRevision: first.revision, reviewKind: 'incremental', commit,
+        result: 'PASS', summary: 'Independent assessment.', findings: [] });
+      const opinion = { baseCommit: commit, resultCommit: commit, summary: 'Read-only inspection.', findings: [] };
+      const batch = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: reviewed.revision, disposition: 'delivered',
+        opinions: [{ ...opinion, opinionId: 'inspection-1' }, { ...opinion, opinionId: 'inspection-2' }] });
+      const valid = await recordQualityOpt({ changeDir, projectRoot: root, expectedRevision: batch.revision, disposition: 'delivered',
+        opinions: [{ ...opinion, opinionId: 'inspection-3' }] });
+      expect(await readQualityRecord(changeDir)).toEqual(valid);
+      if (valid.opt?.disposition !== 'delivered') throw new Error('Expected delivered fixture');
+      expect(valid.opt.opinions.map(item => item.recordedRevision)).toEqual([3, 3, 4]);
+      const invalid = structuredClone(valid);
+      if (invalid.opt?.disposition !== 'delivered') throw new Error('Expected delivered fixture');
+      if (malformed === 'decreasing Review') {
+        invalid.reviews[0].recordedRevision = 2;
+        invalid.reviews[1].recordedRevision = 1;
+      } else if (malformed === 'duplicate Review') {
+        invalid.reviews[0].recordedRevision = 2;
+      } else if (malformed === 'decreasing Opt') {
+        invalid.opt.opinions[0].recordedRevision = 4;
+      } else {
+        invalid.opt.opinions[0].recordedRevision = 2;
+      }
+      const file = path.join(changeDir, QUALITY_FILE);
+      const bytes = JSON.stringify(invalid);
+      await fs.writeFile(file, bytes);
+      await expect(readQualityRecord(changeDir)).rejects.toMatchObject({ code: 'INVALID_QUALITY_RECORD' });
+      expect(await fs.readFile(file, 'utf8')).toBe(bytes);
+    });
+
   it.each(['canRun', 'testsExpectedToPass'] as const)('rejects a stored Seal with %s=false', async field => {
     const review = await recordQualityReview({
       changeDir, projectRoot: root, expectedRevision: 0, reviewKind: 'full-change', commit,
