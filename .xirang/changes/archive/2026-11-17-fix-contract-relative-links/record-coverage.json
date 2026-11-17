@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "filename": "contract-relative-links.md",
+  "sourceVersion": "0be4e3dc5c7c22c824c7572f47e1386ee4db31edfb5daffb532a9acf2e1eafae",
+  "targetFingerprint": "4c692f3c5c848b6405ffe0f9c643ed446af46e0cb81fe86072308454ef441711",
+  "recordedAt": "2026-11-17T08:52:08.022Z",
+  "entries": [
+    {
+      "identity": "local-contract-link-navigation",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "生成展示数据时相对源单元解析，声明 identity 为导航依据，源 Markdown 不变",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Business Logic"
+          },
+          "quote": "正文引用 SHALL 在生成网页展示数据时解析：以承载该段正文的源单元位置为基准，规范化相对文档路径，并通过已加载单元索引定位声明的稳定 Element identity；文件名、目录和去掉 `.md` 的字符串均不得替代 identity。源 Markdown SHALL 保持原样，转换只作用于展示数据。解析与目标内容 SHALL 对应当前 Model Selection，不得以其他模型的正文替代。"
+        },
+        {
+          "detail": "成功引用打开目标详情并激活 Contracts，外部网页链接保持正常行为",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Business Logic"
+          },
+          "quote": "点击成功解析且目标具有 Contract 的模型内引用时，Web SHALL 打开目标 Element 的详情并激活 Contracts，即使目标不在当前 View 中，也保持当前 Model Selection、View Selection、Presentation Mode、focus 和图形视口。外部网页链接 SHALL 保持正常网页链接行为。"
+        },
+        {
+          "detail": "原始 ftape 示例的具体输入与修复后正确结果",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "正文证据链接打开目标 Contract"
+          },
+          "quote": "- 当前网页为 `/view/full-model/?view=scenario`，`linux-driver-example` 的正文包含 `[ftape 驱动迁移案例](ftape-linux-timing.md)`，对应源文件与目标单元可由索引定位。\n- 用户点击该引用。\n- SHALL 打开 identity 为 `ftape-linux-timing` 的 Contracts，不访问 `/view/full-model/ftape-linux-timing.md`，不显示 `The diagram full-model does not exist or contains errors`。"
+        },
+        {
+          "detail": "文件名 driver-case 与目标 identity 不同仍按声明定位，源文件字节不变",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "文件名与 identity 不同"
+          },
+          "quote": "- `elements/analysis.md` 引用 `research/driver-case.md`，后者声明 identity 为 `ftape-linux-timing`。\n- 点击引用 SHALL 打开 `ftape-linux-timing` 的 Contracts，不把 `driver-case` 当作 identity；两个源文件字节保持不变。"
+        },
+        {
+          "detail": "父级在自身层级表达 identity、源 Markdown 保留及跨 View 导航承诺",
+          "location": {
+            "element": "web",
+            "section": "Business Logic"
+          },
+          "quote": "正文中的模型内相对 Markdown 文档引用 SHALL 定位到当前 Model Selection 内目标 Element 的 Contracts，文件名不得作为 identity；源 Markdown 保持原样，外部网页链接保持正常行为。目标在当前 View 边界之外时也 SHALL 可阅读其 Contracts，且 Model、View、Mode、focus 与图形视口保持不变，不把目标加入当前图形。带标题 fragment 的引用 SHALL 在正文加载完成后定位到对应标题。"
+        }
+      ]
+    },
+    {
+      "identity": "unresolved-link-boundaries",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "View 不含目标仍直接打开 Contracts，Model、View、Mode、focus 与视口保持",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "跨 View 阅读"
+          },
+          "quote": "- 当前 Authored View 不含证据 Element，但当前所选模型包含该 Element 及其 Contract。\n- 点击正文引用 SHALL 打开目标 Contracts，Model、View、Mode、focus、图形视口保持原值。"
+        },
+        {
+          "detail": "带中文或编码 fragment 定位标题，标题缺失仍打开正文并提示",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "标题与缺失标题"
+          },
+          "quote": "- 链接 `evidence.md#时间依据` 的目标 Contract 存在“时间依据”标题。\n- 点击后 SHALL 打开该 Contract 并定位对应标题；等价的 URL 编码 fragment SHALL 指向同一标题。\n- 若目标 Contract 存在而该标题缺失，SHALL 打开正文并提示未找到定位位置。"
+        },
+        {
+          "detail": "目标无法解析时在正文附近提示，保留页面与正文，提示为界面反馈",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "本地文档引用无法解析、引用的 Element 在当前所选模型中不存在或没有可打开的 Contract 时，点击 SHALL 在正文附近提示“无法定位引用目标”，保留当前页面和正文；不得将原始相对路径交给图形路由。该提示是界面反馈。"
+        },
+        {
+          "detail": "目标存在但标题缺失时打开正文并提示未找到定位位置",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "目标 Contract 存在而指定标题不存在时，Web SHALL 打开目标正文并提示未找到定位位置。链接不带 fragment 时不要求标题定位。"
+        },
+        {
+          "detail": "父级同时覆盖目标失效和标题失效的不同反馈结果",
+          "location": {
+            "element": "web",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "点击无法解析的本地文档引用、当前所选模型中不存在的目标或无 Contract 的目标时，Web SHALL 在正文附近显示“无法定位引用目标”，保留当前页面，不跳入无效 diagram 路由。目标 Contract 存在而标题 fragment 不存在时 SHALL 打开目标正文并提示未找到定位位置；该反馈为界面提示。"
+        },
+        {
+          "detail": "父级具体 ftape 示例验证跨 View 阅读及页面状态保持",
+          "location": {
+            "element": "web",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "正文跨 View 阅读证据"
+          },
+          "quote": "- 当前页面为 `/view/full-model/?view=scenario`，正文含 `[ftape 驱动迁移案例](ftape-linux-timing.md)`，当前所选模型存在目标 Contract，但当前 View 不含该证据 Element。\n- 点击 SHALL 打开 `ftape-linux-timing` 的 Contracts，保持当前 Model、View、Mode、focus 与图形视口；不访问 `/view/full-model/ftape-linux-timing.md`，源 Markdown 保持原样。"
+        }
+      ]
+    },
+    {
+      "identity": "local-business-contract-migration",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "使用既有 browser-specification Kind；实例 Kind 和 parent 另由 structure 字段比对门禁校验",
+          "location": {
+            "elementKind": "browser-specification"
+          }
+        },
+        {
+          "detail": "业务规格基础 Section：Scope and Non-goals",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "Xirang Contract Delivery SHALL 按稳定 Element identity 向浏览器提供 Semantic Model、active Candidate 与活动 Change 目标中的单一 Element Contract，并提供只读 Markdown 阅读和正文引用导航。Web SHALL 不提供 Contract 编辑或保存功能，用户不得通过浏览器修改 Contract 源文件。本能力不负责 projection 计算或差异视觉表达，不构成规范性语义来源。"
+        },
+        {
+          "detail": "业务规格基础 Section：Business Logic",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Business Logic"
+          },
+          "quote": "Web SHALL 按 project identity、Element identity 与统一 source reference 提供单一 Contract。无 source 参数时读取 Semantic Model，`source=candidate` 读取 active Candidate，`source=change:<change-name>` 读取该活动 Change 的目标模型；不得使用 `source=change:candidate` reserved 编码。Candidate 的 Contract diff 与 diagnostics 呈现逻辑 SHALL 与活动 Change 一致。"
+        },
+        {
+          "detail": "业务规格基础 Section：Edge Cases and Exception Handling",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "Web SHALL 对有效 identity 的缺失 Contract 作为无 Contract 处理；loader 的该结果不得成为未处理异常。网络、权限或不可读等加载失败 SHALL 显示错误消息与 Element identity，且不关闭详情弹窗其他 tabs；单一 Contract 缺失时内容区 SHALL 显示 identity 与错误，不关闭 element details。"
+        },
+        {
+          "detail": "业务规格基础 Section：Key Acceptance Cases",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases"
+          },
+          "quote": "系统 SHALL 通过以下案例验证 Contract 投递、正文阅读和引用导航的可观察结果。"
+        },
+        {
+          "detail": "保留独立承诺：Contract 异步加载状态",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Contract 异步加载状态"
+          },
+          "quote": "Web SHALL 为 Contract 加载呈现 Loading、Success 与 Error 三种状态，并在 Element 或 source 变化时清除前一 Element 的内容，旧请求不得显示 stale content。"
+        },
+        {
+          "detail": "保留独立承诺：桌面与移动视口兼容",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "桌面与移动视口兼容"
+          },
+          "quote": "Contract 详情弹窗、tabs 与可滚动内容 SHALL 在桌面和移动视口中保持 viewport containment，无溢出、无重叠；长 Contract 内容 SHALL 可垂直滚动。"
+        },
+        {
+          "detail": "保留独立承诺：安全渲染 Contract Markdown",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "安全渲染 Contract Markdown"
+          },
+          "quote": "Web SHALL 使用 Markdown 渲染管线渲染 Contract 内容，支持标准 Markdown 元素，并禁止执行脚本与危险 HTML。"
+        },
+        {
+          "detail": "保留独立承诺：按需安全读取 Contract 单元",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "按需安全读取 Contract 单元"
+          },
+          "quote": "Web 的服务端 SHALL 从当前 Semantic Model 或所选 Change 目标模型的 `.xirang/model/elements/` 单元构建 identity→content 索引（manifest），并按稳定 Element identity 提供 Contract 内容读取。请求 SHALL 携带 project identity 与 Element identity；授权 SHALL 以 identity 为 key 的查找完成，请求输入不触达文件系统；absolute、`..`、backslash、非 `.md` 与 symlink 逃逸类输入作为查找 miss 处理，不构成路径读取。未打开的 Contract 内容无需单独请求即随 manifest 可用；Browser 的标签可见性由 manifest 中的 contracts map 决定。"
+        },
+        {
+          "detail": "保留独立承诺：Contract source 热更新",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Contract source 热更新"
+          },
+          "quote": "Web 服务端 SHALL 在当前有效模型、Authored View、Candidate 或活动 Change source 变化后重建对应 manifest，并使受旧 fingerprint 约束的 Contract requests 失效；未打开的 Contract 不需要独立网络请求，但下次访问 SHALL 使用最新有效 manifest 内容。"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：加载 Semantic Model Contract",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：加载 Semantic Model Contract"
+          },
+          "quote": "- 用户在 Full Model 中打开一个 Element 的 Contract tab\n- Browser 不提供 `source` 参数并返回 Semantic Model 中的 `XirangContractContent`"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：加载活动 Change Contract",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：加载活动 Change Contract"
+          },
+          "quote": "- 用户在 Model Selection 为活动 Change 时打开一个 Element Contract\n- loader 携带 `source=change:<change-name>` 并呈现目标模型中的 Contract、diff 与 diagnostics"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：加载 Candidate Contract",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：加载 Candidate Contract"
+          },
+          "quote": "- 用户在 Model Selection 为 Candidate 时打开一个 Element Contract\n- loader 携带 `source=candidate` 并呈现 active Candidate target 中的 Contract、diff 与 diagnostics"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：Contract 不存在",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：Contract 不存在"
+          },
+          "quote": "- endpoint 对有效 project、element 与可选 source 返回 Contract not found\n- loader 将该结果表示为无 Contract，而不是未处理异常"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：Contract state 与当前选择一致",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：Contract state 与当前选择一致"
+          },
+          "quote": "- Contract tab 呈现\n- Contract state 对应当前选中的 Element 与 View source，且仅反映最新加载请求的结果"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：新请求替代旧请求",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：新请求替代旧请求"
+          },
+          "quote": "- 用户在前一个 Contract request 完成前切换 Element 或 Model Selection\n- Browser 取消或忽略旧请求，且旧结果不得覆盖当前 Contract state"
+        },
+        {
+          "detail": "保留既有具体验收内容：通过 Contract 接口加载 Element Contract：使用 Contract selectors",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "通过 Contract 接口加载 Element Contract：使用 Contract selectors"
+          },
+          "quote": "- 自动化测试或 Browser integration 定位 Contract tab 与内容\n- UI 暴露 `data-xirang-contracts` 与 `data-xirang-contract-content` selectors"
+        },
+        {
+          "detail": "保留既有具体验收内容：条件式 Contracts tab 显示：Element 无 Contract 时隐藏 tab",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "条件式 Contracts tab 显示：Element 无 Contract 时隐藏 tab"
+          },
+          "quote": "- 当前选中 Element 的 projection 中不存在 Contract\n- 详情 SHALL NOT 显示 `Contracts` tab\n- 其他详情 tabs SHALL 保持可用"
+        },
+        {
+          "detail": "保留既有具体验收内容：条件式 Contracts tab 显示：Element 有 Contract 时显示 tab",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "条件式 Contracts tab 显示：Element 有 Contract 时显示 tab"
+          },
+          "quote": "- 当前选中 Element 的 projection 中存在其单一 Contract\n- 详情 SHALL 显示 `Contracts` tab\n- SHALL 使用该 Element 的稳定 identity 关联内容"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：加载中状态",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：加载中状态"
+          },
+          "quote": "- Contract 正在从加载器读取\n- 内容区 SHALL 显示加载指示器\n- SHALL NOT 显示过期内容"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：加载成功",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：加载成功"
+          },
+          "quote": "- Contract 成功加载\n- 内容区 SHALL 渲染完整 Contract 内容\n- SHALL 显示宿主 Element identity"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：加载失败",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：加载失败"
+          },
+          "quote": "- Contract 加载失败（网络错误、权限错误或不可读）\n- 内容区 SHALL 显示错误消息与 Element identity\n- SHALL NOT 关闭详情弹窗其他 tabs"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：切换 Element 清除旧状态",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：切换 Element 清除旧状态"
+          },
+          "quote": "- 用户从 Element A 切换到 B，或 source 变化使当前 selection 不再适用\n- SHALL 清除 A 的 Contract state\n- SHALL NOT 短暂显示 A 的内容\n- 旧请求 SHALL 被取消或忽略，不得覆盖当前 state"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：单一 Contract 加载",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：单一 Contract 加载"
+          },
+          "quote": "- 用户打开 `Contracts` 标签且宿主 Element 携带单一 Contract\n- SHALL 显示该 Contract 的完整 Markdown 与宿主 Element identity\n- SHALL NOT 显示 Contract selector"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 异步加载状态：单一 Contract 缺失",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 异步加载状态：单一 Contract 缺失"
+          },
+          "quote": "- identity 索引无法定位对应 Element 单元或其正文无 Contract\n- SHALL 在内容区显示 identity 与错误\n- SHALL NOT 关闭 element details"
+        },
+        {
+          "detail": "保留既有具体验收内容：桌面与移动视口兼容：桌面视口",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "桌面与移动视口兼容：桌面视口"
+          },
+          "quote": "- 在桌面浏览器中打开 Element 详情\n- 详情弹窗 SHALL 不溢出视口\n- 长 Contract 内容 SHALL 可垂直滚动"
+        },
+        {
+          "detail": "保留既有具体验收内容：桌面与移动视口兼容：移动视口",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "桌面与移动视口兼容：移动视口"
+          },
+          "quote": "- 在移动设备视口中打开 Element 详情\n- 弹窗 SHALL 位于视口边界内\n- tabs 与 Contract 内容 SHALL 位于弹窗边界内且无重叠\n- 长 Contract 内容 SHALL 可垂直滚动"
+        },
+        {
+          "detail": "保留既有具体验收内容：安全渲染 Contract Markdown：支持标准 Markdown 元素",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "安全渲染 Contract Markdown：支持标准 Markdown 元素"
+          },
+          "quote": "- 渲染 Contract Markdown\n- 系统 SHALL 支持标题、段落、列表、表格、代码块与链接\n- SHALL 正确显示嵌套列表与多级标题"
+        },
+        {
+          "detail": "保留既有具体验收内容：安全渲染 Contract Markdown：禁止危险内容",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "安全渲染 Contract Markdown：禁止危险内容"
+          },
+          "quote": "- Contract 内容包含 `<script>` 标签或事件处理属性\n- 系统 SHALL 清理或转义这些内容\n- SHALL NOT 执行任何 JavaScript"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract 内容只读展示：无编辑交互",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract 内容只读展示：无编辑交互"
+          },
+          "quote": "- 用户查看 Contract 内容\n- 系统 SHALL NOT 提供文本编辑框或保存按钮\n- 用户 SHALL NOT 能在浏览器中直接修改 Contract"
+        },
+        {
+          "detail": "保留既有具体验收内容：按需安全读取 Contract 单元：Identity 授权校验",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "按需安全读取 Contract 单元：Identity 授权校验"
+          },
+          "quote": "- browser 请求某 Element 的 Contract 内容\n- request SHALL 携带当前 model project identity 与稳定 Element identity\n- server SHALL 以 identity 为 key 从 manifest 查找对应内容"
+        },
+        {
+          "detail": "保留既有具体验收内容：按需安全读取 Contract 单元：路径类输入不触达文件系统",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "按需安全读取 Contract 单元：路径类输入不触达文件系统"
+          },
+          "quote": "- 请求携带 absolute、包含 `..`、包含 backslash、非 `.md` 或 symlink 逃逸类路径输入\n- 该输入仅作为 identity lookup miss 处理\n- SHALL NOT 作为路径读取任何文件"
+        },
+        {
+          "detail": "保留既有具体验收内容：按需安全读取 Contract 单元：路径授权校验",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "按需安全读取 Contract 单元：路径授权校验"
+          },
+          "quote": "- 请求的 identity 不在 manifest 中\n- server SHALL 拒绝读取\n- SHALL NOT 仅凭路径存在授权"
+        },
+        {
+          "detail": "保留既有具体验收内容：按需安全读取 Contract 单元：符号链接逃逸",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "按需安全读取 Contract 单元：符号链接逃逸"
+          },
+          "quote": "- `.xirang/model/` 下存在指向目录外的 symlink\n- 请求不会因该 symlink 触达目录外文件\n- 读取仅发生在本端 manifest 构建阶段对受管单元目录"
+        },
+        {
+          "detail": "保留既有具体验收内容：按需安全读取 Contract 单元：Manifest 预载 Contract 内容",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "按需安全读取 Contract 单元：Manifest 预载 Contract 内容"
+          },
+          "quote": "- manifest 构建\n- SHALL 将全部 Element Contract 内容序列化进 manifest\n- Browser 启动时获取该 manifest\n- 标签可见性由 manifest contracts map 决定，无需按请求读取未打开的单元"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract source 热更新：打开的 Contract 被修改",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract source 热更新：打开的 Contract 被修改"
+          },
+          "quote": "- 当前 Element 的 Contract source 变化且缓存重建成功\n- Browser 失效旧 Contract state 并呈现新内容\n- 旧 request 不得覆盖最新 selection"
+        },
+        {
+          "detail": "保留既有具体验收内容：Contract source 热更新：source 无效",
+          "location": {
+            "element": "xirang-contract-delivery",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "Contract source 热更新：source 无效"
+          },
+          "quote": "- 修改后的 source 导致完整缓存生成失败\n- Browser 保留 last-known-good projection\n- 显示新 source 的 diagnostics，不显示半更新 Contract"
+        },
+        {
+          "detail": "稳定 identity 与完整概念 Definition 保留；parent web 由 structure 门禁校验",
+          "location": {
+            "element": "xirang-contract-delivery"
+          },
+          "quote": "Xirang Contract Delivery 是 Web 对 LikeC4 的 Contract 投递改造：按稳定 Element identity 构建 identity→content 索引，经受控 HTTP 端点向浏览器按需安全提供 Semantic Model、active Candidate 与活动 Change 目标中的 Element Contract，并以只读方式渲染。它独立建模以隔离 Contract 内容获取与投影计算、差异呈现的边界；不负责 projection 计算与差异视觉表达，不构成规范性语义来源。"
+        }
+      ]
+    },
+    {
+      "identity": "implementation-provenance-check",
+      "result": "pending",
+      "affectsTarget": false,
+      "reason": "该 informative 条目记录已完成的源码观察和配套实施建议，没有待裁决业务或架构选择；本次设计已具体化至 Plan，修复后的运行测试属于 Apply 的四项目标，不是以 pending 掩盖的必要 Explore 实验。不得宣称已运行修复后的测试。"
+    }
+  ]
+}

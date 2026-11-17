@@ -1,9 +1,17 @@
 import type { DiagramView } from '@likec4/core/types'
 import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
+export interface XirangContractLink {
+  href: string
+  element?: string
+  fragment?: string
+  external?: true
+}
+
 export interface XirangContractContent {
   element: string
   md: string
+  links?: XirangContractLink[]
 }
 
 export type XirangDiffOperation = 'ADDED' | 'MODIFIED' | 'REMOVED'
@@ -90,6 +98,8 @@ export interface XirangViewSource {
   architecture?: XirangSemanticModel
   /** element identity → Contract markdown; absent key means the Element has no Contract. */
   contracts?: Record<string, string>
+  contractLinks?: Record<string, XirangContractLink[]>
+  contractFingerprint?: string
   /** Resolved Authored View boundary, present only for View Selection descriptors. */
   selection?: string[]
   roots?: string[]
@@ -119,9 +129,10 @@ export function isXirangContractDiagnostic(diagnostic: Pick<XirangViewDiagnostic
 /** Stable refresh key for a Semantic Model or Change-derived View source. */
 export function xirangViewSourceRevision(source: XirangViewSource): string {
   const fingerprints = source.partitionFingerprints
-  return fingerprints
+  const semantic = fingerprints
     ? Object.keys(fingerprints).sort().map(partition => fingerprints[partition]).join('|')
     : source.sourceFingerprint ?? source.changeFingerprint ?? source.id
+  return JSON.stringify([source.source, source.change ?? source.id, semantic, source.contractFingerprint])
 }
 
 export interface XirangAuthoredViewDescriptor {
@@ -281,7 +292,7 @@ export function XirangContractLoaderProvider({
   const initialRuntime = initialManifest
     ?? (embeddedManifest
       && typeof embeddedManifest === 'object'
-      && (embeddedManifest as { version?: unknown }).version === 4
+      && (embeddedManifest as { version?: unknown }).version === 5
       && 'model' in embeddedManifest
       && 'authoredViews' in embeddedManifest
       && 'changes' in embeddedManifest

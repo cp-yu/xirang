@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 5,
+  "changeId": "fix-contract-relative-links",
+  "revision": 10,
+  "reviews": [
+    {
+      "reviewKind": "full-change",
+      "commit": "3917c1788ad92f36c766c783e7f6af065922ed03",
+      "result": "FAIL",
+      "summary": "Reviewed the entire cumulative Change for Completeness, Correctness, Coherence and Cleanliness. The 123 focused tests passed, and comparison confirmed that all 27 original acceptance-case bodies were preserved. Independent reproductions exposed incorrect footnote link targeting that violates the required occurrence-specific navigation. HEAD remained unchanged and the worktree remained clean.",
+      "findings": [
+        "CRITICAL: Make footnote discovery follow the renderer's recursive, first-definition-wins semantics. In src/core/contract-links.ts:29-37, footnote definitions are collected only from tree.children, and duplicate identifiers overwrite earlier definitions. The renderer includes nested definitions and uses the first duplicate definition. Two independent reproductions confirmed incorrect behavior: (1) with '> [^note]: [note evidence](case.md)\\n>\\n> [^note]\\n\\n[body evidence](other.md)', projection emits only other.md at index 0, while rendering assigns case.md index 0 and other.md index 1; clicking the footnote therefore opens the body link's Element, while the valid body link becomes unresolved; (2) two top-level definitions named note, pointing respectively to first.md and second.md, render first.md at index 0 but project second.md at index 0. ContractMarkdown consumes that unchecked index in likec4/packages/diagram/src/overlays/element-details/ContractMarkdown.tsx:48-64, so the second case silently opens the wrong Contract. This contradicts occurrence-specific resolution in .xirang/changes/fix-contract-relative-links/design.md:25-27 and source-correct navigation in .xirang/changes/fix-contract-relative-links/elements/xirang-contract-delivery.md:24-30. Existing footnote tests cover top-level, unique definitions only (test/core/contract-links.test.ts:31-38; likec4/packages/core/src/utils/markdown/contract-html.spec.ts:13-18). Correct both discovery rules and add persistent regression coverage that verifies rendered occurrences select their corresponding projected identities."
+      ],
+      "recordedRevision": 1
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "e9a994ee2bbec3d473bdb96e90a5b8f1ba926d51",
+      "result": "FAIL",
+      "summary": "Reviewed the entire cumulative Change for Completeness, Correctness, Coherence, and Cleanliness. Source-aware link projection, the footnote correction, identity navigation, heading localization, transport, and refresh handling have credible implementation and test evidence. Independent checks passed 125 targeted tests; exact-commit Windows CI also passed. All 27 previous acceptance scenarios and the preserved declaration fields survived the Contract migration. One retained missing-Contract behavior remains unsatisfied. HEAD remained unchanged throughout assessment.",
+      "findings": [
+        "CRITICAL — Missing Contract results leave the content area blank. The target Contract explicitly requires displaying the Element identity and an error when its single Contract is missing (.xirang/changes/fix-contract-relative-links/elements/xirang-contract-delivery.md:34-36,124-128), and design.md:57-59 requires preserving existing behavior commitments. HttpContractLoader correctly converts a 404 to null (likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts:20-23), and XirangContractLoadController records this as success with null content (likec4/packages/diagram/src/overlays/element-details/ContractsTab.tsx:31-35). However, the UI renders successful results only when content is truthy and provides no null-result branch (ContractsTab.tsx:146-162). An advertised Contract returning 404, including during a manifest/request race, therefore leaves an empty panel without the required identity or error. A one-time render of the committed component with this successful null state confirmed an empty Stack. The existing test checks only the controller's null state (likec4/packages/diagram/src/overlays/element-details/ContractsTab.spec.tsx:79-88), so it cannot detect the missing feedback. Render an explicit missing-Contract message with the requested identity while preserving other tabs, and add a rendering-level regression test."
+      ],
+      "recordedRevision": 2
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "c4ebfd2da0f854d7f67b4a95fdc54b3efe336bd5",
+      "result": "FAIL",
+      "summary": "Reviewed the entire cumulative Change across Completeness, Correctness, Coherence and Cleanliness. Source-aware projection, identity navigation, heading rendering and both Required Corrections have supporting implementation and tests. Independently ran 125 passing tests, verified successful Windows CI for this exact commit, inspected build/browser evidence, and confirmed preservation of all 27 original acceptance-case bodies. One required navigation-invalidation behavior remains without mutation-sensitive test coverage. HEAD remained unchanged; the only worktree entry was the pre-existing untracked .quality.json.",
+      "findings": [
+        "CRITICAL — Required fragment/navigation invalidation is not behaviorally tested. The Contract prohibits older navigation results from overriding subsequent model, Element or anchor selections (.xirang/changes/fix-contract-relative-links/elements/xirang-contract-delivery.md:30-32,257-265), and the design requires source/version-bound positioning and clearing obsolete positioning intent (design.md:47-55). The implementation carries that intent through ElementDetails.tsx:32-38 and actor.ts:84-90, gates it by revision in ElementDetailsCard.tsx:681-687, and executes scrolling in ContractMarkdown.tsx:16-27. However, ContractsTab.spec.tsx:246-269 tests only load-controller state, while test/e2e/semantic-browser-contract-links.spec.ts:5-46,49-88 tests successful positioning and map refresh without a pending anchored navigation. These tests would not detect removing the fragment-revision guard and replaying an obsolete anchor after a source/version change. Test discovery using `git grep -n -E 'ContractMarkdown|open\\.contract|scrollIntoView|navigation.*fragment' HEAD -- test likec4/packages | grep -E '\\.(spec|test)\\.'` returned no matches; delayed-anchor race discovery under test/e2e also returned none. Add a component/browser behavioral test that supersedes anchored navigation with a model/source-version change or newer selection and verifies that obsolete completion cannot change the current body or scroll target."
+      ],
+      "recordedRevision": 3
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "3b42880979491793f203024567b3985907e1de27",
+      "result": "FAIL",
+      "summary": "Reviewed the entire cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Source-aware link resolution, transport, refresh and missing-Contract handling have supporting implementation and tests, but the new navigation path can associate the target Contract with another Element’s details and can retain the previous Element’s Relationships browser. Both are correctness defects in the affected details behavior. HEAD remained unchanged throughout assessment.",
+      "findings": [
+        "CRITICAL — Semantic identity is incorrectly used as a native LikeC4 FQN. ElementDetails.tsx:32–39 passes identity directly as subject; actor.ts:84–89 retains it as subject. ElementDetailsCard.tsx:227–242 then looks up a native element by that string and, whenever one exists, suppresses the selected-model declaration (169–183). A valid collision is root identity `root` with sibling identities `a` and `root.a`: src/core/likec4/local-names.ts:57–79 generates FQNs `root.a` and `root.a_2`. Clicking a link targeting identity `root.a` therefore finds native Element `a`, renders its title/kind/metadata and exposes its native tabs, while loading the Contract of `root.a`. Independently reproduced the generated names and evaluated the committed resolution helper: stableElementId was `root.a`, declaration was null, and the rendered header belonged to `a`. Resolve native objects through their explicit semantic identity mapping, or reject mismatched metadata before using them; add a collision regression test. This violates design Decision 3 and the target-Element guarantee in .xirang/changes/fix-contract-relative-links/elements/xirang-contract-delivery.md:24–30.",
+        "CRITICAL — Retargeting details leaves the Relationships child on the previous Element. likec4/packages/diagram/src/overlays/element-details/actor.ts:68–77 creates the child with the original subject, but open.contract at 84–90 only updates parent context and never retargets or recreates that child. TabPanelRelationships.tsx:33–38 and 92–113 continues rendering and opening the unchanged child. For a link target whose semantic identity is also its legitimate native FQN, such as root identity `root`, native tabs remain available, but Relationships shows the source Element rather than the newly opened target. A direct execution of the committed actor confirmed `{detailsSubject:\"root\", identity:\"root\", relationshipSubject:\"root.source\"}` after navigation. Synchronize the child with the correctly resolved target and add a behavioral regression. The test search `git grep -n -F 'open.contract' HEAD -- 'likec4/**/*.spec.ts' 'likec4/**/*.spec.tsx' 'test/**/*.test.ts' 'test/e2e/*.ts'` returned no matches; the inspected browser tests assert Contract navigation but not the resulting Relationships subject. This contradicts opening the target Element’s details under design Decision 3."
+      ],
+      "recordedRevision": 4
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "b8eccb6ee42374fef869342b7b87c27dd2789095",
+      "result": "FAIL",
+      "summary": "Reviewed Completeness, Correctness, Coherence and Cleanliness across the cumulative Change. Identity-based navigation, occurrence mapping, heading handling and the Required Corrections have supporting implementation and tests. However, G3's explicitly retained last-known-good guarantee remains unsatisfied. HEAD remained unchanged throughout assessment; the pre-existing untracked .quality.json was not used as implementation evidence.",
+      "findings": [
+        "CRITICAL — Invalid-source refresh discards the selected source's last-known-good Contract projection. G3 explicitly requires preserving presentation when a source becomes invalid (.xirang/changes/fix-contract-relative-links/tasks.md:14–17), and design Decision 5 requires retaining an atomic body/link/version snapshot on failure (design.md:51–55; elements/xirang-contract-delivery.md:289–293). After a previously valid Change develops a parse error, compileChangeDelta returns target=null (src/core/change-compiler.ts:174–184). runtimeProjectionFor then omits contracts, links and their version (src/core/view.ts:310–319), while buildViewRuntimeSnapshot replaces the previous Change source instead of retaining its successful projection (src/core/view.ts:480–505). Candidate validation failures similarly omit Contract runtime data (src/core/view.ts:411–439). The server accepts these structurally valid manifests (likec4/packages/vite-plugin/src/plugin.ts:431–447), and the frontend replaces the selected source (likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx:246–272,314–327); hasContract consequently becomes false and the open Contracts tab disappears (likec4/packages/diagram/src/overlays/element-details/ElementDetailsCard.tsx:261–279,679–689). Preserve the previous successful source projection and link version while exposing the new diagnostics. Extend the invalid-source regression test to assert preservation of that source's Contract body, resolved links and readable UI: the existing 'last-known-good' test checks only the unaffected formal-model fingerprint and valid=false, so it would pass despite this defect (test/core/view.test.ts:865–889)."
+      ],
+      "recordedRevision": 5
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "ca94fb773bbd8d5ae9bea974fa6bdd596bc5c889",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Focused verification passed 139 tests, and the one-time migration comparison confirmed all 27 original acceptance-case bodies were preserved. One reproducible correctness defect remains: an obsolete fragment intent can override a subsequently selected anchor when Contracts is reactivated. HEAD and repository status remained unchanged during assessment.",
+      "findings": [
+        "CRITICAL — Obsolete fragment intent is replayed after a newer local anchor selection. In likec4/packages/diagram/src/overlays/element-details/ContractMarkdown.tsx:25-27, every newly loaded content object reapplies navigation.fragment. However, local same-Element navigation at :61-63 scrolls without superseding or consuming that retained intent. ContractsTab.tsx:138-144 reloads content whenever the Contracts tab becomes active again, while ElementDetailsCard.tsx:681-687 continues supplying the original fragment whenever the source revision is unchanged. Reproduction: open A#first from another Contract, click A's local #second link, then select Properties and return to Contracts. The original #first intent overrides the newer #second selection. A Chrome harness using the committed ContractsTab, ContractMarkdown and Markdown converter reproduced the jump: scrollTop changed from 2648 after selecting #second to 21 after the tab round trip. This violates .xirang/changes/fix-contract-relative-links/elements/xirang-contract-delivery.md:32 and design.md:43-49, which prohibit earlier positioning from overriding subsequently selected anchors and require request-scoped positioning intent. Consume positioning intent after application, or update/invalidate it on subsequent local navigation and reloads; protect this sequence with a persistent behavior test."
+      ],
+      "recordedRevision": 6
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "1020d5b6c791f22d5b021da9ccc47ae31b90b143",
+      "result": "FAIL",
+      "summary": "Reviewed the cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Source-aware projection, occurrence mapping, identity navigation, last-known-good retention and the required corrections have substantial behavior evidence. Exact-HEAD Windows CI succeeded, desktop/mobile link tests report 16 passes, and all 27 original acceptance-case bodies are preserved. Two source/protocol consistency defects remain. HEAD was unchanged throughout assessment; the pre-existing untracked .quality.json remained untouched.",
+      "findings": [
+        "CRITICAL — The embedded-manifest consumer accepts the wrong protocol version. src/core/view.ts:510–516 emits version 5, and likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts:37–49 requires version 5, but likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx:290–303 accepts only embedded version 4. Independently rendering the provider from committed HEAD with a populated version-5 embedded manifest produced hasContract=false; the identical version-4 payload produced hasContract=true. Consequently current preloaded Contracts/link data are discarded, while an incompatible older manifest is admitted. The HTTP fetch normally masks this, but if it fails or is unavailable, valid preloaded details remain unavailable. Although the condition predates this Change, it remains in the affected transport boundary and violates design.md:27's explicit producer/consumer compatibility decision. Align embedded validation with the current protocol and protect both current-version initialization and older-version rejection with behavior tests.",
+        "CRITICAL — Anchor intent is not bound to Model/source identity. likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx:33–43 stamps navigation with selected.id and xirangViewSourceRevision(selected), but selected.id denotes the View. ContractLoaderContext.tsx:130–135 derives that revision from semantic/location fingerprints without the selected model discriminator. Distinct sources can legitimately share those fingerprints—for example two relationship-only Changes producing the same target model, whose Contract origins and managed Element units remain identical (src/core/view.ts:192–198, 327–342). A committed-code reproduction confirmed that distinct selected sources with identical fingerprints produce identical navigation revisions. ElementDetailsCard.tsx:680–687 therefore remounts the loader for the new source while still accepting the old anchor intent, and ContractMarkdown.tsx:24–28 reapplies its scroll when the new response renders. Same-View updates preserve overlays (likec4/packages/diagram/src/likec4diagram/state/machine.state.ready.ts:158–167), so source navigation does not inherently remove this intent. This violates design.md:49 and the Delta's prohibition on earlier positioning overriding a later model choice. Include the actual selected model/source identity in navigation validity and test switching between fingerprint-equivalent sources."
+      ],
+      "recordedRevision": 7
+    },
+    {
+      "reviewKind": "full-change",
+      "commit": "94ca954461a39dfd2e6b73355308003133927b4d",
+      "result": "PASS",
+      "summary": "Reviewed the entire cumulative Change for Completeness, Correctness, Coherence and Cleanliness. Source-aware occurrence resolution and three-model isolation implement the declared navigation behavior (src/core/contract-links.ts:20-98; src/core/view.ts:185-205,323-349; test/core/view.test.ts:953-985). Identity-based details navigation, safe Markdown rendering, heading feedback and request isolation are supported by implementation and behavioral tests (likec4/packages/diagram/src/overlays/element-details/ElementDetails.tsx:32-44; ContractMarkdown.tsx:14-61; ContractsTab.tsx:19-55,128-162; test/e2e/semantic-browser-contract-links.spec.ts:5-288). Transport validation and source-bound revisions remain coherent (likec4/packages/likec4-spa/src/xirang/HttpContractLoader.ts:16-49; likec4/packages/diagram/src/xirang/ContractLoaderContext.tsx:129-135,286-300). Independently verified preservation of all 27 existing acceptance-case bodies and reran 104 focused tests successfully. Inspected successful native Windows CI for this exact HEAD and supplied build/E2E execution records. No blocking defects or unauthorized behavior found. HEAD remained unchanged; the pre-existing untracked .quality.json was not inspected or modified.",
+      "findings": [],
+      "recordedRevision": 8
+    }
+  ],
+  "opt": {
+    "disposition": "delivered",
+    "opinions": [
+      {
+        "opinionId": "fix-contract-relative-links-inspection-94ca95446",
+        "baseCommit": "94ca954461a39dfd2e6b73355308003133927b4d",
+        "resultCommit": "94ca954461a39dfd2e6b73355308003133927b4d",
+        "summary": "Clean-context read-only inspection completed; no correctness blockers, no implementation attempted or retained. Coordinator stops optimization to preserve the reviewed navigation/LKG behavior and surgical link-fix scope.",
+        "findings": [
+          "OPT-1 deferred: invalid Change/Candidate callers eagerly build unpublished Contract projections (src/core/view.ts:327-343,411-415). A 151-Element/878-Section benchmark measured warm parsing at420/424/446/425/425ms; no end-to-end refresh improvement was measured. The optional speedup does not affect link correctness, and modifying invalid-source/LKG evaluation requires further behavior/diagnostic verification and independent Review; not justified for this repair handoff.",
+          "Inspection actually ran142 focused tests across9 files successfully. Initial mixed-project Vitest command was rejected before executing tests due maxWorkers/groupOrder; compatible project-separated commands passed without configuration changes. Browser/Windows/build/types were not rerun by Optimizer; existing actual evidence remains separately attributed.",
+          "No edits, abandoned implementation attempts, Git changes or retained optimization gains. HEAD and tracked files unchanged; same base/result commit adds no Review obligation. Inspection report: session subagent-artifacts/outputs/766c69e8-17a4-4510-b7aa-859466303166/optimization/fix-contract-relative-links-inspection.json."
+        ],
+        "recordedRevision": 9
+      }
+    ]
+  },
+  "seal": {
+    "commit": "94ca954461a39dfd2e6b73355308003133927b4d",
+    "canRun": true,
+    "testsExpectedToPass": true,
+    "testScope": "Current implementation:117 diagram unit tests/13 files; diagram typecheck; production SPA then embedded CLI builds;33 desktop/mobile Contract-link and Model View E2E tests. Exact-HEAD native Windows CI44073922842 passed root build/runtime/Contract checks. Reviewer independently reran104 focused tests and audited27 preserved acceptance bodies; Optimizer independently ran142 focused tests. Original ftape one-time browser capture predates correction commits; persistent current-head links regressions cover later changes. No claim of full repository/all-CI success.",
+    "assessment": "All goals G1-G4 and Required Corrections complete. Latest cumulative full-change Review PASS binds94ca954461a39dfd2e6b73355308003133927b4d; previous FAIL opinions preserved and superseded by corrections plus fresh full-change Reviews. No incremental/supplemental Review performed or required after the no-change inspection. OPT-1 explicitly deferred with evidence/cost/risk rationale; no retained unreviewed edits or unresolved correctness findings. HEAD and tracked files match reviewed state. Source isolation, request/anchor races, LKG behavior, transport version, heading navigation and original-case preservation have applicable evidence. Quality permits Archive entry; Sync/Archive and their independent gates have not run."
+  }
+}

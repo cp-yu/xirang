@@ -1,6 +1,7 @@
 export interface XirangContractContent {
   element: string
   md: string
+  links?: Array<{ href: string; element?: string; fragment?: string; external?: true }>
 }
 
 export interface XirangContractSourceSnapshot {
@@ -10,6 +11,8 @@ export interface XirangContractSourceSnapshot {
   architecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
   diffArchitecture?: { elements: Array<{ declaration: { identity: string; parent: string | null } }> }
   contracts?: Record<string, string>
+  contractLinks?: Record<string, NonNullable<XirangContractContent['links']>>
+  contractFingerprint?: string
   likec4Sources?: Record<string, string>
   likec4ElementPaths?: Record<string, string>
   diffLikec4Sources?: Record<string, string>
@@ -138,5 +141,9 @@ export function readXirangContract(
     return null
   }
   const md = contracts[element]
-  return typeof md === 'string' ? { element, md } : null
+  const links = contractSource.contractLinks?.[element]
+  if (contractSource.contractLinks && !Array.isArray(links)) {
+    throw new XirangContractError(500, 'Invalid Contract link projection')
+  }
+  return typeof md === 'string' ? { element, md, ...(links ? { links } : {}) } : null
 }

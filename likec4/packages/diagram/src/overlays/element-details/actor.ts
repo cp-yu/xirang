@@ -5,9 +5,8 @@ import {
   type SnapshotFrom,
   type StateMachine,
   assign,
-  sendTo,
+  enqueueActions,
   setup,
-  spawnChild,
   stopChild,
 } from 'xstate'
 import { type RelationshipsBrowserActorRef, relationshipsBrowserLogic } from '../relationships-browser/actor'
@@ -16,6 +15,7 @@ export type ElementDetailsInput = {
   subject: Fqn
   currentView: DiagramView
   identity?: string | undefined
+  contract?: { fragment?: string; revision: string } | undefined
   initiatedFrom?: {
     node?: NodeId
     clientRect?: Rect
@@ -23,9 +23,10 @@ export type ElementDetailsInput = {
 }
 
 export type Context = {
-  subject: Fqn
+  subject: Fqn | null
   currentView: DiagramView
   identity: string | null
+  contract: { fragment?: string; revision: string } | null
   initiatedFrom: {
     node: NodeId | null
     clientRect: Rect | null
@@ -34,6 +35,7 @@ export type Context = {
 
 export type Events =
   | { type: 'change.subject'; subject: Fqn }
+  | { type: 'open.contract'; subject: Fqn | null; identity: string; fragment?: string; revision: string }
   | { type: 'close' }
 
 const _elementDetailsLogic = setup({
@@ -53,6 +55,7 @@ const _elementDetailsLogic = setup({
   context: ({ input }) => ({
     ...input,
     identity: input.identity ?? null,
+    contract: input.contract ?? null,
     initiatedFrom: {
       node: input.initiatedFrom?.node ?? null,
       clientRect: input.initiatedFrom?.clientRect ?? null,
@@ -61,22 +64,32 @@ const _elementDetailsLogic = setup({
   initial: 'active',
   states: {
     'active': {
-      entry: spawnChild('relationshipsBrowserLogic', {
-        id: ({ self }) => `${self.id}-relationships`,
-        input: ({ context }) => ({
-          subject: context.subject,
-          viewId: context.currentView.id,
-          scope: 'view',
-          enableSelectSubject: false,
-          enableChangeScope: true,
-          closeable: false,
-        }),
+      entry: enqueueActions(({ context, self, enqueue }) => {
+        if (context.subject === null) return
+        enqueue.spawnChild('relationshipsBrowserLogic', {
+          id: `${self.id}-relationships`,
+          input: {
+            subject: context.subject,
+            viewId: context.currentView.id,
+            scope: 'view',
+            enableSelectSubject: false,
+            enableChangeScope: true,
+            closeable: false,
+          },
+        })
       }),
-      exit: [
-        sendTo(({ self }) => `${self.id}-relationships`, { type: 'close' }),
-        stopChild(({ self }) => `${self.id}-relationships`),
-      ],
+      exit: stopChild(({ self }) => `${self.id}-relationships`),
       on: {
+        'open.contract': {
+          target: 'active',
+          reenter: true,
+          actions: assign({
+            subject: ({ event }) => event.subject,
+            identity: ({ event }) => event.identity,
+            contract: ({ event }) => ({ revision: event.revision, ...(event.fragment ? { fragment: event.fragment } : {}) }),
+            initiatedFrom: () => ({ node: null, clientRect: null }),
+          }),
+        },
         'change.subject': {
           actions: assign({
             subject: ({ event }) => event.subject,

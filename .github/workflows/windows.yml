@@ -36,6 +36,7 @@ jobs:
         run: >-
           pnpm exec vitest run
           test/core/view.test.ts
+          test/core/contract-links.test.ts
       - name: Verify Windows record paths and build gates
         run: >-
           pnpm exec vitest run

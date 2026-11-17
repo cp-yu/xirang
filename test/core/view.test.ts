@@ -863,32 +863,125 @@ describe('buildViewRuntimeSnapshot candidate-only refresh', () => {
 });
 
 describe('buildViewRuntimeSnapshot last-known-good', () => {
-  it('preserves the previous snapshot when a change source cannot be compiled', async () => {
+  it.each(['change', 'candidate'] as const)('retains the successful %s projection through invalid refreshes and replaces it after recovery', async source => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-lkg-'));
     try {
-      await writeProjectModel(tempDir, minimalModel());
-      await writeChangeDelta(tempDir, 'valid-change', {
-        'elements/root.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Root definition.\n---\n',
-      });
-
+      const fixture = minimalModel({ elements: [
+        { identity: 'analysis', sections: '## Specification\n\n### Section: Read\n[evidence](evidence.md)' },
+        { identity: 'evidence', sections: CONTRACT },
+      ] });
+      await writeProjectModel(tempDir, fixture);
+      let file: string;
+      if (source === 'change') {
+        await writeChangeDelta(tempDir, 'valid-change', {
+          'elements/analysis.md': '---\nentity: element-declaration\nidentity: analysis\nkind: capability\nparent: root\ntitle: analysis\ndefinition: Definition of analysis.\n---\n\n## MODIFIED Sections\n\n### Section: Read\n[evidence](../../../model/elements/evidence.md)',
+        });
+        file = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements', 'analysis.md');
+      } else {
+        const candidate = path.join(tempDir, '.xirang', 'candidate');
+        await fs.mkdir(candidate, { recursive: true });
+        await fs.writeFile(path.join(candidate, 'candidate.yaml'), 'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n');
+        await fs.writeFile(path.join(candidate, 'build.md'), '# Build\n');
+        await writeModel(candidate, fixture);
+        file = path.join(candidate, 'elements', 'analysis.md');
+      }
+      const select = (snapshot: ViewRuntimeSnapshot) => source === 'change' ? snapshot.changes['valid-change']! : snapshot.candidate!;
       const before = await buildViewRuntimeSnapshot(tempDir);
-      const beforeFingerprint = before.model.sourceFingerprint;
-
-      // Break the change delta — e.g. truncate it so it cannot parse.
-      const changeDir = path.join(tempDir, '.xirang', 'changes', 'valid-change', 'elements');
-      await fs.writeFile(path.join(changeDir, 'root.md'), '---\nentity: BROKEN\n');
-
-      // Even though the source is broken, a partial re-build with the previous snapshot still
-      // returns the old model source fingerprint because the broken source yields diagnostics
-      // but does not throw — the manifest is emitted with `valid: false` for that change.
-      const after = await buildViewRuntimeSnapshot(tempDir, { previous: before, onlyChange: 'valid-change' });
-
-      // The model fingerprint must not change when only a change source breaks.
-      expect(after.model.sourceFingerprint).toBe(beforeFingerprint);
-      // The broken change is represented with valid: false, not silently dropped.
-      expect(after.changes['valid-change']!.valid).toBe(false);
+      const good = select(before);
+      expect(good.valid).toBe(true);
+      expect(good.contractLinks?.analysis?.[0]?.element).toBe('evidence');
+      const original = await fs.readFile(file, 'utf8');
+      await fs.writeFile(file, '---\nentity: BROKEN\n');
+      let previous = before;
+      for (const partial of [true, false]) {
+        if (!partial) await fs.writeFile(file, (source === 'change'
+          ? original.replace('### Section: Read', '### Section: Missing')
+          : original.replace('parent: root', 'parent: missing-parent')).replace('[evidence]', '[half-updated]'));
+        const freshInvalid = select(await buildViewRuntimeSnapshot(tempDir));
+        expect(freshInvalid.valid).toBe(false);
+        expect(freshInvalid.contracts).toBeUndefined();
+        const after = await buildViewRuntimeSnapshot(tempDir, { previous, ...(partial ? source === 'change' ? { onlyChange: 'valid-change' } : { onlyCandidate: true } : {}) });
+        const broken = select(after);
+        expect(broken.valid).toBe(false);
+        expect(broken.diagnostics.length).toBeGreaterThan(0);
+        expect(broken.contracts).toEqual(good.contracts);
+        expect(broken.contractLinks).toEqual(good.contractLinks);
+        expect(broken.contractFingerprint).toBe(good.contractFingerprint);
+        expect(broken.sourceFingerprint).toBe(good.sourceFingerprint);
+        expect(broken.architecture).toEqual(good.architecture);
+        previous = after;
+      }
+      await fs.writeFile(file, original.replace('evidence.md)', 'evidence.md#recovered)'));
+      const recovered = select(await buildViewRuntimeSnapshot(tempDir, { previous }));
+      expect(recovered.valid).toBe(true);
+      expect(recovered.contracts?.analysis).toContain('#recovered');
+      expect(recovered.contractLinks?.analysis?.[0]).toMatchObject({ element: 'evidence', fragment: 'recovered' });
+      expect(recovered.contractFingerprint).not.toBe(good.contractFingerprint);
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('source-aware Contract references', () => {
+  let root: string;
+  beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-contract-links-')); });
+  afterEach(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const contract = (text: string) => `## Specification\n\n### Section: Read\n${text}`;
+  const fixture = () => minimalModel({ elements: [
+    { identity: 'analysis.id', fileName: 'analysis', sections: contract('[evidence](case.md#时间依据)') + '\n\n### Section: Modified\n[baseline](case.md)' },
+    { identity: 'evidence.id', fileName: 'case', sections: contract('Formal evidence.') },
+  ] });
+
+  it('isolates Formal, Candidate and mixed inherited/modified Change origins', async () => {
+    await writeProjectModel(root, fixture());
+    const candidate = path.join(root, '.xirang', 'candidate');
+    await fs.mkdir(candidate, { recursive: true });
+    await fs.writeFile(path.join(candidate, 'candidate.yaml'), 'schemaVersion: 1\ncreatedAt: "2025-01-01T00:00:00.000Z"\nbaseline:\n  kind: current\n  reference: .xirang\n');
+    await fs.writeFile(path.join(candidate, 'build.md'), '# Build\n');
+    const candidateFixture = fixture();
+    candidateFixture.elements!.find(e => e.identity === 'evidence.id')!.sections = contract('Candidate evidence.');
+    await writeModel(candidate, candidateFixture);
+    await writeChangeDelta(root, 'references', {
+      'elements/analysis.md': '## MODIFIED Sections\n\n### Section: Modified\nUpdated [evidence](case.md).\n\n## ADDED Sections\n\n### Section: Delta\n[evidence](case.md)\n\n#### Acceptance Case: Detail\n[formal](../../../model/elements/case.md) [analysis](analysis.md)\n',
+      'elements/case.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: delta.id\nkind: capability\nparent: root\ntitle: Delta\ndefinition: Delta evidence\n---\n\n## ADDED Sections\n\n### Section: Read\nDelta evidence.\n',
+    });
+    // A section-only Delta declares its host identity explicitly.
+    const deltaPath = path.join(root, '.xirang', 'changes', 'references', 'elements', 'analysis.md');
+    await fs.writeFile(deltaPath, '---\nentity: element-declaration\nidentity: analysis.id\nkind: capability\nparent: root\ntitle: analysis.id\ndefinition: Definition of analysis.id.\n---\n\n' + await fs.readFile(deltaPath, 'utf8'));
+    const snapshot = await buildViewRuntimeSnapshot(root);
+    expect(snapshot.model.contractLinks['analysis.id']?.[0]).toMatchObject({ element: 'evidence.id', fragment: '时间依据' });
+    expect(snapshot.candidate?.contractLinks?.['analysis.id']?.[0]).toMatchObject({ element: 'evidence.id' });
+    expect(snapshot.candidate?.contracts?.['evidence.id']).toContain('Candidate evidence.');
+    expect(snapshot.changes.references?.valid, JSON.stringify(snapshot.changes.references?.diagnostics)).toBe(true);
+    expect(snapshot.changes.references?.contractLinks?.['analysis.id']).toEqual([
+      { href: 'case.md#时间依据', element: 'evidence.id', fragment: '时间依据' },
+      { href: 'case.md', element: 'delta.id' },
+      { href: 'case.md', element: 'delta.id' },
+      { href: '../../../model/elements/case.md', element: 'evidence.id' },
+      { href: 'analysis.md', element: 'analysis.id' },
+    ]);
+  });
+
+  it('follows the managed filesystem case behavior without treating paths as identities', async () => {
+    await writeProjectModel(root, fixture());
+    const source = path.join(root, '.xirang', 'model', 'elements', 'analysis.md');
+    await fs.writeFile(source, (await fs.readFile(source, 'utf8')).replace('case.md#时间依据', 'CASE.md'));
+    const exists = await fs.realpath(path.join(path.dirname(source), 'CASE.md')).then(() => true, () => false);
+    const snapshot = await buildViewRuntimeSnapshot(root);
+    expect(snapshot.model.contractLinks['analysis.id']?.[0]).toEqual(exists
+      ? { href: 'CASE.md', element: 'evidence.id' } : { href: 'CASE.md' });
+  });
+
+  it('invalidates the presentation on a file rename without changing semantic fingerprints', async () => {
+    await writeProjectModel(root, fixture());
+    const before = await buildViewRuntimeSnapshot(root);
+    const elements = path.join(root, '.xirang', 'model', 'elements');
+    await fs.rename(path.join(elements, 'case.md'), path.join(elements, 'renamed.md'));
+    const after = await buildViewRuntimeSnapshot(root, { previous: before, onlyCandidate: true });
+    expect(after.model.sourceFingerprint).toBe(before.model.sourceFingerprint);
+    expect(after.model.contractFingerprint).not.toBe(before.model.contractFingerprint);
+    expect(after.model.contractLinks['analysis.id']?.[0]).toEqual({ href: 'case.md#时间依据', fragment: '时间依据' });
   });
 });
