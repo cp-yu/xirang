@@ -64,3 +64,8 @@
 - [x] [code_fix] 两种归档结果均核对普通制品、Delta 和链接的完整快照，晚到修改不丢失。
 - [x] [code_fix] 拒绝 REMOVED 列表中无标题的 Section。
 - [x] [artifact_fix] 概念图和流程文档统一由 Apply 验证并写入 Seal、由 Archive 消费 Seal。
+- [x] [code_fix] 识别缩进的 Markdown 操作/Section 标题并拒绝 REMOVED 的正文，防止非法输入随合法 entries 交付。
+- [x] [code_fix] Windows 依据链接本身的属性复制链接类型，悬空目录链接不得被降为文件链接。
+- [x] [code_fix] 安装错误与源恢复冲突同时发生时，文本和 JSON 均保留两条实际诊断。
+- [x] [code_fix] 文本重试保持 stdout 路径，并明确提示查询到既有归档。
+- [x] [artifact_fix] Quality 所有相关 Section 只将有效 Seal 作为默认交付资格。

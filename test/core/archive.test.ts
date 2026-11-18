@@ -329,6 +329,9 @@ git:
       ['## ADDED Sections\n\n### Section:  \nThe system SHALL not lose this text.\n\n### Section: Titled\nThe system SHALL preserve the titled Section.\n', 'Malformed Section header'],
       ['## ADDED Sections\n\n### Section: Valid\nThe system SHALL retain this Section.\n\n## REMOVED Sections\n- ### Section:   \n', 'Malformed Section header'],
       ['## ADDED Sections\n\n### Section: Valid\nThe system SHALL retain this Section.\n\n## REMOVED Sections\n- `### Section:   `\n', 'Malformed Section header'],
+      ['## ADDED Sections\n### Section: New\nThe system SHALL add behavior.\n  ## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
+      ['## ADDED Sections\n### Section: New\nThe system SHALL add behavior.\n  ### Section:  \nThe system SHALL not silently omit this text.\n', 'Malformed Section header'],
+      ['## REMOVED Sections\n### Section: Old\nREMOVED entries must not carry prose.\n', 'REMOVED Sections may only name'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
       const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');

@@ -2,6 +2,8 @@ import { describeError, diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { constants, promises as fs, type Stats } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
@@ -32,6 +34,23 @@ function pendingArchivePath(destination: string): string {
   return path.join(path.dirname(destination), `.${path.basename(destination)}.pending`);
 }
 
+const execFileAsync = promisify(execFile);
+
+async function readLinkType(location: string): Promise<'dir' | 'file' | 'junction' | undefined> {
+  if (process.platform !== 'win32') return undefined;
+  // Windows stores the directory bit on the link, even when its target does not exist.
+  const powershell = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const script = "$ErrorActionPreference = 'Stop'; $file = $env:XIRANG_ARCHIVE_LINK; "
+    + "$attrs = [IO.File]::GetAttributes($file); $item = Get-Item -LiteralPath $file -Force; "
+    + "if ($item.LinkType -eq 'Junction') { 'junction' } elseif ($attrs -band [IO.FileAttributes]::Directory) { 'dir' } else { 'file' }";
+  const { stdout } = await execFileAsync(powershell, ['-NoProfile', '-NonInteractive', '-Command', script], {
+    env: { ...process.env, XIRANG_ARCHIVE_LINK: location }, windowsHide: true,
+  });
+  const type = stdout.trim();
+  if (type === 'dir' || type === 'file' || type === 'junction') return type;
+  throw new Error(`Cannot determine Windows link type: ${location}`);
+}
+
 async function fingerprintChangeTree(root: string): Promise<string> {
   const digest = createHash('sha256');
   const visit = async (directory: string, parent: string): Promise<void> => {
@@ -43,7 +62,7 @@ async function fingerprintChangeTree(root: string): Promise<string> {
         digest.update(JSON.stringify([relative, 'directory']) + '\n');
         await visit(location, relative);
       } else if (entry.isSymbolicLink()) {
-        digest.update(JSON.stringify([relative, 'link', await fs.readlink(location)]) + '\n');
+        digest.update(JSON.stringify([relative, 'link', await fs.readlink(location), await readLinkType(location)]) + '\n');
       } else if (entry.isFile()) {
         const bytes = createHash('sha256').update(await fs.readFile(location)).digest('hex');
         digest.update(JSON.stringify([relative, 'file', bytes]) + '\n');
@@ -77,8 +96,7 @@ export async function moveDirectory(
     if (entry.isDirectory()) await filesystem.mkdir(target);
     else if (entry.isSymbolicLink()) {
       const link = await fs.readlink(source);
-      const type = process.platform === 'win32' && (await fs.stat(source).catch(() => undefined))?.isDirectory() ? 'dir' : undefined;
-      await filesystem.symlink(link, target, type);
+      await filesystem.symlink(link, target, await readLinkType(source));
     } else if (entry.isFile()) await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
     else throw new Error(`Unsupported archive entry type: ${source}`);
     if (track) owned.set(target, await fs.lstat(target));
@@ -200,7 +218,7 @@ export async function moveDirectory(
       try {
         if (captured && removingCapture) await restoreMissing(staged!, captured);
         if (captured && !(await restoreSource(captured))) {
-          conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${captured}.`, { cause: error });
+          conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${captured}.`);
         }
       } catch (rollbackError) { failures.push(rollbackError); }
       await clearReservation().catch(rollbackError => failures.push(rollbackError));
@@ -209,8 +227,9 @@ export async function moveDirectory(
       if (captured && failures.length && await statIfPresent(captured).catch(() => undefined)) {
         failures.push(new Error(`Original source retained at ${captured}`));
       }
-      if (failures.length) throw new AggregateError([conflict ?? error, ...failures], 'Archive installation failed and rollback was incomplete');
-      throw conflict ?? error;
+      if (failures.length) throw new AggregateError([error, ...(conflict ? [conflict] : []), ...failures], 'Archive installation failed and rollback was incomplete');
+      if (conflict) throw new AggregateError([error], conflict.message);
+      throw error;
     } finally {
       // Never recursively remove the holding directory: it may still contain the only original.
       if (sourceRoot) await filesystem.rmdir(sourceRoot).catch(() => undefined);
@@ -341,6 +360,7 @@ export class ArchiveCommand {
     const active = await statIfPresent(changeDir);
     const report = (location: string, alreadyArchived = false) => {
       const archive = path.relative(projectRoot, location);
+      if (alreadyArchived && !options.json) diagnostic('Already archived.', 'ARCHIVE_ALREADY_ARCHIVED', false);
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
     if (!active?.isDirectory()) {

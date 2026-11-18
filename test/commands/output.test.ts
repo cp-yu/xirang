@@ -42,7 +42,7 @@ it('returns the existing archive location on retries in either mode', async () =
   await fs.mkdir(path.join(root, archive), { recursive: true });
   for (const json of [[], ['--json']]) {
     const result = await runCLI(['archive', 'demo', ...json], { cwd: root });
-    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(result).toMatchObject({ exitCode: 0, stderr: json.length ? '' : expect.stringContaining('Already archived') });
     expect(json.length ? JSON.parse(result.stdout) : result.stdout.trim()).toEqual(json.length ? { archive, alreadyArchived: true } : archive);
   }
 });
@@ -189,6 +189,32 @@ it.each([false, true])('reports the initiating failure and failed compensation (
   } finally { for (const mock of mocks) mock.mockRestore(); }
 });
 
+
+it.each([false, true])('reports the initiating failure and conflicting active directory (json=%s)', async json => {
+  const name = 'failed-with-new-active';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': 'original' });
+  const parent = path.join(path.dirname(source), 'archive', 'abandoned');
+  const dest = path.join(parent, `${new Date().toISOString().slice(0, 10)}-${name}`);
+  const realCopy = fs.copyFile;
+  const hook = vi.spyOn(fs, 'copyFile').mockImplementation(async (from, to, mode) => {
+    if (to === path.join(dest, 'proposal.md')) {
+      await writeChangeDelta(root, name, { 'proposal.md': 'new active' });
+      throw new Error('installation I/O denied');
+    }
+    await realCopy(from, to, mode);
+  });
+  try {
+    const result = await runCLI(['archive', name, '--abandon', '--yes', ...(json ? ['--json'] : [])], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    const message = json ? JSON.parse(result.stderr).message : result.stderr;
+    expect(message).toContain('installation I/O denied');
+    expect(message).toContain('Active Change was recreated');
+    await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('new active');
+    await expect(fs.access(dest)).rejects.toMatchObject({ code: 'ENOENT' });
+    const [held] = (await fs.readdir(path.dirname(source))).filter(entry => entry.startsWith('.archive-source-'));
+    await expect(fs.readFile(path.join(path.dirname(source), held, name, 'proposal.md'), 'utf8')).resolves.toBe('original');
+  } finally { hook.mockRestore(); }
+});
 
 it('reports an archive error and incomplete model rollback in structured diagnostics', async () => {
   await writeProjectModel(root, minimalModel());

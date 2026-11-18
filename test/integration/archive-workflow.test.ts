@@ -43,6 +43,40 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(archived, 'relative-link'), 'utf8')).resolves.toBe('source');
   });
 
+  it.skipIf(process.platform !== 'win32')('keeps an unresolved Windows junction as a junction', async () => {
+    const archived = path.join(root, 'archived');
+    const target = path.join(root, 'missing-directory');
+    const original = path.join(changeDir, 'junction');
+    await fs.symlink(target, original, 'junction');
+    await expect(fs.stat(original)).rejects.toMatchObject({ code: 'ENOENT' });
+    const linkText = await fs.readlink(original);
+
+    await moveDirectory(changeDir, archived);
+
+    const moved = path.join(archived, 'junction');
+    expect((await fs.lstat(moved)).isSymbolicLink()).toBe(true);
+    await expect(fs.readlink(moved)).resolves.toBe(linkText);
+    await fs.mkdir(target);
+    await expect(fs.stat(moved).then(entry => entry.isDirectory())).resolves.toBe(true);
+  });
+
+  it.skipIf(process.platform !== 'win32')('keeps a relative Windows directory symlink when capturing makes it unresolved', async context => {
+    const archived = path.join(path.dirname(changeDir), 'archived');
+    const target = path.join(path.dirname(changeDir), 'sibling');
+    await fs.mkdir(target);
+    const original = path.join(changeDir, 'dir-link');
+    try { await fs.symlink(path.join('..', 'sibling'), original, 'dir'); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EPERM') return context.skip('Windows runner cannot create directory symlinks');
+      throw error;
+    }
+    const linkText = await fs.readlink(original);
+    await moveDirectory(changeDir, archived);
+    const moved = path.join(archived, 'dir-link');
+    await expect(fs.readlink(moved)).resolves.toBe(linkText);
+    await expect(fs.stat(moved).then(entry => entry.isDirectory())).resolves.toBe(true);
+  });
+
   it('keeps the active source and removes partial output when a copy is denied', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
     const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
