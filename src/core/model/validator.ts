@@ -1,13 +1,13 @@
 import { validateBusinessSpecification } from './business-specification.js';
 import {
+  IDENTITY_PATTERN,
+  RESERVED_AUTHORED_VIEW_IDENTITY,
   relationshipIdentity,
   type DiagnosticEntity,
   type ElementKind,
   type ModelDiagnostic,
   type SemanticModel,
 } from './types.js';
-
-const IDENTITY = /^[A-Za-z0-9._-]+$/;
 
 function error(code: string, message: string, identity?: string, entity?: DiagnosticEntity): ModelDiagnostic {
   return {
@@ -28,13 +28,13 @@ function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): 
     ...model.views.map(item => ['authored view', 'authored-view', item.identity] as [string, DiagnosticEntity, string]),
   ];
   for (const [label, entity, identity] of identities) {
-    if (!IDENTITY.test(identity)) {
+    if (!IDENTITY_PATTERN.test(identity)) {
       diagnostics.push(error('INVALID_IDENTITY', `Invalid ${label} identity: ${identity}`, identity, entity));
     }
   }
 
   for (const view of model.views) {
-    if (view.identity === 'full-model') {
+    if (view.identity === RESERVED_AUTHORED_VIEW_IDENTITY) {
       diagnostics.push(error(
         'RESERVED_VIEW_IDENTITY',
         'Authored View identity full-model is reserved for the default Full Model',

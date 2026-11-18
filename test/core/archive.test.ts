@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
+import { readSyncModelTree } from '../../src/core/model/transaction.js';
 import { execFile, spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'fs';
@@ -731,17 +732,53 @@ git:
       await expect(fs.access(path.join(archiveDir, archived!, 'effective-change.md'))).rejects.toThrow();
     });
 
-    it('should allow archive when an already-removed Element stays removed', async () => {
-      const changeName = 'already-removed-element';
-      const changeDir = await writeChangeDelta(tempDir, changeName, {
-        'elements/ghost.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
+    describe.each([false, true])('delivery identity validation (quick=%s)', quick => {
+      const removal = (entity: string, identity = 'bad identity') =>
+        `---\noperation: REMOVED\nentity: ${entity}\nidentity: ${identity}\n---\n`;
+
+      it.each([
+        ['Element Declaration', 'elements/invalid.md', removal('element-declaration'), 'INVALID_IDENTITY'],
+        ['Element Kind', 'metamodel/invalid.md', removal('element-kind'), 'INVALID_IDENTITY'],
+        ['Relationship Kind', 'metamodel/invalid.md', removal('relationship-kind'), 'INVALID_IDENTITY'],
+        ['Authored View', 'views/invalid.md', removal('authored-view'), 'INVALID_IDENTITY'],
+        ['reserved Authored View', 'views/invalid.md', removal('authored-view', 'full-model'), 'RESERVED_VIEW_IDENTITY'],
+        ['Section host', 'elements/invalid.md', elementUnit({ identity: 'bad identity' }) + '## REMOVED Sections\n### Section: Old behavior\n', 'INVALID_IDENTITY'],
+        ...['source', 'kind', 'target'].map(field => {
+          const relationship = { source: 'root', kind: 'links', target: 'existing.id', [field]: 'bad identity' };
+          return [`Relationship ${field}`, 'relationships/invalid.yaml', `relationships:\n  - operation: REMOVED\n    source: ${relationship.source}\n    kind: ${relationship.kind}\n    target: ${relationship.target}\n`, 'INVALID_IDENTITY'];
+        }),
+      ])('does not mistake an invalid removal for an already-applied one (%s)', async (_label, unit, delta, code) => {
+        const name = 'invalid-removal';
+        const source = await writeChangeDelta(tempDir, name, { 'elements/existing.id.md': MODIFY_EXISTING, [unit]: delta });
+        if (!quick) await writeFreshQualityRecord(source);
+        const before = await readSyncModelTree(tempDir);
+
+        await expect(archiveCommand.execute(name, { yes: true, quick })).rejects.toThrow(`${unit}: ${code}`);
+        await expect(readSyncModelTree(tempDir)).resolves.toEqual(before);
+        await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+        await expect(fs.readFile(path.join(source, 'elements/existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+        await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
       });
-      await writeFreshQualityRecord(changeDir);
 
-      await archiveCommand.execute(changeName, { yes: true });
+      it('preserves the no-op for valid absent removals', async () => {
+        const name = 'already-removed';
+        const source = await writeChangeDelta(tempDir, name, {
+          'elements/ghost.md': removal('element-declaration', 'ghost.id'),
+          'elements/existing.id.md': elementUnit({ identity: 'existing.id' }) + '## REMOVED Sections\n### Section: Old behavior\n',
+          'metamodel/ghost-kind.md': removal('element-kind', 'ghost_kind'),
+          'metamodel/ghost-relationship-kind.md': removal('relationship-kind', 'ghost-kind'),
+          'relationships/ghost.yaml': 'relationships:\n  - operation: REMOVED\n    source: root\n    kind: ghost-kind\n    target: ghost.id\n',
+          'views/ghost.md': removal('authored-view', 'ghost-view'),
+        });
+        if (!quick) await writeFreshQualityRecord(source);
+        const before = await readSyncModelTree(tempDir);
 
-      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      expect((await fs.readdir(archiveDir)).some((entry) => entry.includes(changeName))).toBe(true);
+        await archiveCommand.execute(name, { yes: true, quick });
+
+        await expect(readSyncModelTree(tempDir)).resolves.toEqual(before);
+        await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+        expect(await fs.readdir(path.join(path.dirname(source), 'archive'))).toEqual([expect.stringMatching(/-already-removed$/)]);
+      });
     });
 
     it('should warn about incomplete tasks', async () => {

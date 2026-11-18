@@ -7,6 +7,8 @@ export type EntityType =
 export type Partition = 'metamodel' | 'elements' | 'relationships' | 'views';
 
 export const PARTITIONS: readonly Partition[] = ['elements', 'metamodel', 'relationships', 'views'];
+export const IDENTITY_PATTERN = /^[A-Za-z0-9._-]+$/;
+export const RESERVED_AUTHORED_VIEW_IDENTITY = 'full-model';
 
 export const ENTITY_TYPES: readonly EntityType[] = [
   'element-declaration',

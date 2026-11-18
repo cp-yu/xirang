@@ -12,6 +12,8 @@ import {
   readRelationship,
 } from './parser.js';
 import {
+  IDENTITY_PATTERN,
+  RESERVED_AUTHORED_VIEW_IDENTITY,
   relationshipIdentity,
   type AuthoredView,
   type DiagnosticEntity,
@@ -160,7 +162,18 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
     diagnostics.push(error(split.code, file, split.message));
     return;
   }
-  if (readEntity(split.data) === 'element-declaration') {
+  const entity = readEntity(split.data);
+  const identity = split.data.identity;
+  // A removal may not have an entity in the target model to validate.
+  if (entity && typeof identity === 'string' && identity !== '' && !IDENTITY_PATTERN.test(identity)) {
+    diagnostics.push(error('INVALID_IDENTITY', file, `Invalid ${entity} identity: ${JSON.stringify(identity)}`, identity, entity));
+    return;
+  }
+  if (entity === 'authored-view' && identity === RESERVED_AUTHORED_VIEW_IDENTITY) {
+    diagnostics.push(error('RESERVED_VIEW_IDENTITY', file, 'Authored View identity full-model is reserved for the default Full Model', identity, entity));
+    return;
+  }
+  if (entity === 'element-declaration') {
     parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);
     return;
   }
@@ -201,6 +214,12 @@ function parseDeltaContainer(file: string, content: string, entries: DeltaEntry[
     const relationship = readRelationship(file, entry);
     if ('level' in relationship) {
       diagnostics.push(relationship);
+      continue;
+    }
+    const invalid = Object.entries(relationship).find(([, identity]) => !IDENTITY_PATTERN.test(identity));
+    if (invalid) {
+      const [field, identity] = invalid;
+      diagnostics.push(error('INVALID_IDENTITY', file, `Invalid relationship ${field} identity: ${JSON.stringify(identity)}`, identity, 'relationship'));
       continue;
     }
     const label = `${relationship.source} -[${relationship.kind}]-> ${relationship.target}`;

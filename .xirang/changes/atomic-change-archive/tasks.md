@@ -94,3 +94,4 @@
 - [x] [code_fix] 使用两个独立 CLI 进程验证通过预检后争用提交锁，失败方不改 Formal 或归档。
 - [x] [code_fix] 允许 0–3 个前导空格的 Acceptance Case 标题；其正文不能替代 Section 正文。
 - [x] [code_fix] 历史补全发现已完成的交付及放弃，包括合法长名称和无 proposal 的放弃，并排除两边的半成品。
+- [x] [code_fix] 校验 REMOVED 的声明标识、Section 宿主与关系三元组，不能把非法标识当作已移除；默认和 quick 均保留合法无操作交付。
