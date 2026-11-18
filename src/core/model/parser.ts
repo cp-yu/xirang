@@ -3,7 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { buildCodeFenceMask, readAcceptanceCaseHeader } from '../parsers/section-text.js';
+import { buildLiteralBlockMask, readAcceptanceCaseHeader } from '../parsers/section-text.js';
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
@@ -116,7 +116,7 @@ function kindConstraint(value: unknown, field: string, file: string, identity: s
 /** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
 export function parseSectionBlock(name: string, raw: string, file: string, diagnostics: ModelDiagnostic[]): Section {
   const lines = normalizeLineEndings(raw).split('\n').slice(1);
-  const mask = buildCodeFenceMask(lines);
+  const mask = buildLiteralBlockMask(lines);
   const bodyLines: string[] = [];
   const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
@@ -146,7 +146,7 @@ export interface ParsedContract {
 
 function hasSpecificationHeader(normalized: string): boolean {
   const lines = normalized.split('\n');
-  const mask = buildCodeFenceMask(lines);
+  const mask = buildLiteralBlockMask(lines);
   return lines.some((line, index) => !mask[index] && /^##\s+Specification\s*$/i.test(line));
 }
 

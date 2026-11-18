@@ -129,3 +129,4 @@
 - [x] [code_fix] 四种 shell 的 `archive` 参数补全使用活动及两种已完成归档的无日期 Change 名，去重并排除半成品；用实际 Bash 和 CLI 回执验证。
 - [x] [code_fix] 按 Markdown 块结构识别代码围栏，HTML 块和注释内的反引号不会隐藏其后的操作标题。
 - [x] [code_fix] 归档参数补全与归档选择器共用目录发现，包括未编写 proposal 的活动 Change；通用补全保持原行为。
+- [x] [code_fix] 列表内的真实代码围栏和 HTML 注释保留为正文，不成为操作、Section 或验收案例；注释内容不能满足正文关键词检查。

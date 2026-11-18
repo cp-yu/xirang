@@ -1,4 +1,4 @@
-import { buildCodeFenceMask, readSectionMarkdown } from './section-text.js';
+import { buildLiteralBlockMask, readSectionMarkdown } from './section-text.js';
 
 export interface SectionBlock {
   headerLine: string; // e.g., '### Section: Something'
@@ -38,8 +38,8 @@ function normalizeLineEndings(content: string): string {
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const { fences: codeFenceMask, setext: underlined } = readSectionMarkdown(lines, true);
-  const specHeaderIndex = lines.findIndex((line, index) => !codeFenceMask[index]
+  const { literal: literalMask, setext: underlined } = readSectionMarkdown(lines, true);
+  const specHeaderIndex = lines.findIndex((line, index) => !literalMask[index]
     && /^##\s+Specification\s*$/i.test(line));
 
   if (specHeaderIndex === -1) {
@@ -58,7 +58,7 @@ export function extractSpecificationSection(content: string): SpecificationSecti
   // A heading at level one or two ends the Specification, even without a title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    if (!codeFenceMask[i] && (ENCLOSING_HEADING.test(lines[i]) || underlined.has(i))) {
+    if (!literalMask[i] && (ENCLOSING_HEADING.test(lines[i]) || underlined.has(i))) {
       endIndex = i;
       break;
     }
@@ -67,8 +67,8 @@ export function extractSpecificationSection(content: string): SpecificationSecti
   const before = lines.slice(0, specHeaderIndex).join('\n');
   const headerLine = lines[specHeaderIndex];
   const sectionBodyLines = lines.slice(specHeaderIndex + 1, endIndex);
-  const sectionBodyFenceMask = codeFenceMask.slice(specHeaderIndex + 1, endIndex);
-  const isSectionHeader = (index: number) => !sectionBodyFenceMask[index]
+  const sectionBodyLiteralMask = literalMask.slice(specHeaderIndex + 1, endIndex);
+  const isSectionHeader = (index: number) => !sectionBodyLiteralMask[index]
     && SECTION_HEADER_REGEX.test(sectionBodyLines[index]);
 
   const blocks: SectionBlock[] = [];
@@ -189,7 +189,7 @@ function splitTopLevelSections(content: string): {
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const { fences: mask, setext: underlined } = readSectionMarkdown(lines, true);
+  const { literal: mask, setext: underlined } = readSectionMarkdown(lines, true);
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;
@@ -249,7 +249,7 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
   if (!sectionBody) return [];
   const lines = normalizeLineEndings(sectionBody).split('\n');
   const blocks: SectionBlock[] = [];
-  const mask = buildCodeFenceMask(lines);
+  const mask = buildLiteralBlockMask(lines);
   const isHeader = (index: number) => !mask[index] && /^ {0,3}###\s*Section:/.test(lines[index]);
   let i = 0;
   while (i < lines.length) {
@@ -281,7 +281,7 @@ function parseRemovedNames(sectionBody: string): string[] {
   if (!sectionBody) return [];
   const names: string[] = [];
   const lines = normalizeLineEndings(sectionBody).split('\n');
-  const mask = buildCodeFenceMask(lines);
+  const mask = buildLiteralBlockMask(lines);
   for (const [index, line] of lines.entries()) {
     if (mask[index]) continue;
     const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);

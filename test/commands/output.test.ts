@@ -503,6 +503,37 @@ it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unsc
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
 });
 
+it.each([
+  ['list fence', '- Example:\n\n  ```md\n  ## RENAMED Sections\n  ### Section: Literal in a list\n  ```'],
+  ['HTML comment', '<!--\n### Section: Commented intent\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Commented case\nThis is not a case.\n-->'],
+])('preserves literal %s content without creating operations from it', async (_label, example) => {
+  const formal = '## Specification\n\n### Section: Existing rule\n\nRoot SHALL follow the existing rule.\n\n' + example;
+  await writeProjectModel(root, minimalModel());
+  const modelFile = path.join(root, '.xirang', 'model', 'elements', 'root.md');
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  await fs.writeFile(modelFile, elementUnit({ ...declaration, sections: formal }));
+  const added = '### Section: New rule\n\nRoot SHALL follow the new rule.\n\n' + example;
+  const delta = elementUnit({ ...declaration, sections: '## ADDED Sections\n\n' + added });
+  const source = await writeChangeDelta(root, 'opaque-example', { 'proposal.md': '# Preserve examples\n', 'elements/root.md': delta });
+  await createCompleteQualityFixture(root, source);
+
+  const preview = await runCLI(['validate', '--change', 'opaque-example', '--preview', '--json'], { cwd: root });
+  expect.soft(preview).toMatchObject({ exitCode: 0, stderr: '' });
+  expect.soft(JSON.parse(preview.stdout).summary).toEqual({ total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 });
+  const delivery = await runCLI(['archive', 'opaque-example', '--yes', '--json'], { cwd: root });
+  expect(delivery).toMatchObject({ exitCode: 0, stderr: '' });
+  const installed = await fs.readFile(modelFile, 'utf8');
+  expect(installed.slice(installed.indexOf('## Specification'))).toBe(`${formal}\n\n${added}\n`);
+  await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.readFile(path.join(root, JSON.parse(delivery.stdout).archive, 'elements', 'root.md'), 'utf8')).resolves.toBe(delta);
+});
+
+it('does not count a normative keyword inside an HTML comment as Section prose', async () => {
+  const sections = '## ADDED Sections\n\n### Section: Missing rule\n\n<!--\nRoot SHALL follow the rule.\n-->';
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'missing Section text');
+});
+
 it.each(['<div>\n```\n</div>', '<!--\n```\n-->'])('does not let fence-like text in an HTML block hide a retired operation (%j)', async html => {
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${html}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',

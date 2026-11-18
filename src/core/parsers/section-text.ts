@@ -1,7 +1,4 @@
-/**
- * Shared fence-aware Section body extraction and keyword helpers.
- * Element Contract and Delta validation use these helpers over Section bodies.
- */
+/** Shared Markdown block boundaries and normative prose helpers. */
 
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
@@ -9,9 +6,11 @@ import { unified } from 'unified';
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
-const FENCE_START = /^ {0,3}(?:`{3,}|~{3,})/;
+const FENCE_START = /^(?:`{3,}|~{3,})/;
+const BLOCK_CANDIDATE = /`{3,}|~{3,}|</;
 const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
 const markdown = unified().use(remarkParse);
+type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
 
 /** Undefined means no case heading; an empty name means the heading has no title. */
 export function readAcceptanceCaseHeader(line: string): string | undefined {
@@ -22,22 +21,39 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
 }
 
 export function readSectionMarkdown(lines: string[], includeSetext = false) {
-  const fences = new Array<boolean>(lines.length).fill(false);
+  const literal = new Array<boolean>(lines.length).fill(false);
+  const hidden = new Array<boolean>(lines.length).fill(false);
   const setext = new Map<number, number>();
-  if (lines.some(line => FENCE_START.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
-    for (const node of markdown.parse(lines.join('\n')).children) {
-      if (!node.position) continue;
-      const start = node.position.start.line - 1;
-      const end = node.position.end.line - 1;
-      if (node.type === 'code' && FENCE_START.test(lines[start])) fences.fill(true, start, end + 1);
-      if (includeSetext && node.type === 'heading' && start !== end) setext.set(start, end);
-    }
+  if (lines.some(line => BLOCK_CANDIDATE.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
+    const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
+      if (!node.position) return;
+      const { start, end } = node.position;
+      const first = start.line - 1;
+      const last = end.line - 1;
+      if (node.type === 'code' && FENCE_START.test(lines[first].slice(start.column - 1))) {
+        literal.fill(true, first, last + 1);
+        hidden.fill(true, first, last + 1);
+      } else if (node.type === 'html') {
+        // Inline markup does not hide other Markdown on its opening and closing lines.
+        const from = inline ? first + 1 : first;
+        const to = inline ? last : last + 1;
+        literal.fill(true, from, to);
+        if (node.value.startsWith('<!--')) hidden.fill(true, from, to);
+      } else if (includeSetext && topLevel && node.type === 'heading' && first !== last) {
+        setext.set(first, last);
+      }
+      if ('children' in node) {
+        const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
+        node.children.forEach(child => visit(child, false, childInline));
+      }
+    };
+    markdown.parse(lines.join('\n')).children.forEach(node => visit(node, true, false));
   }
-  return { fences, setext };
+  return { literal, hidden, setext };
 }
 
-export function buildCodeFenceMask(lines: string[]): boolean[] {
-  return readSectionMarkdown(lines).fences;
+export function buildLiteralBlockMask(lines: string[]): boolean[] {
+  return readSectionMarkdown(lines).literal;
 }
 
 /** Whole-word SHALL/MUST detection shared by Contract and Delta validation. */
@@ -47,18 +63,18 @@ export function containsShallOrMust(text: string): boolean {
 
 /**
  * Extract the full Section body after a Section header.
- * Skips fenced lines and headings; stops at the first Acceptance Case.
+ * Skips fenced examples, comments and headings; stops at the first Acceptance Case.
  * Metadata lines skipped when other prose exists; otherwise kept as body.
  */
 export function extractSectionBody(bodyLines: string[]): string {
-  const mask = buildCodeFenceMask(bodyLines);
+  const { literal, hidden } = readSectionMarkdown(bodyLines);
   const captured: string[] = [];
   const metadata: string[] = [];
 
   for (let i = 0; i < bodyLines.length; i++) {
-    if (mask[i]) continue;
+    if (hidden[i]) continue;
     const line = bodyLines[i];
-    if (readAcceptanceCaseHeader(line) !== undefined) break;
+    if (!literal[i] && readAcceptanceCaseHeader(line) !== undefined) break;
     if (HEADER_LINE.test(line)) continue;
     const trimmed = line.trim();
     if (trimmed.length === 0) continue;
