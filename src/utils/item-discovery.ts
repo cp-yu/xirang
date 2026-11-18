@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { XIRANG_DIR_NAME } from '../core/config.js';
-import { pendingArchivePath } from '../core/archive-paths.js';
+import { isDatedArchiveName, pendingArchivePath } from '../core/archive-paths.js';
 import { modelRoot } from '../core/model/paths.js';
 import { parseSemanticModel } from '../core/model/parser.js';
 
@@ -39,27 +39,16 @@ export async function getContractElementIds(root: string = process.cwd()): Promi
 
 export async function getArchivedChangeIds(root: string = process.cwd()): Promise<string[]> {
   const archivePath = path.join(root, XIRANG_DIR_NAME, 'changes', 'archive');
-  try {
-    const entries = await fs.readdir(archivePath, { withFileTypes: true });
-    const result: string[] = [];
+  const result = new Set<string>();
+  for (const directory of [archivePath, path.join(archivePath, 'abandoned')]) {
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
     for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-      const destination = path.join(archivePath, entry.name);
-      try {
-        const pending = await fs.lstat(pendingArchivePath(destination)).catch((error: NodeJS.ErrnoException) => {
-          if (error.code !== 'ENOENT') throw error;
-          return undefined;
-        });
-        if (pending) continue;
-        await fs.access(path.join(destination, 'proposal.md'));
-        result.push(entry.name);
-      } catch {
-        // Don't advertise unreadable history or directories without a proposal.
-      }
+      if (!entry.isDirectory() || !isDatedArchiveName(entry.name)) continue;
+      const marker = pendingArchivePath(path.join(directory, entry.name));
+      const completed = await fs.lstat(marker).then(() => false, (error: NodeJS.ErrnoException) => error.code === 'ENOENT');
+      if (completed) result.add(entry.name);
     }
-    return result.sort();
-  } catch {
-    return [];
   }
+  return [...result].sort();
 }
 

@@ -92,3 +92,5 @@
 - [x] [code_fix] Section 正文可在普通子标题后；仅 Acceptance Case 结束规范正文的关键词检查。
 - [x] [code_fix] 拒绝没有条目的 Relationship Delta 及携带目标内容的 REMOVED 声明。
 - [x] [code_fix] 使用两个独立 CLI 进程验证通过预检后争用提交锁，失败方不改 Formal 或归档。
+- [x] [code_fix] 允许 0–3 个前导空格的 Acceptance Case 标题；其正文不能替代 Section 正文。
+- [x] [code_fix] 历史补全发现已完成的交付及放弃，包括合法长名称和无 proposal 的放弃，并排除两边的半成品。

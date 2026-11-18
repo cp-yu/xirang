@@ -5,7 +5,7 @@
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
-export const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
+export const ACCEPTANCE_CASE_HEADER = /^ {0,3}####\s+Acceptance Case:\s*(.+?)\s*$/;
 
 export function buildCodeFenceMask(lines: string[]): boolean[] {
   const mask = new Array(lines.length).fill(false);

@@ -193,22 +193,33 @@ it.each([false, true])('reports the initiating failure and failed compensation (
 });
 
 
-it('omits marked incomplete history from archive completion and retry', async () => {
+it('completes both finished archive modes and omits marked incomplete history', async () => {
   const archive = path.join(root, '.xirang', 'changes', 'archive');
-  for (const name of ['2026-01-01-delivered', '2026-01-01-interrupted']) {
-    await fs.mkdir(path.join(archive, name), { recursive: true });
-    await fs.writeFile(path.join(archive, name, 'proposal.md'), 'Proposal already copied');
+  const abandoned = path.join(archive, 'abandoned');
+  const interrupted = path.join(archive, '2026-01-01-interrupted');
+  const interruptedAbandon = path.join(abandoned, '2026-01-01-interrupted-abandon');
+  for (const directory of [path.join(archive, '2026-01-01-delivered'), interrupted,
+    path.join(abandoned, '2026-01-01-dropped'), interruptedAbandon, path.join(archive, 'not-a-dated-archive')]) {
+    await fs.mkdir(directory, { recursive: true });
+    if (directory !== path.join(abandoned, '2026-01-01-dropped')) {
+      await fs.writeFile(path.join(directory, 'proposal.md'), 'Proposal already copied');
+    }
   }
-  await fs.mkdir(pendingArchivePath(path.join(archive, '2026-01-01-interrupted')));
+  await fs.mkdir(pendingArchivePath(interrupted));
+  await fs.mkdir(pendingArchivePath(interruptedAbandon));
 
   const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
-  expect(completion).toMatchObject({ exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n', stderr: '' });
-  const retry = await runCLI(['archive', 'interrupted', '--quick'], { cwd: root });
-  expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
+  expect(completion).toMatchObject({
+    exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n2026-01-01-dropped\tarchived change\n', stderr: '',
+  });
+  for (const [name, mode] of [['interrupted', '--quick'], ['interrupted-abandon', '--abandon']]) {
+    const retry = await runCLI(['archive', name, mode], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
+  }
 });
 
-it.skipIf(process.platform === 'win32')('retries and completes legacy archive names at the component limit', async context => {
-  const archive = path.join(root, '.xirang', 'changes', 'archive');
+it.skipIf(process.platform === 'win32').for([false, true])('retries and completes archive names at the component limit (abandon=%s)', async (abandon, context) => {
+  const archive = path.join(root, '.xirang', 'changes', 'archive', ...(abandon ? ['abandoned'] : []));
   const name = 'l'.repeat(244);
   const entry = `2026-01-01-${name}`;
   const location = path.join(archive, entry);

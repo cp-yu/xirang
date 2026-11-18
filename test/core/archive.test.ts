@@ -489,6 +489,32 @@ git:
       await expect(fs.readFile(path.join(tempDir, archive, unit), 'utf8')).resolves.toBe(delta);
     });
 
+    it.each([0, 1, 2, 3])('rejects SHALL that appears only inside an Acceptance Case (indent=%s)', async indent => {
+      const unit = 'elements/existing.id.md';
+      const body = `## ADDED Sections\n\n### Section: Feature\n\nExplanatory text.\n\n${' '.repeat(indent)}#### Acceptance Case: Example\nThe system SHALL publish the result.\n`;
+      const delta = MODIFY_EXISTING + body;
+      const source = await writeChangeDelta(tempDir, 'case-only-prose', { [unit]: delta });
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      const before = await fs.readFile(formal);
+
+      await expect(archiveCommand.execute('case-only-prose', { quick: true, yes: true })).rejects.toThrow(/must contain SHALL or MUST/);
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('retains an indented Acceptance Case as a case when its Section has normative prose', async () => {
+      const unit = 'elements/existing.id.md';
+      const body = '## ADDED Sections\n\n### Section: Feature\nThe system SHALL publish the result.\n\n   #### Acceptance Case: Example\nThe result is visible.\n';
+      await writeChangeDelta(tempDir, 'indented-case', { [unit]: MODIFY_EXISTING + body });
+      await archiveCommand.execute('indented-case', { quick: true, yes: true });
+      const { parseSemanticModel } = await import('../../src/core/model/parser.js');
+      const { model } = await parseSemanticModel(path.join(tempDir, '.xirang', 'model'));
+      const section = model.elements.find(item => item.declaration.identity === 'existing.id')?.sections[0];
+      expect(section?.body).toBe('The system SHALL publish the result.');
+      expect(section?.acceptanceCases).toEqual([{ name: 'Example', body: 'The result is visible.' }]);
+    });
+
     it('delivers normative Section prose below an ordinary subheading', async () => {
       const unit = 'elements/existing.id.md';
       const body = '## ADDED Sections\n\n### Section: Feature\n\n#### Rules\n\nThe system SHALL publish the result.\n';

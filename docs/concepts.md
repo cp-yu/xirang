@@ -457,9 +457,9 @@ Xirang resolves only the package-owned `semantic-model` schema. Project-local an
 
 ## Archive
 
-Archiving completes a change by verifying and atomically syncing its Semantic Delta into the formal Xirang Semantic Model, then preserving the change for history.
+Archive closes a Change and preserves its artifacts in history. Delivery also validates and applies its Semantic Delta to the Formal Semantic Model; abandonment leaves the model unchanged.
 
-### What Happens When You Archive
+### What Happens When You Deliver a Change
 
 ```
 Before archive:
@@ -505,7 +505,7 @@ After archive:
 
 **Audit trail.** The archive preserves the full context of every change — not just what changed, but the proposal explaining why, the design explaining how, and the tasks showing the work done.
 
-**Model evolution.** All four partitions evolve together. Each archive preserves the approved Semantic Delta and the decisions that authorized it.
+**Model evolution.** Delivery applies validated changes across the four partitions and keeps the Semantic Delta that was applied. Abandonment preserves the proposed Delta, if present, without applying it.
 
 ## How It All Fits Together
 

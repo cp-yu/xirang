@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { pendingArchivePath } from './archive-paths.js';
+import { isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -236,7 +236,7 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
       if (error.code === 'ENOENT') return [];
       throw error;
     });
-    const candidates = entries.filter(entry => entry.isDirectory() && /^\d{4}-\d{2}-\d{2}-/.test(entry.name) && entry.name.slice(11) === changeName)
+    const candidates = entries.filter(entry => entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName)
       .map(entry => entry.name).sort().reverse();
     if (candidates.length) {
       const location = path.join(directory, candidates[0]);
