@@ -104,6 +104,14 @@ function list(value: unknown): string[] | undefined {
   return Array.isArray(value) && value.every(item => typeof item === 'string') ? (value as string[]) : undefined;
 }
 
+function kindConstraint(value: unknown, field: string, file: string, identity: string, diagnostics: ModelDiagnostic[]): string[] | undefined {
+  const kinds = list(value);
+  if (value !== undefined && kinds === undefined) {
+    diagnostics.push(error('INVALID_KIND_CONSTRAINT', file, `Kind ${identity} ${field} must be a list of identities`, identity));
+  }
+  return kinds;
+}
+
 /** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
 export function parseSectionBlock(name: string, raw: string): Section {
   const lines = normalizeLineEndings(raw).split('\n').slice(1);
@@ -224,6 +232,8 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
       diagnostics.push(error('INVALID_CONTRACT_FORMAT', file,
         `Element kind ${identity} contractFormat must be business-specification when present`, identity));
     }
+    const parents = kindConstraint(data.parents, 'parents', file, identity, diagnostics);
+    const children = kindConstraint(data.children, 'children', file, identity, diagnostics);
     const nodePresentation = parseNodePresentation(data.nodePresentation, file, identity, diagnostics);
     return {
       entity,
@@ -233,8 +243,8 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         contract: contract === 'optional' ? 'optional' : 'required',
         ...(data.contractFormat === 'business-specification' ? { contractFormat: data.contractFormat } : {}),
         ...(typeof data.root === 'boolean' ? { root: data.root } : {}),
-        ...(list(data.parents) ? { parents: list(data.parents)! } : {}),
-        ...(list(data.children) ? { children: list(data.children)! } : {}),
+        ...(parents ? { parents } : {}),
+        ...(children ? { children } : {}),
         ...(nodePresentation === undefined ? {} : { nodePresentation }),
         body: normalizeProse(body),
       },
@@ -243,14 +253,16 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   }
 
   if (entity === 'relationship-kind') {
+    const sourceKinds = kindConstraint(data.sourceKinds, 'sourceKinds', file, identity, diagnostics);
+    const targetKinds = kindConstraint(data.targetKinds, 'targetKinds', file, identity, diagnostics);
     const presentation = parseRelationshipPresentation(data.presentation, file, identity, diagnostics);
     return {
       entity,
       identity,
       relationshipKind: {
         identity,
-        ...(list(data.sourceKinds) ? { sourceKinds: list(data.sourceKinds)! } : {}),
-        ...(list(data.targetKinds) ? { targetKinds: list(data.targetKinds)! } : {}),
+        ...(sourceKinds ? { sourceKinds } : {}),
+        ...(targetKinds ? { targetKinds } : {}),
         ...(presentation === undefined ? {} : { presentation }),
         body: normalizeProse(body),
       },
@@ -401,6 +413,17 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   return { model, index, diagnostics };
 }
 
+async function hasSemanticDirectory(directory: string): Promise<boolean> {
+  const stat = await fs.lstat(directory).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  });
+  if (stat && !stat.isDirectory()) {
+    throw new Error(`INVALID_SEMANTIC_DIRECTORY: ${directory} must be a directory, not a file or symbolic link.`);
+  }
+  return stat !== undefined;
+}
+
 /** Reads the four partitions below `root` into a path → bytes map. */
 export async function readModelTree(root: string, includeHiddenDeltaUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
@@ -427,7 +450,11 @@ export async function readModelTree(root: string, includeHiddenDeltaUnits = fals
       else files.set(child, await fs.readFile(location));
     }
   };
-  for (const partition of PARTITIONS) await visit(path.join(root, partition), partition);
+  if (!await hasSemanticDirectory(root)) return files;
+  for (const partition of PARTITIONS) {
+    const directory = path.join(root, partition);
+    if (await hasSemanticDirectory(directory)) await visit(directory, partition);
+  }
   return files;
 }
 

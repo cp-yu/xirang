@@ -30,7 +30,13 @@ export function resolveArtifactOutputs(changeDir: string, generates: string): st
 
   const normalizedPattern = FileSystemUtils.toPosixPath(generates);
   const semanticDelta = normalizedPattern === `{${PARTITIONS.join(',')}}/**/*`;
-  const matches = fg.sync(normalizedPattern, {
+  if (semanticDelta && !fs.lstatSync(changeDir, { throwIfNoEntry: false })?.isDirectory()) return [];
+  // fast-glob may traverse a symlink if it appears in the non-glob prefix of the pattern.
+  const patterns = semanticDelta
+    ? PARTITIONS.filter(partition => fs.lstatSync(path.join(changeDir, partition), { throwIfNoEntry: false })?.isDirectory())
+      .map(partition => `${partition}/**/*`)
+    : normalizedPattern;
+  const matches = fg.sync(patterns, {
     cwd: changeDir, onlyFiles: true, absolute: true,
     ...(semanticDelta ? { dot: true, followSymbolicLinks: false } : {}),
   })

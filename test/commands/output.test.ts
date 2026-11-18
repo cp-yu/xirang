@@ -278,6 +278,69 @@ it('allows a replacement tuple to use the existing container for the same Relati
     .resolves.toBe('relationships:\n  - source: child\n    kind: links\n    target: root\n');
 });
 
+it.each(['delta-partition', 'formal-partition', 'formal-root'])('rejects linked semantic roots before reading or writing their target (%s)', async linked => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'linked-item' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const formalUnit = 'elements/linked-item.md';
+  const initial = await readModelTree(model);
+  const delta = '---\noperation: MODIFIED\n' + elementUnit({ identity: 'linked-item', definition: 'Planned definition.' }).slice(4);
+  const source = await writeChangeDelta(root, 'linked-root', {
+    'proposal.md': '# Linked root\n', [formalUnit]: delta,
+  });
+  const symbolic = linked === 'delta-partition' ? path.join(source, 'elements') : linked === 'formal-root' ? model : path.join(model, 'elements');
+  const external = path.join(root, 'outside-semantic-tree');
+  await fs.rename(symbolic, external);
+  await fs.symlink(process.platform === 'win32' ? external : path.relative(path.dirname(symbolic), external), symbolic,
+    process.platform === 'win32' ? 'junction' : 'dir');
+  const externalFile = path.join(external, linked === 'formal-root' ? formalUnit : 'linked-item.md');
+  const outsideBefore = await fs.readFile(externalFile);
+  if (linked === 'delta-partition') {
+    const status = await runCLI(['status', '--change', 'linked-root', '--no-quality', '--json'], { cwd: root });
+    expect(status.exitCode, status.stderr).toBe(0);
+    expect(JSON.parse(status.stdout).artifacts.find((item: { id: string }) => item.id === 'semantic-delta'))
+      .toMatchObject({ status: 'ready', outputs: [] });
+  }
+  for (const commands of [['validate', '--change', 'linked-root', '--preview'], ['archive', 'linked-root', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('INVALID_SEMANTIC_DIRECTORY');
+    expect(JSON.parse(result.stderr.trim().split('\n').at(-1)!).message).toContain(symbolic);
+  }
+  await expect(fs.readFile(externalFile)).resolves.toEqual(outsideBefore);
+  expect((await fs.lstat(symbolic)).isSymbolicLink()).toBe(true);
+  await expect(fs.readFile(path.join(source, formalUnit), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+  if (linked === 'delta-partition') await expect(readModelTree(model)).resolves.toEqual(initial);
+});
+
+it.each([
+  ['element-kind', 'group', 'parents', 'capability'],
+  ['element-kind', 'group', 'children', 'null'],
+  ['relationship-kind', 'links', 'sourceKinds', '[capability, 7]'],
+  ['relationship-kind', 'links', 'targetKinds', '{capability: true}'],
+])('rejects a malformed %s constraint on %s (%s)', async (entity, identity, field, malformed) => {
+  await writeProjectModel(root, minimalModel({
+    elementKinds: [{ identity: 'group', parents: ['capability'], children: ['capability'] }],
+    relationshipKinds: [{ identity: 'links', sourceKinds: ['capability'], targetKinds: ['capability'] }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = `metamodel/${identity}.md`;
+  const delta = `---\noperation: MODIFIED\nentity: ${entity}\nidentity: ${identity}\n`
+    + (entity === 'element-kind' ? 'contract: optional\n' : '') + `${field}: ${malformed}\n---\n`;
+  const source = await writeChangeDelta(root, 'bad-constraint', { 'proposal.md': '# Kind constraint\n', [file]: delta });
+  for (const commands of [['validate', '--change', 'bad-constraint', '--preview'], ['archive', 'bad-constraint', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('INVALID_KIND_CONSTRAINT');
+    expect(result.stderr).toContain(file);
+    expect(result.stderr).toContain(field);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });
