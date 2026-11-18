@@ -79,6 +79,14 @@ function sectionEntry(operation: Operation, element: string, section: Section): 
 
 type NavigationBaseline = ReadonlyMap<string, ElementDeclaration>;
 
+const REMOVED_FIELDS = new Set(['operation', 'entity', 'identity']);
+
+function checkRemovedContent(file: string, identity: string, data: Record<string, unknown>, body: string, diagnostics: ModelDiagnostic[]): void {
+  if (Object.keys(data).some(key => !REMOVED_FIELDS.has(key)) || normalizeProse(body) !== '') {
+    diagnostics.push(error('UNEXPECTED_REMOVED_CONTENT', file, 'A REMOVED entry may only declare its identity', identity));
+  }
+}
+
 function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[], navigationBaseline?: NavigationBaseline): void {
   const outcome = parseUnit(file, data, '');
   if (Array.isArray(outcome)) {
@@ -94,6 +102,8 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     diagnostics.push(error('INVALID_OPERATION', file, `Unknown operation: ${String(data.operation)}`, identity));
   }
   if (operation) {
+    // An Element unit may also hold independent Section operations in its body.
+    if (operation === 'REMOVED') checkRemovedContent(file, identity, data, '', diagnostics);
     entries.push({
       operation,
       entity: 'element-declaration',
@@ -170,7 +180,8 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
     ));
     return;
   }
-  if (operation !== 'REMOVED') diagnostics.push(...outcome.diagnostics);
+  if (operation === 'REMOVED') checkRemovedContent(file, outcome.identity, split.data, split.body, diagnostics);
+  else diagnostics.push(...outcome.diagnostics);
   const target = outcome.elementKind ?? outcome.relationshipKind ?? outcome.view;
   entries.push({
     operation,
@@ -183,6 +194,9 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
 function parseDeltaContainer(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
   const container = parseRelationshipContainer(file, content);
   diagnostics.push(...container.diagnostics);
+  if (!container.entries.length && !container.diagnostics.length) {
+    diagnostics.push(error('EMPTY_OPERATION_BLOCK', file, 'Relationship Delta contains no relationship entries'));
+  }
   for (const entry of container.entries) {
     const relationship = readRelationship(file, entry);
     if ('level' in relationship) {

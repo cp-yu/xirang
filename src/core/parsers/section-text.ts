@@ -4,8 +4,8 @@
  */
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
-const HEADER_LINE = /^#{1,6}\s/;
-const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s+/;
+const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
+export const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
 
 export function buildCodeFenceMask(lines: string[]): boolean[] {
   const mask = new Array(lines.length).fill(false);
@@ -54,7 +54,7 @@ export function containsShallOrMust(text: string): boolean {
 
 /**
  * Extract the full Section body after a Section header.
- * Skips fenced lines, blanks; stops at non-fenced headers.
+ * Skips fenced lines and headings; stops at the first Acceptance Case.
  * Metadata lines skipped when other prose exists; otherwise kept as body.
  */
 export function extractSectionBody(bodyLines: string[]): string {
@@ -65,7 +65,8 @@ export function extractSectionBody(bodyLines: string[]): string {
   for (let i = 0; i < bodyLines.length; i++) {
     if (mask[i]) continue;
     const line = bodyLines[i];
-    if (HEADER_LINE.test(line)) break;
+    if (ACCEPTANCE_CASE_HEADER.test(line)) break;
+    if (HEADER_LINE.test(line)) continue;
     const trimmed = line.trim();
     if (trimmed.length === 0) continue;
     if (METADATA_LINE.test(trimmed)) {

@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { buildCodeFenceMask } from '../parsers/section-text.js';
+import { ACCEPTANCE_CASE_HEADER, buildCodeFenceMask } from '../parsers/section-text.js';
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
@@ -39,8 +39,6 @@ export interface ParsedUnit {
   data: Record<string, unknown>;
   body: string;
 }
-
-const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
 
 export function normalizeProse(body: string): string {
   return normalizeLineEndings(body).replace(/^\n+/, '').trimEnd();

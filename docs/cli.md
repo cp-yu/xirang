@@ -343,7 +343,7 @@ xirang archive alternative-design --abandon
 
 ### `xirang quality`
 
-Quality records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal in `.quality.json` (schemaVersion 4). It validates payloads, integer CAS revisions and referenced Git commits; it does not run tests or compare workspace freshness.
+Quality records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal in `.quality.json` (`schemaVersion: 5`). It validates payloads, integer CAS revisions and referenced Git commits; it does not run tests or compare workspace freshness. Version 4 and older records are not accepted or migrated automatically.
 
 ```bash
 xirang quality status add-dark-mode --json

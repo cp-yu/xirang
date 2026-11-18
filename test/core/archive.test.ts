@@ -489,6 +489,31 @@ git:
       await expect(fs.readFile(path.join(tempDir, archive, unit), 'utf8')).resolves.toBe(delta);
     });
 
+    it('delivers normative Section prose below an ordinary subheading', async () => {
+      const unit = 'elements/existing.id.md';
+      const body = '## ADDED Sections\n\n### Section: Feature\n\n#### Rules\n\nThe system SHALL publish the result.\n';
+      await writeChangeDelta(tempDir, 'heading-before-prose', { [unit]: MODIFY_EXISTING + body });
+      await archiveCommand.execute('heading-before-prose', { quick: true, yes: true });
+      await expect(fs.readFile(path.join(tempDir, '.xirang', 'model', unit), 'utf8'))
+        .resolves.toContain('#### Rules\n\nThe system SHALL publish the result.');
+    });
+
+    it.each([
+      ['relationships/empty.yaml', 'relationships: []\n', 'EMPTY_OPERATION_BLOCK'],
+      ['views/overview.md', '---\noperation: REMOVED\nentity: authored-view\nidentity: overview\n---\n## ADDED Sections\n', 'UNEXPECTED_REMOVED_CONTENT'],
+      ['views/overview.md', '---\noperation: REMOVED\nentity: authored-view\nidentity: overview\ninclude: "*"\n---\n', 'UNEXPECTED_REMOVED_CONTENT'],
+    ])('keeps Formal and the active Change when a non-Element unit is invalid (%s)', async (unit, delta, code) => {
+      await writeProjectModel(tempDir, minimalModel({ views: [{ identity: 'overview' }] }));
+      const view = path.join(tempDir, '.xirang', 'model', 'views', 'overview.md');
+      const before = await fs.readFile(view);
+      const source = await writeChangeDelta(tempDir, 'invalid-non-element', { [unit]: delta });
+
+      await expect(archiveCommand.execute('invalid-non-element', { quick: true, yes: true })).rejects.toThrow(code);
+      await expect(fs.readFile(view)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
     it('rejects an empty Section on an Element declared in the views partition', async () => {
       const source = await writeChangeDelta(tempDir, 'misplaced-section', {
         'views/section.md': MODIFY_EXISTING + '## ADDED Sections\n\n### Section: No text\n',

@@ -1,11 +1,33 @@
-import { execFile } from 'node:child_process';
+import { execFile, fork } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { moveDirectory } from '../../src/core/archive.js';
+import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
+
+function archiveProcess(cwd: string, name: string, phase: 'claim' | 'write') {
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const preload = new URL('../fixtures/archive-commit-barrier.fixture.mjs', import.meta.url).href;
+  const child = fork(cli, ['archive', name, '--quick', '--yes', '--json'], {
+    cwd, execArgv: ['--import', preload], stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
+    env: { ...process.env, XIRANG_TEST_ARCHIVE_PAUSE: phase, XIRANG_TELEMETRY: '0' },
+  });
+  let stderr = '';
+  child.stderr?.on('data', data => { stderr += data; });
+  const done = new Promise<{ code: number | null; stderr: string }>((resolve, reject) => {
+    child.once('error', reject);
+    child.once('close', code => resolve({ code, stderr }));
+  });
+  const paused = Promise.race([
+    new Promise(resolve => child.once('message', resolve)),
+    done.then(result => { throw new Error(`Archive '${name}' exited before ${phase}: ${result.stderr}`); }),
+  ]);
+  return { child, done, paused };
+}
 
 async function windowsLinkType(location: string): Promise<string> {
   const powershell = path.join(process.env.SystemRoot!, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
@@ -35,6 +57,42 @@ describe('architecture archive workflow', () => {
     await moveDirectory(changeDir, archived);
 
     await expect(fs.readFile(path.join(archived, 'architecture-delta.c4'), 'utf8')).resolves.toBe('model {}');
+  });
+
+  it('excludes a second CLI process after both passed archive preflight', async () => {
+    const unit = 'elements/existing.id.md';
+    await writeProjectModel(root, minimalModel({ elements: [{ identity: 'existing.id' }] }));
+    const change = (definition: string) => '---\noperation: MODIFIED\n' + elementUnit({ identity: 'existing.id', definition }).slice(4);
+    const winningSource = await writeChangeDelta(root, 'first-process', { [unit]: change('Winner') });
+    const contenderSource = await writeChangeDelta(root, 'contending-process', { [unit]: change('Contender') });
+    const contender = archiveProcess(root, 'contending-process', 'claim');
+    let winner: ReturnType<typeof archiveProcess> | undefined;
+    try {
+      expect(await contender.paused).toBe('claim');
+      winner = archiveProcess(root, 'first-process', 'write');
+      expect(await winner.paused).toBe('write');
+      expect(winner.child.pid).not.toBe(contender.child.pid);
+      contender.child.send('continue');
+      const refused = await contender.done;
+      expect(refused.code).toBe(1);
+      expect(refused.stderr).toContain('An archive is in progress');
+      winner.child.send('continue');
+      expect((await winner.done).code).toBe(0);
+    } finally {
+      const processes = [contender, ...(winner ? [winner] : [])];
+      for (const { child } of processes) if (child.exitCode === null && child.signalCode === null) child.kill();
+      await Promise.allSettled(processes.map(({ done }) => done));
+    }
+
+    const formal = path.join(root, '.xirang', 'model', unit);
+    await expect(fs.readFile(formal, 'utf8')).resolves.toContain('definition: Winner');
+    await expect(fs.readFile(path.join(contenderSource, unit), 'utf8')).resolves.toBe(change('Contender'));
+    await expect(fs.access(winningSource)).rejects.toMatchObject({ code: 'ENOENT' });
+    const archive = path.join(path.dirname(winningSource), 'archive');
+    const [entry, ...others] = await fs.readdir(archive);
+    expect(entry).toMatch(/^\d{4}-\d{2}-\d{2}-first-process$/);
+    expect(others).toEqual([]);
+    await expect(fs.readFile(path.join(archive, entry, unit), 'utf8')).resolves.toBe(change('Winner'));
   });
 
   it('does not install into an existing empty destination', async () => {

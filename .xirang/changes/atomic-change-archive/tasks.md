@@ -89,3 +89,6 @@
 - [x] [code_fix] 关系容器路径碰撞列出实际三元组；活动 Change 已恢复时也提示检查未完成目的目录。
 - [x] [code_fix] 只有合法 Markdown 围栏可隐藏示例标题，四空格缩进不能掩盖退役操作。
 - [x] [code_fix] 目标子路径已被符号链接占用时，独占复制失败并恢复活动 Change，不写链接的外部目标。
+- [x] [code_fix] Section 正文可在普通子标题后；仅 Acceptance Case 结束规范正文的关键词检查。
+- [x] [code_fix] 拒绝没有条目的 Relationship Delta 及携带目标内容的 REMOVED 声明。
+- [x] [code_fix] 使用两个独立 CLI 进程验证通过预检后争用提交锁，失败方不改 Formal 或归档。
