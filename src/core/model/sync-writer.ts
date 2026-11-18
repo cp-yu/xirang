@@ -21,8 +21,9 @@ export async function writeMinimal(
   root: string,
   previous: ParsedModel,
   expected: SemanticModel,
+  snapshot?: Map<string, Buffer>,
 ): Promise<Map<string, Buffer>> {
-  const current = await readModelTree(root);
+  const current = snapshot ?? await readModelTree(root);
   const files = new Map<string, Buffer>();
   // Two different units must never claim one target path; overwrite would silently drop one of them.
   const claimed = new Map<string, string>();

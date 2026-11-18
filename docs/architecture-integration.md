@@ -78,7 +78,7 @@ xirang validate --change <name> --json
 xirang arch validate --change <name> --json
 ```
 
-`xirang show <name> --json` returns the compiler-derived `valid`, `summary`, concise `entries`, and `diagnostics`. `xirang sync <name>` validates and applies the Semantic Delta atomically to the formal model.
+`xirang show <name> --json` returns the compiler-derived `valid`, `summary`, concise `entries`, and `diagnostics`. `xirang archive <name>` validates and applies the Semantic Delta to the formal model in the same call that archives the Change.
 
 ## Legacy Input
 

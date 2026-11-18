@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { execFile as execFileCallback } from 'node:child_process';
 
 import { ArchiveCommand } from '../../src/core/archive.js';
+import { minimalModel, writeProjectModel } from '../helpers/model-fixture.js';
 
 vi.mock('@inquirer/prompts', () => ({
   confirm: vi.fn(),
@@ -29,6 +30,7 @@ async function writeFile(projectRoot: string, relativePath: string, content: str
 async function setupRepo(): Promise<string> {
   const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-archive-merge-'));
   await fs.mkdir(path.join(projectRoot, '.xirang', 'changes', 'archive'), { recursive: true });
+  await writeProjectModel(projectRoot, minimalModel());
 await writeFile(projectRoot, '.xirang/config.yaml', `schema: semantic-model
 git:
   merge:
@@ -96,46 +98,24 @@ describe('archive branch merge', () => {
     }
   });
 
-  it('archives and syncs without git writes when autoCommit is auto', async () => {
+  it('applies a Semantic Delta without committing or staging any files', async () => {
     projectRoot = await setupRepo();
     await writeChange(projectRoot);
-    await writeFile(projectRoot, '.xirang/changes/feature-archive/specs/synced/spec.md', `# Synced - Changes
-
-## ADDED Sections
-
-### Section: Synced behavior
-The system SHALL sync this section.
-`);
-    await writeFile(projectRoot, '.xirang/project.xirang.yaml', `schema_version: 2
-project:
-  id: proj.test
-  name: Test
-domains: []
-capabilities: []
-`);
-    await writeFile(projectRoot, '.xirang/project.xirang.relations.yaml', `schema_version: 2
-relations: []
-`);
-    await writeFile(projectRoot, '.xirang/changes/feature-archive/opsx-delta.yaml', `schema_version: 2
-ADDED:
-  domains:
-    - id: dom.auth
-      type: domain
-      intent: Authentication
-  capabilities:
-    - id: cap.auth.login
-      type: capability
-      intent: Login
-  relations:
-    - from: cap.auth.login
-      to: dom.auth
-      type: belongs_to
+    await writeFile(projectRoot, path.join('.xirang', 'changes', 'feature-archive', 'elements', 'root.md'), `---
+operation: MODIFIED
+entity: element-declaration
+identity: root
+kind: project
+parent: null
+title: Root
+definition: Delivered root.
+---
 `);
     await writeFile(projectRoot, '.xirang/specs/unrelated/spec.md', '# Unrelated\n');
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true, noSync: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);
     expect(currentBranch).toBe('feature-archive');
@@ -147,12 +127,11 @@ ADDED:
       expect.stringContaining('docs(feature-archive): Archive change artifacts')
     );
 
-    // Sync is no longer embedded in archive — verify spec was NOT auto-synced
-    await expect(fs.access(path.join(projectRoot, '.xirang', 'specs', 'synced', 'spec.md'))).rejects.toThrow();
+    await expect(fs.readFile(path.join(projectRoot, '.xirang', 'model', 'elements', 'root.md'), 'utf8')).resolves.toContain('Delivered root.');
     const status = await git(projectRoot, ['status', '--short']);
     expect(status).toContain('?? .xirang/changes/');
     expect(status).toContain('?? .xirang/specs/');
-    expect(status).toContain('?? .xirang/project.xirang.relations.yaml');
+    expect(status).toContain('M .xirang/model/elements/root.md');
   });
 
   it('leaves unrelated dirty files unstaged during handoff', async () => {
@@ -162,7 +141,7 @@ ADDED:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
     expect(await git(projectRoot, ['diff', '--cached', '--name-only'])).toBe('');
@@ -184,7 +163,7 @@ ADDED:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     expect(await git(projectRoot, ['branch', '--show-current'])).toBe('feature-archive');
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
@@ -198,8 +177,8 @@ ADDED:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);
     expect(currentBranch).toBe('feature-archive');
@@ -222,7 +201,7 @@ git:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     expect(await git(projectRoot, ['rev-parse', 'HEAD'])).toBe(beforeHead);
     const featureBranch = await git(projectRoot, ['branch', '--list', 'feature-archive']);
@@ -248,7 +227,7 @@ git:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);
     expect(currentBranch).toBe('feature-archive');
@@ -278,7 +257,7 @@ git:
     const beforeHead = await git(projectRoot, ['rev-parse', 'HEAD']);
     process.chdir(projectRoot);
 
-    await new ArchiveCommand().execute('feature-archive', { yes: true, noVerify: true, noValidate: true });
+    await new ArchiveCommand().execute('feature-archive', { yes: true, quick: true });
 
     expect(mockInput).not.toHaveBeenCalled();
     const currentBranch = await git(projectRoot, ['branch', '--show-current']);

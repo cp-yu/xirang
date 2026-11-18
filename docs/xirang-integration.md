@@ -28,7 +28,7 @@ The embedded Semantic Browser reads Element Contracts from `/__xirang/contract` 
 - `proposal.md`, `design.md`, and `tasks.md` are Change Plan scaffolding and do not override Semantic Delta semantics.
 - `xirang show <name> --json` returns a compiler-derived Change view with `valid`, entity-level `summary`, concise `entries`, and `diagnostics`.
 - `xirang validate --change <name> --json` validates notation, applies the Delta to the current model, and validates the Expected Semantic Model.
-- `xirang sync <name>` applies a valid Semantic Delta atomically.
+- `xirang archive <name>` applies a valid Semantic Delta and archives the Change in a single operation.
 - `xirang archive <name>` enforces lifecycle gates and moves the complete Change into audit history.
 
 See [Xirang Semantic Model And LikeC4](architecture-integration.md) for the persistence and authoring contract.

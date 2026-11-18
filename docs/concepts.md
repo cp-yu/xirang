@@ -495,15 +495,13 @@ After archive:
 
 ### The Archive Process
 
-1. **Sync the Semantic Delta.** The four-partition Delta under `.xirang/changes/<name>/` is validated against one Expected Semantic Model, then `xirang sync` applies it to `.xirang/model/` atomically.
+**Deliver.** `xirang archive <name>` checks the Quality Seal, validates and applies the Semantic Delta, then moves the Change directory to dated archive history. `--quick` skips only the Seal check. A recoverable move failure rolls back the current call's model writes; forced process termination has no automatic recovery.
 
-2. **Move to archive.** The change folder moves to `changes/archive/` with a date prefix for chronological ordering.
-
-3. **Preserve context.** All artifacts remain intact in the archive. You can always look back to understand why a change was made.
+**Abandon.** `xirang archive <name> --abandon` preserves the active Change in `changes/archive/abandoned/` without applying the Delta or changing the implementation. The archive keeps original artifacts in either case. Use a new Change for later revisions, including to restore earlier behavior.
 
 ### Why Archive Matters
 
-**Clean state.** Active changes (`changes/`) shows only work in progress. Completed work moves out of the way.
+**Clean state.** Active changes (`changes/`) shows only work in progress. Delivered and abandoned Changes move to separate archive locations.
 
 **Audit trail.** The archive preserves the full context of every change — not just what changed, but the proposal explaining why, the design explaining how, and the tasks showing the work done.
 

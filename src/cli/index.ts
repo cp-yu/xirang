@@ -7,7 +7,7 @@ import { promises as fs } from 'fs';
 import { AI_TOOLS } from '../core/config.js';
 import { UpdateCommand } from '../core/update.js';
 import { ListCommand } from '../core/list.js';
-import { ArchiveCommand } from '../core/archive.js';
+import { ArchiveCommand, type ArchiveOptions } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
 import { registerHelpCommand } from '../commands/help.js';
 import { ValidateCommand } from '../commands/validate.js';
@@ -16,7 +16,6 @@ import { CompletionCommand } from '../commands/completion.js';
 import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
-import { registerSyncCommand } from '../commands/sync.js';
 import { registerQualityCommand } from '../commands/quality.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
@@ -145,7 +144,6 @@ program
     }
   });
 
-registerSyncCommand(program);
 registerQualityCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
@@ -187,12 +185,11 @@ program
 
 program
   .command('archive [change-name]')
-  .description('Archive a completed change')
+  .description('Apply and archive a change, or archive an abandoned change')
   .option('-y, --yes', 'Skip confirmation prompts')
-  .option('--no-sync', 'Skip sync gate（pending delta 检查，需要显式授权）')
-  .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .option('--no-verify', 'Skip the quality gate (requires explicit user authorization, not recommended)')
-  .action(async (changeName?: string, options?: { yes?: boolean; noSync?: boolean; sync?: boolean; noValidate?: boolean; validate?: boolean; noVerify?: boolean; verify?: boolean }) => {
+  .option('--quick', 'Apply and archive without checking the Quality Seal')
+  .option('--abandon', 'Archive without applying the Semantic Delta')
+  .action(async (changeName?: string, options?: ArchiveOptions) => {
     try {
       const archiveCommand = new ArchiveCommand();
       await archiveCommand.execute(changeName, options);

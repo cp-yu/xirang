@@ -1,0 +1,513 @@
+{
+  "schemaVersion": 1,
+  "filename": "atomic-change-archive.md",
+  "sourceVersion": "67727e23690316f5fcac6090f9207d39ce054bc41c99719696f36dbfb1dcedb9",
+  "targetFingerprint": "ab7ef695d3e4a2615af007b1b534787794c793b866c426b7eebdc36d42ce37c9",
+  "recordedAt": "2026-11-18T06:09:22.182Z",
+  "entries": [
+    {
+      "identity": "archive-success-boundary",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "已成功交付后，后续修改从当前正式模型发起新的 Change",
+          "location": {
+            "element": "change-closure",
+            "section": "交付与失败边界"
+          },
+          "quote": "已成功交付后，后续修改从当前正式模型发起新的 Change"
+        },
+        {
+          "detail": "即使恢复旧行为，也以新差量保留期间其他 Change 的修改及归档历史",
+          "location": {
+            "element": "change-closure",
+            "section": "交付与失败边界"
+          },
+          "quote": "即使恢复旧行为，也以新差量保留期间其他 Change 的修改及归档历史"
+        },
+        {
+          "detail": "用户侧不提供撤销归档命令",
+          "location": {
+            "element": "change-closure",
+            "section": "交付与失败边界"
+          },
+          "quote": "用户侧不提供撤销归档命令"
+        },
+        {
+          "detail": "普通和 quick 交付 SHALL 在同一次调用内应用 Delta 并原样归档",
+          "location": {
+            "element": "change-closure",
+            "section": "交付与失败边界"
+          },
+          "quote": "普通和 quick 交付 SHALL 在同一次调用内应用 Delta 并原样归档"
+        }
+      ]
+    },
+    {
+      "identity": "failed-closure-retry",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "默认或 quick 在模型写入后移动失败：本次调用撤回模型写入，活动目录保持原样",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "移动失败与中断不同"
+          },
+          "quote": "默认或 quick 在模型写入后移动失败：本次调用撤回模型写入，活动目录保持原样"
+        },
+        {
+          "detail": "原 Change 仍活动，可重试",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "原 Change 仍活动，可重试"
+        }
+      ]
+    },
+    {
+      "identity": "quick-gate-scope",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "默认检查有效的 Quality Seal",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "默认检查有效的 Quality Seal"
+        },
+        {
+          "detail": "`--quick` 仅豁免 Seal",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "`--quick` 仅豁免 Seal"
+        },
+        {
+          "detail": "两者均校验 Delta、完整目标模型和写入前基线",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "两者均校验 Delta、完整目标模型和写入前基线"
+        },
+        {
+          "detail": "任务有未勾选目标时提示继续，默认不继续，`--yes` 可显式继续",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "任务有未勾选目标时提示继续，默认不继续，`--yes` 可显式继续"
+        },
+        {
+          "detail": "缺少 Seal、Delta 合法且有未完成目标时，quick 提示是否继续；拒绝不写模型、不移动目录",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "免 Seal 不是免校验"
+          },
+          "quote": "缺少 Seal、Delta 合法且有未完成目标时，quick 提示是否继续；拒绝不写模型、不移动目录"
+        }
+      ]
+    },
+    {
+      "identity": "archive-command-surface",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "`xirang archive <change>` SHALL 将活动 Change 原样封存并结束其活动状态",
+          "location": {
+            "element": "change-archive",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "`xirang archive <change>` SHALL 将活动 Change 原样封存并结束其活动状态"
+        },
+        {
+          "detail": "默认或 `--quick` 同时应用 Semantic Delta",
+          "location": {
+            "element": "change-archive",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "默认或 `--quick` 同时应用 Semantic Delta"
+        },
+        {
+          "detail": "独立 `xirang sync` 为未知命令",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "独立 `xirang sync` 为未知命令"
+        }
+      ]
+    },
+    {
+      "identity": "archive-workflow-prompts",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "调用一次 archive，由 CLI 完成对应状态转换",
+          "location": {
+            "element": "archive-role",
+            "section": "通过 CLI 编排 Closure"
+          },
+          "quote": "调用一次 archive，由 CLI 完成对应状态转换"
+        },
+        {
+          "detail": "明确选择 quick 时不先补做 Quality，也不声称已通过",
+          "location": {
+            "element": "archive-role",
+            "section": "通过 CLI 编排 Closure"
+          },
+          "quote": "明确选择 quick 时不先补做 Quality，也不声称已通过"
+        },
+        {
+          "detail": "提供一条快速收束指引 `xirang archive <change> --quick`，以及继续开发选项",
+          "location": {
+            "element": "snack-workflow",
+            "section": "Snack 执行一次自检"
+          },
+          "quote": "提供一条快速收束指引 `xirang archive <change> --quick`，以及继续开发选项"
+        },
+        {
+          "detail": "Propose 的工作流提示 SHALL 只引导只读预览，不调用归档或写入正式模型",
+          "location": {
+            "element": "post-propose-validation",
+            "section": "收尾确定性校验门禁"
+          },
+          "quote": "Propose 的工作流提示 SHALL 只引导只读预览，不调用归档或写入正式模型"
+        },
+        {
+          "detail": "确定的 CLI 入口与生成的 Agent 工作流表面",
+          "location": {
+            "element": "project.root",
+            "section": "保持稳定成功标准"
+          },
+          "quote": "确定的 CLI 入口与生成的 Agent 工作流表面"
+        }
+      ]
+    },
+    {
+      "identity": "retired-archive-options",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "`--no-sync`、`--no-validate`、`--no-verify` 为未知选项，不提供兼容别名",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "`--no-sync`、`--no-validate`、`--no-verify` 为未知选项，不提供兼容别名"
+        },
+        {
+          "detail": "`--quick` 仅豁免 Seal",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "`--quick` 仅豁免 Seal"
+        },
+        {
+          "detail": "`--yes` 跳过询问，不隐藏进度",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "`--yes` 跳过询问，不隐藏进度"
+        }
+      ]
+    },
+    {
+      "identity": "retain-abandoned-change",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "`--abandon` 不检查 Seal、制品完成度或 Delta 合法性",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "`--abandon` 不检查 Seal、制品完成度或 Delta 合法性"
+        },
+        {
+          "detail": "不应用 Delta，不回退或合并实现",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "不应用 Delta，不回退或合并实现"
+        },
+        {
+          "detail": "对任意实现进度均可封存，包括有提交、任务已勾选或制品不完整",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "对任意实现进度均可封存，包括有提交、任务已勾选或制品不完整"
+        },
+        {
+          "detail": "不据此推断 Apply 阶段或代码完成度",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "不据此推断 Apply 阶段或代码完成度"
+        },
+        {
+          "detail": "没有可用进度仍须确认",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "没有可用进度仍须确认"
+        },
+        {
+          "detail": "放弃默认询问一次，拒绝或回车不作改动",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "放弃默认询问一次，拒绝或回车不作改动"
+        },
+        {
+          "detail": "`--yes` 跳过询问，不隐藏进度",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "`--yes` 跳过询问，不隐藏进度"
+        },
+        {
+          "detail": "将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`"
+        },
+        {
+          "detail": "放弃后只报告留档位置与已知进度，不进入交付后的 Git 提交、合并或清理",
+          "location": {
+            "element": "archive-role",
+            "section": "限定 Closure 制品处理范围"
+          },
+          "quote": "放弃后只报告留档位置与已知进度，不进入交付后的 Git 提交、合并或清理"
+        },
+        {
+          "detail": "无 tasks.md、无 Seal 且 Delta 无法解析，仍可在确认后放弃",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "没有任务文件也可放弃"
+          },
+          "quote": "无 tasks.md、无 Seal 且 Delta 无法解析，仍可在确认后放弃"
+        }
+      ]
+    },
+    {
+      "identity": "abandon-file-progress",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "有目标已勾选时先提示 `tasks.md` 的 `## Goals` 中可核实的已勾选目标数/目标总数",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "有目标已勾选时先提示 `tasks.md` 的 `## Goals` 中可核实的已勾选目标数/目标总数"
+        },
+        {
+          "detail": "不据此推断 Apply 阶段或代码完成度",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "不据此推断 Apply 阶段或代码完成度"
+        },
+        {
+          "detail": "没有可用进度仍须确认",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "没有可用进度仍须确认"
+        },
+        {
+          "detail": "tasks.md 中已有 2/5 个目标勾选完成时，先提示 2/5，再询问一次「放弃 change-a 并将其归档？[y/N]」",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "放弃 change-a"
+          },
+          "quote": "tasks.md 中已有 2/5 个目标勾选完成时，先提示 2/5，再询问一次「放弃 change-a 并将其归档？[y/N]」"
+        },
+        {
+          "detail": "选择 N 或直接回车，Change 继续活动",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "放弃 change-a"
+          },
+          "quote": "选择 N 或直接回车，Change 继续活动"
+        },
+        {
+          "detail": "--abandon --yes 仍提示 2/5，然后直接封存，不再询问",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "放弃 change-a"
+          },
+          "quote": "--abandon --yes 仍提示 2/5，然后直接封存，不再询问"
+        },
+        {
+          "detail": "不声称实现尚未开始",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "没有任务文件也可放弃"
+          },
+          "quote": "不声称实现尚未开始"
+        }
+      ]
+    },
+    {
+      "identity": "archive-destination-by-outcome",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "在同一次调用内应用待写模型单元并将 Change 原样移至 `.xirang/changes/archive/YYYY-MM-DD-<change>/`",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "在同一次调用内应用待写模型单元并将 Change 原样移至 `.xirang/changes/archive/YYYY-MM-DD-<change>/`"
+        },
+        {
+          "detail": "将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`"
+        },
+        {
+          "detail": "不补写状态文件",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "不补写状态文件"
+        },
+        {
+          "detail": "不应用 Delta，不回退或合并实现",
+          "location": {
+            "element": "change-archive",
+            "section": "Business Logic"
+          },
+          "quote": "不应用 Delta，不回退或合并实现"
+        }
+      ]
+    },
+    {
+      "identity": "archive-interrupted-retry",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "同一进程内，模型已写入而目录移动失败时撤回本次写入",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "同一进程内，模型已写入而目录移动失败时撤回本次写入"
+        },
+        {
+          "detail": "恢复到调用前状态，原 Change 仍活动，可重试",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "恢复到调用前状态，原 Change 仍活动，可重试"
+        },
+        {
+          "detail": "进程被强杀或断电后不维护恢复日志，不承诺下次调用检测、续跑或回滚",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "进程被强杀或断电后不维护恢复日志，不承诺下次调用检测、续跑或回滚"
+        },
+        {
+          "detail": "需要时由用户或 Agent 对照 Git diff、模型及 Change 目录处理，不整体覆盖无关未提交修改",
+          "location": {
+            "element": "change-archive",
+            "section": "Edge Cases and Exception Handling"
+          },
+          "quote": "需要时由用户或 Agent 对照 Git diff、模型及 Change 目录处理，不整体覆盖无关未提交修改"
+        },
+        {
+          "detail": "若写入后进程被杀，下次 --abandon 仅封存 Change，不撤回上次遗留的模型改动",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "移动失败与中断不同"
+          },
+          "quote": "若写入后进程被杀，下次 --abandon 仅封存 Change，不撤回上次遗留的模型改动"
+        },
+        {
+          "detail": "上次已完成归档、只是未输出结果，且活动目录不存在、归档可定位：直接返回已有位置，不再次应用 Delta",
+          "location": {
+            "element": "change-archive",
+            "section": "Key Acceptance Cases",
+            "acceptanceCase": "成功回执丢失"
+          },
+          "quote": "上次已完成归档、只是未输出结果，且活动目录不存在、归档可定位：直接返回已有位置，不再次应用 Delta"
+        },
+        {
+          "detail": "已成功交付后，后续修改从当前正式模型发起新的 Change",
+          "location": {
+            "element": "change-closure",
+            "section": "交付与失败边界"
+          },
+          "quote": "已成功交付后，后续修改从当前正式模型发起新的 Change"
+        }
+      ]
+    },
+    {
+      "identity": "closure-capability-format",
+      "result": "covered",
+      "details": [
+        {
+          "detail": "change-archive 保留身份并使用业务规格 Kind 的完整 4+N；其余阶段和角色不进行格式重构",
+          "location": {
+            "element": "change-archive"
+          },
+          "quote": "Change Archive 是 CLI 结束活动 Change 的统一能力。它按用户选择在一次调用中交付模型更新并留档，或只封存放弃的方案；它保留原始制品，不判断实现质量、不执行 Git 写操作。"
+        },
+        {
+          "detail": "change-sync 保留身份并使用业务规格 Kind 的完整 4+N；其余阶段和角色不进行格式重构",
+          "location": {
+            "element": "change-sync"
+          },
+          "quote": "Change Sync 是交付归档内部将四分区 Semantic Delta 应用于正式模型的能力。它编译完整目标、验证并只写实际变化的模型单元，在本次调用内与封存共同回滚；它不提供独立 CLI 入口，也不管理 Quality 记录。"
+        },
+        {
+          "detail": "archive-quality-gate 保留身份并使用业务规格 Kind 的完整 4+N；其余阶段和角色不进行格式重构",
+          "location": {
+            "element": "archive-quality-gate"
+          },
+          "quote": "Archive Quality Gate 是默认交付归档消费 Quality Seal 的能力。它判定记录和绑定提交能否作为入口依据，并区分显式豁免和放弃留档；它不执行测试或代替 Apply 评估实现。"
+        },
+        {
+          "detail": "同步 SHALL 仅作为默认及 quick 交付的内部操作，不单独选择 Change，不提供独立命令",
+          "location": {
+            "element": "change-sync",
+            "section": "Scope and Non-goals"
+          },
+          "quote": "同步 SHALL 仅作为默认及 quick 交付的内部操作，不单独选择 Change，不提供独立命令"
+        }
+      ]
+    }
+  ]
+}

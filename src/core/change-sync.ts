@@ -1,12 +1,11 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
-import { changeRoot, modelRoot } from './model/paths.js';
-import { parseSemanticDelta, type DeltaEntry } from './model/delta.js';
+import { modelRoot } from './model/paths.js';
+import { parseSemanticModelFiles } from './model/parser.js';
 import { writeMinimal } from './model/sync-writer.js';
-import type { ParsedModel } from './model/parser.js';
 import type { ChangeDiagnostic } from './semantic-diff.js';
-import { PARTITIONS, type Partition, type SemanticModel } from './model/types.js';
+import { PARTITIONS, type Partition } from './model/types.js';
 import {
   applySemanticTreeManifest,
   buildManifest,
@@ -19,28 +18,11 @@ import {
 
 export type PartitionCounts = Record<Partition, number>;
 
-export interface ChangeSyncState {
-  changeName: string;
-  changeDir: string;
-  entries: DeltaEntry[];
-  requiresSync: boolean;
-}
-
 export interface PreparedChangeSync {
-  state: ChangeSyncState;
   formalFingerprint: string;
   partitions: PartitionCounts;
   manifest: PreparedSyncManifestEntry[];
   warnings: ChangeDiagnostic[];
-}
-
-export interface AppliedChangeSyncSummary {
-  partitions: PartitionCounts;
-  files: string[];
-}
-
-export interface PendingChangeSync {
-  pending: number;
 }
 
 function emptyCounts(): PartitionCounts {
@@ -56,64 +38,22 @@ function countPartitions(manifest: PreparedSyncManifestEntry[]): PartitionCounts
   return counts;
 }
 
-function projectRelative(files: Map<string, Buffer>): Map<string, Buffer> {
-  return new Map([...files].map(([file, bytes]) => [`${MODEL_PATH_PREFIX}/${file}`, bytes]));
-}
-
-async function targetTree(projectRoot: string, base: ParsedModel, expected: SemanticModel): Promise<Map<string, Buffer>> {
-  return projectRelative(await writeMinimal(modelRoot(projectRoot), base, expected));
-}
-
-export async function assessChangeSyncState(
-  projectRoot: string,
-  changeName: string,
-): Promise<ChangeSyncState> {
-  const changeDir = changeRoot(projectRoot, changeName);
-  const parsed = await parseSemanticDelta(changeDir);
-  const blocking = parsed.diagnostics.find(item => item.level === 'ERROR');
-  if (blocking && parsed.delta.entries.length === 0) {
-    throw new Error(`${blocking.code}: ${blocking.message}`);
-  }
-  return {
-    changeName,
-    changeDir,
-    entries: parsed.delta.entries,
-    requiresSync: parsed.delta.entries.length > 0,
-  };
-}
-
-export async function getPendingChangeSync(
-  projectRoot: string,
-  state: ChangeSyncState,
-): Promise<PendingChangeSync> {
-  const { base, compiled } = await compileChangeDelta(projectRoot, state.changeName, { allowAlreadyApplied: true });
-  if (!compiled.target) return { pending: state.entries.length };
+export async function prepareChangeSync(projectRoot: string, changeName: string): Promise<PreparedChangeSync> {
   const before = await readSemanticTree(projectRoot);
-  const after = await targetTree(projectRoot, base, compiled.target);
-  return { pending: buildManifest(before, after).length };
-}
-
-export async function prepareChangeSync(
-  projectRoot: string,
-  state: ChangeSyncState,
-  options: { skipValidation?: boolean } = {},
-): Promise<PreparedChangeSync> {
-  const { base, compiled } = await compileChangeDelta(projectRoot, state.changeName);
-  if (!compiled.target) {
-    throw new Error(compiled.diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'));
-  }
-  if (!options.skipValidation && !compiled.valid) {
-    throw new Error(compiled.diagnostics
-      .filter(item => item.level === 'ERROR')
-      .map(item => `${item.code}: ${item.message}`)
-      .join('\n'));
+  const units = new Map([...before].flatMap(([file, bytes]): [string, Buffer][] => {
+    const unit = file.slice(MODEL_PATH_PREFIX.length + 1);
+    return unit.split('/').some(part => part.startsWith('.')) ? [] : [[unit, bytes]];
+  }));
+  const base = parseSemanticModelFiles([...units].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
+  const { compiled } = await compileChangeDelta(projectRoot, changeName, { base, allowAlreadyApplied: true });
+  if (!compiled.valid || !compiled.target) {
+    throw new Error(compiled.diagnostics.filter(item => item.level === 'ERROR')
+      .map(item => `${item.path}: ${item.code}: ${item.message}`).join('\n'));
   }
 
-  const before = await readSemanticTree(projectRoot);
-  const after = await targetTree(projectRoot, base, compiled.target);
-  const manifest = buildManifest(before, after);
+  const after = await writeMinimal(modelRoot(projectRoot), base, compiled.target, units);
+  const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
-    state,
     formalFingerprint: semanticTreeFingerprint(before),
     partitions: countPartitions(manifest),
     manifest,
@@ -142,19 +82,16 @@ export async function applyPreparedChangeSync(
   projectRoot: string,
   prepared: PreparedChangeSync,
   options: {
-    silent?: boolean;
     filesystem?: Partial<SyncTransactionFileSystem>;
+    postWrite?: () => Promise<void>;
   } = {},
-): Promise<AppliedChangeSyncSummary> {
+): Promise<{ partitions: PartitionCounts; files: string[] }> {
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
-    postWrite: () => pruneEmptyDirectories(projectRoot, prepared.manifest),
+    postWrite: async () => {
+      await pruneEmptyDirectories(projectRoot, prepared.manifest);
+      await options.postWrite?.();
+    },
   });
-
-  const files = prepared.manifest.map(entry => entry.path);
-  if (!(options.silent ?? false) && files.length > 0) {
-
-  }
-
-  return { partitions: prepared.partitions, files };
+  return { partitions: prepared.partitions, files: prepared.manifest.map(entry => entry.path) };
 }

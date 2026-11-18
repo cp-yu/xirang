@@ -60,7 +60,7 @@ Then use the managed workflow skills installed for your agent:
 | `/xirang:explore` | Investigate an idea and resolve ambiguous intent |
 | `/xirang:propose` | Create a complete change proposal and semantic deltas |
 | `/xirang:apply` | Implement tasks with evidence-backed TDD |
-| `/xirang:archive` | Verify, sync, and archive a completed change |
+| `/xirang:archive` | Deliver a Change, or abandon it without applying its Delta |
 | `/xirang:build` | Build or rebuild Architecture and Specs as one reviewed Candidate |
 | `/xirang:snack` | Reconcile already-written code into Xirang artifacts |
 

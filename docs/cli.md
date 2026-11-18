@@ -327,14 +327,18 @@ Validation always executes all applicable checks. With no issues, success is sil
 
 ### `xirang archive`
 
-Archive a completed Change after Quality, Sync, validation and task gates pass. Apply its Semantic Delta to the formal model with `xirang sync <change-name>` first when synchronization is pending; Archive checks synchronization and moves the Change without applying the Delta itself.
+End an active Change. Default delivery checks the Quality Seal, validates and applies the Semantic Delta to the formal model, then archives the Change in the same call. If moving the Change fails, the command rolls back model writes from that call. It does not recover automatically after a process kill or power loss.
 
 ```bash
-xirang sync add-dark-mode
-xirang archive add-dark-mode --yes --json
+xirang archive add-dark-mode --json
+xirang archive add-dark-mode --quick --yes
+xirang archive alternative-design --abandon
 ```
 
-The Change name is optional in an interactive terminal. `--yes` skips confirmation prompts. Success returns the archive location as text or `{ "archive": ".xirang/changes/archive/<date>-<change-name>" }` with `--json`; a retry after archiving returns the existing location. Gate failures exit nonzero and preserve the active Change. Warnings and errors go to stderr, structurally encoded with `--json`.
+- Default and `--quick` write to `.xirang/changes/archive/YYYY-MM-DD-<change>/`. `--quick` skips only the Seal check; Delta and model validation still run. Incomplete goals require confirmation unless `--yes` is supplied.
+- `--abandon` moves the active Change unchanged to `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/` without validating or applying its Delta or touching implementation. It reports checked goals when present and asks for confirmation unless `--yes` is supplied. It cannot be combined with `--quick`.
+- The Change name is optional in an interactive terminal. Success returns the archive path as text or `{ "archive": "<path>" }` in JSON mode; retries against an existing archive also include `"alreadyArchived": true` in JSON mode. Diagnostics go to stderr, structured with `--json`. Apply later edits through a new Change.
+- **Breaking:** standalone `xirang sync` and archive's `--no-sync`, `--no-validate`, and `--no-verify` are no longer accepted.
 
 ### `xirang quality`
 

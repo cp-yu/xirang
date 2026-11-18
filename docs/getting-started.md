@@ -12,7 +12,7 @@ Xirang helps you and your AI coding assistant agree on what to build before any 
 /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs the full quality gate before archive.
+Xirang installs a fixed managed workflow surface. `/xirang:archive` checks the Quality Seal and applies the validated Semantic Delta in the same call that archives a Change. An explicitly abandoned Change can be archived without applying its Delta.
 
 ## What Xirang Creates
 
@@ -43,7 +43,7 @@ After running `xirang setup`, your project has a minimal formal skeleton. Projec
 
 - **`model/`** - The four-partition Semantic Model: `metamodel/` (Element and Relationship Kinds), `elements/` (Element Declarations and their Contracts), `relationships/`, and `views/`. Each Markdown unit declares its `entity` and stable `identity` in frontmatter; file positions are organizational only.
 
-- **`changes/`** - Proposed Semantic Deltas. Each change mirrors the four partitions under `.xirang/changes/<name>/` with `ADDED`/`MODIFIED`/`REMOVED` operations. Combined validation constructs the Expected Semantic Model before sync/archive.
+- **`changes/`** - Proposed Semantic Deltas. Each change mirrors the four partitions under `.xirang/changes/<name>/` with `ADDED`/`MODIFIED`/`REMOVED` operations. Combined validation constructs the Expected Semantic Model before delivery.
 
 - **`candidate/`** - Optional active Project Build Candidate that can be promoted atomically into the Semantic Model.
 

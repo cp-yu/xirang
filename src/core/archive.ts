@@ -3,14 +3,10 @@ import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
-import chalk from 'chalk';
-import {
-  assessChangeSyncState,
-  getPendingChangeSync,
-} from './change-sync.js';
+import { applyPreparedChangeSync, prepareChangeSync } from './change-sync.js';
 import { readQualitySeal } from './quality/engine.js';
 import { selectActiveChange } from './change-utils.js';
-import { compileChange } from './change-compiler.js';
+import { validateChangeName } from '../utils/change-utils.js';
 
 /**
  * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
@@ -65,245 +61,109 @@ export async function moveDirectory(
   }
 }
 
-async function findArchivedChangePathAsync(archiveDir: string, changeName: string): Promise<string | null> {
-  try {
-    const entries = await fs.readdir(archiveDir, { withFileTypes: true });
-    const matches = entries
-      .filter((entry) => entry.isDirectory() && entry.name.endsWith(`-${changeName}`))
-      .map((entry) => entry.name)
-      .sort()
-      .reverse();
-    return matches[0] ? path.join(archiveDir, matches[0]) : null;
-  } catch {
-    return null;
-  }
+async function findArchivedChange(archiveDir: string, changeName: string): Promise<string | undefined> {
+  const candidates = (await Promise.all([archiveDir, path.join(archiveDir, 'abandoned')].map(async directory => {
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return [];
+      throw error;
+    });
+    return entries.filter(entry => entry.isDirectory() && /^\d{4}-\d{2}-\d{2}-/.test(entry.name) && entry.name.slice(11) === changeName)
+      .map(entry => ({ name: entry.name, path: path.join(directory, entry.name) }));
+  }))).flat();
+  return candidates.sort((a, b) => b.name.localeCompare(a.name))[0]?.path;
 }
 
-interface ArchiveOptions {
+export interface ArchiveOptions {
   json?: boolean;
   yes?: boolean;
-  noValidate?: boolean;
-  validate?: boolean;
-  noVerify?: boolean;
-  verify?: boolean;
-  noSync?: boolean;
-  sync?: boolean;
+  quick?: boolean;
+  abandon?: boolean;
 }
 
 export class ArchiveCommand {
-  /**
-   * Archive a completed change. Enforces quality gate, sync gate, validation gate,
-   * and task gate before moving the change to archive. Does NOT write formal Specs
-   * or LikeC4 architecture files; sync is handled by `xirang sync`.
-   */
-  async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
-    const targetPath = '.';
-    const changesDir = path.join(targetPath, XIRANG_DIR_NAME, 'changes');
-    const archiveDir = path.join(changesDir, 'archive');
+  constructor(private readonly filesystem: Partial<ArchiveMoveFileSystem> = {}) {}
 
+  async execute(changeName?: string, options: ArchiveOptions = {}): Promise<void> {
+    if (options.quick && options.abandon) throw new Error('--quick and --abandon are mutually exclusive.');
+    const projectRoot = process.cwd();
+    const changesDir = path.join(projectRoot, XIRANG_DIR_NAME, 'changes');
+    const archiveDir = path.join(changesDir, 'archive');
     try {
       await fs.access(changesDir);
-    } catch {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
       throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
     }
-
     if (!changeName) {
-      const selectedChange = await selectActiveChange(changesDir, {
-        message: 'Select a change to archive',
-      });
-      if (!selectedChange) {
-        diagnostic('No change selected. Aborting.');
+      changeName = await selectActiveChange(changesDir, { message: 'Select a change to archive' }) ?? undefined;
+      if (!changeName) {
+        diagnostic('No change selected. Aborting.', 'ARCHIVE_CANCELLED', options.json);
         return;
       }
-      changeName = selectedChange;
     }
-
+    const name = validateChangeName(changeName);
+    if (!name.valid || changeName === 'archive') throw new Error(name.error ?? 'Invalid archive Change name.');
     const changeDir = path.join(changesDir, changeName);
-    const archivedChangePath = await findArchivedChangePathAsync(archiveDir, changeName);
-    let activeChangeExists = false;
-
-    try {
-      const stat = await fs.stat(changeDir);
-      if (!stat.isDirectory()) {
-        throw new Error(`Change '${changeName}' not found.`);
-      }
-      activeChangeExists = true;
-    } catch {
-      if (!archivedChangePath) {
-        throw new Error(`Change '${changeName}' not found.`);
-      }
-    }
-
-    if (!activeChangeExists && archivedChangePath) {
-      const archive = path.relative(targetPath, archivedChangePath);
-      console.log(options.json ? JSON.stringify({ archive }) : archive);
+    const active = await fs.lstat(changeDir).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return undefined;
+      throw error;
+    });
+    const report = (location: string, alreadyArchived = false) => {
+      const archive = path.relative(projectRoot, location);
+      console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
+    };
+    if (!active?.isDirectory()) {
+      const existing = await findArchivedChange(archiveDir, changeName);
+      if (!existing) throw new Error(`Change '${changeName}' not found.`);
+      report(existing, true);
       return;
     }
 
-    // Pipeline: quality → sync → validation → task → move
-    // Each gate returns false when user cancels (not an error)
-    if (!(await this.runQualityGate(changeDir, targetPath, changeName, options))) return;
-    if (!(await this.runSyncGate(targetPath, changeName, options))) return;
-    if (!(await this.runValidationGate(changeDir, options))) return;
-    if (!(await this.runTaskGate(changesDir, changeName, options))) return;
-
-    // Move change to archive
-    const archiveName = `${this.getArchiveDate()}-${changeName}`;
-    const archivePath = path.join(archiveDir, archiveName);
-
-    try {
-      await fs.access(archivePath);
-      throw new Error(`Archive '${archiveName}' already exists.`);
-    } catch (error: any) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-
-    await fs.mkdir(archiveDir, { recursive: true });
-    await moveDirectory(changeDir, archivePath);
-
-    const archive = path.join(XIRANG_DIR_NAME, 'changes', 'archive', archiveName);
-    console.log(options.json ? JSON.stringify({ archive }) : archive);
-  }
-
-  private async runQualityGate(
-    changeDir: string,
-    targetPath: string,
-    _changeName: string,
-    options: ArchiveOptions,
-  ): Promise<boolean> {
-    const skipVerify = options.verify === false || options.noVerify === true;
-
-    if (skipVerify) {
-      if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
-        const proceed = await confirm({
-          message: chalk.yellow(
-            '⚠️  WARNING: Skipping the quality gate bypasses critical quality checks.\n' +
-            '   This may archive unverified implementations with correctness, completeness, or coherence issues.\n' +
-            '   Continue with --no-verify? (y/N)'
-          ),
-          default: false,
-        });
-        if (!proceed) {
-          diagnostic('Archive cancelled. Run without --no-verify to use the standard quality gate.');
-          return false;
-        }
-      }
-      diagnostic(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-verify bypass.'));
-      return true;
-    }
-
-    const failures: string[] = [];
-    const seal = await readQualitySeal(changeDir, targetPath);
-    if (!seal.valid) failures.push('Quality gate failed: a valid Seal commit is required.');
-
-    if (failures.length > 0) {
-      throw new Error(failures.join('\n\n'));
-    }
-    return true;
-  }
-
-  private async runSyncGate(
-    targetPath: string,
-    changeName: string,
-    options: ArchiveOptions,
-  ): Promise<boolean> {
-    const skipSync = options.sync === false || options.noSync === true;
-
-    if (skipSync) {
-      if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
-        const proceed = await confirm({
-          message: chalk.yellow(
-            '⚠️  WARNING: Skipping the sync gate may leave main specs out of sync with the change deltas.\n' +
-            '   Continue with --no-sync? (y/N)'
-          ),
-          default: false,
-        });
-        if (!proceed) {
-          diagnostic('Archive cancelled.');
-          return false;
-        }
-      }
-      diagnostic(chalk.yellow('[AUTHORIZED] User explicitly authorized --no-sync bypass.'));
-      return true;
-    }
-
-    const syncState = await assessChangeSyncState(targetPath, changeName);
-    if (!syncState.requiresSync) return true;
-
-    const pendingSync = await getPendingChangeSync(targetPath, syncState);
-    if (pendingSync.pending > 0) {
-      throw new Error(
-        `Sync gate failed: ${pendingSync.pending} pending Semantic Model unit(s).\n` +
-        `Run xirang sync ${changeName} first, or pass --no-sync to bypass.`,
-      );
-    }
-    return true;
-  }
-
-  private async runValidationGate(
-    changeDir: string,
-    options: ArchiveOptions,
-  ): Promise<boolean> {
-    const skipValidation = options.validate === false || options.noValidate === true;
-
-    if (skipValidation) {
-      if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
-        const proceed = await confirm({
-          message: chalk.yellow('⚠️  WARNING: Skipping validation may archive invalid specs. Continue? (y/N)'),
-          default: false,
-        });
-        if (!proceed) {
-          diagnostic('Archive cancelled.');
-          return false;
-        }
-      }
-      const timestamp = new Date().toISOString();
-      diagnostic(chalk.yellow(`[${timestamp}] Validation skipped: ${path.basename(changeDir)}`));
-      return true;
-    }
-
-    const compiled = await compileChange('.', path.basename(changeDir), { allowAlreadyApplied: true });
-    for (const warning of compiled.diagnostics.filter(issue => issue.level === 'WARNING')) {
-      diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
-    }
-    if (!compiled.valid) {
-      throw new Error(`Validation errors in Semantic Delta:\n${compiled.diagnostics.map(issue => `${issue.code}: ${issue.message}`).join('\n')}`);
-    }
-    return true;
-  }
-
-  private async runTaskGate(
-    changesDir: string,
-    changeName: string,
-    options: ArchiveOptions,
-  ): Promise<boolean> {
-    const progress = await getTaskProgressForChange(changesDir, changeName);
-
-
-    const incompleteGoals = Math.max(progress.total - progress.completed, 0);
-    if (incompleteGoals > 0) {
-      if (!options.yes) {
-        const { confirm } = await import('@inquirer/prompts');
-        const proceed = await confirm({
-          message: `Warning: ${incompleteGoals} incomplete goal(s) found. Continue?`,
-          default: false,
-        });
-        if (!proceed) {
-          diagnostic('Archive cancelled.');
-          return false;
-        }
+    const parent = options.abandon ? path.join(archiveDir, 'abandoned') : archiveDir;
+    const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
+    const archivePath = path.join(parent, archiveName);
+    const ensureUnoccupied = async () => {
+      const existing = await fs.lstat(archivePath).catch((error: NodeJS.ErrnoException) => {
+        if (error.code === 'ENOENT') return undefined;
+        throw error;
+      });
+      if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
+    };
+    const move = async () => {
+      await fs.mkdir(parent, { recursive: true });
+      await ensureUnoccupied();
+      await moveDirectory(changeDir, archivePath, this.filesystem);
+    };
+    const ask = async (message: string) => {
+      const { confirm } = await import('@inquirer/prompts');
+      if (await confirm({ message, default: false })) return true;
+      diagnostic('Archive cancelled.', 'ARCHIVE_CANCELLED', options.json);
+      return false;
+    };
+    await ensureUnoccupied();
+    if (options.abandon) {
+      const { total, completed } = await getTaskProgressForChange(changesDir, changeName);
+      if (completed > 0) diagnostic(`tasks.md: ${completed}/${total} goals checked.`, 'ARCHIVE_PROGRESS', options.json);
+      if (!options.yes && !(await ask(`Abandon '${changeName}' and archive it without applying its Semantic Delta?`))) return;
+      await move();
+    } else {
+      if (options.quick) {
+        diagnostic('Quality Seal check skipped (--quick).', 'QUALITY_SKIPPED', options.json);
       } else {
-        diagnostic(`Warning: ${incompleteGoals} incomplete goal(s) found. Continuing due to --yes flag.`);
+        const seal = await readQualitySeal(changeDir, projectRoot);
+        if (!seal.valid) throw new Error('Quality gate failed: a valid Seal commit is required.');
       }
+      const prepared = await prepareChangeSync(projectRoot, changeName);
+      for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
+      const { total, completed } = await getTaskProgressForChange(changesDir, changeName);
+      const incomplete = total - completed;
+      if (incomplete > 0) {
+        const message = `Warning: ${incomplete} incomplete goal(s) found.`;
+        if (options.yes) diagnostic(`${message} Continuing due to --yes flag.`, 'INCOMPLETE_GOALS', options.json);
+        else if (!(await ask(`${message} Continue?`))) return;
+      }
+      await applyPreparedChangeSync(projectRoot, prepared, { postWrite: move });
     }
-    return true;
-  }
-
-  private getArchiveDate(): string {
-    // Returns date in YYYY-MM-DD format
-    return new Date().toISOString().split('T')[0];
+    report(archivePath);
   }
 }

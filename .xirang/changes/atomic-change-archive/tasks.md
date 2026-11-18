@@ -1,0 +1,17 @@
+## Goals
+
+- [x] G1: 统一默认交付与显式免 Seal 交付入口
+  - Contract: `change-archive` / Section "Business Logic"
+  - Verify: 默认缺少有效 Seal 不写入；quick 仍拒绝非法 Delta、尊重未完成任务的取消，仅对合法目标完成交付。互斥选项和已退役命令、选项不改变项目状态。
+- [x] G2: 在同次调用内一致地更新模型并封存
+  - Contract: `change-sync` / Section "Edge Cases and Exception Handling"
+  - Verify: 目标已同步时不重复写入；基线过期或同 identity 的冲突拒绝交付。写入后移动失败恢复原模型及活动目录；成功后丢失回执只返回已有归档，不重复处理。
+- [x] G3: 保留放弃的方案而不交付实现
+  - Contract: `change-archive` / Section "Key Acceptance Cases"
+  - Verify: 无 Seal、无任务或 Delta 不完整仍可放弃；已有 2/5 个目标勾选时先提示事实，取消保持活动，显式确认或 --yes 仅原样封存，不改动模型或实现，不执行 Git 提交、合并或清理。
+- [x] G4: 在受管 Agent 工作面正确区分交付、放弃和只读预览
+  - Contract: `archive-role` / Section "通过 CLI 编排 Closure"
+  - Verify: 普通交付和 quick 均只需一个入口，后者不误报 Quality 通过；放弃不触发交付后的合并或清理；Snack 不再推荐拆分命令，Propose 不写模型。现行生成面与 CLI 帮助、补全不再引导使用退役协议。
+- [ ] G5: 在 Windows CI 与其他支持平台保持两种留档路径的结果一致
+  - Contract: `change-archive` / Section "Key Acceptance Cases"
+  - Verify: 默认与 quick 保留日期目录，放弃保留 abandoned 子目录，跨平台解析、返回与再次查找对应已有路径时均不重写原始制品或覆盖同名冲突目标。

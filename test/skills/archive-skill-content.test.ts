@@ -7,7 +7,7 @@ import { ArtifactSyncEngine } from '../../src/core/templates/sync-engine.js';
 import { getArchiveChangeSkillTemplate } from '../../src/core/templates/workflows/archive-change.js';
 
 function normalizeSteps(content: string): string {
-  const start = content.indexOf('7. **Git handoff**');
+  const start = content.indexOf('**Git handoff**');
   const end = content.indexOf('**Output On Success**');
   expect(start).toBeGreaterThanOrEqual(0);
   expect(end).toBeGreaterThan(start);
@@ -53,7 +53,6 @@ describe('xirang archive skill content', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
 
     expect(instructions).toContain('xirang config project --select git --json');
-    expect(instructions).toContain('normalized project config');
     expect(instructions).toContain('git.commitMessage.archive');
     expect(instructions).toContain('git.commitMessage.merge');
     expect(instructions).toContain('git.merge.strategy');
@@ -64,7 +63,6 @@ describe('xirang archive skill content', () => {
     expect(instructions).not.toContain('git.merge.commitMessage.convention');
     expect(instructions).not.toContain('user handles all post-archive git work manually');
     expect(instructions).not.toContain('git.merge.messageFrom');
-    expect(instructions).toContain('do not parse raw YAML inside the skill');
   });
 
   it('routes archive, boundary, and merge message templates through configured paths or shared references', () => {

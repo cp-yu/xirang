@@ -146,7 +146,7 @@ describe('propose template post-validation flow', () => {
       expect(body).toContain('Errors from deterministic validation or the scaffolding checks block ready-for-apply');
       expect(body).toContain('WARNING does not block');
       expect(body).toContain('Fix at most one round and recheck once');
-      expect(body).toContain('Do NOT run `xirang sync`');
+      expect(body).toContain('Do NOT archive the Change or write the formal model');
       expect(body).not.toContain('--artifacts specs');
       expect(body).not.toContain('--artifacts opsx-delta');
       expect(body).not.toContain('Validator.validateChangeDeltaSpecs()');

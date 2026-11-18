@@ -238,7 +238,7 @@ Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Mod
 
 ## 2. Change Realization
 
-Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并经 Quality 验证，再通过 Change Closure 将经验证的 Semantic Delta 更新到 Semantic Model 并关闭 Change，使项目实现与语义模型进入新的稳定状态。
+Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并经 Quality 验证，再通过 Change Closure 应用 Semantic Delta 并封存 Change；用户也可放弃而仅封存，不应用 Delta。
 
 ## 3. Change Formation
 
@@ -290,7 +290,7 @@ Snack 是 Implementation-first Path 的形成阶段。它从已发生的项目�
 
 ## 3. Change Implementation
 
-Change Implementation 是 Change Realization 中落实 Change 并确认其结果的阶段。Agent 依据 Semantic Model、Semantic Delta 与 Change Plan，将 Change 描述的内容落实到项目，并通过 Quality 以 commit 绑定的独立 Review 意见、可选 Opt 意见与主 Agent 的 Seal 声明确认项目结果与 Expected Semantic Model 一致。Quality 完成后，Change 可进入 Change Closure；本阶段不以 Semantic Delta 更新 Semantic Model，也不关闭 Change。
+Change Implementation 是 Change Realization 中落实 Change 并确认其结果的阶段。Agent 依据 Semantic Model、Semantic Delta 与 Change Plan，将 Change 描述的内容落实到项目，并通过 Quality 以 commit 绑定的独立 Review 意见、可选 Opt 意见与主 Agent 的 Seal 声明确认项目结果与 Expected Semantic Model 一致。Quality 完成后，Change 具备默认交付归档的质量资格；本阶段不以 Semantic Delta 更新 Semantic Model，也不关闭 Change。
 
 ### 4. Apply
 
@@ -302,7 +302,7 @@ Quality 是 Change Implementation 中确认项目结果的阶段，由 Review �
 
 实现先提交为 Git commit 并由主 Agent 运行本次所需测试后，才能执行基线 Review；至少一条通过的 full-change Review 是 Opt 与 Seal 的前置条件，但它不证明其后的改动经过独立审查。主 Agent 负责委托范围、后续投入、最终验证范围与风险判断，可自行读取代码与证据，但不替代必需的基线 Review 或基线缺陷修复后的针对性 Review。优化前先保存可恢复基线；Opt 按需保存中间状态，主 Agent 所需验证全部通过且证据仍适用当前状态时保存最终 successful checkpoint。优化引入的问题依据实际证据局部修正或撤销并验证，保留其他可靠优化，不整批回滚；无法确认局部恢复可靠时恢复到可确认基线，仍无法确认则停止并交回主 Agent。Quality 保留 Review 意见历史、Opt opinions 与已放弃方向及其原因，供后续判断并避免重复尝试。
 
-Quality 仅在基线 Review 已通过、Opt 处置明确（已执行时包含 opinion 及 baseCommit 与 resultCommit，未执行时记录简短理由）、且主 Agent 已记录绑定 Git commit 的有效 Seal 声明时，允许 Change 进入 Change Closure。
+Quality 仅在基线 Review 已通过、Opt 处置明确（已执行时包含 opinion 及 baseCommit 与 resultCommit，未执行时记录简短理由）、且主 Agent 已记录绑定 Git commit 的有效 Seal 声明时，获得默认交付归档的质量资格；quick 或放弃不表示 Quality 已完成。
 
 #### 5. Review
 
@@ -318,7 +318,7 @@ Optimizer 的核心原则是优先删除不需要存在的复杂度，并优化�
 
 ## 3. Change Closure
 
-Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效 Quality 结果为入口，`xirang archive` 在归档前校验 Quality Seal 与 Sync 状态；先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Archive 不创建、重算或覆盖任何 View presentation artifact。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
+Change Closure 是 Change Realization 中结束活动 Change 的阶段。默认交付以有效 Quality Seal 为入口，显式 `--quick` 只豁免 Seal；两者都由 `xirang archive` 在同一次调用内校验并应用 Semantic Delta、原样封存 Change。可捕获的移动失败撤回本次模型写入，不承诺跨进程恢复。用户可选择 `--abandon`，只封存 Change，不应用 Delta，不触发交付后的 Git 合并或清理。归档不创建、重算或覆盖 View presentation artifact。成功后的业务修改通过新 Change。
 
 ## 2. Interaction Surfaces
 
@@ -388,7 +388,7 @@ Apply 是 Agent 落实 Change 所描述项目改动的工作身份。它以 Expe
 
 ##### 5. Archive
 
-Archive 是 Agent 在 Quality 完成（Seal 成立）后编排 Change Closure 的工作身份。它确认入口条件已满足，协调 CLI 将 Semantic Delta 应用于 Semantic Model，并保存已完成 Change 及其最终证据、结束 Change 的活动状态。Archive 不重新判定目标语义，也不替代 CLI 的原子状态转换。
+Archive 是 Agent 按用户决定编排 Change Closure 的工作身份。它协调 CLI 完成交付或放弃留档，核对并报告实际结果；默认交付要求有效 Seal，quick 不声称通过 Quality，放弃不触发交付后的 Git 操作。Archive 不重新判定目标语义，也不替代 CLI 的状态转换。
 
 #### 4. Internal Agents
 

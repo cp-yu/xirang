@@ -90,7 +90,7 @@ describe('ArchiveCommand', () => {
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
 
       // Execute archive with --yes flag
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       // Check that change was moved to archive
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
@@ -107,7 +107,7 @@ describe('ArchiveCommand', () => {
       const changeName = 'semantic-without-report';
       await writeSemanticArchiveFixture(changeName);
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
@@ -123,7 +123,7 @@ describe('ArchiveCommand', () => {
       const report = Buffer.from('# Legacy report\r\n\x00unchanged\n', 'utf8');
       await fs.writeFile(path.join(changeDir, 'effective-change.md'), report);
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find(entry => entry.endsWith(`-${changeName}`));
@@ -141,7 +141,7 @@ git:
   autoCommit: auto
 `, 'utf-8');
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('Git handoff:'));
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining('archive'));
@@ -160,7 +160,7 @@ git:
   autoCommit: manual
 `, 'utf-8');
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('Git handoff:'));
       expect(console.log).not.toHaveBeenCalledWith(
@@ -217,12 +217,40 @@ git:
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
     });
 
-    it('should block archive when sync has pending Semantic Model writes', async () => {
+    it('applies pending model writes before enclosing the Change in history', async () => {
       const changeName = 'pending-sync-gate';
       const changeDir = await writeChangeDelta(tempDir, changeName, { 'elements/existing.id.md': MODIFY_EXISTING });
       await writeFreshQualityRecord(changeDir);
+      const quality = await fs.readFile(path.join(changeDir, '.quality.json'));
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
+      await archiveCommand.execute(changeName, { yes: true });
+      await expect(fs.readFile(path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md'), 'utf8')).resolves.toContain('Changed summary');
+      await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
+      const archive = path.join(path.dirname(changeDir), 'archive');
+      const [archived] = await fs.readdir(archive);
+      await expect(fs.readFile(path.join(archive, archived, '.quality.json'))).resolves.toEqual(quality);
+    });
+
+    it('keeps an invalid Change active when abandon is declined, then archives it with recorded progress under --yes', async () => {
+      const name = 'change-a';
+      const source = await writeChangeDelta(tempDir, name, { 'elements/broken.md': 'malformed' });
+      const tasks = '## Goals\n- [x] G1: One\n- [x] G2: Two\n- [ ] G3: Three\n- [ ] G4: Four\n- [ ] G5: Five\n';
+      await fs.writeFile(path.join(source, 'tasks.md'), tasks);
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const model = await fs.readFile(modelFile);
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockResolvedValueOnce(false);
+      await archiveCommand.execute(name, { abandon: true });
+      expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ default: false }));
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('2/5'));
+      await expect(fs.access(source)).resolves.toBeUndefined();
+
+      await archiveCommand.execute(name, { abandon: true, yes: true });
+      expect(confirm).toHaveBeenCalledTimes(1);
+      const dir = path.join(path.dirname(source), 'archive', 'abandoned');
+      const [archived] = await fs.readdir(dir);
+      await expect(fs.readFile(path.join(dir, archived, 'tasks.md'), 'utf8')).resolves.toBe(tasks);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(model);
     });
 
     it('rejects a malformed Semantic Delta unit at the archive sync gate', async () => {
@@ -243,7 +271,7 @@ git:
         elements: [{ identity: 'existing.id', parent: 'root', title: 'Existing', definition: 'Changed summary' }],
       }));
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archived = (await fs.readdir(archiveDir)).find((entry) => entry.includes(changeName));
@@ -286,7 +314,7 @@ git:
 
       
       // Execute archive with --yes flag
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
       
       // Verify warning was logged
       expect(console.error).toHaveBeenCalledWith(
@@ -294,49 +322,39 @@ git:
       );
     });
 
-    it('should block archive with --no-sync --yes when pending deltas exist', async () => {
-      const changeName = 'no-sync-bypass';
-      const changeDir = await writeChangeDelta(tempDir, changeName, {
-        'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync bypass gate.\n---\n',
-      });
-      await writeFreshQualityRecord(changeDir);
-
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noSync: true, noValidate: true });
-
-      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
-    });
-
-    it('should confirm before bypassing sync gate with --no-sync', async () => {
-      const changeName = 'no-sync-confirm';
-      const changeDir = await writeChangeDelta(tempDir, changeName, {
-        'elements/gate.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: gate\nkind: capability\nparent: root\ntitle: Gate\ndefinition: Sync confirmation gate.\n---\n',
-      });
-      await writeFreshQualityRecord(changeDir);
-
-      const { confirm } = await import('@inquirer/prompts');
-      const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
-      mockConfirm.mockResolvedValueOnce(false);
-
-      await archiveCommand.execute(changeName, { noSync: true });
-
-      expect(console.error).toHaveBeenCalledWith('Archive cancelled.');
-    });
-
-    it('should block archive when a metamodel or view delta is pending', async () => {
+    it('applies pending view changes before archiving', async () => {
       const changeName = 'pending-architecture';
       const changeDir = await writeChangeDelta(tempDir, changeName, {
         'views/index.md': '---\noperation: ADDED\nentity: authored-view\nidentity: index\ninclude: "*"\n---\n',
       });
       await writeFreshQualityRecord(changeDir);
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('Sync gate');
+      await archiveCommand.execute(changeName, { yes: true });
+      await expect(fs.readFile(path.join(tempDir, '.xirang', 'model', 'views', 'index.md'), 'utf8')).resolves.toContain('identity: index');
+    });
+
+    it.each([false, true])('restores the preimage and keeps the active Change when the archive move fails (quick=%s)', async quick => {
+      const name = 'move-fails';
+      const source = await writeSemanticArchiveFixture(name);
+      if (!quick) await writeFreshQualityRecord(source);
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const preimage = await fs.readFile(formal);
+      const bytes = await fs.readFile(path.join(source, 'elements', 'existing.id.md'));
+      const command = new ArchiveCommand({
+        rename: async () => {
+          await expect(fs.readFile(formal, 'utf8')).resolves.toContain('Changed summary');
+          throw Object.assign(new Error('cannot move'), { code: 'EACCES' });
+        },
+      });
+      await expect(command.execute(name, { quick, yes: true })).rejects.toThrow('cannot move');
+      await expect(fs.readFile(formal)).resolves.toEqual(preimage);
+      await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'))).resolves.toEqual(bytes);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
     it('should throw error if change does not exist', async () => {
       await expect(
-        archiveCommand.execute('non-existent-change', { yes: true, noVerify: true })
+        archiveCommand.execute('non-existent-change', { yes: true, quick: true })
       ).rejects.toThrow("Change 'non-existent-change' not found.");
     });
 
@@ -350,7 +368,7 @@ git:
       await fs.mkdir(archivePath, { recursive: true });
       
       await expect(
-        archiveCommand.execute(changeName, { yes: true, noVerify: true })
+        archiveCommand.execute(changeName, { yes: true, quick: true })
       ).rejects.toThrow(`Archive '${date}-${changeName}' already exists.`);
     });
 
@@ -359,7 +377,7 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
       
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('incomplete goal(s)')
@@ -375,7 +393,7 @@ git:
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
       
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
       
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Specs to update')
@@ -386,20 +404,6 @@ git:
       expect(archives.length).toBe(1);
     });
 
-    it('should skip validation when commander sets validate to false (--no-validate)', async () => {
-      const changeName = 'skip-validation-flag';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
-
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true, validate: false });
-
-      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('Validation skipped'));
-      const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      expect(archives.length).toBe(1);
-      expect(archives[0]).toMatch(new RegExp(`\\d{4}-\\d{2}-\\d{2}-${changeName}`));
-    });
   });
 
   describe('error handling', () => {
@@ -408,7 +412,7 @@ git:
       await fs.rm(path.join(tempDir, '.xirang'), { recursive: true });
       
       await expect(
-        archiveCommand.execute('any-change', { yes: true, noVerify: true })
+        archiveCommand.execute('any-change', { yes: true, quick: true })
       ).rejects.toThrow("No Xirang changes directory found. Run 'xirang setup' first.");
     });
   });
@@ -428,7 +432,7 @@ git:
       mockSelect.mockResolvedValueOnce(change1);
       
       // Execute without change name
-      await archiveCommand.execute(undefined, { yes: true, noVerify: true });
+      await archiveCommand.execute(undefined, { yes: true, quick: true });
       
       // Verify select was called with correct options (values matter, names may include progress)
       expect(mockSelect).toHaveBeenCalledWith(expect.objectContaining({
@@ -466,7 +470,7 @@ git:
       mockConfirm.mockResolvedValueOnce(true);
       
       // Execute without --yes flag
-      await archiveCommand.execute(changeName, { noVerify: true });
+      await archiveCommand.execute(changeName, { quick: true });
       
       // Verify confirm was called
       expect(mockConfirm).toHaveBeenCalledWith({
@@ -486,17 +490,9 @@ git:
       const tasksContent = '## Goals\n\n- [ ] G1: Pending goal\n  - Contract: `feature` / Section "Core behavior"\n  - Verify: The pending behavior is observable.';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
       
-      // Mock confirm to return false (cancel) for validation skip
       mockConfirm.mockResolvedValueOnce(false);
-      // Mock another false for task warning
-      mockConfirm.mockResolvedValueOnce(false);
-      
-      // Execute without --yes flag but skip validation to test task warning
-      await archiveCommand.execute(changeName, { noValidate: true, noVerify: true });
-      
-      // Verify archive was cancelled
-      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
-      
+      await archiveCommand.execute(changeName, { quick: true });
+      expect(console.error).toHaveBeenCalledWith('Archive cancelled.');
       // Verify change was not archived
       await expect(fs.access(changeDir)).resolves.not.toThrow();
     });
@@ -516,7 +512,7 @@ git:
         })
       );
 
-      await archiveCommand.execute(changeName, { yes: true, noVerify: true, noValidate: true });
+      await archiveCommand.execute(changeName, { yes: true, quick: true });
 
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('Worktree cleanup')
@@ -530,60 +526,5 @@ git:
       await expect(fs.access(path.join(archiveDir, archiveName, '.apply-isolation.json'))).resolves.not.toThrow();
     });
 
-    it('prompts before apply isolation cleanup and respects declines', async () => {
-      const { confirm } = await import('@inquirer/prompts');
-      const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
-
-      const changeName = 'isolated-prompt';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const worktreePath = path.join(tempDir, '.worktrees', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
-      await fs.writeFile(
-        path.join(changeDir, '.apply-isolation.json'),
-        JSON.stringify({
-          method: 'worktree',
-          branchName: changeName,
-          worktreePath,
-          originalBranch: 'main',
-        })
-      );
-
-      // Mock --no-verify warning confirmation (user declines to cancel early)
-      mockConfirm.mockResolvedValueOnce(false);
-
-      await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
-
-      // Verify archive was cancelled at the --no-verify warning
-      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
-    });
-
-    it('normalizes Windows-style worktree paths before prompting', async () => {
-      const { confirm } = await import('@inquirer/prompts');
-      const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
-
-      const changeName = 'isolated-windows-path';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      const worktreePath = `.worktrees\\${changeName}`;
-      await fs.mkdir(changeDir, { recursive: true });
-      await fs.writeFile(path.join(changeDir, 'tasks.md'), '- [x] Task 1\n');
-      await fs.writeFile(
-        path.join(changeDir, '.apply-isolation.json'),
-        JSON.stringify({
-          method: 'worktree',
-          branchName: changeName,
-          worktreePath,
-          originalBranch: 'main',
-        })
-      );
-
-      // Mock --no-verify warning confirmation (user declines to test path normalization isn't triggered)
-      mockConfirm.mockResolvedValueOnce(false);
-
-      await archiveCommand.execute(changeName, { noVerify: true, noValidate: true });
-
-      // Verify archive was cancelled at the --no-verify warning
-      expect(console.error).toHaveBeenCalledWith('Archive cancelled. Run without --no-verify to use the standard quality gate.');
-    });
   });
 });

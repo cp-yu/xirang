@@ -21,28 +21,20 @@ describe('archive change workflow template', () => {
     expect(instructions).toContain('MUST NOT copy definitions');
   });
 
-  it('assesses sync from the four change partitions and reports Sync guarantees', () => {
+  it('routes archive modes without recommending a retired command or Git handoff after abandon', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
-
-    expect(instructions).toContain('If any of `.xirang/changes/<name>/{metamodel,elements,relationships,views}/` is non-empty, assess whether sync is required');
-    expect(instructions).toContain('Synced into `.xirang/model/`, rewriting only the units the Semantic Delta affects, all-or-nothing');
-    const syncIndex = instructions.indexOf('run `xirang sync "<change-name>"`');
-    const archiveIndex = instructions.indexOf('Run `xirang archive "<change-name>"`');
-    expect(syncIndex).toBeGreaterThan(-1);
-    expect(syncIndex).toBeLessThan(archiveIndex);
-    expect(instructions).toContain('Stop on Sync failure');
-    expect(instructions).toContain('Archive only checks completed Sync');
-    expect(instructions).not.toContain('archive CLI performs the quality gate, sync, and move-to-archive');
-    expect(instructions).not.toContain('Archive independently completed Sync');
-    expect(instructions).not.toContain('architecture-delta');
-    expect(instructions).not.toContain('main specs');
-    expect(instructions).not.toContain('formal LikeC4');
+    for (const command of ['`xirang archive "<change-name>" --json`', '`xirang archive "<change-name>" --quick --json`', '`xirang archive "<change-name>" --abandon --json`']) {
+      expect(instructions).toContain(command);
+    }
+    for (const retired of ['`xirang sync', '--no-sync', '--no-validate', '--no-verify']) expect(instructions).not.toContain(retired);
+    expect(instructions).toContain('MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits');
+    expect(instructions).toContain('`alreadyArchived`');
   });
 
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');
-    const cliIndex = instructions.indexOf('Run `xirang archive "<change-name>"`');
+    const cliIndex = instructions.indexOf('Run `xirang archive "<change-name>" --json`');
 
     expect(readIndex).toBeGreaterThan(-1);
     expect(cliIndex).toBeGreaterThan(readIndex);
