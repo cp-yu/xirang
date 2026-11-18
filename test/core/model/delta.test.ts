@@ -214,14 +214,15 @@ describe('parseSemanticDelta', () => {
 
     const { delta, diagnostics } = await parseSemanticDelta(root);
     expect(diagnostics).toEqual([]);
-    expect(delta.entries.map(entry => [entry.entity, entry.operation])).toEqual([
+    expect(delta.entries).toHaveLength(6);
+    expect(delta.entries.map(entry => [entry.entity, entry.operation])).toEqual(expect.arrayContaining([
       ['element-kind', 'ADDED'],
       ['element-kind', 'REMOVED'],
       ['relationship-kind', 'MODIFIED'],
       ['relationship', 'ADDED'],
       ['relationship', 'REMOVED'],
       ['authored-view', 'REMOVED'],
-    ]);
+    ]));
     expect(delta.entries.find(entry => entry.operation === 'REMOVED')).not.toHaveProperty('target');
   });
 
@@ -284,6 +285,18 @@ describe('applySemanticDelta', () => {
     expect(result.diagnostics).toEqual([]);
     expect(result.expected.elements[1].sections.map(item => item.name)).toEqual(['New']);
     expect([...result.touched]).toEqual(['cap.a']);
+  });
+
+  it('permits removal of an existing Section together with its host in either entry order', () => {
+    const removal = [
+      { operation: 'REMOVED', entity: 'element-declaration', identity: 'cap.a' },
+      { operation: 'REMOVED', entity: 'section', identity: 'cap.a#Existing' },
+    ] as const;
+    for (const entries of [[...removal], [...removal].reverse()]) {
+      const result = applySemanticDelta(base(), { entries });
+      expect(result.diagnostics).toEqual([]);
+      expect(result.expected.elements.map(item => item.declaration.identity)).toEqual(['root']);
+    }
   });
 
   it('rejects ADDED on an existing identity and MODIFIED or REMOVED on a missing one', () => {

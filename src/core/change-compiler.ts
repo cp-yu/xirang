@@ -154,12 +154,16 @@ export async function compileChangeDelta(
     options.deltaFiles ?? await readDeltaFiles(changeRoot(projectRoot, changeName)), navigationBaseline,
   );
   const applied = applySemanticDelta(base.model, parsed.delta);
+  const applicationIssues = options.allowAlreadyApplied
+    ? suppressApplied(base.model, parsed.delta, applied.diagnostics)
+    : applied.diagnostics;
   const raw = [
     ...base.diagnostics,
     ...parsed.diagnostics,
-    ...(options.allowAlreadyApplied
-      ? suppressApplied(base.model, parsed.delta, applied.diagnostics)
-      : applied.diagnostics),
+    ...applicationIssues.map(item => {
+      const source = parsed.sources.find(unit => unit.entities.some(entry => entry.entity === item.entity && entry.identity === item.identity));
+      return source && !item.path ? { ...item, path: source.path } : item;
+    }),
     ...validateSemanticModel(applied.expected),
   ];
   const diagnostics = raw.map(item => toChangeDiagnostic(base.index, parsed.delta.entries, item));

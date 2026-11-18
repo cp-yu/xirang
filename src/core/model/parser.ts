@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { parse as parseYaml } from 'yaml';
+import { parse as parseYaml, parseDocument } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { ACCEPTANCE_CASE_HEADER, buildCodeFenceMask } from '../parsers/section-text.js';
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
@@ -404,13 +404,8 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
 const DELTA_WRITEBACK_TEMP = /^\..+\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.tmp$/is;
 
 function hasDeltaNotation(content: string): boolean {
-  if (isMarkdownUnit(content)) return true;
-  try {
-    const document: unknown = parseYaml(normalizeLineEndings(content));
-    return document !== null && typeof document === 'object' && Object.hasOwn(document, 'relationships');
-  } catch {
-    return false;
-  }
+  // Discover authored units even when the relationships value is malformed.
+  return isMarkdownUnit(content) || parseDocument(normalizeLineEndings(content)).has('relationships');
 }
 
 /** Reads the four partitions below `root` into a path → bytes map. */

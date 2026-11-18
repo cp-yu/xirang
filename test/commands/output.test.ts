@@ -131,6 +131,77 @@ it('previews and delivers extensionless hidden Delta units without applying CLI 
   await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+it.each(['relationships: [\n', '{"relationships": [\n'])('rejects a malformed extensionless hidden Relationship unit (%j)', async delta => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'broken-hidden-relation', {
+    'proposal.md': '# Hidden relationship\n',
+    'relationships/.edges': delta,
+  });
+  for (const commands of [['validate', '--change', 'broken-hidden-relation', '--preview'], ['archive', 'broken-hidden-relation', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('relationships/.edges');
+    expect(result.stderr).toContain('MALFORMED_UNIT');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'relationships/.edges'), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('compiles a split Element and its Sections with the same order after renaming all source files', async () => {
+  const host = elementUnit({ identity: 'split-host' });
+  const sections = (headings: string[]) => host + '## ADDED Sections\n\n' + headings.map(heading =>
+    `### Section: ${heading}\nThe system SHALL provide this behavior.\n`).join('\n');
+  let expected: string | undefined;
+  for (const [declaration, one, two] of [['01', '02', '03'], ['30', '20', '10']]) {
+    const project = path.join(root, declaration);
+    await writeProjectModel(project, minimalModel());
+    await writeChangeDelta(project, 'split-element', {
+      'proposal.md': '# Split Element\n',
+      [`elements/${declaration}.md`]: '---\noperation: ADDED\n' + host.slice(4),
+      [`elements/${one}.md`]: sections(['B first', 'A second']),
+      [`elements/${two}.md`]: sections(['C third']),
+    });
+    const preview = await runCLI(['validate', '--change', 'split-element', '--preview', '--json'], { cwd: project });
+    expect(preview.exitCode, preview.stderr).toBe(0);
+    expect(JSON.parse(preview.stdout).summary).toMatchObject({ ADDED: 4, total: 4 });
+    const archived = await runCLI(['archive', 'split-element', '--yes', '--quick', '--json'], { cwd: project });
+    expect(archived.exitCode, archived.stderr).toBe(0);
+    const installed = await fs.readFile(path.join(project, '.xirang/model/elements/split-host.md'), 'utf8');
+    expect([...installed.matchAll(/^### Section: (.*)$/gm)].map(match => match[1])).toEqual(['B first', 'A second', 'C third']);
+    if (expected === undefined) expected = installed;
+    else expect(installed).toBe(expected);
+  }
+});
+
+it.each([
+  ['ADDED', '01', '02'], ['ADDED', '02', '01'], ['MODIFIED', '01', '02'], ['MODIFIED', '02', '01'],
+])('rejects a %s Section whose host is removed, regardless of filenames (%s, %s)', async (operation, declaration, section) => {
+  const oldSection = '### Section: Still needed\nThe system SHALL provide previous behavior.';
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'removed-host', sections: '## Specification\n\n' + oldSection }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const sectionFile = `elements/${section}.md`;
+  const delta = elementUnit({ identity: 'removed-host' }) + `## ${operation} Sections\n\n`
+    + `### Section: ${operation === 'ADDED' ? 'New' : 'Still needed'}\nThe system SHALL provide new behavior.\n`;
+  const source = await writeChangeDelta(root, 'remove-host', {
+    'proposal.md': '# Remove a host\n',
+    [`elements/${declaration}.md`]: '---\nentity: element-declaration\noperation: REMOVED\nidentity: removed-host\n---\n',
+    [sectionFile]: delta,
+  });
+  for (const commands of [['validate', '--change', 'remove-host', '--preview'], ['archive', 'remove-host', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('SECTION_HOST_REMOVED');
+    expect(result.stderr).toContain(sectionFile);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, sectionFile), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('rejects a new owner of the exact path of a removed Formal unit', async () => {
   await writeProjectModel(root, minimalModel({ elements: [{ identity: 'old-id', fileName: 'new-id' }] }));
   const model = path.join(root, '.xirang', 'model');

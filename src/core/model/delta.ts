@@ -265,14 +265,16 @@ export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelt
 }
 
 export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {
-  const entries: DeltaEntry[] = [];
+  const units: Array<{ key: string; entries: DeltaEntry[] }> = [];
   const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
   for (const [file, content] of [...files].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
-    const start = entries.length;
+    const entries: DeltaEntry[] = [];
     if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics, navigationBaseline);
     else parseDeltaContainer(file, content, entries, diagnostics);
-    const entities = entries.slice(start).map(({ entity, identity }) => ({ entity, identity }));
+    const first = entries[0];
+    if (first) units.push({ key: `${first.entity}\u0000${first.identity}`, entries });
+    const entities = entries.map(({ entity, identity }) => ({ entity, identity }));
     if (entities.length === 0) {
       const unit = splitFrontmatter(content);
       if (unit.ok && unit.data.entity === 'element-declaration' && typeof unit.data.identity === 'string') {
@@ -281,6 +283,8 @@ export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navi
     }
     if (entities.length > 0) sources.push({ path: file, entities });
   }
+  // Preserve the author's order within each unit, but derive cross-unit order from identity, not path.
+  const entries = units.sort((left, right) => compareUtf8Bytes(left.key, right.key)).flatMap(unit => unit.entries);
   detectConflicts(entries, diagnostics);
   return { delta: { entries }, sources, diagnostics };
 }
@@ -380,7 +384,23 @@ export function applySemanticDelta(base: SemanticModel, delta: SemanticDelta): D
   const state = cloneState(base);
   const touched = new Set<string>();
   const diagnostics: ModelDiagnostic[] = [];
-  for (const entry of delta.entries) applyEntry(state, entry, touched, diagnostics);
+  const sections: DeltaEntry[] = [];
+  const removals: DeltaEntry[] = [];
+  for (const entry of delta.entries) {
+    if (entry.entity === 'section') sections.push(entry);
+    else if (entry.entity === 'element-declaration' && entry.operation === 'REMOVED') removals.push(entry);
+    else applyEntry(state, entry, touched, diagnostics);
+  }
+  // Add hosts before applying their Sections; retire hosts only after validating Section removals.
+  const removedElements = new Set(removals.map(entry => entry.identity));
+  for (const entry of sections) {
+    const [host] = entry.identity.split('#', 1);
+    if (entry.operation !== 'REMOVED' && removedElements.has(host)) {
+      diagnostics.push(error('SECTION_HOST_REMOVED', '',
+        `${entry.operation} Section ${entry.identity} cannot target removed Element ${host}`, entry.identity, 'section'));
+    } else applyEntry(state, entry, touched, diagnostics);
+  }
+  for (const entry of removals) applyEntry(state, entry, touched, diagnostics);
   return {
     expected: {
       elementKinds: [...state.elementKinds.values()],

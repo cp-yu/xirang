@@ -102,3 +102,5 @@
 - [x] [code_fix] 语义快照拒绝无法无损解码的 POSIX 路径并提示重命名，不误读同名单位或丢掉操作。
 - [x] [code_fix] 隐藏 Delta 单元按内容识别，不要求后缀；仍排除 CLI 写回暂存文件。
 - [x] [code_fix] 目标标识不得占用本次计划移除的另一标识的精确 Formal 路径，冲突指出双方。
+- [x] [code_fix] 隐藏 Relationship 单元即使 YAML 无法完整解析也须进入校验，不得当作空 Delta。
+- [x] [code_fix] Element Declaration 与 Section 按宿主 identity 联合应用，不依赖文件名顺序；保留同一单元内顺序，拒绝新增或修改要移除宿主的 Section。
