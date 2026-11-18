@@ -12,6 +12,6 @@
 - [x] G4: 在受管 Agent 工作面正确区分交付、放弃和只读预览
   - Contract: `archive-role` / Section "通过 CLI 编排 Closure"
   - Verify: 普通交付和 quick 均只需一个入口，后者不误报 Quality 通过；放弃不触发交付后的合并或清理；Snack 不再推荐拆分命令，Propose 不写模型。现行生成面与 CLI 帮助、补全不再引导使用退役协议。
-- [ ] G5: 在 Windows CI 与其他支持平台保持两种留档路径的结果一致
+- [x] G5: 在 Windows CI 与其他支持平台保持两种留档路径的结果一致
   - Contract: `change-archive` / Section "Key Acceptance Cases"
   - Verify: 默认与 quick 保留日期目录，放弃保留 abandoned 子目录，跨平台解析、返回与再次查找对应已有路径时均不重写原始制品或覆盖同名冲突目标。
