@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { XIRANG_DIR_NAME } from '../core/config.js';
+import { pendingArchivePath } from '../core/archive-paths.js';
 import { modelRoot } from '../core/model/paths.js';
 import { parseSemanticModel } from '../core/model/parser.js';
 
@@ -43,12 +44,17 @@ export async function getArchivedChangeIds(root: string = process.cwd()): Promis
     const result: string[] = [];
     for (const entry of entries) {
       if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-      const proposalPath = path.join(archivePath, entry.name, 'proposal.md');
+      const destination = path.join(archivePath, entry.name);
       try {
-        await fs.access(proposalPath);
+        const pending = await fs.lstat(pendingArchivePath(destination)).catch((error: NodeJS.ErrnoException) => {
+          if (error.code !== 'ENOENT') throw error;
+          return undefined;
+        });
+        if (pending) continue;
+        await fs.access(path.join(destination, 'proposal.md'));
         result.push(entry.name);
       } catch {
-        // skip directories without proposal.md
+        // Don't advertise unreadable history or directories without a proposal.
       }
     }
     return result.sort();

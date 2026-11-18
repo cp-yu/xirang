@@ -22,6 +22,11 @@ const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
 
+function deltaSectionName(raw: string | undefined): string | undefined {
+  const name = raw?.trim();
+  return name && !/^#+$/.test(name) ? name : undefined;
+}
+
 function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
 }
@@ -187,7 +192,7 @@ function splitTopLevelSections(content: string): {
     const heading = line.match(/^ {0,3}##\s+(.+)$/);
     if (heading) indices.push({ title: heading[1].trim(), index: i });
     else if (/^ {0,3}###\s*Section:/.test(line)) {
-      const name = line.match(DELTA_SECTION_HEADER)?.[1].trim();
+      const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);
       if (!name) malformedSectionLines.push(i + 1);
       else if (indices.length === 0) unscopedSections.push(name);
     } else if (inRemoved && line.trim()) {
@@ -225,9 +230,8 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
     while (i < lines.length && !isHeader(i)) i++;
     if (i >= lines.length) break;
     const headerLine = lines[i];
-    const m = headerLine.match(DELTA_SECTION_HEADER);
-    if (!m?.[1].trim()) { i++; continue; }
-    const name = normalizeSectionName(m[1]);
+    const name = deltaSectionName(headerLine.match(DELTA_SECTION_HEADER)?.[1]);
+    if (!name) { i++; continue; }
     const buf: string[] = [headerLine.trimStart()];
     i++;
     while (i < lines.length && !isHeader(i) && (mask[i] || !/^##\s+/.test(lines[i]))) {
@@ -243,7 +247,7 @@ function removedBulletName(line: string): string | undefined {
   const prefix = line.match(REMOVED_BULLET_PREFIX)?.[0];
   if (!prefix) return undefined;
   const name = line.slice(prefix.length).trim();
-  return (prefix.includes('`') ? (name.endsWith('`') ? name.slice(0, -1).trim() : '') : name) || undefined;
+  return deltaSectionName(prefix.includes('`') ? (name.endsWith('`') ? name.slice(0, -1) : undefined) : name);
 }
 
 function parseRemovedNames(sectionBody: string): string[] {
@@ -253,9 +257,9 @@ function parseRemovedNames(sectionBody: string): string[] {
   const mask = buildCodeFenceMask(lines);
   for (const [index, line] of lines.entries()) {
     if (mask[index]) continue;
-    const m = line.match(DELTA_SECTION_HEADER);
-    if (m?.[1].trim()) {
-      names.push(normalizeSectionName(m[1]));
+    const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);
+    if (name) {
+      names.push(name);
       continue;
     }
     // Also support bullet list of headers

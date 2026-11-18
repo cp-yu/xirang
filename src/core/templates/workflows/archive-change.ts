@@ -169,6 +169,7 @@ ${buildAgentGitFlowStep()}
 \`\`\`
 
 **Guardrails**
+- Keep the selected Change, archive destination, and Formal files it writes exclusive to Archive until the command returns; do not edit or move those paths concurrently.
 - Show Review and test evidence only when observed; CLI does not run tests or make Git commits.
 - Do not attempt cross-process recovery. If an interrupted execution left local changes, inspect Git diff and the actual model and Change paths before any corrective action; protect unrelated edits.`;
 }

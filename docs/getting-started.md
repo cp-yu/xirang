@@ -224,7 +224,7 @@ AI:  Applied the Semantic Delta and archived the Change at
 
 Your Semantic Delta is now part of the Semantic Model, documenting how your system works.
 
-Only one archive can commit at a time in a workspace. Archive does not recover interrupted work automatically. Before retrying, inspect `.xirang/model/` and the active and archived Change directories, including any `.archive-source-*` holding directory. An empty `.archive-lock-*` marker from a dead local process does not block retry. If a marker still blocks Archive, remove it only after confirming its owner is no longer running.
+Only one archive can commit at a time in a workspace. Let Archive finish before editing or moving the selected Change, its destination, or any Formal files it writes. Archive does not recover interrupted work automatically. Before retrying, inspect `.xirang/model/` and the active and archived Change directories, including any `.archive-source-*` holding directory. An empty `.archive-lock-*` marker from a dead local process does not block retry. If a marker still blocks Archive, remove it only after confirming its owner is no longer running.
 
 ## Verifying and Reviewing
 

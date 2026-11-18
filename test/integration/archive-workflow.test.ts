@@ -104,52 +104,32 @@ describe('architecture archive workflow', () => {
     expect(rename.mock.calls.some(([, destination]) => destination === archived)).toBe(false);
   });
 
-  it.skipIf(process.platform === 'win32')('restores parked artifacts without replacing a surviving absolute symlink', async () => {
+  it.skipIf(process.platform === 'win32')('restores the original tree and absolute symlink when commit fails', async () => {
     const archived = path.join(root, 'archived');
     const sourceFile = path.join(changeDir, 'artifact.txt');
-    const sourceLink = path.join(changeDir, 'z-absolute-link');
+    const sourceLink = path.join(changeDir, 'absolute-link');
     const externalTarget = path.join(root, 'external.txt');
     await fs.writeFile(sourceFile, 'restore me');
     await fs.writeFile(externalTarget, 'external');
     await fs.symlink(externalTarget, sourceLink);
-    const interrupted = new Error('partially parked active directory');
-    let parked = false;
+    const originalLink = await fs.lstat(sourceLink);
+    const interrupted = new Error('cannot commit archive');
+    const pending = path.join(root, '.archived.pending');
+    let denied = false;
     await expect(moveDirectory(changeDir, archived, {
-      rename: async (from, to) => {
-        if (path.basename(String(from)) === path.basename(sourceLink)) {
-          expect(parked).toBe(true);
+      rmdir: async (target, options) => {
+        if (target === pending && !denied) {
+          await expect(fs.readlink(path.join(archived, 'absolute-link'))).resolves.toBe(externalTarget);
+          denied = true;
           throw interrupted;
         }
-        await fs.rename(from, to);
-        if (path.basename(String(from)) === path.basename(sourceFile)) parked = true;
+        await fs.rmdir(target, options);
       },
     })).rejects.toBe(interrupted);
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('restore me');
     await expect(fs.readlink(sourceLink)).resolves.toBe(externalTarget);
+    expect((await fs.lstat(sourceLink)).ino).toBe(originalLink.ino);
     await expect(fs.access(archived)).rejects.toMatchObject({ code: 'ENOENT' });
-  });
-
-  it('rolls back an installed destination when active source cleanup fails', async () => {
-    const sourceFile = path.join(changeDir, 'architecture-delta.c4');
-    const formalFile = path.join(root, '.xirang', 'architecture', 'model.c4');
-    const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
-    await fs.writeFile(sourceFile, 'model { extend projectRoot {} }');
-    await fs.mkdir(path.dirname(formalFile), { recursive: true });
-    await fs.writeFile(formalFile, "model { projectRoot = project 'Root' }\n");
-    await fs.mkdir(path.dirname(archived), { recursive: true });
-    const formalBefore = await fs.readFile(formalFile);
-    const rmdir = vi.fn<typeof fs.rmdir>(async (target, options) => {
-      if (path.basename(String(target)) === path.basename(changeDir) && path.basename(path.dirname(String(target))).startsWith('.archive-source-')) {
-        expect(await fs.readdir(target)).toEqual([]);
-        throw Object.assign(new Error('source cleanup denied'), { code: 'EPERM' });
-      }
-      await fs.rmdir(target, options);
-    });
-
-    await expect(moveDirectory(changeDir, archived, { rmdir })).rejects.toThrow('source cleanup denied');
-
-    await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('model { extend projectRoot {} }');
-    await expect(fs.access(archived)).rejects.toThrow();
-    await expect(fs.readFile(formalFile)).resolves.toEqual(formalBefore);
+    await expect(fs.access(pending)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 });

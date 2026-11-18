@@ -1,6 +1,6 @@
 import { describeError, diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
-import { constants, promises as fs, type Stats } from 'node:fs';
+import { constants, promises as fs } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -8,7 +8,8 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { QUALITY_FILE, QualityEngineError, readQualitySeal } from './quality/engine.js';
+import { pendingArchivePath } from './archive-paths.js';
+import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
 import { validateChangeName } from '../utils/change-utils.js';
@@ -30,10 +31,6 @@ async function statIfPresent(location: string) {
   });
 }
 
-function pendingArchivePath(destination: string): string {
-  return path.join(path.dirname(destination), `.${path.basename(destination)}.pending`);
-}
-
 const execFileAsync = promisify(execFile);
 
 async function readLinkType(location: string): Promise<'dir' | 'file' | 'junction' | undefined> {
@@ -51,232 +48,79 @@ async function readLinkType(location: string): Promise<'dir' | 'file' | 'junctio
   throw new Error(`Cannot determine Windows link type: ${location}`);
 }
 
-async function fingerprintChangeTree(root: string): Promise<string> {
-  const digest = createHash('sha256');
-  const visit = async (directory: string, parent: string): Promise<void> => {
-    for (const name of (await fs.readdir(directory)).sort()) {
-      const location = path.join(directory, name);
-      const relative = parent ? `${parent}/${name}` : name;
-      const entry = await fs.lstat(location);
-      if (entry.isDirectory()) {
-        digest.update(JSON.stringify([relative, 'directory']) + '\n');
-        await visit(location, relative);
-      } else if (entry.isSymbolicLink()) {
-        digest.update(JSON.stringify([relative, 'link', await fs.readlink(location), await readLinkType(location)]) + '\n');
-      } else if (entry.isFile()) {
-        const bytes = createHash('sha256').update(await fs.readFile(location)).digest('hex');
-        digest.update(JSON.stringify([relative, 'file', bytes]) + '\n');
-      } else throw new Error(`Unsupported archive entry type: ${location}`);
-    }
-  };
-  await visit(root, '');
-  return digest.digest('hex');
-}
-
-/** Move the source only into a destination reserved by this invocation. */
+/** Install under the archive lock; the source is exclusive until this transaction completes. */
 export async function moveDirectory(
   src: string,
   dest: string,
   overrides: Partial<ArchiveMoveFileSystem> = {},
-  options: { verify?: (directory: string) => Promise<void>; apply?: (install: () => Promise<void>) => Promise<void>; json?: boolean } = {},
+  options: { apply?: (install: () => Promise<void>) => Promise<void>; json?: boolean } = {},
 ): Promise<void> {
-  const filesystem: ArchiveMoveFileSystem = {
-    rename: overrides.rename ?? fs.rename.bind(fs),
-    copyFile: overrides.copyFile ?? fs.copyFile.bind(fs),
-    symlink: overrides.symlink ?? fs.symlink.bind(fs),
-    rm: overrides.rm ?? fs.rm.bind(fs),
-    rmdir: overrides.rmdir ?? fs.rmdir.bind(fs),
-    mkdir: overrides.mkdir ?? fs.mkdir.bind(fs),
-    mkdtemp: overrides.mkdtemp ?? fs.mkdtemp.bind(fs),
-  };
+  const filesystem = { ...fs, ...overrides };
   const remove = (directory: string) => filesystem.rm(directory, { recursive: true, force: true });
-  const owned = new Map<string, Stats>();
-  const copyEntry = async (source: string, target: string, track = false): Promise<void> => {
-    const entry = await fs.lstat(source);
-    if (entry.isDirectory()) await filesystem.mkdir(target);
-    else if (entry.isSymbolicLink()) {
-      const link = await fs.readlink(source);
-      await filesystem.symlink(link, target, await readLinkType(source));
-    } else if (entry.isFile()) await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
-    else throw new Error(`Unsupported archive entry type: ${source}`);
-    if (track) owned.set(target, await fs.lstat(target));
-    if (entry.isDirectory()) await copyContents(source, target, track);
-  };
-  const copyContents = async (from: string, reserved: string, track = false): Promise<void> => {
+  const copyContents = async (from: string, to: string): Promise<void> => {
     for (const name of await fs.readdir(from)) {
-      await copyEntry(path.join(from, name), path.join(reserved, name), track);
-    }
-  };
-  const isOwned = (location: string, current: Stats): boolean => {
-    const expected = owned.get(location);
-    return !!expected && current.ino === expected.ino && current.dev === expected.dev
-      && (current.isDirectory() || (current.mtimeMs === expected.mtimeMs && current.size === expected.size));
-  };
-  const assertOwnedDestination = async () => {
-    let observed = 0;
-    const visit = async (location: string): Promise<void> => {
-      const entry = await statIfPresent(location);
-      if (!entry || !isOwned(location, entry)) throw new Error(`Archive destination was populated or changed: ${location}`);
-      observed++;
-      if (entry.isDirectory()) {
-        for (const name of await fs.readdir(location)) await visit(path.join(location, name));
-      }
-    };
-    await visit(dest);
-    if (observed !== owned.size) throw new Error(`Archive destination was changed: ${dest}`);
-  };
-  const clearOwnedDestination = async (location: string): Promise<void> => {
-    const entry = await statIfPresent(location);
-    if (!entry || !isOwned(location, entry)) return;
-    if (entry.isDirectory()) {
-      for (const name of await fs.readdir(location)) await clearOwnedDestination(path.join(location, name));
-      await filesystem.rmdir(location).catch((error: NodeJS.ErrnoException) => {
-        if (error.code !== 'ENOENT' && error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') throw error;
-      });
-    } else await filesystem.rm(location, { force: true });
-  };
-  const changesDuringArchive = () => new Error(`Change artifacts changed during archiving at ${src}; verify the Change and retry.`);
-  const parkEntries = async (from: string, to: string, emptied: string[]): Promise<void> => {
-    await filesystem.mkdir(to);
-    for (const name of (await fs.readdir(from)).sort()) {
-      const entry = path.join(from, name);
+      const source = path.join(from, name);
       const target = path.join(to, name);
-      if ((await fs.lstat(entry)).isDirectory()) await parkEntries(entry, target, emptied);
-      else await filesystem.rename(entry, target);
+      const entry = await fs.lstat(source);
+      if (entry.isDirectory()) {
+        await filesystem.mkdir(target);
+        await copyContents(source, target);
+      } else if (entry.isSymbolicLink()) {
+        await filesystem.symlink(await fs.readlink(source), target, await readLinkType(source));
+      } else if (entry.isFile()) {
+        await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
+      } else throw new Error(`Unsupported archive entry type: ${source}`);
     }
-    emptied.push(from);
   };
-  const restoreMissing = async (from: string, to: string): Promise<boolean> => {
-    const existing = await statIfPresent(to);
-    if (!existing) {
-      await copyEntry(from, to);
-      return true;
-    }
-    if (!existing.isDirectory() || !(await fs.lstat(from)).isDirectory()) return false;
-    let complete = true;
-    for (const name of await fs.readdir(from)) {
-      if (!(await restoreMissing(path.join(from, name), path.join(to, name)))) complete = false;
-    }
-    return complete;
-  };
+
   const pending = pendingArchivePath(dest);
   await fs.mkdir(pending).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'EEXIST') throw new Error(`Archive is incomplete at ${dest}; inspect the workspace before retrying.`);
     throw error;
   });
+  let reserved = false;
+  let sourceRoot: string | undefined;
+  let captured: string | undefined;
   try {
-    await filesystem.mkdir(dest);
-  } catch (error) {
-    const cause = (error as NodeJS.ErrnoException).code === 'EEXIST'
-      ? new Error(`Archive '${path.basename(dest)}' already exists.`) : error;
-    try { await fs.rmdir(pending); }
-    catch (cleanupError) { throw new AggregateError([cause, cleanupError], 'Could not release the archive reservation marker'); }
-    throw cause;
-  }
-
-  owned.set(dest, await fs.lstat(dest));
-  const clearReservation = async () => {
-    await clearOwnedDestination(dest);
-    // If anything remains, never let a retry report that path as a successful archive.
-    if (!(await statIfPresent(dest))) await fs.rmdir(pending);
-  };
-
-  const restoreSource = async (from: string): Promise<boolean> => {
-    try { await filesystem.mkdir(src); }
-    catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
+    await filesystem.mkdir(dest).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'EEXIST') throw new Error(`Archive '${path.basename(dest)}' already exists.`);
       throw error;
-    }
-    await copyContents(from, src);
-    await remove(from);
-    return true;
-  };
-  let started = false;
-  let committedSource: { root: string; parked: string } | undefined;
-  const move = async () => {
-    started = true;
-    let sourceRoot: string | undefined;
-    let captured: string | undefined;
-    let parked: string | undefined;
-    try {
-      await assertOwnedDestination();
-      // Rename only to a private, absent path on the source filesystem.
+    });
+    reserved = true;
+    const install = async () => {
+      // Rename within the source filesystem so rollback can restore the original tree verbatim.
       sourceRoot = await filesystem.mkdtemp(path.join(path.dirname(src), '.archive-source-'));
       const local = path.join(sourceRoot, path.basename(src));
       await filesystem.rename(src, local);
       captured = local;
-      await options.verify?.(captured);
-      const originalFingerprint = await fingerprintChangeTree(captured);
-
-      await assertOwnedDestination();
-      await copyContents(captured, dest, true);
-      await options.verify?.(dest);
-      await options.verify?.(captured);
-      await assertOwnedDestination();
-      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
-      // Keep the original entries (and any open handles to them) intact until commit.
-      // Empty-only removal cannot delete any new file written to the old path.
-      const emptied: string[] = [];
-      parked = path.join(sourceRoot, '.original-entries');
-      await parkEntries(captured, parked, emptied);
-      for (const directory of emptied) {
-        await filesystem.rmdir(directory).catch((error: NodeJS.ErrnoException) => {
-          if (error.code === 'ENOTEMPTY' || error.code === 'EEXIST') throw changesDuringArchive();
-          throw error;
-        });
-      }
-      if (await fingerprintChangeTree(dest) !== originalFingerprint || await fingerprintChangeTree(parked) !== originalFingerprint) {
-        throw changesDuringArchive();
-      }
-      await assertOwnedDestination();
-      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
-      await fs.rmdir(pending);
-      committedSource = { root: sourceRoot, parked };
-    } catch (error) {
-      const failures: unknown[] = [];
-      let conflict: Error | undefined;
-      let restoredParked = true;
-      try {
-        if (captured && parked && await statIfPresent(parked)) restoredParked = await restoreMissing(parked, captured);
-        if (captured && !(await restoreSource(captured))) {
-          conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${captured}.`);
-        }
-      } catch (rollbackError) { failures.push(rollbackError); }
-      await clearReservation().catch(rollbackError => failures.push(rollbackError));
-      if (parked && restoredParked && failures.length === 0) await remove(parked).catch(cleanupError => failures.push(cleanupError));
-      if (parked && !restoredParked) {
-        diagnostic(`Conflicting original entries retained at ${parked}`, 'ARCHIVE_SOURCE_CONFLICT', options.json);
-      } else if (parked && failures.length && await statIfPresent(parked).catch(() => undefined)) {
-        failures.push(new Error(`Original entries retained at ${parked}`));
-      }
-      if (captured && failures.length && await statIfPresent(captured).catch(() => undefined)) {
-        failures.push(new Error(`Original source retained at ${captured}`));
-      }
-      if (failures.length) throw new AggregateError([error, ...(conflict ? [conflict] : []), ...failures], 'Archive installation failed and rollback was incomplete');
-      if (conflict) throw new AggregateError([error], conflict.message);
-      throw error;
-    } finally {
-      // Never recursively remove the holding directory: it may still contain the only original.
-      if (sourceRoot && !committedSource) await filesystem.rmdir(sourceRoot).catch(() => undefined);
-    }
-  };
-  try {
-    if (options.apply) await options.apply(move);
-    else await move();
+      await copyContents(captured, dest);
+      await filesystem.rmdir(pending);
+    };
+    if (options.apply) await options.apply(install);
+    else await install();
   } catch (error) {
-    if (!started) {
-      try { await clearReservation(); }
-      catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Archive failed and the empty reservation could not be removed'); }
+    const failures: unknown[] = [];
+    if (captured) {
+      try {
+        await filesystem.rename(captured, src);
+        captured = undefined;
+      } catch (rollbackError) {
+        failures.push(rollbackError, new Error(`Original source retained at ${captured}`));
+      }
     }
+    try {
+      // Keep the marker when a partial destination cannot be removed.
+      if (reserved) await remove(dest);
+      await filesystem.rmdir(pending);
+    } catch (rollbackError) { failures.push(rollbackError); }
+    if (sourceRoot && !captured) await filesystem.rmdir(sourceRoot).catch(rollbackError => failures.push(rollbackError));
+    if (failures.length) throw new AggregateError([error, ...failures], 'Archive installation failed and rollback was incomplete');
     throw error;
   }
-  // Dispose of the retired source only after both the archive and the Formal transaction commit.
-  if (committedSource) {
-    const { root, parked } = committedSource;
-    await remove(parked).then(() => filesystem.rmdir(root)).catch(error => {
-      diagnostic(`Could not clean archive staging ${root}: ${describeError(error)}`, 'ARCHIVE_STAGING_CLEANUP', options.json);
-    });
-  }
+  // Disposal is outside the Formal transaction; it cannot undo a committed archive.
+  if (sourceRoot) await remove(sourceRoot).catch(error => {
+    diagnostic(`Could not clean archive staging ${sourceRoot}: ${describeError(error)}`, 'ARCHIVE_STAGING_CLEANUP', options.json);
+  });
 }
 
 const CLAIM_PREFIX = '.archive-lock-';
@@ -339,11 +183,11 @@ function sealGateError(changeName: string, problem: string): Error {
   return new Error(formatQualityGateFailure({ changedFiles: [], details: [problem] }, undefined, { changeName }));
 }
 
-async function requireSealBytes(directory: string, projectRoot: string, changeName: string): Promise<Buffer> {
+async function requireSeal(directory: string, projectRoot: string, changeName: string): Promise<void> {
   let problem = 'a valid Seal commit is required.';
   try {
     const seal = await readQualitySeal(directory, projectRoot);
-    if (seal.valid) return seal.bytes;
+    if (seal.valid) return;
   } catch (error) {
     problem = error instanceof QualityEngineError ? `${error.code}: ${error.message}` : describeError(error);
   }
@@ -433,7 +277,7 @@ export class ArchiveCommand {
       if (options.quick) {
         diagnostic('Quality Seal check skipped (--quick).', 'QUALITY_SKIPPED', options.json);
       } else {
-        await requireSealBytes(changeDir, projectRoot, changeName);
+        await requireSeal(changeDir, projectRoot, changeName);
       }
       const prepared = await prepareChangeSync(projectRoot, changeName);
       for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
@@ -444,27 +288,11 @@ export class ArchiveCommand {
         if (options.yes) diagnostic(`${message} Continuing due to --yes flag.`, 'INCOMPLETE_GOALS', options.json);
         else if (!(await ask(`${message} Continue?`))) return;
       }
-      let sealBytes: Buffer | undefined;
-      const verify = async (directory: string) => {
-        await assertPreparedDelta(directory, prepared);
-        if (!options.quick) {
-          const file = path.join(directory, QUALITY_FILE);
-          if (!(await statIfPresent(file))?.isFile() || !sealBytes?.equals(await fs.readFile(file))) {
-            throw sealGateError(changeName, 'Quality Seal changed after validation.');
-          }
-        }
-      };
       await move({
-        verify,
         apply: async install => {
-          if (!options.quick) sealBytes = await requireSealBytes(changeDir, projectRoot, changeName);
-          await verify(changeDir);
-          await applyPreparedChangeSync(projectRoot, prepared, {
-            postWrite: async () => {
-              await verify(changeDir);
-              await install();
-            },
-          });
+          if (!options.quick) await requireSeal(changeDir, projectRoot, changeName);
+          await assertPreparedDelta(changeDir, prepared);
+          await applyPreparedChangeSync(projectRoot, prepared, { postWrite: install });
         },
       });
     }

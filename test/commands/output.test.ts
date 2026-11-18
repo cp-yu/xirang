@@ -163,7 +163,7 @@ it('keeps both real prompts off stdout when interactively selecting and abandoni
 
 it.each([false, true])('reports the initiating failure and failed compensation (json=%s)', async json => {
   const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
-  const rmdir = fs.rmdir;
+  const rm = fs.rm;
   const copyFile = fs.copyFile;
   const archive = path.join(root, '.xirang', 'changes', 'archive', 'abandoned');
   const mocks = [
@@ -173,12 +173,12 @@ it.each([false, true])('reports the initiating failure and failed compensation (
       }
       return copyFile(from, to, mode);
     }),
-    vi.spyOn(fs, 'rmdir').mockImplementation(async (target, options) => {
+    vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
       const location = String(target);
       if (path.dirname(location) === archive && path.basename(location).endsWith('-move-failure')) {
         throw new Error('cleanup injected failure');
       }
-      return rmdir(target, options);
+      return rm(target, options);
     }),
   ];
   try {
@@ -192,30 +192,18 @@ it.each([false, true])('reports the initiating failure and failed compensation (
 });
 
 
-it.each([false, true])('reports the initiating failure and conflicting active directory (json=%s)', async json => {
-  const name = 'failed-with-new-active';
-  const source = await writeChangeDelta(root, name, { 'proposal.md': 'original' });
-  const parent = path.join(path.dirname(source), 'archive', 'abandoned');
-  const dest = path.join(parent, `${new Date().toISOString().slice(0, 10)}-${name}`);
-  const realCopy = fs.copyFile;
-  const hook = vi.spyOn(fs, 'copyFile').mockImplementation(async (from, to, mode) => {
-    if (to === path.join(dest, 'proposal.md')) {
-      await writeChangeDelta(root, name, { 'proposal.md': 'new active' });
-      throw new Error('installation I/O denied');
-    }
-    await realCopy(from, to, mode);
-  });
-  try {
-    const result = await runCLI(['archive', name, '--abandon', '--yes', ...(json ? ['--json'] : [])], { cwd: root });
-    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
-    const message = json ? JSON.parse(result.stderr).message : result.stderr;
-    expect(message).toContain('installation I/O denied');
-    expect(message).toContain('Active Change was recreated');
-    await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('new active');
-    await expect(fs.access(dest)).rejects.toMatchObject({ code: 'ENOENT' });
-    const [held] = (await fs.readdir(path.dirname(source))).filter(entry => entry.startsWith('.archive-source-'));
-    await expect(fs.readFile(path.join(path.dirname(source), held, name, 'proposal.md'), 'utf8')).resolves.toBe('original');
-  } finally { hook.mockRestore(); }
+it('omits marked incomplete history from archive completion and retry', async () => {
+  const archive = path.join(root, '.xirang', 'changes', 'archive');
+  for (const name of ['2026-01-01-delivered', '2026-01-01-interrupted']) {
+    await fs.mkdir(path.join(archive, name), { recursive: true });
+    await fs.writeFile(path.join(archive, name, 'proposal.md'), 'Proposal already copied');
+  }
+  await fs.mkdir(path.join(archive, '.2026-01-01-interrupted.pending'));
+
+  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
+  expect(completion).toMatchObject({ exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n', stderr: '' });
+  const retry = await runCLI(['archive', 'interrupted', '--quick'], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
 });
 
 it('reports an archive error and incomplete model rollback in structured diagnostics', async () => {

@@ -332,6 +332,8 @@ git:
       ['## ADDED Sections\n### Section: New\nThe system SHALL add behavior.\n  ## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
       ['## ADDED Sections\n### Section: New\nThe system SHALL add behavior.\n  ### Section:  \nThe system SHALL not silently omit this text.\n', 'Malformed Section header'],
       ['## REMOVED Sections\n### Section: Old\nREMOVED entries must not carry prose.\n', 'REMOVED Sections may only name'],
+      ['## ADDED Sections\n### Section: ###\nThe system SHALL not install an unnamed Section.\n\n### Section: Valid\nThe system SHALL keep this requirement.\n', 'Malformed Section header'],
+      ['## REMOVED Sections\n- `### Section: ###`\n### Section: Old\n', 'Malformed Section header'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
       const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
@@ -600,95 +602,56 @@ git:
       const before = await fs.readFile(formal);
       const command = new ArchiveCommand({
         copyFile: async (from, to, mode) => {
-          if (to === path.join(dest, 'tasks.md')) throw new Error('cannot install tasks');
           await fs.copyFile(from, to, mode);
+          if (to === path.join(dest, 'tasks.md')) throw new Error('cannot finish installing tasks');
         },
-        mkdir: ((directory, options) => {
-          if (directory === source) return Promise.reject(new Error('cannot restore active directory'));
-          return fs.mkdir(directory, options);
-        }) as typeof fs.mkdir,
+        rename: async (from, to) => {
+          if (to === source) throw new Error('cannot restore active directory');
+          await fs.rename(from, to);
+        },
         rm: async (target, options) => {
-          if (String(target).startsWith(dest + path.sep)) throw new Error('cannot remove partial archive files');
+          if (target === dest) throw new Error('cannot remove partial archive files');
           await fs.rm(target, options);
         },
       });
       await expect(command.execute(name, { quick: true, yes: true })).rejects.toMatchObject({
         errors: expect.arrayContaining([
-          expect.objectContaining({ message: 'cannot install tasks' }),
+          expect.objectContaining({ message: 'cannot finish installing tasks' }),
           expect.objectContaining({ message: 'cannot restore active directory' }),
           expect.objectContaining({ message: 'cannot remove partial archive files' }),
         ]),
       });
       await expect(fs.readFile(formal)).resolves.toEqual(before);
       await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
-      await expect(fs.readFile(path.join(dest, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.readFile(path.join(dest, 'tasks.md'), 'utf8')).resolves.toBe('- [x] complete\n');
       await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/Archive is incomplete/);
       expect(console.log).not.toHaveBeenCalled();
     });
 
-    it.each([false, true])('preserves late ordinary artifact edits, even when abandoning (%s)', async abandon => {
-      const name = 'late-ordinary-artifact';
+    it.each([false, true])('keeps the committed result if private source cleanup fails (abandon=%s)', async abandon => {
+      const name = 'cleanup-after-commit';
       const source = await writeSemanticArchiveFixture(name);
-      await fs.writeFile(path.join(source, 'proposal.md'), 'original proposal');
-      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
-      const before = await fs.readFile(formal);
-      let captured: string;
-      const destParent = path.join(path.dirname(source), 'archive', ...(abandon ? ['abandoned'] : []));
-      const dest = path.join(destParent, `${new Date().toISOString().slice(0, 10)}-${name}`);
-      const command = new ArchiveCommand({
-        rename: async (from, to) => {
-          if (from === source) captured = String(to);
-          await fs.rename(from, to);
-        },
-        copyFile: async (from, to, mode) => {
-          await fs.copyFile(from, to, mode);
-          if (to === path.join(dest, 'proposal.md')) await fs.writeFile(path.join(captured, 'proposal.md'), 'late proposal');
-        },
-      });
-      await expect(command.execute(name, { quick: !abandon, abandon, yes: true })).rejects.toThrow(/Change artifacts changed/);
-      await expect(fs.readFile(formal)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('late proposal');
-      await expect(fs.readdir(destParent)).resolves.toEqual([]);
-      expect(console.log).not.toHaveBeenCalled();
-    });
+      if (!abandon) await writeFreshQualityRecord(source);
+      const unit = 'elements/existing.id.md';
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      let retained: string | undefined;
+      const command = new ArchiveCommand({ rm: async (target, options) => {
+        if (path.basename(String(target)).startsWith('.archive-source-')) {
+          retained = String(target);
+          throw new Error('source cleanup denied');
+        }
+        await fs.rm(target, options);
+      } });
 
-    it.each([
-      [false, 'path'], [true, 'path'], [false, 'handle'], [true, 'handle'],
-    ] as const)('preserves an edit during source cleanup (abandon=%s, writer=%s)', async (abandon, writer) => {
-      const name = 'cleanup-artifact-edit';
-      const source = await writeSemanticArchiveFixture(name);
-      const proposal = path.join(source, 'proposal.md');
-      await fs.writeFile(proposal, 'first proposal');
-      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
-      const before = await fs.readFile(formal);
-      const archive = path.join(path.dirname(source), 'archive', ...(abandon ? ['abandoned'] : []));
-      const handle = writer === 'handle' ? await fs.open(proposal, 'r+') : undefined;
-      let captured: string | undefined;
-      let edited = false;
-      const edit = async (target: unknown) => {
-        if (target !== captured || edited) return;
-        if (handle) await handle.write('latest proposal', 0, 'utf8');
-        else await fs.writeFile(path.join(captured!, 'proposal.md'), 'latest proposal');
-        edited = true;
-      };
-      const command = new ArchiveCommand({
-        rename: async (from, to) => {
-          if (from === source) captured = String(to);
-          await fs.rename(from, to);
-        },
-        rm: async (target, options) => { await edit(target); await fs.rm(target, options); },
-        rmdir: async (target, options) => { await edit(target); await fs.rmdir(target, options); },
-      });
-      try {
-        await expect(command.execute(name, { quick: !abandon, abandon, yes: true })).rejects.toThrow(/Change artifacts changed/);
-      } finally {
-        await handle?.close();
-      }
-      expect(edited).toBe(true);
-      await expect(fs.readFile(proposal, 'utf8')).resolves.toBe('latest proposal');
-      await expect(fs.readFile(formal)).resolves.toEqual(before);
-      await expect(fs.readdir(archive)).resolves.toEqual([]);
-      expect(console.log).not.toHaveBeenCalled();
+      await command.execute(name, { abandon, yes: true, json: true });
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('ARCHIVE_STAGING_CLEANUP'));
+      const { archive } = JSON.parse(vi.mocked(console.log).mock.lastCall![0]);
+      await expect(fs.readFile(path.join(tempDir, archive, unit), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.readFile(path.join(retained!, name, unit), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.readFile(formal, 'utf8')).resolves.toContain(abandon ? 'Existing summary' : 'Changed summary');
+      await archiveCommand.execute(name, { abandon, json: true });
+      expect(JSON.parse(vi.mocked(console.log).mock.lastCall![0])).toEqual({ archive, alreadyArchived: true });
     });
 
     it('should throw error if change does not exist', async () => {
@@ -731,96 +694,20 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
-    it('keeps both histories untouched if an external writer populates a reserved destination', async () => {
-      const name = 'occupied-reservation';
+    it('releases the pending marker and permits same-day retry when destination creation fails', async () => {
+      const name = 'reservation-error';
       const source = await writeSemanticArchiveFixture(name);
-      const delta = path.join('elements', 'existing.id.md');
-      const model = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(model);
-      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
-      const foreign = path.join(dest, delta);
-      const command = new ArchiveCommand({ rename: async (from, to) => {
-        if (from === source) {
-          await fs.mkdir(path.dirname(foreign));
-          await fs.writeFile(foreign, 'independently written bytes');
-        }
-        await fs.rename(from, to);
-      } });
+      const archive = path.join(path.dirname(source), 'archive');
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const failure = new Error('destination mkdir denied');
+      const command = new ArchiveCommand({ mkdir: async () => { throw failure; } });
 
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow();
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
-      await expect(fs.readFile(foreign, 'utf8')).resolves.toBe('independently written bytes');
-      expect(console.log).not.toHaveBeenCalled();
-    });
-
-    it('never replaces an empty directory that took over a destination reservation', async () => {
-      const name = 'swapped-reservation';
-      const source = await writeSemanticArchiveFixture(name);
-      const delta = path.join('elements', 'existing.id.md');
-      const model = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(model);
-      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
-      let replacement: number | undefined;
-      const command = new ArchiveCommand({ rename: async (from, to) => {
-        if (from === source) {
-          await fs.rename(dest, `${dest}.moved-aside`);
-          await fs.mkdir(dest);
-          replacement = (await fs.lstat(dest)).ino;
-        }
-        await fs.rename(from, to);
-      } });
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/destination was populated or changed/);
-      expect(replacement).toBeDefined();
-      expect((await fs.lstat(dest)).ino).toBe(replacement);
-      await expect(fs.readdir(dest)).resolves.toEqual([]);
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
-    });
-
-    it.skipIf(process.platform === 'win32')('does not overwrite a symlink created at the same final artifact path', async () => {
-      const name = 'foreign-symlink';
-      const source = await writeSemanticArchiveFixture(name);
-      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
-      const linkName = 'extra-link';
-      const original = path.join(tempDir, 'original.txt');
-      const independent = path.join(tempDir, 'independent.txt');
-      await fs.writeFile(original, 'original');
-      await fs.writeFile(independent, 'foreign');
-      await fs.symlink(original, path.join(source, linkName));
-      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
-      const before = await fs.readFile(model);
-      const foreign = path.join(dest, linkName);
-      const command = new ArchiveCommand({ symlink: async (target, to, type) => {
-        if (to === foreign) await fs.symlink(independent, foreign);
-        await fs.symlink(target, to, type);
-      } });
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toMatchObject({ code: 'EEXIST' });
-      await expect(fs.readlink(foreign)).resolves.toBe(independent);
-      await expect(fs.readdir(dest)).resolves.toEqual([linkName]);
-      await expect(fs.readlink(path.join(source, linkName))).resolves.toBe(original);
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-    });
-
-    it('removes only owned entries when a foreign file appears during installation', async () => {
-      const name = 'foreign-during-install';
-      const source = await writeSemanticArchiveFixture(name);
-      const delta = path.join('elements', 'existing.id.md');
-      const model = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(model);
-      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
-      const foreign = path.join(dest, 'independent.md');
-      const command = new ArchiveCommand({
-        copyFile: async (from, to, mode) => {
-          await fs.copyFile(from, to, mode);
-          if (to === path.join(dest, delta)) await fs.writeFile(foreign, 'foreign contents');
-        },
-      });
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/destination was populated/);
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
-      await expect(fs.readdir(dest)).resolves.toEqual([path.basename(foreign)]);
-      await expect(fs.readFile(foreign, 'utf8')).resolves.toBe('foreign contents');
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toBe(failure);
+      await expect(fs.readdir(archive)).resolves.toEqual([]);
+      await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.readFile(formal, 'utf8')).resolves.toContain('Existing summary');
+      await archiveCommand.execute(name, { quick: true, yes: true });
+      await expect(fs.readdir(archive)).resolves.toEqual([`${new Date().toISOString().slice(0, 10)}-${name}`]);
     });
 
     it.each(['same', 'different', 'abandon'] as const)('isolates the commit window against a concurrent %s archive', async conflict => {
@@ -1068,114 +955,6 @@ git:
       await expect(fs.readFile(modelFile)).resolves.toEqual(before);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
       expect((await readQualityRecord(source)).seal).toBeNull();
-    });
-
-    it('rolls back if an otherwise validated Seal is revoked during installation', async () => {
-      const source = await writeSemanticArchiveFixture('seal-changed-during-move');
-      await writeFreshQualityRecord(source);
-      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
-      const before = await fs.readFile(modelFile);
-      let revoked = false;
-      const command = new ArchiveCommand({ rename: async (from, to) => {
-        if (from === source && !revoked) {
-          await expect(fs.readFile(modelFile, 'utf8')).resolves.toContain('Changed summary');
-          await revokeSeal(source);
-          revoked = true;
-        }
-        await fs.rename(from, to);
-      } });
-      await expect(command.execute('seal-changed-during-move', { yes: true })).rejects.toThrow(/Quality Seal changed[\s\S]*Return to Apply/);
-      expect(revoked).toBe(true);
-      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
-      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
-      expect((await readQualityRecord(source)).seal).toBeNull();
-    });
-
-    it('restores Formal and the exact active Change if the installed Delta changed during rename', async () => {
-      const source = await writeSemanticArchiveFixture('rename-drift');
-      const delta = path.join('elements', 'existing.id.md');
-      const modelFile = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(modelFile);
-      const drifted = MODIFY_EXISTING.replace('Changed summary', 'Different intent during move');
-      const command = new ArchiveCommand({ rename: async (from, to) => {
-        if (from === source) await fs.writeFile(path.join(source, delta), drifted);
-        await fs.rename(from, to);
-      } });
-
-      await expect(command.execute('rename-drift', { quick: true, yes: true })).rejects.toThrow(/Semantic Delta changed/);
-      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
-      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
-    });
-
-    it('retains a Delta edit made at the source capture boundary', async () => {
-      const name = 'late-capture-edit';
-      const source = await writeSemanticArchiveFixture(name);
-      const delta = path.join('elements', 'existing.id.md');
-      const model = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(model);
-      const drifted = MODIFY_EXISTING.replace('Changed summary', 'Changed while handing off the source');
-      let edited = false;
-      const lateEdit = async () => {
-        if (edited) return;
-        await fs.writeFile(path.join(source, delta), drifted);
-        edited = true;
-      };
-      const command = new ArchiveCommand({
-        rename: async (from, to) => {
-          if (from === source) await lateEdit();
-          await fs.rename(from, to);
-        },
-        rm: async (target, options) => {
-          if (target === source) await lateEdit();
-          await fs.rm(target, options);
-        },
-      });
-
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/Semantic Delta changed/);
-      expect(edited).toBe(true);
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
-      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
-    });
-
-    it.each(['copy', 'source cleanup'] as const)('keeps both versions and rolls back when the active path is recreated during %s', async phase => {
-      const name = 'recreated-source';
-      const source = await writeSemanticArchiveFixture(name);
-      const changes = path.dirname(source);
-      const delta = path.join('elements', 'existing.id.md');
-      const model = path.join(tempDir, '.xirang', 'model', delta);
-      const before = await fs.readFile(model);
-      const recreated = MODIFY_EXISTING.replace('Changed summary', 'New active version');
-      let held: string | undefined;
-      let recreatedPath = false;
-      const recreate = async () => {
-        if (recreatedPath) return;
-        await writeChangeDelta(tempDir, name, { 'elements/existing.id.md': recreated });
-        recreatedPath = true;
-      };
-      const command = new ArchiveCommand({
-        rename: async (from, to) => {
-          if (from === source) held = String(to);
-          await fs.rename(from, to);
-        },
-        copyFile: async (from, to, mode) => {
-          if (phase === 'copy') await recreate();
-          await fs.copyFile(from, to, mode);
-        },
-        rmdir: async (target, options) => {
-          if (phase === 'source cleanup' && target === held) await recreate();
-          await fs.rmdir(target, options);
-        },
-      });
-
-      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/active.+recreated.+original.+archive-source-/i);
-      expect(held).toBeDefined();
-      await expect(fs.readFile(model)).resolves.toEqual(before);
-      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(recreated);
-      await expect(fs.readFile(path.join(held!, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
-      await expect(fs.readdir(path.join(changes, 'archive'))).resolves.toEqual([]);
-      expect(console.log).not.toHaveBeenCalled();
     });
 
     it('preserves apply isolation state for handoff under --yes', async () => {

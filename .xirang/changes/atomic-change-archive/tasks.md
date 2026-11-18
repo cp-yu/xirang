@@ -26,19 +26,16 @@
 - [x] [artifact_fix] 未指定放弃对象时，使用不读取 Quality 的选择流程并保留用户授权。
 - [x] [code_fix] 补充回执写入失败后的事务边界证据，确认模型与归档不撤回且可再次读取。
 - [x] [code_fix] 拒绝可被标准记法校验发现的空 Section 正文和重复 operation 标题。
-- [x] [code_fix] 绑定实际归档的 Delta 输入快照，确认或移动期间输入变化时不交付。
 - [x] [code_fix] 独占取得目标路径，拒绝其他归档在预检后先取得的同名位置。
-- [x] [code_fix] 跨设备复制保留符号链接原始目标，失败恢复也采用相同规则。
+- [x] [code_fix] 跨设备封存和失败恢复均保留符号链接的原始目标。
 - [x] [artifact_fix] 无名 quick 不依赖 Quality 列表，非 Git 项目不进入 Git 交接。
 - [x] [code_fix] 默认交付的 Seal 失败保留具体诊断并指引回 Apply。
 - [x] [code_fix] CLI 解析阶段拒绝互斥归档选项。
 - [x] [code_fix] 验证 quick 拒绝确认时不写入实际 Delta，放弃时进度先于询问且不受 --yes 隐藏。
 - [x] [code_fix] 写 Formal 前独占归档目标，竞争失败的一方不得回滚已经交付的内容。
 - [x] [code_fix] 使用与普通 Formal 读取一致的模型单元，忽略非模型符号链接且不得覆盖同路径链接。
-- [x] [code_fix] 回退复制补偿只恢复已删除条目，保留仍存在的符号链接。
 - [x] [code_fix] 同名交付与放弃历史并存时，重试优先返回本次请求的模式。
 - [x] [code_fix] 工作区内互斥归档提交窗口，阻止不同 Change 覆盖彼此的 Formal 更新及同一 Change 被同时交付与放弃。
-- [x] [code_fix] 跨设备复制前先锁定活动目录的实际内容；晚到的 Delta 修改不得被旧副本取代。
 - [x] [code_fix] 按声明的实体类型跨分区校验 Section 正文，不受放置路径影响。
 - [x] [code_fix] 保持合法前导点 identity 升级后的单元可见，并在封存前用普通 Formal 读取器核实目标。
 - [x] [artifact_fix] 入门示例在缺 Seal 时返回 Apply，不引导 Archive 自行组织 Quality。
@@ -47,28 +44,26 @@
 - [x] [code_fix] 模型写入独占暂存路径，交付失败不会删除已有同名隐藏制品。
 - [x] [artifact_fix] 统一 CLI 概览、工作流索引和 Semantic Delta 生成指引，封存原样保留 `.delta-noop`。
 - [x] [code_fix] 在归档目标竞争发生时断言 Formal 尚未写入，而不是只检查回滚后的结果。
-- [x] [code_fix] 默认交付在确认后写入前重验 Seal，并验证实际封存的 Quality 记录。
-- [x] [code_fix] 封存期间若重建原活动目录则拒绝交付、回滚 Formal，保留两个版本的输入并报告位置。
 - [x] [code_fix] 拒绝合法 operation 与未知顶层 Section operation 混用，禁止静默丢弃输入。
 - [x] [code_fix] 不传 --yes 时，没有 tasks.md 也应无确认地完成交付。
-- [x] [code_fix] 源副本清理期间重建活动路径也阻止交付，并保留原始与新输入。
-- [x] [code_fix] 目的目录预留后出现外部内容时拒绝覆盖；补偿仅撤销本次创建的目录和文件。
 - [x] [code_fix] 拒绝位于首个 operation 前的 Section，不静默丢弃。
 - [x] [code_fix] 最终归档路径只逐项独占创建，不允许 rename 替换目录或 copy 替换已存在符号链接。
 - [x] [code_fix] 确认前仅准备只读快照；路径大小写探测在确认后与归档提交互斥。
 - [x] [code_fix] 正式模型回滚清理本次创建的空分区与目录，不删除原有目录。
 - [x] [code_fix] 即使后面有合法 Section，也拒绝缺标题的真实 Section 头。
-- [x] [code_fix] 只登记本次已经变更的 Formal 条目供补偿，保留暂存失败期间的独立写入。
-- [x] [artifact_fix] 按用户确认限定目录并发保证：同一工作区 Xirang 归档互斥且不覆盖已有归档；不支持外部程序在运行期间移动或替换相关目录。
+- [x] [code_fix] 只补偿本次已经变更的 Formal 条目，不回滚尚未安装的模型单元。
 - [x] [code_fix] 源恢复与目标撤销各自尽力，失败或中断留下的半成品不作为成功历史返回。
-- [x] [code_fix] 两种归档结果均核对普通制品、Delta 和链接的完整快照，晚到修改不丢失。
 - [x] [code_fix] 拒绝 REMOVED 列表中无标题的 Section。
 - [x] [artifact_fix] 概念图和流程文档统一由 Apply 验证并写入 Seal、由 Archive 消费 Seal。
 - [x] [code_fix] 识别缩进的 Markdown 操作/Section 标题并拒绝 REMOVED 的正文，防止非法输入随合法 entries 交付。
 - [x] [code_fix] Windows 依据链接本身的属性复制链接类型，悬空目录链接不得被降为文件链接。
-- [x] [code_fix] 安装错误与源恢复冲突同时发生时，文本和 JSON 均保留两条实际诊断。
 - [x] [code_fix] 文本重试保持 stdout 路径，并明确提示查询到既有归档。
 - [x] [artifact_fix] Quality 所有相关 Section 只将有效 Seal 作为默认交付资格。
 - [x] [code_fix] 写入前与封存前用普通 Formal 解析器复核完整目标语义，拒绝会吞掉相邻 Section 的序列化结果。
-- [x] [code_fix] 保留源条目至提交，清理旧路径不递归删文件；回归覆盖交付和放弃中经旧路径或打开句柄写入的晚到修改。
 - [x] [artifact_fix] Archive 指引不重新检查 Review/Opt 资格；用交付测试验证入门 Section Delta 示例。
+- [x] [code_fix] 补全与归档重试均不将带 `.pending` 标记的半成品列为已归档。
+- [x] [code_fix] 拒绝只剩 Markdown 闭合井号的 Section 标题，包括 REMOVED 列表形式。
+- [x] [artifact_fix] 按用户确认限定并发范围：同一工作区的 Xirang 归档互斥，不覆盖已有归档；归档调用独占相关文件，不检测外部写入。
+- [x] [code_fix] 提交阶段复核确认前的 Delta 快照与默认交付所需的有效 Seal。
+- [x] [code_fix] 目标预留失败时释放本次标记，允许同日重试。
+- [x] [code_fix] 原活动目录可在提交前原样恢复；提交后清理失败保留已完成的归档和 Formal。
