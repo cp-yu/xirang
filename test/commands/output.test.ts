@@ -341,6 +341,52 @@ it.each([
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+it.each([
+  ['ADDED', '', '#### Acceptance Case:'],
+  ['MODIFIED', 'Item SHALL follow the updated rule.\n\n', '   #### Acceptance Case:   '],
+  ['MODIFIED', 'Item MUST follow the updated rule.\n\n', '#### Acceptance Case: ###'],
+])('rejects an untitled Acceptance Case in %s Sections (%j, %j)', async (operation, prose, header) => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item', sections:
+    '## Specification\n\n### Section: Existing rule\n\nItem SHALL follow the existing rule.' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'elements/item.md';
+  const section = operation === 'ADDED' ? 'New rule' : 'Existing rule';
+  const delta = elementUnit({ identity: 'item', sections:
+    `## ${operation} Sections\n\n### Section: ${section}\n\n${prose}${header}\n\nItem SHALL pass the case.` });
+  const source = await writeChangeDelta(root, 'untitled-case', { 'proposal.md': '# Untitled case\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'untitled-case', '--preview'], ['archive', 'untitled-case', '--yes'], ['archive', 'untitled-case', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain('MALFORMED_ACCEPTANCE_CASE_HEADER');
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('rejects unsupported Relationship container fields even with valid entries', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'relationships/links.yaml';
+  const delta = 'operation: RENAMED\nrelationships:\n  - operation: ADDED\n    source: root\n    kind: links\n    target: item\n';
+  const source = await writeChangeDelta(root, 'bad-container', { 'proposal.md': '# Invalid container\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'bad-container', '--preview'], ['archive', 'bad-container', '--yes'], ['archive', 'bad-container', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain('UNSUPPORTED_RELATIONSHIP_CONTAINER_FIELD');
+    expect.soft(result.stderr).toContain(file);
+    expect.soft(result.stderr).toContain('operation');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });

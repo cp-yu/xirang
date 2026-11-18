@@ -132,7 +132,7 @@ describe('Expected Model text writeback', () => {
 
   it.each(['```', '~~~~'])('preserves complete fenced Markdown examples through %s writeback and recompilation', async fence => {
     const target = await expected();
-    target.sections[0].body = `Item SHALL preserve Markdown examples.\n\n${fence}markdown\n## Example heading\n### Section: Example section\n#### Acceptance Case: Example case\nExample content\n${fence}\n\nText after the fence.`;
+    target.sections[0].body = `Item SHALL preserve Markdown examples.\n\n${fence}markdown\n## Example heading\n### Section: Example section\n#### Acceptance Case: Example case\nExample content\n#### Acceptance Case:\nUntitled example content\n${fence}\n\nText after the fence.`;
     target.sections[0].acceptanceCases = [{ name: 'actual-case', body: `**WHEN** saved **THEN** complete.\n\n${fence}markdown\n## ADDED Sections\n### Section: Example\n${fence}` }];
     const result = await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
     expect(result).toEqual({ changed: true, ignoredChanges: [] });

@@ -5,7 +5,15 @@
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
-export const ACCEPTANCE_CASE_HEADER = /^ {0,3}####\s+Acceptance Case:\s*(.+?)\s*$/;
+const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
+
+/** Undefined means no case heading; an empty name means the heading has no title. */
+export function readAcceptanceCaseHeader(line: string): string | undefined {
+  const match = line.match(ACCEPTANCE_CASE_HEADER);
+  if (!match) return undefined;
+  const title = match[1].trim();
+  return /^#+$/.test(title) ? '' : title;
+}
 
 export function buildCodeFenceMask(lines: string[]): boolean[] {
   const mask = new Array(lines.length).fill(false);
@@ -65,7 +73,7 @@ export function extractSectionBody(bodyLines: string[]): string {
   for (let i = 0; i < bodyLines.length; i++) {
     if (mask[i]) continue;
     const line = bodyLines[i];
-    if (ACCEPTANCE_CASE_HEADER.test(line)) break;
+    if (readAcceptanceCaseHeader(line) !== undefined) break;
     if (HEADER_LINE.test(line)) continue;
     const trimmed = line.trim();
     if (trimmed.length === 0) continue;

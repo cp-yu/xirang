@@ -111,3 +111,5 @@
 - [x] [code_fix] 写回撤销最后一个本地 Section 操作时使用 Formal 声明作导航占位，保留其他源文件的 Declaration 操作。
 - [x] [code_fix] Formal 根和语义分区根必须是真实目录，不读取链接指向的树外语义制品；制品状态不报告链接目标。
 - [x] [code_fix] Kind 的显式上下游约束必须是 identity 列表，畸形值不得被当作省略字段交付。
+- [x] [code_fix] 拒绝无标题的 Acceptance Case，其内容不计入 Section 正文；围栏内示例不受影响。
+- [x] [code_fix] Relationship 容器的合法条目不能掩盖非法顶层字段；预览、默认交付和 quick 均拒绝且不写入。

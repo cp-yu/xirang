@@ -2,7 +2,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { ACCEPTANCE_CASE_HEADER, buildCodeFenceMask } from '../parsers/section-text.js';
+import { buildCodeFenceMask, readAcceptanceCaseHeader } from '../parsers/section-text.js';
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
@@ -113,7 +113,7 @@ function kindConstraint(value: unknown, field: string, file: string, identity: s
 }
 
 /** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
-export function parseSectionBlock(name: string, raw: string): Section {
+export function parseSectionBlock(name: string, raw: string, file: string, diagnostics: ModelDiagnostic[]): Section {
   const lines = normalizeLineEndings(raw).split('\n').slice(1);
   const mask = buildCodeFenceMask(lines);
   const bodyLines: string[] = [];
@@ -121,10 +121,14 @@ export function parseSectionBlock(name: string, raw: string): Section {
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const header = mask[index] ? null : lines[index].match(ACCEPTANCE_CASE_HEADER);
-    if (header) {
+    const title = mask[index] ? undefined : readAcceptanceCaseHeader(lines[index]);
+    if (title !== undefined) {
+      if (title === '') {
+        diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,
+          `Section "${name}" has an untitled Acceptance Case at Section line ${index + 2}; use #### Acceptance Case: <name>`));
+      }
       if (current) acceptanceCases.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
-      current = { name: header[1], lines: [] };
+      current = { name: title, lines: [] };
       continue;
     }
     (current ? current.lines : bodyLines).push(lines[index]);
@@ -145,13 +149,13 @@ function hasSpecificationHeader(normalized: string): boolean {
   return lines.some((line, index) => !mask[index] && /^##\s+Specification\s*$/i.test(line));
 }
 
-export function parseContract(body: string): ParsedContract {
+export function parseContract(body: string, file: string, diagnostics: ModelDiagnostic[]): ParsedContract {
   const normalized = normalizeProse(body);
   if (normalized === '') return { sections: [], leftover: '' };
   if (!hasSpecificationHeader(normalized)) return { sections: [], leftover: normalized };
   const section = extractSpecificationSection(normalized);
   return {
-    sections: section.bodyBlocks.map(block => parseSectionBlock(block.name, block.raw)),
+    sections: section.bodyBlocks.map(block => parseSectionBlock(block.name, block.raw, file, diagnostics)),
     leftover: normalizeProse(`${section.before}\n${section.preamble}\n${section.after}`),
   };
 }
@@ -184,7 +188,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   const diagnostics: ModelDiagnostic[] = [];
 
   if (entity === 'element-declaration') {
-    const contract = parseContract(body);
+    const contract = parseContract(body, file, diagnostics);
     const definition = text(data.definition);
     if (Object.hasOwn(data, 'summary')) {
       diagnostics.push(error(
@@ -309,12 +313,19 @@ export function parseRelationshipContainer(file: string, content: string): Parse
   } catch (cause) {
     return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, (cause as Error).message)] };
   }
-  const items = (document as { relationships?: unknown } | null)?.relationships;
+  if (document === null || typeof document !== 'object' || Array.isArray(document)) {
+    return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, 'Relationship container must be a mapping')] };
+  }
+  const items = (document as Record<string, unknown>).relationships;
   if (!Array.isArray(items)) {
     return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, 'Container has no relationships list')] };
   }
   const entries: Array<Record<string, unknown>> = [];
   const diagnostics: ModelDiagnostic[] = [];
+  for (const field of Object.keys(document)) {
+    if (field !== 'relationships') diagnostics.push(error('UNSUPPORTED_RELATIONSHIP_CONTAINER_FIELD', file,
+      `Relationship container does not support top-level field ${JSON.stringify(field)}`));
+  }
   for (const item of items) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
       diagnostics.push(error('MALFORMED_UNIT', file, 'Relationship entry must be a mapping'));
