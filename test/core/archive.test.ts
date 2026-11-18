@@ -326,6 +326,7 @@ git:
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## RENAMED Sections\n- Old to New\n', 'UNSUPPORTED_OPERATION'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
       ['### Section: Unscoped\nThe system SHALL preserve this requirement.\n\n## ADDED Sections\n\n### Section: Scoped\nThe system SHALL keep this requirement.\n', 'Unscoped'],
+      ['## ADDED Sections\n\n### Section:  \nThe system SHALL not lose this text.\n\n### Section: Titled\nThe system SHALL preserve the titled Section.\n', 'Malformed Section header'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
       const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
@@ -515,6 +516,22 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
+    it('removes a newly created Formal partition when movement fails', async () => {
+      const views = path.join(tempDir, '.xirang', 'model', 'views');
+      await fs.rmdir(views);
+      const name = 'new-partition-failure';
+      const source = await writeChangeDelta(tempDir, name, {
+        'views/new.md': '---\noperation: ADDED\nentity: authored-view\nidentity: new\ninclude: "*"\n---\n',
+      });
+      const command = new ArchiveCommand({ rename: async () => {
+        await expect(fs.readFile(path.join(views, 'new.md'), 'utf8')).resolves.toContain('identity: new');
+        throw new Error('move failed after writing new partition');
+      } });
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow('move failed after writing new partition');
+      await expect(fs.access(views)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
     it('preserves unrelated hidden staging files when archive movement fails', async () => {
       await writeSemanticArchiveFixture('staging-collision');
       const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
@@ -580,10 +597,9 @@ git:
       const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
       const foreign = path.join(dest, delta);
       const command = new ArchiveCommand({ rename: async (from, to) => {
-        if (from === source && to === dest) {
+        if (from === source) {
           await fs.mkdir(path.dirname(foreign));
           await fs.writeFile(foreign, 'independently written bytes');
-          throw Object.assign(new Error('populated reservation'), { code: 'ENOTEMPTY' });
         }
         await fs.rename(from, to);
       } });
@@ -595,7 +611,55 @@ git:
       expect(console.log).not.toHaveBeenCalled();
     });
 
-    it('removes only owned entries when a foreign file appears during fallback installation', async () => {
+    it('never replaces an empty directory that took over a destination reservation', async () => {
+      const name = 'swapped-reservation';
+      const source = await writeSemanticArchiveFixture(name);
+      const delta = path.join('elements', 'existing.id.md');
+      const model = path.join(tempDir, '.xirang', 'model', delta);
+      const before = await fs.readFile(model);
+      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
+      let replacement: number | undefined;
+      const command = new ArchiveCommand({ rename: async (from, to) => {
+        if (from === source) {
+          await fs.rename(dest, `${dest}.moved-aside`);
+          await fs.mkdir(dest);
+          replacement = (await fs.lstat(dest)).ino;
+        }
+        await fs.rename(from, to);
+      } });
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/destination was populated or changed/);
+      expect(replacement).toBeDefined();
+      expect((await fs.lstat(dest)).ino).toBe(replacement);
+      await expect(fs.readdir(dest)).resolves.toEqual([]);
+      await expect(fs.readFile(model)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+    });
+
+    it.skipIf(process.platform === 'win32')('does not overwrite a symlink created at the same final artifact path', async () => {
+      const name = 'foreign-symlink';
+      const source = await writeSemanticArchiveFixture(name);
+      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const linkName = 'extra-link';
+      const original = path.join(tempDir, 'original.txt');
+      const independent = path.join(tempDir, 'independent.txt');
+      await fs.writeFile(original, 'original');
+      await fs.writeFile(independent, 'foreign');
+      await fs.symlink(original, path.join(source, linkName));
+      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(model);
+      const foreign = path.join(dest, linkName);
+      const command = new ArchiveCommand({ symlink: async (target, to, type) => {
+        if (to === foreign) await fs.symlink(independent, foreign);
+        await fs.symlink(target, to, type);
+      } });
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toMatchObject({ code: 'EEXIST' });
+      await expect(fs.readlink(foreign)).resolves.toBe(independent);
+      await expect(fs.readdir(dest)).resolves.toEqual([linkName]);
+      await expect(fs.readlink(path.join(source, linkName))).resolves.toBe(original);
+      await expect(fs.readFile(model)).resolves.toEqual(before);
+    });
+
+    it('removes only owned entries when a foreign file appears during installation', async () => {
       const name = 'foreign-during-install';
       const source = await writeSemanticArchiveFixture(name);
       const delta = path.join('elements', 'existing.id.md');
@@ -604,12 +668,8 @@ git:
       const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
       const foreign = path.join(dest, 'independent.md');
       const command = new ArchiveCommand({
-        rename: async (from, to) => {
-          if (from === source && to === dest) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
-          await fs.rename(from, to);
-        },
-        cp: async (from, to, options) => {
-          await fs.cp(from, to, options);
+        copyFile: async (from, to, mode) => {
+          await fs.copyFile(from, to, mode);
           if (to === path.join(dest, delta)) await fs.writeFile(foreign, 'foreign contents');
         },
       });
@@ -814,6 +874,24 @@ git:
       await expect(fs.access(changeDir)).resolves.not.toThrow();
     });
 
+    it('does not probe Formal case sensitivity before confirmation', async () => {
+      const name = 'no-probe-before-confirmation';
+      const source = await writeChangeDelta(tempDir, name, {
+        'elements/one.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'Foo' }).slice(4),
+        'elements/two.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'foo' }).slice(4),
+      });
+      await fs.writeFile(path.join(source, 'tasks.md'), '## Goals\n- [ ] G1: Pending\n');
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockResolvedValueOnce(false);
+      const createTemporary = vi.spyOn(fs, 'mkdtemp');
+      try {
+        await archiveCommand.execute(name, { quick: true });
+        expect(confirm).toHaveBeenCalledOnce();
+        expect(createTemporary).not.toHaveBeenCalled();
+      } finally { createTemporary.mockRestore(); }
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
     it('keeps the model and active Change when confirmation changes the Delta', async () => {
       const source = await writeSemanticArchiveFixture('confirmation-drift');
       const deltaFile = path.join(source, 'elements', 'existing.id.md');
@@ -887,8 +965,8 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
-    it('retains a Delta edit made after fallback staging begins', async () => {
-      const name = 'late-fallback-edit';
+    it('retains a Delta edit made at the source capture boundary', async () => {
+      const name = 'late-capture-edit';
       const source = await writeSemanticArchiveFixture(name);
       const delta = path.join('elements', 'existing.id.md');
       const model = path.join(tempDir, '.xirang', 'model', delta);
@@ -902,9 +980,6 @@ git:
       };
       const command = new ArchiveCommand({
         rename: async (from, to) => {
-          if (from === source && String(to).startsWith(path.join(path.dirname(source), 'archive'))) {
-            throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
-          }
           if (from === source) await lateEdit();
           await fs.rename(from, to);
         },
@@ -921,7 +996,7 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
-    it.each(['copy', 'source cleanup'] as const)('keeps both versions and rolls back when the active path is recreated during fallback %s', async phase => {
+    it.each(['copy', 'source cleanup'] as const)('keeps both versions and rolls back when the active path is recreated during %s', async phase => {
       const name = 'recreated-source';
       const source = await writeSemanticArchiveFixture(name);
       const changes = path.dirname(source);
@@ -938,17 +1013,12 @@ git:
       };
       const command = new ArchiveCommand({
         rename: async (from, to) => {
-          if (from === source && String(to).startsWith(path.join(changes, 'archive'))) {
-            throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
-          }
+          if (from === source) held = String(to);
           await fs.rename(from, to);
         },
-        cp: async (from, to, options) => {
-          if (!held) {
-            held = String(from);
-            if (phase === 'copy') await recreate();
-          }
-          await fs.cp(from, to, options);
+        copyFile: async (from, to, mode) => {
+          if (phase === 'copy') await recreate();
+          await fs.copyFile(from, to, mode);
         },
         rm: async (target, options) => {
           if (phase === 'source cleanup' && target === held) await recreate();

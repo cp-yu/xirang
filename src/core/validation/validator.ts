@@ -49,6 +49,10 @@ export class Validator {
       if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Sections');
       const hasSections = sectionNames.length > 0;
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
+      for (const line of plan.malformedSectionLines) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Malformed Section header at body line ${line}; use ### Section: <name>`,
+      });
       for (const section of plan.unscopedSections) issues.push({
         level: 'ERROR', path: entryPath,
         message: `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`,

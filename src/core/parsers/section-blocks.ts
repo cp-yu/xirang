@@ -112,6 +112,7 @@ export interface DeltaPlan {
   unsupportedSections: string[];
   duplicateSections: string[];
   unscopedSections: string[];
+  malformedSectionLines: number[];
   sectionPresence: {
     added: boolean;
     modified: boolean;
@@ -124,7 +125,7 @@ export interface DeltaPlan {
  */
 export function parseDeltaSpec(content: string): DeltaPlan {
   const normalized = normalizeLineEndings(content);
-  const { sections, unscopedSections } = splitTopLevelSections(normalized);
+  const { sections, unscopedSections, malformedSectionLines } = splitTopLevelSections(normalized);
   const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Sections');
   const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Sections');
   const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Sections');
@@ -150,6 +151,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     unsupportedSections,
     duplicateSections,
     unscopedSections,
+    malformedSectionLines,
     sectionPresence: {
       added: addedLookup.found,
       modified: modifiedLookup.found,
@@ -158,19 +160,23 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   };
 }
 
-function splitTopLevelSections(content: string): { sections: Array<[string, string]>; unscopedSections: string[] } {
+function splitTopLevelSections(content: string): {
+  sections: Array<[string, string]>; unscopedSections: string[]; malformedSectionLines: number[];
+} {
   const lines = content.split('\n');
   const sections: Array<[string, string]> = [];
   const unscopedSections: string[] = [];
+  const malformedSectionLines: number[] = [];
   const mask = buildCodeFenceMask(lines);
   const indices: Array<{ title: string; index: number; level: number }> = [];
   for (let i = 0; i < lines.length; i++) {
     if (mask[i]) continue;
     const heading = lines[i].match(/^(##)\s+(.+)$/);
     if (heading) indices.push({ title: heading[2].trim(), index: i, level: heading[1].length });
-    else if (indices.length === 0) {
-      const section = lines[i].match(SECTION_HEADER_REGEX);
-      if (section) unscopedSections.push(normalizeSectionName(section[1]));
+    else if (/^###\s*Section:/.test(lines[i])) {
+      const name = lines[i].match(SECTION_HEADER_REGEX)?.[1]?.trim();
+      if (!name || !/^###\s+Section:/.test(lines[i])) malformedSectionLines.push(i + 1);
+      else if (indices.length === 0) unscopedSections.push(name);
     }
   }
   for (let i = 0; i < indices.length; i++) {
@@ -179,7 +185,7 @@ function splitTopLevelSections(content: string): { sections: Array<[string, stri
     const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
     sections.push([current.title, body]);
   }
-  return { sections, unscopedSections };
+  return { sections, unscopedSections, malformedSectionLines };
 }
 
 function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { promises as fs } from 'node:fs';
+import { promises as fs, type Stats } from 'node:fs';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from './paths.js';
@@ -20,11 +20,12 @@ export interface PreparedSyncManifestEntry {
 
 export type SyncTransactionFileSystem = Pick<
   typeof fs,
-  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'writeFile'
+  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'rmdir' | 'writeFile'
 >;
 
 export interface SemanticTreeTransactionOptions {
   filesystem?: Partial<SyncTransactionFileSystem>;
+  preWrite?: () => Promise<void>;
   postWrite?: () => Promise<void>;
 }
 
@@ -274,16 +275,26 @@ export async function applySemanticTreeManifest(
     throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
   await assertManifestPreimages(projectRoot, manifest, filesystem);
+  await options.preWrite?.();
 
   const applied: PreparedSyncManifestEntry[] = [];
+  const createdDirectories = new Map<string, Stats>();
   try {
     for (const entry of manifest) {
       applied.push(entry);
-      await applyManifestEntry(projectRoot, entry, filesystem);
+      await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories);
     }
     await options.postWrite?.();
   } catch (error) {
     const rollbackErrors = await rollbackManifest(projectRoot, applied, filesystem);
+    for (const [directory, expected] of [...createdDirectories].sort(([a], [b]) => b.length - a.length)) {
+      try {
+        const current = await filesystem.lstat(directory);
+        if (current.isDirectory() && current.ino === expected.ino && current.dev === expected.dev) await filesystem.rmdir(directory);
+      } catch (cause) {
+        if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') rollbackErrors.push(cause as Error);
+      }
+    }
     if (rollbackErrors.length > 0) {
       throw new AggregateError(
         [error as Error, ...rollbackErrors],
@@ -363,6 +374,7 @@ function transactionFileSystem(overrides?: Partial<SyncTransactionFileSystem>): 
     readFile: overrides?.readFile ?? fs.readFile.bind(fs),
     rename: overrides?.rename ?? fs.rename.bind(fs),
     rm: overrides?.rm ?? fs.rm.bind(fs),
+    rmdir: overrides?.rmdir ?? fs.rmdir.bind(fs),
     writeFile: overrides?.writeFile ?? fs.writeFile.bind(fs),
   };
 }
@@ -384,6 +396,7 @@ async function applyManifestEntry(
   projectRoot: string,
   entry: PreparedSyncManifestEntry,
   filesystem: SyncTransactionFileSystem,
+  createdDirectories: Map<string, Stats>,
 ): Promise<void> {
   const target = resolveManifestPath(projectRoot, entry.path);
   if (entry.action === 'delete') {
@@ -392,7 +405,13 @@ async function applyManifestEntry(
   }
 
   const parent = path.dirname(target);
-  await filesystem.mkdir(parent, { recursive: true });
+  const firstCreated = await filesystem.mkdir(parent, { recursive: true });
+  if (firstCreated) {
+    const existing = path.dirname(firstCreated);
+    for (let directory = parent; directory !== existing; directory = path.dirname(directory)) {
+      createdDirectories.set(directory, await filesystem.lstat(directory));
+    }
+  }
   const stage = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
   const temporary = path.join(stage, 'unit');
   const cleanup = () => filesystem.rm(stage, { recursive: true, force: true });

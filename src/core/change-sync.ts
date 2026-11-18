@@ -23,6 +23,7 @@ export type PartitionCounts = Record<Partition, number>;
 export interface PreparedChangeSync {
   formalFingerprint: string;
   targetFingerprint: string;
+  verifyPaths: () => Promise<void>;
   deltaFingerprint: string;
   partitions: PartitionCounts;
   manifest: PreparedSyncManifestEntry[];
@@ -64,11 +65,13 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   if (!notation.valid) {
     throw new Error(notation.issues.map(issue => `${issue.path}: ${issue.message}`).join('\n'));
   }
-  const after = await writeMinimal(modelRoot(projectRoot), base, compiled.target, units);
+  let verifyPaths!: () => Promise<void>;
+  const after = await writeMinimal(modelRoot(projectRoot), base, compiled.target, units, check => { verifyPaths = check; });
   const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
     formalFingerprint: semanticTreeFingerprint(before),
     targetFingerprint: semanticTreeFingerprint(after),
+    verifyPaths,
     deltaFingerprint: semanticTreeFingerprint(deltaSnapshot),
     partitions: countPartitions(manifest),
     manifest,
@@ -109,6 +112,7 @@ export async function applyPreparedChangeSync(
 ): Promise<{ partitions: PartitionCounts; files: string[] }> {
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
+    preWrite: prepared.verifyPaths,
     postWrite: async () => {
       if (semanticTreeFingerprint(await readModelTree(modelRoot(projectRoot))) !== prepared.targetFingerprint) {
         throw new Error('Installed Formal model does not match the prepared target; verify the model paths and retry');

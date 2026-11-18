@@ -101,6 +101,9 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
 
   if (normalizeProse(body) === '') return;
   const plan = parseDeltaSpec(body);
+  for (const line of plan.malformedSectionLines) {
+    diagnostics.push(error('MALFORMED_SECTION_HEADER', file, `Malformed Section header at body line ${line}; use ### Section: <name>`, identity));
+  }
   for (const section of plan.unscopedSections) {
     diagnostics.push(error('MISSING_OPERATION', file, `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`, identity));
   }

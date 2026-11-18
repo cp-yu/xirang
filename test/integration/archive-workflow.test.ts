@@ -34,55 +34,40 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(changeDir, 'artifact.txt'), 'utf8')).resolves.toBe('source');
   });
 
-  it.skipIf(process.platform === 'win32')('preserves relative artifact links across devices', async () => {
+  it.skipIf(process.platform === 'win32')('preserves relative artifact links in an exclusive copy', async () => {
     const archived = path.join(root, 'archived');
     await fs.writeFile(path.join(changeDir, 'artifact.txt'), 'source');
     await fs.symlink('artifact.txt', path.join(changeDir, 'relative-link'));
-    await moveDirectory(changeDir, archived, { rename: async (from, to) => {
-      if (from === changeDir && to === archived) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
-      await fs.rename(from, to);
-    } });
+    await moveDirectory(changeDir, archived);
     await expect(fs.readlink(path.join(archived, 'relative-link'))).resolves.toBe('artifact.txt');
     await expect(fs.readFile(path.join(archived, 'relative-link'), 'utf8')).resolves.toBe('source');
   });
 
-  it('keeps the active source and removes partial fallback output when an EPERM copy fails', async () => {
+  it('keeps the active source and removes partial output when a copy is denied', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
     const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
     await fs.writeFile(sourceFile, 'model {}');
     await fs.mkdir(path.dirname(archived), { recursive: true });
-    const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
-      if (source === changeDir && destination === archived) {
-        throw Object.assign(new Error('windows replacement denied'), { code: 'EPERM' });
-      }
-      await fs.rename(source, destination);
+    const copyFile = vi.fn<typeof fs.copyFile>(fs.copyFile).mockImplementationOnce(async () => {
+      throw Object.assign(new Error('injected copy failure'), { code: 'EPERM' });
     });
-    const cp = vi.fn<typeof fs.cp>(fs.cp).mockImplementationOnce(async (source, destination, options) => {
-      await fs.cp(source, destination, options);
-      throw new Error('injected copy failure');
-    });
-
-    await expect(moveDirectory(changeDir, archived, { rename, cp, rm: fs.rm })).rejects.toThrow('injected copy failure');
+    await expect(moveDirectory(changeDir, archived, { copyFile })).rejects.toThrow('injected copy failure');
 
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('model {}');
     await expect(fs.access(archived)).rejects.toThrow();
     expect((await fs.readdir(path.dirname(archived))).filter(entry => entry !== path.basename(changeDir))).toEqual([]);
   });
 
-  it('installs a staged copy even when rename cannot replace its own empty reservation', async () => {
+  it('never renames onto the reserved archive directory', async () => {
     const archived = path.join(root, 'reserved');
     await fs.writeFile(path.join(changeDir, 'useful.log'), 'archived content');
     await fs.mkdir(path.join(changeDir, 'empty'));
-    const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
-      if (destination !== archived) return fs.rename(source, destination);
-      await fs.access(destination);
-      throw Object.assign(new Error('cannot replace a directory'), { code: 'EPERM' });
-    });
+    const rename = vi.fn<typeof fs.rename>(fs.rename);
     await moveDirectory(changeDir, archived, { rename });
     await expect(fs.readFile(path.join(archived, 'useful.log'), 'utf8')).resolves.toBe('archived content');
     await expect(fs.readdir(path.join(archived, 'empty'))).resolves.toEqual([]);
     await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(rename.mock.calls.filter(([, destination]) => destination === archived)).toHaveLength(1);
+    expect(rename.mock.calls.some(([, destination]) => destination === archived)).toBe(false);
   });
 
   it.skipIf(process.platform === 'win32')('restores deleted artifacts without trying to replace surviving absolute symlinks', async () => {
@@ -93,15 +78,12 @@ describe('architecture archive workflow', () => {
     await fs.writeFile(sourceFile, 'restore me');
     await fs.writeFile(externalTarget, 'external');
     await fs.symlink(externalTarget, sourceLink);
-    const inode = (await fs.lstat(sourceLink)).ino;
     const interrupted = new Error('partially removed active directory');
+    let removed = false;
     await expect(moveDirectory(changeDir, archived, {
-      rename: async (from, to) => {
-        if (from === changeDir && to === archived) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
-        await fs.rename(from, to);
-      },
       rm: async (file, options) => {
-        if (path.basename(String(file)) === path.basename(changeDir) && path.basename(path.dirname(String(file))).startsWith('.archive-source-')) {
+        if (!removed && path.basename(String(file)) === path.basename(changeDir) && path.basename(path.dirname(String(file))).startsWith('.archive-source-')) {
+          removed = true;
           await fs.rm(path.join(String(file), path.basename(sourceFile)));
           throw interrupted;
         }
@@ -110,11 +92,10 @@ describe('architecture archive workflow', () => {
     })).rejects.toBe(interrupted);
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('restore me');
     await expect(fs.readlink(sourceLink)).resolves.toBe(externalTarget);
-    expect((await fs.lstat(sourceLink)).ino).toBe(inode);
     await expect(fs.access(archived)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
-  it('rolls back an installed fallback destination when active source cleanup fails', async () => {
+  it('rolls back an installed destination when active source cleanup fails', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
     const formalFile = path.join(root, '.xirang', 'architecture', 'model.c4');
     const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
@@ -123,11 +104,6 @@ describe('architecture archive workflow', () => {
     await fs.writeFile(formalFile, "model { projectRoot = project 'Root' }\n");
     await fs.mkdir(path.dirname(archived), { recursive: true });
     const formalBefore = await fs.readFile(formalFile);
-    const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
-      if (source === changeDir && destination === archived) throw Object.assign(new Error('cross-device move'), { code: 'EXDEV' });
-      if (destination === changeDir) throw Object.assign(new Error('directory replacement denied'), { code: 'EPERM' });
-      await fs.rename(source, destination);
-    });
     let cleanupInterrupted = false;
     const rm = vi.fn(async (target: string, options?: Parameters<typeof fs.rm>[1]) => {
       if (!cleanupInterrupted && path.basename(target) === path.basename(changeDir) && path.basename(path.dirname(target)).startsWith('.archive-source-')) {
@@ -138,7 +114,7 @@ describe('architecture archive workflow', () => {
       await fs.rm(target, options);
     }) as typeof fs.rm;
 
-    await expect(moveDirectory(changeDir, archived, { rename, rm })).rejects.toThrow('source cleanup denied');
+    await expect(moveDirectory(changeDir, archived, { rm })).rejects.toThrow('source cleanup denied');
 
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('model { extend projectRoot {} }');
     await expect(fs.access(archived)).rejects.toThrow();

@@ -163,19 +163,14 @@ it('keeps both real prompts off stdout when interactively selecting and abandoni
 
 it.each([false, true])('reports the initiating failure and failed compensation (json=%s)', async json => {
   const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
-  const rename = fs.rename;
   const rm = fs.rm;
-  const cp = fs.cp;
+  const copyFile = fs.copyFile;
   const mocks = [
-    vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
-      if (from === source && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
-        throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
+    vi.spyOn(fs, 'copyFile').mockImplementation(async (from, to, mode) => {
+      if (path.basename(String(to)) === 'proposal.md' && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+        throw new Error('install injected failure');
       }
-      return rename(from, to);
-    }),
-    vi.spyOn(fs, 'cp').mockImplementation(async (from, to, options) => {
-      if (path.basename(String(to)) === 'proposal.md') throw new Error('install injected failure');
-      return cp(from, to, options);
+      return copyFile(from, to, mode);
     }),
     vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
       if (path.basename(String(target)).startsWith('.') && String(target).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {

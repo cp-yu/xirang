@@ -55,6 +55,7 @@ export async function writeMinimal(
   previous: ParsedModel,
   expected: SemanticModel,
   snapshot?: Map<string, Buffer>,
+  deferPathCheck?: (check: () => Promise<void>) => void,
 ): Promise<Map<string, Buffer>> {
   const current = snapshot ?? await readModelTree(root);
   const files = new Map<string, Buffer>();
@@ -122,17 +123,21 @@ export async function writeMinimal(
     else files.set(file, Buffer.from(next, 'utf8'));
   }
 
-  const caseGroups = new Map<string, string[]>();
-  for (const [target, owner] of claimed) {
-    const key = target.toLowerCase();
-    const aliases = caseGroups.get(key) ?? [];
-    for (const other of aliases) {
-      if (await pathsAlias(root, other, target)) {
-        throw new Error(`Sync target path collision: ${claimed.get(other)} at ${other} and ${owner} at ${target}`);
+  const checkPaths = async () => {
+    const caseGroups = new Map<string, string[]>();
+    for (const [target, owner] of claimed) {
+      const key = target.toLowerCase();
+      const aliases = caseGroups.get(key) ?? [];
+      for (const other of aliases) {
+        if (await pathsAlias(root, other, target)) {
+          throw new Error(`Sync target path collision: ${claimed.get(other)} at ${other} and ${owner} at ${target}`);
+        }
       }
+      caseGroups.set(key, [...aliases, target]);
     }
-    caseGroups.set(key, [...aliases, target]);
-  }
+  };
+  if (deferPathCheck) deferPathCheck(checkPaths);
+  else await checkPaths();
 
   return new Map([...files].sort(([left], [right]) => compareUtf8Bytes(left, right)));
 }
