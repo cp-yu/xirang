@@ -24,9 +24,8 @@ describe('ArchiveCommand', () => {
   const originalConsoleError = console.error;
 
   beforeEach(async () => {
-    // Create temp directory
-    tempDir = path.join(os.tmpdir(), `xirang-archive-test-${Date.now()}`);
-    await fs.mkdir(tempDir, { recursive: true });
+    // Fault injection compares paths passed by Archive, which roots them at process.cwd().
+    tempDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-archive-test-')));
     
     // Change to temp directory
     process.chdir(tempDir);
@@ -336,14 +335,24 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
-    it('installs a readable Formal unit for a visible Delta declaring a dot-prefixed identity', async () => {
+    it('installs ordinary readable Formal units for all dot-prefixed Delta identities', async () => {
+      const added = (unit: string) => '---\noperation: ADDED\n' + unit.slice(4);
       await writeChangeDelta(tempDir, 'dot-identity', {
-        'elements/visible.md': '---\noperation: ADDED\n' + elementUnit({ identity: '.hidden', parent: 'root' }).slice(4),
+        'metamodel/element-kind.md': added(elementKindUnit({ identity: '.element-kind' })),
+        'metamodel/relationship-kind.md': '---\noperation: ADDED\nentity: relationship-kind\nidentity: .relationship-kind\n---\n',
+        'elements/visible.md': added(elementUnit({ identity: '.element', kind: '.element-kind' })),
+        'relationships/visible.yaml': 'relationships:\n  - operation: ADDED\n    source: .element\n    kind: .relationship-kind\n    target: root\n',
+        'views/visible.md': '---\noperation: ADDED\nentity: authored-view\nidentity: .view\ninclude: "*"\n---\n',
       });
       await archiveCommand.execute('dot-identity', { quick: true, yes: true });
       const { parseSemanticModel } = await import('../../src/core/model/parser.js');
-      const result = await parseSemanticModel(path.join(tempDir, '.xirang', 'model'));
-      expect(result.model.elements.map(element => element.declaration.identity)).toContain('.hidden');
+      const { model, diagnostics } = await parseSemanticModel(path.join(tempDir, '.xirang', 'model'));
+      expect(diagnostics.filter(item => item.level === 'ERROR')).toEqual([]);
+      expect(model.elements.map(element => element.declaration.identity)).toContain('.element');
+      expect(model.elementKinds.map(kind => kind.identity)).toContain('.element-kind');
+      expect(model.relationshipKinds.map(kind => kind.identity)).toContain('.relationship-kind');
+      expect(model.relationships).toContainEqual({ source: '.element', kind: '.relationship-kind', target: 'root' });
+      expect(model.views.map(view => view.identity)).toContain('.view');
     });
 
     it('cannot bootstrap Formal from a valid added root and root Kind', async () => {
@@ -494,6 +503,22 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
+    it('preserves unrelated hidden staging files when archive movement fails', async () => {
+      await writeSemanticArchiveFixture('staging-collision');
+      const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
+      const formal = path.join(modelDir, 'existing.id.md');
+      const unrelated = path.join(modelDir, '.existing.id.md.xirang-sync-0.tmp');
+      const bytes = Buffer.from([0, 1, 255]);
+      await fs.writeFile(unrelated, bytes);
+      const before = await fs.readFile(formal);
+      const command = new ArchiveCommand({ rename: () => Promise.reject(Object.assign(new Error('move denied'), { code: 'EACCES' })) });
+
+      await expect(command.execute('staging-collision', { quick: true, yes: true })).rejects.toThrow('move denied');
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(unrelated)).resolves.toEqual(bytes);
+      expect((await fs.readdir(modelDir)).filter(name => name.startsWith('.'))).toEqual([path.basename(unrelated)]);
+    });
+
     it('should throw error if change does not exist', async () => {
       await expect(
         archiveCommand.execute('non-existent-change', { yes: true, quick: true })
@@ -523,6 +548,7 @@ git:
       const before = await fs.readFile(modelFile);
       const command = new ArchiveCommand({ mkdir: (async directory => {
         expect(directory).toBe(winner);
+        await expect(fs.readFile(modelFile)).resolves.toEqual(before);
         await fs.mkdir(winner);
         return fs.mkdir(directory);
       }) as typeof fs.mkdir });

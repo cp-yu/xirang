@@ -125,21 +125,20 @@ describe('architecture archive workflow', () => {
     const formalBefore = await fs.readFile(formalFile);
     const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
       if (source === changeDir && destination === archived) throw Object.assign(new Error('cross-device move'), { code: 'EXDEV' });
+      if (destination === changeDir) throw Object.assign(new Error('directory replacement denied'), { code: 'EPERM' });
       await fs.rename(source, destination);
     });
+    let cleanupInterrupted = false;
     const rm = vi.fn(async (target: string, options?: Parameters<typeof fs.rm>[1]) => {
-      if (path.basename(target) === path.basename(changeDir) && path.basename(path.dirname(target)).startsWith('.archive-source-')) {
+      if (!cleanupInterrupted && path.basename(target) === path.basename(changeDir) && path.basename(path.dirname(target)).startsWith('.archive-source-')) {
+        cleanupInterrupted = true;
         await fs.rm(path.join(target, path.basename(sourceFile)));
         throw Object.assign(new Error('source cleanup denied'), { code: 'EPERM' });
       }
       await fs.rm(target, options);
     }) as typeof fs.rm;
 
-    const cp = vi.fn<typeof fs.cp>(async (source, destination) => {
-      await fs.cp(source, destination, { recursive: true, force: true });
-    }) as typeof fs.cp;
-
-    await expect(moveDirectory(changeDir, archived, { rename, cp, rm })).rejects.toThrow('source cleanup denied');
+    await expect(moveDirectory(changeDir, archived, { rename, rm })).rejects.toThrow('source cleanup denied');
 
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('model { extend projectRoot {} }');
     await expect(fs.access(archived)).rejects.toThrow();

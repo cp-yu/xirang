@@ -24,7 +24,7 @@ vi.mock('@inquirer/prompts', async importOriginal => {
 });
 
 let root: string;
-beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-output-')); });
+beforeEach(async () => { root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-output-'))); });
 afterEach(async () => { await fs.rm(root, { recursive: true, force: true }); });
 it('creates changes and validates built-in schemas without success receipts in either mode', async () => {
   for (const json of [[], ['--json']]) {
@@ -46,6 +46,16 @@ it('returns the existing archive location on retries in either mode', async () =
     expect(json.length ? JSON.parse(result.stdout) : result.stdout.trim()).toEqual(json.length ? { archive, alreadyArchived: true } : archive);
   }
 });
+it('archives the no-op marker unchanged rather than treating it as a model unit', async () => {
+  await writeProjectModel(root, minimalModel());
+  await writeChangeDelta(root, 'no-delta', { '.delta-noop': '' });
+  const result = await runCLI(['archive', 'no-delta', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result.exitCode).toBe(0);
+  const { archive } = JSON.parse(result.stdout);
+  await expect(fs.readFile(path.join(root, archive, '.delta-noop'), 'utf8')).resolves.toBe('');
+  await expect(fs.access(path.join(root, '.xirang', 'model', '.delta-noop'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });

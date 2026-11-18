@@ -43,3 +43,7 @@
 - [x] [code_fix] 保持合法前导点 identity 升级后的单元可见，并在封存前用普通 Formal 读取器核实目标。
 - [x] [artifact_fix] 入门示例在缺 Seal 时返回 Apply，不引导 Archive 自行组织 Quality。
 - [x] [code_fix] 测试对象已不存在的 Seal commit 阻止交付、状态不变且提示返回 Apply。
+- [x] [code_fix] 前导点 identity 对 Element、两种 Kind、View 与 Relationship 容器均保持普通 Formal 可读。
+- [x] [code_fix] 模型写入独占暂存路径，交付失败不会删除已有同名隐藏制品。
+- [x] [artifact_fix] 统一 CLI 概览、工作流索引和 Semantic Delta 生成指引，封存原样保留 `.delta-noop`。
+- [x] [code_fix] 在归档目标竞争发生时断言 Formal 尚未写入，而不是只检查回滚后的结果。

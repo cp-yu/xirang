@@ -32,7 +32,7 @@ A user may load only this skill and then state a stage or working intent in natu
 | propose | xirang-propose | Create proposal, design, and tasks from a request |
 | explore | xirang-explore | Investigate a problem before implementation |
 | apply | xirang-apply-change | Implement tasks from the current change |
-| archive | xirang-archive-change | Finalize and archive a completed change |
+| archive | xirang-archive-change | Deliver or abandon a Change |
 | build | xirang-build | Build or rebuild one reviewed Architecture and Specs Candidate |
 | snack | xirang-snack | Reconcile implemented code with the complete Semantic Delta |
 

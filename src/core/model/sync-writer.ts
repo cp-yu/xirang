@@ -87,19 +87,19 @@ export async function writeMinimal(
   const previousElementKinds = new Map(previous.model.elementKinds.map(item => [item.identity, item]));
   for (const kind of expected.elementKinds) {
     const before = previousElementKinds.get(kind.identity);
-    emit('element-kind', kind.identity, `metamodel/${kind.identity}.md`, serializeElementKindUnit(kind), before && serializeElementKindUnit(before));
+    emit('element-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, serializeElementKindUnit(kind), before && serializeElementKindUnit(before));
   }
 
   const previousRelationshipKinds = new Map(previous.model.relationshipKinds.map(item => [item.identity, item]));
   for (const kind of expected.relationshipKinds) {
     const before = previousRelationshipKinds.get(kind.identity);
-    emit('relationship-kind', kind.identity, `metamodel/${kind.identity}.md`, serializeRelationshipKindUnit(kind), before && serializeRelationshipKindUnit(before));
+    emit('relationship-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, serializeRelationshipKindUnit(kind), before && serializeRelationshipKindUnit(before));
   }
 
   const previousViews = new Map(previous.model.views.map(item => [item.identity, item]));
   for (const view of expected.views) {
     const before = previousViews.get(view.identity);
-    emit('authored-view', view.identity, `views/${view.identity}.md`, serializeViewUnit(view), before && serializeViewUnit(before));
+    emit('authored-view', view.identity, `views/${visibleFilename(view.identity)}.md`, serializeViewUnit(view), before && serializeViewUnit(before));
   }
 
   const containerOf = (relationship: Relationship): string =>

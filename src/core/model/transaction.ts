@@ -20,7 +20,7 @@ export interface PreparedSyncManifestEntry {
 
 export type SyncTransactionFileSystem = Pick<
   typeof fs,
-  'mkdir' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'writeFile'
+  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'writeFile'
 >;
 
 export interface SemanticTreeTransactionOptions {
@@ -277,10 +277,9 @@ export async function applySemanticTreeManifest(
 
   const applied: PreparedSyncManifestEntry[] = [];
   try {
-    for (let index = 0; index < manifest.length; index += 1) {
-      const entry = manifest[index];
+    for (const entry of manifest) {
       applied.push(entry);
-      await applyManifestEntry(projectRoot, entry, index, filesystem);
+      await applyManifestEntry(projectRoot, entry, filesystem);
     }
     await options.postWrite?.();
   } catch (error) {
@@ -359,6 +358,7 @@ export function buildManifest(
 function transactionFileSystem(overrides?: Partial<SyncTransactionFileSystem>): SyncTransactionFileSystem {
   return {
     mkdir: overrides?.mkdir ?? fs.mkdir.bind(fs),
+    mkdtemp: overrides?.mkdtemp ?? fs.mkdtemp.bind(fs),
     lstat: overrides?.lstat ?? fs.lstat.bind(fs),
     readFile: overrides?.readFile ?? fs.readFile.bind(fs),
     rename: overrides?.rename ?? fs.rename.bind(fs),
@@ -383,7 +383,6 @@ async function assertManifestPreimages(
 async function applyManifestEntry(
   projectRoot: string,
   entry: PreparedSyncManifestEntry,
-  index: number,
   filesystem: SyncTransactionFileSystem,
 ): Promise<void> {
   const target = resolveManifestPath(projectRoot, entry.path);
@@ -392,10 +391,13 @@ async function applyManifestEntry(
     return;
   }
 
-  await filesystem.mkdir(path.dirname(target), { recursive: true });
-  const temporary = path.join(path.dirname(target), `.${path.basename(target)}.xirang-sync-${index}.tmp`);
+  const parent = path.dirname(target);
+  await filesystem.mkdir(parent, { recursive: true });
+  const stage = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
+  const temporary = path.join(stage, 'unit');
+  const cleanup = () => filesystem.rm(stage, { recursive: true, force: true });
   try {
-    await filesystem.writeFile(temporary, entry.postimage!);
+    await filesystem.writeFile(temporary, entry.postimage!, { flag: 'wx' });
     try {
       await filesystem.rename(temporary, target);
     } catch (error) {
@@ -406,12 +408,13 @@ async function applyManifestEntry(
     }
   } catch (error) {
     try {
-      await filesystem.rm(temporary, { force: true });
+      await cleanup();
     } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], `Failed to write and clean up staging for ${entry.path}`);
     }
     throw error;
   }
+  await cleanup();
 }
 
 async function rollbackManifest(

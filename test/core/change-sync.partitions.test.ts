@@ -13,6 +13,7 @@ import {
   SEMANTIC_PARTITIONS,
   type PreparedSyncManifestEntry,
 } from '../../src/core/model/transaction.js';
+import { modelRoot } from '../../src/core/model/paths.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
 
 const roots: string[] = [];
@@ -79,7 +80,6 @@ describe('semantic partitions', () => {
     const manifest: PreparedSyncManifestEntry[] = [
       {
         path: '.xirang/model/elements/root.md',
-        scope: 'spec',
         action: 'write',
         preimage: before.get('.xirang/model/elements/root.md')!,
         postimage: Buffer.from('---\nentity: element-declaration\nidentity: root\nkind: project\ntitle: New\n---\n'),
@@ -90,7 +90,7 @@ describe('semantic partitions', () => {
     await expect(applySemanticTreeManifest(root, fingerprint, manifest, {
       filesystem: {
         writeFile: async (file, data) => {
-          if (String(file).includes('boom')) throw new Error('disk full');
+          if (String(file).startsWith(path.join(modelRoot(root), 'views') + path.sep)) throw new Error('disk full');
           await fs.writeFile(file as string, data as Buffer);
         },
       },

@@ -11,7 +11,7 @@ Successful writes without a necessary result produce no stdout, including with `
 | **Setup** | `setup`, `update` | Set up and update Xirang in your project |
 | **Browsing** | `list`, `view`, `show` | Explore Changes and the Semantic Model |
 | **Validation** | `validate` | Check Changes and Element Contracts for issues |
-| **Lifecycle** | `archive` | Finalize completed changes |
+| **Lifecycle** | `archive` | Deliver or abandon Changes |
 | **Workflow** | `status`, `templates`, `schemas` | Artifact-driven workflow support |
 | **Schemas** | `schema validate`, `schema which` | Inspect and validate built-in workflows |
 | **Config** | `config` | View and modify settings |
@@ -50,7 +50,7 @@ These commands support `--json` output for programmatic use by AI agents and scr
 | `xirang schemas` | List available schemas | `--json` for schema discovery |
 | `xirang quality` | Record review and optimization conclusions | `--json` for current commit associations, revision receipts, and diagnostics |
 
-Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Archive requires a valid Seal and a synchronized Semantic Delta.
+Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Default Archive requires a valid Seal and applies the Semantic Delta as part of delivery. See [`xirang archive`](#xirang-archive) for quick delivery and abandonment.
 
 ---
 
