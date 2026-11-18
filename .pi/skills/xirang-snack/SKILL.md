@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.10"
+  generatedBy: "0.2.11"
 ---
 
 Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
