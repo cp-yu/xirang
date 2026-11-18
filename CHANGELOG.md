@@ -1,5 +1,13 @@
 # xirang
 
+## 0.2.11
+
+### Patch Changes
+
+- **BREAKING**：`xirang archive` 在同一次调用内校验并应用 Semantic Delta、归档 Change。移除独立 `xirang sync` 及 `--no-sync`、`--no-validate`、`--no-verify`。目录移动失败时撤回本次模型写入，不做跨进程自动恢复。
+- `xirang archive --quick` 仅跳过 Quality Seal；`xirang archive --abandon` 不应用 Delta，将 Change 原样保存在 `archive/abandoned/`。放弃前报告已勾选目标并请求确认，`--yes` 跳过确认但不隐藏进度；放弃不触发 Git 合并或清理。
+- 更新 Archive、Snack、Propose 等工作流指引、生成面和命令补全。
+
 ## 0.2.10
 
 ### Patch Changes
