@@ -337,7 +337,7 @@ xirang archive alternative-design --abandon
 
 - Default and `--quick` write to `.xirang/changes/archive/YYYY-MM-DD-<change>/`. `--quick` skips only the Seal check; Delta and model validation still run. Incomplete goals require confirmation unless `--yes` is supplied.
 - `--abandon` moves the active Change unchanged to `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/` without validating or applying its Delta or touching implementation. It reports checked goals when present and asks for confirmation unless `--yes` is supplied. It cannot be combined with `--quick`.
-- The Change name is optional in an interactive terminal. Success returns the archive path as text or `{ "archive": "<path>" }` in JSON mode; retries against an existing archive also include `"alreadyArchived": true` in JSON mode. Diagnostics go to stderr, structured with `--json`. Apply later edits through a new Change.
+- The Change name is optional in an interactive terminal. Success returns the archive path as text or `{ "archive": "<path>" }` in JSON mode; retries against an existing archive also include `"alreadyArchived": true` in JSON mode. With `--json`, interactive prompts go to stderr as terminal text and diagnostics go to stderr as structured data. Apply later edits through a new Change.
 - **Breaking:** standalone `xirang sync` and archive's `--no-sync`, `--no-validate`, and `--no-verify` are no longer accepted.
 
 ### `xirang quality`

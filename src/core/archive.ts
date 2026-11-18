@@ -42,7 +42,11 @@ export async function moveDirectory(
     await filesystem.cp(src, temporary, { recursive: true, force: true });
     await filesystem.rename(temporary, dest);
   } catch (error) {
-    await filesystem.rm(temporary, { recursive: true, force: true }).catch(() => undefined);
+    try {
+      await filesystem.rm(temporary, { recursive: true, force: true });
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], 'Failed to install the archive destination and clean up the staged copy');
+    }
     throw error;
   }
   try {
@@ -94,8 +98,9 @@ export class ArchiveCommand {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
       throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
     }
+    const promptContext = options.json ? { output: process.stderr } : undefined;
     if (!changeName) {
-      changeName = await selectActiveChange(changesDir, { message: 'Select a change to archive' }) ?? undefined;
+      changeName = await selectActiveChange(changesDir, { message: 'Select a change to archive', ...promptContext }) ?? undefined;
       if (!changeName) {
         diagnostic('No change selected. Aborting.', 'ARCHIVE_CANCELLED', options.json);
         return;
@@ -136,7 +141,8 @@ export class ArchiveCommand {
     };
     const ask = async (message: string) => {
       const { confirm } = await import('@inquirer/prompts');
-      if (await confirm({ message, default: false })) return true;
+      const config = { message, default: false };
+      if (await (promptContext ? confirm(config, promptContext) : confirm(config))) return true;
       diagnostic('Archive cancelled.', 'ARCHIVE_CANCELLED', options.json);
       return false;
     };

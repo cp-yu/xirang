@@ -15,3 +15,13 @@
 - [x] G5: 在 Windows CI 与其他支持平台保持两种留档路径的结果一致
   - Contract: `change-archive` / Section "Key Acceptance Cases"
   - Verify: 默认与 quick 保留日期目录，放弃保留 abandoned 子目录，跨平台解析、返回与再次查找对应已有路径时均不重写原始制品或覆盖同名冲突目标。
+
+## Required Corrections
+
+- [x] [code_fix] 拒绝空 Section operation block 和 RENAMED 记法，非法 Delta 不得封存。
+- [x] [code_fix] 有实际 Delta 但无正式模型时拒绝交付，不以 Delta 初始化模型。
+- [x] [code_fix] 在实际文件系统上检测大小写别名引起的目标碰撞，冲突时保留两侧状态。
+- [x] [code_fix] 交付失败且补偿也失败时，文本与 JSON 均保留原始故障和补偿故障。
+- [x] [code_fix] JSON 交互归档的选择与确认不能污染机器可读回执。
+- [x] [artifact_fix] 未指定放弃对象时，使用不读取 Quality 的选择流程并保留用户授权。
+- [x] [code_fix] 补充回执写入失败后的事务边界证据，确认模型与归档不撤回且可再次读取。

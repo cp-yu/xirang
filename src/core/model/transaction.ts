@@ -287,7 +287,7 @@ export async function applySemanticTreeManifest(
     if (rollbackErrors.length > 0) {
       throw new AggregateError(
         [error as Error, ...rollbackErrors],
-        `Semantic sync failed and rollback was incomplete: ${(error as Error).message}`,
+        'Semantic sync failed and rollback was incomplete',
       );
     }
     throw error;
@@ -396,8 +396,13 @@ async function applyManifestEntry(
       await filesystem.rm(target, { force: true });
       await filesystem.rename(temporary, target);
     }
-  } finally {
-    await filesystem.rm(temporary, { force: true }).catch(() => undefined);
+  } catch (error) {
+    try {
+      await filesystem.rm(temporary, { force: true });
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], `Failed to write and clean up staging for ${entry.path}`);
+    }
+    throw error;
   }
 }
 

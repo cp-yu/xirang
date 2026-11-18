@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { diagnostic, setJsonOutput } from '../utils/output.js';
+import { describeError, diagnostic, setJsonOutput } from '../utils/output.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { AI_TOOLS } from '../core/config.js';
@@ -194,7 +194,7 @@ program
       const archiveCommand = new ArchiveCommand();
       await archiveCommand.execute(changeName, options);
     } catch (error) {
-      diagnostic((error as Error).message);
+      diagnostic(describeError(error));
       process.exit(1);
     }
   });

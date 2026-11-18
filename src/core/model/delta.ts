@@ -101,6 +101,15 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
 
   if (normalizeProse(body) === '') return;
   const plan = parseDeltaSpec(body);
+  for (const section of plan.unsupportedSections) {
+    diagnostics.push(error('UNSUPPORTED_OPERATION', file,
+      `## ${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`, identity));
+  }
+  for (const operation of ['added', 'modified', 'removed'] as const) {
+    if (plan.sectionPresence[operation] && plan[operation].length === 0) {
+      diagnostics.push(error('EMPTY_OPERATION_BLOCK', file, `## ${operation.toUpperCase()} Sections contains no Section entries`, identity));
+    }
+  }
   if (!Object.values(plan.sectionPresence).some(Boolean)) {
     diagnostics.push(error('MISSING_OPERATION', file,
       'Section entries must appear under ## ADDED/MODIFIED/REMOVED Sections', identity));

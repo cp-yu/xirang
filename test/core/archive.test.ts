@@ -5,7 +5,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { promisify } from 'util';
-import { minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
+import { elementKindUnit, elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { createCompleteQualityFixture, createBaselineOnlyQualityFixture } from '../helpers/quality-fixture.js';
 
 const execFileAsync = promisify(execFile);
@@ -261,6 +261,79 @@ git:
       await writeFreshQualityRecord(changeDir);
 
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/MISSING_IDENTITY/);
+    });
+
+    it.each([
+      ['## MODIFIED Sections\n', 'EMPTY_OPERATION_BLOCK'],
+      ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## REMOVED Sections\n', 'EMPTY_OPERATION_BLOCK'],
+      ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## RENAMED Sections\n- Old to New\n', 'UNSUPPORTED_OPERATION'],
+    ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
+      const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
+
+      await expect(archiveCommand.execute('bad-sections', { yes: true, quick: true })).rejects.toThrow(errorCode);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
+    it('cannot bootstrap Formal from a valid added root and root Kind', async () => {
+      const modelDir = path.join(tempDir, '.xirang', 'model');
+      await fs.rm(modelDir, { recursive: true });
+      const added = (unit: string) => '---\noperation: ADDED\n' + unit.slice(4);
+      const source = await writeChangeDelta(tempDir, 'bootstrap', {
+        'metamodel/project.md': added(elementKindUnit({ identity: 'project', root: true })),
+        'elements/root.md': added(elementUnit({ identity: 'root', kind: 'project', parent: null })),
+      });
+
+      await expect(archiveCommand.execute('bootstrap', { yes: true, quick: true })).rejects.toThrow(/MISSING_FORMAL_MODEL/);
+      await expect(fs.access(modelDir)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
+    it.each([false, true])('rejects actual destination aliases but preserves distinct paths (simulate case folding=%s)', async simulate => {
+      const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
+      const insensitive = await fs.access(path.join(modelDir, 'ROOT.md')).then(() => true, () => false);
+      const added = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
+      const source = await writeChangeDelta(tempDir, 'case-paths', {
+        'elements/one.md': added('Foo'),
+        'elements/two.md': added('foo'),
+      });
+      const before = (await fs.readdir(modelDir)).sort();
+      const lstat = fs.lstat;
+      const folded = simulate ? vi.spyOn(fs, 'lstat').mockImplementation(async (file, options) => {
+        if (path.dirname(String(file)) === modelDir) {
+          const name = (await fs.readdir(modelDir)).find(entry => entry.toLowerCase() === path.basename(String(file)).toLowerCase());
+          if (name !== undefined) return lstat(path.join(modelDir, name), options);
+        }
+        return lstat(file, options);
+      }) : undefined;
+      try {
+        const deliver = archiveCommand.execute('case-paths', { yes: true, quick: true });
+        if (insensitive || simulate) {
+          await expect(deliver).rejects.toThrow(/collision.*Foo.*foo/i);
+          expect((await fs.readdir(modelDir)).sort()).toEqual(before);
+          await expect(fs.access(source)).resolves.toBeUndefined();
+        } else {
+          await deliver;
+          await expect(fs.readFile(path.join(modelDir, 'Foo.md'), 'utf8')).resolves.toContain('identity: Foo');
+          await expect(fs.readFile(path.join(modelDir, 'foo.md'), 'utf8')).resolves.toContain('identity: foo');
+        }
+      } finally { folded?.mockRestore(); }
+    });
+
+    it('keeps delivery committed even when publishing the receipt throws', async () => {
+      const source = await writeSemanticArchiveFixture('lost-receipt');
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      vi.mocked(console.log).mockImplementationOnce(() => { throw new Error('receipt could not be written'); });
+
+      await expect(archiveCommand.execute('lost-receipt', { yes: true, quick: true, json: true })).rejects.toThrow('receipt could not be written');
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.readFile(modelFile, 'utf8')).resolves.toContain('Changed summary');
+      await archiveCommand.execute('lost-receipt', { json: true });
+      const receipt = JSON.parse(vi.mocked(console.log).mock.lastCall![0]);
+      expect(receipt.alreadyArchived).toBe(true);
+      await expect(fs.readFile(path.join(tempDir, receipt.archive, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
     });
 
     it('should allow archive when the Semantic Delta is already synced', async () => {

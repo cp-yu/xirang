@@ -1,3 +1,5 @@
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { isMarkdownUnit, readModelTree, type ParsedModel } from './parser.js';
 import {
@@ -8,6 +10,33 @@ import {
   serializeViewUnit,
 } from './serializer.js';
 import type { EntityType, Relationship, SemanticModel } from './types.js';
+
+/** Probe the common parent only on an ambiguous path, including case-sensitive directories on Windows. */
+async function pathsAlias(root: string, left: string, right: string): Promise<boolean> {
+  const parts = left.split('/');
+  const other = right.split('/');
+  let directory = path.join(root, ...parts.slice(0, parts.findIndex((part, index) => part !== other[index])));
+  let probe: string;
+  for (;;) {
+    try {
+      probe = await fs.mkdtemp(path.join(directory, '.xirang-case-'));
+      break;
+    } catch (error) {
+      const parent = path.dirname(directory);
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT' || directory === root || parent === directory) throw error;
+      directory = parent;
+    }
+  }
+  try {
+    await fs.lstat(path.join(directory, path.basename(probe).replace('.xirang-', '.XIRANG-')));
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false;
+    throw error;
+  } finally {
+    await fs.rmdir(probe);
+  }
+}
 
 function containerKind(relativePath: string): string {
   return relativePath.split('/').pop()!.replace(/\.[^.]*$/, '');
@@ -87,6 +116,18 @@ export async function writeMinimal(
     claim(file, 'relationship container');
     if (original && serializeRelationshipContainer(kind, before) === next) files.set(file, original);
     else files.set(file, Buffer.from(next, 'utf8'));
+  }
+
+  const caseGroups = new Map<string, string[]>();
+  for (const [target, owner] of claimed) {
+    const key = target.toLowerCase();
+    const aliases = caseGroups.get(key) ?? [];
+    for (const other of aliases) {
+      if (await pathsAlias(root, other, target)) {
+        throw new Error(`Sync target path collision: ${claimed.get(other)} at ${other} and ${owner} at ${target}`);
+      }
+    }
+    caseGroups.set(key, [...aliases, target]);
   }
 
   return new Map([...files].sort(([left], [right]) => compareUtf8Bytes(left, right)));

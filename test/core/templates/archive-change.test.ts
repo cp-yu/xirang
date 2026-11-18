@@ -31,6 +31,13 @@ describe('archive change workflow template', () => {
     expect(instructions).toContain('`alreadyArchived`');
   });
 
+  it('uses Quality-independent CLI selection for unnamed abandonment', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+    const abandon = instructions.slice(instructions.indexOf('1. **Select change and mode**'), instructions.indexOf('3. **Prepare delivery**'));
+    expect(abandon).toContain('`xirang archive --abandon --json`');
+    expect(abandon).toMatch(/do not run `xirang list --json`.*Quality/i);
+  });
+
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');

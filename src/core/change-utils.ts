@@ -3,6 +3,7 @@ import { formatTaskStatus, getTaskProgressForChange } from '../utils/task-progre
 
 interface SelectActiveChangeOptions {
   message?: string;
+  output?: NodeJS.WritableStream;
 }
 
 export async function selectActiveChange(
@@ -39,10 +40,8 @@ export async function selectActiveChange(
   }
 
   try {
-    return await select({
-      message: options.message ?? 'Select a change',
-      choices,
-    });
+    const config = { message: options.message ?? 'Select a change', choices };
+    return await (options.output ? select(config, { output: options.output }) : select(config));
   } catch {
     return null;
   }

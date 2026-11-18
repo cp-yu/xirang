@@ -45,7 +45,11 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
     return unit.split('/').some(part => part.startsWith('.')) ? [] : [[unit, bytes]];
   }));
   const base = parseSemanticModelFiles([...units].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
-  const { compiled } = await compileChangeDelta(projectRoot, changeName, { base, allowAlreadyApplied: true });
+  const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, { base, allowAlreadyApplied: true });
+  if (base.model.elements.length === 0 && delta.entries.length > 0) {
+    const unit = sources.find(source => source.entities.length > 0);
+    throw new Error(`${unit?.path ?? MODEL_PATH_PREFIX}: MISSING_FORMAL_MODEL: cannot apply a Semantic Delta without a Formal model`);
+  }
   if (!compiled.valid || !compiled.target) {
     throw new Error(compiled.diagnostics.filter(item => item.level === 'ERROR')
       .map(item => `${item.path}: ${item.code}: ${item.message}`).join('\n'));

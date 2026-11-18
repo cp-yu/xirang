@@ -1,10 +1,27 @@
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, expect, it } from 'vitest';
+import { PassThrough } from 'node:stream';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
+
+vi.mock('@inquirer/prompts', async importOriginal => {
+  const real = await importOriginal<typeof import('@inquirer/prompts')>();
+  type Context = Parameters<typeof real.confirm>[1];
+  const enter = (text: string, run: (input: PassThrough) => Promise<unknown>) => {
+    const input = new PassThrough();
+    const result = run(input);
+    queueMicrotask(() => input.write(text));
+    return result.finally(() => input.end());
+  };
+  return {
+    ...real,
+    select: (config: Parameters<typeof real.select>[0], context?: Context) => enter('\r', input => real.select(config, { ...context, input })),
+    confirm: (config: Parameters<typeof real.confirm>[0], context?: Context) => enter('y\r', input => real.confirm(config, { ...context, input })),
+  };
+});
 
 let root: string;
 beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-output-')); });
@@ -120,4 +137,73 @@ it('returns the abandoned location by exact Change name and leaves implementatio
   await expect(fs.stat(source)).rejects.toMatchObject({ code: 'ENOENT' });
   const retry = await runCLI(['archive', 'demo', '--json'], { cwd: root });
   expect(JSON.parse(retry.stdout)).toEqual({ archive, alreadyArchived: true });
+});
+
+
+it('keeps both real prompts off stdout when interactively selecting and abandoning with --json', async () => {
+  const change = await writeChangeDelta(root, 'demo', { '.quality.json': 'unreadable quality' });
+  const result = await runCLI(['archive', '--abandon', '--json'], { cwd: root });
+  expect(result.exitCode).toBe(0);
+  const { archive } = JSON.parse(result.stdout);
+  expect(result.stderr).toContain('Select a change to archive');
+  expect(result.stderr).toContain("Abandon 'demo'");
+  await expect(fs.access(change)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.readFile(path.join(root, archive, '.quality.json'), 'utf8')).resolves.toBe('unreadable quality');
+});
+
+it.each([false, true])('reports the initiating failure and failed compensation (json=%s)', async json => {
+  const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
+  const rename = fs.rename;
+  const rm = fs.rm;
+  const mocks = [
+    vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+      if (from === source) throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
+      if (path.basename(String(from)).startsWith('.') && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+        throw new Error('install injected failure');
+      }
+      return rename(from, to);
+    }),
+    vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
+      if (path.basename(String(target)).startsWith('.') && String(target).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+        throw new Error('cleanup injected failure');
+      }
+      return rm(target, options);
+    }),
+  ];
+  try {
+    const result = await runCLI(['archive', 'move-failure', '--abandon', '--yes', ...(json ? ['--json'] : [])], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    const message = json ? JSON.parse(result.stderr).message : result.stderr;
+    expect(message).toContain('install injected failure');
+    expect(message).toContain('cleanup injected failure');
+    await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('Preserve me');
+  } finally { for (const mock of mocks) mock.mockRestore(); }
+});
+
+
+it('reports an archive error and incomplete model rollback in structured diagnostics', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'rollback-failure', {
+    'elements/root.md': '---\noperation: MODIFIED\n' + elementUnit({ identity: 'root', kind: 'project', parent: null, definition: 'New root.' }).slice(4),
+  });
+  const target = path.join(root, '.xirang', 'model', 'elements', 'root.md');
+  const rename = fs.rename;
+  const write = fs.writeFile;
+  const mocks = [
+    vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+      if (from === source) throw new Error('archive move injected failure');
+      return rename(from, to);
+    }),
+    vi.spyOn(fs, 'writeFile').mockImplementation(async (file, bytes, options) => {
+      if (file === target) throw new Error('model restore injected failure');
+      return write(file, bytes, options);
+    }),
+  ];
+  try {
+    const result = await runCLI(['archive', 'rollback-failure', '--quick', '--yes', '--json'], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    const records = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+    expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toMatch(/archive move injected failure[\s\S]*model restore injected failure/);
+    await expect(fs.access(source)).resolves.toBeUndefined();
+  } finally { for (const mock of mocks) mock.mockRestore(); }
 });
