@@ -106,13 +106,13 @@ A REMOVED entry names the Section only; it does not carry a description or a rea
 
 ### What Happens on Archive
 
-When you archive a change:
+When you deliver a Change with `xirang archive <change>` (default or `--quick`), the Semantic Delta is applied to the Formal model:
 
 1. **ADDED** Sections are appended to the Element Contract
 2. **MODIFIED** Sections replace the existing version
 3. **REMOVED** Sections are deleted from the Contract
 
-The change folder moves to `.xirang/changes/archive/` for audit history.
+Delivered Changes move to `.xirang/changes/archive/` for audit history. To keep a Change without applying its Delta, use `xirang archive <change> --abandon`; it moves to `.xirang/changes/archive/abandoned/` and leaves the Formal model unchanged.
 
 ## Example: Your First Change
 

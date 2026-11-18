@@ -17,6 +17,7 @@ import { validateChangeName } from '../utils/change-utils.js';
 export interface ArchiveMoveFileSystem {
   rename: typeof fs.rename;
   copyFile: typeof fs.copyFile;
+  chmod: typeof fs.chmod;
   symlink: typeof fs.symlink;
   rm: typeof fs.rm;
   rmdir: typeof fs.rmdir;
@@ -47,6 +48,19 @@ async function readWindowsLinkType(location: string): Promise<'dir' | 'file' | '
   throw new Error(`Cannot determine Windows link type: ${location}`);
 }
 
+type ArchivePath = string | Buffer;
+
+const posixPathSeparator = Buffer.from('/');
+
+function childPath(directory: ArchivePath, name: ArchivePath): ArchivePath {
+  if (typeof directory === 'string') {
+    if (typeof name === 'string') return path.join(directory, name);
+    const decoded = name.toString();
+    if (name.equals(Buffer.from(decoded))) return path.join(directory, decoded);
+  }
+  return Buffer.concat([Buffer.from(directory), posixPathSeparator, Buffer.from(name)]);
+}
+
 /** Install under the archive lock; the source is exclusive until this transaction completes. */
 export async function moveDirectory(
   src: string,
@@ -55,24 +69,31 @@ export async function moveDirectory(
   options: { apply?: (install: () => Promise<void>) => Promise<void>; json?: boolean } = {},
 ): Promise<void> {
   const filesystem = { ...fs, ...overrides };
+  const windows = process.platform === 'win32';
+  const finalizedDirectories: ArchivePath[] = [];
   const remove = (directory: string) => filesystem.rm(directory, { recursive: true, force: true });
-  const copyContents = async (from: string, to: string): Promise<void> => {
-    for (const name of await fs.readdir(from)) {
-      const source = path.join(from, name);
-      const target = path.join(to, name);
+  const copyContents = async (from: ArchivePath, to: ArchivePath, mode: number): Promise<void> => {
+    const names = windows ? await fs.readdir(from) : await fs.readdir(from, { encoding: 'buffer' });
+    for (const name of names) {
+      const source = childPath(from, name);
+      const target = childPath(to, name);
       const entry = await fs.lstat(source);
       if (entry.isDirectory()) {
-        await filesystem.mkdir(target);
-        await copyContents(source, target);
+        await filesystem.mkdir(target, windows ? undefined : 0o700);
+        await copyContents(source, target, entry.mode);
       } else if (entry.isSymbolicLink()) {
-        if (process.platform === 'win32') {
-          await filesystem.symlink(await fs.readlink(source), target, await readWindowsLinkType(source));
+        if (windows) {
+          await filesystem.symlink(await fs.readlink(source), target, await readWindowsLinkType(String(source)));
         } else {
           await filesystem.symlink(await fs.readlink(source, { encoding: 'buffer' }), target);
         }
       } else if (entry.isFile()) {
         await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
       } else throw new Error(`Unsupported archive entry type: ${source}`);
+    }
+    if (!windows) {
+      await filesystem.chmod(to, mode & 0o7777);
+      finalizedDirectories.push(to);
     }
   };
 
@@ -85,7 +106,7 @@ export async function moveDirectory(
   let sourceRoot: string | undefined;
   let captured: string | undefined;
   try {
-    await filesystem.mkdir(dest).catch((error: NodeJS.ErrnoException) => {
+    await filesystem.mkdir(dest, windows ? undefined : 0o700).catch((error: NodeJS.ErrnoException) => {
       if (error.code === 'EEXIST') throw new Error(`Archive '${path.basename(dest)}' already exists.`);
       throw error;
     });
@@ -96,7 +117,7 @@ export async function moveDirectory(
       const local = path.join(sourceRoot, path.basename(src));
       await filesystem.rename(src, local);
       captured = local;
-      await copyContents(captured, dest);
+      await copyContents(captured, dest, (await fs.lstat(captured)).mode);
       await filesystem.rmdir(pending);
     };
     if (options.apply) await options.apply(install);
@@ -113,7 +134,11 @@ export async function moveDirectory(
     }
     try {
       // Keep the marker when a partial destination cannot be removed.
-      if (reserved) await remove(dest);
+      if (reserved) {
+        // Reset only our private destination directories, parent first, so read-only modes cannot block rollback.
+        for (const directory of finalizedDirectories.reverse()) await filesystem.chmod(directory, 0o700);
+        await remove(dest);
+      }
       await filesystem.rmdir(pending);
     } catch (rollbackError) { failures.push(rollbackError); }
     if (sourceRoot && !captured) await filesystem.rmdir(sourceRoot).catch(rollbackError => failures.push(rollbackError));

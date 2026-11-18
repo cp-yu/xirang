@@ -1,8 +1,19 @@
+import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { promisify } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { moveDirectory } from '../../src/core/archive.js';
+
+async function windowsLinkType(location: string): Promise<string> {
+  const powershell = path.join(process.env.SystemRoot!, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const { stdout } = await promisify(execFile)(powershell, ['-NoProfile', '-NonInteractive', '-Command',
+    '(Get-Item -LiteralPath $env:XIRANG_TEST_LINK -Force).LinkType'], {
+    env: { ...process.env, XIRANG_TEST_LINK: location }, windowsHide: true,
+  });
+  return stdout.trim();
+}
 
 describe('architecture archive workflow', () => {
   let changeDir: string;
@@ -53,6 +64,64 @@ describe('architecture archive workflow', () => {
     await expect(fs.readlink(path.join(archived, 'raw-link'), { encoding: 'buffer' })).resolves.toEqual(target);
   });
 
+  it.skipIf(process.platform === 'win32')('preserves non-UTF-8 POSIX artifact names, including nested directories', async context => {
+    const archived = path.join(root, 'archived');
+    const name = Buffer.from([0x66, 0x80]);
+    const relative = Buffer.concat([Buffer.from('/'), name]);
+    const source = Buffer.concat([Buffer.from(changeDir), relative]);
+    try { await fs.mkdir(source); }
+    catch (error) {
+      if (['EILSEQ', 'EINVAL'].includes((error as NodeJS.ErrnoException).code ?? '')) {
+        return context.skip('Temporary filesystem cannot represent non-UTF-8 filenames');
+      }
+      throw error;
+    }
+    await fs.writeFile(Buffer.concat([source, relative]), 'original');
+
+    await moveDirectory(changeDir, archived);
+
+    const target = Buffer.concat([Buffer.from(archived), relative]);
+    await expect(fs.readdir(archived, { encoding: 'buffer' })).resolves.toEqual([name]);
+    await expect(fs.readdir(target, { encoding: 'buffer' })).resolves.toEqual([name]);
+    await expect(fs.readFile(Buffer.concat([target, relative]), 'utf8')).resolves.toBe('original');
+    await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it.skipIf(process.platform === 'win32')('preserves restrictive archive directory modes on commit and during rollback', async () => {
+    const archived = path.join(root, 'archived');
+    const sourceDir = path.join(changeDir, 'private');
+    const targetDir = path.join(archived, 'private');
+    await fs.chmod(changeDir, 0o710);
+    await fs.mkdir(sourceDir, 0o700);
+    await fs.writeFile(path.join(sourceDir, 'notes.txt'), 'restricted');
+    await fs.chmod(sourceDir, 0o500);
+    const interrupted = new Error('fail after directory modes are installed');
+    const modeOf = async (location: string) => (await fs.stat(location)).mode & 0o777;
+    try {
+      await expect(moveDirectory(changeDir, archived, {
+        rmdir: async (location, options) => {
+          if (location === path.join(root, '.archived.pending') && await fs.access(targetDir).then(() => true, () => false)) {
+            expect(await modeOf(archived)).toBe(0o710);
+            expect(await modeOf(targetDir)).toBe(0o500);
+            throw interrupted;
+          }
+          await fs.rmdir(location, options);
+        },
+      })).rejects.toBe(interrupted);
+      await expect(fs.access(archived)).rejects.toMatchObject({ code: 'ENOENT' });
+      expect(await modeOf(changeDir)).toBe(0o710);
+      expect(await modeOf(sourceDir)).toBe(0o500);
+    } finally {
+      await fs.chmod(sourceDir, 0o700);
+    }
+
+    await moveDirectory(changeDir, archived);
+
+    expect(await modeOf(archived)).toBe(0o710);
+    expect(await modeOf(targetDir)).toBe(0o700);
+    await expect(fs.readFile(path.join(targetDir, 'notes.txt'), 'utf8')).resolves.toBe('restricted');
+  });
+
   it.skipIf(process.platform !== 'win32')('keeps an unresolved Windows junction as a junction', async () => {
     const archived = path.join(root, 'archived');
     const target = path.join(root, 'missing-directory');
@@ -60,11 +129,14 @@ describe('architecture archive workflow', () => {
     await fs.symlink(target, original, 'junction');
     await expect(fs.stat(original)).rejects.toMatchObject({ code: 'ENOENT' });
     const linkText = await fs.readlink(original);
+    const linkType = await windowsLinkType(original);
+    expect(linkType).toBe('Junction');
 
     await moveDirectory(changeDir, archived);
 
     const moved = path.join(archived, 'junction');
     expect((await fs.lstat(moved)).isSymbolicLink()).toBe(true);
+    await expect(windowsLinkType(moved)).resolves.toBe(linkType);
     await expect(fs.readlink(moved)).resolves.toBe(linkText);
     await fs.mkdir(target);
     await expect(fs.stat(moved).then(entry => entry.isDirectory())).resolves.toBe(true);
@@ -81,8 +153,11 @@ describe('architecture archive workflow', () => {
       throw error;
     }
     const linkText = await fs.readlink(original);
+    const linkType = await windowsLinkType(original);
+    expect(linkType).toBe('SymbolicLink');
     await moveDirectory(changeDir, archived);
     const moved = path.join(archived, 'dir-link');
+    await expect(windowsLinkType(moved)).resolves.toBe(linkType);
     await expect(fs.readlink(moved)).resolves.toBe(linkText);
     await expect(fs.stat(moved).then(entry => entry.isDirectory())).resolves.toBe(true);
   });

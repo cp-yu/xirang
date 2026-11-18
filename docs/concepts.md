@@ -562,7 +562,7 @@ After archive:
 | Term | Definition |
 |------|------------|
 | **Artifact** | A document within a change (proposal, design, tasks, or Semantic Delta units) |
-| **Archive** | The process of completing a change and atomically syncing its Semantic Delta into the formal Semantic Model |
+| **Archive** | Closes a Change: default delivery or `--quick` applies its Delta and preserves the Change in history; `--abandon` preserves it without changing the Formal Semantic Model. |
 | **Change** | A proposed modification to the system, packaged as a folder with artifacts |
 | **Delta unit** | A Semantic Delta entry carrying ADDED/MODIFIED/REMOVED relative to the current Semantic Model |
 | **Element** | A stable Semantic Model node with an `identity`, `kind`, `definition`, and refinement `parent` |
