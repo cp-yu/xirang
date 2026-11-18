@@ -282,8 +282,8 @@ export async function applySemanticTreeManifest(
   if (currentFingerprint !== formalFingerprint) {
     throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
-  await assertManifestPreimages(projectRoot, manifest, filesystem);
   await options.preWrite?.();
+  await assertManifestPreimages(projectRoot, manifest, filesystem);
 
   const staged: StagedModelUnit[] = [];
   const createdDirectories: string[] = [];

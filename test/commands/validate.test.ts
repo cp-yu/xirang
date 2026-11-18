@@ -151,10 +151,18 @@ describe('top-level validate command', () => {
     const delta = ALPHA_DELTA.split('\n## ADDED Sections')[0]
       .replace('operation: MODIFIED\n', '').replace('definition: Alpha summary', `definition: ${definition}`);
     await writeChangeDelta(testDir, 'c1', { [unit]: delta });
-    const result = await runCLI(['validate', '--change', 'c1', '--preview', '--json'], { cwd: testDir });
-    expect(result.exitCode).toBe(exitCode);
-    if (exitCode) expect(result.stderr).toContain('MISSING_OPERATION');
-    else expect(JSON.parse(result.stdout).summary.total).toBe(0);
+    const commands = [
+      ['validate', '--change', 'c1', '--preview', '--json'],
+      ['arch', 'validate', '--change', 'c1', '--json'],
+      ['show', 'c1', '--json'],
+      ['show', 'c1', '--review', '--json'],
+    ];
+    for (const command of commands) {
+      const result = await runCLI(command, { cwd: testDir });
+      expect(result.exitCode, command.join(' ')).toBe(exitCode);
+      if (exitCode) expect(result.stderr, command.join(' ')).toContain('MISSING_OPERATION');
+      else expect(result.stderr, command.join(' ')).toBe('');
+    }
   });
 
   it('rejects prose that cannot be attributed to an operation or a Section', async () => {

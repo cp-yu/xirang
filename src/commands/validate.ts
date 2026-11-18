@@ -202,7 +202,7 @@ export class ValidateCommand {
     changeDir: string,
     base?: ParsedModel,
   ): Promise<{ report: ValidationReport; compiled: CompiledChange }> {
-    const compiled = await compileChange(process.cwd(), id, { base, validateNavigation: true });
+    const compiled = await compileChange(process.cwd(), id, base === undefined ? {} : { base });
     const notationReport = await validator.validateChangeDeltaSpecs(changeDir);
     const compilerIssues = compiled.diagnostics.map(item => ({
       level: item.level,

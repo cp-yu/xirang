@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
-import { parseSemanticDeltaFiles, type DeltaEntry, type Operation } from './model/delta.js';
+import type { DeltaEntry, Operation } from './model/delta.js';
 import { renderFrontmatter, splitFrontmatter } from './model/frontmatter.js';
 import { parseUnit, readModelFiles } from './model/parser.js';
 import { serializeContract, serializeSemanticModel } from './model/serializer.js';
@@ -137,7 +137,7 @@ export async function writebackExpectedModel(
   const content = serializeDelta(edited, localEntries);
   if (same(edited, expected)) return { changed: false, ignoredChanges };
   files.set(sourcePath, content);
-  const candidate = await compileChangeDelta(root, change, { base: current.base, parsedDelta: parseSemanticDeltaFiles(files) });
+  const candidate = await compileChangeDelta(root, change, { base: current.base, deltaFiles: files });
   const notation = await new Validator().validateChangeDeltaSpecs(directory, { files });
   const tasks = await fs.readFile(path.join(directory, 'tasks.md'), 'utf8').catch(() => '');
   const taskErrors = tasks ? validateTaskStructure(tasks).issues.filter(issue => issue.severity === 'error') : [];

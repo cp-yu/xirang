@@ -62,7 +62,7 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const deltaSnapshot = await readModelTree(changeDir);
   const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
   const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, {
-    base, deltaFiles: files, validateNavigation: true, allowAlreadyApplied: true,
+    base, deltaFiles: files, allowAlreadyApplied: true,
   });
   if (base.model.elements.length === 0 && delta.entries.length > 0) {
     const unit = sources.find(source => source.entities.length > 0);

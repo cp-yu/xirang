@@ -528,6 +528,37 @@ git:
       } finally { folded?.mockRestore(); }
     });
 
+    it('names both owners and paths when a new target aliases an existing Formal unit', async () => {
+      const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
+      const formal = path.join(modelDir, 'existing.id.md');
+      const before = await fs.readFile(formal);
+      const unit = 'elements/new.md';
+      const delta = '---\noperation: ADDED\n' + elementUnit({ identity: 'EXISTING.ID' }).slice(4);
+      const source = await writeChangeDelta(tempDir, 'existing-alias', { [unit]: delta });
+      const lstat = fs.lstat;
+      const folded = vi.spyOn(fs, 'lstat').mockImplementation(async (file, options) => {
+        if (path.dirname(String(file)) === modelDir) {
+          const name = (await fs.readdir(modelDir)).find(entry => entry.toLowerCase() === path.basename(String(file)).toLowerCase());
+          if (name !== undefined) return lstat(path.join(modelDir, name), options);
+        }
+        return lstat(file, options);
+      });
+      const read = fs.readFile;
+      const readAliased = vi.spyOn(fs, 'readFile').mockImplementation((file, options) =>
+        read(String(file) === path.join(modelDir, 'EXISTING.ID.md') ? formal : file, options));
+      try {
+        await expect(archiveCommand.execute('existing-alias', { yes: true, quick: true })).rejects.toThrow(
+          /collision: (?=.*element-declaration EXISTING\.ID at elements\/EXISTING\.ID\.md)(?=.*element-declaration existing\.id at elements\/existing\.id\.md)/,
+        );
+      } finally {
+        readAliased.mockRestore();
+        folded.mockRestore();
+      }
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
     it('keeps delivery committed even when publishing the receipt throws', async () => {
       const source = await writeSemanticArchiveFixture('lost-receipt');
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');

@@ -25,9 +25,7 @@ export interface CompileChangeOptions {
   /** Pre-parsed Semantic Model; avoids re-reading the four partitions. */
   base?: ParsedModel;
   allowAlreadyApplied?: boolean;
-  parsedDelta?: ParsedDelta;
   deltaFiles?: ReadonlyMap<string, string>;
-  validateNavigation?: boolean;
 }
 
 export interface CompiledChange {
@@ -150,10 +148,8 @@ export async function compileChangeDelta(
   options: CompileChangeOptions = {},
 ): Promise<CompiledDelta> {
   const base = options.base ?? await readFormalSemanticModel(projectRoot);
-  const navigationBaseline = options.validateNavigation
-    ? new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]))
-    : undefined;
-  const parsed = options.parsedDelta ?? parseSemanticDeltaFiles(
+  const navigationBaseline = new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]));
+  const parsed = parseSemanticDeltaFiles(
     options.deltaFiles ?? await readModelFiles(changeRoot(projectRoot, changeName)), navigationBaseline,
   );
   const applied = applySemanticDelta(base.model, parsed.delta);
