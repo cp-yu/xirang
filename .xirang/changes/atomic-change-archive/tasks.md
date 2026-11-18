@@ -137,3 +137,4 @@
 - [x] [code_fix] `REMOVED Sections` 只将顶层项目符号识别为 Section identity；其他操作中的 Markdown 不影响合法删除，同一列表的嵌套项目不能成为删除操作。
 - [x] [code_fix] Delta 操作冲突报告同一 identity 的双方源文件，而非猜测的 Formal 路径或分区。
 - [x] [code_fix] Archive 参数解析失败也先完整输出 JSON 诊断，再保留非零退出状态。
+- [x] [code_fix] 行首 HTML 注释闭合行上的下一段跨行注释仍属于字面内容；其中的标题、围栏和关键词不参与操作识别或正文校验，注释之间的可见正文及原始字节保留。

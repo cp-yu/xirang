@@ -504,14 +504,16 @@ it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unsc
 });
 
 it.each([
-  ['list fence', '- Example:\n\n  ```md\n  ## RENAMED Sections\n  ### Section: Literal in a list\n  ```'],
-  ['list heading', '- A list item\n\n  ### Section: Nested example\n\n  Root SHALL NOT install this as a Section.\n\n  #### Acceptance Case: Nested case\n\n  This is not a case.'],
-  ['HTML comment', '<!--\n### Section: Commented intent\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Commented case\nThis is not a case.\n-->'],
-  ['inline HTML comment', 'Prose before <!-- Keep this note as written. --> Root SHALL preserve visible text.'],
-  ['leading HTML comment', '<!-- Keep this note as written. --> Root SHALL preserve visible text.'],
-  ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.'],
-])('preserves literal %s content without creating operations from it', async (label, example) => {
-  const sectionBody = (rule: string) => label.endsWith('leading HTML comment') || label === 'inline HTML comment' ? example : `${rule}\n\n${example}`;
+  ['list fence', '- Example:\n\n  ```md\n  ## RENAMED Sections\n  ### Section: Literal in a list\n  ```', false],
+  ['list heading', '- A list item\n\n  ### Section: Nested example\n\n  Root SHALL NOT install this as a Section.\n\n  #### Acceptance Case: Nested case\n\n  This is not a case.', false],
+  ['HTML comment', '<!--\n### Section: Commented intent\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Commented case\nThis is not a case.\n-->', false],
+  ['inline HTML comment', 'Prose before <!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
+  ['leading HTML comment', '<!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
+  ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.', true],
+  ['heading in a second HTML comment', '<!-- First note. --> Root SHALL preserve visible text. <!-- Second note\n### Section: Not an operation\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Not a case\n-->', true],
+  ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
+])('preserves literal %s content without creating operations from it', async (_label, example, containsProse) => {
+  const sectionBody = (rule: string) => containsProse ? example : `${rule}\n\n${example}`;
   const formal = '## Specification\n\n### Section: Existing rule\n\n' + sectionBody('Root SHALL follow the existing rule.');
   await writeProjectModel(root, minimalModel());
   const modelFile = path.join(root, '.xirang', 'model', 'elements', 'root.md');
@@ -540,6 +542,8 @@ it.each([
   ['Visible prose <!-- Comment starts here.\nRoot SHALL follow the rule. --> and ends here.', 'must contain SHALL or MUST'],
   ['Visible prose <!-- SHALL --> and <!-- MUST --> a second note.', 'must contain SHALL or MUST'],
   ['<!-- First note --> Visible prose <!-- SHALL follow the rule. -->', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- Second note\nRoot SHALL follow the rule.\n-->', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- Second note\nContinues. --> <!-- Third note\n\nRoot MUST follow the rule.\n-->', 'must contain SHALL or MUST'],
   ['<div>\n<!-- Root SHALL follow the rule. -->\nVisible prose.\n</div>', 'must contain SHALL or MUST'],
 ])('does not count a normative keyword inside an HTML comment as Section prose (%j)', async (prose, diagnostic) => {
   const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;

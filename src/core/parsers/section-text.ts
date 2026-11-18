@@ -20,6 +20,41 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
+function parseMarkdownBlocks(source: string): MarkdownNode[] {
+  for (;;) {
+    const { children } = markdown.parse(source);
+    if (!/-->[^\n]*<!--/.test(source)) return children;
+    const parts: string[] = [];
+    let copied = 0;
+    let consumed = 0;
+    const visit = (node: MarkdownNode, topLevel: boolean): void => {
+      if ('children' in node) {
+        node.children.forEach(child => visit(child, false));
+        return;
+      }
+      const start = node.position?.start.offset;
+      const end = node.position?.end.offset;
+      if (node.type !== 'html' || !node.value.startsWith('<!--') || start === undefined || end === undefined || start < consumed) return;
+      let closing = source.indexOf('-->', start + 4);
+      if (closing < 0 || closing + 3 > end) return;
+      while (closing >= 0) {
+        const opening = source.indexOf('<!--', closing + 3);
+        const newline = source.indexOf('\n', closing + 3);
+        if (opening < 0 || (newline >= 0 && opening > newline) || (!topLevel && opening + 4 > end)) break;
+        // Markdown ends a comment block at the first closing line. Join adjacent spans in
+        // this parse only, so a continuation cannot appear to start a heading or fence.
+        parts.push(source.slice(copied, closing), ' '.repeat(opening + 4 - closing));
+        copied = opening + 4;
+        closing = source.indexOf('-->', copied);
+        consumed = closing < 0 ? source.length : closing + 3;
+      }
+    };
+    children.forEach(node => visit(node, true));
+    if (!parts.length) return children;
+    source = parts.join('') + source.slice(copied);
+  }
+}
+
 export function readSectionMarkdown(lines: string[], { includeSetext = false, includeListItems = false } = {}) {
   const literal = new Array<boolean>(lines.length).fill(false);
   const hidden = new Array<boolean>(lines.length).fill(false);
@@ -77,7 +112,7 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
         node.children.forEach(child => visit(child, false, childInline));
       }
     };
-    markdown.parse(lines.join('\n')).children.forEach(node => visit(node, true, false));
+    parseMarkdownBlocks(lines.join('\n')).forEach(node => visit(node, true, false));
   }
   return { literal, hidden, setext, visible, listItems };
 }
