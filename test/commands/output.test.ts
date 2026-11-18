@@ -313,6 +313,28 @@ it.each(['delta-partition', 'formal-partition', 'formal-root'])('rejects linked 
   if (linked === 'delta-partition') await expect(readModelTree(model)).resolves.toEqual(initial);
 });
 
+it('rejects a linked active Change before resolving status artifacts or goals', async () => {
+  await writeProjectModel(root, minimalModel());
+  const file = 'elements/root.md';
+  const source = await writeChangeDelta(root, 'linked-change', {
+    'proposal.md': '# Linked Change\n', 'design.md': '# Design\n',
+    'tasks.md': '## Goals\n\n- [x] G1: Example\n  - Contract: Example contract\n  - Verification: Example check\n',
+    [file]: elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+      definition: 'Project root definition.', sections: '## ADDED Sections\n\n### Section: Sample\n\nRoot SHALL do this.' }),
+  });
+  const external = path.join(root, 'external-active-change');
+  await fs.rename(source, external);
+  await fs.symlink(external, source, process.platform === 'win32' ? 'junction' : 'dir');
+  const status = await runCLI(['status', '--change', 'linked-change', '--no-quality', '--json'], { cwd: root });
+  expect(status).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_CHANGE_DIRECTORY') });
+  expect(JSON.parse(status.stderr).message).toContain(source);
+  expect(status.stderr).not.toContain('external-active-change');
+  const archive = await runCLI(['archive', 'linked-change', '--quick', '--yes', '--json'], { cwd: root });
+  expect(archive).toMatchObject({ exitCode: 1, stdout: '' });
+  expect((await fs.lstat(source)).isSymbolicLink()).toBe(true);
+  await expect(fs.access(path.join(external, file))).resolves.toBeUndefined();
+});
+
 it.each([
   ['element-kind', 'group', 'parents', 'capability'],
   ['element-kind', 'group', 'children', 'null'],
@@ -397,6 +419,12 @@ it.each([
 ])('rejects malformed %s frontmatter (%s, %s, %s)', async (file, entity, fields, malformed, code) => {
   const operation = entity === 'authored-view' ? 'ADDED' : 'MODIFIED';
   await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}${malformed}\n---\n`, code);
+});
+
+it.each(['[project]', 'null', 'false', '"project/root"'])('rejects an invalid Element kind (%s) in a Section-only Delta', async kind => {
+  const sections = '## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.';
+  const delta = elementUnit({ identity: 'root', kind, parent: null, title: 'Root', definition: 'Project root definition.', sections });
+  await expectInvalidDelivery('elements/root.md', delta, 'INVALID_ELEMENT_KIND');
 });
 
 it.each(['##', '   ##', '##\t'])('rejects an empty level-two heading (%j) that ends an operation block', async heading => {

@@ -121,3 +121,5 @@
 - [x] [code_fix] 预览和交付共用严格 UTF-8 解码；Formal 或 Delta 的无效字节在写入前报告单元路径。
 - [x] [code_fix] Setext 一级或二级标题不能隐藏 Section 操作；围栏内示例及段落分隔线保持原样。
 - [x] [code_fix] 归档写入、历史查询和补全不跟随 `archive` 或 `archive/abandoned` 链接，避免放弃与交付共用历史位置。
+- [x] [code_fix] 即使 Element 声明只定位 Section 宿主，显式 `kind` 也必须是一个合法 identity。
+- [x] [code_fix] 制品状态在解析真实路径前拒绝活动 Change 根链接，不报告链接目标的制品或目标进度。

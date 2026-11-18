@@ -187,6 +187,12 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
     }
   }
   if (entity === 'element-declaration') {
+    const kind = split.data.kind;
+    if (kind !== undefined && (typeof kind !== 'string' || !IDENTITY_PATTERN.test(kind))) {
+      diagnostics.push(error('INVALID_ELEMENT_KIND', file, 'Element kind must be one Element Kind identity',
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
     parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);
     return;
   }

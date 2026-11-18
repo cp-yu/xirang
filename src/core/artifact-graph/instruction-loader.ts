@@ -132,6 +132,10 @@ export function loadChangeContext(
   schemaName?: string
 ): ChangeContext {
   const changePath = path.join(projectRoot, XIRANG_DIR_NAME, 'changes', changeName);
+  const stat = fs.lstatSync(changePath, { throwIfNoEntry: false });
+  if (stat && !stat.isDirectory()) {
+    throw new Error(`INVALID_CHANGE_DIRECTORY: ${changePath} must be a directory, not a file or symbolic link.`);
+  }
 
   // Resolve schema: explicit > metadata > default
   const resolvedSchemaName = resolveSchemaForChange(changePath, schemaName);
