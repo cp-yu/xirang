@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   applySemanticDirectoryTransaction,
   applySemanticTreeManifest,
+  archiveSnapshotFingerprint,
   buildManifest,
   readSemanticTree,
   recoverSemanticDirectoryTransaction,
@@ -63,7 +64,7 @@ describe('semantic partitions', () => {
 
   it('rejects manifest paths that escape the Semantic Model', async () => {
     const root = await createProject(MODEL_FILES);
-    const fingerprint = semanticTreeFingerprint(await readSemanticTree(root));
+    const fingerprint = archiveSnapshotFingerprint(await readSemanticTree(root));
     for (const bad of ['../outside.md', '/etc/passwd', '.xirang/model/elements/../../escape.md', '.xirang/changes/x/a.md', 'elements/a.md']) {
       const manifest: PreparedSyncManifestEntry[] = [
         { path: bad, action: 'write', preimage: null, postimage: Buffer.from('x') },
@@ -76,7 +77,7 @@ describe('semantic partitions', () => {
   it('rolls back completely when a write fails midway', async () => {
     const root = await createProject(MODEL_FILES);
     const before = await readSemanticTree(root);
-    const fingerprint = semanticTreeFingerprint(before);
+    const fingerprint = archiveSnapshotFingerprint(before);
     const manifest: PreparedSyncManifestEntry[] = [
       {
         path: '.xirang/model/elements/root.md',
@@ -96,7 +97,7 @@ describe('semantic partitions', () => {
       },
     })).rejects.toThrow('disk full');
 
-    expect(semanticTreeFingerprint(await readSemanticTree(root))).toBe(fingerprint);
+    expect(await readSemanticTree(root)).toEqual(before);
   });
 
   it('recovers a prepared directory transaction across all partitions', async () => {

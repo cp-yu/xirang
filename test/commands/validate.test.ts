@@ -165,6 +165,15 @@ describe('top-level validate command', () => {
     }
   });
 
+  it('previews a leading-dot Delta filename as an ordinary added Element', async () => {
+    const source = ALPHA_DELTA.split('\n## ADDED Sections')[0]
+      .replace('operation: MODIFIED', 'operation: ADDED').replace('identity: alpha.id', 'identity: .alpha');
+    await writeChangeDelta(testDir, 'dot-element', { 'elements/.alpha.md': source, 'proposal.md': '# Dot Element' });
+    const result = await runCLI(['validate', '--change', 'dot-element', '--preview', '--json'], { cwd: testDir });
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(result.stdout).entries).toEqual([{ kind: 'element-declaration', identity: '.alpha', operation: 'ADDED' }]);
+  });
+
   it('rejects prose that cannot be attributed to an operation or a Section', async () => {
     const delta = ALPHA_DELTA.replace('## ADDED Sections\n', '## ADDED Sections\n- ### Section: Omitted\nUnscoped content.\n');
     await writeChangeDelta(testDir, 'c1', { 'elements/alpha.id.md': delta });

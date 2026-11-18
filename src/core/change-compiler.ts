@@ -4,7 +4,7 @@ import path from 'node:path';
 import { applySemanticDelta, parseSemanticDeltaFiles, type DeltaEntry, type ParsedDelta, type SemanticDelta } from './model/delta.js';
 import type { ModelIndex } from './model/index-map.js';
 import { changeRoot, modelRoot } from './model/paths.js';
-import { parseSemanticModel, readModelFiles, type ParsedModel } from './model/parser.js';
+import { parseSemanticModel, readDeltaFiles, type ParsedModel } from './model/parser.js';
 import {
   DEFAULT_PARTITION,
   relationshipIdentity,
@@ -151,7 +151,7 @@ export async function compileChangeDelta(
   const base = options.base ?? await readFormalSemanticModel(projectRoot);
   const navigationBaseline = new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]));
   const parsed = parseSemanticDeltaFiles(
-    options.deltaFiles ?? await readModelFiles(changeRoot(projectRoot, changeName)), navigationBaseline,
+    options.deltaFiles ?? await readDeltaFiles(changeRoot(projectRoot, changeName)), navigationBaseline,
   );
   const applied = applySemanticDelta(base.model, parsed.delta);
   const raw = [

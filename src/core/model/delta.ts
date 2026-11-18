@@ -8,7 +8,7 @@ import {
   parseSectionBlock,
   parseUnit,
   readEntity,
-  readModelFiles,
+  readDeltaFiles,
   readRelationship,
 } from './parser.js';
 import {
@@ -228,7 +228,7 @@ function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]):
 }
 
 export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelta> {
-  return parseSemanticDeltaFiles(await readModelFiles(changeRoot));
+  return parseSemanticDeltaFiles(await readDeltaFiles(changeRoot));
 }
 
 export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {

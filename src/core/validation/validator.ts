@@ -12,7 +12,7 @@ import {
   extractSpecificationSection,
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
-import { normalizeProse, readEntity, readModelFiles } from '../model/parser.js';
+import { normalizeProse, readEntity, readDeltaFiles } from '../model/parser.js';
 import { PARTITIONS, type ModelElement } from '../model/types.js';
 import {
   containsShallOrMust as containsShallOrMustShared,
@@ -238,7 +238,7 @@ async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
 
 /** Section notation applies by declared entity, independent of which partition holds the unit. */
 async function readElementDeltaUnits(changeDir: string, files?: ReadonlyMap<string, string>): Promise<Array<[string, string]>> {
-  return [...(files ?? await readModelFiles(changeDir))].flatMap(([file, content]): Array<[string, string]> => {
+  return [...(files ?? await readDeltaFiles(changeDir))].flatMap(([file, content]): Array<[string, string]> => {
     const split = splitFrontmatter(content);
     return split.ok && readEntity(split.data) === 'element-declaration'
       && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];

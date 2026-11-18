@@ -392,7 +392,7 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
 }
 
 /** Reads the four partitions below `root` into a path → bytes map. */
-export async function readModelTree(root: string): Promise<Map<string, Buffer>> {
+export async function readModelTree(root: string, includeDotUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
   const visit = async (directory: string, relative: string): Promise<void> => {
     let entries;
@@ -403,7 +403,7 @@ export async function readModelTree(root: string): Promise<Map<string, Buffer>> 
       throw cause;
     }
     for (const entry of entries) {
-      if (entry.name.startsWith('.')) continue;
+      if (entry.name.startsWith('.') && !(includeDotUnits && entry.isFile() && /\.(md|ya?ml)$/i.test(entry.name))) continue;
       const child = `${relative}/${entry.name}`;
       if (entry.isDirectory()) await visit(path.join(directory, entry.name), child);
       else if (entry.isFile()) files.set(child, await fs.readFile(path.join(directory, entry.name)));
@@ -415,6 +415,14 @@ export async function readModelTree(root: string): Promise<Map<string, Buffer>> 
 
 export async function readModelFiles(root: string): Promise<Map<string, string>> {
   return new Map([...await readModelTree(root)].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+}
+
+export function readDeltaTree(root: string): Promise<Map<string, Buffer>> {
+  return readModelTree(root, true);
+}
+
+export async function readDeltaFiles(root: string): Promise<Map<string, string>> {
+  return new Map([...await readDeltaTree(root)].map(([file, bytes]) => [file, bytes.toString('utf8')]));
 }
 
 /** A unit carries frontmatter; anything else in a partition is a structured list container. */

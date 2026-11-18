@@ -1,15 +1,15 @@
 import { compileChangeDelta } from './change-compiler.js';
 import { changeRoot, modelRoot } from './model/paths.js';
-import { parseSemanticModelFiles, readModelTree } from './model/parser.js';
+import { parseSemanticModelFiles, readDeltaTree, readModelTree } from './model/parser.js';
 import { Validator } from './validation/validator.js';
 import { writeMinimal } from './model/sync-writer.js';
 import { semanticModelFingerprint, type ChangeDiagnostic } from './semantic-diff.js';
 import { PARTITIONS, type Partition } from './model/types.js';
 import {
   applySemanticTreeManifest,
+  archiveSnapshotFingerprint,
   buildManifest,
   readSyncModelTree,
-  semanticTreeFingerprint,
   MODEL_PATH_PREFIX,
   type PreparedSyncManifestEntry,
   type SyncTransactionFileSystem,
@@ -59,7 +59,7 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const units = new Map([...before].map(([file, bytes]) => [file.slice(MODEL_PATH_PREFIX.length + 1), bytes]));
   const base = parseModelTree(units);
   const changeDir = changeRoot(projectRoot, changeName);
-  const deltaSnapshot = await readModelTree(changeDir);
+  const deltaSnapshot = await readDeltaTree(changeDir);
   const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
   const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, {
     base, deltaFiles: files, allowAlreadyApplied: true,
@@ -83,11 +83,11 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   verifyTargetModel(after, targetModelFingerprint);
   const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
-    formalFingerprint: semanticTreeFingerprint(before),
-    targetFingerprint: semanticTreeFingerprint(after),
+    formalFingerprint: archiveSnapshotFingerprint(before),
+    targetFingerprint: archiveSnapshotFingerprint(after),
     targetModelFingerprint,
     verifyPaths,
-    deltaFingerprint: semanticTreeFingerprint(deltaSnapshot),
+    deltaFingerprint: archiveSnapshotFingerprint(deltaSnapshot),
     partitions: countPartitions(manifest),
     manifest,
     warnings: compiled.diagnostics.filter(item => item.level === 'WARNING'),
@@ -95,7 +95,7 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
 }
 
 export async function assertPreparedDelta(changeDir: string, prepared: PreparedChangeSync): Promise<void> {
-  if (semanticTreeFingerprint(await readModelTree(changeDir)) !== prepared.deltaFingerprint) {
+  if (archiveSnapshotFingerprint(await readDeltaTree(changeDir)) !== prepared.deltaFingerprint) {
     throw new Error(`Semantic Delta changed after validation at ${changeDir}; verify the Change and retry`);
   }
 }
@@ -113,7 +113,7 @@ export async function applyPreparedChangeSync(
     preWrite: prepared.verifyPaths,
     postWrite: async () => {
       const installed = await readModelTree(modelRoot(projectRoot));
-      if (semanticTreeFingerprint(installed) !== prepared.targetFingerprint) {
+      if (archiveSnapshotFingerprint(installed) !== prepared.targetFingerprint) {
         throw new Error('Installed Formal model does not match the prepared target; verify the model paths and retry');
       }
       verifyTargetModel(installed, prepared.targetModelFingerprint);

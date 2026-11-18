@@ -32,6 +32,14 @@ async function statIfPresent(location: string) {
   });
 }
 
+function incompleteArchive(location: string): Error {
+  return new Error(`Archive is incomplete at ${location}; inspect the workspace before retrying.`);
+}
+
+async function assertNoPendingArchive(location: string): Promise<void> {
+  if (await statIfPresent(pendingArchivePath(location))) throw incompleteArchive(location);
+}
+
 const execFileAsync = promisify(execFile);
 
 function runWindowsPowerShell(script: string, env: NodeJS.ProcessEnv = process.env) {
@@ -101,7 +109,7 @@ export async function moveDirectory(
 
   const pending = pendingArchivePath(dest);
   await fs.mkdir(pending).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === 'EEXIST') throw new Error(`Archive is incomplete at ${dest}; inspect the workspace before retrying.`);
+    if (error.code === 'EEXIST') throw incompleteArchive(dest);
     throw error;
   });
   let reserved = false;
@@ -232,9 +240,7 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
       .map(entry => entry.name).sort().reverse();
     if (candidates.length) {
       const location = path.join(directory, candidates[0]);
-      if (await statIfPresent(pendingArchivePath(location))) {
-        throw new Error(`Archive is incomplete at ${location}; inspect the workspace before retrying.`);
-      }
+      await assertNoPendingArchive(location);
       return location;
     }
   }
@@ -306,6 +312,7 @@ export class ArchiveCommand {
     const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
     const archivePath = path.join(parent, archiveName);
     const ensureUnoccupied = async () => {
+      await assertNoPendingArchive(archivePath);
       const existing = await statIfPresent(archivePath);
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
     };

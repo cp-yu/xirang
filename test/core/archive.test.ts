@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
+import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { execFile, spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'fs';
@@ -501,11 +502,12 @@ git:
     it('installs ordinary readable Formal units for all dot-prefixed Delta identities', async () => {
       const added = (unit: string) => '---\noperation: ADDED\n' + unit.slice(4);
       await writeChangeDelta(tempDir, 'dot-identity', {
-        'metamodel/element-kind.md': added(elementKindUnit({ identity: '.element-kind' })),
-        'metamodel/relationship-kind.md': '---\noperation: ADDED\nentity: relationship-kind\nidentity: .relationship-kind\n---\n',
-        'elements/visible.md': added(elementUnit({ identity: '.element', kind: '.element-kind' })),
-        'relationships/visible.yaml': 'relationships:\n  - operation: ADDED\n    source: .element\n    kind: .relationship-kind\n    target: root\n',
-        'views/visible.md': '---\noperation: ADDED\nentity: authored-view\nidentity: .view\ninclude: "*"\n---\n',
+        'metamodel/.element-kind.md': added(elementKindUnit({ identity: '.element-kind' })),
+        'metamodel/.relationship-kind.md': '---\noperation: ADDED\nentity: relationship-kind\nidentity: .relationship-kind\n---\n',
+        'elements/.element.md': added(elementUnit({ identity: '.element', kind: '.element-kind' })),
+        'relationships/.relationship-kind.yaml': 'relationships:\n  - operation: ADDED\n    source: .element\n    kind: .relationship-kind\n    target: root\n',
+        'views/.view.md': '---\noperation: ADDED\nentity: authored-view\nidentity: .view\ninclude: "*"\n---\n',
+        'elements/.ignored.md.save.tmp': 'not a Delta unit',
       });
       await archiveCommand.execute('dot-identity', { quick: true, yes: true });
       const { parseSemanticModel } = await import('../../src/core/model/parser.js');
@@ -596,6 +598,33 @@ git:
       await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
       if (removeExisting) await expect(fs.readFile(path.join(source, 'elements/old.md'), 'utf8')).resolves.toBe(removed);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('names both Relationship triples when container paths collide despite different owners', async () => {
+      await writeProjectModel(tempDir, minimalModel({ elements: [{ identity: 'existing.id' }],
+        relationshipKinds: [{ identity: 'first' }, { identity: 'OWNED' }],
+      }));
+      const directory = path.join(tempDir, '.xirang', 'model', 'relationships');
+      const formal = path.join(directory, 'owned.yaml');
+      const before = 'relationships:\n  - source: root\n    kind: first\n    target: existing.id\n';
+      await fs.writeFile(formal, before);
+      const delta = 'relationships:\n  - operation: ADDED\n    source: existing.id\n    kind: OWNED\n    target: root\n';
+      const source = await writeChangeDelta(tempDir, 'relationship-alias', { 'relationships/new.yaml': delta });
+      const lstat = fs.lstat;
+      const folded = vi.spyOn(fs, 'lstat').mockImplementation(async (file, options) => {
+        if (path.dirname(String(file)) === directory) {
+          const name = (await fs.readdir(directory)).find(entry => entry.toLowerCase() === path.basename(String(file)).toLowerCase());
+          if (name !== undefined) return lstat(path.join(directory, name), options);
+        }
+        return lstat(file, options);
+      });
+      try {
+        await expect(archiveCommand.execute('relationship-alias', { quick: true, yes: true })).rejects.toThrow(
+          /collision:(?=.*root -\[first\]-> existing\.id at relationships\/owned\.yaml)(?=.*existing\.id -\[OWNED\]-> root at relationships\/OWNED\.yaml)/,
+        );
+      } finally { folded.mockRestore(); }
+      await expect(fs.readFile(formal, 'utf8')).resolves.toBe(before);
+      await expect(fs.readFile(path.join(source, 'relationships/new.yaml'), 'utf8')).resolves.toBe(delta);
     });
 
     it.each(['ADDED', 'MODIFIED'])('does not rewrite equivalent unordered fields (%s)', async operation => {
@@ -791,6 +820,30 @@ git:
       await expect(fs.readFile(formal)).resolves.toEqual(before);
       await expect(fs.readFile(unrelated)).resolves.toEqual(bytes);
       expect((await fs.readdir(modelDir)).filter(name => name.startsWith('.'))).toEqual([path.basename(unrelated)]);
+    });
+
+    it('instructs inspection when the active Change was restored but its partial archive remains', async () => {
+      const name = 'restored-active';
+      const source = await writeSemanticArchiveFixture(name);
+      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(formal);
+      const command = new ArchiveCommand({
+        copyFile: async (from, to, mode) => {
+          await fs.copyFile(from, to, mode);
+          throw new Error('archive copy failed');
+        },
+        rm: async (target, options) => {
+          if (target === dest) throw new Error('partial destination could not be removed');
+          await fs.rm(target, options);
+        },
+      });
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/rollback was incomplete/);
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, 'elements/existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.access(pendingArchivePath(dest))).resolves.toBeUndefined();
+
+      await expect(archiveCommand.execute(name)).rejects.toThrow(/Archive is incomplete.*inspect the workspace/);
     });
 
     it('does not treat a partial archive as complete when both compensations fail', async () => {
@@ -1191,6 +1244,30 @@ git:
       await expect(archiveCommand.execute('confirmation-drift', { quick: true })).rejects.toThrow(/Semantic Delta changed/);
       await expect(fs.readFile(modelFile)).resolves.toEqual(before);
       await expect(fs.readFile(deltaFile, 'utf8')).resolves.toBe(duringPrompt);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('rejects a rewritten Delta whose bytes would hide the loss of a file boundary', async () => {
+      const name = 'delta-file-boundary';
+      const first = 'elements/first.md';
+      const second = 'elements/second.md';
+      const added = '---\noperation: ADDED\n' + elementUnit({ identity: 'added' }).slice(4);
+      const source = await writeChangeDelta(tempDir, name, { [first]: MODIFY_EXISTING, [second]: added });
+      await fs.writeFile(path.join(source, 'tasks.md'), '## Goals\n- [ ] G1: Pending\n');
+      const existing = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(existing);
+      const substituted = Buffer.from(`${MODIFY_EXISTING}\0${second}\0${added}`);
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockImplementationOnce(() => Object.assign((async () => {
+        await fs.writeFile(path.join(source, first), substituted);
+        await fs.unlink(path.join(source, second));
+        return true;
+      })(), { cancel: () => {} }));
+
+      await expect(archiveCommand.execute(name, { quick: true })).rejects.toThrow(/Semantic Delta changed/);
+      await expect(fs.readFile(existing)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, first))).resolves.toEqual(substituted);
+      await expect(fs.access(path.join(source, second))).rejects.toMatchObject({ code: 'ENOENT' });
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 

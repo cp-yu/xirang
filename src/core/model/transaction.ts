@@ -278,7 +278,7 @@ export async function applySemanticTreeManifest(
   options: SemanticTreeTransactionOptions = {},
 ): Promise<string[]> {
   const filesystem = transactionFileSystem(options.filesystem);
-  const currentFingerprint = semanticTreeFingerprint(await readSyncModelTree(projectRoot));
+  const currentFingerprint = archiveSnapshotFingerprint(await readSyncModelTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
     throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
@@ -352,6 +352,16 @@ export function semanticTreeFingerprint(files: Map<string, Buffer>): string {
     hash.update('\0');
     hash.update(content);
     hash.update('\0');
+  }
+  return hash.digest('hex');
+}
+
+// Archive snapshots are transient. Keep the legacy digest above for persisted Candidate and Record history.
+export function archiveSnapshotFingerprint(files: ReadonlyMap<string, Buffer>): string {
+  const hash = createHash('sha256');
+  const entries = [...files].map(([file, bytes]) => [Buffer.from(file), bytes] as const);
+  for (const [file, content] of entries.sort(([left], [right]) => Buffer.compare(left, right))) {
+    hash.update(`${file.length}:${content.length}:`).update(file).update(content);
   }
   return hash.digest('hex');
 }

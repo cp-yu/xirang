@@ -4,7 +4,7 @@ import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
 import type { DeltaEntry, Operation } from './model/delta.js';
 import { renderFrontmatter, splitFrontmatter } from './model/frontmatter.js';
-import { parseUnit, readModelFiles } from './model/parser.js';
+import { parseUnit, readDeltaFiles } from './model/parser.js';
 import { serializeContract, serializeSemanticModel } from './model/serializer.js';
 import type { ModelElement, Section } from './model/types.js';
 import { validateTaskStructure } from './parsers/task-structure.js';
@@ -90,7 +90,7 @@ export async function writebackExpectedModel(
   const sourcePath = relative.split(path.sep).join('/');
   const current = await compileChangeDelta(root, change);
   if (!current.compiled.valid || !current.compiled.target) fail('INVALID_CHANGE', '当前 Change 无效。', current.compiled.diagnostics);
-  const files = await readModelFiles(directory);
+  const files = await readDeltaFiles(directory);
   const original = files.get(sourcePath);
   if (original === undefined) fail('INVALID_SOURCE', '请选择审阅投影中的 Delta 源文件。');
   const unit = splitFrontmatter(original);

@@ -123,7 +123,8 @@ export async function writeMinimal(
     const before = previous.model.relationships.filter(item => containerOf(item) === file);
     const next = serializeRelationshipContainer(kind, items);
     const original = current.get(file);
-    claim(file, 'relationship container');
+    const owners = [...new Set([...before, ...items].map(({ source, kind, target }) => `${source} -[${kind}]-> ${target}`))].sort();
+    claim(file, owners.length > 0 ? `relationships ${owners.join(', ')}` : 'empty relationship container');
     if (original && serializeRelationshipContainer(kind, before) === next) files.set(file, original);
     else files.set(file, Buffer.from(next, 'utf8'));
   }
