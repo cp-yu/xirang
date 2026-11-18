@@ -53,6 +53,10 @@ export class Validator {
         level: 'ERROR', path: entryPath,
         message: `Malformed Section header at body line ${line}; use ### Section: <name>`,
       });
+      for (const line of plan.unscopedContentLines) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Content at body line ${line} is outside a Section operation`,
+      });
       for (const line of plan.removedContentLines) issues.push({
         level: 'ERROR', path: entryPath,
         message: `REMOVED Sections may only name a Section (body line ${line})`,

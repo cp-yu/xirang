@@ -235,7 +235,7 @@ Semantic Model Build 是 Realization 推进过程中构建或重建 Semantic Mod
 
 ## 2. Change Realization
 
-Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并验证，再通过 Change Closure 将经验证的 Semantic Delta 更新到 Semantic Model 并关闭 Change，使项目实现与语义模型进入新的稳定状态。
+Change Realization 是 Realization 推进过程中落实单次 Change 的过程。它通过 Change Formation 形成完整 Change，通过 Change Implementation 实现并验证，再通过 Change Closure 应用 Semantic Delta 并封存 Change；用户也可放弃而仅封存，不应用 Delta。
 
 ## 3. Change Formation
 
@@ -313,7 +313,7 @@ Optimizer 的核心原则是优先删除不需要存在的复杂度，并优化�
 
 ## 3. Change Closure
 
-Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以 Change Implementation 的有效验证结果为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再通过 Archive 原样保存已完成的 Change 及其最终证据，并结束 Change 的活动状态。Archive 不创建、重算或覆盖任何 View presentation artifact。Change Closure 完成后，项目实现与 Semantic Model 共同进入新的稳定状态。
+Change Closure 是 Change Realization 中结束活动 Change 的阶段。默认交付要求有效 Quality Seal，显式 `--quick` 仅豁免 Seal；两者都由 `xirang archive` 在同一次调用内校验并应用 Semantic Delta、原样封存 Change。可捕获的移动失败撤回本次模型写入，不承诺跨进程恢复。用户可选择 `--abandon`，只封存 Change，不应用 Delta，不触发交付后的 Git 合并或清理。归档不创建、重算或覆盖 View presentation artifact。成功后的业务修改通过新 Change。
 
 ## 2. Interaction Surfaces
 
@@ -383,7 +383,7 @@ Apply 是 Agent 落实 Change 所描述项目改动的工作身份。它以 Expe
 
 ##### 5. Archive
 
-Archive 是 Agent 在验证有效后编排 Change Closure 的工作身份。它确认入口条件已满足，协调 CLI 将 Semantic Delta 应用于 Semantic Model，并保存已完成 Change 及其最终证据、结束 Change 的活动状态。Archive 不重新判定目标语义，也不替代 CLI 的原子状态转换。
+Archive 是 Agent 按用户决定编排 Change Closure 的工作身份。它协调 CLI 完成交付或放弃留档，核对并报告实际结果；默认交付要求有效 Seal，quick 不声称通过 Quality，放弃不触发交付后的 Git 操作。Archive 不重新判定目标语义，也不替代 CLI 的状态转换。
 
 #### 4. Internal Agents
 

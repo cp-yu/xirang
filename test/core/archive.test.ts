@@ -349,6 +349,9 @@ git:
     });
 
     it.each([
+      ['## ADDED Sections\n- ### Section: Omitted\nLost behavior.\n\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
+      ['## MODIFIED Sections\nUnscoped content.\n\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
+      ['Unscoped content.\n\n## ADDED Sections\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
       ['## MODIFIED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n', 'DUPLICATE_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n### Section: No text\n', 'missing Section text'],
@@ -371,7 +374,8 @@ git:
 
       await expect(archiveCommand.execute('bad-sections', { yes: true, quick: true })).rejects.toThrow(errorCode);
       await expect(fs.readFile(modelFile)).resolves.toEqual(before);
-      await expect(fs.access(source)).resolves.toBeUndefined();
+      await expect(fs.readFile(path.join(source, 'elements/existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING + body);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
     it.each(['### Section: Legacy behavior ###', '- `### Section: Legacy behavior ###`'])('rejects an ambiguous removal instead of silently leaving the Section (%s)', async header => {
@@ -427,6 +431,25 @@ git:
       expect(formal).toContain('after 30 minutes of inactivity');
       expect(formal).toContain('### Section: Two-Factor Authentication');
       expect(formal).not.toContain('### Section: Remember Me');
+    });
+
+    it('delivers the first-change tutorial using the documented Delta path and a valid Seal', async () => {
+      const doc = await fs.readFile(new URL('../../docs/getting-started.md', import.meta.url), 'utf8');
+      const tutorial = doc.split('## Example: Your First Change')[1];
+      const [, unit, delta] = tutorial.match(/\*\*`([^`]+)`\*\* - Delta[^\n]*\r?\n\s*```markdown\r?\n([\s\S]+?)\r?\n```/) ?? [];
+      expect(unit).toBeDefined();
+      await writeProjectModel(tempDir, minimalModel({ elements: [{
+        identity: 'ui', title: 'User Interface', definition: 'Presents settings and application controls.',
+      }] }));
+      const source = await writeChangeDelta(tempDir, 'add-dark-mode', { [unit]: delta });
+      await writeFreshQualityRecord(source);
+
+      await archiveCommand.execute('add-dark-mode', { yes: true, json: true });
+
+      const { archive } = JSON.parse(vi.mocked(console.log).mock.lastCall![0]);
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'ui.md');
+      await expect(fs.readFile(formal, 'utf8')).resolves.toContain('### Section: Theme Selection');
+      await expect(fs.readFile(path.join(tempDir, archive, unit), 'utf8')).resolves.toBe(delta);
     });
 
     it('rejects an empty Section on an Element declared in the views partition', async () => {
@@ -830,6 +853,63 @@ git:
       const archive = path.join(path.dirname(source), 'archive');
       const [archived] = await fs.readdir(archive);
       await expect(fs.readFile(path.join(archive, archived, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+    });
+
+    it('rejects a second claim even if both calls passed the early archive check', async () => {
+      const losing = await writeSemanticArchiveFixture('second-claim');
+      const winning = await writeSemanticArchiveFixture('first-claim');
+      const unit = 'elements/existing.id.md';
+      const modelFile = path.join(tempDir, '.xirang', 'model', unit);
+      await fs.writeFile(path.join(losing, unit), MODIFY_EXISTING.replace('Changed summary', 'Losing summary'));
+      const mkdtemp = fs.mkdtemp;
+      const rename = fs.rename;
+      let releaseContender!: () => void;
+      let reachClaim!: () => void;
+      let releaseWinner!: () => void;
+      let reachWrite!: () => void;
+      const claimPaused = new Promise<void>(resolve => { reachClaim = resolve; });
+      const claimBarrier = new Promise<void>(resolve => { releaseContender = resolve; });
+      const writePaused = new Promise<void>(resolve => { reachWrite = resolve; });
+      const writeBarrier = new Promise<void>(resolve => { releaseWinner = resolve; });
+      let holdFirstClaim = true;
+      const claims = vi.spyOn(fs, 'mkdtemp').mockImplementation(async (prefix, ...args) => {
+        if (holdFirstClaim && path.basename(String(prefix)).startsWith('.archive-lock-')) {
+          holdFirstClaim = false;
+          reachClaim();
+          await claimBarrier;
+        }
+        return mkdtemp(prefix, ...args);
+      });
+      const writes = vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+        if (to === modelFile) {
+          reachWrite();
+          await writeBarrier;
+        }
+        return rename(from, to);
+      });
+      const start = (name: string) => new ArchiveCommand().execute(name, { quick: true, yes: true })
+        .then(() => null, (error: Error) => error);
+      const loser = start('second-claim');
+      let winner: ReturnType<typeof start> | undefined;
+      try {
+        await Promise.race([claimPaused, loser.then(error => { throw error ?? new Error('expected a pending claim'); })]);
+        winner = start('first-claim');
+        await Promise.race([writePaused, winner.then(error => { throw error ?? new Error('expected a pending write'); })]);
+        releaseContender();
+        expect(await loser).toMatchObject({ message: expect.stringContaining('An archive is in progress') });
+      } finally {
+        releaseContender();
+        releaseWinner();
+        await Promise.all([loser, winner]);
+        writes.mockRestore();
+        claims.mockRestore();
+      }
+      expect(await winner).toBeNull();
+      await expect(fs.readFile(modelFile, 'utf8')).resolves.toContain('Changed summary');
+      await expect(fs.readFile(path.join(losing, unit), 'utf8')).resolves.toContain('Losing summary');
+      await expect(fs.access(winning)).rejects.toMatchObject({ code: 'ENOENT' });
+      const archive = path.join(path.dirname(winning), 'archive');
+      expect(await fs.readdir(archive)).toEqual([`${new Date().toISOString().slice(0, 10)}-first-claim`]);
     });
 
     it.skipIf(process.platform === 'win32')('does not use a symlink as an Element missing from Formal', async () => {

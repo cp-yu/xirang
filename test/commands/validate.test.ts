@@ -143,6 +143,28 @@ describe('top-level validate command', () => {
     expect(result).toMatchObject({ stdout: '', stderr: '' });
   });
 
+  it.each([
+    ['Alpha summary', 0],
+    ['Unstated change to the definition', 1],
+  ])('validates a navigation-only declaration against Formal (%s)', async (definition, exitCode) => {
+    const unit = 'elements/alpha.id.md';
+    const delta = ALPHA_DELTA.split('\n## ADDED Sections')[0]
+      .replace('operation: MODIFIED\n', '').replace('definition: Alpha summary', `definition: ${definition}`);
+    await writeChangeDelta(testDir, 'c1', { [unit]: delta });
+    const result = await runCLI(['validate', '--change', 'c1', '--preview', '--json'], { cwd: testDir });
+    expect(result.exitCode).toBe(exitCode);
+    if (exitCode) expect(result.stderr).toContain('MISSING_OPERATION');
+    else expect(JSON.parse(result.stdout).summary.total).toBe(0);
+  });
+
+  it('rejects prose that cannot be attributed to an operation or a Section', async () => {
+    const delta = ALPHA_DELTA.replace('## ADDED Sections\n', '## ADDED Sections\n- ### Section: Omitted\nUnscoped content.\n');
+    await writeChangeDelta(testDir, 'c1', { 'elements/alpha.id.md': delta });
+    const result = await runCLI(['validate', '--change', 'c1', '--preview', '--json'], { cwd: testDir });
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('UNSCOPED_SECTION_CONTENT');
+  });
+
   it('shows a concise effective preview without partitions and without writing the artifact', async () => {
     const human = await runCLI(['validate', '--change', 'c1', '--preview'], { cwd: testDir });
     const jsonResult = await runCLI(['validate', '--change', 'c1', '--preview', '--json'], { cwd: testDir });

@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { applySemanticDelta, parseSemanticDelta, type DeltaEntry, type ParsedDelta, type SemanticDelta } from './model/delta.js';
+import { applySemanticDelta, parseSemanticDeltaFiles, type DeltaEntry, type ParsedDelta, type SemanticDelta } from './model/delta.js';
 import type { ModelIndex } from './model/index-map.js';
 import { changeRoot, modelRoot } from './model/paths.js';
-import { parseSemanticModel, type ParsedModel } from './model/parser.js';
+import { parseSemanticModel, readModelFiles, type ParsedModel } from './model/parser.js';
 import {
   DEFAULT_PARTITION,
   relationshipIdentity,
@@ -26,6 +26,8 @@ export interface CompileChangeOptions {
   base?: ParsedModel;
   allowAlreadyApplied?: boolean;
   parsedDelta?: ParsedDelta;
+  deltaFiles?: ReadonlyMap<string, string>;
+  validateNavigation?: boolean;
 }
 
 export interface CompiledChange {
@@ -148,7 +150,12 @@ export async function compileChangeDelta(
   options: CompileChangeOptions = {},
 ): Promise<CompiledDelta> {
   const base = options.base ?? await readFormalSemanticModel(projectRoot);
-  const parsed = options.parsedDelta ?? await parseSemanticDelta(changeRoot(projectRoot, changeName));
+  const navigationBaseline = options.validateNavigation
+    ? new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]))
+    : undefined;
+  const parsed = options.parsedDelta ?? parseSemanticDeltaFiles(
+    options.deltaFiles ?? await readModelFiles(changeRoot(projectRoot, changeName)), navigationBaseline,
+  );
   const applied = applySemanticDelta(base.model, parsed.delta);
   const raw = [
     ...base.diagnostics,

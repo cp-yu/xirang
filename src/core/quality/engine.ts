@@ -127,13 +127,13 @@ async function validateChangeDir(changeDir: string): Promise<void> {
   }
 }
 
-async function readQualityRecordBytes(changeDir: string): Promise<{ record: QualityRecord; bytes?: Buffer }> {
+export async function readQualityRecord(changeDir: string): Promise<QualityRecord> {
   await validateChangeDir(changeDir);
   const file = path.join(changeDir, QUALITY_FILE);
   let bytes: Buffer;
   try { bytes = await fs.readFile(file); }
   catch (cause) {
-    if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return { record: emptyRecord(changeDir) };
+    if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return emptyRecord(changeDir);
     throw cause;
   }
   let parsedJson: unknown;
@@ -147,11 +147,7 @@ async function readQualityRecordBytes(changeDir: string): Promise<{ record: Qual
   if (parsed.data.changeId !== path.basename(path.resolve(changeDir))) {
     fail('QUALITY_CHANGE_MISMATCH', 'Quality record Change identity does not match its directory.', file);
   }
-  return { record: parsed.data, bytes };
-}
-
-export async function readQualityRecord(changeDir: string): Promise<QualityRecord> {
-  return (await readQualityRecordBytes(changeDir)).record;
+  return parsed.data;
 }
 
 export async function transactQualityRecord(
@@ -342,12 +338,9 @@ export async function readQualityRecordStatus(changeDir: string, projectRoot: st
   return { status, qualityStatus: 'valid', revision: record.revision, record, gaps };
 }
 
-export async function readQualitySeal(
-  changeDir: string,
-  projectRoot: string,
-): Promise<{ valid: false } | { valid: true; commit: string; bytes: Buffer }> {
-  const { record, bytes } = await readQualityRecordBytes(changeDir);
-  if (!record.seal || !bytes) return { valid: false };
-  const commit = await requireExistingCommit(projectRoot, record.seal.commit);
-  return { valid: true, commit, bytes };
+export async function readQualitySeal(changeDir: string, projectRoot: string): Promise<{ valid: boolean }> {
+  const { seal } = await readQualityRecord(changeDir);
+  if (!seal) return { valid: false };
+  await requireExistingCommit(projectRoot, seal.commit);
+  return { valid: true };
 }

@@ -1,7 +1,6 @@
 import { compileChangeDelta } from './change-compiler.js';
 import { changeRoot, modelRoot } from './model/paths.js';
 import { parseSemanticModelFiles, readModelTree } from './model/parser.js';
-import { parseSemanticDeltaFiles } from './model/delta.js';
 import { Validator } from './validation/validator.js';
 import { writeMinimal } from './model/sync-writer.js';
 import { semanticModelFingerprint, type ChangeDiagnostic } from './semantic-diff.js';
@@ -62,9 +61,9 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const changeDir = changeRoot(projectRoot, changeName);
   const deltaSnapshot = await readModelTree(changeDir);
   const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
-  const declarations = new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]));
-  const parsedDelta = parseSemanticDeltaFiles(files, declarations);
-  const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, { base, parsedDelta, allowAlreadyApplied: true });
+  const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, {
+    base, deltaFiles: files, validateNavigation: true, allowAlreadyApplied: true,
+  });
   if (base.model.elements.length === 0 && delta.entries.length > 0) {
     const unit = sources.find(source => source.entities.length > 0);
     throw new Error(`${unit?.path ?? MODEL_PATH_PREFIX}: MISSING_FORMAL_MODEL: cannot apply a Semantic Delta without a Formal model`);

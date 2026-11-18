@@ -113,6 +113,9 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
   for (const line of plan.malformedSectionLines) {
     diagnostics.push(error('MALFORMED_SECTION_HEADER', file, `Malformed Section header at body line ${line}; use ### Section: <name>`, identity));
   }
+  for (const line of plan.unscopedContentLines) {
+    diagnostics.push(error('UNSCOPED_SECTION_CONTENT', file, `Content at body line ${line} is outside a Section operation`, identity));
+  }
   for (const line of plan.removedContentLines) {
     diagnostics.push(error('UNEXPECTED_REMOVED_CONTENT', file, `REMOVED Sections may only name a Section (body line ${line})`, identity));
   }

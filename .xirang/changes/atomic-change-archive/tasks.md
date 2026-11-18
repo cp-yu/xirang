@@ -73,3 +73,6 @@
 - [x] [code_fix] 不带 Section 操作的 Element Delta 缺少声明操作时，仅允许与 Formal 一致的导航占位。
 - [x] [code_fix] 交付失败恢复原 Formal 单元及其权限，保留已有目录；提交后清理失败只报告警告。
 - [x] [artifact_fix] Snack 文档明确区分 Apply 封印后交付和用户显式选择的 quick 交付。
+- [x] [code_fix] 拒绝位于操作块外或其首个有效 Section 前的游离正文，预览与交付均按 Formal 校验空操作声明。
+- [x] [artifact_fix] 对齐项目定义和首个 Change 教程，执行教程中的 Delta 及普通归档路径。
+- [x] [code_fix] 补测两个调用均通过预检后，抢占提交权失败的一方不写模型或归档。

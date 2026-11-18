@@ -116,7 +116,7 @@ The change folder moves to `.xirang/changes/archive/` for audit history.
 
 ## Example: Your First Change
 
-Let's walk through adding dark mode to an application.
+Let's walk through adding dark mode to an application. This example assumes the Formal model already has a `ui` Element of kind `capability`, under the Project Root `root`.
 
 ### 1. Start the Change (Default)
 
@@ -125,7 +125,7 @@ You: /xirang:propose add-dark-mode
 
 AI:  Created .xirang/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
-     ✓ specs/       — Semantic Delta sections
+     ✓ elements/ui.md — Semantic Delta for the existing ui Element
      ✓ design.md    — technical approach
      ✓ tasks.md     — implementation checklist
      Post-propose check:
@@ -155,10 +155,17 @@ Use CSS custom properties for theming with a React context
 for state management.
 ```
 
-**specs/ui/spec.md** - Delta showing new Sections:
+**`elements/ui.md`** - Delta showing a new Section on `ui`:
 
 ```markdown
-# Delta for UI
+---
+entity: element-declaration
+identity: ui
+kind: capability
+parent: root
+title: User Interface
+definition: Presents settings and application controls.
+---
 
 ## ADDED Sections
 
@@ -172,21 +179,11 @@ The system SHALL allow users to choose between light and dark themes.
 **tasks.md** - Implementation checklist:
 
 ```markdown
-# Tasks
+## Goals
 
-## 1. Theme Infrastructure
-- [ ] 1.1 Create ThemeContext with light/dark state
-- [ ] 1.2 Add CSS custom properties for colors
-- [ ] 1.3 Implement localStorage persistence
-
-## 2. UI Components
-- [ ] 2.1 Create ThemeToggle component
-- [ ] 2.2 Add toggle to settings page
-- [ ] 2.3 Update Header to include quick toggle
-
-## 3. Styling
-- [ ] 3.1 Define dark theme color palette
-- [ ] 3.2 Update components to use CSS variables
+- [ ] G1: Implement theme selection in settings
+  - Contract: `ui` / Section "Theme Selection"
+  - Verify: The toggle switches themes immediately, survives reload, and uses the system preference when no choice is saved.
 ```
 
 ### 3. Implement
@@ -194,13 +191,8 @@ The system SHALL allow users to choose between light and dark themes.
 ```
 You: /xirang:apply
 
-AI:  Working through tasks...
-     ✓ 1.1 Created ThemeContext with light/dark state
-     ✓ 1.2 Added CSS custom properties to globals.css
-     ✓ 1.3 Implemented localStorage persistence
-     ✓ 2.1 Created ThemeToggle component
-     ...
-     All tasks complete!
+AI:  Implemented the theme toggle, persistence, and the system default.
+     ✓ G1: Theme Selection verification passed.
 ```
 
 During implementation, if you discover the design needs adjustment, update the artifact and continue. The persisted Semantic Model remains the authority for element identity, refinement, relationships, and contracts.
