@@ -20,17 +20,20 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
-export function readSectionMarkdown(lines: string[], includeSetext = false) {
+export function readSectionMarkdown(lines: string[], { includeSetext = false, includeListItems = false } = {}) {
   const literal = new Array<boolean>(lines.length).fill(false);
   const hidden = new Array<boolean>(lines.length).fill(false);
   const setext = new Map<number, number>();
+  const listItems = new Set<number>();
   let visible = lines;
   const maskColumns = (line: number, from: number, to: number): void => {
     if (visible === lines) visible = [...lines];
     const text = visible[line];
     visible[line] = text.slice(0, from) + ' '.repeat(to - from) + text.slice(to);
   };
-  if (lines.some(line => BLOCK_CANDIDATE.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
+  if (lines.some(line => BLOCK_CANDIDATE.test(line)
+    || (includeSetext && SETEXT_UNDERLINE.test(line))
+    || (includeListItems && /^ {0,3}-[ \t]+/.test(line)))) {
     const maskHtmlComments = (first: number, last: number, start: number, end: number): void => {
       let inComment = false;
       for (let i = first; i <= last; i++) {
@@ -64,6 +67,10 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
       } else if (node.type === 'heading') {
         if (!topLevel) literal.fill(true, first, last + 1);
         else if (includeSetext && first !== last) setext.set(first, last);
+      } else if (includeListItems && topLevel && node.type === 'list') {
+        for (const item of node.children) {
+          if (item.position) listItems.add(item.position.start.line - 1);
+        }
       }
       if ('children' in node) {
         const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
@@ -72,7 +79,7 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
     };
     markdown.parse(lines.join('\n')).children.forEach(node => visit(node, true, false));
   }
-  return { literal, hidden, setext, visible };
+  return { literal, hidden, setext, visible, listItems };
 }
 
 export function buildLiteralBlockMask(lines: string[]): boolean[] {

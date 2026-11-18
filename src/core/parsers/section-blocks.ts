@@ -38,7 +38,7 @@ function normalizeLineEndings(content: string): string {
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const { literal: literalMask, setext: underlined } = readSectionMarkdown(lines, true);
+  const { literal: literalMask, setext: underlined } = readSectionMarkdown(lines, { includeSetext: true });
   const specHeaderIndex = lines.findIndex((line, index) => !literalMask[index]
     && /^##\s+Specification\s*$/i.test(line));
 
@@ -136,13 +136,12 @@ export interface DeltaPlan {
  */
 export function parseDeltaSpec(content: string): DeltaPlan {
   const normalized = normalizeLineEndings(content);
-  const { sections, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines } = splitTopLevelSections(normalized);
+  const { sections, removed, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines } = splitTopLevelSections(normalized);
   const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Sections');
   const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Sections');
   const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Sections');
   const added = parseSectionBlocksFromSection(addedLookup.body);
   const modified = parseSectionBlocksFromSection(modifiedLookup.body);
-  const removedNames = parseRemovedNames(removedLookup.body);
   const seen = new Set<string>();
   const duplicateSections: string[] = [];
   const unsupportedSections: string[] = [];
@@ -158,7 +157,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   return {
     added,
     modified,
-    removed: removedNames,
+    removed,
     unsupportedSections,
     duplicateSections,
     unscopedSections,
@@ -176,6 +175,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
 
 function splitTopLevelSections(content: string): {
   sections: Array<[string, string]>;
+  removed: string[];
   unscopedSections: string[];
   malformedOperationLines: number[];
   malformedSectionLines: number[];
@@ -184,12 +184,13 @@ function splitTopLevelSections(content: string): {
 } {
   const lines = content.split('\n');
   const sections: Array<[string, string]> = [];
+  const removed: string[] = [];
   const unscopedSections: string[] = [];
   const malformedOperationLines: number[] = [];
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const { literal: mask, setext: underlined } = readSectionMarkdown(lines, true);
+  const { literal: mask, setext: underlined, listItems } = readSectionMarkdown(lines, { includeSetext: true, includeListItems: true });
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;
@@ -218,11 +219,17 @@ function splitTopLevelSections(content: string): {
       const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);
       if (!name) malformedSectionLines.push(i + 1);
       else if (!block) unscopedSections.push(name);
+      else if (block === 'removed sections') removed.push(name);
       else hasSection = true;
     } else if (block === 'removed sections') {
-      if (!mask[i] && REMOVED_BULLET_PREFIX.test(line)) {
-        if (!removedBulletName(line)) malformedSectionLines.push(i + 1);
-      } else removedContentLines.push(i + 1);
+      // A plain removal bullet contains a nested heading; the list item itself must be top-level.
+      const prefix = listItems.has(i) ? line.match(REMOVED_BULLET_PREFIX)?.[0] : undefined;
+      if (!prefix) removedContentLines.push(i + 1);
+      else {
+        const name = removedBulletName(line, prefix);
+        if (name) removed.push(name);
+        else malformedSectionLines.push(i + 1);
+      }
     } else if (!block || (!hasSection && /^(added|modified) sections$/.test(block))) {
       unscopedContentLines.push(i + 1);
     }
@@ -234,7 +241,7 @@ function splitTopLevelSections(content: string): {
     const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
     sections.push([current.title, body]);
   }
-  return { sections, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines };
+  return { sections, removed, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines };
 }
 
 function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {
@@ -270,28 +277,7 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
   return blocks;
 }
 
-function removedBulletName(line: string): string | undefined {
-  const prefix = line.match(REMOVED_BULLET_PREFIX)?.[0];
-  if (!prefix) return undefined;
+function removedBulletName(line: string, prefix: string): string | undefined {
   const name = line.slice(prefix.length).trim();
   return deltaSectionName(prefix.includes('`') ? (name.endsWith('`') ? name.slice(0, -1) : undefined) : name);
-}
-
-function parseRemovedNames(sectionBody: string): string[] {
-  if (!sectionBody) return [];
-  const names: string[] = [];
-  const lines = normalizeLineEndings(sectionBody).split('\n');
-  const mask = buildLiteralBlockMask(lines);
-  for (const [index, line] of lines.entries()) {
-    if (mask[index]) continue;
-    const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);
-    if (name) {
-      names.push(name);
-      continue;
-    }
-    // Also support bullet list of headers
-    const bullet = removedBulletName(line);
-    if (bullet) names.push(bullet);
-  }
-  return names;
 }

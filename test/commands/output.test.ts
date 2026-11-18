@@ -574,6 +574,62 @@ async function expectInvalidDelivery(file: string, delta: string | Buffer, code:
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 }
 
+it.each([
+  ['plain top-level', '## REMOVED Sections\n\n- ### Section: Retired'],
+  ['backticked top-level', '## REMOVED Sections\n\n- `### Section: Retired`'],
+  ['nested', '## REMOVED Sections\n\n- `### Section: Retired`\n  - `### Section: Keep`'],
+])('handles %s Section removal bullets alongside added Markdown', async (placement, removals) => {
+  const retired = '### Section: Retired\n\nRoot SHALL follow the old rule.';
+  const kept = '### Section: Keep\n\nRoot SHALL follow the surviving rule.';
+  const added = '### Section: New\n\n<!-- Preserve this note. -->\nRoot SHALL follow the new rule.';
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const file = 'elements/root.md';
+  await fs.writeFile(path.join(model, file), elementUnit({ ...declaration, sections: `## Specification\n\n${kept}\n\n${retired}` }));
+  const before = await readModelTree(model);
+  const delta = elementUnit({ ...declaration, sections: `## ADDED Sections\n\n${added}\n\n${removals}` });
+  const source = await writeChangeDelta(root, 'remove-section', { 'proposal.md': '# Retire a rule\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  const planned = await runCLI(['validate', '--change', 'remove-section', '--preview', '--json'], { cwd: root });
+  const deliver = (flags: string[] = []) => runCLI(['archive', 'remove-section', '--yes', '--json', ...flags], { cwd: root });
+  if (placement === 'nested') {
+    for (const result of [planned, await deliver(), await deliver(['--quick'])]) {
+      expect.soft(result).toMatchObject({ exitCode: 1, stderr: expect.stringContaining('UNEXPECTED_REMOVED_CONTENT') });
+      expect.soft(result.stderr).toContain(file);
+    }
+    await expect(readModelTree(model)).resolves.toEqual(before);
+    await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+    await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+    return;
+  }
+  expect(planned).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(planned.stdout).summary).toEqual({ total: 2, ADDED: 1, MODIFIED: 0, REMOVED: 1 });
+  expect(await deliver()).toMatchObject({ exitCode: 0, stderr: '' });
+  const delivered = await fs.readFile(path.join(model, file), 'utf8');
+  expect(delivered.slice(delivered.indexOf('## Specification'))).toBe(`## Specification\n\n${kept}\n\n${added}\n`);
+});
+
+it('names both Delta source units when relationship operations conflict', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const unit = (operation: string) => `relationships:\n  - operation: ${operation}\n    source: root\n    kind: links\n    target: item\n`;
+  const files = { 'views/edge-a': unit('ADDED'), 'relationships/edge-b': unit('REMOVED') };
+  const source = await writeChangeDelta(root, 'conflicting-operations', { 'proposal.md': '# Conflicting operations\n', ...files });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'conflicting-operations', '--preview'], ['archive', 'conflicting-operations', '--yes'], ['archive', 'conflicting-operations', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode).toBe(1);
+    const conflict = result.stderr.split('\n').find(line => line.includes('CONFLICTING_OPERATIONS'));
+    expect.soft(conflict).toContain('views/edge-a');
+    expect.soft(conflict).toContain('relationships/edge-b');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  for (const [file, content] of Object.entries(files)) await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(content);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('writes a complete large archive error to piped JSON stderr in the built CLI', async () => {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
@@ -599,6 +655,19 @@ it('writes a complete large archive error to piped JSON stderr in the built CLI'
   await expect(readModelTree(model)).resolves.toEqual(before);
   await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(unit);
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+}, 15_000);
+
+it('writes a complete archive argument error to piped JSON stderr in the built CLI', () => {
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const flag = `--unknown-${'\u0001'.repeat(process.platform === 'win32' ? 8000 : 100_000)}-end`;
+  const result = spawnSync(process.execPath, [cli, 'archive', '--json', flag], {
+    cwd: root, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 10_000,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr.endsWith('\n')).toBe(true);
+  expect(JSON.parse(result.stderr)).toEqual({ code: 'INVALID_ARGUMENT', message: `error: unknown option '${flag}'` });
 }, 15_000);
 
 it('rejects invalid final archive validation without moving the active Change', async () => {

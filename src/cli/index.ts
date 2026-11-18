@@ -1,4 +1,4 @@
-import { Command, Option } from 'commander';
+import { Command, CommanderError, Option } from 'commander';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { describeError, diagnostic, setJsonOutput } from '../utils/output.js';
@@ -185,6 +185,7 @@ program
 
 program
   .command('archive [change-name]')
+  .exitOverride()
   .description('Apply and archive a change, or archive an abandoned change')
   .option('-y, --yes', 'Skip confirmation prompts')
   .addOption(new Option('--quick', 'Apply and archive without checking the Quality Seal').conflicts('abandon'))
@@ -402,6 +403,10 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
   try {
     await program.parseAsync(argv);
   } catch (error) {
+    if (error instanceof CommanderError) {
+      process.exitCode = error.exitCode;
+      return;
+    }
     if (!(error instanceof Error)) throw error;
     diagnostic(error.message);
     process.exitCode = 1;

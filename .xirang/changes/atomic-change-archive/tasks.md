@@ -134,3 +134,6 @@
 - [x] [code_fix] 列表内的 Section 和 Acceptance Case 标题属于正文，不得形成独立条目。
 - [x] [code_fix] 行首 HTML 注释不隐藏同一行的可见规范正文；多个或跨行注释的内容仍不计入正文校验。
 - [x] [code_fix] 归档失败以非零状态退出，管道中的 JSON 诊断仍须完整可解析。
+- [x] [code_fix] `REMOVED Sections` 只将顶层项目符号识别为 Section identity；其他操作中的 Markdown 不影响合法删除，同一列表的嵌套项目不能成为删除操作。
+- [x] [code_fix] Delta 操作冲突报告同一 identity 的双方源文件，而非猜测的 Formal 路径或分区。
+- [x] [code_fix] Archive 参数解析失败也先完整输出 JSON 诊断，再保留非零退出状态。

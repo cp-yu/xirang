@@ -271,17 +271,26 @@ function parseDeltaContainer(file: string, content: string, entries: DeltaEntry[
   }
 }
 
-function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
-  const seen = new Map<string, Operation>();
-  for (const entry of entries) {
-    const key = `${entry.entity}\u0000${entry.identity}`;
-    const previous = seen.get(key);
-    if (previous !== undefined) {
-      diagnostics.push(error('CONFLICTING_OPERATIONS', '',
-        `Conflicting ${previous}/${entry.operation} operations on ${entry.entity} ${entry.identity}`, entry.identity, entry.entity));
-      continue;
+interface DeltaUnit {
+  key: string;
+  path: string;
+  entries: DeltaEntry[];
+}
+
+function detectConflicts(units: DeltaUnit[], diagnostics: ModelDiagnostic[]): void {
+  const seen = new Map<string, { operation: Operation; path: string }>();
+  for (const { path, entries } of units) {
+    for (const entry of entries) {
+      const key = `${entry.entity}\u0000${entry.identity}`;
+      const previous = seen.get(key);
+      if (previous) {
+        const firstSource = previous.path === path ? '' : `; first declared in ${JSON.stringify(previous.path)}`;
+        diagnostics.push(error('CONFLICTING_OPERATIONS', path,
+          `Conflicting ${previous.operation}/${entry.operation} operations on ${entry.entity} ${entry.identity}${firstSource}`, entry.identity, entry.entity));
+      } else {
+        seen.set(key, { operation: entry.operation, path });
+      }
     }
-    seen.set(key, entry.operation);
   }
 }
 
@@ -290,7 +299,7 @@ export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelt
 }
 
 export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {
-  const units: Array<{ key: string; entries: DeltaEntry[] }> = [];
+  const units: DeltaUnit[] = [];
   const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
   for (const [file, content] of [...files].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
@@ -298,7 +307,7 @@ export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navi
     if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics, navigationBaseline);
     else parseDeltaContainer(file, content, entries, diagnostics);
     const first = entries[0];
-    if (first) units.push({ key: `${first.entity}\u0000${first.identity}`, entries });
+    if (first) units.push({ key: `${first.entity}\u0000${first.identity}`, path: file, entries });
     const entities = entries.map(({ entity, identity }) => ({ entity, identity }));
     if (entities.length === 0) {
       const unit = splitFrontmatter(content);
@@ -309,9 +318,9 @@ export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navi
     if (entities.length > 0) sources.push({ path: file, entities });
   }
   // Preserve the author's order within each unit, but derive cross-unit order from identity, not path.
-  const entries = units.sort((left, right) => compareUtf8Bytes(left.key, right.key)).flatMap(unit => unit.entries);
-  detectConflicts(entries, diagnostics);
-  return { delta: { entries }, sources, diagnostics };
+  units.sort((left, right) => compareUtf8Bytes(left.key, right.key));
+  detectConflicts(units, diagnostics);
+  return { delta: { entries: units.flatMap(unit => unit.entries) }, sources, diagnostics };
 }
 
 interface ApplyState {
