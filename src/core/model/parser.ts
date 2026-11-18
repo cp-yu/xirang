@@ -400,10 +400,23 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   return { model, index, diagnostics };
 }
 
+// Temporary files used by Expected Model writeback are not authored Delta units.
+const DELTA_WRITEBACK_TEMP = /^\..+\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.tmp$/is;
+
+function hasDeltaNotation(content: string): boolean {
+  if (isMarkdownUnit(content)) return true;
+  try {
+    const document: unknown = parseYaml(normalizeLineEndings(content));
+    return document !== null && typeof document === 'object' && Object.hasOwn(document, 'relationships');
+  } catch {
+    return false;
+  }
+}
+
 /** Reads the four partitions below `root` into a path → bytes map. */
-export async function readModelTree(root: string, includeDotUnits = false): Promise<Map<string, Buffer>> {
+export async function readModelTree(root: string, includeHiddenDeltaUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
-  const visit = async (directory: string, relative: string): Promise<void> => {
+  const visit = async (directory: string, relative: string, hidden = false): Promise<void> => {
     let entries;
     try {
       entries = process.platform === 'win32'
@@ -415,14 +428,19 @@ export async function readModelTree(root: string, includeDotUnits = false): Prom
     }
     for (const entry of entries) {
       const name = entry.name.toString();
-      if (name.startsWith('.') && !(includeDotUnits && entry.isFile() && /\.(md|ya?ml)$/i.test(name))) continue;
+      const hiddenEntry = hidden || name.startsWith('.');
+      if (hiddenEntry && (!includeHiddenDeltaUnits || (entry.isFile() && DELTA_WRITEBACK_TEMP.test(name)))) continue;
       if (!entry.isDirectory() && !entry.isFile()) continue;
       if (Buffer.isBuffer(entry.name) && !entry.name.equals(Buffer.from(name))) {
         throw new Error(`NON_UTF8_UNIT_PATH: ${directory} contains an invalid UTF-8 name (bytes: ${entry.name.toString('hex')}); rename the entry before retrying.`);
       }
       const child = `${relative}/${name}`;
-      if (entry.isDirectory()) await visit(path.join(directory, name), child);
-      else files.set(child, await fs.readFile(path.join(directory, name)));
+      const location = path.join(directory, name);
+      if (entry.isDirectory()) await visit(location, child, hiddenEntry);
+      else {
+        const bytes = await fs.readFile(location);
+        if (!hiddenEntry || /\.(md|ya?ml)$/i.test(name) || hasDeltaNotation(bytes.toString('utf8'))) files.set(child, bytes);
+      }
     }
   };
   for (const partition of PARTITIONS) await visit(path.join(root, partition), partition);

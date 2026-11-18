@@ -106,6 +106,47 @@ it.skipIf(process.platform === 'win32')('rejects a Delta snapshot that cannot re
   await expect(fs.readFile(path.join(model, 'elements', 'utf8-unit.md'), 'utf8')).resolves.toContain('identity: utf8-unit');
 });
 
+it('previews and delivers extensionless hidden Delta units without applying CLI staging files', async () => {
+  await writeProjectModel(root, minimalModel({ relationshipKinds: [{ identity: 'links' }] }));
+  const add = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
+  const source = await writeChangeDelta(root, 'hidden-units', {
+    'proposal.md': '# Hidden Delta units\n',
+    'elements/.author-unit': add('hidden-unit'),
+    'elements/.drafts/another-unit': add('nested-unit'),
+    'relationships/.edges': '{"relationships":[{"operation":"ADDED","source":"hidden-unit","kind":"links","target":"nested-unit"}]}\n',
+    'elements/.author-unit.12345678-1234-4321-8765-0123456789ab.tmp': add('staged-unit'),
+    'elements/.gitkeep': '',
+  });
+
+  const preview = await runCLI(['validate', '--change', 'hidden-units', '--preview', '--json'], { cwd: root });
+  expect(preview.exitCode, preview.stderr).toBe(0);
+  expect(JSON.parse(preview.stdout).summary).toMatchObject({ ADDED: 3, total: 3 });
+  const result = await runCLI(['archive', 'hidden-units', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result.exitCode).toBe(0);
+  const model = path.join(root, '.xirang', 'model');
+  await expect(fs.readFile(path.join(model, 'elements', 'hidden-unit.md'), 'utf8')).resolves.toContain('identity: hidden-unit');
+  await expect(fs.readFile(path.join(model, 'elements', 'nested-unit.md'), 'utf8')).resolves.toContain('identity: nested-unit');
+  await expect(fs.readFile(path.join(model, 'relationships', 'links.yaml'), 'utf8')).resolves.toContain('target: nested-unit');
+  await expect(fs.access(path.join(model, 'elements', 'staged-unit.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('rejects a new owner of the exact path of a removed Formal unit', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'old-id', fileName: 'new-id' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'path-reuse', {
+    'elements/add.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'new-id' }).slice(4),
+    'elements/remove.md': '---\nentity: element-declaration\noperation: REMOVED\nidentity: old-id\n---\n',
+  });
+  const result = await runCLI(['archive', 'path-reuse', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(result.stderr).toMatch(/collision:.*element-declaration old-id.*element-declaration new-id.*elements\/new-id\.md/);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  expect((await fs.readdir(path.join(source, 'elements'))).sort()).toEqual(['add.md', 'remove.md']);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });

@@ -129,6 +129,13 @@ export async function writeMinimal(
     else files.set(file, Buffer.from(next, 'utf8'));
   }
 
+  for (const [target, owner] of claimed) {
+    const original = originalOwners.get(target);
+    if (original !== undefined && original !== owner) {
+      throw new Error(`Sync target path collision: ${original} and ${owner} both resolve to ${target}`);
+    }
+  }
+
   const checkPaths = async () => {
     const owners = new Map([...originalOwners, ...claimed]);
     const caseGroups = new Map<string, string[]>();
