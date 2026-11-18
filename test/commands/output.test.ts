@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -505,10 +505,13 @@ it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unsc
 
 it.each([
   ['list fence', '- Example:\n\n  ```md\n  ## RENAMED Sections\n  ### Section: Literal in a list\n  ```'],
+  ['list heading', '- A list item\n\n  ### Section: Nested example\n\n  Root SHALL NOT install this as a Section.\n\n  #### Acceptance Case: Nested case\n\n  This is not a case.'],
   ['HTML comment', '<!--\n### Section: Commented intent\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Commented case\nThis is not a case.\n-->'],
   ['inline HTML comment', 'Prose before <!-- Keep this note as written. --> Root SHALL preserve visible text.'],
+  ['leading HTML comment', '<!-- Keep this note as written. --> Root SHALL preserve visible text.'],
+  ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.'],
 ])('preserves literal %s content without creating operations from it', async (label, example) => {
-  const sectionBody = (rule: string) => label === 'inline HTML comment' ? example : `${rule}\n\n${example}`;
+  const sectionBody = (rule: string) => label.endsWith('leading HTML comment') || label === 'inline HTML comment' ? example : `${rule}\n\n${example}`;
   const formal = '## Specification\n\n### Section: Existing rule\n\n' + sectionBody('Root SHALL follow the existing rule.');
   await writeProjectModel(root, minimalModel());
   const modelFile = path.join(root, '.xirang', 'model', 'elements', 'root.md');
@@ -536,6 +539,8 @@ it.each([
   ['Visible prose <!-- Root MUST follow the rule.\nComment continues. --> and ends here.', 'must contain SHALL or MUST'],
   ['Visible prose <!-- Comment starts here.\nRoot SHALL follow the rule. --> and ends here.', 'must contain SHALL or MUST'],
   ['Visible prose <!-- SHALL --> and <!-- MUST --> a second note.', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- SHALL follow the rule. -->', 'must contain SHALL or MUST'],
+  ['<div>\n<!-- Root SHALL follow the rule. -->\nVisible prose.\n</div>', 'must contain SHALL or MUST'],
 ])('does not count a normative keyword inside an HTML comment as Section prose (%j)', async (prose, diagnostic) => {
   const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
@@ -568,6 +573,33 @@ async function expectInvalidDelivery(file: string, delta: string | Buffer, code:
   await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Invalid Delta\n');
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 }
+
+it('writes a complete large archive error to piped JSON stderr in the built CLI', async () => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'views/invalid.md';
+  const fields = Array.from({ length: 1400 }, (_, i) => `unknown-${'x'.repeat(400)}-${String(i).padStart(4, '0')}`);
+  const unit = `---\noperation: ADDED\nentity: authored-view\nidentity: invalid\ninclude: "*"\n${fields.map(field => `${field}: true`).join('\n')}\n---\n`;
+  const source = await writeChangeDelta(root, 'long-diagnostic', { [file]: unit });
+  await createCompleteQualityFixture(root, source);
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const result = spawnSync(process.execPath, [cli, 'archive', 'long-diagnostic', '--yes', '--json'], {
+    cwd: root, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 10_000,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr.endsWith('\n')).toBe(true);
+  const report = JSON.parse(result.stderr);
+  expect(report.code).toBe('COMMAND_ERROR');
+  expect(report.message).toContain(`${file}: UNSUPPORTED_DELTA_FIELD:`);
+  expect(report.message.match(/unknown-x/g)).toHaveLength(fields.length);
+  expect(report.message.endsWith(JSON.stringify(fields.at(-1)))).toBe(true);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(unit);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+}, 15_000);
 
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');

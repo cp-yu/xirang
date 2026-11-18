@@ -7,7 +7,7 @@ const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
 const FENCE_START = /^(?:`{3,}|~{3,})/;
-const BLOCK_CANDIDATE = /`{3,}|~{3,}|</;
+const BLOCK_CANDIDATE = /`{3,}|~{3,}|<|^ {1,3}#{1,6}(?:[ \t]|$)/;
 const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
 const markdown = unified().use(remarkParse);
 type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
@@ -31,6 +31,22 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
     visible[line] = text.slice(0, from) + ' '.repeat(to - from) + text.slice(to);
   };
   if (lines.some(line => BLOCK_CANDIDATE.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
+    const maskHtmlComments = (first: number, last: number, start: number, end: number): void => {
+      let inComment = false;
+      for (let i = first; i <= last; i++) {
+        const line = lines[i];
+        const limit = i === last ? end : line.length;
+        let cursor = i === first ? start : 0;
+        while (cursor < limit) {
+          const opening = inComment ? cursor : line.indexOf('<!--', cursor);
+          if (opening < 0 || (!inComment && opening + 4 > limit)) break;
+          const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
+          inComment = closing === -1 || closing + 3 > limit;
+          cursor = inComment ? limit : closing + 3;
+          maskColumns(i, opening, cursor);
+        }
+      }
+    };
     const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
       if (!node.position) return;
       const { start, end } = node.position;
@@ -44,18 +60,10 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
         const from = inline ? first + 1 : first;
         const to = inline ? last : last + 1;
         literal.fill(true, from, to);
-        if (node.value.startsWith('<!--')) {
-          hidden.fill(true, from, to);
-          if (inline) {
-            if (first === last) maskColumns(first, start.column - 1, end.column - 1);
-            else {
-              maskColumns(first, start.column - 1, lines[first].length);
-              maskColumns(last, 0, end.column - 1);
-            }
-          }
-        }
-      } else if (includeSetext && topLevel && node.type === 'heading' && first !== last) {
-        setext.set(first, last);
+        if (node.value.includes('<!--')) maskHtmlComments(first, last, start.column - 1, end.column - 1);
+      } else if (node.type === 'heading') {
+        if (!topLevel) literal.fill(true, first, last + 1);
+        else if (includeSetext && first !== last) setext.set(first, last);
       }
       if ('children' in node) {
         const childInline = inline || node.type === 'paragraph' || node.type === 'heading';

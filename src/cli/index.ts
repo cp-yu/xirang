@@ -195,7 +195,7 @@ program
       await archiveCommand.execute(changeName, options);
     } catch (error) {
       diagnostic(describeError(error));
-      process.exit(1);
+      process.exitCode = 1;
     }
   });
 
