@@ -37,6 +37,26 @@ describe('Section delta parsing', () => {
     expect(plan.added.map(section => section.name)).toEqual(['Scoped']);
   });
 
+  it.each(['    ```md', '\t~~~md', '```not`a valid info string'])('does not treat an invalid opening fence as hiding operation headings (%j)', opening => {
+    const plan = parseDeltaSpec([
+      '## ADDED Sections', '### Section: Actual', 'The system SHALL keep this behavior.',
+      opening, '## RENAMED Sections', '### Section: Old',
+    ].join('\n'));
+    expect(plan.unsupportedSections).toEqual(['RENAMED Sections']);
+    expect(plan.added.map(section => section.name)).toEqual(['Actual']);
+  });
+
+  it('keeps headings inside a real fence when a proposed closing line has four leading spaces', () => {
+    const plan = parseDeltaSpec([
+      '## ADDED Sections', '### Section: Actual', 'The system SHALL keep this behavior.',
+      '   ```md', '    ```', '## RENAMED Sections', '### Section: Example only', '   ```',
+      '## REMOVED Sections', '### Section: Retired',
+    ].join('\n'));
+    expect(plan.unsupportedSections).toEqual([]);
+    expect(plan.removed).toEqual(['Retired']);
+    expect(plan.added[0].raw).toContain('## RENAMED Sections');
+  });
+
   it('marks RENAMED Sections as an unsupported operation section', () => {
     const plan = parseDeltaSpec(`## RENAMED Sections
 

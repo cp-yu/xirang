@@ -393,6 +393,7 @@ git:
       ['## ADDED Sections\n\n### Section: No text\n', 'missing Section text'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## REMOVED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## RENAMED Sections\n- Old to New\n', 'UNSUPPORTED_OPERATION'],
+      ['## ADDED Sections\n### Section: New\nThe system SHALL add behavior.\n\n    ```md\n\n## RENAMED Sections\n### Section: Old\n', 'UNSUPPORTED_OPERATION'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
       ['### Section: Unscoped\nThe system SHALL preserve this requirement.\n\n## ADDED Sections\n\n### Section: Scoped\nThe system SHALL keep this requirement.\n', 'Unscoped'],
       ['## ADDED Sections\n\n### Section:  \nThe system SHALL not lose this text.\n\n### Section: Titled\nThe system SHALL preserve the titled Section.\n', 'Malformed Section header'],

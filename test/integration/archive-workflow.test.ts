@@ -178,6 +178,27 @@ describe('architecture archive workflow', () => {
     expect((await fs.readdir(path.dirname(archived))).filter(entry => entry !== path.basename(changeDir))).toEqual([]);
   });
 
+  it.skipIf(process.platform === 'win32')('fails without writing through a symlink occupying an archive child path', async () => {
+    const archived = path.join(root, 'archived');
+    const external = path.join(root, 'external.txt');
+    const source = path.join(changeDir, 'artifact.txt');
+    await fs.writeFile(external, 'do not overwrite');
+    await fs.writeFile(source, 'active content');
+
+    await expect(moveDirectory(changeDir, archived, {
+      mkdir: (async (directory, options) => {
+        await fs.mkdir(directory, options);
+        // Fault injection: the next ordinary copy must refuse an occupied child path.
+        if (directory === archived) await fs.symlink(external, path.join(archived, 'artifact.txt'));
+      }) as typeof fs.mkdir,
+    })).rejects.toMatchObject({ code: 'EEXIST' });
+
+    await expect(fs.readFile(source, 'utf8')).resolves.toBe('active content');
+    await expect(fs.readFile(external, 'utf8')).resolves.toBe('do not overwrite');
+    await expect(fs.access(archived)).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(fs.access(pendingArchivePath(archived))).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('never renames onto the reserved archive directory', async () => {
     const archived = path.join(root, 'reserved');
     await fs.writeFile(path.join(changeDir, 'useful.log'), 'archived content');

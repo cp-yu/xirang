@@ -12,13 +12,9 @@ export function buildCodeFenceMask(lines: string[]): boolean[] {
   let activeFence: { marker: '`' | '~'; length: number } | null = null;
 
   for (let i = 0; i < lines.length; i++) {
-    const fence = getFenceMarker(lines[i]);
-
     if (!activeFence) {
-      if (fence) {
-        activeFence = fence;
-        mask[i] = true;
-      }
+      activeFence = getOpeningFence(lines[i]);
+      mask[i] = activeFence !== null;
       continue;
     }
 
@@ -31,23 +27,19 @@ export function buildCodeFenceMask(lines: string[]): boolean[] {
   return mask;
 }
 
-function getFenceMarker(line: string): { marker: '`' | '~'; length: number } | null {
-  const fenceMatch = line.match(/^\s*(`{3,}|~{3,})/);
-  if (!fenceMatch) {
-    return null;
-  }
-
-  return {
-    marker: fenceMatch[1][0] as '`' | '~',
-    length: fenceMatch[1].length,
-  };
+function getOpeningFence(line: string): { marker: '`' | '~'; length: number } | null {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+  if (!match) return null;
+  const [, fence, info] = match;
+  const marker = fence[0] as '`' | '~';
+  return marker === '`' && info.includes('`') ? null : { marker, length: fence.length };
 }
 
 function isClosingFence(
   line: string,
   activeFence: { marker: '`' | '~'; length: number },
 ): boolean {
-  const fenceMatch = line.match(/^\s*(`{3,}|~{3,})\s*$/);
+  const fenceMatch = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
   return Boolean(
     fenceMatch &&
       fenceMatch[1][0] === activeFence.marker &&
