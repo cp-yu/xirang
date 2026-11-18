@@ -534,8 +534,8 @@ After archive:
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐                                                         │
-│   │  4. VERIFY     │  embedded in /xirang:archive                              │
-│   │     WORK       │  Check implementation matches requirements                │
+│   │  4. VERIFY     │  embedded in /xirang:apply                                │
+│   │     WORK       │  Review implementation and record the Quality Seal        │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │

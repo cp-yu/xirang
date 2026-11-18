@@ -19,7 +19,7 @@ Xirang exposes six managed workflows over one Semantic Model: the four partition
 /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-Propose authors Semantic Deltas. Apply implements serial TDD checks. Archive verifies and atomically syncs the authorized delta.
+Propose authors the Semantic Delta. Apply implements the Change, runs the checks, and completes independent Review and the Quality Seal. Default Archive requires the Seal and applies the Delta while sealing the Change in history. If the Seal is missing or invalid, return to Apply.
 
 ### Explore First
 

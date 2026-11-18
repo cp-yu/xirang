@@ -327,6 +327,8 @@ git:
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
       ['### Section: Unscoped\nThe system SHALL preserve this requirement.\n\n## ADDED Sections\n\n### Section: Scoped\nThe system SHALL keep this requirement.\n', 'Unscoped'],
       ['## ADDED Sections\n\n### Section:  \nThe system SHALL not lose this text.\n\n### Section: Titled\nThe system SHALL preserve the titled Section.\n', 'Malformed Section header'],
+      ['## ADDED Sections\n\n### Section: Valid\nThe system SHALL retain this Section.\n\n## REMOVED Sections\n- ### Section:   \n', 'Malformed Section header'],
+      ['## ADDED Sections\n\n### Section: Valid\nThe system SHALL retain this Section.\n\n## REMOVED Sections\n- `### Section:   `\n', 'Malformed Section header'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
       const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
@@ -546,6 +548,66 @@ git:
       await expect(fs.readFile(formal)).resolves.toEqual(before);
       await expect(fs.readFile(unrelated)).resolves.toEqual(bytes);
       expect((await fs.readdir(modelDir)).filter(name => name.startsWith('.'))).toEqual([path.basename(unrelated)]);
+    });
+
+    it('does not treat a partial archive as complete when both compensations fail', async () => {
+      const name = 'partial-archive';
+      const source = await writeSemanticArchiveFixture(name);
+      const dest = path.join(path.dirname(source), 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(formal);
+      const command = new ArchiveCommand({
+        copyFile: async (from, to, mode) => {
+          if (to === path.join(dest, 'tasks.md')) throw new Error('cannot install tasks');
+          await fs.copyFile(from, to, mode);
+        },
+        mkdir: ((directory, options) => {
+          if (directory === source) return Promise.reject(new Error('cannot restore active directory'));
+          return fs.mkdir(directory, options);
+        }) as typeof fs.mkdir,
+        rm: async (target, options) => {
+          if (String(target).startsWith(dest + path.sep)) throw new Error('cannot remove partial archive files');
+          await fs.rm(target, options);
+        },
+      });
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toMatchObject({
+        errors: expect.arrayContaining([
+          expect.objectContaining({ message: 'cannot install tasks' }),
+          expect.objectContaining({ message: 'cannot restore active directory' }),
+          expect.objectContaining({ message: 'cannot remove partial archive files' }),
+        ]),
+      });
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.readFile(path.join(dest, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/Archive is incomplete/);
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])('preserves late ordinary artifact edits, even when abandoning (%s)', async abandon => {
+      const name = 'late-ordinary-artifact';
+      const source = await writeSemanticArchiveFixture(name);
+      await fs.writeFile(path.join(source, 'proposal.md'), 'original proposal');
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(formal);
+      let captured: string;
+      const destParent = path.join(path.dirname(source), 'archive', ...(abandon ? ['abandoned'] : []));
+      const dest = path.join(destParent, `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const command = new ArchiveCommand({
+        rename: async (from, to) => {
+          if (from === source) captured = String(to);
+          await fs.rename(from, to);
+        },
+        copyFile: async (from, to, mode) => {
+          await fs.copyFile(from, to, mode);
+          if (to === path.join(dest, 'proposal.md')) await fs.writeFile(path.join(captured, 'proposal.md'), 'late proposal');
+        },
+      });
+      await expect(command.execute(name, { quick: !abandon, abandon, yes: true })).rejects.toThrow(/Change artifacts changed/);
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('late proposal');
+      await expect(fs.readdir(destParent)).resolves.toEqual([]);
+      expect(console.log).not.toHaveBeenCalled();
     });
 
     it('should throw error if change does not exist', async () => {

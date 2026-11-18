@@ -19,6 +19,7 @@ export function normalizeSectionName(name: string): string {
 }
 
 const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
+const REMOVED_BULLET_PREFIX = /^\s*-\s*`?###\s*Section:/;
 
 function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
@@ -177,6 +178,9 @@ function splitTopLevelSections(content: string): {
       const name = lines[i].match(SECTION_HEADER_REGEX)?.[1]?.trim();
       if (!name || !/^###\s+Section:/.test(lines[i])) malformedSectionLines.push(i + 1);
       else if (indices.length === 0) unscopedSections.push(name);
+    } else if (indices.at(-1)?.title.toLowerCase() === 'removed sections'
+      && REMOVED_BULLET_PREFIX.test(lines[i]) && !removedBulletName(lines[i])) {
+      malformedSectionLines.push(i + 1);
     }
   }
   for (let i = 0; i < indices.length; i++) {
@@ -222,6 +226,13 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
   return blocks;
 }
 
+function removedBulletName(line: string): string | undefined {
+  const prefix = line.match(REMOVED_BULLET_PREFIX)?.[0];
+  if (!prefix) return undefined;
+  const name = line.slice(prefix.length).trim();
+  return (prefix.includes('`') ? (name.endsWith('`') ? name.slice(0, -1).trim() : '') : name) || undefined;
+}
+
 function parseRemovedNames(sectionBody: string): string[] {
   if (!sectionBody) return [];
   const names: string[] = [];
@@ -235,10 +246,8 @@ function parseRemovedNames(sectionBody: string): string[] {
       continue;
     }
     // Also support bullet list of headers
-    const bullet = line.match(/^\s*-\s*`?###\s*Section:\s*(.+?)`?\s*$/);
-    if (bullet) {
-      names.push(normalizeSectionName(bullet[1]));
-    }
+    const bullet = removedBulletName(line);
+    if (bullet) names.push(bullet);
   }
   return names;
 }

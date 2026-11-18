@@ -78,18 +78,30 @@ describe('Semantic Model sync workflow', () => {
     expect(await readModelTree(modelRoot(root))).toEqual(before);
   });
 
+  it('does not undo an independent Formal write when staging failed before installation', async () => {
+    const model = path.join(modelRoot(root), 'elements', 'cap.existing.md');
+    const original = await fs.readFile(model, 'utf8');
+    const modified = original.replace('---\n', '---\noperation: MODIFIED\n').replace('Existing summary', 'Planned summary').split('## Specification')[0];
+    const external = original.replace('Existing summary', 'Independent summary');
+    await writeChangeDelta(root, 'add', { 'elements/cap.existing.md': modified });
+    const prepared = await prepareChangeSync(root, 'add');
+    await expect(applyPreparedChangeSync(root, prepared, {
+      filesystem: {
+        writeFile: async () => {
+          await fs.writeFile(model, external);
+          throw new Error('staging failed before target write');
+        },
+      },
+    })).rejects.toThrow('staging failed before target write');
+    await expect(fs.readFile(model, 'utf8')).resolves.toBe(external);
+  });
+
   it('does not start the archive move if the ordinary reader sees different Formal bytes', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
     const prepared = await prepareChangeSync(root, 'add');
     const before = await readModelTree(modelRoot(root));
     const postWrite = async () => { throw new Error('archive move started'); };
-    await expect(applyPreparedChangeSync(root, prepared, {
-      filesystem: {
-        rename: async (source, target) => {
-          await fs.rename(source, target);
-          await fs.writeFile(target, 'unexpected bytes');
-        },
-      },
+    await expect(applyPreparedChangeSync(root, { ...prepared, targetFingerprint: 'different target' }, {
       postWrite,
     })).rejects.toThrow('Installed Formal model does not match the prepared target');
     expect(await readModelTree(modelRoot(root))).toEqual(before);

@@ -28,6 +28,32 @@ async function statIfPresent(location: string) {
   });
 }
 
+function pendingArchivePath(destination: string): string {
+  return path.join(path.dirname(destination), `.${path.basename(destination)}.pending`);
+}
+
+async function fingerprintChangeTree(root: string): Promise<string> {
+  const digest = createHash('sha256');
+  const visit = async (directory: string, parent: string): Promise<void> => {
+    for (const name of (await fs.readdir(directory)).sort()) {
+      const location = path.join(directory, name);
+      const relative = parent ? `${parent}/${name}` : name;
+      const entry = await fs.lstat(location);
+      if (entry.isDirectory()) {
+        digest.update(JSON.stringify([relative, 'directory']) + '\n');
+        await visit(location, relative);
+      } else if (entry.isSymbolicLink()) {
+        digest.update(JSON.stringify([relative, 'link', await fs.readlink(location)]) + '\n');
+      } else if (entry.isFile()) {
+        const bytes = createHash('sha256').update(await fs.readFile(location)).digest('hex');
+        digest.update(JSON.stringify([relative, 'file', bytes]) + '\n');
+      } else throw new Error(`Unsupported archive entry type: ${location}`);
+    }
+  };
+  await visit(root, '');
+  return digest.digest('hex');
+}
+
 /** Move the source only into a destination reserved by this invocation. */
 export async function moveDirectory(
   src: string,
@@ -53,7 +79,8 @@ export async function moveDirectory(
       const link = await fs.readlink(source);
       const type = process.platform === 'win32' && (await fs.stat(source).catch(() => undefined))?.isDirectory() ? 'dir' : undefined;
       await filesystem.symlink(link, target, type);
-    } else await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
+    } else if (entry.isFile()) await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
+    else throw new Error(`Unsupported archive entry type: ${source}`);
     if (track) owned.set(target, await fs.lstat(target));
     if (entry.isDirectory()) await copyContents(source, target, track);
   };
@@ -98,14 +125,27 @@ export async function moveDirectory(
       for (const name of await fs.readdir(from)) await restoreMissing(path.join(from, name), path.join(to, name));
     }
   };
+  const pending = pendingArchivePath(dest);
+  await fs.mkdir(pending).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'EEXIST') throw new Error(`Archive is incomplete at ${dest}; inspect the workspace before retrying.`);
+    throw error;
+  });
   try {
     await filesystem.mkdir(dest);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Archive '${path.basename(dest)}' already exists.`);
-    throw error;
+    const cause = (error as NodeJS.ErrnoException).code === 'EEXIST'
+      ? new Error(`Archive '${path.basename(dest)}' already exists.`) : error;
+    try { await fs.rmdir(pending); }
+    catch (cleanupError) { throw new AggregateError([cause, cleanupError], 'Could not release the archive reservation marker'); }
+    throw cause;
   }
 
   owned.set(dest, await fs.lstat(dest));
+  const clearReservation = async () => {
+    await clearOwnedDestination(dest);
+    // If anything remains, never let a retry report that path as a successful archive.
+    if (!(await statIfPresent(dest))) await fs.rmdir(pending);
+  };
 
   const restoreSource = async (from: string): Promise<boolean> => {
     try { await filesystem.mkdir(src); }
@@ -134,6 +174,7 @@ export async function moveDirectory(
       await filesystem.rename(src, local);
       captured = local;
       await options.verify?.(captured);
+      const originalFingerprint = await fingerprintChangeTree(captured);
 
       temporary = await filesystem.mkdtemp(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
       staged = path.join(temporary, path.basename(src));
@@ -143,11 +184,16 @@ export async function moveDirectory(
       await options.verify?.(dest);
       await options.verify?.(captured);
       await assertOwnedDestination();
+      if (await fingerprintChangeTree(dest) !== originalFingerprint || await fingerprintChangeTree(captured) !== originalFingerprint) {
+        throw new Error(`Change artifacts changed during archiving at ${src}; verify the Change and retry.`);
+      }
+      await assertOwnedDestination();
       if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
       removingCapture = true;
       await remove(captured);
       await assertOwnedDestination();
       if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
+      await fs.rmdir(pending);
     } catch (error) {
       const failures: unknown[] = [];
       let conflict: Error | undefined;
@@ -156,10 +202,13 @@ export async function moveDirectory(
         if (captured && !(await restoreSource(captured))) {
           conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${captured}.`, { cause: error });
         }
-        await clearOwnedDestination(dest);
       } catch (rollbackError) { failures.push(rollbackError); }
+      await clearReservation().catch(rollbackError => failures.push(rollbackError));
       if (temporary && failures.length === 0) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
       else if (staged && removingCapture) failures.push(new Error(`Original backup retained at ${staged}`));
+      if (captured && failures.length && await statIfPresent(captured).catch(() => undefined)) {
+        failures.push(new Error(`Original source retained at ${captured}`));
+      }
       if (failures.length) throw new AggregateError([conflict ?? error, ...failures], 'Archive installation failed and rollback was incomplete');
       throw conflict ?? error;
     } finally {
@@ -173,7 +222,7 @@ export async function moveDirectory(
     else await move();
   } catch (error) {
     if (!started) {
-      try { await clearOwnedDestination(dest); }
+      try { await clearReservation(); }
       catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Archive failed and the empty reservation could not be removed'); }
     }
     throw error;
@@ -229,9 +278,15 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
       if (error.code === 'ENOENT') return [];
       throw error;
     });
-    const latest = entries.filter(entry => entry.isDirectory() && /^\d{4}-\d{2}-\d{2}-/.test(entry.name) && entry.name.slice(11) === changeName)
-      .map(entry => entry.name).sort().at(-1);
-    if (latest) return path.join(directory, latest);
+    const candidates = entries.filter(entry => entry.isDirectory() && /^\d{4}-\d{2}-\d{2}-/.test(entry.name) && entry.name.slice(11) === changeName)
+      .map(entry => entry.name).sort().reverse();
+    if (candidates.length) {
+      const location = path.join(directory, candidates[0]);
+      if (await statIfPresent(pendingArchivePath(location))) {
+        throw new Error(`Archive is incomplete at ${location}; inspect the workspace before retrying.`);
+      }
+      return location;
+    }
   }
   return undefined;
 }

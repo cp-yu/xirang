@@ -277,12 +277,18 @@ export async function applySemanticTreeManifest(
   await assertManifestPreimages(projectRoot, manifest, filesystem);
   await options.preWrite?.();
 
-  const applied: PreparedSyncManifestEntry[] = [];
+  const applied: Array<{ entry: PreparedSyncManifestEntry; written: Buffer | null }> = [];
   const createdDirectories = new Map<string, Stats>();
   try {
     for (const entry of manifest) {
-      applied.push(entry);
-      await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories);
+      let recorded: typeof applied[number] | undefined;
+      await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories, written => {
+        if (recorded) recorded.written = written;
+        else {
+          recorded = { entry, written };
+          applied.push(recorded);
+        }
+      });
     }
     await options.postWrite?.();
   } catch (error) {
@@ -384,12 +390,16 @@ async function assertManifestPreimages(
   manifest: PreparedSyncManifestEntry[],
   filesystem: SyncTransactionFileSystem,
 ): Promise<void> {
-  for (const entry of manifest) {
-    const current = await readOptionalBuffer(resolveManifestPath(projectRoot, entry.path), filesystem);
-    if (current === null && entry.preimage === null) continue;
-    if (current !== null && entry.preimage !== null && current.equals(entry.preimage)) continue;
-    throw new Error(`Prepared sync is stale: ${entry.path} changed after validation`);
-  }
+  for (const entry of manifest) await assertManifestPreimage(projectRoot, entry, filesystem);
+}
+
+function sameBytes(left: Buffer | null, right: Buffer | null): boolean {
+  return left === null || right === null ? left === right : left.equals(right);
+}
+
+async function assertManifestPreimage(projectRoot: string, entry: PreparedSyncManifestEntry, filesystem: SyncTransactionFileSystem) {
+  const current = await readOptionalBuffer(resolveManifestPath(projectRoot, entry.path), filesystem);
+  if (!sameBytes(current, entry.preimage)) throw new Error(`Prepared sync is stale: ${entry.path} changed after validation`);
 }
 
 async function applyManifestEntry(
@@ -397,34 +407,45 @@ async function applyManifestEntry(
   entry: PreparedSyncManifestEntry,
   filesystem: SyncTransactionFileSystem,
   createdDirectories: Map<string, Stats>,
+  markWritten: (bytes: Buffer | null) => void,
 ): Promise<void> {
   const target = resolveManifestPath(projectRoot, entry.path);
   if (entry.action === 'delete') {
+    await assertManifestPreimage(projectRoot, entry, filesystem);
     await filesystem.rm(target, { force: true });
+    markWritten(null);
     return;
   }
 
   const parent = path.dirname(target);
-  const firstCreated = await filesystem.mkdir(parent, { recursive: true });
-  if (firstCreated) {
-    const existing = path.dirname(firstCreated);
-    for (let directory = parent; directory !== existing; directory = path.dirname(directory)) {
-      createdDirectories.set(directory, await filesystem.lstat(directory));
-    }
+  const missing: string[] = [];
+  for (let directory = parent; ; directory = path.dirname(directory)) {
+    try { await filesystem.lstat(directory); break; }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+    missing.push(directory);
+    if (directory === path.dirname(directory)) throw new Error(`Cannot find an existing parent of ${target}`);
+  }
+  for (const directory of missing.reverse()) {
+    await filesystem.mkdir(directory);
+    createdDirectories.set(directory, await filesystem.lstat(directory));
   }
   const stage = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
   const temporary = path.join(stage, 'unit');
   const cleanup = () => filesystem.rm(stage, { recursive: true, force: true });
   try {
     await filesystem.writeFile(temporary, entry.postimage!, { flag: 'wx' });
+    await assertManifestPreimage(projectRoot, entry, filesystem);
     try {
       await filesystem.rename(temporary, target);
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       if (entry.preimage === null || code !== 'EPERM' && code !== 'EEXIST') throw error;
+      await assertManifestPreimage(projectRoot, entry, filesystem);
       await filesystem.rm(target, { force: true });
+      markWritten(null);
       await filesystem.rename(temporary, target);
     }
+    markWritten(entry.postimage);
   } catch (error) {
     try {
       await cleanup();
@@ -438,13 +459,16 @@ async function applyManifestEntry(
 
 async function rollbackManifest(
   projectRoot: string,
-  applied: PreparedSyncManifestEntry[],
+  applied: Array<{ entry: PreparedSyncManifestEntry; written: Buffer | null }>,
   filesystem: SyncTransactionFileSystem,
 ): Promise<Error[]> {
   const errors: Error[] = [];
-  for (const entry of [...applied].reverse()) {
+  for (const { entry, written } of [...applied].reverse()) {
     const target = resolveManifestPath(projectRoot, entry.path);
     try {
+      if (!sameBytes(await readOptionalBuffer(target, filesystem), written)) {
+        throw new Error(`Cannot roll back ${entry.path}: the installed model unit changed outside this transaction`);
+      }
       if (entry.preimage === null) {
         await filesystem.rm(target, { force: true });
       } else {
