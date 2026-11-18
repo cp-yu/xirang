@@ -40,7 +40,8 @@ Project Build asks for exploration scope and a starting point, then authors Arch
 ### Code-First Reconciliation
 
 ```text
-/xirang:snack ──► /xirang:archive
+/xirang:snack ─┬─► /xirang:apply (record Seal) ─► /xirang:archive
+              └─► xirang archive <change> --quick (only when you choose to skip the Seal)
 ```
 
 Use this when code already exists and Xirang artifacts must be reconciled afterward.

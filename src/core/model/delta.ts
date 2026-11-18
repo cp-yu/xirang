@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { parseDeltaSpec } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
@@ -76,7 +77,9 @@ function sectionEntry(operation: Operation, element: string, section: Section): 
   return { operation, entity: 'section', identity: `${element}#${section.name}`, target: section };
 }
 
-function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
+type NavigationBaseline = ReadonlyMap<string, ElementDeclaration>;
+
+function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[], navigationBaseline?: NavigationBaseline): void {
   const outcome = parseUnit(file, data, '');
   if (Array.isArray(outcome)) {
     diagnostics.push(...outcome);
@@ -99,7 +102,13 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     });
   }
 
-  if (normalizeProse(body) === '') return;
+  if (normalizeProse(body) === '') {
+    if (data.operation === undefined && navigationBaseline
+      && !isDeepStrictEqual(outcome.element?.declaration, navigationBaseline.get(identity))) {
+      diagnostics.push(error('MISSING_OPERATION', file, 'An Element Delta without Section operations must declare an operation unless its declaration matches Formal', identity));
+    }
+    return;
+  }
   const plan = parseDeltaSpec(body);
   for (const line of plan.malformedSectionLines) {
     diagnostics.push(error('MALFORMED_SECTION_HEADER', file, `Malformed Section header at body line ${line}; use ### Section: <name>`, identity));
@@ -132,14 +141,14 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
   for (const name of plan.removed) entries.push({ operation: 'REMOVED', entity: 'section', identity: `${identity}#${name}` });
 }
 
-function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
+function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[], navigationBaseline?: NavigationBaseline): void {
   const split = splitFrontmatter(content);
   if (!split.ok) {
     diagnostics.push(error(split.code, file, split.message));
     return;
   }
   if (readEntity(split.data) === 'element-declaration') {
-    parseElementUnit(file, split.data, split.body, entries, diagnostics);
+    parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);
     return;
   }
 
@@ -219,13 +228,13 @@ export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelt
   return parseSemanticDeltaFiles(await readModelFiles(changeRoot));
 }
 
-export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>): ParsedDelta {
+export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {
   const entries: DeltaEntry[] = [];
   const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
   for (const [file, content] of [...files].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
     const start = entries.length;
-    if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics);
+    if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics, navigationBaseline);
     else parseDeltaContainer(file, content, entries, diagnostics);
     const entities = entries.slice(start).map(({ entity, identity }) => ({ entity, identity }));
     if (entities.length === 0) {

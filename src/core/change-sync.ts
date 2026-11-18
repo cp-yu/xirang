@@ -1,5 +1,3 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
 import { changeRoot, modelRoot } from './model/paths.js';
 import { parseSemanticModelFiles, readModelTree } from './model/parser.js';
@@ -64,7 +62,8 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const changeDir = changeRoot(projectRoot, changeName);
   const deltaSnapshot = await readModelTree(changeDir);
   const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
-  const parsedDelta = parseSemanticDeltaFiles(files);
+  const declarations = new Map(base.model.elements.map(({ declaration }) => [declaration.identity, declaration]));
+  const parsedDelta = parseSemanticDeltaFiles(files, declarations);
   const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, { base, parsedDelta, allowAlreadyApplied: true });
   if (base.model.elements.length === 0 && delta.entries.length > 0) {
     const unit = sources.find(source => source.entities.length > 0);
@@ -102,23 +101,6 @@ export async function assertPreparedDelta(changeDir: string, prepared: PreparedC
   }
 }
 
-/** Unit removal can empty its containing directory; the partition root itself always stays. */
-async function pruneEmptyDirectories(projectRoot: string, manifest: PreparedSyncManifestEntry[]): Promise<void> {
-  const directories = new Set<string>();
-  for (const entry of manifest) {
-    if (entry.action !== 'delete') continue;
-    const segments = entry.path.split('/');
-    for (let depth = segments.length - 1; depth > 3; depth -= 1) {
-      directories.add(segments.slice(0, depth).join('/'));
-    }
-  }
-  for (const directory of [...directories].sort((left, right) => right.length - left.length)) {
-    await fs.rmdir(path.resolve(projectRoot, ...directory.split('/'))).catch((error: NodeJS.ErrnoException) => {
-      if (error.code !== 'ENOENT' && error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') throw error;
-    });
-  }
-}
-
 export async function applyPreparedChangeSync(
   projectRoot: string,
   prepared: PreparedChangeSync,
@@ -126,8 +108,8 @@ export async function applyPreparedChangeSync(
     filesystem?: Partial<SyncTransactionFileSystem>;
     postWrite?: () => Promise<void>;
   } = {},
-): Promise<{ partitions: PartitionCounts; files: string[] }> {
-  await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
+): Promise<{ partitions: PartitionCounts; files: string[]; cleanupWarnings: string[] }> {
+  const cleanupWarnings = await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
     preWrite: prepared.verifyPaths,
     postWrite: async () => {
@@ -136,9 +118,8 @@ export async function applyPreparedChangeSync(
         throw new Error('Installed Formal model does not match the prepared target; verify the model paths and retry');
       }
       verifyTargetModel(installed, prepared.targetModelFingerprint);
-      await pruneEmptyDirectories(projectRoot, prepared.manifest);
       await options.postWrite?.();
     },
   });
-  return { partitions: prepared.partitions, files: prepared.manifest.map(entry => entry.path) };
+  return { partitions: prepared.partitions, files: prepared.manifest.map(entry => entry.path), cleanupWarnings };
 }

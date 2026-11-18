@@ -213,26 +213,52 @@ it('reports an archive error and incomplete model rollback in structured diagnos
   });
   const target = path.join(root, '.xirang', 'model', 'elements', 'root.md');
   const rename = fs.rename;
-  const write = fs.writeFile;
-  const mocks = [
-    vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
-      if (from === source) throw new Error('archive move injected failure');
-      return rename(from, to);
-    }),
-    vi.spyOn(fs, 'writeFile').mockImplementation(async (file, bytes, options) => {
-      if (file === target) throw new Error('model restore injected failure');
-      return write(file, bytes, options);
-    }),
-  ];
+  let original: string | undefined;
+  const hook = vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+    if (from === source) throw new Error('archive move injected failure');
+    if (to === target && path.basename(String(from)) === 'original') {
+      original = String(from);
+      throw new Error('model restore injected failure');
+    }
+    return rename(from, to);
+  });
   try {
     const result = await runCLI(['archive', 'rollback-failure', '--quick', '--yes', '--json'], { cwd: root });
     expect(result).toMatchObject({ exitCode: 1, stdout: '' });
     const records = result.stderr.trim().split('\n').map(line => JSON.parse(line));
     expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toMatch(/archive move injected failure[\s\S]*model restore injected failure/);
+    expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toContain(path.dirname(original!));
+    await expect(fs.readFile(original!, 'utf8')).resolves.toContain('Project root definition.');
     await expect(fs.access(source)).resolves.toBeUndefined();
-  } finally { for (const mock of mocks) mock.mockRestore(); }
+  } finally { hook.mockRestore(); }
 });
 
+
+it('warns without undoing delivery if post-commit Formal staging cleanup fails', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'formal-cleanup-failure', {
+    'elements/root.md': '---\noperation: MODIFIED\n' + elementUnit({ identity: 'root', kind: 'project', parent: null, definition: 'New root.' }).slice(4),
+  });
+  const elements = path.join(root, '.xirang', 'model', 'elements');
+  const rm = fs.rm;
+  const hook = vi.spyOn(fs, 'rm').mockImplementation(async (location, options) => {
+    if (path.dirname(String(location)) === elements && path.basename(String(location)).startsWith('.xirang-sync-')) {
+      throw new Error('Formal cleanup injected failure');
+    }
+    return rm(location, options);
+  });
+  try {
+    const result = await runCLI(['archive', 'formal-cleanup-failure', '--quick', '--yes', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    const { archive } = JSON.parse(result.stdout);
+    expect(result.stderr.trim().split('\n').map(line => JSON.parse(line))).toContainEqual({
+      code: 'FORMAL_STAGING_CLEANUP', message: expect.stringContaining('Formal cleanup injected failure'),
+    });
+    await expect(fs.readFile(path.join(root, archive, 'elements', 'root.md'), 'utf8')).resolves.toContain('New root.');
+    await expect(fs.readFile(path.join(elements, 'root.md'), 'utf8')).resolves.toContain('New root.');
+    await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  } finally { hook.mockRestore(); }
+});
 
 it('rejects mutually exclusive archive options as an invalid CLI argument', async () => {
   const result = await runCLI(['archive', '--quick', '--abandon', '--json'], { cwd: root });

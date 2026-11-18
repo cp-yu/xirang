@@ -227,13 +227,13 @@ export class ArchiveCommand {
     if (!name.valid || changeName === 'archive') throw new Error(name.error ?? 'Invalid archive Change name.');
     const changeDir = path.join(changesDir, changeName);
     const active = await statIfPresent(changeDir);
+    await requireNoCompetingArchive(changesDir);
     const report = (location: string, alreadyArchived = false) => {
       const archive = path.relative(projectRoot, location);
       if (alreadyArchived && !options.json) diagnostic('Already archived.', 'ARCHIVE_ALREADY_ARCHIVED', false);
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
     if (!active?.isDirectory()) {
-      await requireNoCompetingArchive(changesDir);
       const existing = await findArchivedChange(archiveDir, changeName, options.abandon === true);
       if (!existing) throw new Error(`Change '${changeName}' not found.`);
       report(existing, true);
@@ -288,13 +288,15 @@ export class ArchiveCommand {
         if (options.yes) diagnostic(`${message} Continuing due to --yes flag.`, 'INCOMPLETE_GOALS', options.json);
         else if (!(await ask(`${message} Continue?`))) return;
       }
+      let cleanupWarnings: string[] = [];
       await move({
         apply: async install => {
           if (!options.quick) await requireSeal(changeDir, projectRoot, changeName);
           await assertPreparedDelta(changeDir, prepared);
-          await applyPreparedChangeSync(projectRoot, prepared, { postWrite: install });
+          ({ cleanupWarnings } = await applyPreparedChangeSync(projectRoot, prepared, { postWrite: install }));
         },
       });
+      for (const warning of cleanupWarnings) diagnostic(warning, 'FORMAL_STAGING_CLEANUP', options.json);
     }
     report(archivePath);
   }

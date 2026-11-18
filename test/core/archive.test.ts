@@ -318,6 +318,36 @@ git:
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/MISSING_IDENTITY/);
     });
 
+    it('keeps the Change active when an Element declaration omits its operation and has no Section operations', async () => {
+      const name = 'missing-declaration-operation';
+      const unit = 'elements/existing.id.md';
+      const delta = MODIFY_EXISTING.replace('operation: MODIFIED\n', '');
+      const source = await writeChangeDelta(tempDir, name, { [unit]: delta });
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      const before = await fs.readFile(formal);
+
+      await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/existing\.id\.md: MISSING_OPERATION/);
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('archives an unchanged navigation declaration without applying a Delta', async () => {
+      const name = 'navigation-declaration';
+      const unit = 'elements/existing.id.md';
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      const before = await fs.readFile(formal);
+      const delta = elementUnit({ identity: 'existing.id', title: 'Existing', definition: 'Existing summary' });
+      const source = await writeChangeDelta(tempDir, name, { [unit]: delta });
+
+      await archiveCommand.execute(name, { quick: true, yes: true, json: true });
+
+      const { archive } = JSON.parse(vi.mocked(console.log).mock.lastCall![0]);
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(tempDir, archive, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+    });
+
     it.each([
       ['## MODIFIED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n', 'DUPLICATE_OPERATION_BLOCK'],
@@ -577,6 +607,44 @@ git:
       await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'))).resolves.toEqual(bytes);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
+
+    it.skipIf(process.platform === 'win32').each(['REMOVED', 'MODIFIED'] as const)(
+      'preserves restricted Formal permissions on delivery rollback and retry (%s)', async operation => {
+        const name = 'restricted-model';
+        const unit = 'elements/restricted/existing.id.md';
+        const directory = path.join(tempDir, '.xirang', 'model', 'elements', 'restricted');
+        const formal = path.join(directory, 'existing.id.md');
+        await fs.mkdir(directory, { mode: 0o700 });
+        await fs.rename(path.join(path.dirname(directory), 'existing.id.md'), formal);
+        await fs.chmod(formal, 0o600);
+        const before = await fs.readFile(formal);
+        const original = await fs.stat(formal);
+        const parent = await fs.stat(directory);
+        const delta = operation === 'MODIFIED' ? MODIFY_EXISTING : '---\noperation: REMOVED\nentity: element-declaration\nidentity: existing.id\n---\n';
+        const source = await writeChangeDelta(tempDir, name, { [unit]: delta });
+        const failure = new Error('cannot capture Change');
+        const command = new ArchiveCommand({ rename: async () => {
+          if (operation === 'REMOVED') await expect(fs.access(formal)).rejects.toMatchObject({ code: 'ENOENT' });
+          else await expect(fs.readFile(formal, 'utf8')).resolves.toContain('Changed summary');
+          throw failure;
+        } });
+
+        await expect(command.execute(name, { quick: true, yes: true })).rejects.toBe(failure);
+        await expect(fs.readFile(formal)).resolves.toEqual(before);
+        expect(await fs.stat(formal)).toMatchObject({ mode: original.mode, ino: original.ino });
+        expect((await fs.stat(directory)).mode).toBe(parent.mode);
+        await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+        await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+
+        await archiveCommand.execute(name, { quick: true, yes: true });
+        expect((await fs.stat(directory)).mode).toBe(parent.mode);
+        if (operation === 'REMOVED') await expect(fs.access(formal)).rejects.toMatchObject({ code: 'ENOENT' });
+        else {
+          expect((await fs.stat(formal)).mode).toBe(original.mode);
+          await expect(fs.readFile(formal, 'utf8')).resolves.toContain('Changed summary');
+        }
+      },
+    );
 
     it('removes a newly created Formal partition when movement fails', async () => {
       const views = path.join(tempDir, '.xirang', 'model', 'views');

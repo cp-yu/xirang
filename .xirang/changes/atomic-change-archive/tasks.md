@@ -70,3 +70,6 @@
 - [x] [code_fix] 交付前的制品状态查询不读取 Quality 记录，默认状态查询保留原行为。
 - [x] [artifact_fix] 未指定放弃目标且有交互终端时，统一交给 Archive CLI 选择。
 - [x] [code_fix] 拒绝 Section 名称后的 Markdown 闭合井号，避免误把删除项当成已应用。
+- [x] [code_fix] 不带 Section 操作的 Element Delta 缺少声明操作时，仅允许与 Formal 一致的导航占位。
+- [x] [code_fix] 交付失败恢复原 Formal 单元及其权限，保留已有目录；提交后清理失败只报告警告。
+- [x] [artifact_fix] Snack 文档明确区分 Apply 封印后交付和用户显式选择的 quick 交付。

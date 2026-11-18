@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { promises as fs, type Stats } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from '../config.js';
+import { describeError } from '../../utils/output.js';
 import { MODEL_DIR_NAME, modelRoot } from './paths.js';
 import { readModelTree } from './parser.js';
 import { PARTITIONS } from './types.js';
@@ -20,8 +21,15 @@ export interface PreparedSyncManifestEntry {
 
 export type SyncTransactionFileSystem = Pick<
   typeof fs,
-  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'rmdir' | 'writeFile'
+  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'rmdir' | 'writeFile' | 'chmod'
 >;
+
+interface StagedModelUnit {
+  entry: PreparedSyncManifestEntry;
+  directory: string;
+  backup?: string;
+  written?: Buffer | null;
+}
 
 export interface SemanticTreeTransactionOptions {
   filesystem?: Partial<SyncTransactionFileSystem>;
@@ -268,7 +276,7 @@ export async function applySemanticTreeManifest(
   formalFingerprint: string,
   manifest: PreparedSyncManifestEntry[],
   options: SemanticTreeTransactionOptions = {},
-): Promise<void> {
+): Promise<string[]> {
   const filesystem = transactionFileSystem(options.filesystem);
   const currentFingerprint = semanticTreeFingerprint(await readSyncModelTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
@@ -277,38 +285,33 @@ export async function applySemanticTreeManifest(
   await assertManifestPreimages(projectRoot, manifest, filesystem);
   await options.preWrite?.();
 
-  const applied: Array<{ entry: PreparedSyncManifestEntry; written: Buffer | null }> = [];
-  const createdDirectories = new Map<string, Stats>();
+  const staged: StagedModelUnit[] = [];
+  const createdDirectories: string[] = [];
   try {
-    for (const entry of manifest) {
-      let recorded: typeof applied[number] | undefined;
-      await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories, written => {
-        if (recorded) recorded.written = written;
-        else {
-          recorded = { entry, written };
-          applied.push(recorded);
-        }
-      });
-    }
+    for (const entry of manifest) await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories, staged);
     await options.postWrite?.();
   } catch (error) {
-    const rollbackErrors = await rollbackManifest(projectRoot, applied, filesystem);
-    for (const [directory, expected] of [...createdDirectories].sort(([a], [b]) => b.length - a.length)) {
+    const rollbackErrors = await rollbackManifest(projectRoot, staged, filesystem);
+    for (const directory of createdDirectories.reverse()) {
       try {
-        const current = await filesystem.lstat(directory);
-        if (current.isDirectory() && current.ino === expected.ino && current.dev === expected.dev) await filesystem.rmdir(directory);
+        await filesystem.rmdir(directory);
       } catch (cause) {
         if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') rollbackErrors.push(cause as Error);
       }
     }
     if (rollbackErrors.length > 0) {
-      throw new AggregateError(
-        [error as Error, ...rollbackErrors],
-        'Semantic sync failed and rollback was incomplete',
-      );
+      throw new AggregateError([error, ...rollbackErrors], 'Semantic sync failed and rollback was incomplete');
     }
     throw error;
   }
+
+  const warnings: string[] = [];
+  for (const unit of staged) {
+    await removeModelStaging(unit, filesystem).catch(error => {
+      warnings.push(`Could not clean Formal staging ${unit.directory}: ${describeError(error)}`);
+    });
+  }
+  return warnings;
 }
 
 export async function readSemanticDirectoryTree(semanticRoot: string): Promise<Map<string, Buffer>> {
@@ -382,6 +385,7 @@ function transactionFileSystem(overrides?: Partial<SyncTransactionFileSystem>): 
     rm: overrides?.rm ?? fs.rm.bind(fs),
     rmdir: overrides?.rmdir ?? fs.rmdir.bind(fs),
     writeFile: overrides?.writeFile ?? fs.writeFile.bind(fs),
+    chmod: overrides?.chmod ?? fs.chmod.bind(fs),
   };
 }
 
@@ -406,17 +410,10 @@ async function applyManifestEntry(
   projectRoot: string,
   entry: PreparedSyncManifestEntry,
   filesystem: SyncTransactionFileSystem,
-  createdDirectories: Map<string, Stats>,
-  markWritten: (bytes: Buffer | null) => void,
+  createdDirectories: string[],
+  staged: StagedModelUnit[],
 ): Promise<void> {
   const target = resolveManifestPath(projectRoot, entry.path);
-  if (entry.action === 'delete') {
-    await assertManifestPreimage(projectRoot, entry, filesystem);
-    await filesystem.rm(target, { force: true });
-    markWritten(null);
-    return;
-  }
-
   const parent = path.dirname(target);
   const missing: string[] = [];
   for (let directory = parent; ; directory = path.dirname(directory)) {
@@ -427,56 +424,54 @@ async function applyManifestEntry(
   }
   for (const directory of missing.reverse()) {
     await filesystem.mkdir(directory);
-    createdDirectories.set(directory, await filesystem.lstat(directory));
+    createdDirectories.push(directory);
   }
-  const stage = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
-  const temporary = path.join(stage, 'unit');
-  const cleanup = () => filesystem.rm(stage, { recursive: true, force: true });
-  try {
-    await filesystem.writeFile(temporary, entry.postimage!, { flag: 'wx' });
-    await assertManifestPreimage(projectRoot, entry, filesystem);
-    try {
-      await filesystem.rename(temporary, target);
-    } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code;
-      if (entry.preimage === null || code !== 'EPERM' && code !== 'EEXIST') throw error;
-      await assertManifestPreimage(projectRoot, entry, filesystem);
-      await filesystem.rm(target, { force: true });
-      markWritten(null);
-      await filesystem.rename(temporary, target);
-    }
-    markWritten(entry.postimage);
-  } catch (error) {
-    try {
-      await cleanup();
-    } catch (cleanupError) {
-      throw new AggregateError([error, cleanupError], `Failed to write and clean up staging for ${entry.path}`);
-    }
-    throw error;
+  const directory = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
+  const unit: StagedModelUnit = { entry, directory };
+  staged.push(unit);
+  const replacement = path.join(directory, 'unit');
+  if (entry.postimage !== null) {
+    await filesystem.writeFile(replacement, entry.postimage, { flag: 'wx' });
+    if (entry.preimage !== null) await filesystem.chmod(replacement, (await filesystem.lstat(target)).mode & 0o777);
   }
-  await cleanup();
+  await assertManifestPreimage(projectRoot, entry, filesystem);
+  if (entry.preimage !== null) {
+    // Keep the original inode so rollback restores metadata as well as bytes.
+    const backup = path.join(directory, 'original');
+    await filesystem.rename(target, backup);
+    unit.backup = backup;
+    unit.written = null;
+  }
+  if (entry.postimage !== null) {
+    await filesystem.rename(replacement, target);
+    unit.written = entry.postimage;
+  }
+}
+
+function removeModelStaging(unit: StagedModelUnit, filesystem: SyncTransactionFileSystem): Promise<void> {
+  return filesystem.rm(unit.directory, { force: true, recursive: true });
 }
 
 async function rollbackManifest(
   projectRoot: string,
-  applied: Array<{ entry: PreparedSyncManifestEntry; written: Buffer | null }>,
+  staged: StagedModelUnit[],
   filesystem: SyncTransactionFileSystem,
 ): Promise<Error[]> {
   const errors: Error[] = [];
-  for (const { entry, written } of [...applied].reverse()) {
+  for (const unit of [...staged].reverse()) {
+    const { entry, backup, written } = unit;
     const target = resolveManifestPath(projectRoot, entry.path);
     try {
-      if (!sameBytes(await readOptionalBuffer(target, filesystem), written)) {
-        throw new Error(`Cannot roll back ${entry.path}: the installed model unit changed outside this transaction`);
+      if (written !== undefined) {
+        if (!sameBytes(await readOptionalBuffer(target, filesystem), written)) {
+          throw new Error(`Cannot roll back ${entry.path}: the installed model unit changed outside this transaction`);
+        }
+        if (written !== null) await filesystem.rm(target, { force: true });
+        if (backup) await filesystem.rename(backup, target);
       }
-      if (entry.preimage === null) {
-        await filesystem.rm(target, { force: true });
-      } else {
-        await filesystem.mkdir(path.dirname(target), { recursive: true });
-        await filesystem.writeFile(target, entry.preimage);
-      }
+      await removeModelStaging(unit, filesystem);
     } catch (error) {
-      errors.push(error as Error);
+      errors.push(new AggregateError([error], `Could not restore or clean up ${entry.path}; inspect ${unit.directory}`));
     }
   }
   return errors;
