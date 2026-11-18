@@ -1,0 +1,39 @@
+name: Diagnose Windows process startup
+
+on:
+  push:
+    branches: [diagnose/windows-dll-startup]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: ${{ matrix.image }} / sample ${{ matrix.sample }}
+    runs-on: ${{ matrix.image }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [windows-2025-vs2026, windows-2022]
+        sample: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run likec4:install
+      - name: Run original build commands under a persistent Windows supervisor
+        shell: powershell
+        run: ./.github/diagnostics/windows-startup.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-startup-${{ matrix.image }}-${{ matrix.sample }}
+          path: ${{ runner.temp }}/xirang-windows-startup/probe.log
+          if-no-files-found: warn
