@@ -406,11 +406,37 @@ it.each(['##', '   ##', '##\t'])('rejects an empty level-two heading (%j) that e
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
 });
 
-async function expectInvalidDelivery(file: string, delta: string, code: string): Promise<void> {
+it.each([
+  ['views/overview.md', 'authored-view', 'ADDED', 'identity: overview\ninclude: "*"\nautoLayot: TB\n'],
+  ['metamodel/capability.md', 'element-kind', 'MODIFIED', 'identity: capability\ncontract: optional\nparentKinds: [project]\n'],
+  ['metamodel/links.md', 'relationship-kind', 'ADDED', 'identity: links\ntargetKind: capability\n'],
+  ['elements/root.md', 'element-declaration', 'MODIFIED', 'identity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Updated definition.\nparentId: not-present\n'],
+])('rejects unknown frontmatter fields in %s (%s, %s)', async (file, entity, operation, fields) => {
+  await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}---\n`, 'UNSUPPORTED_DELTA_FIELD');
+});
+
+it.each(['# Not an operation', '   #'])('rejects a level-one heading (%j) that ends an operation block', async heading => {
+  const sections = `## ADDED Sections\n\n### Section: First rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\nStray text.\n\n### Section: Unscoped rule\n\nRoot SHALL NOT accept this rule.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSCOPED_SECTION_CONTENT');
+});
+
+it.each(['Delta', 'Formal'] as const)('rejects invalid UTF-8 in a %s semantic unit', async target => {
+  const section = '### Section: Rule\n\nRoot SHALL follow';
+  const unit = elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.',
+    sections: `${target === 'Delta' ? '## ADDED Sections' : '## Specification'}\n\n${section}` });
+  const bytes = Buffer.concat([Buffer.from(unit.trimEnd() + ' '), Buffer.from([0x80]), Buffer.from('.\n')]);
+  await expectInvalidDelivery('elements/root.md', bytes, 'NON_UTF8_UNIT_CONTENT', target);
+});
+
+async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
+  const source = await writeChangeDelta(root, 'invalid-delta', { 'proposal.md': '# Invalid Delta\n',
+    ...(target === 'Formal' ? { '.delta-noop': '' } : { [file]: '' }) });
+  const location = path.join(target === 'Delta' ? source : model, file);
+  await fs.writeFile(location, delta);
   const before = await readModelTree(model);
-  const source = await writeChangeDelta(root, 'invalid-delta', { 'proposal.md': '# Invalid Delta\n', [file]: delta });
   await createCompleteQualityFixture(root, source);
   for (const command of [['validate', '--change', 'invalid-delta', '--preview'], ['archive', 'invalid-delta', '--yes'], ['archive', 'invalid-delta', '--yes', '--quick']]) {
     const result = await runCLI([...command, '--json'], { cwd: root });
@@ -419,7 +445,8 @@ async function expectInvalidDelivery(file: string, delta: string, code: string):
     expect.soft(result.stderr).toContain(file);
   }
   await expect(readModelTree(model)).resolves.toEqual(before);
-  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.readFile(location)).resolves.toEqual(Buffer.from(delta));
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Invalid Delta\n');
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 }
 

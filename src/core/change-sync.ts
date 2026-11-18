@@ -1,6 +1,6 @@
 import { compileChangeDelta } from './change-compiler.js';
 import { changeRoot, modelRoot } from './model/paths.js';
-import { parseSemanticModelFiles, readDeltaTree, readModelTree } from './model/parser.js';
+import { decodeSemanticFiles, parseSemanticModelFiles, readDeltaTree, readModelTree } from './model/parser.js';
 import { Validator } from './validation/validator.js';
 import { writeMinimal } from './model/sync-writer.js';
 import { semanticModelFingerprint, type ChangeDiagnostic } from './semantic-diff.js';
@@ -42,7 +42,7 @@ function countPartitions(manifest: PreparedSyncManifestEntry[]): PartitionCounts
 }
 
 function parseModelTree(files: ReadonlyMap<string, Buffer>) {
-  return parseSemanticModelFiles([...files].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
+  return parseSemanticModelFiles(decodeSemanticFiles(files));
 }
 
 function verifyTargetModel(files: ReadonlyMap<string, Buffer>, fingerprint: string): void {
@@ -60,7 +60,7 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const base = parseModelTree(units);
   const changeDir = changeRoot(projectRoot, changeName);
   const deltaSnapshot = await readDeltaTree(changeDir);
-  const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+  const files = decodeSemanticFiles(deltaSnapshot);
   const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, {
     base, deltaFiles: files, allowAlreadyApplied: true,
   });

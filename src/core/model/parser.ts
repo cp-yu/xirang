@@ -1,3 +1,4 @@
+import { isUtf8 } from 'node:buffer';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
@@ -492,8 +493,19 @@ export async function readModelTree(root: string, includeHiddenDeltaUnits = fals
   return files;
 }
 
+export function decodeSemanticFiles(files: ReadonlyMap<string, Buffer>): Map<string, string> {
+  const decoded = new Map<string, string>();
+  for (const [file, bytes] of files) {
+    if (!isUtf8(bytes)) {
+      throw new Error(`${file}: NON_UTF8_UNIT_CONTENT: semantic unit is not valid UTF-8; save it as UTF-8 before retrying.`);
+    }
+    decoded.set(file, bytes.toString('utf8'));
+  }
+  return decoded;
+}
+
 export async function readModelFiles(root: string): Promise<Map<string, string>> {
-  return new Map([...await readModelTree(root)].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+  return decodeSemanticFiles(await readModelTree(root));
 }
 
 export function readDeltaTree(root: string): Promise<Map<string, Buffer>> {
@@ -501,7 +513,7 @@ export function readDeltaTree(root: string): Promise<Map<string, Buffer>> {
 }
 
 export async function readDeltaFiles(root: string): Promise<Map<string, string>> {
-  return new Map([...await readDeltaTree(root)].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+  return decodeSemanticFiles(await readDeltaTree(root));
 }
 
 /** A unit carries frontmatter; anything else in a partition is a structured list container. */

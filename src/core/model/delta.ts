@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { parseDeltaSpec } from '../parsers/section-blocks.js';
-import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
+import { frontmatterKeys, normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import {
   normalizeProse,
   parseRelationshipContainer,
@@ -175,6 +175,16 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
   if (entity === 'authored-view' && identity === RESERVED_AUTHORED_VIEW_IDENTITY) {
     diagnostics.push(error('RESERVED_VIEW_IDENTITY', file, 'Authored View identity full-model is reserved for the default Full Model', identity, entity));
     return;
+  }
+  if (entity && split.data.operation !== 'REMOVED') {
+    const fields = frontmatterKeys(entity);
+    const unknown = Object.keys(split.data).filter(key => key !== 'entity' && key !== 'operation' && !fields.includes(key));
+    if (unknown.length) {
+      diagnostics.push(error('UNSUPPORTED_DELTA_FIELD', file,
+        `${entity} Delta has unsupported frontmatter fields: ${unknown.sort(compareUtf8Bytes).map(key => JSON.stringify(key)).join(', ')}`,
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
   }
   if (entity === 'element-declaration') {
     parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);

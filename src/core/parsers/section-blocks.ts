@@ -19,7 +19,7 @@ export function normalizeSectionName(name: string): string {
 }
 
 const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
-const LEVEL_TWO_HEADING = /^ {0,3}##(?:[ \t]+(.*))?$/;
+const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
 
@@ -55,10 +55,10 @@ export function extractSpecificationSection(content: string): SpecificationSecti
     };
   }
 
-  // A level-two heading ends the Specification, even if it has no title.
+  // A heading at level one or two ends the Specification, even without a title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    if (!codeFenceMask[i] && LEVEL_TWO_HEADING.test(lines[i])) {
+    if (!codeFenceMask[i] && ENCLOSING_HEADING.test(lines[i])) {
       endIndex = i;
       break;
     }
@@ -196,10 +196,12 @@ function splitTopLevelSections(content: string): {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
-    const heading = !mask[i] && line.match(LEVEL_TWO_HEADING);
+    const heading = !mask[i] && line.match(ENCLOSING_HEADING);
     if (heading) {
-      const title = heading[1]?.trim() ?? '';
-      if (!title) malformedOperationLines.push(i + 1);
+      const topLevel = heading[1] === '#';
+      const title = topLevel ? '' : heading[2]?.trim() ?? '';
+      if (topLevel) unscopedContentLines.push(i + 1);
+      else if (!title) malformedOperationLines.push(i + 1);
       indices.push({ title, index: i });
       block = title.toLowerCase();
       hasSection = false;
@@ -250,7 +252,7 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
     if (!name) { i++; continue; }
     const buf: string[] = [headerLine.trimStart()];
     i++;
-    while (i < lines.length && !isHeader(i) && (mask[i] || !LEVEL_TWO_HEADING.test(lines[i]))) {
+    while (i < lines.length && !isHeader(i) && (mask[i] || !ENCLOSING_HEADING.test(lines[i]))) {
       buf.push(lines[i]);
       i++;
     }
