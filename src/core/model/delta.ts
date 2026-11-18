@@ -122,6 +122,9 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     return;
   }
   const plan = parseDeltaSpec(body);
+  for (const line of plan.malformedOperationLines) {
+    diagnostics.push(error('MALFORMED_SECTION_OPERATION_HEADER', file, `Empty Section operation header at body line ${line}`, identity));
+  }
   for (const line of plan.malformedSectionLines) {
     diagnostics.push(error('MALFORMED_SECTION_HEADER', file, `Malformed Section header at body line ${line}; use ### Section: <name>`, identity));
   }

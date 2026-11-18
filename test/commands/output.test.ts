@@ -387,6 +387,42 @@ it('rejects unsupported Relationship container fields even with valid entries', 
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+it.each([
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'of: [not-present]', 'INVALID_VIEW_OF'],
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'title: false', 'INVALID_VIEW_TITLE'],
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'autoLayout: {direction: LR}', 'INVALID_VIEW_AUTO_LAYOUT'],
+  ['metamodel/capability.md', 'element-kind', 'identity: capability\ncontract: optional\n', 'root: "true"', 'INVALID_KIND_ROOT'],
+  ['elements/root.md', 'element-declaration', 'identity: root\nkind: project\ntitle: Root\ndefinition: Updated definition.\n', 'parent: [not-present]', 'INVALID_ELEMENT_PARENT'],
+  ['elements/root.md', 'element-declaration', 'identity: root\nkind: project\nparent: null\ndefinition: Updated definition.\n', 'title: 100', 'INVALID_ELEMENT_TITLE'],
+])('rejects malformed %s frontmatter (%s, %s, %s)', async (file, entity, fields, malformed, code) => {
+  const operation = entity === 'authored-view' ? 'ADDED' : 'MODIFIED';
+  await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}${malformed}\n---\n`, code);
+});
+
+it.each(['##', '   ##', '##\t'])('rejects an empty level-two heading (%j) that ends an operation block', async heading => {
+  const file = 'elements/root.md';
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\nStray text.`;
+  await expectInvalidDelivery(file, elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+async function expectInvalidDelivery(file: string, delta: string, code: string): Promise<void> {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'invalid-delta', { 'proposal.md': '# Invalid Delta\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'invalid-delta', '--preview'], ['archive', 'invalid-delta', '--yes'], ['archive', 'invalid-delta', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain(code);
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+}
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });

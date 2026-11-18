@@ -113,3 +113,6 @@
 - [x] [code_fix] Kind 的显式上下游约束必须是 identity 列表，畸形值不得被当作省略字段交付。
 - [x] [code_fix] 拒绝无标题的 Acceptance Case，其内容不计入 Section 正文；围栏内示例不受影响。
 - [x] [code_fix] Relationship 容器的合法条目不能掩盖非法顶层字段；预览、默认交付和 quick 均拒绝且不写入。
+- [x] [code_fix] 拒绝 Authored View 的非字符串 `of`，并校验同样会被忽略的已声明标量字段类型。
+- [x] [code_fix] 空的二级 Markdown 标题终止 Section 操作块，不能把其后的游离正文并入 Contract；围栏内示例保持不变。
+- [x] [code_fix] 以真实浅克隆验证默认交付只消费有效 Seal；缺少旧 Opt 提交时重新计算 Apply 状态会失败，但不阻塞归档。

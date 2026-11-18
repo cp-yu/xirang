@@ -10,7 +10,7 @@ import os from 'os';
 import { promisify } from 'util';
 import { elementKindUnit, elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { createCompleteQualityFixture, createBaselineOnlyQualityFixture } from '../helpers/quality-fixture.js';
-import { readQualityRecord, recordQualityReview } from '../../src/core/quality/engine.js';
+import { readQualityRecord, readQualityRecordStatus, recordQualityOpt, recordQualityReview, recordQualitySeal } from '../../src/core/quality/engine.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -248,6 +248,47 @@ git:
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
       const archives = await fs.readdir(archiveDir);
       expect(archives.some((entry) => entry.includes(changeName))).toBe(true);
+    });
+
+    it('consumes an existing Seal without re-evaluating Opt history absent from a shallow clone', async () => {
+      const name = 'shallow-seal';
+      const source = await writeSemanticArchiveFixture(name);
+      await createBaselineOnlyQualityFixture(tempDir, source);
+      const baseline = await readQualityRecord(source);
+      const git = async (...args: string[]) => (await execFileAsync('git', args, { cwd: tempDir })).stdout.trim();
+      await fs.writeFile(path.join(tempDir, 'src', 'quality-fixture.ts'), 'export const optimized = true;\n');
+      await git('commit', '-am', 'Opt result');
+      const resultCommit = await git('rev-parse', 'HEAD');
+      const opt = await recordQualityOpt({
+        changeDir: source, projectRoot: tempDir, expectedRevision: baseline.revision, disposition: 'delivered',
+        opinions: [{ opinionId: 'opt-1', baseCommit: baseline.reviews[0].commit, resultCommit, summary: 'Optimization delivered.', findings: [] }],
+      });
+      await git('commit', '--allow-empty', '-m', 'Review checkpoint');
+      const commit = await git('rev-parse', 'HEAD');
+      const review = await recordQualityReview({
+        changeDir: source, projectRoot: tempDir, expectedRevision: opt.revision, reviewKind: 'incremental',
+        commit, result: 'PASS', summary: 'Optimization verified.', findings: [],
+      });
+      await recordQualitySeal({
+        changeDir: source, projectRoot: tempDir, expectedRevision: review.revision,
+        seal: { commit, canRun: true, testsExpectedToPass: true, testScope: 'fixture', assessment: 'Reviewed checkpoint.' },
+      });
+      await expect(readQualityRecordStatus(source, tempDir)).resolves.toMatchObject({ status: 'all_done' });
+      const clone = path.join(tempDir, 'shallow');
+      await git('clone', '--depth=1', '--no-local', tempDir, clone);
+      const clonedChange = path.join(clone, '.xirang', 'changes', name);
+      const quality = await fs.readFile(path.join(source, '.quality.json'));
+      await fs.writeFile(path.join(clonedChange, '.quality.json'), quality);
+      await expect(readQualityRecordStatus(clonedChange, clone)).rejects.toMatchObject({ code: 'GIT_COMMIT_NOT_FOUND' });
+
+      process.chdir(clone);
+      try { await archiveCommand.execute(name, { yes: true }); }
+      finally { process.chdir(tempDir); }
+      await expect(fs.readFile(path.join(clone, '.xirang', 'model', 'elements', 'existing.id.md'), 'utf8')).resolves.toContain('Changed summary');
+      await expect(fs.access(clonedChange)).rejects.toMatchObject({ code: 'ENOENT' });
+      const archive = path.join(path.dirname(clonedChange), 'archive');
+      const [archived] = await fs.readdir(archive);
+      await expect(fs.readFile(path.join(archive, archived, '.quality.json'))).resolves.toEqual(quality);
     });
 
     it('applies pending model writes before enclosing the Change in history', async () => {

@@ -19,6 +19,7 @@ export function normalizeSectionName(name: string): string {
 }
 
 const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
+const LEVEL_TWO_HEADING = /^ {0,3}##(?:[ \t]+(.*))?$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
 
@@ -54,10 +55,10 @@ export function extractSpecificationSection(content: string): SpecificationSecti
     };
   }
 
-  // Find end of this section: next line that starts with '## ' at same or higher level
+  // A level-two heading ends the Specification, even if it has no title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    if (!codeFenceMask[i] && /^##\s+/.test(lines[i])) {
+    if (!codeFenceMask[i] && LEVEL_TWO_HEADING.test(lines[i])) {
       endIndex = i;
       break;
     }
@@ -119,6 +120,7 @@ export interface DeltaPlan {
   unsupportedSections: string[];
   duplicateSections: string[];
   unscopedSections: string[];
+  malformedOperationLines: number[];
   malformedSectionLines: number[];
   unscopedContentLines: number[];
   removedContentLines: number[];
@@ -134,7 +136,7 @@ export interface DeltaPlan {
  */
 export function parseDeltaSpec(content: string): DeltaPlan {
   const normalized = normalizeLineEndings(content);
-  const { sections, unscopedSections, malformedSectionLines, unscopedContentLines, removedContentLines } = splitTopLevelSections(normalized);
+  const { sections, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines } = splitTopLevelSections(normalized);
   const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Sections');
   const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Sections');
   const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Sections');
@@ -160,6 +162,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     unsupportedSections,
     duplicateSections,
     unscopedSections,
+    malformedOperationLines,
     malformedSectionLines,
     unscopedContentLines,
     removedContentLines,
@@ -174,6 +177,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
 function splitTopLevelSections(content: string): {
   sections: Array<[string, string]>;
   unscopedSections: string[];
+  malformedOperationLines: number[];
   malformedSectionLines: number[];
   unscopedContentLines: number[];
   removedContentLines: number[];
@@ -181,6 +185,7 @@ function splitTopLevelSections(content: string): {
   const lines = content.split('\n');
   const sections: Array<[string, string]> = [];
   const unscopedSections: string[] = [];
+  const malformedOperationLines: number[] = [];
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
@@ -191,9 +196,10 @@ function splitTopLevelSections(content: string): {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
-    const heading = !mask[i] && line.match(/^ {0,3}##\s+(.+)$/);
+    const heading = !mask[i] && line.match(LEVEL_TWO_HEADING);
     if (heading) {
-      const title = heading[1].trim();
+      const title = heading[1]?.trim() ?? '';
+      if (!title) malformedOperationLines.push(i + 1);
       indices.push({ title, index: i });
       block = title.toLowerCase();
       hasSection = false;
@@ -212,11 +218,12 @@ function splitTopLevelSections(content: string): {
   }
   for (let i = 0; i < indices.length; i++) {
     const current = indices[i];
+    if (!current.title) continue;
     const next = indices[i + 1];
     const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
     sections.push([current.title, body]);
   }
-  return { sections, unscopedSections, malformedSectionLines, unscopedContentLines, removedContentLines };
+  return { sections, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines };
 }
 
 function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {
@@ -243,7 +250,7 @@ function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
     if (!name) { i++; continue; }
     const buf: string[] = [headerLine.trimStart()];
     i++;
-    while (i < lines.length && !isHeader(i) && (mask[i] || !/^##\s+/.test(lines[i]))) {
+    while (i < lines.length && !isHeader(i) && (mask[i] || !LEVEL_TWO_HEADING.test(lines[i]))) {
       buf.push(lines[i]);
       i++;
     }

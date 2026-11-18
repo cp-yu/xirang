@@ -190,6 +190,14 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   if (entity === 'element-declaration') {
     const contract = parseContract(body, file, diagnostics);
     const definition = text(data.definition);
+    const parent = text(data.parent);
+    const title = text(data.title);
+    if (data.parent !== undefined && data.parent !== null && parent === undefined) {
+      diagnostics.push(error('INVALID_ELEMENT_PARENT', file, `Element ${identity} parent must be an identity or null`, identity));
+    }
+    if (data.title !== undefined && title === undefined) {
+      diagnostics.push(error('INVALID_ELEMENT_TITLE', file, `Element ${identity} title must be a string`, identity));
+    }
     if (Object.hasOwn(data, 'summary')) {
       diagnostics.push(error(
         'LEGACY_ELEMENT_SUMMARY',
@@ -217,8 +225,8 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         declaration: {
           identity,
           kind: text(data.kind) ?? '',
-          parent: text(data.parent) ?? null,
-          title: text(data.title) ?? '',
+          parent: parent ?? null,
+          title: title ?? '',
           definition: definition ?? '',
         },
         sections: contract.sections,
@@ -235,6 +243,9 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
     if (data.contractFormat !== undefined && data.contractFormat !== 'business-specification') {
       diagnostics.push(error('INVALID_CONTRACT_FORMAT', file,
         `Element kind ${identity} contractFormat must be business-specification when present`, identity));
+    }
+    if (data.root !== undefined && typeof data.root !== 'boolean') {
+      diagnostics.push(error('INVALID_KIND_ROOT', file, `Element kind ${identity} root must be a boolean`, identity));
     }
     const parents = kindConstraint(data.parents, 'parents', file, identity, diagnostics);
     const children = kindConstraint(data.children, 'children', file, identity, diagnostics);
@@ -285,6 +296,18 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   if (data.exclude !== undefined && exclude === undefined) {
     diagnostics.push(error('INVALID_VIEW_EXCLUDE', file, `Authored view ${identity} exclude must be a list of identities`, identity));
   }
+  const of = text(data.of);
+  const title = text(data.title);
+  const autoLayout = text(data.autoLayout);
+  if (data.of !== undefined && of === undefined) {
+    diagnostics.push(error('INVALID_VIEW_OF', file, `Authored view ${identity} of must be one Element identity`, identity));
+  }
+  if (data.title !== undefined && title === undefined) {
+    diagnostics.push(error('INVALID_VIEW_TITLE', file, `Authored view ${identity} title must be a string`, identity));
+  }
+  if (data.autoLayout !== undefined && autoLayout === undefined) {
+    diagnostics.push(error('INVALID_VIEW_AUTO_LAYOUT', file, `Authored view ${identity} autoLayout must be a string`, identity));
+  }
   return {
     entity,
     identity,
@@ -292,9 +315,9 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
       identity,
       include: include ?? [],
       ...(exclude !== undefined && exclude.length > 0 ? { exclude } : {}),
-      ...(text(data.of) !== undefined ? { of: text(data.of)! } : {}),
-      ...(text(data.title) !== undefined ? { title: text(data.title)! } : {}),
-      ...(text(data.autoLayout) !== undefined ? { autoLayout: text(data.autoLayout)! } : {}),
+      ...(of !== undefined ? { of } : {}),
+      ...(title !== undefined ? { title } : {}),
+      ...(autoLayout !== undefined ? { autoLayout } : {}),
     },
     diagnostics,
   };
