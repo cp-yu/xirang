@@ -503,6 +503,12 @@ it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unsc
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
 });
 
+it.each(['<div>\n```\n</div>', '<!--\n```\n-->'])('does not let fence-like text in an HTML block hide a retired operation (%j)', async html => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${html}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
+});
+
 async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
@@ -680,11 +686,15 @@ it('completes both finished archive modes and omits marked incomplete history', 
     exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n2026-01-01-dropped\tarchived change\n', stderr: '',
   });
   await writeChangeDelta(root, 'active', { 'proposal.md': '# Active\n' });
+  await fs.mkdir(path.join(path.dirname(archive), 'scaffolded'));
+  await fs.mkdir(path.join(path.dirname(archive), '.temporary'));
   await fs.mkdir(path.join(archive, '2026-02-01-active'));
   await fs.mkdir(path.join(archive, '2026-02-01-dropped'));
   const archiveNames = await runCLI(['__complete', 'archive-changes'], { cwd: root });
   expect.soft(archiveNames).toMatchObject({ exitCode: 0,
-    stdout: 'active\tactive change\ndelivered\tarchived change\ndropped\tarchived change\n', stderr: '' });
+    stdout: 'active\tactive change\ndelivered\tarchived change\ndropped\tarchived change\nscaffolded\tactive change\n', stderr: '' });
+  const activeOnly = await runCLI(['__complete', 'changes'], { cwd: root });
+  expect(activeOnly.stdout).toBe('active\tactive change\n');
   for (const [shell, binding] of [
     ['bash', /archive\)[\s\S]*?_xirang_complete_archive_changes[ \t]*\n[ \t]*;;/],
     ['zsh', /_xirang_archive\(\)[\s\S]*?'\*: :_xirang_complete_archive_changes'/],
@@ -703,7 +713,7 @@ it('completes both finished archive modes and omits marked incomplete history', 
       const names = execFileSync('bash', ['--noprofile', '--norc', '-c',
         'source "$1"; xirang() { command "$XIRANG_TEST_NODE" "$XIRANG_TEST_CLI" "$@"; }; COMP_WORDS=(xirang archive ""); COMP_CWORD=2; _xirang_completion; printf "%s\\n" "${COMPREPLY[@]}"',
         'bash', completionPath], { cwd: root, encoding: 'utf8', env: { ...process.env, XIRANG_TEST_NODE: process.execPath, XIRANG_TEST_CLI: cli } });
-      expect.soft(names.trim().split('\n').sort()).toEqual(['active', 'delivered', 'dropped']);
+      expect.soft(names.trim().split('\n').sort()).toEqual(['active', 'delivered', 'dropped', 'scaffolded']);
     }
   }
   for (const name of ['delivered', 'dropped']) {

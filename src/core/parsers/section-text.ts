@@ -3,9 +3,15 @@
  * Element Contract and Delta validation use these helpers over Section bodies.
  */
 
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
+
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
+const FENCE_START = /^ {0,3}(?:`{3,}|~{3,})/;
+const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
+const markdown = unified().use(remarkParse);
 
 /** Undefined means no case heading; an empty name means the heading has no title. */
 export function readAcceptanceCaseHeader(line: string): string | undefined {
@@ -15,44 +21,23 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
-export function buildCodeFenceMask(lines: string[]): boolean[] {
-  const mask = new Array(lines.length).fill(false);
-  let activeFence: { marker: '`' | '~'; length: number } | null = null;
-
-  for (let i = 0; i < lines.length; i++) {
-    if (!activeFence) {
-      activeFence = getOpeningFence(lines[i]);
-      mask[i] = activeFence !== null;
-      continue;
-    }
-
-    mask[i] = true;
-    if (isClosingFence(lines[i], activeFence)) {
-      activeFence = null;
+export function readSectionMarkdown(lines: string[], includeSetext = false) {
+  const fences = new Array<boolean>(lines.length).fill(false);
+  const setext = new Map<number, number>();
+  if (lines.some(line => FENCE_START.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
+    for (const node of markdown.parse(lines.join('\n')).children) {
+      if (!node.position) continue;
+      const start = node.position.start.line - 1;
+      const end = node.position.end.line - 1;
+      if (node.type === 'code' && FENCE_START.test(lines[start])) fences.fill(true, start, end + 1);
+      if (includeSetext && node.type === 'heading' && start !== end) setext.set(start, end);
     }
   }
-
-  return mask;
+  return { fences, setext };
 }
 
-function getOpeningFence(line: string): { marker: '`' | '~'; length: number } | null {
-  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
-  if (!match) return null;
-  const [, fence, info] = match;
-  const marker = fence[0] as '`' | '~';
-  return marker === '`' && info.includes('`') ? null : { marker, length: fence.length };
-}
-
-function isClosingFence(
-  line: string,
-  activeFence: { marker: '`' | '~'; length: number },
-): boolean {
-  const fenceMatch = line.match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
-  return Boolean(
-    fenceMatch &&
-      fenceMatch[1][0] === activeFence.marker &&
-      fenceMatch[1].length >= activeFence.length,
-  );
+export function buildCodeFenceMask(lines: string[]): boolean[] {
+  return readSectionMarkdown(lines).fences;
 }
 
 /** Whole-word SHALL/MUST detection shared by Contract and Delta validation. */

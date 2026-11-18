@@ -35,6 +35,13 @@ describe('Section delta parsing', () => {
     expect(plan.removed).toEqual(['Removed']);
   });
 
+  it('keeps a real fence after an HTML block containing fence-like text', () => {
+    const raw = '### Section: Actual\n\nThe system SHALL preserve examples.\n\n<div>\n```\n</div>\n\n```md\n## RENAMED Sections\n```\n\nTail text.';
+    const plan = parseDeltaSpec(`## ADDED Sections\n\n${raw}`);
+    expect(plan.added).toEqual([{ name: 'Actual', headerLine: '### Section: Actual', raw }]);
+    expect(plan.unsupportedSections).toEqual([]);
+  });
+
   it('detects unscoped Sections, not example headings in a fence', () => {
     const plan = parseDeltaSpec([
       '```md', '### Section: Example', '```', '### Section: Unscoped',

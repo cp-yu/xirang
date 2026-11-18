@@ -1,6 +1,4 @@
-import remarkParse from 'remark-parse';
-import { unified } from 'unified';
-import { buildCodeFenceMask } from './section-text.js';
+import { buildCodeFenceMask, readSectionMarkdown } from './section-text.js';
 
 export interface SectionBlock {
   headerLine: string; // e.g., '### Section: Something'
@@ -24,19 +22,6 @@ const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
 const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
-const markdown = unified().use(remarkParse);
-
-function setextHeadings(content: string): Map<number, number> {
-  const headings = new Map<number, number>();
-  if (!/^ {0,3}(?:-+|=+)[ \t]*$/m.test(content)) return headings;
-  // Distinguish headings (including multiline titles) from thematic breaks and literal examples.
-  for (const node of markdown.parse(content).children) {
-    if (node.type !== 'heading' || !node.position) continue;
-    const { start, end } = node.position;
-    if (start.line !== end.line) headings.set(start.line - 1, end.line - 1);
-  }
-  return headings;
-}
 
 function deltaSectionName(raw: string | undefined): string | undefined {
   const name = raw?.trim();
@@ -53,7 +38,7 @@ function normalizeLineEndings(content: string): string {
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const codeFenceMask = buildCodeFenceMask(lines);
+  const { fences: codeFenceMask, setext: underlined } = readSectionMarkdown(lines, true);
   const specHeaderIndex = lines.findIndex((line, index) => !codeFenceMask[index]
     && /^##\s+Specification\s*$/i.test(line));
 
@@ -70,7 +55,6 @@ export function extractSpecificationSection(content: string): SpecificationSecti
     };
   }
 
-  const underlined = setextHeadings(normalized);
   // A heading at level one or two ends the Specification, even without a title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
@@ -205,8 +189,7 @@ function splitTopLevelSections(content: string): {
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const mask = buildCodeFenceMask(lines);
-  const underlined = setextHeadings(content);
+  const { fences: mask, setext: underlined } = readSectionMarkdown(lines, true);
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;

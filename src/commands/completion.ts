@@ -1,3 +1,6 @@
+import path from 'node:path';
+import { listActiveChangeDirectories } from '../core/change-utils.js';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { diagnostic } from '../utils/output.js';
 import type { Command } from 'commander';
 import { CompletionFactory } from '../core/completions/factory.js';
@@ -286,7 +289,8 @@ export class CompletionCommand {
           break;
         }
         case 'archive-changes': {
-          const [active, archived] = await Promise.all([this.completionProvider.getChangeIds(), getArchivedChangeIds()]);
+          const changesDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes');
+          const [active, archived] = await Promise.all([listActiveChangeDirectories(changesDir), getArchivedChangeIds()]);
           const descriptions = new Map(archived.map(id => [id.slice(11), 'archived change']));
           for (const id of active) descriptions.set(id, 'active change');
           for (const id of [...descriptions.keys()].sort()) {

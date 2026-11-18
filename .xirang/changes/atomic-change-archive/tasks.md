@@ -127,3 +127,5 @@
 - [x] [code_fix] 状态和预览仅把普通文件 `.delta-noop` 视为显式无 Delta；不跟随链接，也不把目录当作标记。
 - [x] [code_fix] 仅修改 Section 时也校验显式 `parent` 字符串的 identity 记法；合法 `null` 与省略仍保留。
 - [x] [code_fix] 四种 shell 的 `archive` 参数补全使用活动及两种已完成归档的无日期 Change 名，去重并排除半成品；用实际 Bash 和 CLI 回执验证。
+- [x] [code_fix] 按 Markdown 块结构识别代码围栏，HTML 块和注释内的反引号不会隐藏其后的操作标题。
+- [x] [code_fix] 归档参数补全与归档选择器共用目录发现，包括未编写 proposal 的活动 Change；通用补全保持原行为。

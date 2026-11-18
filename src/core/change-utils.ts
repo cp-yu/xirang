@@ -6,16 +6,23 @@ interface SelectActiveChangeOptions {
   output?: NodeJS.WritableStream;
 }
 
+export async function listActiveChangeDirectories(changesDir: string): Promise<string[]> {
+  const entries = await fs.readdir(changesDir, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  });
+  return entries
+    .filter((entry) => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .sort();
+}
+
 export async function selectActiveChange(
   changesDir: string,
   options: SelectActiveChangeOptions = {}
 ): Promise<string | null> {
   const { select } = await import('@inquirer/prompts');
-  const entries = await fs.readdir(changesDir, { withFileTypes: true });
-  const changeDirs = entries
-    .filter((entry) => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
-    .map((entry) => entry.name)
-    .sort();
+  const changeDirs = await listActiveChangeDirectories(changesDir);
 
   if (changeDirs.length === 0) {
 
