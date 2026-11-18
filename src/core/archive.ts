@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
+import { archivedDirectoryState, isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -238,10 +238,11 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
     });
     const candidates = entries.filter(entry => entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName)
       .map(entry => entry.name).sort().reverse();
-    if (candidates.length) {
-      const location = path.join(directory, candidates[0]);
-      await assertNoPendingArchive(location);
-      return location;
+    for (const candidate of candidates) {
+      const location = path.join(directory, candidate);
+      const state = await archivedDirectoryState(location);
+      if (state === 'pending') throw incompleteArchive(location);
+      if (state === 'complete') return location;
     }
   }
   return undefined;

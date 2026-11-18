@@ -13,6 +13,7 @@ import {
   ENTITY_TYPES,
   PARTITIONS,
   emptySemanticModel,
+  relationshipIdentity,
   type AuthoredView,
   type ElementKind,
   type EntityType,
@@ -340,6 +341,13 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   const entities: IndexedEntity[] = [];
   const relationships: IndexedRelationship[] = [];
   const ordered = [...files].sort(([left], [right]) => compareUtf8Bytes(left, right));
+  const identityPaths = new Map<string, string>();
+  const trackIdentity = (entity: EntityType | 'relationship', identity: string, label: string, file: string) => {
+    const key = `${entity}\u0000${identity}`;
+    const first = identityPaths.get(key);
+    if (first === undefined) identityPaths.set(key, file);
+    else diagnostics.push(error('DUPLICATE_FORMAL_IDENTITY', file, `Duplicate ${entity} ${label}, already declared in ${first}`));
+  };
 
   for (const [relativePath, content] of ordered) {
     const partition = partitionOf(relativePath);
@@ -358,6 +366,7 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
         continue;
       }
       diagnostics.push(...outcome.diagnostics);
+      trackIdentity(outcome.entity, outcome.identity, outcome.identity, relativePath);
       entities.push({ identity: outcome.identity, declared: outcome.entity, module });
       if (outcome.element) model.elements.push(outcome.element);
       if (outcome.elementKind) model.elementKinds.push(outcome.elementKind);
@@ -374,6 +383,8 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
         diagnostics.push(relationship);
         continue;
       }
+      const { source, kind, target } = relationship;
+      trackIdentity('relationship', relationshipIdentity(relationship), `${source} -[${kind}]-> ${target}`, relativePath);
       model.relationships.push(relationship);
       relationships.push({ relationship, module });
     }
@@ -395,16 +406,23 @@ export async function readModelTree(root: string, includeDotUnits = false): Prom
   const visit = async (directory: string, relative: string): Promise<void> => {
     let entries;
     try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
+      entries = process.platform === 'win32'
+        ? await fs.readdir(directory, { withFileTypes: true })
+        : await fs.readdir(directory, { withFileTypes: true, encoding: 'buffer' });
     } catch (cause) {
       if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return;
       throw cause;
     }
     for (const entry of entries) {
-      if (entry.name.startsWith('.') && !(includeDotUnits && entry.isFile() && /\.(md|ya?ml)$/i.test(entry.name))) continue;
-      const child = `${relative}/${entry.name}`;
-      if (entry.isDirectory()) await visit(path.join(directory, entry.name), child);
-      else if (entry.isFile()) files.set(child, await fs.readFile(path.join(directory, entry.name)));
+      const name = entry.name.toString();
+      if (name.startsWith('.') && !(includeDotUnits && entry.isFile() && /\.(md|ya?ml)$/i.test(name))) continue;
+      if (!entry.isDirectory() && !entry.isFile()) continue;
+      if (Buffer.isBuffer(entry.name) && !entry.name.equals(Buffer.from(name))) {
+        throw new Error(`NON_UTF8_UNIT_PATH: ${directory} contains an invalid UTF-8 name (bytes: ${entry.name.toString('hex')}); rename the entry before retrying.`);
+      }
+      const child = `${relative}/${name}`;
+      if (entry.isDirectory()) await visit(path.join(directory, name), child);
+      else files.set(child, await fs.readFile(path.join(directory, name)));
     }
   };
   for (const partition of PARTITIONS) await visit(path.join(root, partition), partition);

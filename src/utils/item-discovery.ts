@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { XIRANG_DIR_NAME } from '../core/config.js';
-import { isDatedArchiveName, pendingArchivePath } from '../core/archive-paths.js';
+import { archivedDirectoryState, isDatedArchiveName } from '../core/archive-paths.js';
 import { modelRoot } from '../core/model/paths.js';
 import { parseSemanticModel } from '../core/model/parser.js';
 
@@ -44,9 +44,8 @@ export async function getArchivedChangeIds(root: string = process.cwd()): Promis
     const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
     for (const entry of entries) {
       if (!entry.isDirectory() || !isDatedArchiveName(entry.name)) continue;
-      const marker = pendingArchivePath(path.join(directory, entry.name));
-      const completed = await fs.lstat(marker).then(() => false, (error: NodeJS.ErrnoException) => error.code === 'ENOENT');
-      if (completed) result.add(entry.name);
+      const state = await archivedDirectoryState(path.join(directory, entry.name)).catch(() => 'missing');
+      if (state === 'complete') result.add(entry.name);
     }
   }
   return [...result].sort();

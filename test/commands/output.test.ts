@@ -4,6 +4,7 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
+import { readModelTree } from '../../src/core/model/parser.js';
 import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
@@ -55,6 +56,54 @@ it('archives the no-op marker unchanged rather than treating it as a model unit'
   const { archive } = JSON.parse(result.stdout);
   await expect(fs.readFile(path.join(root, archive, '.delta-noop'), 'utf8')).resolves.toBe('');
   await expect(fs.access(path.join(root, '.xirang', 'model', '.delta-noop'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([
+  ['elements/root.md', 'elements/duplicate.md'],
+  ['metamodel/project.md', 'metamodel/duplicate.md'],
+  ['metamodel/links.md', 'metamodel/duplicate.md'],
+  ['relationships/links.yaml', 'relationships/duplicate.yaml'],
+  ['views/overview.md', 'views/duplicate.md'],
+])('rejects a duplicate Formal identity at %s even for a no-Delta delivery', async (original, duplicate) => {
+  await writeProjectModel(root, minimalModel({
+    relationshipKinds: [{ identity: 'links' }],
+    relationships: [{ source: 'root', kind: 'links', target: 'root' }],
+    views: [{ identity: 'overview' }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  await fs.copyFile(path.join(model, original), path.join(model, duplicate));
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'no-delta', { '.delta-noop': '' });
+
+  const result = await runCLI(['archive', 'no-delta', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('DUPLICATE_FORMAL_IDENTITY') });
+  expect(result.stderr).toContain(original);
+  expect(result.stderr).toContain(duplicate);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, '.delta-noop'), 'utf8')).resolves.toBe('');
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.skipIf(process.platform === 'win32')('rejects a Delta snapshot that cannot represent two distinct POSIX unit paths', async () => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const add = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
+  const source = await writeChangeDelta(root, 'bad-path', { 'elements/unit-�.md': add('utf8-unit') });
+  const opaque = Buffer.concat([Buffer.from(`${source}/elements/unit-`), Buffer.from([0x80]), Buffer.from('.md')]);
+  await fs.writeFile(opaque, add('raw-unit'));
+
+  const result = await runCLI(['archive', 'bad-path', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('NON_UTF8_UNIT_PATH') });
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(opaque, 'utf8')).resolves.toBe(add('raw-unit'));
+  await expect(fs.readFile(path.join(source, 'elements', 'unit-�.md'), 'utf8')).resolves.toBe(add('utf8-unit'));
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+
+  await fs.rename(opaque, path.join(source, 'elements', 'unit-raw.md'));
+  expect(await runCLI(['archive', 'bad-path', '--quick', '--yes', '--json'], { cwd: root })).toMatchObject({ exitCode: 0 });
+  await expect(fs.readFile(path.join(model, 'elements', 'raw-unit.md'), 'utf8')).resolves.toContain('identity: raw-unit');
+  await expect(fs.readFile(path.join(model, 'elements', 'utf8-unit.md'), 'utf8')).resolves.toContain('identity: utf8-unit');
 });
 
 it('rejects invalid final archive validation without moving the active Change', async () => {
@@ -215,6 +264,35 @@ it('completes both finished archive modes and omits marked incomplete history', 
   for (const [name, mode] of [['interrupted', '--quick'], ['interrupted-abandon', '--abandon']]) {
     const retry = await runCLI(['archive', name, mode], { cwd: root });
     expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
+  }
+});
+
+it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive', '2026-01-01-failed');
+  const pending = pendingArchivePath(history);
+  const active = path.join(changes, 'failed');
+  await fs.mkdir(history, { recursive: true });
+  await fs.mkdir(pending);
+  const lstat = fs.lstat;
+  let rolledBack = false;
+  const marker = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === pending && !rolledBack) {
+      rolledBack = true;
+      await fs.mkdir(active);
+      await fs.rmdir(history);
+      await fs.rmdir(pending);
+    }
+    return lstat(location, options);
+  });
+  try {
+    const result = await runCLI(completion ? ['__complete', 'archived-changes'] : ['archive', 'failed', '--json'], { cwd: root });
+    expect(rolledBack).toBe(true);
+    expect(result).toMatchObject({ exitCode: completion ? 0 : 1, stdout: '' });
+    if (!completion) expect(result.stderr).toContain("Change 'failed' not found");
+    await expect(fs.access(active)).resolves.toBeUndefined();
+  } finally {
+    marker.mockRestore();
   }
 });
 
