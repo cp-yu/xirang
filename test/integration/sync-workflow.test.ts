@@ -78,6 +78,23 @@ describe('Semantic Model sync workflow', () => {
     expect(await readModelTree(modelRoot(root))).toEqual(before);
   });
 
+  it('does not start the archive move if the ordinary reader sees different Formal bytes', async () => {
+    await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
+    const prepared = await prepareChangeSync(root, 'add');
+    const before = await readModelTree(modelRoot(root));
+    const postWrite = async () => { throw new Error('archive move started'); };
+    await expect(applyPreparedChangeSync(root, prepared, {
+      filesystem: {
+        rename: async (source, target) => {
+          await fs.rename(source, target);
+          await fs.writeFile(target, 'unexpected bytes');
+        },
+      },
+      postWrite,
+    })).rejects.toThrow('Installed Formal model does not match the prepared target');
+    expect(await readModelTree(modelRoot(root))).toEqual(before);
+  });
+
   it('removes a unit when its Element is removed', async () => {
     await writeChangeDelta(root, 'add', {
       'elements/cap.existing.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: cap.existing\n---\n',

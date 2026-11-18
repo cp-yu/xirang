@@ -1,6 +1,8 @@
 import { describeError, diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
+import { createHash } from 'node:crypto';
+import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
@@ -68,52 +70,62 @@ export async function moveDirectory(
     throw error;
   }
 
+  const restoreSource = async (from: string) => {
+    await filesystem.mkdir(src);
+    if (!(await install(from, src))) {
+      await copyIntoReservation(from, src);
+      await remove(from);
+    }
+  };
   let started = false;
   const move = async () => {
     started = true;
     let movedOriginal = false;
+    let sourceRoot: string | undefined;
+    let captured: string | undefined;
     let temporary: string | undefined;
+    let removingCapture = false;
     try {
       movedOriginal = await install(src, dest);
       if (!movedOriginal) {
+        // Detach the original on its own filesystem so deleting it cannot delete late edits at src.
+        sourceRoot = await filesystem.mkdtemp(path.join(path.dirname(src), '.archive-source-'));
+        const local = path.join(sourceRoot, path.basename(src));
+        await filesystem.rename(src, local);
+        captured = local;
+        await options.verify?.(captured);
+
         temporary = await filesystem.mkdtemp(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
         const staged = path.join(temporary, path.basename(src));
-        await copy(src, staged);
+        await copy(captured, staged);
         if (!(await install(staged, dest))) await copyIntoReservation(staged, dest);
         await remove(temporary);
         temporary = undefined;
       }
       await options.verify?.(dest);
-      if (!movedOriginal) await options.verify?.(src);
+      if (captured) {
+        await options.verify?.(captured);
+        removingCapture = true;
+        await remove(captured);
+      }
     } catch (error) {
       const failures: unknown[] = [];
-      if (movedOriginal) {
-        try {
-          await filesystem.mkdir(src);
-          if (!(await install(dest, src))) {
-            await copyIntoReservation(dest, src);
-            await remove(dest);
+      try {
+        if (movedOriginal) await restoreSource(dest);
+        else {
+          if (captured) {
+            if (removingCapture) await restoreMissing(dest, captured);
+            await restoreSource(captured);
           }
-        } catch (rollbackError) { failures.push(rollbackError); }
-      } else {
-        if (temporary) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
-        await remove(dest).catch(cleanupError => failures.push(cleanupError));
-      }
+          await remove(dest);
+        }
+      } catch (rollbackError) { failures.push(rollbackError); }
+      if (temporary) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
       if (failures.length) throw new AggregateError([error, ...failures], 'Archive installation failed and rollback was incomplete');
       throw error;
-    }
-    if (!movedOriginal) {
-      try {
-        await remove(src);
-      } catch (cleanupError) {
-        try {
-          await restoreMissing(dest, src);
-          await remove(dest);
-        } catch (rollbackError) {
-          throw new AggregateError([cleanupError, rollbackError], 'Failed to clean up the active archive source and roll back the installed destination');
-        }
-        throw cleanupError;
-      }
+    } finally {
+      // Never recursively remove the holding directory: it may still contain the only original.
+      if (sourceRoot) await filesystem.rmdir(sourceRoot).catch(() => undefined);
     }
   };
   try {
@@ -125,6 +137,41 @@ export async function moveDirectory(
       catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Archive failed and the empty reservation could not be removed'); }
     }
     throw error;
+  }
+}
+
+const CLAIM_PREFIX = '.archive-lock-';
+const CLAIM_HOST = createHash('sha256').update(hostname()).digest('hex').slice(0, 16);
+
+function claimIsLive(name: string): boolean {
+  const owner = /^\.archive-lock-([\da-f]{16})-([1-9]\d*)-/.exec(name);
+  if (!owner) return false;
+  if (owner[1] !== CLAIM_HOST) return true;
+  try { process.kill(Number(owner[2]), 0); }
+  catch (error) {
+    return (error as NodeJS.ErrnoException).code !== 'ESRCH';
+  }
+  return true;
+}
+
+async function requireNoCompetingArchive(changesDir: string, ownClaim?: string): Promise<void> {
+  const competing = (await fs.readdir(changesDir)).find(name => name !== ownClaim && claimIsLive(name));
+  if (competing) {
+    throw new Error(`An archive is in progress (${path.join(changesDir, competing)}). Retry once it finishes. If this marker is stale, confirm no archive is running and inspect the workspace before removing it.`);
+  }
+}
+
+async function withArchiveLock(changesDir: string, commit: () => Promise<void>, json?: boolean): Promise<void> {
+  // Publish a unique claim before checking for competitors. Overlapping claims cannot both commit.
+  const claim = await fs.mkdtemp(path.join(changesDir, `${CLAIM_PREFIX}${CLAIM_HOST}-${process.pid}-`));
+  try {
+    await requireNoCompetingArchive(changesDir, path.basename(claim));
+    await commit();
+  } finally {
+    try { await fs.rmdir(claim); }
+    catch (error) {
+      diagnostic(`Could not release archive lock ${claim}: ${describeError(error)}`, 'ARCHIVE_LOCK_CLEANUP', json);
+    }
   }
 }
 
@@ -184,6 +231,7 @@ export class ArchiveCommand {
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
     if (!active?.isDirectory()) {
+      await requireNoCompetingArchive(changesDir);
       const existing = await findArchivedChange(archiveDir, changeName, options.abandon === true);
       if (!existing) throw new Error(`Change '${changeName}' not found.`);
       report(existing, true);
@@ -201,8 +249,17 @@ export class ArchiveCommand {
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
     };
     const move = async (installOptions?: Parameters<typeof moveDirectory>[3]) => {
-      await fs.mkdir(parent, { recursive: true });
-      await moveDirectory(changeDir, archivePath, this.filesystem, installOptions);
+      await withArchiveLock(changesDir, async () => {
+        const current = await fs.lstat(changeDir).catch((error: NodeJS.ErrnoException) => {
+          if (error.code !== 'ENOENT') throw error;
+          return undefined;
+        });
+        if (!current?.isDirectory() || current.dev !== active.dev || current.ino !== active.ino) {
+          throw new Error(`Active Change '${changeName}' changed before archiving; verify and retry.`);
+        }
+        await fs.mkdir(parent, { recursive: true });
+        await moveDirectory(changeDir, archivePath, this.filesystem, installOptions);
+      }, options.json);
     };
     const ask = async (message: string) => {
       const { confirm } = await import('@inquirer/prompts');

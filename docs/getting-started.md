@@ -209,15 +209,21 @@ During implementation, if you discover the design needs adjustment, update the a
 ```
 You: /xirang:archive
 
-AI:  Archiving add-dark-mode...
-     ✓ No matching review record found, running the quality flow
-     ✓ Review passed and optimization finalized
-     ✓ Synced Semantic Delta into .xirang/model/
-     ✓ Moved to .xirang/changes/archive/2025-01-24-add-dark-mode/
-     Done! Ready for the next feature.
+AI:  Archive stopped: a valid Quality Seal is required. Return to Apply.
+
+You: /xirang:apply add-dark-mode
+
+AI:  Independent Review passed and a Quality Seal was recorded.
+
+You: /xirang:archive add-dark-mode
+
+AI:  Applied the Semantic Delta and archived the Change at
+     .xirang/changes/archive/2025-01-24-add-dark-mode/.
 ```
 
 Your Semantic Delta is now part of the Semantic Model, documenting how your system works.
+
+Only one archive can commit at a time in a workspace. Archive does not recover interrupted work automatically. Before retrying, inspect `.xirang/model/` and the active and archived Change directories, including any `.archive-source-*` holding directory. An empty `.archive-lock-*` marker from a dead local process does not block retry. If a marker still blocks Archive, remove it only after confirming its owner is no longer running.
 
 ## Verifying and Reviewing
 

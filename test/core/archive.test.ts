@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
-import { execFile } from 'child_process';
+import { execFile, spawnSync } from 'child_process';
+import { createHash } from 'node:crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -184,6 +185,27 @@ git:
       await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/valid Seal commit[\s\S]*Return to Apply/);
     });
 
+    it('rejects a Seal whose commit object is missing and hands off to Apply without writes', async () => {
+      const name = 'missing-seal-commit';
+      const source = await writeSemanticArchiveFixture(name);
+      await writeFreshQualityRecord(source);
+      const quality = path.join(source, '.quality.json');
+      const record = JSON.parse(await fs.readFile(quality, 'utf8'));
+      const missing = 'f'.repeat(40);
+      record.seal.commit = missing;
+      const stored = JSON.stringify(record);
+      await fs.writeFile(quality, stored);
+      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(model);
+
+      await expect(archiveCommand.execute(name, { yes: true })).rejects.toThrow(
+        new RegExp(`GIT_COMMIT_NOT_FOUND[^\\n]*${missing}[\\s\\S]*Return to Apply`),
+      );
+      await expect(fs.readFile(model)).resolves.toEqual(before);
+      await expect(fs.readFile(quality, 'utf8')).resolves.toBe(stored);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
     it('should archive when the quality record is clean and no sync is required', async () => {
       const changeName = 'fresh-quality';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
@@ -256,6 +278,27 @@ git:
       await expect(fs.readFile(modelFile)).resolves.toEqual(model);
     });
 
+    it('can abandon after an interrupted local delivery without rolling Formal back', async () => {
+      const name = 'interrupted-delivery';
+      const source = await writeSemanticArchiveFixture(name);
+      const changes = path.dirname(source);
+      const host = createHash('sha256').update(os.hostname()).digest('hex').slice(0, 16);
+      const stopped = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+      expect(stopped.status).toBe(0);
+      await fs.mkdir(path.join(changes, `.archive-lock-${host}-${stopped.pid}-fixture`));
+      await fs.mkdir(path.join(changes, 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`));
+      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      await fs.writeFile(model, (await fs.readFile(model, 'utf8')).replace('Existing summary', 'Changed summary'));
+      const afterInterruptedWrite = await fs.readFile(model);
+
+      await archiveCommand.execute(name, { abandon: true, yes: true });
+      await expect(fs.readFile(model)).resolves.toEqual(afterInterruptedWrite);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      const abandoned = path.join(changes, 'archive', 'abandoned');
+      const [entry] = await fs.readdir(abandoned);
+      await expect(fs.readFile(path.join(abandoned, entry, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+    });
+
     it('rejects a malformed Semantic Delta unit at the archive sync gate', async () => {
       const changeName = 'malformed-delta';
       const changeDir = await writeChangeDelta(tempDir, changeName, {
@@ -280,6 +323,27 @@ git:
       await expect(archiveCommand.execute('bad-sections', { yes: true, quick: true })).rejects.toThrow(errorCode);
       await expect(fs.readFile(modelFile)).resolves.toEqual(before);
       await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
+    it('rejects an empty Section on an Element declared in the views partition', async () => {
+      const source = await writeChangeDelta(tempDir, 'misplaced-section', {
+        'views/section.md': MODIFY_EXISTING + '## ADDED Sections\n\n### Section: No text\n',
+      });
+      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(model);
+      await expect(archiveCommand.execute('misplaced-section', { yes: true, quick: true })).rejects.toThrow(/views\/section.md: .*missing Section text/);
+      await expect(fs.readFile(model)).resolves.toEqual(before);
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
+    it('installs a readable Formal unit for a visible Delta declaring a dot-prefixed identity', async () => {
+      await writeChangeDelta(tempDir, 'dot-identity', {
+        'elements/visible.md': '---\noperation: ADDED\n' + elementUnit({ identity: '.hidden', parent: 'root' }).slice(4),
+      });
+      await archiveCommand.execute('dot-identity', { quick: true, yes: true });
+      const { parseSemanticModel } = await import('../../src/core/model/parser.js');
+      const result = await parseSemanticModel(path.join(tempDir, '.xirang', 'model'));
+      expect(result.model.elements.map(element => element.declaration.identity)).toContain('.hidden');
     });
 
     it('cannot bootstrap Formal from a valid added root and root Kind', async () => {
@@ -469,7 +533,8 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
-    it('does not let a concurrent loser write or roll back a winning delivery', async () => {
+    it.each(['same', 'different', 'abandon'] as const)('isolates the commit window against a concurrent %s archive', async conflict => {
+      if (conflict === 'different') await writeSemanticArchiveFixture('other-change');
       const source = await writeSemanticArchiveFixture('contended');
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
       const rename = fs.rename;
@@ -490,9 +555,9 @@ git:
       const winner = start();
       try {
         await Promise.race([winnerWriting, winner.then(error => { throw error ?? new Error('expected a pending model write'); })]);
-        const loserError = await start();
-        expect(loserError).toBeInstanceOf(Error);
-        expect(loserError.message).toMatch(/already exists/);
+        const result = new ArchiveCommand().execute(conflict === 'different' ? 'other-change' : 'contended',
+          conflict === 'abandon' ? { abandon: true, yes: true } : { quick: true, yes: true });
+        await expect(result).rejects.toThrow(/already exists|archive is in progress/i);
       } finally {
         releaseWinner();
         await winner;
@@ -692,6 +757,40 @@ git:
 
       await expect(command.execute('rename-drift', { quick: true, yes: true })).rejects.toThrow(/Semantic Delta changed/);
       await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('retains a Delta edit made after fallback staging begins', async () => {
+      const name = 'late-fallback-edit';
+      const source = await writeSemanticArchiveFixture(name);
+      const delta = path.join('elements', 'existing.id.md');
+      const model = path.join(tempDir, '.xirang', 'model', delta);
+      const before = await fs.readFile(model);
+      const drifted = MODIFY_EXISTING.replace('Changed summary', 'Changed while handing off the source');
+      let edited = false;
+      const lateEdit = async () => {
+        if (edited) return;
+        await fs.writeFile(path.join(source, delta), drifted);
+        edited = true;
+      };
+      const command = new ArchiveCommand({
+        rename: async (from, to) => {
+          if (from === source && String(to).startsWith(path.join(path.dirname(source), 'archive'))) {
+            throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
+          }
+          if (from === source) await lateEdit();
+          await fs.rename(from, to);
+        },
+        rm: async (target, options) => {
+          if (target === source) await lateEdit();
+          await fs.rm(target, options);
+        },
+      });
+
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/Semantic Delta changed/);
+      expect(edited).toBe(true);
+      await expect(fs.readFile(model)).resolves.toEqual(before);
       await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });

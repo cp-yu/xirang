@@ -157,7 +157,9 @@ it.each([false, true])('reports the initiating failure and failed compensation (
   const rm = fs.rm;
   const mocks = [
     vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
-      if (from === source) throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
+      if (from === source && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+        throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
+      }
       if (path.basename(path.dirname(String(from))).startsWith('.') && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
         throw new Error('install injected failure');
       }

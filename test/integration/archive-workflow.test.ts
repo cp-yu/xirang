@@ -39,7 +39,7 @@ describe('architecture archive workflow', () => {
     await fs.writeFile(path.join(changeDir, 'artifact.txt'), 'source');
     await fs.symlink('artifact.txt', path.join(changeDir, 'relative-link'));
     await moveDirectory(changeDir, archived, { rename: async (from, to) => {
-      if (from === changeDir) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
+      if (from === changeDir && to === archived) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
       await fs.rename(from, to);
     } });
     await expect(fs.readlink(path.join(archived, 'relative-link'))).resolves.toBe('artifact.txt');
@@ -51,9 +51,14 @@ describe('architecture archive workflow', () => {
     const archived = path.join(root, '.xirang', 'changes', 'archive', 'done');
     await fs.writeFile(sourceFile, 'model {}');
     await fs.mkdir(path.dirname(archived), { recursive: true });
-    const rename = vi.fn().mockRejectedValueOnce(Object.assign(new Error('windows replacement denied'), { code: 'EPERM' }));
-    const cp = vi.fn<typeof fs.cp>(async (source, destination) => {
-      await fs.cp(source, destination, { recursive: true });
+    const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
+      if (source === changeDir && destination === archived) {
+        throw Object.assign(new Error('windows replacement denied'), { code: 'EPERM' });
+      }
+      await fs.rename(source, destination);
+    });
+    const cp = vi.fn<typeof fs.cp>(fs.cp).mockImplementationOnce(async (source, destination, options) => {
+      await fs.cp(source, destination, options);
       throw new Error('injected copy failure');
     });
 
@@ -68,8 +73,8 @@ describe('architecture archive workflow', () => {
     const archived = path.join(root, 'reserved');
     await fs.writeFile(path.join(changeDir, 'useful.log'), 'archived content');
     await fs.mkdir(path.join(changeDir, 'empty'));
-    const rename = vi.fn<typeof fs.rename>(async (_source, destination) => {
-      expect(destination).toBe(archived);
+    const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
+      if (destination !== archived) return fs.rename(source, destination);
       await fs.access(destination);
       throw Object.assign(new Error('cannot replace a directory'), { code: 'EPERM' });
     });
@@ -77,7 +82,7 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(archived, 'useful.log'), 'utf8')).resolves.toBe('archived content');
     await expect(fs.readdir(path.join(archived, 'empty'))).resolves.toEqual([]);
     await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(rename).toHaveBeenCalledTimes(2);
+    expect(rename.mock.calls.filter(([, destination]) => destination === archived)).toHaveLength(2);
   });
 
   it.skipIf(process.platform === 'win32')('restores deleted artifacts without trying to replace surviving absolute symlinks', async () => {
@@ -92,12 +97,12 @@ describe('architecture archive workflow', () => {
     const interrupted = new Error('partially removed active directory');
     await expect(moveDirectory(changeDir, archived, {
       rename: async (from, to) => {
-        if (from === changeDir) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
+        if (from === changeDir && to === archived) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
         await fs.rename(from, to);
       },
       rm: async (file, options) => {
-        if (file === changeDir) {
-          await fs.rm(sourceFile);
+        if (path.basename(String(file)) === path.basename(changeDir) && path.basename(path.dirname(String(file))).startsWith('.archive-source-')) {
+          await fs.rm(path.join(String(file), path.basename(sourceFile)));
           throw interrupted;
         }
         await fs.rm(file, options);
@@ -119,12 +124,12 @@ describe('architecture archive workflow', () => {
     await fs.mkdir(path.dirname(archived), { recursive: true });
     const formalBefore = await fs.readFile(formalFile);
     const rename = vi.fn<typeof fs.rename>(async (source, destination) => {
-      if (source === changeDir) throw Object.assign(new Error('cross-device move'), { code: 'EXDEV' });
+      if (source === changeDir && destination === archived) throw Object.assign(new Error('cross-device move'), { code: 'EXDEV' });
       await fs.rename(source, destination);
     });
     const rm = vi.fn(async (target: string, options?: Parameters<typeof fs.rm>[1]) => {
-      if (target === changeDir) {
-        await fs.rm(sourceFile);
+      if (path.basename(target) === path.basename(changeDir) && path.basename(path.dirname(target)).startsWith('.archive-source-')) {
+        await fs.rm(path.join(target, path.basename(sourceFile)));
         throw Object.assign(new Error('source cleanup denied'), { code: 'EPERM' });
       }
       await fs.rm(target, options);

@@ -37,3 +37,9 @@
 - [x] [code_fix] 使用与普通 Formal 读取一致的模型单元，忽略非模型符号链接且不得覆盖同路径链接。
 - [x] [code_fix] 回退复制补偿只恢复已删除条目，保留仍存在的符号链接。
 - [x] [code_fix] 同名交付与放弃历史并存时，重试优先返回本次请求的模式。
+- [x] [code_fix] 工作区内互斥归档提交窗口，阻止不同 Change 覆盖彼此的 Formal 更新及同一 Change 被同时交付与放弃。
+- [x] [code_fix] 跨设备复制前先锁定活动目录的实际内容；晚到的 Delta 修改不得被旧副本取代。
+- [x] [code_fix] 按声明的实体类型跨分区校验 Section 正文，不受放置路径影响。
+- [x] [code_fix] 保持合法前导点 identity 升级后的单元可见，并在封存前用普通 Formal 读取器核实目标。
+- [x] [artifact_fix] 入门示例在缺 Seal 时返回 Apply，不引导 Archive 自行组织 Quality。
+- [x] [code_fix] 测试对象已不存在的 Seal commit 阻止交付、状态不变且提示返回 Apply。

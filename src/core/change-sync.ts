@@ -22,6 +22,7 @@ export type PartitionCounts = Record<Partition, number>;
 
 export interface PreparedChangeSync {
   formalFingerprint: string;
+  targetFingerprint: string;
   deltaFingerprint: string;
   partitions: PartitionCounts;
   manifest: PreparedSyncManifestEntry[];
@@ -67,6 +68,7 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
     formalFingerprint: semanticTreeFingerprint(before),
+    targetFingerprint: semanticTreeFingerprint(after),
     deltaFingerprint: semanticTreeFingerprint(deltaSnapshot),
     partitions: countPartitions(manifest),
     manifest,
@@ -108,6 +110,9 @@ export async function applyPreparedChangeSync(
   await applySemanticTreeManifest(projectRoot, prepared.formalFingerprint, prepared.manifest, {
     filesystem: options.filesystem,
     postWrite: async () => {
+      if (semanticTreeFingerprint(await readModelTree(modelRoot(projectRoot))) !== prepared.targetFingerprint) {
+        throw new Error('Installed Formal model does not match the prepared target; verify the model paths and retry');
+      }
       await pruneEmptyDirectories(projectRoot, prepared.manifest);
       await options.postWrite?.();
     },

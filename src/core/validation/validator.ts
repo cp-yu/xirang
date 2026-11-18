@@ -12,7 +12,7 @@ import {
   extractSpecificationSection,
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
-import { normalizeProse, readEntity } from '../model/parser.js';
+import { normalizeProse, readEntity, readModelFiles } from '../model/parser.js';
 import { PARTITIONS, type ModelElement } from '../model/types.js';
 import {
   containsShallOrMust as containsShallOrMustShared,
@@ -220,38 +220,11 @@ async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
   return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
 }
 
-/** Section deltas live in the `elements/` partition of the change; paths locate the unit itself. */
+/** Section notation applies by declared entity, independent of which partition holds the unit. */
 async function readElementDeltaUnits(changeDir: string, files?: ReadonlyMap<string, string>): Promise<Array<[string, string]>> {
-  if (files) {
-    return [...files].flatMap(([file, content]): Array<[string, string]> => {
-      const split = splitFrontmatter(content);
-      return file.startsWith('elements/') && split.ok && readEntity(split.data) === 'element-declaration'
-        && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];
-    });
-  }
-  const partition = path.join(changeDir, 'elements');
-  const units: Array<[string, string]> = [];
-  const visit = async (directory: string, relative: string): Promise<void> => {
-    let entries;
-    try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-      const child = relative ? `${relative}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) {
-        await visit(path.join(directory, entry.name), child);
-        continue;
-      }
-      const content = await fs.readFile(path.join(directory, entry.name), 'utf-8');
-      const split = splitFrontmatter(content);
-      if (!split.ok || readEntity(split.data) !== 'element-declaration') continue;
-      // A Declaration-only delta carries no Contract body; there is no Section notation to check.
-      if (normalizeProse(split.body) === '') continue;
-      units.push([`elements/${child}`, split.body]);
-    }
-  };
-  await visit(partition, '');
-  return units;
+  return [...(files ?? await readModelFiles(changeDir))].flatMap(([file, content]): Array<[string, string]> => {
+    const split = splitFrontmatter(content);
+    return split.ok && readEntity(split.data) === 'element-declaration'
+      && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];
+  });
 }

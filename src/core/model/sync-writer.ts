@@ -38,6 +38,10 @@ async function pathsAlias(root: string, left: string, right: string): Promise<bo
   }
 }
 
+function visibleFilename(identity: string): string {
+  return identity.startsWith('.') ? `%${identity}` : identity;
+}
+
 function containerKind(relativePath: string): string {
   return relativePath.split('/').pop()!.replace(/\.[^.]*$/, '');
 }
@@ -77,7 +81,7 @@ export async function writeMinimal(
   for (const element of expected.elements) {
     const identity = element.declaration.identity;
     const before = previousElements.get(identity);
-    emit('element-declaration', identity, `elements/${identity}.md`, serializeElementUnit(element), before && serializeElementUnit(before));
+    emit('element-declaration', identity, `elements/${visibleFilename(identity)}.md`, serializeElementUnit(element), before && serializeElementUnit(before));
   }
 
   const previousElementKinds = new Map(previous.model.elementKinds.map(item => [item.identity, item]));
@@ -99,7 +103,7 @@ export async function writeMinimal(
   }
 
   const containerOf = (relationship: Relationship): string =>
-    previous.index.moduleOfRelationship(relationship)?.path ?? `relationships/${relationship.kind}.yaml`;
+    previous.index.moduleOfRelationship(relationship)?.path ?? `relationships/${visibleFilename(relationship.kind)}.yaml`;
   const groups = new Map<string, Relationship[]>();
   for (const [file, bytes] of current) {
     if (!isMarkdownUnit(bytes.toString('utf8'))) groups.set(file, []);
