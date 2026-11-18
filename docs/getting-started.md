@@ -75,33 +75,34 @@ Semantic Delta units are the key concept in Xirang. They show what's changing re
 
 ### The Format
 
-Delta units use `## ADDED/MODIFIED/REMOVED Sections` headers to indicate the type of change:
+Delta units use `## ADDED/MODIFIED/REMOVED Sections` headings for Section changes. This example changes only Sections of the existing `auth` Element; its Declaration is not modified.
 
 ```markdown
-# Delta for Auth
+---
+entity: element-declaration
+identity: auth
+kind: capability
+parent: root
+title: Authentication
+definition: Authenticates users and manages their sessions.
+---
 
 ## ADDED Sections
 
 ### Section: Two-Factor Authentication
-The system MUST require a second factor during login.
-
-- GIVEN a user with 2FA enabled
-- WHEN the user submits valid credentials
-- THEN an OTP challenge is presented
+When a user with two-factor authentication enabled submits valid credentials, the system MUST present a one-time password challenge.
 
 ## MODIFIED Sections
 
 ### Section: Session Timeout
 The system SHALL expire sessions after 30 minutes of inactivity.
-(Previously: 60 minutes)
-
-- After 30 minutes without activity the session is invalidated.
 
 ## REMOVED Sections
 
 ### Section: Remember Me
-(Deprecated in favor of 2FA)
 ```
+
+A REMOVED entry names the Section only; it does not carry a description or a reason for removal.
 
 ### What Happens on Archive
 
@@ -207,7 +208,7 @@ During implementation, if you discover the design needs adjustment, update the a
 ### 4. Archive
 
 ```
-You: /xirang:archive
+You: /xirang:archive add-dark-mode
 
 AI:  Archive stopped: a valid Quality Seal is required. Return to Apply.
 

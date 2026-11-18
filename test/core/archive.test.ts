@@ -342,6 +342,45 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
+    it('rejects a compiled target that loses an untouched Section when read as Formal', async () => {
+      const name = 'unreadable-section-target';
+      const unit = 'elements/existing.id.md';
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      const before = elementUnit({ identity: 'existing.id', title: 'Existing', definition: 'Existing summary',
+        sections: '## Specification\n\n### Section: First\nThe system SHALL do the first thing.\n\n'
+          + '### Section: Untouched\nThe system SHALL do the second thing.' });
+      await fs.writeFile(formal, before);
+      const delta = MODIFY_EXISTING + '## MODIFIED Sections\n\n### Section: First\nThe system SHALL change the first thing.\n\n```text\nexample\n';
+      const source = await writeChangeDelta(tempDir, name, { [unit]: delta });
+      const rename = vi.spyOn(fs, 'rename');
+      try {
+        await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/Expected Semantic Model/);
+        expect(rename).not.toHaveBeenCalled();
+      } finally {
+        rename.mockRestore();
+      }
+      await expect(fs.readFile(formal, 'utf8')).resolves.toBe(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('delivers the getting-started Section Delta as written', async () => {
+      const doc = await fs.readFile(new URL('../../docs/getting-started.md', import.meta.url), 'utf8');
+      const delta = doc.match(/### The Format[\s\S]+?```markdown\r?\n([\s\S]+?)\r?\n```/)?.[1];
+      expect(delta).toBeDefined();
+      await writeProjectModel(tempDir, minimalModel({ elements: [{
+        identity: 'auth', title: 'Authentication', definition: 'Authenticates users and manages their sessions.',
+        sections: '## Specification\n\n### Section: Session Timeout\nThe system SHALL expire sessions after 60 minutes.\n\n'
+          + '### Section: Remember Me\nThe system SHALL offer to remember the user.',
+      }] }));
+      await writeChangeDelta(tempDir, 'auth-example', { 'elements/auth.md': delta! });
+      await archiveCommand.execute('auth-example', { quick: true, yes: true });
+      const formal = await fs.readFile(path.join(tempDir, '.xirang', 'model', 'elements', 'auth.md'), 'utf8');
+      expect(formal).toContain('after 30 minutes of inactivity');
+      expect(formal).toContain('### Section: Two-Factor Authentication');
+      expect(formal).not.toContain('### Section: Remember Me');
+    });
+
     it('rejects an empty Section on an Element declared in the views partition', async () => {
       const source = await writeChangeDelta(tempDir, 'misplaced-section', {
         'views/section.md': MODIFY_EXISTING + '## ADDED Sections\n\n### Section: No text\n',
@@ -610,6 +649,45 @@ git:
       await expect(fs.readFile(formal)).resolves.toEqual(before);
       await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('late proposal');
       await expect(fs.readdir(destParent)).resolves.toEqual([]);
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [false, 'path'], [true, 'path'], [false, 'handle'], [true, 'handle'],
+    ] as const)('preserves an edit during source cleanup (abandon=%s, writer=%s)', async (abandon, writer) => {
+      const name = 'cleanup-artifact-edit';
+      const source = await writeSemanticArchiveFixture(name);
+      const proposal = path.join(source, 'proposal.md');
+      await fs.writeFile(proposal, 'first proposal');
+      const formal = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(formal);
+      const archive = path.join(path.dirname(source), 'archive', ...(abandon ? ['abandoned'] : []));
+      const handle = writer === 'handle' ? await fs.open(proposal, 'r+') : undefined;
+      let captured: string | undefined;
+      let edited = false;
+      const edit = async (target: unknown) => {
+        if (target !== captured || edited) return;
+        if (handle) await handle.write('latest proposal', 0, 'utf8');
+        else await fs.writeFile(path.join(captured!, 'proposal.md'), 'latest proposal');
+        edited = true;
+      };
+      const command = new ArchiveCommand({
+        rename: async (from, to) => {
+          if (from === source) captured = String(to);
+          await fs.rename(from, to);
+        },
+        rm: async (target, options) => { await edit(target); await fs.rm(target, options); },
+        rmdir: async (target, options) => { await edit(target); await fs.rmdir(target, options); },
+      });
+      try {
+        await expect(command.execute(name, { quick: !abandon, abandon, yes: true })).rejects.toThrow(/Change artifacts changed/);
+      } finally {
+        await handle?.close();
+      }
+      expect(edited).toBe(true);
+      await expect(fs.readFile(proposal, 'utf8')).resolves.toBe('latest proposal');
+      await expect(fs.readFile(formal)).resolves.toEqual(before);
+      await expect(fs.readdir(archive)).resolves.toEqual([]);
       expect(console.log).not.toHaveBeenCalled();
     });
 
@@ -1085,9 +1163,9 @@ git:
           if (phase === 'copy') await recreate();
           await fs.copyFile(from, to, mode);
         },
-        rm: async (target, options) => {
+        rmdir: async (target, options) => {
           if (phase === 'source cleanup' && target === held) await recreate();
-          await fs.rm(target, options);
+          await fs.rmdir(target, options);
         },
       });
 

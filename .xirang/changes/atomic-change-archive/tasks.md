@@ -69,3 +69,6 @@
 - [x] [code_fix] 安装错误与源恢复冲突同时发生时，文本和 JSON 均保留两条实际诊断。
 - [x] [code_fix] 文本重试保持 stdout 路径，并明确提示查询到既有归档。
 - [x] [artifact_fix] Quality 所有相关 Section 只将有效 Seal 作为默认交付资格。
+- [x] [code_fix] 写入前与封存前用普通 Formal 解析器复核完整目标语义，拒绝会吞掉相邻 Section 的序列化结果。
+- [x] [code_fix] 保留源条目至提交，清理旧路径不递归删文件；回归覆盖交付和放弃中经旧路径或打开句柄写入的晚到修改。
+- [x] [artifact_fix] Archive 指引不重新检查 Review/Opt 资格；用交付测试验证入门 Section Delta 示例。

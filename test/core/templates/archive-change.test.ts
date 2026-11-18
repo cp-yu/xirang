@@ -38,12 +38,15 @@ describe('archive change workflow template', () => {
     expect(abandon).toMatch(/do not run `xirang list --json`.*Quality/i);
   });
 
-  it('routes unnamed quick, non-Git delivery and Seal failures without crossing their gates', () => {
+  it('uses the CLI as the single Seal gate without rechecking Review or Opt', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
-    expect(instructions).toMatch(/quick without a name.*do not run `xirang list --json`/i);
+    expect(instructions).toMatch(/delivery name cannot be inferred.*do not run `xirang list --json`/i);
+    expect(instructions).toMatch(/only `schemaName` and `artifacts` from `xirang status[^`]+`; ignore its Quality state and diagnostics/i);
     expect(instructions).toMatch(/not a Git repository.*report the result and stop before Git handoff/i);
-    expect(instructions).toContain('return to Apply');
-    expect(instructions).toContain('`xirang quality status "<change-name>" --json`');
+    expect(instructions).toMatch(/CLI is the only Quality gate.*Seal commit must exist in Git/);
+    expect(instructions).toMatch(/If the CLI rejects the Seal.*return to Apply/);
+    expect(instructions).not.toMatch(/`xirang quality (?:status|review|opt|seal)\b/);
+    expect(instructions).not.toMatch(/require a recorded passing|require.*Opt disposition/i);
   });
 
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {

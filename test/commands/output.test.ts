@@ -163,20 +163,22 @@ it('keeps both real prompts off stdout when interactively selecting and abandoni
 
 it.each([false, true])('reports the initiating failure and failed compensation (json=%s)', async json => {
   const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
-  const rm = fs.rm;
+  const rmdir = fs.rmdir;
   const copyFile = fs.copyFile;
+  const archive = path.join(root, '.xirang', 'changes', 'archive', 'abandoned');
   const mocks = [
     vi.spyOn(fs, 'copyFile').mockImplementation(async (from, to, mode) => {
-      if (path.basename(String(to)) === 'proposal.md' && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+      if (path.basename(String(to)) === 'proposal.md' && String(to).startsWith(archive + path.sep)) {
         throw new Error('install injected failure');
       }
       return copyFile(from, to, mode);
     }),
-    vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
-      if (path.basename(String(target)).startsWith('.') && String(target).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+    vi.spyOn(fs, 'rmdir').mockImplementation(async (target, options) => {
+      const location = String(target);
+      if (path.dirname(location) === archive && path.basename(location).endsWith('-move-failure')) {
         throw new Error('cleanup injected failure');
       }
-      return rm(target, options);
+      return rmdir(target, options);
     }),
   ];
   try {

@@ -6,7 +6,7 @@ import { parseSemanticModelFiles, readModelTree } from './model/parser.js';
 import { parseSemanticDeltaFiles } from './model/delta.js';
 import { Validator } from './validation/validator.js';
 import { writeMinimal } from './model/sync-writer.js';
-import type { ChangeDiagnostic } from './semantic-diff.js';
+import { semanticModelFingerprint, type ChangeDiagnostic } from './semantic-diff.js';
 import { PARTITIONS, type Partition } from './model/types.js';
 import {
   applySemanticTreeManifest,
@@ -23,6 +23,7 @@ export type PartitionCounts = Record<Partition, number>;
 export interface PreparedChangeSync {
   formalFingerprint: string;
   targetFingerprint: string;
+  targetModelFingerprint: string;
   verifyPaths: () => Promise<void>;
   deltaFingerprint: string;
   partitions: PartitionCounts;
@@ -43,10 +44,23 @@ function countPartitions(manifest: PreparedSyncManifestEntry[]): PartitionCounts
   return counts;
 }
 
+function parseModelTree(files: ReadonlyMap<string, Buffer>) {
+  return parseSemanticModelFiles([...files].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
+}
+
+function verifyTargetModel(files: ReadonlyMap<string, Buffer>, fingerprint: string): void {
+  const { model, diagnostics } = parseModelTree(files);
+  const errors = diagnostics.filter(item => item.level === 'ERROR');
+  if (errors.length) throw new Error(errors.map(item => `${item.path}: ${item.code}: ${item.message}`).join('\n'));
+  if (semanticModelFingerprint(model) !== fingerprint) {
+    throw new Error('Formal units do not reconstruct the Expected Semantic Model; verify the Delta and its Section boundaries.');
+  }
+}
+
 export async function prepareChangeSync(projectRoot: string, changeName: string): Promise<PreparedChangeSync> {
   const before = await readSyncModelTree(projectRoot);
   const units = new Map([...before].map(([file, bytes]) => [file.slice(MODEL_PATH_PREFIX.length + 1), bytes]));
-  const base = parseSemanticModelFiles([...units].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
+  const base = parseModelTree(units);
   const changeDir = changeRoot(projectRoot, changeName);
   const deltaSnapshot = await readModelTree(changeDir);
   const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
@@ -67,10 +81,13 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
   }
   let verifyPaths!: () => Promise<void>;
   const after = await writeMinimal(modelRoot(projectRoot), base, compiled.target, units, check => { verifyPaths = check; });
+  const targetModelFingerprint = semanticModelFingerprint(compiled.target);
+  verifyTargetModel(after, targetModelFingerprint);
   const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
     formalFingerprint: semanticTreeFingerprint(before),
     targetFingerprint: semanticTreeFingerprint(after),
+    targetModelFingerprint,
     verifyPaths,
     deltaFingerprint: semanticTreeFingerprint(deltaSnapshot),
     partitions: countPartitions(manifest),
@@ -114,9 +131,11 @@ export async function applyPreparedChangeSync(
     filesystem: options.filesystem,
     preWrite: prepared.verifyPaths,
     postWrite: async () => {
-      if (semanticTreeFingerprint(await readModelTree(modelRoot(projectRoot))) !== prepared.targetFingerprint) {
+      const installed = await readModelTree(modelRoot(projectRoot));
+      if (semanticTreeFingerprint(installed) !== prepared.targetFingerprint) {
         throw new Error('Installed Formal model does not match the prepared target; verify the model paths and retry');
       }
+      verifyTargetModel(installed, prepared.targetModelFingerprint);
       await pruneEmptyDirectories(projectRoot, prepared.manifest);
       await options.postWrite?.();
     },

@@ -135,13 +135,29 @@ export async function moveDirectory(
       });
     } else await filesystem.rm(location, { force: true });
   };
-  const restoreMissing = async (from: string, to: string): Promise<void> => {
+  const changesDuringArchive = () => new Error(`Change artifacts changed during archiving at ${src}; verify the Change and retry.`);
+  const parkEntries = async (from: string, to: string, emptied: string[]): Promise<void> => {
+    await filesystem.mkdir(to);
+    for (const name of (await fs.readdir(from)).sort()) {
+      const entry = path.join(from, name);
+      const target = path.join(to, name);
+      if ((await fs.lstat(entry)).isDirectory()) await parkEntries(entry, target, emptied);
+      else await filesystem.rename(entry, target);
+    }
+    emptied.push(from);
+  };
+  const restoreMissing = async (from: string, to: string): Promise<boolean> => {
     const existing = await statIfPresent(to);
     if (!existing) {
       await copyEntry(from, to);
-    } else if (existing.isDirectory() && (await fs.lstat(from)).isDirectory()) {
-      for (const name of await fs.readdir(from)) await restoreMissing(path.join(from, name), path.join(to, name));
+      return true;
     }
+    if (!existing.isDirectory() || !(await fs.lstat(from)).isDirectory()) return false;
+    let complete = true;
+    for (const name of await fs.readdir(from)) {
+      if (!(await restoreMissing(path.join(from, name), path.join(to, name)))) complete = false;
+    }
+    return complete;
   };
   const pending = pendingArchivePath(dest);
   await fs.mkdir(pending).catch((error: NodeJS.ErrnoException) => {
@@ -176,14 +192,12 @@ export async function moveDirectory(
     return true;
   };
   let started = false;
-  let committedStage: string | undefined;
+  let committedSource: { root: string; parked: string } | undefined;
   const move = async () => {
     started = true;
     let sourceRoot: string | undefined;
     let captured: string | undefined;
-    let temporary: string | undefined;
-    let staged: string | undefined;
-    let removingCapture = false;
+    let parked: string | undefined;
     try {
       await assertOwnedDestination();
       // Rename only to a private, absent path on the source filesystem.
@@ -194,36 +208,47 @@ export async function moveDirectory(
       await options.verify?.(captured);
       const originalFingerprint = await fingerprintChangeTree(captured);
 
-      temporary = await filesystem.mkdtemp(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
-      staged = path.join(temporary, path.basename(src));
-      await copyEntry(captured, staged);
       await assertOwnedDestination();
-      await copyContents(staged, dest, true);
+      await copyContents(captured, dest, true);
       await options.verify?.(dest);
       await options.verify?.(captured);
       await assertOwnedDestination();
-      if (await fingerprintChangeTree(dest) !== originalFingerprint || await fingerprintChangeTree(captured) !== originalFingerprint) {
-        throw new Error(`Change artifacts changed during archiving at ${src}; verify the Change and retry.`);
+      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
+      // Keep the original entries (and any open handles to them) intact until commit.
+      // Empty-only removal cannot delete any new file written to the old path.
+      const emptied: string[] = [];
+      parked = path.join(sourceRoot, '.original-entries');
+      await parkEntries(captured, parked, emptied);
+      for (const directory of emptied) {
+        await filesystem.rmdir(directory).catch((error: NodeJS.ErrnoException) => {
+          if (error.code === 'ENOTEMPTY' || error.code === 'EEXIST') throw changesDuringArchive();
+          throw error;
+        });
+      }
+      if (await fingerprintChangeTree(dest) !== originalFingerprint || await fingerprintChangeTree(parked) !== originalFingerprint) {
+        throw changesDuringArchive();
       }
       await assertOwnedDestination();
       if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
-      removingCapture = true;
-      await remove(captured);
-      await assertOwnedDestination();
-      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
       await fs.rmdir(pending);
+      committedSource = { root: sourceRoot, parked };
     } catch (error) {
       const failures: unknown[] = [];
       let conflict: Error | undefined;
+      let restoredParked = true;
       try {
-        if (captured && removingCapture) await restoreMissing(staged!, captured);
+        if (captured && parked && await statIfPresent(parked)) restoredParked = await restoreMissing(parked, captured);
         if (captured && !(await restoreSource(captured))) {
           conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${captured}.`);
         }
       } catch (rollbackError) { failures.push(rollbackError); }
       await clearReservation().catch(rollbackError => failures.push(rollbackError));
-      if (temporary && failures.length === 0) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
-      else if (staged && removingCapture) failures.push(new Error(`Original backup retained at ${staged}`));
+      if (parked && restoredParked && failures.length === 0) await remove(parked).catch(cleanupError => failures.push(cleanupError));
+      if (parked && !restoredParked) {
+        diagnostic(`Conflicting original entries retained at ${parked}`, 'ARCHIVE_SOURCE_CONFLICT', options.json);
+      } else if (parked && failures.length && await statIfPresent(parked).catch(() => undefined)) {
+        failures.push(new Error(`Original entries retained at ${parked}`));
+      }
       if (captured && failures.length && await statIfPresent(captured).catch(() => undefined)) {
         failures.push(new Error(`Original source retained at ${captured}`));
       }
@@ -232,9 +257,8 @@ export async function moveDirectory(
       throw error;
     } finally {
       // Never recursively remove the holding directory: it may still contain the only original.
-      if (sourceRoot) await filesystem.rmdir(sourceRoot).catch(() => undefined);
+      if (sourceRoot && !committedSource) await filesystem.rmdir(sourceRoot).catch(() => undefined);
     }
-    committedStage = temporary;
   };
   try {
     if (options.apply) await options.apply(move);
@@ -246,10 +270,11 @@ export async function moveDirectory(
     }
     throw error;
   }
-  // The verified archive is now committed. Failure to remove its private copy is not rollback.
-  if (committedStage) {
-    await remove(committedStage).catch(error => {
-      diagnostic(`Could not clean archive staging ${committedStage}: ${describeError(error)}`, 'ARCHIVE_STAGING_CLEANUP', options.json);
+  // Dispose of the retired source only after both the archive and the Formal transaction commit.
+  if (committedSource) {
+    const { root, parked } = committedSource;
+    await remove(parked).then(() => filesystem.rmdir(root)).catch(error => {
+      diagnostic(`Could not clean archive staging ${root}: ${describeError(error)}`, 'ARCHIVE_STAGING_CLEANUP', options.json);
     });
   }
 }

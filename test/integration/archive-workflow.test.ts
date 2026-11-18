@@ -104,24 +104,24 @@ describe('architecture archive workflow', () => {
     expect(rename.mock.calls.some(([, destination]) => destination === archived)).toBe(false);
   });
 
-  it.skipIf(process.platform === 'win32')('restores deleted artifacts without trying to replace surviving absolute symlinks', async () => {
+  it.skipIf(process.platform === 'win32')('restores parked artifacts without replacing a surviving absolute symlink', async () => {
     const archived = path.join(root, 'archived');
     const sourceFile = path.join(changeDir, 'artifact.txt');
-    const sourceLink = path.join(changeDir, 'absolute-link');
+    const sourceLink = path.join(changeDir, 'z-absolute-link');
     const externalTarget = path.join(root, 'external.txt');
     await fs.writeFile(sourceFile, 'restore me');
     await fs.writeFile(externalTarget, 'external');
     await fs.symlink(externalTarget, sourceLink);
-    const interrupted = new Error('partially removed active directory');
-    let removed = false;
+    const interrupted = new Error('partially parked active directory');
+    let parked = false;
     await expect(moveDirectory(changeDir, archived, {
-      rm: async (file, options) => {
-        if (!removed && path.basename(String(file)) === path.basename(changeDir) && path.basename(path.dirname(String(file))).startsWith('.archive-source-')) {
-          removed = true;
-          await fs.rm(path.join(String(file), path.basename(sourceFile)));
+      rename: async (from, to) => {
+        if (path.basename(String(from)) === path.basename(sourceLink)) {
+          expect(parked).toBe(true);
           throw interrupted;
         }
-        await fs.rm(file, options);
+        await fs.rename(from, to);
+        if (path.basename(String(from)) === path.basename(sourceFile)) parked = true;
       },
     })).rejects.toBe(interrupted);
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('restore me');
@@ -138,17 +138,15 @@ describe('architecture archive workflow', () => {
     await fs.writeFile(formalFile, "model { projectRoot = project 'Root' }\n");
     await fs.mkdir(path.dirname(archived), { recursive: true });
     const formalBefore = await fs.readFile(formalFile);
-    let cleanupInterrupted = false;
-    const rm = vi.fn(async (target: string, options?: Parameters<typeof fs.rm>[1]) => {
-      if (!cleanupInterrupted && path.basename(target) === path.basename(changeDir) && path.basename(path.dirname(target)).startsWith('.archive-source-')) {
-        cleanupInterrupted = true;
-        await fs.rm(path.join(target, path.basename(sourceFile)));
+    const rmdir = vi.fn<typeof fs.rmdir>(async (target, options) => {
+      if (path.basename(String(target)) === path.basename(changeDir) && path.basename(path.dirname(String(target))).startsWith('.archive-source-')) {
+        expect(await fs.readdir(target)).toEqual([]);
         throw Object.assign(new Error('source cleanup denied'), { code: 'EPERM' });
       }
-      await fs.rm(target, options);
-    }) as typeof fs.rm;
+      await fs.rmdir(target, options);
+    });
 
-    await expect(moveDirectory(changeDir, archived, { rm })).rejects.toThrow('source cleanup denied');
+    await expect(moveDirectory(changeDir, archived, { rmdir })).rejects.toThrow('source cleanup denied');
 
     await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('model { extend projectRoot {} }');
     await expect(fs.access(archived)).rejects.toThrow();
