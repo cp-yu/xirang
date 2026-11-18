@@ -123,3 +123,5 @@
 - [x] [code_fix] 归档写入、历史查询和补全不跟随 `archive` 或 `archive/abandoned` 链接，避免放弃与交付共用历史位置。
 - [x] [code_fix] 即使 Element 声明只定位 Section 宿主，显式 `kind` 也必须是一个合法 identity。
 - [x] [code_fix] 制品状态在解析真实路径前拒绝活动 Change 根链接，不报告链接目标的制品或目标进度。
+- [x] [code_fix] Frontmatter 结束分隔符必须独占一行，不将非法后缀当作 Kind 正文交付。
+- [x] [code_fix] 状态和预览仅把普通文件 `.delta-noop` 视为显式无 Delta；不跟随链接，也不把目录当作标记。

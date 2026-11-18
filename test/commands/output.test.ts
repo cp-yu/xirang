@@ -421,6 +421,38 @@ it.each([
   await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}${malformed}\n---\n`, code);
 });
 
+it.each(['---not a delimiter', '----', '--- # hidden prose'])('rejects a Delta with a malformed closing delimiter (%s)', async delimiter => {
+  const unit = `---\noperation: ADDED\nentity: element-kind\nidentity: new-kind\ncontract: optional\n${delimiter}\nKind semantics.\n`;
+  await expectInvalidDelivery('metamodel/new-kind.md', unit, 'MALFORMED_FRONTMATTER');
+});
+
+it.each([
+  ...(process.platform === 'win32' ? [] : ['symbolic-link'] as const), 'directory',
+] as const)('does not use a .delta-noop %s as proof of an empty Delta', async markerType => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'invalid-marker', { 'proposal.md': '# No semantic entries\n' });
+  const marker = path.join(source, '.delta-noop');
+  if (markerType === 'symbolic-link') {
+    const external = path.join(root, 'external-marker');
+    await fs.writeFile(external, 'not a local marker');
+    await fs.symlink(external, marker);
+  } else await fs.mkdir(marker);
+  const check = async (present: boolean) => {
+    const status = await runCLI(['status', '--change', 'invalid-marker', '--no-quality', '--json'], { cwd: root });
+    expect(status.exitCode, status.stderr).toBe(0);
+    expect.soft(JSON.parse(status.stdout).artifacts.find((item: { id: string }) => item.id === 'semantic-delta'))
+      .toMatchObject({ status: present ? 'done' : 'ready', outputs: [], completionMarker: { present } });
+    const preview = await runCLI(['validate', '--change', 'invalid-marker', '--preview', '--json'], { cwd: root });
+    expect.soft(preview.exitCode, preview.stderr).toBe(present ? 0 : 1);
+    if (!present) expect.soft(preview.stderr).toContain('at least one delta');
+    expect(JSON.parse(preview.stdout).summary.total).toBe(0);
+  };
+  await check(false);
+  await fs.rm(marker, { recursive: true });
+  await fs.writeFile(marker, '');
+  await check(true);
+});
+
 it.each(['[project]', 'null', 'false', '"project/root"'])('rejects an invalid Element kind (%s) in a Section-only Delta', async kind => {
   const sections = '## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.';
   const delta = elementUnit({ identity: 'root', kind, parent: null, title: 'Root', definition: 'Project root definition.', sections });

@@ -228,7 +228,7 @@ export class Validator {
 
 /** `.delta-noop` is the explicit declaration that a Change intentionally carries no Semantic Delta. */
 async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
-  return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
+  return fs.lstat(path.join(changeDir, '.delta-noop')).then(stat => stat.isFile()).catch(() => false);
 }
 
 /** Section notation applies by declared entity, independent of which partition holds the unit. */
