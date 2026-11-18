@@ -51,7 +51,7 @@ export class Validator {
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
       for (const section of plan.unsupportedSections) issues.push({
         level: 'ERROR', path: entryPath,
-        message: `${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`,
+        message: `${section} is unsupported. Use ADDED, MODIFIED or REMOVED Sections. For a rename, use REMOVED old Section plus ADDED new Section.`,
       });
       if (!hasEntries) {
         if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });

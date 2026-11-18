@@ -15,7 +15,6 @@ export const POSITIONAL_TYPE_MAP: Record<string, NonNullable<CommandDefinition['
   'validate': 'change-or-contract-id',
   'show': 'change-id',
   'archive': 'change-id',
-  'sync': 'change-id',
   'help': 'text',
   'feedback': 'text',
 

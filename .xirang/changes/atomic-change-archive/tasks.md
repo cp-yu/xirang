@@ -47,3 +47,7 @@
 - [x] [code_fix] 模型写入独占暂存路径，交付失败不会删除已有同名隐藏制品。
 - [x] [artifact_fix] 统一 CLI 概览、工作流索引和 Semantic Delta 生成指引，封存原样保留 `.delta-noop`。
 - [x] [code_fix] 在归档目标竞争发生时断言 Formal 尚未写入，而不是只检查回滚后的结果。
+- [x] [code_fix] 默认交付在确认后写入前重验 Seal，并验证实际封存的 Quality 记录。
+- [x] [code_fix] 封存期间若重建原活动目录则拒绝交付、回滚 Formal，保留两个版本的输入并报告位置。
+- [x] [code_fix] 拒绝合法 operation 与未知顶层 Section operation 混用，禁止静默丢弃输入。
+- [x] [code_fix] 不传 --yes 时，没有 tasks.md 也应无确认地完成交付。

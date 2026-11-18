@@ -106,7 +106,7 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
   }
   for (const section of plan.unsupportedSections) {
     diagnostics.push(error('UNSUPPORTED_OPERATION', file,
-      `## ${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`, identity));
+      `## ${section} is unsupported. Use ADDED, MODIFIED or REMOVED Sections. For a rename, use REMOVED old Section plus ADDED new Section.`, identity));
   }
   for (const operation of ['added', 'modified', 'removed'] as const) {
     if (plan.sectionPresence[operation] && plan[operation].length === 0) {

@@ -8,6 +8,7 @@ import os from 'os';
 import { promisify } from 'util';
 import { elementKindUnit, elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { createCompleteQualityFixture, createBaselineOnlyQualityFixture } from '../helpers/quality-fixture.js';
+import { readQualityRecord, recordQualityReview } from '../../src/core/quality/engine.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -60,6 +61,15 @@ describe('ArchiveCommand', () => {
 
   async function writeFreshQualityRecord(changeDir: string): Promise<void> {
     await createCompleteQualityFixture(tempDir, changeDir);
+  }
+
+  async function revokeSeal(changeDir: string): Promise<void> {
+    const quality = await readQualityRecord(changeDir);
+    await recordQualityReview({
+      changeDir, projectRoot: tempDir, expectedRevision: quality.revision,
+      reviewKind: 'full-change', commit: quality.seal!.commit, result: 'FAIL',
+      summary: 'Independent review revoked the Seal.', findings: ['New evidence invalidates the Seal.'],
+    });
   }
 
   afterEach(async () => {
@@ -314,6 +324,7 @@ git:
       ['## ADDED Sections\n\n### Section: No text\n', 'missing Section text'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## REMOVED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## RENAMED Sections\n- Old to New\n', 'UNSUPPORTED_OPERATION'],
+      ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## DELETED Sections\n### Section: Old\n', 'DELETED Sections is unsupported'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
       const source = await writeChangeDelta(tempDir, 'bad-sections', { 'elements/existing.id.md': MODIFY_EXISTING + body });
       const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
@@ -624,20 +635,19 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
-    it('should handle changes without tasks.md', async () => {
+    it('archives without a warning or confirmation when tasks.md is missing', async () => {
       const changeName = 'no-tasks-feature';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
       await fs.mkdir(changeDir, { recursive: true });
-      
-      await archiveCommand.execute(changeName, { yes: true, quick: true });
-      
-      expect(console.log).not.toHaveBeenCalledWith(
-        expect.stringContaining('incomplete goal(s)')
-      );
-      
+      await writeFreshQualityRecord(changeDir);
+      const { confirm } = await import('@inquirer/prompts');
+
+      await archiveCommand.execute(changeName);
+      expect(confirm).not.toHaveBeenCalled();
+      expect(console.error).not.toHaveBeenCalledWith(expect.stringContaining('incomplete goal(s)'));
+      await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
       const archiveDir = path.join(tempDir, '.xirang', 'changes', 'archive');
-      const archives = await fs.readdir(archiveDir);
-      expect(archives.length).toBe(1);
+      expect(await fs.readdir(archiveDir)).toHaveLength(1);
     });
 
     it('should handle changes without specs', async () => {
@@ -770,6 +780,46 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
+    it('rejects a Seal revoked during task confirmation before writing Formal', async () => {
+      const name = 'revoked-seal';
+      const source = await writeSemanticArchiveFixture(name);
+      await fs.writeFile(path.join(source, 'tasks.md'), '## Goals\n- [ ] G1: Pending\n');
+      await writeFreshQualityRecord(source);
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockImplementationOnce(() => Object.assign(revokeSeal(source).then(() => true), { cancel: () => {} }));
+      const formalWrite = vi.spyOn(fs, 'rename');
+      try {
+        await expect(archiveCommand.execute(name)).rejects.toThrow(/valid Seal[\s\S]*Return to Apply/);
+        expect(formalWrite.mock.calls.some(([, destination]) => destination === modelFile)).toBe(false);
+      } finally { formalWrite.mockRestore(); }
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+      expect((await readQualityRecord(source)).seal).toBeNull();
+    });
+
+    it('rolls back if an otherwise validated Seal is revoked during installation', async () => {
+      const source = await writeSemanticArchiveFixture('seal-changed-during-move');
+      await writeFreshQualityRecord(source);
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
+      let revoked = false;
+      const command = new ArchiveCommand({ rename: async (from, to) => {
+        if (from === source && !revoked) {
+          await expect(fs.readFile(modelFile, 'utf8')).resolves.toContain('Changed summary');
+          await revokeSeal(source);
+          revoked = true;
+        }
+        await fs.rename(from, to);
+      } });
+      await expect(command.execute('seal-changed-during-move', { yes: true })).rejects.toThrow(/Quality Seal changed[\s\S]*Return to Apply/);
+      expect(revoked).toBe(true);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+      expect((await readQualityRecord(source)).seal).toBeNull();
+    });
+
     it('restores Formal and the exact active Change if the installed Delta changed during rename', async () => {
       const source = await writeSemanticArchiveFixture('rename-drift');
       const delta = path.join('elements', 'existing.id.md');
@@ -819,6 +869,40 @@ git:
       await expect(fs.readFile(model)).resolves.toEqual(before);
       await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('keeps both versions and rolls back when the active path is recreated during fallback copy', async () => {
+      const name = 'recreated-source';
+      const source = await writeSemanticArchiveFixture(name);
+      const changes = path.dirname(source);
+      const delta = path.join('elements', 'existing.id.md');
+      const model = path.join(tempDir, '.xirang', 'model', delta);
+      const before = await fs.readFile(model);
+      const recreated = MODIFY_EXISTING.replace('Changed summary', 'New active version');
+      let held: string | undefined;
+      const command = new ArchiveCommand({
+        rename: async (from, to) => {
+          if (from === source && String(to).startsWith(path.join(changes, 'archive'))) {
+            throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
+          }
+          await fs.rename(from, to);
+        },
+        cp: async (from, to, options) => {
+          if (!held) {
+            held = String(from);
+            await writeChangeDelta(tempDir, name, { 'elements/existing.id.md': recreated });
+          }
+          await fs.cp(from, to, options);
+        },
+      });
+
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/active.+recreated.+original.+archive-source-/i);
+      expect(held).toBeDefined();
+      await expect(fs.readFile(model)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(recreated);
+      await expect(fs.readFile(path.join(held!, delta), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.readdir(path.join(changes, 'archive'))).resolves.toEqual([]);
+      expect(console.log).not.toHaveBeenCalled();
     });
 
     it('preserves apply isolation state for handoff under --yes', async () => {

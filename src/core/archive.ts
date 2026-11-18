@@ -6,7 +6,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { QualityEngineError, readQualitySeal } from './quality/engine.js';
+import { QUALITY_FILE, QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
 import { validateChangeName } from '../utils/change-utils.js';
@@ -18,6 +18,13 @@ export interface ArchiveMoveFileSystem {
   rmdir: typeof fs.rmdir;
   mkdir: typeof fs.mkdir;
   mkdtemp: typeof fs.mkdtemp;
+}
+
+async function statIfPresent(location: string) {
+  return fs.lstat(location).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  });
 }
 
 /** Move the source only into a destination reserved by this invocation. */
@@ -43,10 +50,7 @@ export async function moveDirectory(
     for (const name of await fs.readdir(from)) await copy(path.join(from, name), path.join(reserved, name));
   };
   const restoreMissing = async (from: string, to: string): Promise<void> => {
-    const existing = await fs.lstat(to).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return undefined;
-      throw error;
-    });
+    const existing = await statIfPresent(to);
     if (!existing) {
       await copy(from, to);
     } else if (existing.isDirectory() && (await fs.lstat(from)).isDirectory()) {
@@ -70,12 +74,17 @@ export async function moveDirectory(
     throw error;
   }
 
-  const restoreSource = async (from: string) => {
-    await filesystem.mkdir(src);
+  const restoreSource = async (from: string): Promise<boolean> => {
+    try { await filesystem.mkdir(src); }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
+      throw error;
+    }
     if (!(await install(from, src))) {
       await copyIntoReservation(from, src);
       await remove(from);
     }
+    return true;
   };
   let started = false;
   const move = async () => {
@@ -103,26 +112,32 @@ export async function moveDirectory(
         temporary = undefined;
       }
       await options.verify?.(dest);
+      if (captured) await options.verify?.(captured);
+      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
       if (captured) {
-        await options.verify?.(captured);
         removingCapture = true;
         await remove(captured);
       }
     } catch (error) {
       const failures: unknown[] = [];
+      let conflict: Error | undefined;
       try {
-        if (movedOriginal) await restoreSource(dest);
-        else {
-          if (captured) {
-            if (removingCapture) await restoreMissing(dest, captured);
-            await restoreSource(captured);
+        const original = movedOriginal ? dest : captured;
+        if (captured && removingCapture) await restoreMissing(dest, captured);
+        if (original && !(await restoreSource(original))) {
+          let retained = original;
+          if (movedOriginal) {
+            sourceRoot = await filesystem.mkdtemp(path.join(path.dirname(src), '.archive-source-'));
+            retained = path.join(sourceRoot, path.basename(src));
+            await filesystem.rename(dest, retained);
           }
-          await remove(dest);
+          conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${retained}.`, { cause: error });
         }
+        if (!movedOriginal) await remove(dest);
       } catch (rollbackError) { failures.push(rollbackError); }
       if (temporary) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
-      if (failures.length) throw new AggregateError([error, ...failures], 'Archive installation failed and rollback was incomplete');
-      throw error;
+      if (failures.length) throw new AggregateError([conflict ?? error, ...failures], 'Archive installation failed and rollback was incomplete');
+      throw conflict ?? error;
     } finally {
       // Never recursively remove the holding directory: it may still contain the only original.
       if (sourceRoot) await filesystem.rmdir(sourceRoot).catch(() => undefined);
@@ -190,6 +205,21 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
   return undefined;
 }
 
+function sealGateError(changeName: string, problem: string): Error {
+  return new Error(formatQualityGateFailure({ changedFiles: [], details: [problem] }, undefined, { changeName }));
+}
+
+async function requireSealBytes(directory: string, projectRoot: string, changeName: string): Promise<Buffer> {
+  let problem = 'a valid Seal commit is required.';
+  try {
+    const seal = await readQualitySeal(directory, projectRoot);
+    if (seal.valid) return seal.bytes;
+  } catch (error) {
+    problem = error instanceof QualityEngineError ? `${error.code}: ${error.message}` : describeError(error);
+  }
+  throw sealGateError(changeName, problem);
+}
+
 export interface ArchiveOptions {
   json?: boolean;
   yes?: boolean;
@@ -222,10 +252,7 @@ export class ArchiveCommand {
     const name = validateChangeName(changeName);
     if (!name.valid || changeName === 'archive') throw new Error(name.error ?? 'Invalid archive Change name.');
     const changeDir = path.join(changesDir, changeName);
-    const active = await fs.lstat(changeDir).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return undefined;
-      throw error;
-    });
+    const active = await statIfPresent(changeDir);
     const report = (location: string, alreadyArchived = false) => {
       const archive = path.relative(projectRoot, location);
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
@@ -242,10 +269,7 @@ export class ArchiveCommand {
     const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
     const archivePath = path.join(parent, archiveName);
     const ensureUnoccupied = async () => {
-      const existing = await fs.lstat(archivePath).catch((error: NodeJS.ErrnoException) => {
-        if (error.code === 'ENOENT') return undefined;
-        throw error;
-      });
+      const existing = await statIfPresent(archivePath);
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
     };
     const move = async (installOptions?: Parameters<typeof moveDirectory>[3]) => {
@@ -278,14 +302,7 @@ export class ArchiveCommand {
       if (options.quick) {
         diagnostic('Quality Seal check skipped (--quick).', 'QUALITY_SKIPPED', options.json);
       } else {
-        let problem: string | undefined;
-        try {
-          const seal = await readQualitySeal(changeDir, projectRoot);
-          if (!seal.valid) problem = 'a valid Seal commit is required.';
-        } catch (error) {
-          problem = error instanceof QualityEngineError ? `${error.code}: ${error.message}` : describeError(error);
-        }
-        if (problem) throw new Error(formatQualityGateFailure({ changedFiles: [], details: [problem] }, undefined, { changeName }));
+        await requireSealBytes(changeDir, projectRoot, changeName);
       }
       const prepared = await prepareChangeSync(projectRoot, changeName);
       for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
@@ -296,14 +313,24 @@ export class ArchiveCommand {
         if (options.yes) diagnostic(`${message} Continuing due to --yes flag.`, 'INCOMPLETE_GOALS', options.json);
         else if (!(await ask(`${message} Continue?`))) return;
       }
-      const verifyDelta = (directory: string) => assertPreparedDelta(directory, prepared);
-      await verifyDelta(changeDir);
+      let sealBytes: Buffer | undefined;
+      const verify = async (directory: string) => {
+        await assertPreparedDelta(directory, prepared);
+        if (!options.quick) {
+          const file = path.join(directory, QUALITY_FILE);
+          if (!(await statIfPresent(file))?.isFile() || !sealBytes?.equals(await fs.readFile(file))) {
+            throw sealGateError(changeName, 'Quality Seal changed after validation.');
+          }
+        }
+      };
       await move({
-        verify: verifyDelta,
+        verify,
         apply: async install => {
+          if (!options.quick) sealBytes = await requireSealBytes(changeDir, projectRoot, changeName);
+          await verify(changeDir);
           await applyPreparedChangeSync(projectRoot, prepared, {
             postWrite: async () => {
-              await verifyDelta(changeDir);
+              await verify(changeDir);
               await install();
             },
           });

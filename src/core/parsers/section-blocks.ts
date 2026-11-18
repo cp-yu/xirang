@@ -132,9 +132,13 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   const removedNames = parseRemovedNames(removedLookup.body);
   const seen = new Set<string>();
   const duplicateSections: string[] = [];
+  const unsupportedSections: string[] = [];
   for (const [title] of sections) {
     const key = title.toLowerCase();
-    if (!/^(added|modified|removed) sections$/.test(key)) continue;
+    if (!/^(added|modified|removed) sections$/.test(key)) {
+      unsupportedSections.push(title);
+      continue;
+    }
     if (seen.has(key)) duplicateSections.push(title);
     seen.add(key);
   }
@@ -142,7 +146,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     added,
     modified,
     removed: removedNames,
-    unsupportedSections: sections.map(([title]) => title).filter(title => title.toLowerCase() === 'renamed sections'),
+    unsupportedSections,
     duplicateSections,
     sectionPresence: {
       added: addedLookup.found,
