@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from '../config.js';
 import { MODEL_DIR_NAME, modelRoot } from './paths.js';
+import { readModelTree } from './parser.js';
 import { PARTITIONS } from './types.js';
 
 export const SEMANTIC_PARTITIONS: readonly string[] = PARTITIONS;
@@ -19,7 +20,7 @@ export interface PreparedSyncManifestEntry {
 
 export type SyncTransactionFileSystem = Pick<
   typeof fs,
-  'mkdir' | 'readFile' | 'rename' | 'rm' | 'writeFile'
+  'mkdir' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'writeFile'
 >;
 
 export interface SemanticTreeTransactionOptions {
@@ -268,7 +269,7 @@ export async function applySemanticTreeManifest(
   options: SemanticTreeTransactionOptions = {},
 ): Promise<void> {
   const filesystem = transactionFileSystem(options.filesystem);
-  const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
+  const currentFingerprint = semanticTreeFingerprint(await readSyncModelTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
     throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
@@ -319,6 +320,12 @@ export async function readSemanticTree(projectRoot: string): Promise<Map<string,
   return readSemanticDirectoryTree(modelRoot(projectRoot));
 }
 
+/** The patch transaction uses exactly the units visible to a Formal model reader. */
+export async function readSyncModelTree(projectRoot: string): Promise<Map<string, Buffer>> {
+  const units = await readModelTree(modelRoot(projectRoot));
+  return new Map([...units].map(([file, bytes]) => [`${MODEL_PATH_PREFIX}/${file}`, bytes]));
+}
+
 export function semanticTreeFingerprint(files: Map<string, Buffer>): string {
   const hash = createHash('sha256');
   for (const [file, content] of [...files].sort(([left], [right]) => Buffer.compare(Buffer.from(left), Buffer.from(right)))) {
@@ -352,6 +359,7 @@ export function buildManifest(
 function transactionFileSystem(overrides?: Partial<SyncTransactionFileSystem>): SyncTransactionFileSystem {
   return {
     mkdir: overrides?.mkdir ?? fs.mkdir.bind(fs),
+    lstat: overrides?.lstat ?? fs.lstat.bind(fs),
     readFile: overrides?.readFile ?? fs.readFile.bind(fs),
     rename: overrides?.rename ?? fs.rename.bind(fs),
     rm: overrides?.rm ?? fs.rm.bind(fs),
@@ -439,9 +447,10 @@ function resolveManifestPath(projectRoot: string, relativePath: string): string 
 
 async function readOptionalBuffer(
   filePath: string,
-  filesystem: Pick<SyncTransactionFileSystem, 'readFile'>,
+  filesystem: Pick<SyncTransactionFileSystem, 'lstat' | 'readFile'>,
 ): Promise<Buffer | null> {
   try {
+    if (!(await filesystem.lstat(filePath)).isFile()) throw new Error(`Sync target path collision: ${filePath} is not a regular model file`);
     return await filesystem.readFile(filePath);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;

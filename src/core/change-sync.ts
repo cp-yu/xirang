@@ -11,7 +11,7 @@ import { PARTITIONS, type Partition } from './model/types.js';
 import {
   applySemanticTreeManifest,
   buildManifest,
-  readSemanticTree,
+  readSyncModelTree,
   semanticTreeFingerprint,
   MODEL_PATH_PREFIX,
   type PreparedSyncManifestEntry,
@@ -42,11 +42,8 @@ function countPartitions(manifest: PreparedSyncManifestEntry[]): PartitionCounts
 }
 
 export async function prepareChangeSync(projectRoot: string, changeName: string): Promise<PreparedChangeSync> {
-  const before = await readSemanticTree(projectRoot);
-  const units = new Map([...before].flatMap(([file, bytes]): [string, Buffer][] => {
-    const unit = file.slice(MODEL_PATH_PREFIX.length + 1);
-    return unit.split('/').some(part => part.startsWith('.')) ? [] : [[unit, bytes]];
-  }));
+  const before = await readSyncModelTree(projectRoot);
+  const units = new Map([...before].map(([file, bytes]) => [file.slice(MODEL_PATH_PREFIX.length + 1), bytes]));
   const base = parseSemanticModelFiles([...units].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
   const changeDir = changeRoot(projectRoot, changeName);
   const deltaSnapshot = await readModelTree(changeDir);

@@ -214,3 +214,20 @@ it('rejects mutually exclusive archive options as an invalid CLI argument', asyn
   expect(result).toMatchObject({ exitCode: 1, stdout: '' });
   expect(JSON.parse(result.stderr)).toMatchObject({ code: 'INVALID_ARGUMENT', message: expect.stringMatching(/--quick[\s\S]*--abandon/) });
 });
+
+
+it('returns the matching history after a same-day reuse of the exact Change name', async () => {
+  await writeProjectModel(root, minimalModel());
+  const flags = ['--yes', '--json'];
+  const archive = async (...options: string[]) => {
+    const result = await runCLI(['archive', 'demo', ...options, ...flags], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    return JSON.parse(result.stdout);
+  };
+  await writeChangeDelta(root, 'demo', { 'proposal.md': 'First delivered version.' });
+  const delivery = await archive('--quick');
+  await writeChangeDelta(root, 'demo', { 'proposal.md': 'Second abandoned version.' });
+  const abandonment = await archive('--abandon');
+  expect(await archive('--abandon')).toEqual({ archive: abandonment.archive, alreadyArchived: true });
+  expect(await archive('--quick')).toEqual({ archive: delivery.archive, alreadyArchived: true });
+});

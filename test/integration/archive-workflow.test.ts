@@ -80,6 +80,35 @@ describe('architecture archive workflow', () => {
     expect(rename).toHaveBeenCalledTimes(2);
   });
 
+  it.skipIf(process.platform === 'win32')('restores deleted artifacts without trying to replace surviving absolute symlinks', async () => {
+    const archived = path.join(root, 'archived');
+    const sourceFile = path.join(changeDir, 'artifact.txt');
+    const sourceLink = path.join(changeDir, 'absolute-link');
+    const externalTarget = path.join(root, 'external.txt');
+    await fs.writeFile(sourceFile, 'restore me');
+    await fs.writeFile(externalTarget, 'external');
+    await fs.symlink(externalTarget, sourceLink);
+    const inode = (await fs.lstat(sourceLink)).ino;
+    const interrupted = new Error('partially removed active directory');
+    await expect(moveDirectory(changeDir, archived, {
+      rename: async (from, to) => {
+        if (from === changeDir) throw Object.assign(new Error('cross-device'), { code: 'EXDEV' });
+        await fs.rename(from, to);
+      },
+      rm: async (file, options) => {
+        if (file === changeDir) {
+          await fs.rm(sourceFile);
+          throw interrupted;
+        }
+        await fs.rm(file, options);
+      },
+    })).rejects.toBe(interrupted);
+    await expect(fs.readFile(sourceFile, 'utf8')).resolves.toBe('restore me');
+    await expect(fs.readlink(sourceLink)).resolves.toBe(externalTarget);
+    expect((await fs.lstat(sourceLink)).ino).toBe(inode);
+    await expect(fs.access(archived)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('rolls back an installed fallback destination when active source cleanup fails', async () => {
     const sourceFile = path.join(changeDir, 'architecture-delta.c4');
     const formalFile = path.join(root, '.xirang', 'architecture', 'model.c4');

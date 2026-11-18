@@ -469,6 +469,70 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
+    it('does not let a concurrent loser write or roll back a winning delivery', async () => {
+      const source = await writeSemanticArchiveFixture('contended');
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const rename = fs.rename;
+      let releaseWinner!: () => void;
+      let reachedWrite!: () => void;
+      const barrier = new Promise<void>(resolve => { releaseWinner = resolve; });
+      const winnerWriting = new Promise<void>(resolve => { reachedWrite = resolve; });
+      let first = true;
+      const hook = vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+        if (first && to === modelFile) {
+          first = false;
+          reachedWrite();
+          await barrier;
+        }
+        return rename(from, to);
+      });
+      const start = () => new ArchiveCommand().execute('contended', { quick: true, yes: true }).then(() => null, error => error);
+      const winner = start();
+      try {
+        await Promise.race([winnerWriting, winner.then(error => { throw error ?? new Error('expected a pending model write'); })]);
+        const loserError = await start();
+        expect(loserError).toBeInstanceOf(Error);
+        expect(loserError.message).toMatch(/already exists/);
+      } finally {
+        releaseWinner();
+        await winner;
+        hook.mockRestore();
+      }
+      expect(await winner).toBeNull();
+      await expect(fs.readFile(modelFile, 'utf8')).resolves.toContain('Changed summary');
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      const archive = path.join(path.dirname(source), 'archive');
+      const [archived] = await fs.readdir(archive);
+      await expect(fs.readFile(path.join(archive, archived, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+    });
+
+    it.skipIf(process.platform === 'win32')('does not use a symlink as an Element missing from Formal', async () => {
+      const model = path.join(tempDir, '.xirang', 'model', 'elements');
+      const outside = path.join(tempDir, 'not-formal.md');
+      await fs.writeFile(outside, elementUnit({ identity: 'link-parent' }));
+      const alias = path.join(model, 'link-parent.md');
+      await fs.symlink(outside, alias);
+      const source = await writeChangeDelta(tempDir, 'link-model', {
+        'elements/child.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'child', parent: 'link-parent' }).slice(4),
+      });
+      await expect(archiveCommand.execute('link-model', { quick: true, yes: true })).rejects.toThrow(/link-parent/);
+      await expect(fs.access(path.join(model, 'child.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.readlink(alias)).resolves.toBe(outside);
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
+    it.skipIf(process.platform === 'win32')('does not replace a dangling link at an added model pathname', async () => {
+      const outside = path.join(tempDir, 'missing.md');
+      const alias = path.join(tempDir, '.xirang', 'model', 'elements', 'child.md');
+      await fs.symlink(outside, alias);
+      const source = await writeChangeDelta(tempDir, 'link-destination', {
+        'elements/child.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'child' }).slice(4),
+      });
+      await expect(archiveCommand.execute('link-destination', { quick: true, yes: true })).rejects.toThrow(/target path collision.*child.md/i);
+      await expect(fs.readlink(alias)).resolves.toBe(outside);
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
     it('should handle changes without tasks.md', async () => {
       const changeName = 'no-tasks-feature';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
