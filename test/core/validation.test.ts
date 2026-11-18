@@ -101,9 +101,7 @@ describe('Validator', () => {
     it('should validate section with metadata before SHALL/MUST text', async () => {
       const changeDir = path.join(testDir, 'test-change');
 
-      const deltaSpec = `# Test Spec
-
-## ADDED Sections
+      const deltaSpec = `## ADDED Sections
 
 ### Section: Circuit Breaker State Management SHALL be implemented
 **ID**: REQ-CB-001
@@ -128,9 +126,7 @@ The system MUST implement a circuit breaker with three states.
     it('should validate section with SHALL in text but not in header', async () => {
       const changeDir = path.join(testDir, 'test-change-2');
 
-      const deltaSpec = `# Test Spec
-
-## ADDED Sections
+      const deltaSpec = `## ADDED Sections
 
 ### Section: Error Handling
 **ID**: REQ-ERR-001
@@ -155,9 +151,7 @@ The system SHALL handle all errors gracefully.
     it('should fail when section text lacks SHALL/MUST', async () => {
       const changeDir = path.join(testDir, 'test-change-3');
 
-      const deltaSpec = `# Test Spec
-
-## ADDED Sections
+      const deltaSpec = `## ADDED Sections
 
 ### Section: Logging Feature
 **ID**: REQ-LOG-001
@@ -182,9 +176,7 @@ The system will log all events.
     it('should handle sections without metadata fields', async () => {
       const changeDir = path.join(testDir, 'test-change-4');
 
-      const deltaSpec = `# Test Spec
-
-## ADDED Sections
+      const deltaSpec = `## ADDED Sections
 
 ### Section: Simple Feature
 The system SHALL implement this feature.
@@ -206,9 +198,7 @@ The system SHALL implement this feature.
     it('should treat delta headers case-insensitively', async () => {
       const changeDir = path.join(testDir, 'test-change-mixed-case');
 
-      const deltaSpec = `# Test Spec
-
-## Added Sections
+      const deltaSpec = `## Added Sections
 
 ### Section: Mixed Case Handling
 The system MUST support mixed case delta headers.

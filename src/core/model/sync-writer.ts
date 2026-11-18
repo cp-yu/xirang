@@ -1,6 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
+import { equalSemanticEntity } from '../semantic-diff.js';
 import { isMarkdownUnit, readModelTree, type ParsedModel } from './parser.js';
 import {
   serializeElementKindUnit,
@@ -61,6 +62,14 @@ export async function writeMinimal(
   const files = new Map<string, Buffer>();
   // Two different units must never claim one target path; overwrite would silently drop one of them.
   const claimed = new Map<string, string>();
+  const originalOwners = new Map<string, string>();
+  const indexOriginals = <T>(declared: EntityType, items: readonly T[], identify: (item: T) => string): Map<string, T> =>
+    new Map(items.map(item => {
+      const identity = identify(item);
+      const source = previous.index.moduleOf(declared, identity);
+      if (source) originalOwners.set(source.path, `${declared} ${identity}`);
+      return [identity, item];
+    }));
   const claim = (path: string, owner: string): void => {
     const previousOwner = claimed.get(path);
     if (previousOwner !== undefined && previousOwner !== owner) {
@@ -69,38 +78,34 @@ export async function writeMinimal(
     claimed.set(path, owner);
   };
 
-  const emit = (declared: EntityType, identity: string, defaultPath: string, next: string, before: string | undefined): void => {
+  const emit = <T>(declared: EntityType, identity: string, defaultPath: string, next: T, before: T | undefined, serialize: (value: T) => string): void => {
     const module = previous.index.moduleOf(declared, identity);
     const original = module ? current.get(module.path) : undefined;
     const target = module?.path ?? defaultPath;
     claim(target, `${declared} ${identity}`);
-    if (module && original && before === next) files.set(target, original);
-    else files.set(target, Buffer.from(next, 'utf8'));
+    if (original && equalSemanticEntity(declared, before, next)) files.set(target, original);
+    else files.set(target, Buffer.from(serialize(next), 'utf8'));
   };
 
-  const previousElements = new Map(previous.model.elements.map(item => [item.declaration.identity, item]));
+  const previousElements = indexOriginals('element-declaration', previous.model.elements, item => item.declaration.identity);
   for (const element of expected.elements) {
     const identity = element.declaration.identity;
-    const before = previousElements.get(identity);
-    emit('element-declaration', identity, `elements/${visibleFilename(identity)}.md`, serializeElementUnit(element), before && serializeElementUnit(before));
+    emit('element-declaration', identity, `elements/${visibleFilename(identity)}.md`, element, previousElements.get(identity), serializeElementUnit);
   }
 
-  const previousElementKinds = new Map(previous.model.elementKinds.map(item => [item.identity, item]));
+  const previousElementKinds = indexOriginals('element-kind', previous.model.elementKinds, item => item.identity);
   for (const kind of expected.elementKinds) {
-    const before = previousElementKinds.get(kind.identity);
-    emit('element-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, serializeElementKindUnit(kind), before && serializeElementKindUnit(before));
+    emit('element-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, kind, previousElementKinds.get(kind.identity), serializeElementKindUnit);
   }
 
-  const previousRelationshipKinds = new Map(previous.model.relationshipKinds.map(item => [item.identity, item]));
+  const previousRelationshipKinds = indexOriginals('relationship-kind', previous.model.relationshipKinds, item => item.identity);
   for (const kind of expected.relationshipKinds) {
-    const before = previousRelationshipKinds.get(kind.identity);
-    emit('relationship-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, serializeRelationshipKindUnit(kind), before && serializeRelationshipKindUnit(before));
+    emit('relationship-kind', kind.identity, `metamodel/${visibleFilename(kind.identity)}.md`, kind, previousRelationshipKinds.get(kind.identity), serializeRelationshipKindUnit);
   }
 
-  const previousViews = new Map(previous.model.views.map(item => [item.identity, item]));
+  const previousViews = indexOriginals('authored-view', previous.model.views, item => item.identity);
   for (const view of expected.views) {
-    const before = previousViews.get(view.identity);
-    emit('authored-view', view.identity, `views/${visibleFilename(view.identity)}.md`, serializeViewUnit(view), before && serializeViewUnit(before));
+    emit('authored-view', view.identity, `views/${visibleFilename(view.identity)}.md`, view, previousViews.get(view.identity), serializeViewUnit);
   }
 
   const containerOf = (relationship: Relationship): string =>
@@ -124,13 +129,14 @@ export async function writeMinimal(
   }
 
   const checkPaths = async () => {
+    const owners = new Map([...originalOwners, ...claimed]);
     const caseGroups = new Map<string, string[]>();
-    for (const [target, owner] of claimed) {
+    for (const [target, owner] of owners) {
       const key = target.toLowerCase();
       const aliases = caseGroups.get(key) ?? [];
       for (const other of aliases) {
         if (await pathsAlias(root, other, target)) {
-          throw new Error(`Sync target path collision: ${claimed.get(other)} at ${other} and ${owner} at ${target}`);
+          throw new Error(`Sync target path collision: ${owners.get(other)} at ${other} and ${owner} at ${target}`);
         }
       }
       caseGroups.set(key, [...aliases, target]);

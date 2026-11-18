@@ -352,6 +352,7 @@ git:
       ['## ADDED Sections\n- ### Section: Omitted\nLost behavior.\n\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
       ['## MODIFIED Sections\nUnscoped content.\n\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
       ['Unscoped content.\n\n## ADDED Sections\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
+      ['# The system SHALL not expose private notes.\n\n## ADDED Sections\n### Section: Kept\nThe system SHALL retain this.\n', 'UNSCOPED_SECTION_CONTENT'],
       ['## MODIFIED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n', 'DUPLICATE_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n### Section: No text\n', 'missing Section text'],
@@ -528,13 +529,16 @@ git:
       } finally { folded?.mockRestore(); }
     });
 
-    it('names both owners and paths when a new target aliases an existing Formal unit', async () => {
+    it.each([false, true])('names both owners of an alias to an existing Formal unit (remove existing=%s)', async removeExisting => {
       const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
       const formal = path.join(modelDir, 'existing.id.md');
       const before = await fs.readFile(formal);
       const unit = 'elements/new.md';
       const delta = '---\noperation: ADDED\n' + elementUnit({ identity: 'EXISTING.ID' }).slice(4);
-      const source = await writeChangeDelta(tempDir, 'existing-alias', { [unit]: delta });
+      const removed = '---\noperation: REMOVED\nentity: element-declaration\nidentity: existing.id\n---\n';
+      const source = await writeChangeDelta(tempDir, 'existing-alias', {
+        [unit]: delta, ...(removeExisting ? { 'elements/old.md': removed } : {}),
+      });
       const lstat = fs.lstat;
       const folded = vi.spyOn(fs, 'lstat').mockImplementation(async (file, options) => {
         if (path.dirname(String(file)) === modelDir) {
@@ -556,7 +560,30 @@ git:
       }
       await expect(fs.readFile(formal)).resolves.toEqual(before);
       await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      if (removeExisting) await expect(fs.readFile(path.join(source, 'elements/old.md'), 'utf8')).resolves.toBe(removed);
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it.each(['ADDED', 'MODIFIED'])('does not rewrite equivalent unordered fields (%s)', async operation => {
+      await writeProjectModel(tempDir, minimalModel({
+        elements: [{ identity: 'existing.id', title: 'Existing', definition: 'Existing summary' }],
+        elementKinds: [{ identity: 'family', parents: ['domain', 'capability'], children: ['domain', 'capability'] }],
+        relationshipKinds: [{ identity: 'links', sourceKinds: ['domain', 'capability'], targetKinds: ['domain', 'capability'] }],
+        views: [{ identity: 'ordered', include: '[root, existing.id]', exclude: '[root, existing.id]' }],
+      }));
+      const delta = {
+        'metamodel/family.md': `---\noperation: ${operation}\nentity: element-kind\nidentity: family\ncontract: optional\nparents: [capability, domain]\nchildren: [capability, domain]\n---\n`,
+        'metamodel/links.md': `---\noperation: ${operation}\nentity: relationship-kind\nidentity: links\nsourceKinds: [capability, domain]\ntargetKinds: [capability, domain]\n---\n`,
+        'views/ordered.md': `---\noperation: ${operation}\nentity: authored-view\nidentity: ordered\ninclude: [existing.id, root]\nexclude: [existing.id, root]\n---\n`,
+      };
+      const formalFiles = Object.keys(delta).map(file => path.join(tempDir, '.xirang/model', file));
+      const before = await Promise.all(formalFiles.map(file => fs.readFile(file)));
+      const source = await writeChangeDelta(tempDir, 'unordered', delta);
+
+      await archiveCommand.execute('unordered', { yes: true, quick: true });
+
+      expect(await Promise.all(formalFiles.map(file => fs.readFile(file)))).toEqual(before);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
     });
 
     it('keeps delivery committed even when publishing the receipt throws', async () => {

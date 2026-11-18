@@ -185,13 +185,12 @@ function splitTopLevelSections(content: string): {
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
   const mask = buildCodeFenceMask(lines);
-  const firstContent = lines.findIndex(line => line.trim());
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (!line.trim() || (i === firstContent && !mask[i] && /^ {0,3}#\s+\S/.test(line))) continue;
+    if (!line.trim()) continue;
     const heading = !mask[i] && line.match(/^ {0,3}##\s+(.+)$/);
     if (heading) {
       const title = heading[1].trim();

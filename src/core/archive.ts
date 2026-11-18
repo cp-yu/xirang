@@ -33,8 +33,7 @@ async function statIfPresent(location: string) {
 
 const execFileAsync = promisify(execFile);
 
-async function readLinkType(location: string): Promise<'dir' | 'file' | 'junction' | undefined> {
-  if (process.platform !== 'win32') return undefined;
+async function readWindowsLinkType(location: string): Promise<'dir' | 'file' | 'junction'> {
   // Windows stores the directory bit on the link, even when its target does not exist.
   const powershell = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
   const script = "$ErrorActionPreference = 'Stop'; $file = $env:XIRANG_ARCHIVE_LINK; "
@@ -66,7 +65,11 @@ export async function moveDirectory(
         await filesystem.mkdir(target);
         await copyContents(source, target);
       } else if (entry.isSymbolicLink()) {
-        await filesystem.symlink(await fs.readlink(source), target, await readLinkType(source));
+        if (process.platform === 'win32') {
+          await filesystem.symlink(await fs.readlink(source), target, await readWindowsLinkType(source));
+        } else {
+          await filesystem.symlink(await fs.readlink(source, { encoding: 'buffer' }), target);
+        }
       } else if (entry.isFile()) {
         await filesystem.copyFile(source, target, constants.COPYFILE_EXCL);
       } else throw new Error(`Unsupported archive entry type: ${source}`);

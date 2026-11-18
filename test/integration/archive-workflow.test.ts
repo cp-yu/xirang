@@ -43,6 +43,16 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(archived, 'relative-link'), 'utf8')).resolves.toBe('source');
   });
 
+  it.skipIf(process.platform === 'win32')('preserves non-UTF-8 POSIX symlink targets byte for byte', async () => {
+    const archived = path.join(root, 'archived');
+    const target = Buffer.from([0x66, 0x80]);
+    await fs.symlink(target, path.join(changeDir, 'raw-link'));
+
+    await moveDirectory(changeDir, archived);
+
+    await expect(fs.readlink(path.join(archived, 'raw-link'), { encoding: 'buffer' })).resolves.toEqual(target);
+  });
+
   it.skipIf(process.platform !== 'win32')('keeps an unresolved Windows junction as a junction', async () => {
     const archived = path.join(root, 'archived');
     const target = path.join(root, 'missing-directory');

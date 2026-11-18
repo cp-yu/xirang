@@ -15,6 +15,7 @@ import { validateSemanticModel } from './model/validator.js';
 import {
   canonicalJson,
   createSemanticDiff,
+  equalSemanticEntity,
   semanticModelFingerprint,
   type ChangeDiagnostic,
   type ChangeDiff,
@@ -117,7 +118,7 @@ function currentValue(base: SemanticModel, entry: DeltaEntry): unknown {
 function alreadyApplied(base: SemanticModel, entry: DeltaEntry): boolean {
   const current = currentValue(base, entry);
   if (entry.operation === 'REMOVED') return current === undefined;
-  return current !== undefined && canonicalJson(current) === canonicalJson(entry.target);
+  return current !== undefined && equalSemanticEntity(entry.entity, current, entry.target);
 }
 
 function suppressApplied(base: SemanticModel, delta: SemanticDelta, diagnostics: ModelDiagnostic[]): ModelDiagnostic[] {
