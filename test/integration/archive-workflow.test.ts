@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { moveDirectory } from '../../src/core/archive.js';
 
 async function windowsLinkType(location: string): Promise<string> {
@@ -100,7 +101,7 @@ describe('architecture archive workflow', () => {
     try {
       await expect(moveDirectory(changeDir, archived, {
         rmdir: async (location, options) => {
-          if (location === path.join(root, '.archived.pending') && await fs.access(targetDir).then(() => true, () => false)) {
+          if (location === pendingArchivePath(archived) && await fs.access(targetDir).then(() => true, () => false)) {
             expect(await modeOf(archived)).toBe(0o710);
             expect(await modeOf(targetDir)).toBe(0o500);
             throw interrupted;
@@ -199,7 +200,7 @@ describe('architecture archive workflow', () => {
     await fs.symlink(externalTarget, sourceLink);
     const originalLink = await fs.lstat(sourceLink);
     const interrupted = new Error('cannot commit archive');
-    const pending = path.join(root, '.archived.pending');
+    const pending = pendingArchivePath(archived);
     let denied = false;
     await expect(moveDirectory(changeDir, archived, {
       rmdir: async (target, options) => {

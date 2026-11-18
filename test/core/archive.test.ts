@@ -308,6 +308,40 @@ git:
       await expect(fs.readFile(path.join(abandoned, entry, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
     });
 
+    it.skipIf(process.platform === 'win32').for([false, true])('archives names at the component limit (abandon=%s)', async (abandon, context) => {
+      const name = 'n'.repeat(244);
+      const source = await writeChangeDelta(tempDir, name, { 'proposal.md': 'Long name' });
+      const parent = path.join(path.dirname(source), 'archive', ...(abandon ? ['abandoned'] : []));
+      await fs.mkdir(parent, { recursive: true });
+      const probe = path.join(parent, 'x'.repeat(255));
+      try { await fs.mkdir(probe); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENAMETOOLONG') return context.skip('Filesystem component limit is below 255');
+        throw error;
+      }
+      await fs.rmdir(probe);
+
+      await archiveCommand.execute(name, { quick: !abandon, abandon, yes: true, json: true });
+
+      const { archive } = JSON.parse(vi.mocked(console.log).mock.lastCall![0]);
+      expect(path.basename(archive)).toMatch(new RegExp(`^\\d{4}-\\d{2}-\\d{2}-${name}$`));
+      await expect(fs.readFile(path.join(tempDir, archive, 'proposal.md'), 'utf8')).resolves.toBe('Long name');
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+    });
+
+    it('ignores an old local claim when that PID now identifies another process', async () => {
+      const name = 'reused-pid';
+      const source = await writeChangeDelta(tempDir, name, { 'proposal.md': 'Original' });
+      const host = createHash('sha256').update(os.hostname()).digest('hex').slice(0, 16);
+      const marker = path.join(path.dirname(source), `.archive-lock-${host}-${process.pid}-0000000000000000-fixture`);
+      await fs.mkdir(marker);
+
+      await archiveCommand.execute(name, { abandon: true, yes: true });
+
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.access(marker)).resolves.toBeUndefined();
+    });
+
     it('rejects a malformed Semantic Delta unit at the archive sync gate', async () => {
       const changeName = 'malformed-delta';
       const changeDir = await writeChangeDelta(tempDir, changeName, {

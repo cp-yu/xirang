@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
@@ -198,12 +199,31 @@ it('omits marked incomplete history from archive completion and retry', async ()
     await fs.mkdir(path.join(archive, name), { recursive: true });
     await fs.writeFile(path.join(archive, name, 'proposal.md'), 'Proposal already copied');
   }
-  await fs.mkdir(path.join(archive, '.2026-01-01-interrupted.pending'));
+  await fs.mkdir(pendingArchivePath(path.join(archive, '2026-01-01-interrupted')));
 
   const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
   expect(completion).toMatchObject({ exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n', stderr: '' });
   const retry = await runCLI(['archive', 'interrupted', '--quick'], { cwd: root });
   expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
+});
+
+it.skipIf(process.platform === 'win32')('retries and completes legacy archive names at the component limit', async context => {
+  const archive = path.join(root, '.xirang', 'changes', 'archive');
+  const name = 'l'.repeat(244);
+  const entry = `2026-01-01-${name}`;
+  const location = path.join(archive, entry);
+  try { await fs.mkdir(location, { recursive: true }); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENAMETOOLONG') return context.skip('Filesystem component limit is below 255');
+    throw error;
+  }
+  await fs.writeFile(path.join(location, 'proposal.md'), 'Legacy archive');
+
+  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
+  expect(completion.stdout).toBe(`${entry}\tarchived change\n`);
+  const retry = await runCLI(['archive', name, '--json'], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(retry.stdout)).toEqual({ archive: path.relative(root, location), alreadyArchived: true });
 });
 
 it('reports an archive error and incomplete model rollback in structured diagnostics', async () => {

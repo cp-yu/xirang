@@ -81,3 +81,6 @@
 - [x] [code_fix] 交付忽略无序集合的排列差异并保留原文件；大小写碰撞也检查本次计划移除的既有单元。
 - [x] [code_fix] 保留 POSIX 目录项的原始字节及目录权限，验证 Windows 链接类型一致。
 - [x] [artifact_fix] 入门说明与术语表区分交付和 `--abandon` 留档。
+- [x] [artifact_fix] Quality 执行模型只定义 Apply 责任，Archive 消费有效 Seal 或交回 Apply。
+- [x] [code_fix] 定长 `.pending` 路径不限制可归档的合法名称；补全和重试仍可找到已完成的长名称历史。
+- [x] [code_fix] 本机 PID 复用在可核实进程身份时不被视为活动归档，不能核实时保守阻止。

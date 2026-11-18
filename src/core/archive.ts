@@ -34,15 +34,17 @@ async function statIfPresent(location: string) {
 
 const execFileAsync = promisify(execFile);
 
+function runWindowsPowerShell(script: string, env: NodeJS.ProcessEnv = process.env) {
+  const powershell = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  return execFileAsync(powershell, ['-NoProfile', '-NonInteractive', '-Command', script], { env, windowsHide: true });
+}
+
 async function readWindowsLinkType(location: string): Promise<'dir' | 'file' | 'junction'> {
   // Windows stores the directory bit on the link, even when its target does not exist.
-  const powershell = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
   const script = "$ErrorActionPreference = 'Stop'; $file = $env:XIRANG_ARCHIVE_LINK; "
     + "$attrs = [IO.File]::GetAttributes($file); $item = Get-Item -LiteralPath $file -Force; "
     + "if ($item.LinkType -eq 'Junction') { 'junction' } elseif ($attrs -band [IO.FileAttributes]::Directory) { 'dir' } else { 'file' }";
-  const { stdout } = await execFileAsync(powershell, ['-NoProfile', '-NonInteractive', '-Command', script], {
-    env: { ...process.env, XIRANG_ARCHIVE_LINK: location }, windowsHide: true,
-  });
+  const { stdout } = await runWindowsPowerShell(script, { ...process.env, XIRANG_ARCHIVE_LINK: location });
   const type = stdout.trim();
   if (type === 'dir' || type === 'file' || type === 'junction') return type;
   throw new Error(`Cannot determine Windows link type: ${location}`);
@@ -154,27 +156,59 @@ export async function moveDirectory(
 const CLAIM_PREFIX = '.archive-lock-';
 const CLAIM_HOST = createHash('sha256').update(hostname()).digest('hex').slice(0, 16);
 
-function claimIsLive(name: string): boolean {
-  const owner = /^\.archive-lock-([\da-f]{16})-([1-9]\d*)-/.exec(name);
+async function readArchiveProcessIdentity(pid: number): Promise<string | undefined> {
+  const identity = await (async () => {
+    if (process.platform === 'linux') {
+      const stat = await fs.readFile(`/proc/${pid}/stat`, 'utf8');
+      // The command name can itself contain spaces and parentheses; starttime is field 22.
+      const start = stat.slice(stat.lastIndexOf(')') + 1).trim().split(/\s+/)[19];
+      return start && await fs.readFile('/proc/sys/kernel/random/boot_id', 'utf8') + start;
+    }
+    if (process.platform === 'win32') {
+      const { stdout } = await runWindowsPowerShell(`(Get-Process -Id ${pid} -ErrorAction Stop).StartTime.ToUniversalTime().Ticks`);
+      return stdout.trim();
+    }
+    const { stdout } = await execFileAsync('/bin/ps', ['-p', String(pid), '-o', 'lstart=', '-o', 'comm='], {
+      env: { ...process.env, LC_ALL: 'C', TZ: 'UTC' },
+    });
+    return stdout.trim();
+  })().catch(() => undefined);
+  return identity ? createHash('sha256').update(identity).digest('hex').slice(0, 16) : undefined;
+}
+
+let ownArchiveProcessIdentity: Promise<string | undefined> | undefined;
+
+function archiveProcessIdentity(pid: number): Promise<string | undefined> {
+  return pid === process.pid ? ownArchiveProcessIdentity ??= readArchiveProcessIdentity(pid) : readArchiveProcessIdentity(pid);
+}
+
+async function claimIsLive(name: string): Promise<boolean> {
+  const owner = /^\.archive-lock-([\da-f]{16})-([1-9]\d*)-(?:([\da-f]{16})-)?/.exec(name);
   if (!owner) return false;
   if (owner[1] !== CLAIM_HOST) return true;
-  try { process.kill(Number(owner[2]), 0); }
+  const pid = Number(owner[2]);
+  if (!Number.isSafeInteger(pid) || pid > 0x7fff_ffff) return true;
+  try { process.kill(pid, 0); }
   catch (error) {
     return (error as NodeJS.ErrnoException).code !== 'ESRCH';
   }
-  return true;
+  if (!owner[3]) return true;
+  const current = await archiveProcessIdentity(pid);
+  return current === undefined || current === owner[3];
 }
 
 async function requireNoCompetingArchive(changesDir: string, ownClaim?: string): Promise<void> {
-  const competing = (await fs.readdir(changesDir)).find(name => name !== ownClaim && claimIsLive(name));
-  if (competing) {
-    throw new Error(`An archive is in progress (${path.join(changesDir, competing)}). Retry once it finishes. If this marker is stale, confirm no archive is running and inspect the workspace before removing it.`);
+  for (const name of await fs.readdir(changesDir)) {
+    if (name !== ownClaim && await claimIsLive(name)) {
+      throw new Error(`An archive is in progress (${path.join(changesDir, name)}). Retry once it finishes. If this marker is stale, confirm no archive is running and inspect the workspace before removing it.`);
+    }
   }
 }
 
 async function withArchiveLock(changesDir: string, commit: () => Promise<void>, json?: boolean): Promise<void> {
+  const identity = await archiveProcessIdentity(process.pid);
   // Publish a unique claim before checking for competitors. Overlapping claims cannot both commit.
-  const claim = await fs.mkdtemp(path.join(changesDir, `${CLAIM_PREFIX}${CLAIM_HOST}-${process.pid}-`));
+  const claim = await fs.mkdtemp(path.join(changesDir, `${CLAIM_PREFIX}${CLAIM_HOST}-${process.pid}-${identity ? `${identity}-` : ''}`));
   try {
     await requireNoCompetingArchive(changesDir, path.basename(claim));
     await commit();
