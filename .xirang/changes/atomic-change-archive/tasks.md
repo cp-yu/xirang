@@ -106,3 +106,6 @@
 - [x] [code_fix] Element Declaration 与 Section 按宿主 identity 联合应用，不依赖文件名顺序；保留同一单元内顺序，拒绝新增或修改要移除宿主的 Section。
 - [x] [code_fix] 不按内容猜测隐藏 Delta 是否存在；除已知占位和写回暂存外，全部语义分区普通文件须接受校验，预览以同一快照判断是否需要 `.delta-noop`。
 - [x] [code_fix] 拒绝新 Kind 的关系占用其他 Kind 的既有容器路径，即使原关系也在同次移除；同 Kind 的关系替换保持合法。
+- [x] [code_fix] 向进程发送探测信号返回 EPERM 时，仍尝试核对可读取的启动标识；无法核对则继续阻止。
+- [x] [code_fix] 制品状态报告隐藏 Delta 单元，沿用读取器对暂存和占位的排除规则。
+- [x] [code_fix] 写回撤销最后一个本地 Section 操作时使用 Formal 声明作导航占位，保留其他源文件的 Declaration 操作。

@@ -134,8 +134,8 @@ export async function writebackExpectedModel(
     const existing = existingEntries.get(key);
     return !otherEntries.has(key) || !existing || !same(existing, entry);
   });
-  const content = serializeDelta(edited, localEntries);
   if (same(edited, expected)) return { changed: false, ignoredChanges };
+  const content = serializeDelta(localEntries.length === 0 && base ? base : edited, localEntries);
   files.set(sourcePath, content);
   const candidate = await compileChangeDelta(root, change, { base: current.base, deltaFiles: files });
   const notation = await new Validator().validateChangeDeltaSpecs(directory, { files });

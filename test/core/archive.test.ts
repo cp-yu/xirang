@@ -344,6 +344,45 @@ git:
       await expect(fs.access(marker)).resolves.toBeUndefined();
     });
 
+    it.skipIf(process.platform !== 'linux').each([true, false])('uses the process identity after EPERM when it is readable (%s)', async readable => {
+      const name = 'claim-permission';
+      const source = await writeChangeDelta(tempDir, name, { 'proposal.md': 'Original' });
+      const host = createHash('sha256').update(os.hostname()).digest('hex').slice(0, 16);
+      const pid = 12345678;
+      const marker = path.join(path.dirname(source), `.archive-lock-${host}-${pid}-0000000000000000-fixture`);
+      await fs.mkdir(marker);
+      const permissionError = (code: string) => Object.assign(new Error('Permission denied'), { code });
+      const kill = process.kill;
+      const signal = vi.spyOn(process, 'kill').mockImplementation((processId, value) => {
+        if (processId === pid && value === 0) throw permissionError('EPERM');
+        return kill(processId, value);
+      });
+      const readFile = fs.readFile;
+      const read = vi.spyOn(fs, 'readFile').mockImplementation(async (file, options) => {
+        if (file === `/proc/${pid}/stat`) {
+          if (!readable) throw permissionError('EACCES');
+          return `${pid} (different user) S ${Array(18).fill(0).join(' ')} 12345`;
+        }
+        return readFile(file, options);
+      });
+      try {
+        const deliver = archiveCommand.execute(name, { abandon: true, yes: true });
+        if (readable) {
+          await deliver;
+          await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+        } else {
+          await expect(deliver).rejects.toThrow(/An archive is in progress/);
+          await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('Original');
+        }
+        expect(signal).toHaveBeenCalledWith(pid, 0);
+        expect(read).toHaveBeenCalledWith(`/proc/${pid}/stat`, 'utf8');
+        await expect(fs.access(marker)).resolves.toBeUndefined();
+      } finally {
+        read.mockRestore();
+        signal.mockRestore();
+      }
+    });
+
     it('rejects a malformed Semantic Delta unit at the archive sync gate', async () => {
       const changeName = 'malformed-delta';
       const changeDir = await writeChangeDelta(tempDir, changeName, {

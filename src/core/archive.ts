@@ -198,7 +198,10 @@ async function claimIsLive(name: string): Promise<boolean> {
   if (!Number.isSafeInteger(pid) || pid > 0x7fff_ffff) return true;
   try { process.kill(pid, 0); }
   catch (error) {
-    return (error as NodeJS.ErrnoException).code !== 'ESRCH';
+    const { code } = error as NodeJS.ErrnoException;
+    if (code === 'ESRCH') return false;
+    if (code !== 'EPERM') return true;
+    // Permission to signal the PID is separate from permission to read its start identity.
   }
   if (!owner[3]) return true;
   const current = await archiveProcessIdentity(pid);

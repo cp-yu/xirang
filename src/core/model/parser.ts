@@ -6,6 +6,7 @@ import { ACCEPTANCE_CASE_HEADER, buildCodeFenceMask } from '../parsers/section-t
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
+import { isIgnoredDeltaFile } from './paths.js';
 import { validateNodePresentation } from './node-presentation.js';
 import { validateRelationshipPresentation } from './relationship-presentation.js';
 import {
@@ -400,10 +401,6 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   return { model, index, diagnostics };
 }
 
-// These files are not authored Delta units. Everything else must reach the parser, including malformed input.
-const DELTA_METADATA = new Set(['.gitkeep', '.gitignore', '.DS_Store']);
-const DELTA_WRITEBACK_TEMP = /^\..+\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.tmp$/is;
-
 /** Reads the four partitions below `root` into a path → bytes map. */
 export async function readModelTree(root: string, includeHiddenDeltaUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
@@ -419,8 +416,7 @@ export async function readModelTree(root: string, includeHiddenDeltaUnits = fals
     }
     for (const entry of entries) {
       const name = entry.name.toString();
-      if (name.startsWith('.') && (!includeHiddenDeltaUnits || (entry.isFile()
-        && (DELTA_METADATA.has(name) || DELTA_WRITEBACK_TEMP.test(name))))) continue;
+      if (name.startsWith('.') && (!includeHiddenDeltaUnits || (entry.isFile() && isIgnoredDeltaFile(name)))) continue;
       if (!entry.isDirectory() && !entry.isFile()) continue;
       if (Buffer.isBuffer(entry.name) && !entry.name.equals(Buffer.from(name))) {
         throw new Error(`NON_UTF8_UNIT_PATH: ${directory} contains an invalid UTF-8 name (bytes: ${entry.name.toString('hex')}); rename the entry before retrying.`);

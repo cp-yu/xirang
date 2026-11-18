@@ -2,6 +2,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import fg from 'fast-glob';
 import { FileSystemUtils } from '../../utils/file-system.js';
+import { isIgnoredDeltaFile } from '../model/paths.js';
+import { PARTITIONS } from '../model/types.js';
 
 /**
  * Checks if a path contains glob pattern characters.
@@ -27,9 +29,13 @@ export function resolveArtifactOutputs(changeDir: string, generates: string): st
   }
 
   const normalizedPattern = FileSystemUtils.toPosixPath(generates);
-  const matches = fg
-    .sync(normalizedPattern, { cwd: changeDir, onlyFiles: true, absolute: true })
-    .map((match) => FileSystemUtils.canonicalizeExistingPath(path.normalize(match)));
+  const semanticDelta = normalizedPattern === `{${PARTITIONS.join(',')}}/**/*`;
+  const matches = fg.sync(normalizedPattern, {
+    cwd: changeDir, onlyFiles: true, absolute: true,
+    ...(semanticDelta ? { dot: true, followSymbolicLinks: false } : {}),
+  })
+    .filter(match => !semanticDelta || !isIgnoredDeltaFile(path.basename(match)))
+    .map(match => FileSystemUtils.canonicalizeExistingPath(path.normalize(match)));
 
   return Array.from(new Set(matches)).sort();
 }

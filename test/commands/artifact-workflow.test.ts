@@ -190,6 +190,26 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       }
     });
 
+    it('reports hidden Delta units in artifact-only status but excludes writeback staging and placeholders', async () => {
+      const name = 'hidden-delta';
+      const directory = await createTestChange(name, ['proposal', 'design', 'tasks']);
+      const delta = '---\nentity: element-declaration\noperation: ADDED\nidentity: example\nkind: capability\nparent: root\ntitle: Example\ndefinition: Example definition.\n---\n';
+      const folder = path.join(directory, 'elements', '.drafts');
+      await fs.mkdir(folder, { recursive: true });
+      const unit = path.join(folder, '.author-unit');
+      await fs.writeFile(unit, delta);
+      await fs.writeFile(path.join(folder, '.author-unit.12345678-1234-4321-8765-0123456789ab.tmp'), delta);
+      await fs.writeFile(path.join(folder, '.gitkeep'), '');
+      const status = async () => {
+        const result = await runCLI(['status', '--change', name, '--no-quality', '--json'], { cwd: tempDir });
+        expect(result.exitCode, result.stderr).toBe(0);
+        return JSON.parse(result.stdout).artifacts.find((artifact: { id: string }) => artifact.id === 'semantic-delta');
+      };
+      expect(await status()).toMatchObject({ status: 'done', outputs: [`.xirang/changes/${name}/elements/.drafts/.author-unit`] });
+      await fs.unlink(unit);
+      expect(await status()).toMatchObject({ status: 'ready', outputs: [] });
+    });
+
     it('shows status for scaffolded change without proposal.md', async () => {
       // Create empty change directory (no proposal.md)
       const changeDir = path.join(changesDir, 'scaffolded-change');
