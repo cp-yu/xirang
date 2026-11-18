@@ -560,7 +560,7 @@ git:
         'elements/.element.md': added(elementUnit({ identity: '.element', kind: '.element-kind' })),
         'relationships/.relationship-kind.yaml': 'relationships:\n  - operation: ADDED\n    source: .element\n    kind: .relationship-kind\n    target: root\n',
         'views/.view.md': '---\noperation: ADDED\nentity: authored-view\nidentity: .view\ninclude: "*"\n---\n',
-        'elements/.ignored.md.save.tmp': 'not a Delta unit',
+        'elements/.element.md.12345678-1234-4321-8765-0123456789ab.tmp': 'not a Delta unit',
       });
       await archiveCommand.execute('dot-identity', { quick: true, yes: true });
       const { parseSemanticModel } = await import('../../src/core/model/parser.js');

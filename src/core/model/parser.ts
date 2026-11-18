@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { parse as parseYaml, parseDocument } from 'yaml';
+import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { ACCEPTANCE_CASE_HEADER, buildCodeFenceMask } from '../parsers/section-text.js';
 import { extractSpecificationSection } from '../parsers/section-blocks.js';
@@ -400,18 +400,14 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   return { model, index, diagnostics };
 }
 
-// Temporary files used by Expected Model writeback are not authored Delta units.
+// These files are not authored Delta units. Everything else must reach the parser, including malformed input.
+const DELTA_METADATA = new Set(['.gitkeep', '.gitignore', '.DS_Store']);
 const DELTA_WRITEBACK_TEMP = /^\..+\.[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.tmp$/is;
-
-function hasDeltaNotation(content: string): boolean {
-  // Discover authored units even when the relationships value is malformed.
-  return isMarkdownUnit(content) || parseDocument(normalizeLineEndings(content)).has('relationships');
-}
 
 /** Reads the four partitions below `root` into a path → bytes map. */
 export async function readModelTree(root: string, includeHiddenDeltaUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
-  const visit = async (directory: string, relative: string, hidden = false): Promise<void> => {
+  const visit = async (directory: string, relative: string): Promise<void> => {
     let entries;
     try {
       entries = process.platform === 'win32'
@@ -423,19 +419,16 @@ export async function readModelTree(root: string, includeHiddenDeltaUnits = fals
     }
     for (const entry of entries) {
       const name = entry.name.toString();
-      const hiddenEntry = hidden || name.startsWith('.');
-      if (hiddenEntry && (!includeHiddenDeltaUnits || (entry.isFile() && DELTA_WRITEBACK_TEMP.test(name)))) continue;
+      if (name.startsWith('.') && (!includeHiddenDeltaUnits || (entry.isFile()
+        && (DELTA_METADATA.has(name) || DELTA_WRITEBACK_TEMP.test(name))))) continue;
       if (!entry.isDirectory() && !entry.isFile()) continue;
       if (Buffer.isBuffer(entry.name) && !entry.name.equals(Buffer.from(name))) {
         throw new Error(`NON_UTF8_UNIT_PATH: ${directory} contains an invalid UTF-8 name (bytes: ${entry.name.toString('hex')}); rename the entry before retrying.`);
       }
       const child = `${relative}/${name}`;
       const location = path.join(directory, name);
-      if (entry.isDirectory()) await visit(location, child, hiddenEntry);
-      else {
-        const bytes = await fs.readFile(location);
-        if (!hiddenEntry || /\.(md|ya?ml)$/i.test(name) || hasDeltaNotation(bytes.toString('utf8'))) files.set(child, bytes);
-      }
+      if (entry.isDirectory()) await visit(location, child);
+      else files.set(child, await fs.readFile(location));
     }
   };
   for (const partition of PARTITIONS) await visit(path.join(root, partition), partition);

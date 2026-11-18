@@ -104,3 +104,5 @@
 - [x] [code_fix] 目标标识不得占用本次计划移除的另一标识的精确 Formal 路径，冲突指出双方。
 - [x] [code_fix] 隐藏 Relationship 单元即使 YAML 无法完整解析也须进入校验，不得当作空 Delta。
 - [x] [code_fix] Element Declaration 与 Section 按宿主 identity 联合应用，不依赖文件名顺序；保留同一单元内顺序，拒绝新增或修改要移除宿主的 Section。
+- [x] [code_fix] 不按内容猜测隐藏 Delta 是否存在；除已知占位和写回暂存外，全部语义分区普通文件须接受校验，预览以同一快照判断是否需要 `.delta-noop`。
+- [x] [code_fix] 拒绝新 Kind 的关系占用其他 Kind 的既有容器路径，即使原关系也在同次移除；同 Kind 的关系替换保持合法。

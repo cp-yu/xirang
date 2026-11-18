@@ -13,7 +13,7 @@ import {
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
 import { normalizeProse, readEntity, readDeltaFiles } from '../model/parser.js';
-import { PARTITIONS, type ModelElement } from '../model/types.js';
+import type { ModelElement } from '../model/types.js';
 import {
   containsShallOrMust as containsShallOrMustShared,
   extractSectionBody,
@@ -40,8 +40,9 @@ export class Validator {
     const issues: ValidationIssue[] = [];
     const missingHeaderSpecs: string[] = [];
     const emptySectionSpecs: Array<{ path: string; sections: string[] }> = [];
+    const files = context?.files ?? await readDeltaFiles(changeDir);
 
-    for (const [entryPath, unit] of await readElementDeltaUnits(changeDir, context?.files)) {
+    for (const [entryPath, unit] of elementDeltaUnits(files)) {
       const plan = parseDeltaSpec(unit);
       const sectionNames: string[] = [];
       if (plan.sectionPresence.added) sectionNames.push('## ADDED Sections');
@@ -122,7 +123,7 @@ export class Validator {
       });
     }
 
-    if (!context?.allowAlreadyApplied && !(context?.files ? context.files.size > 0 : await carriesSemanticDelta(changeDir)) && !await declaresExplicitNoDelta(changeDir)) {
+    if (!context?.allowAlreadyApplied && files.size === 0 && !await declaresExplicitNoDelta(changeDir)) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
     }
 
@@ -222,23 +223,14 @@ export class Validator {
   }
 }
 
-/** A change carries a Semantic Delta when any of its four partitions holds a unit. */
-async function carriesSemanticDelta(changeDir: string): Promise<boolean> {
-  for (const partition of PARTITIONS) {
-    const entries = await fs.readdir(path.join(changeDir, partition), { withFileTypes: true }).catch(() => []);
-    if (entries.some(entry => entry.isFile() || entry.isDirectory())) return true;
-  }
-  return false;
-}
-
 /** `.delta-noop` is the explicit declaration that a Change intentionally carries no Semantic Delta. */
 async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
   return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
 }
 
 /** Section notation applies by declared entity, independent of which partition holds the unit. */
-async function readElementDeltaUnits(changeDir: string, files?: ReadonlyMap<string, string>): Promise<Array<[string, string]>> {
-  return [...(files ?? await readDeltaFiles(changeDir))].flatMap(([file, content]): Array<[string, string]> => {
+function elementDeltaUnits(files: ReadonlyMap<string, string>): Array<[string, string]> {
+  return [...files].flatMap(([file, content]): Array<[string, string]> => {
     const split = splitFrontmatter(content);
     return split.ok && readEntity(split.data) === 'element-declaration'
       && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];

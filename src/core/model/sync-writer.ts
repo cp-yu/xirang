@@ -47,6 +47,11 @@ function containerKind(relativePath: string): string {
   return relativePath.split('/').pop()!.replace(/\.[^.]*$/, '');
 }
 
+function describeRelationships(items: readonly Relationship[]): string {
+  const owners = new Set(items.map(({ source, kind, target }) => `${source} -[${kind}]-> ${target}`));
+  return owners.size > 0 ? `relationships ${[...owners].sort().join(', ')}` : 'empty relationship container';
+}
+
 /**
  * Computes the complete target tree for `expected`, reusing the original bytes of every unit the
  * delta did not affect. Paths, comments and ordering of untouched units therefore stay identical.
@@ -121,10 +126,16 @@ export async function writeMinimal(
   for (const [file, items] of groups) {
     const kind = containerKind(file);
     const before = previous.model.relationships.filter(item => containerOf(item) === file);
+    if (before.length > 0) {
+      const beforeKinds = new Set(before.map(item => item.kind));
+      const foreign = items.filter(item => !beforeKinds.has(item.kind));
+      if (foreign.length > 0) {
+        throw new Error(`Sync target path collision: ${describeRelationships(before)} and ${describeRelationships(foreign)} both resolve to ${file}`);
+      }
+    }
     const next = serializeRelationshipContainer(kind, items);
     const original = current.get(file);
-    const owners = [...new Set([...before, ...items].map(({ source, kind, target }) => `${source} -[${kind}]-> ${target}`))].sort();
-    claim(file, owners.length > 0 ? `relationships ${owners.join(', ')}` : 'empty relationship container');
+    claim(file, describeRelationships([...before, ...items]));
     if (original && serializeRelationshipContainer(kind, before) === next) files.set(file, original);
     else files.set(file, Buffer.from(next, 'utf8'));
   }

@@ -131,7 +131,7 @@ it('previews and delivers extensionless hidden Delta units without applying CLI 
   await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-it.each(['relationships: [\n', '{"relationships": [\n'])('rejects a malformed extensionless hidden Relationship unit (%j)', async delta => {
+it.each(['relationships: [\n', '{"relationships": [\n', 'relationships\n  - operation: ADDED\n'])('rejects a malformed extensionless hidden Relationship unit (%j)', async delta => {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
   const before = await readModelTree(model);
@@ -202,6 +202,25 @@ it.each([
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+it('requires .delta-noop for a preview that contains only writeback staging and placeholders', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'staging-only', {
+    'proposal.md': '# Staging-only change\n',
+    'elements/.draft.12345678-1234-4321-8765-0123456789ab.tmp': '---\noperation: ADDED\n' + elementUnit({ identity: 'staged' }).slice(4),
+    'views/.gitkeep': '',
+  });
+  const preview = () => runCLI(['validate', '--change', 'staging-only', '--preview', '--json'], { cwd: root });
+  const rejected = await preview();
+  expect(rejected.exitCode).toBe(1);
+  expect(rejected.stderr).toContain('at least one delta');
+  expect(JSON.parse(rejected.stdout).summary.total).toBe(0);
+
+  await fs.writeFile(path.join(source, '.delta-noop'), '');
+  const marked = await preview();
+  expect(marked).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(marked.stdout).summary.total).toBe(0);
+});
+
 it('rejects a new owner of the exact path of a removed Formal unit', async () => {
   await writeProjectModel(root, minimalModel({ elements: [{ identity: 'old-id', fileName: 'new-id' }] }));
   const model = path.join(root, '.xirang', 'model');
@@ -216,6 +235,47 @@ it('rejects a new owner of the exact path of a removed Formal unit', async () =>
   await expect(readModelTree(model)).resolves.toEqual(before);
   expect((await fs.readdir(path.join(source, 'elements'))).sort()).toEqual(['add.md', 'remove.md']);
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([true, false])('rejects reusing a Relationship container for a foreign Kind (remove original=%s)', async remove => {
+  await writeProjectModel(root, minimalModel({
+    elements: [{ identity: 'child' }],
+    relationshipKinds: [{ identity: 'old' }, { identity: 'new' }],
+    relationships: [{ source: 'root', kind: 'old', target: 'child' }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  const location = 'relationships/new.yaml';
+  await fs.rename(path.join(model, 'relationships/old.yaml'), path.join(model, location));
+  const before = await readModelTree(model);
+  const delta = 'relationships:\n  - operation: ADDED\n    source: child\n    kind: new\n    target: root\n'
+    + (remove ? '  - operation: REMOVED\n    source: root\n    kind: old\n    target: child\n' : '');
+  const source = await writeChangeDelta(root, 'relationship-reuse', { [location]: delta });
+  const result = await runCLI(['archive', 'relationship-reuse', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(result.stderr).toContain('collision');
+  expect(result.stderr).toContain('root -[old]-> child');
+  expect(result.stderr).toContain('child -[new]-> root');
+  expect(result.stderr).toContain(location);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, location), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('allows a replacement tuple to use the existing container for the same Relationship Kind', async () => {
+  await writeProjectModel(root, minimalModel({
+    elements: [{ identity: 'child' }],
+    relationshipKinds: [{ identity: 'links' }],
+    relationships: [{ source: 'root', kind: 'links', target: 'child' }],
+  }));
+  const location = 'relationships/links.yaml';
+  await writeChangeDelta(root, 'replace-relationship', {
+    [location]: 'relationships:\n  - operation: REMOVED\n    source: root\n    kind: links\n    target: child\n'
+      + '  - operation: ADDED\n    source: child\n    kind: links\n    target: root\n',
+  });
+  const result = await runCLI(['archive', 'replace-relationship', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result.exitCode, result.stderr).toBe(0);
+  await expect(fs.readFile(path.join(root, '.xirang/model', location), 'utf8'))
+    .resolves.toBe('relationships:\n  - source: child\n    kind: links\n    target: root\n');
 });
 
 it('rejects invalid final archive validation without moving the active Change', async () => {

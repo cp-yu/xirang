@@ -10,7 +10,7 @@ import { getActiveChangeIds, getContractElementIds } from '../utils/item-discove
 import { nearestMatches } from '../utils/match.js';
 import type { ValidationReport } from '../core/validation/types.js';
 import { readFormalSemanticModel, compileChange, type CompiledChange } from '../core/change-compiler.js';
-import type { ParsedModel } from '../core/model/parser.js';
+import { readDeltaFiles, type ParsedModel } from '../core/model/parser.js';
 import type { ModelDiagnostic } from '../core/model/types.js';
 import { conciseDiffEntries, renderChangeDiff } from '../core/change-diff-renderer.js';
 import { validateTaskStructure } from '../core/parsers/task-structure.js';
@@ -202,8 +202,9 @@ export class ValidateCommand {
     changeDir: string,
     base?: ParsedModel,
   ): Promise<{ report: ValidationReport; compiled: CompiledChange }> {
-    const compiled = await compileChange(process.cwd(), id, base === undefined ? {} : { base });
-    const notationReport = await validator.validateChangeDeltaSpecs(changeDir);
+    const files = await readDeltaFiles(changeDir);
+    const compiled = await compileChange(process.cwd(), id, { base, deltaFiles: files });
+    const notationReport = await validator.validateChangeDeltaSpecs(changeDir, { files });
     const compilerIssues = compiled.diagnostics.map(item => ({
       level: item.level,
       path: item.path,
