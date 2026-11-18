@@ -51,7 +51,7 @@ export class Validator {
       const hasSections = sectionNames.length > 0;
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
       for (const line of plan.malformedOperationLines) issues.push({
-        level: 'ERROR', path: entryPath, message: `Empty Section operation header at body line ${line}`,
+        level: 'ERROR', path: entryPath, message: `Expected a named ## Section operation header at body line ${line}`,
       });
       for (const line of plan.malformedSectionLines) issues.push({
         level: 'ERROR', path: entryPath,

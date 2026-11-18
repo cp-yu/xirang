@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { archivedDirectoryState, isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
+import { archivedDirectoryState, hasArchiveHistoryDirectory, isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -232,9 +232,11 @@ async function withArchiveLock(changesDir: string, commit: () => Promise<void>, 
 }
 
 async function findArchivedChange(archiveDir: string, changeName: string, abandon: boolean): Promise<string | undefined> {
+  if (!await hasArchiveHistoryDirectory(archiveDir)) return undefined;
   const abandonedDir = path.join(archiveDir, 'abandoned');
   const directories = abandon ? [abandonedDir, archiveDir] : [archiveDir, abandonedDir];
   for (const directory of directories) {
+    if (directory === abandonedDir && !await hasArchiveHistoryDirectory(directory)) continue;
     const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
       if (error.code === 'ENOENT') return [];
       throw error;
@@ -315,7 +317,12 @@ export class ArchiveCommand {
     const parent = options.abandon ? path.join(archiveDir, 'abandoned') : archiveDir;
     const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
     const archivePath = path.join(parent, archiveName);
+    const checkHistoryParents = async () => {
+      await hasArchiveHistoryDirectory(archiveDir);
+      if (parent !== archiveDir) await hasArchiveHistoryDirectory(parent);
+    };
     const ensureUnoccupied = async () => {
+      await checkHistoryParents();
       await assertNoPendingArchive(archivePath);
       const existing = await statIfPresent(archivePath);
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
@@ -329,6 +336,7 @@ export class ArchiveCommand {
         if (!current?.isDirectory() || current.dev !== active.dev || current.ino !== active.ino) {
           throw new Error(`Active Change '${changeName}' changed before archiving; verify and retry.`);
         }
+        await checkHistoryParents();
         await fs.mkdir(parent, { recursive: true });
         await moveDirectory(changeDir, archivePath, this.filesystem, { ...installOptions, json: options.json });
       }, options.json);

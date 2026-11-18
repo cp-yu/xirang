@@ -1,3 +1,5 @@
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
 import { buildCodeFenceMask } from './section-text.js';
 
 export interface SectionBlock {
@@ -22,6 +24,19 @@ const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
 const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
+const markdown = unified().use(remarkParse);
+
+function setextHeadings(content: string): Map<number, number> {
+  const headings = new Map<number, number>();
+  if (!/^ {0,3}(?:-+|=+)[ \t]*$/m.test(content)) return headings;
+  // Distinguish headings (including multiline titles) from thematic breaks and literal examples.
+  for (const node of markdown.parse(content).children) {
+    if (node.type !== 'heading' || !node.position) continue;
+    const { start, end } = node.position;
+    if (start.line !== end.line) headings.set(start.line - 1, end.line - 1);
+  }
+  return headings;
+}
 
 function deltaSectionName(raw: string | undefined): string | undefined {
   const name = raw?.trim();
@@ -55,10 +70,11 @@ export function extractSpecificationSection(content: string): SpecificationSecti
     };
   }
 
+  const underlined = setextHeadings(normalized);
   // A heading at level one or two ends the Specification, even without a title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    if (!codeFenceMask[i] && ENCLOSING_HEADING.test(lines[i])) {
+    if (!codeFenceMask[i] && (ENCLOSING_HEADING.test(lines[i]) || underlined.has(i))) {
       endIndex = i;
       break;
     }
@@ -190,12 +206,22 @@ function splitTopLevelSections(content: string): {
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
   const mask = buildCodeFenceMask(lines);
+  const underlined = setextHeadings(content);
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
+    const setextEnd = mask[i] ? undefined : underlined.get(i);
+    if (setextEnd !== undefined) {
+      malformedOperationLines.push(i + 1);
+      indices.push({ title: '', index: i });
+      block = '';
+      hasSection = false;
+      i = setextEnd;
+      continue;
+    }
     const heading = !mask[i] && line.match(ENCLOSING_HEADING);
     if (heading) {
       const topLevel = heading[1] === '#';

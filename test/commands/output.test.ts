@@ -429,6 +429,12 @@ it.each(['Delta', 'Formal'] as const)('rejects invalid UTF-8 in a %s semantic un
   await expectInvalidDelivery('elements/root.md', bytes, 'NON_UTF8_UNIT_CONTENT', target);
 });
 
+it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unscoped first line\nRENAMED Sections\n-----------'])('rejects a Setext heading (%j) that could hide a Section operation', async heading => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
 async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
@@ -719,6 +725,38 @@ it('rejects mutually exclusive archive options as an invalid CLI argument', asyn
   expect(JSON.parse(result.stderr)).toMatchObject({ code: 'INVALID_ARGUMENT', message: expect.stringMatching(/--quick[\s\S]*--abandon/) });
 });
 
+
+it.each(['archive-root', 'abandoned-to-archive', 'abandoned-to-external'] as const)('rejects a linked %s history parent for writes and lookups', async kind => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const name = 'linked-history';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve me\n' });
+  const archive = path.join(path.dirname(source), 'archive');
+  const external = path.join(root, 'external-history');
+  const linked = kind === 'archive-root' ? archive : path.join(archive, 'abandoned');
+  const target = kind === 'abandoned-to-archive' ? archive : external;
+  if (kind !== 'archive-root') await fs.mkdir(archive);
+  await fs.mkdir(target, { recursive: true });
+  await fs.symlink(target, linked, process.platform === 'win32' ? 'junction' : 'dir');
+  const flags = kind === 'archive-root' ? ['--quick'] : ['--abandon'];
+  const rejected = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+  expect.soft(rejected).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Preserve me\n');
+  expect(await fs.readdir(target)).toEqual(kind === 'abandoned-to-archive' ? ['abandoned'] : []);
+
+  const entry = '2026-01-01-other-change';
+  await fs.mkdir(path.join(target, entry));
+  const retry = await runCLI(['archive', 'other-change', '--json', ...flags], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
+  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
+  expect(completion.stdout).toBe(kind === 'abandoned-to-archive' ? `${entry}\tarchived change\n` : '');
+  if (kind === 'abandoned-to-archive') {
+    const delivered = await runCLI(['archive', 'other-change', '--json'], { cwd: root });
+    expect(JSON.parse(delivered.stdout)).toEqual({ archive: path.relative(root, path.join(archive, entry)), alreadyArchived: true });
+  }
+});
 
 it('returns the matching history after a same-day reuse of the exact Change name', async () => {
   await writeProjectModel(root, minimalModel());

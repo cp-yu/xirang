@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { extractSpecificationSection, parseDeltaSpec } from '../../../src/core/parsers/section-blocks.js';
 
 describe('Specification section extraction', () => {
-  it.each(['   ##', '# Outside Contract'])('keeps enclosing heading %j and subsequent text outside the Contract', heading => {
+  it.each(['   ##', '# Outside Contract', 'Outside Contract\n================'])('keeps enclosing heading %j and subsequent text outside the Contract', heading => {
     const section = '### Section: Actual behavior\n\nThe system SHALL behave.';
     const parts = extractSpecificationSection(`## Specification\n\n${section}\n\n${heading}\n\nStray text.`);
     expect(parts.bodyBlocks.map(block => block.raw)).toEqual([section]);
@@ -28,7 +28,7 @@ The system SHALL behave.
 
 describe('Section delta parsing', () => {
   it.each(['```', '~~~~'])('preserves headings and operation examples inside %s fences', fence => {
-    const raw = `### Section: Actual\n\nThe system SHALL preserve examples.\n\n${fence}markdown\n## MODIFIED Sections\n### Section: Fenced example\n#### Acceptance Case: Example only\n# Fenced heading\n##\n${fence}\n\nTail text.`;
+    const raw = `### Section: Actual\n\nThe system SHALL preserve examples.\n\n${fence}markdown\n## MODIFIED Sections\n### Section: Fenced example\n#### Acceptance Case: Example only\n# Fenced heading\n##\nRENAMED Sections\n---------\n${fence}\n\n---\n\nTail text.`;
     const plan = parseDeltaSpec(`## ADDED Sections\n\n${raw}\n\n## REMOVED Sections\n\n### Section: Removed`);
     expect(plan.added).toEqual([{ name: 'Actual', headerLine: '### Section: Actual', raw }]);
     expect(plan.modified).toEqual([]);

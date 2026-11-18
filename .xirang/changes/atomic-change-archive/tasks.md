@@ -119,3 +119,5 @@
 - [x] [code_fix] 以实体类型的规范字段白名单拒绝 Delta 中无法表示的 frontmatter 字段；REMOVED 继续只接受 identity。
 - [x] [code_fix] 围栏外的一级 ATX 标题结束 Section 操作或 Specification，后续游离内容不得并入此前 Section。
 - [x] [code_fix] 预览和交付共用严格 UTF-8 解码；Formal 或 Delta 的无效字节在写入前报告单元路径。
+- [x] [code_fix] Setext 一级或二级标题不能隐藏 Section 操作；围栏内示例及段落分隔线保持原样。
+- [x] [code_fix] 归档写入、历史查询和补全不跟随 `archive` 或 `archive/abandoned` 链接，避免放弃与交付共用历史位置。

@@ -2,6 +2,17 @@ import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
+export async function hasArchiveHistoryDirectory(directory: string): Promise<boolean> {
+  const stat = await fs.lstat(directory).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  });
+  if (stat && !stat.isDirectory()) {
+    throw new Error(`INVALID_ARCHIVE_HISTORY_DIRECTORY: ${directory} must be a directory, not a file or symbolic link.`);
+  }
+  return stat !== undefined;
+}
+
 export function isDatedArchiveName(name: string): boolean {
   return /^\d{4}-\d{2}-\d{2}-[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(name);
 }
