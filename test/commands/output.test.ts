@@ -512,6 +512,8 @@ it.each([
   ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.', true],
   ['heading in a second HTML comment', '<!-- First note. --> Root SHALL preserve visible text. <!-- Second note\n### Section: Not an operation\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Not a case\n-->', true],
   ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
+  ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
+  ['real comment after inline code', '<!-- Note --> `<!--` Root SHALL preserve visible text. <!-- Another note\n### Section: Not an operation\n-->', true],
 ])('preserves literal %s content without creating operations from it', async (_label, example, containsProse) => {
   const sectionBody = (rule: string) => containsProse ? example : `${rule}\n\n${example}`;
   const formal = '## Specification\n\n### Section: Existing rule\n\n' + sectionBody('Root SHALL follow the existing rule.');
@@ -553,6 +555,20 @@ it.each([
 
 it.each(['<div>\n```\n</div>', '<!--\n```\n-->'])('does not let fence-like text in an HTML block hide a retired operation (%j)', async html => {
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${html}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
+});
+
+it.each([
+  '<!-- Note --> `<!--`',
+  '<!-- Note --> ``example `<!--``',
+  '<!-- Note --> `<!--\ncontinued inline code`',
+  '<!-- Note --> \\<!--',
+  '<!-- Note --> <span title="<!--">example</span>',
+  '<!-- Note --> [example](/path "<!--")',
+  '<!-- Note --> ![example](/path "<!--")',
+])('does not let a literal comment opener hide a retired operation (%j)', async example => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${example}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
     definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
 });

@@ -20,6 +20,41 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
+function nextCommentOpening(source: string, from: number, end: number): number {
+  let opening = source.indexOf('<!--', from);
+  if (opening < 0 || opening + 4 > end) return -1;
+  if (!/[`\\<\[]/.test(source.slice(from, opening))) return opening;
+
+  // A flow HTML node includes the rest of its closing line as raw text. Read that
+  // suffix as inline Markdown before interpreting any more comment delimiters.
+  const prefix = 'x ';
+  const paragraph = source.slice(from).split(/\n[ \t]*\n/, 1)[0];
+  const ranges: Array<[number, number]> = [];
+  const visit = (node: MarkdownNode): void => {
+    const start = node.position?.start.offset;
+    const stop = node.position?.end.offset;
+    if (start === undefined || stop === undefined) return;
+    if (node.type === 'inlineCode' || (node.type === 'html' && !node.value.startsWith('<!--')) || node.type === 'image') {
+      ranges.push([start, stop]);
+      return;
+    }
+    if ('children' in node) node.children.forEach(visit);
+    if (node.type === 'link' || node.type === 'linkReference') {
+      ranges.push([node.children.at(-1)?.position?.end.offset ?? start, stop]);
+    }
+  };
+  const head = markdown.parse(prefix + paragraph).children[0];
+  if (head) visit(head);
+  for (; opening >= 0 && opening + 4 <= end; opening = source.indexOf('<!--', opening + 4)) {
+    const relative = opening - from + prefix.length;
+    if (ranges.some(([start, stop]) => start <= relative && relative < stop)) continue;
+    let backslash = opening;
+    while (backslash > from && source[backslash - 1] === '\\') backslash--;
+    if ((opening - backslash) % 2 === 0) return opening;
+  }
+  return -1;
+}
+
 function parseMarkdownBlocks(source: string): MarkdownNode[] {
   for (;;) {
     const { children } = markdown.parse(source);
@@ -38,9 +73,10 @@ function parseMarkdownBlocks(source: string): MarkdownNode[] {
       let closing = source.indexOf('-->', start + 4);
       if (closing < 0 || closing + 3 > end) return;
       while (closing >= 0) {
-        const opening = source.indexOf('<!--', closing + 3);
         const newline = source.indexOf('\n', closing + 3);
-        if (opening < 0 || (newline >= 0 && opening > newline) || (!topLevel && opening + 4 > end)) break;
+        const lineEnd = newline < 0 ? source.length : newline;
+        const opening = nextCommentOpening(source, closing + 3, topLevel ? lineEnd : Math.min(lineEnd, end));
+        if (opening < 0) break;
         // Markdown ends a comment block at the first closing line. Join adjacent spans in
         // this parse only, so a continuation cannot appear to start a heading or fence.
         parts.push(source.slice(copied, closing), ' '.repeat(opening + 4 - closing));
@@ -69,20 +105,22 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
   if (lines.some(line => BLOCK_CANDIDATE.test(line)
     || (includeSetext && SETEXT_UNDERLINE.test(line))
     || (includeListItems && /^ {0,3}-[ \t]+/.test(line)))) {
-    const maskHtmlComments = (first: number, last: number, start: number, end: number): void => {
+    const source = lines.join('\n');
+    const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number): void => {
       let inComment = false;
       for (let i = first; i <= last; i++) {
         const line = lines[i];
         const limit = i === last ? end : line.length;
         let cursor = i === first ? start : 0;
         while (cursor < limit) {
-          const opening = inComment ? cursor : line.indexOf('<!--', cursor);
-          if (opening < 0 || (!inComment && opening + 4 > limit)) break;
+          const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit) - offset;
+          if (opening < 0) break;
           const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
           inComment = closing === -1 || closing + 3 > limit;
           cursor = inComment ? limit : closing + 3;
           maskColumns(i, opening, cursor);
         }
+        offset += line.length + 1;
       }
     };
     const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
@@ -98,7 +136,9 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
         const from = inline ? first + 1 : first;
         const to = inline ? last : last + 1;
         literal.fill(true, from, to);
-        if (node.value.includes('<!--')) maskHtmlComments(first, last, start.column - 1, end.column - 1);
+        if (node.value.includes('<!--') && start.offset !== undefined) {
+          maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1);
+        }
       } else if (node.type === 'heading') {
         if (!topLevel) literal.fill(true, first, last + 1);
         else if (includeSetext && first !== last) setext.set(first, last);
@@ -112,7 +152,7 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
         node.children.forEach(child => visit(child, false, childInline));
       }
     };
-    parseMarkdownBlocks(lines.join('\n')).forEach(node => visit(node, true, false));
+    parseMarkdownBlocks(source).forEach(node => visit(node, true, false));
   }
   return { literal, hidden, setext, visible, listItems };
 }
