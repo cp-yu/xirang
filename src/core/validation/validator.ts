@@ -49,6 +49,10 @@ export class Validator {
       if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Sections');
       const hasSections = sectionNames.length > 0;
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
+      for (const section of plan.unscopedSections) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`,
+      });
       for (const section of plan.unsupportedSections) issues.push({
         level: 'ERROR', path: entryPath,
         message: `${section} is unsupported. Use ADDED, MODIFIED or REMOVED Sections. For a rename, use REMOVED old Section plus ADDED new Section.`,

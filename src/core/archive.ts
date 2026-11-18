@@ -1,6 +1,6 @@
 import { describeError, diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
-import { promises as fs } from 'fs';
+import { constants, promises as fs, type Stats } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { hostname } from 'node:os';
 import path from 'path';
@@ -32,7 +32,7 @@ export async function moveDirectory(
   src: string,
   dest: string,
   overrides: Partial<ArchiveMoveFileSystem> = {},
-  options: { verify?: (directory: string) => Promise<void>; apply?: (install: () => Promise<void>) => Promise<void> } = {},
+  options: { verify?: (directory: string) => Promise<void>; apply?: (install: () => Promise<void>) => Promise<void>; json?: boolean } = {},
 ): Promise<void> {
   const filesystem: ArchiveMoveFileSystem = {
     rename: overrides.rename ?? fs.rename.bind(fs),
@@ -44,10 +44,47 @@ export async function moveDirectory(
   };
   const remove = (directory: string) => filesystem.rm(directory, { recursive: true, force: true });
   const copy = (from: string, to: string) => filesystem.cp(from, to, {
-    recursive: true, force: false, errorOnExist: true, verbatimSymlinks: true,
+    recursive: true, force: false, errorOnExist: true, verbatimSymlinks: true, mode: constants.COPYFILE_EXCL,
   });
-  const copyIntoReservation = async (from: string, reserved: string) => {
-    for (const name of await fs.readdir(from)) await copy(path.join(from, name), path.join(reserved, name));
+  const owned = new Map<string, Stats>();
+  const copyIntoReservation = async (from: string, reserved: string, track = false): Promise<void> => {
+    for (const name of await fs.readdir(from)) {
+      const source = path.join(from, name);
+      const target = path.join(reserved, name);
+      const directory = (await fs.lstat(source)).isDirectory();
+      if (directory) await filesystem.mkdir(target);
+      else await copy(source, target);
+      if (track) owned.set(target, await fs.lstat(target));
+      if (directory) await copyIntoReservation(source, target, track);
+    }
+  };
+  const isOwned = (location: string, current: Stats): boolean => {
+    const expected = owned.get(location);
+    return !!expected && current.ino === expected.ino && current.dev === expected.dev
+      && (current.isDirectory() || (current.mtimeMs === expected.mtimeMs && current.size === expected.size));
+  };
+  const assertOwnedDestination = async () => {
+    let observed = 0;
+    const visit = async (location: string): Promise<void> => {
+      const entry = await statIfPresent(location);
+      if (!entry || !isOwned(location, entry)) throw new Error(`Archive destination was populated or changed: ${location}`);
+      observed++;
+      if (entry.isDirectory()) {
+        for (const name of await fs.readdir(location)) await visit(path.join(location, name));
+      }
+    };
+    await visit(dest);
+    if (observed !== owned.size) throw new Error(`Archive destination was changed: ${dest}`);
+  };
+  const clearOwnedDestination = async (location: string): Promise<void> => {
+    const entry = await statIfPresent(location);
+    if (!entry || !isOwned(location, entry)) return;
+    if (entry.isDirectory()) {
+      for (const name of await fs.readdir(location)) await clearOwnedDestination(path.join(location, name));
+      await filesystem.rmdir(location).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== 'ENOENT' && error.code !== 'ENOTEMPTY' && error.code !== 'EEXIST') throw error;
+      });
+    } else await filesystem.rm(location, { force: true });
   };
   const restoreMissing = async (from: string, to: string): Promise<void> => {
     const existing = await statIfPresent(to);
@@ -74,6 +111,8 @@ export async function moveDirectory(
     throw error;
   }
 
+  owned.set(dest, await fs.lstat(dest));
+
   const restoreSource = async (from: string): Promise<boolean> => {
     try { await filesystem.mkdir(src); }
     catch (error) {
@@ -87,16 +126,19 @@ export async function moveDirectory(
     return true;
   };
   let started = false;
+  let committedStage: string | undefined;
   const move = async () => {
     started = true;
     let movedOriginal = false;
     let sourceRoot: string | undefined;
     let captured: string | undefined;
     let temporary: string | undefined;
+    let staged: string | undefined;
     let removingCapture = false;
     try {
       movedOriginal = await install(src, dest);
       if (!movedOriginal) {
+        await assertOwnedDestination();
         // Detach the original on its own filesystem so deleting it cannot delete late edits at src.
         sourceRoot = await filesystem.mkdtemp(path.join(path.dirname(src), '.archive-source-'));
         const local = path.join(sourceRoot, path.basename(src));
@@ -105,25 +147,27 @@ export async function moveDirectory(
         await options.verify?.(captured);
 
         temporary = await filesystem.mkdtemp(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
-        const staged = path.join(temporary, path.basename(src));
+        staged = path.join(temporary, path.basename(src));
         await copy(captured, staged);
-        if (!(await install(staged, dest))) await copyIntoReservation(staged, dest);
-        await remove(temporary);
-        temporary = undefined;
+        await assertOwnedDestination();
+        await copyIntoReservation(staged, dest, true);
       }
       await options.verify?.(dest);
-      if (captured) await options.verify?.(captured);
-      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
       if (captured) {
+        await options.verify?.(captured);
+        await assertOwnedDestination();
+        if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
         removingCapture = true;
         await remove(captured);
+        await assertOwnedDestination();
       }
+      if (await statIfPresent(src)) throw new Error(`Active Change was recreated at ${src} during archiving.`);
     } catch (error) {
       const failures: unknown[] = [];
       let conflict: Error | undefined;
       try {
         const original = movedOriginal ? dest : captured;
-        if (captured && removingCapture) await restoreMissing(dest, captured);
+        if (captured && removingCapture) await restoreMissing(staged!, captured);
         if (original && !(await restoreSource(original))) {
           let retained = original;
           if (movedOriginal) {
@@ -133,7 +177,7 @@ export async function moveDirectory(
           }
           conflict = new Error(`Active Change was recreated at ${src}; the original is retained at ${retained}.`, { cause: error });
         }
-        if (!movedOriginal) await remove(dest);
+        if (!movedOriginal) await clearOwnedDestination(dest);
       } catch (rollbackError) { failures.push(rollbackError); }
       if (temporary) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
       if (failures.length) throw new AggregateError([conflict ?? error, ...failures], 'Archive installation failed and rollback was incomplete');
@@ -142,16 +186,23 @@ export async function moveDirectory(
       // Never recursively remove the holding directory: it may still contain the only original.
       if (sourceRoot) await filesystem.rmdir(sourceRoot).catch(() => undefined);
     }
+    committedStage = temporary;
   };
   try {
     if (options.apply) await options.apply(move);
     else await move();
   } catch (error) {
     if (!started) {
-      try { await filesystem.rmdir(dest); }
+      try { await clearOwnedDestination(dest); }
       catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Archive failed and the empty reservation could not be removed'); }
     }
     throw error;
+  }
+  // The verified archive is now committed. Failure to remove its private copy is not rollback.
+  if (committedStage) {
+    await remove(committedStage).catch(error => {
+      diagnostic(`Could not clean archive staging ${committedStage}: ${describeError(error)}`, 'ARCHIVE_STAGING_CLEANUP', options.json);
+    });
   }
 }
 
@@ -282,7 +333,7 @@ export class ArchiveCommand {
           throw new Error(`Active Change '${changeName}' changed before archiving; verify and retry.`);
         }
         await fs.mkdir(parent, { recursive: true });
-        await moveDirectory(changeDir, archivePath, this.filesystem, installOptions);
+        await moveDirectory(changeDir, archivePath, this.filesystem, { ...installOptions, json: options.json });
       }, options.json);
     };
     const ask = async (message: string) => {

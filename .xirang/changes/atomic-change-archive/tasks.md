@@ -51,3 +51,6 @@
 - [x] [code_fix] 封存期间若重建原活动目录则拒绝交付、回滚 Formal，保留两个版本的输入并报告位置。
 - [x] [code_fix] 拒绝合法 operation 与未知顶层 Section operation 混用，禁止静默丢弃输入。
 - [x] [code_fix] 不传 --yes 时，没有 tasks.md 也应无确认地完成交付。
+- [x] [code_fix] 源副本清理期间重建活动路径也阻止交付，并保留原始与新输入。
+- [x] [code_fix] 目的目录预留后出现外部内容时拒绝覆盖；补偿仅撤销本次创建的目录和文件。
+- [x] [code_fix] 拒绝位于首个 operation 前的 Section，不静默丢弃。

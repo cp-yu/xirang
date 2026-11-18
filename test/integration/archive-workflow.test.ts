@@ -82,7 +82,7 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(archived, 'useful.log'), 'utf8')).resolves.toBe('archived content');
     await expect(fs.readdir(path.join(archived, 'empty'))).resolves.toEqual([]);
     await expect(fs.access(changeDir)).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(rename.mock.calls.filter(([, destination]) => destination === archived)).toHaveLength(2);
+    expect(rename.mock.calls.filter(([, destination]) => destination === archived)).toHaveLength(1);
   });
 
   it.skipIf(process.platform === 'win32')('restores deleted artifacts without trying to replace surviving absolute symlinks', async () => {

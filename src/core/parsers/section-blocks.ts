@@ -111,6 +111,7 @@ export interface DeltaPlan {
   removed: string[]; // Section titles
   unsupportedSections: string[];
   duplicateSections: string[];
+  unscopedSections: string[];
   sectionPresence: {
     added: boolean;
     modified: boolean;
@@ -123,7 +124,7 @@ export interface DeltaPlan {
  */
 export function parseDeltaSpec(content: string): DeltaPlan {
   const normalized = normalizeLineEndings(content);
-  const sections = splitTopLevelSections(normalized);
+  const { sections, unscopedSections } = splitTopLevelSections(normalized);
   const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Sections');
   const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Sections');
   const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Sections');
@@ -148,6 +149,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     removed: removedNames,
     unsupportedSections,
     duplicateSections,
+    unscopedSections,
     sectionPresence: {
       added: addedLookup.found,
       modified: modifiedLookup.found,
@@ -156,24 +158,28 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   };
 }
 
-function splitTopLevelSections(content: string): Array<[string, string]> {
+function splitTopLevelSections(content: string): { sections: Array<[string, string]>; unscopedSections: string[] } {
   const lines = content.split('\n');
-  const result: Array<[string, string]> = [];
+  const sections: Array<[string, string]> = [];
+  const unscopedSections: string[] = [];
   const mask = buildCodeFenceMask(lines);
   const indices: Array<{ title: string; index: number; level: number }> = [];
   for (let i = 0; i < lines.length; i++) {
-    const m = !mask[i] && lines[i].match(/^(##)\s+(.+)$/);
-    if (m) {
-      indices.push({ title: m[2].trim(), index: i, level: m[1].length });
+    if (mask[i]) continue;
+    const heading = lines[i].match(/^(##)\s+(.+)$/);
+    if (heading) indices.push({ title: heading[2].trim(), index: i, level: heading[1].length });
+    else if (indices.length === 0) {
+      const section = lines[i].match(SECTION_HEADER_REGEX);
+      if (section) unscopedSections.push(normalizeSectionName(section[1]));
     }
   }
   for (let i = 0; i < indices.length; i++) {
     const current = indices[i];
     const next = indices[i + 1];
     const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
-    result.push([current.title, body]);
+    sections.push([current.title, body]);
   }
-  return result;
+  return { sections, unscopedSections };
 }
 
 function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {

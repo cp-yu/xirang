@@ -101,6 +101,9 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
 
   if (normalizeProse(body) === '') return;
   const plan = parseDeltaSpec(body);
+  for (const section of plan.unscopedSections) {
+    diagnostics.push(error('MISSING_OPERATION', file, `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`, identity));
+  }
   for (const section of plan.duplicateSections) {
     diagnostics.push(error('DUPLICATE_OPERATION_BLOCK', file, `Repeated operation block: ## ${section}`, identity));
   }

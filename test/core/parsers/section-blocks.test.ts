@@ -28,6 +28,15 @@ describe('Section delta parsing', () => {
     expect(plan.removed).toEqual(['Removed']);
   });
 
+  it('detects unscoped Sections, not example headings in a fence', () => {
+    const plan = parseDeltaSpec([
+      '```md', '### Section: Example', '```', '### Section: Unscoped',
+      '## ADDED Sections', '### Section: Scoped', 'The system SHALL keep this behavior.',
+    ].join('\n'));
+    expect(plan.unscopedSections).toEqual(['Unscoped']);
+    expect(plan.added.map(section => section.name)).toEqual(['Scoped']);
+  });
+
   it('marks RENAMED Sections as an unsupported operation section', () => {
     const plan = parseDeltaSpec(`## RENAMED Sections
 

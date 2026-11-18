@@ -165,15 +165,17 @@ it.each([false, true])('reports the initiating failure and failed compensation (
   const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
   const rename = fs.rename;
   const rm = fs.rm;
+  const cp = fs.cp;
   const mocks = [
     vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
       if (from === source && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
         throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
       }
-      if (path.basename(path.dirname(String(from))).startsWith('.') && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
-        throw new Error('install injected failure');
-      }
       return rename(from, to);
+    }),
+    vi.spyOn(fs, 'cp').mockImplementation(async (from, to, options) => {
+      if (path.basename(String(to)) === 'proposal.md') throw new Error('install injected failure');
+      return cp(from, to, options);
     }),
     vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
       if (path.basename(String(target)).startsWith('.') && String(target).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
