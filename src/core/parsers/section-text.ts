@@ -24,6 +24,12 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
   const literal = new Array<boolean>(lines.length).fill(false);
   const hidden = new Array<boolean>(lines.length).fill(false);
   const setext = new Map<number, number>();
+  let visible = lines;
+  const maskColumns = (line: number, from: number, to: number): void => {
+    if (visible === lines) visible = [...lines];
+    const text = visible[line];
+    visible[line] = text.slice(0, from) + ' '.repeat(to - from) + text.slice(to);
+  };
   if (lines.some(line => BLOCK_CANDIDATE.test(line) || (includeSetext && SETEXT_UNDERLINE.test(line)))) {
     const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
       if (!node.position) return;
@@ -38,7 +44,16 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
         const from = inline ? first + 1 : first;
         const to = inline ? last : last + 1;
         literal.fill(true, from, to);
-        if (node.value.startsWith('<!--')) hidden.fill(true, from, to);
+        if (node.value.startsWith('<!--')) {
+          hidden.fill(true, from, to);
+          if (inline) {
+            if (first === last) maskColumns(first, start.column - 1, end.column - 1);
+            else {
+              maskColumns(first, start.column - 1, lines[first].length);
+              maskColumns(last, 0, end.column - 1);
+            }
+          }
+        }
       } else if (includeSetext && topLevel && node.type === 'heading' && first !== last) {
         setext.set(first, last);
       }
@@ -49,7 +64,7 @@ export function readSectionMarkdown(lines: string[], includeSetext = false) {
     };
     markdown.parse(lines.join('\n')).children.forEach(node => visit(node, true, false));
   }
-  return { literal, hidden, setext };
+  return { literal, hidden, setext, visible };
 }
 
 export function buildLiteralBlockMask(lines: string[]): boolean[] {
@@ -67,7 +82,7 @@ export function containsShallOrMust(text: string): boolean {
  * Metadata lines skipped when other prose exists; otherwise kept as body.
  */
 export function extractSectionBody(bodyLines: string[]): string {
-  const { literal, hidden } = readSectionMarkdown(bodyLines);
+  const { literal, hidden, visible } = readSectionMarkdown(bodyLines);
   const captured: string[] = [];
   const metadata: string[] = [];
 
@@ -76,7 +91,7 @@ export function extractSectionBody(bodyLines: string[]): string {
     const line = bodyLines[i];
     if (!literal[i] && readAcceptanceCaseHeader(line) !== undefined) break;
     if (HEADER_LINE.test(line)) continue;
-    const trimmed = line.trim();
+    const trimmed = visible[i].trim();
     if (trimmed.length === 0) continue;
     if (METADATA_LINE.test(trimmed)) {
       metadata.push(trimmed);
