@@ -1,8 +1,10 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
-import { modelRoot } from './model/paths.js';
-import { parseSemanticModelFiles } from './model/parser.js';
+import { changeRoot, modelRoot } from './model/paths.js';
+import { parseSemanticModelFiles, readModelTree } from './model/parser.js';
+import { parseSemanticDeltaFiles } from './model/delta.js';
+import { Validator } from './validation/validator.js';
 import { writeMinimal } from './model/sync-writer.js';
 import type { ChangeDiagnostic } from './semantic-diff.js';
 import { PARTITIONS, type Partition } from './model/types.js';
@@ -20,6 +22,7 @@ export type PartitionCounts = Record<Partition, number>;
 
 export interface PreparedChangeSync {
   formalFingerprint: string;
+  deltaFingerprint: string;
   partitions: PartitionCounts;
   manifest: PreparedSyncManifestEntry[];
   warnings: ChangeDiagnostic[];
@@ -45,7 +48,11 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
     return unit.split('/').some(part => part.startsWith('.')) ? [] : [[unit, bytes]];
   }));
   const base = parseSemanticModelFiles([...units].map(([file, bytes]) => [file, bytes.toString('utf8')] as const));
-  const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, { base, allowAlreadyApplied: true });
+  const changeDir = changeRoot(projectRoot, changeName);
+  const deltaSnapshot = await readModelTree(changeDir);
+  const files = new Map([...deltaSnapshot].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+  const parsedDelta = parseSemanticDeltaFiles(files);
+  const { compiled, delta, sources } = await compileChangeDelta(projectRoot, changeName, { base, parsedDelta, allowAlreadyApplied: true });
   if (base.model.elements.length === 0 && delta.entries.length > 0) {
     const unit = sources.find(source => source.entities.length > 0);
     throw new Error(`${unit?.path ?? MODEL_PATH_PREFIX}: MISSING_FORMAL_MODEL: cannot apply a Semantic Delta without a Formal model`);
@@ -55,14 +62,25 @@ export async function prepareChangeSync(projectRoot: string, changeName: string)
       .map(item => `${item.path}: ${item.code}: ${item.message}`).join('\n'));
   }
 
+  const notation = await new Validator().validateChangeDeltaSpecs(changeDir, { files, allowAlreadyApplied: true });
+  if (!notation.valid) {
+    throw new Error(notation.issues.map(issue => `${issue.path}: ${issue.message}`).join('\n'));
+  }
   const after = await writeMinimal(modelRoot(projectRoot), base, compiled.target, units);
   const manifest = buildManifest(units, after).map(entry => ({ ...entry, path: `${MODEL_PATH_PREFIX}/${entry.path}` }));
   return {
     formalFingerprint: semanticTreeFingerprint(before),
+    deltaFingerprint: semanticTreeFingerprint(deltaSnapshot),
     partitions: countPartitions(manifest),
     manifest,
     warnings: compiled.diagnostics.filter(item => item.level === 'WARNING'),
   };
+}
+
+export async function assertPreparedDelta(changeDir: string, prepared: PreparedChangeSync): Promise<void> {
+  if (semanticTreeFingerprint(await readModelTree(changeDir)) !== prepared.deltaFingerprint) {
+    throw new Error(`Semantic Delta changed after validation at ${changeDir}; verify the Change and retry`);
+  }
 }
 
 /** Unit removal can empty its containing directory; the partition root itself always stays. */

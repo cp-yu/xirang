@@ -172,7 +172,7 @@ git:
       const changeName = 'missing-quality';
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', changeName), { recursive: true });
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('valid Seal commit');
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/valid Seal commit[\s\S]*Return to Apply/);
     });
 
     it('blocks archive while v2 completion is incomplete', async () => {
@@ -181,7 +181,7 @@ git:
       await fs.mkdir(changeDir, { recursive: true });
       await createBaselineOnlyQualityFixture(tempDir, changeDir);
 
-      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow('valid Seal commit');
+      await expect(archiveCommand.execute(changeName, { yes: true })).rejects.toThrow(/valid Seal commit[\s\S]*Return to Apply/);
     });
 
     it('should archive when the quality record is clean and no sync is required', async () => {
@@ -243,9 +243,12 @@ git:
       await archiveCommand.execute(name, { abandon: true });
       expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ default: false }));
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining('2/5'));
+      expect(vi.mocked(console.error).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(confirm).mock.invocationCallOrder[0]);
       await expect(fs.access(source)).resolves.toBeUndefined();
 
+      vi.mocked(console.error).mockClear();
       await archiveCommand.execute(name, { abandon: true, yes: true });
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining('2/5'));
       expect(confirm).toHaveBeenCalledTimes(1);
       const dir = path.join(path.dirname(source), 'archive', 'abandoned');
       const [archived] = await fs.readdir(dir);
@@ -265,6 +268,8 @@ git:
 
     it.each([
       ['## MODIFIED Sections\n', 'EMPTY_OPERATION_BLOCK'],
+      ['## ADDED Sections\n\n## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n', 'DUPLICATE_OPERATION_BLOCK'],
+      ['## ADDED Sections\n\n### Section: No text\n', 'missing Section text'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## REMOVED Sections\n', 'EMPTY_OPERATION_BLOCK'],
       ['## ADDED Sections\n\n### Section: New\nThe system SHALL add behavior.\n\n## RENAMED Sections\n- Old to New\n', 'UNSUPPORTED_OPERATION'],
     ])('keeps model and Change intact when Section operations are invalid (%s)', async (body, errorCode) => {
@@ -445,6 +450,25 @@ git:
       ).rejects.toThrow(`Archive '${date}-${changeName}' already exists.`);
     });
 
+    it('keeps the winner when a destination appears after the initial existence check', async () => {
+      const name = 'occupied-at-install';
+      const source = await writeSemanticArchiveFixture(name);
+      const archiveDir = path.join(path.dirname(source), 'archive');
+      const winner = path.join(archiveDir, `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
+      const command = new ArchiveCommand({ mkdir: (async directory => {
+        expect(directory).toBe(winner);
+        await fs.mkdir(winner);
+        return fs.mkdir(directory);
+      }) as typeof fs.mkdir });
+
+      await expect(command.execute(name, { quick: true, yes: true })).rejects.toThrow(/already exists/);
+      await expect(fs.readdir(winner)).resolves.toEqual([]);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.access(source)).resolves.toBeUndefined();
+    });
+
     it('should handle changes without tasks.md', async () => {
       const changeName = 'no-tasks-feature';
       const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
@@ -557,17 +581,55 @@ git:
       const mockConfirm = confirm as unknown as ReturnType<typeof vi.fn>;
       
       const changeName = 'cancel-test';
-      const changeDir = path.join(tempDir, '.xirang', 'changes', changeName);
-      await fs.mkdir(changeDir, { recursive: true });
+      const changeDir = await writeSemanticArchiveFixture(changeName);
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
       
       const tasksContent = '## Goals\n\n- [ ] G1: Pending goal\n  - Contract: `feature` / Section "Core behavior"\n  - Verify: The pending behavior is observable.';
       await fs.writeFile(path.join(changeDir, 'tasks.md'), tasksContent);
       
-      mockConfirm.mockResolvedValueOnce(false);
+      mockConfirm.mockImplementationOnce(async () => {
+        await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+        return false;
+      });
       await archiveCommand.execute(changeName, { quick: true });
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
       expect(console.error).toHaveBeenCalledWith('Archive cancelled.');
       // Verify change was not archived
       await expect(fs.access(changeDir)).resolves.not.toThrow();
+    });
+
+    it('keeps the model and active Change when confirmation changes the Delta', async () => {
+      const source = await writeSemanticArchiveFixture('confirmation-drift');
+      const deltaFile = path.join(source, 'elements', 'existing.id.md');
+      const modelFile = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const before = await fs.readFile(modelFile);
+      const duringPrompt = MODIFY_EXISTING.replace('Changed summary', 'New intent');
+      await fs.writeFile(path.join(source, 'tasks.md'), '## Goals\n- [ ] G1: Pending\n');
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockImplementationOnce(() => Object.assign(fs.writeFile(deltaFile, duringPrompt).then(() => true), { cancel: () => {} }));
+
+      await expect(archiveCommand.execute('confirmation-drift', { quick: true })).rejects.toThrow(/Semantic Delta changed/);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.readFile(deltaFile, 'utf8')).resolves.toBe(duringPrompt);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
+    it('restores Formal and the exact active Change if the installed Delta changed during rename', async () => {
+      const source = await writeSemanticArchiveFixture('rename-drift');
+      const delta = path.join('elements', 'existing.id.md');
+      const modelFile = path.join(tempDir, '.xirang', 'model', delta);
+      const before = await fs.readFile(modelFile);
+      const drifted = MODIFY_EXISTING.replace('Changed summary', 'Different intent during move');
+      const command = new ArchiveCommand({ rename: async (from, to) => {
+        if (from === source) await fs.writeFile(path.join(source, delta), drifted);
+        await fs.rename(from, to);
+      } });
+
+      await expect(command.execute('rename-drift', { quick: true, yes: true })).rejects.toThrow(/Semantic Delta changed/);
+      await expect(fs.readFile(modelFile)).resolves.toEqual(before);
+      await expect(fs.readFile(path.join(source, delta), 'utf8')).resolves.toBe(drifted);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
     it('preserves apply isolation state for handoff under --yes', async () => {

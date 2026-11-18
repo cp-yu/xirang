@@ -138,16 +138,16 @@ For workflow-managed writes, read the resolved file definition before its instru
 **Steps**
 
 1. **Select change and mode**
-   Default to delivery with Quality. Select quick or abandon only on explicit user instruction; the modes are mutually exclusive. Dispatch abandon to step 2 before any delivery checks. For delivery only, if no clear change name is provided, run \`xirang list --json\`, show active changes with schema, and ask. Do not guess. If the explicitly named Change is no longer active, ask the CLI for its existing archive location and stop; do not resume Git handoff.
+   Default to delivery with Quality. Select quick or abandon only on explicit user instruction; the modes are mutually exclusive. Dispatch abandon to step 2 before any delivery checks. For ordinary delivery without a name, run \`xirang list --json\`, show active changes with schema, and ask. For quick without a name, ask for the exact Change name; do not run \`xirang list --json\` because it reads Quality. Do not guess. If the explicitly named Change is no longer active, ask the CLI for its existing archive location and stop; do not resume Git handoff.
 
 2. **Abandon without delivery**
    Run \`xirang archive "<change-name>" --abandon --json\` for a user-authorized abandonment. When the name is unknown, use \`xirang archive --abandon --json\` for interactive selection, or ask for the exact name if there is no interactive terminal; do not run \`xirang list --json\` as it reads Quality. Present any checked-goal progress without inferring implementation state. Let the CLI ask for confirmation, or pass \`--yes\` only when the user already confirmed proceeding without a prompt. Do not require completed artifacts, a valid Delta, or a Seal. Report the actual result and stop. MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits, merge or cleanup.
 
 3. **Prepare delivery**
-   Read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values. Run \`xirang status --change "<name>" --json\`. Warn and confirm before proceeding if any artifact is not \`done\`. The CLI handles incomplete goals; do not pass \`--yes\` to bypass that confirmation without user authorization.
+   In a Git repository, read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values. Run \`xirang status --change "<name>" --json\`. Warn and confirm before proceeding if any artifact is not \`done\`. The CLI handles incomplete goals; do not pass \`--yes\` to bypass that confirmation without user authorization.
 
 4. **Quality gate for standard delivery**
-   In default mode only, require a recorded passing full-change Review, explicit Opt disposition and successful Seal. No latest incremental or supplemental Review may remain failed. The Seal commit must exist in Git; HEAD/workspace differences and Quality JSON commit status are irrelevant. Preserve unsupported legacy records unchanged.
+   In default mode only, run and retain \`xirang quality status "<change-name>" --json\`. If the Seal is absent, invalid or its commit cannot be resolved, report the specific diagnostic and direct the main Agent to return to Apply. Do not attempt the Archive or repair Quality here. Require a recorded passing full-change Review, explicit Opt disposition and successful Seal. No latest incremental or supplemental Review may remain failed. The Seal commit must exist in Git; HEAD/workspace differences and Quality JSON commit status are irrelevant. Preserve unsupported legacy records unchanged.
 
 ${buildArchiveFullQualityContract(executionModel)}
 
@@ -157,7 +157,7 @@ ${buildArchiveFullQualityContract(executionModel)}
    Run \`xirang archive "<change-name>" --json\` for default delivery or \`xirang archive "<change-name>" --quick --json\` for quick delivery. A single call validates and applies the Delta before moving the Change. MUST NOT write Formal manually. If the CLI did not complete a new delivery, including cancellation, failure, or \`alreadyArchived\`, report the result and stop before Git handoff. Do not treat the presence of an old archive as a new delivery.
 
 6. **Git handoff**
-   Read the archive CLI output and consume normalized Git policy (not raw YAML) from \`xirang config project --select git --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
+   If this is not a Git repository, report the result and stop before Git handoff. Otherwise read the archive CLI output and consume normalized Git policy (not raw YAML) from \`xirang config project --select git --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
 
 7. **Agent git flow**
 ${buildAgentGitFlowStep()}

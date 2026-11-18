@@ -25,3 +25,11 @@
 - [x] [code_fix] JSON 交互归档的选择与确认不能污染机器可读回执。
 - [x] [artifact_fix] 未指定放弃对象时，使用不读取 Quality 的选择流程并保留用户授权。
 - [x] [code_fix] 补充回执写入失败后的事务边界证据，确认模型与归档不撤回且可再次读取。
+- [x] [code_fix] 拒绝可被标准记法校验发现的空 Section 正文和重复 operation 标题。
+- [x] [code_fix] 绑定实际归档的 Delta 输入快照，确认或移动期间输入变化时不交付。
+- [x] [code_fix] 独占取得目标路径，拒绝其他归档在预检后先取得的同名位置。
+- [x] [code_fix] 跨设备复制保留符号链接原始目标，失败恢复也采用相同规则。
+- [x] [artifact_fix] 无名 quick 不依赖 Quality 列表，非 Git 项目不进入 Git 交接。
+- [x] [code_fix] 默认交付的 Seal 失败保留具体诊断并指引回 Apply。
+- [x] [code_fix] CLI 解析阶段拒绝互斥归档选项。
+- [x] [code_fix] 验证 quick 拒绝确认时不写入实际 Delta，放弃时进度先于询问且不受 --yes 隐藏。

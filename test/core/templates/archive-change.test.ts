@@ -38,9 +38,17 @@ describe('archive change workflow template', () => {
     expect(abandon).toMatch(/do not run `xirang list --json`.*Quality/i);
   });
 
+  it('routes unnamed quick, non-Git delivery and Seal failures without crossing their gates', () => {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+    expect(instructions).toMatch(/quick without a name.*do not run `xirang list --json`/i);
+    expect(instructions).toMatch(/not a Git repository.*report the result and stop before Git handoff/i);
+    expect(instructions).toContain('return to Apply');
+    expect(instructions).toContain('`xirang quality status "<change-name>" --json`');
+  });
+
   it('retains apply isolation metadata before CLI move and owns safe cleanup', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
-    const readIndex = instructions.indexOf('Read `.apply-isolation.json` before running the archive CLI');
+    const readIndex = instructions.indexOf('read `.apply-isolation.json` before running the archive CLI');
     const cliIndex = instructions.indexOf('Run `xirang archive "<change-name>" --json`');
 
     expect(readIndex).toBeGreaterThan(-1);

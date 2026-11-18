@@ -1,67 +1,103 @@
-import { diagnostic } from '../utils/output.js';
+import { describeError, diagnostic } from '../utils/output.js';
 import { XIRANG_DIR_NAME } from './config.js';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
-import { applyPreparedChangeSync, prepareChangeSync } from './change-sync.js';
-import { readQualitySeal } from './quality/engine.js';
+import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
+import { QualityEngineError, readQualitySeal } from './quality/engine.js';
+import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
 import { validateChangeName } from '../utils/change-utils.js';
 
-/**
- * Recursively copy a directory. Used when fs.rename fails (e.g. EPERM on Windows).
- */
 export interface ArchiveMoveFileSystem {
   rename: typeof fs.rename;
   cp: typeof fs.cp;
   rm: typeof fs.rm;
-  mkdtemp?: typeof fs.mkdtemp;
+  mkdir: typeof fs.mkdir;
+  mkdtemp: typeof fs.mkdtemp;
 }
 
-/** Move a change directory without deleting the active source until copy is complete. */
+/** Move the source only into a destination reserved by this invocation. */
 export async function moveDirectory(
   src: string,
   dest: string,
   overrides: Partial<ArchiveMoveFileSystem> = {},
+  verify?: (directory: string) => Promise<void>,
 ): Promise<void> {
   const filesystem: ArchiveMoveFileSystem = {
     rename: overrides.rename ?? fs.rename.bind(fs),
     cp: overrides.cp ?? fs.cp.bind(fs),
     rm: overrides.rm ?? fs.rm.bind(fs),
+    mkdir: overrides.mkdir ?? fs.mkdir.bind(fs),
     mkdtemp: overrides.mkdtemp ?? fs.mkdtemp.bind(fs),
   };
-  try {
-    await filesystem.rename(src, dest);
-    return;
-  } catch (error: any) {
-    if (error?.code !== 'EPERM' && error?.code !== 'EXDEV') throw error;
-  }
-
-  const temporary = await filesystem.mkdtemp!(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
-  try {
-    await filesystem.cp(src, temporary, { recursive: true, force: true });
-    await filesystem.rename(temporary, dest);
-  } catch (error) {
+  const remove = (directory: string) => filesystem.rm(directory, { recursive: true, force: true });
+  const copy = (from: string, to: string, force = false) => filesystem.cp(from, to, {
+    recursive: true, force, errorOnExist: !force, verbatimSymlinks: true,
+  });
+  const copyIntoReservation = async (from: string, reserved: string) => {
+    for (const name of await fs.readdir(from)) await copy(path.join(from, name), path.join(reserved, name));
+  };
+  const install = async (from: string, reserved: string): Promise<boolean> => {
     try {
-      await filesystem.rm(temporary, { recursive: true, force: true });
-    } catch (cleanupError) {
-      throw new AggregateError([error, cleanupError], 'Failed to install the archive destination and clean up the staged copy');
+      await filesystem.rename(from, reserved);
+      return true;
+    } catch (error) {
+      // Windows can reject replacement of our empty directory even on the same device.
+      if (!['EPERM', 'EXDEV', 'EEXIST', 'ENOTEMPTY'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+      return false;
     }
+  };
+  try {
+    await filesystem.mkdir(dest);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Archive '${path.basename(dest)}' already exists.`);
     throw error;
   }
+
+  let movedOriginal = false;
+  let temporary: string | undefined;
   try {
-    await filesystem.rm(src, { recursive: true, force: true });
-  } catch (cleanupError) {
-    try {
-      await filesystem.cp(dest, src, { recursive: true, force: true });
-      await filesystem.rm(dest, { recursive: true, force: true });
-    } catch (rollbackError) {
-      throw new AggregateError(
-        [cleanupError, rollbackError],
-        'Failed to clean up the active archive source and roll back the installed destination'
-      );
+    movedOriginal = await install(src, dest);
+    if (!movedOriginal) {
+      temporary = await filesystem.mkdtemp(path.join(path.dirname(dest), `.${path.basename(dest)}-`));
+      const staged = path.join(temporary, path.basename(src));
+      await copy(src, staged);
+      if (!(await install(staged, dest))) await copyIntoReservation(staged, dest);
+      await remove(temporary);
+      temporary = undefined;
     }
-    throw cleanupError;
+    await verify?.(dest);
+    if (!movedOriginal) await verify?.(src);
+  } catch (error) {
+    const failures: unknown[] = [];
+    if (movedOriginal) {
+      try {
+        await filesystem.mkdir(src);
+        if (!(await install(dest, src))) {
+          await copyIntoReservation(dest, src);
+          await remove(dest);
+        }
+      } catch (rollbackError) { failures.push(rollbackError); }
+    } else {
+      if (temporary) await remove(temporary).catch(cleanupError => failures.push(cleanupError));
+      await remove(dest).catch(cleanupError => failures.push(cleanupError));
+    }
+    if (failures.length) throw new AggregateError([error, ...failures], 'Archive installation failed and rollback was incomplete');
+    throw error;
+  }
+  if (!movedOriginal) {
+    try {
+      await remove(src);
+    } catch (cleanupError) {
+      try {
+        await copy(dest, src, true);
+        await remove(dest);
+      } catch (rollbackError) {
+        throw new AggregateError([cleanupError, rollbackError], 'Failed to clean up the active archive source and roll back the installed destination');
+      }
+      throw cleanupError;
+    }
   }
 }
 
@@ -134,10 +170,9 @@ export class ArchiveCommand {
       });
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
     };
-    const move = async () => {
+    const move = async (verify?: (directory: string) => Promise<void>) => {
       await fs.mkdir(parent, { recursive: true });
-      await ensureUnoccupied();
-      await moveDirectory(changeDir, archivePath, this.filesystem);
+      await moveDirectory(changeDir, archivePath, this.filesystem, verify);
     };
     const ask = async (message: string) => {
       const { confirm } = await import('@inquirer/prompts');
@@ -156,8 +191,14 @@ export class ArchiveCommand {
       if (options.quick) {
         diagnostic('Quality Seal check skipped (--quick).', 'QUALITY_SKIPPED', options.json);
       } else {
-        const seal = await readQualitySeal(changeDir, projectRoot);
-        if (!seal.valid) throw new Error('Quality gate failed: a valid Seal commit is required.');
+        let problem: string | undefined;
+        try {
+          const seal = await readQualitySeal(changeDir, projectRoot);
+          if (!seal.valid) problem = 'a valid Seal commit is required.';
+        } catch (error) {
+          problem = error instanceof QualityEngineError ? `${error.code}: ${error.message}` : describeError(error);
+        }
+        if (problem) throw new Error(formatQualityGateFailure({ changedFiles: [], details: [problem] }, undefined, { changeName }));
       }
       const prepared = await prepareChangeSync(projectRoot, changeName);
       for (const warning of prepared.warnings) diagnostic(`${warning.path}: ${warning.code}: ${warning.message}`, warning.code, options.json);
@@ -168,7 +209,14 @@ export class ArchiveCommand {
         if (options.yes) diagnostic(`${message} Continuing due to --yes flag.`, 'INCOMPLETE_GOALS', options.json);
         else if (!(await ask(`${message} Continue?`))) return;
       }
-      await applyPreparedChangeSync(projectRoot, prepared, { postWrite: move });
+      const verifyDelta = (directory: string) => assertPreparedDelta(directory, prepared);
+      await verifyDelta(changeDir);
+      await applyPreparedChangeSync(projectRoot, prepared, {
+        postWrite: async () => {
+          await verifyDelta(changeDir);
+          await move(verifyDelta);
+        },
+      });
     }
     report(archivePath);
   }

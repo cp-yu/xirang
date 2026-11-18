@@ -113,7 +113,7 @@ it('rejects retired closure syntax and conflicting modes before writing', async 
   for (const [args, message] of [
     [['sync', 'demo'], /unknown command/i],
     ...['--no-sync', '--no-validate', '--no-verify'].map(flag => [['archive', 'demo', flag], /unknown option/i] as const),
-    [['archive', 'demo', '--quick', '--abandon', '--yes'], /mutually exclusive/i],
+    [['archive', 'demo', '--quick', '--abandon', '--yes'], /--quick[\s\S]*--abandon/i],
   ] as const) {
     const result = await runCLI([...args, '--json'], { cwd: root });
     expect(result).toMatchObject({ exitCode: 1, stdout: '' });
@@ -158,7 +158,7 @@ it.each([false, true])('reports the initiating failure and failed compensation (
   const mocks = [
     vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
       if (from === source) throw Object.assign(new Error('fallback required'), { code: 'EXDEV' });
-      if (path.basename(String(from)).startsWith('.') && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
+      if (path.basename(path.dirname(String(from))).startsWith('.') && String(to).startsWith(path.join(root, '.xirang', 'changes', 'archive'))) {
         throw new Error('install injected failure');
       }
       return rename(from, to);
@@ -206,4 +206,11 @@ it('reports an archive error and incomplete model rollback in structured diagnos
     expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toMatch(/archive move injected failure[\s\S]*model restore injected failure/);
     await expect(fs.access(source)).resolves.toBeUndefined();
   } finally { for (const mock of mocks) mock.mockRestore(); }
+});
+
+
+it('rejects mutually exclusive archive options as an invalid CLI argument', async () => {
+  const result = await runCLI(['archive', '--quick', '--abandon', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(JSON.parse(result.stderr)).toMatchObject({ code: 'INVALID_ARGUMENT', message: expect.stringMatching(/--quick[\s\S]*--abandon/) });
 });

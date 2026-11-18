@@ -6,7 +6,7 @@ describe('quality gate diagnostics', () => {
     const message = formatQualityGateFailure(
       { changedFiles: ['src/app.ts'], details: ['CODE_CHANGED_AFTER_PLAN'] },
       undefined,
-      { changeName: 'c1', command: 'sync' }
+      { changeName: 'c1' }
     );
 
     expect(message).toContain('Quality gate failed: CODE_CHANGED_AFTER_PLAN');

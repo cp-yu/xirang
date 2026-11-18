@@ -110,6 +110,7 @@ export interface DeltaPlan {
   modified: SectionBlock[];
   removed: string[]; // Section titles
   unsupportedSections: string[];
+  duplicateSections: string[];
   sectionPresence: {
     added: boolean;
     modified: boolean;
@@ -129,11 +130,20 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   const added = parseSectionBlocksFromSection(addedLookup.body);
   const modified = parseSectionBlocksFromSection(modifiedLookup.body);
   const removedNames = parseRemovedNames(removedLookup.body);
+  const seen = new Set<string>();
+  const duplicateSections: string[] = [];
+  for (const [title] of sections) {
+    const key = title.toLowerCase();
+    if (!/^(added|modified|removed) sections$/.test(key)) continue;
+    if (seen.has(key)) duplicateSections.push(title);
+    seen.add(key);
+  }
   return {
     added,
     modified,
     removed: removedNames,
-    unsupportedSections: Object.keys(sections).filter(title => title.toLowerCase() === 'renamed sections'),
+    unsupportedSections: sections.map(([title]) => title).filter(title => title.toLowerCase() === 'renamed sections'),
+    duplicateSections,
     sectionPresence: {
       added: addedLookup.found,
       modified: modifiedLookup.found,
@@ -142,9 +152,9 @@ export function parseDeltaSpec(content: string): DeltaPlan {
   };
 }
 
-function splitTopLevelSections(content: string): Record<string, string> {
+function splitTopLevelSections(content: string): Array<[string, string]> {
   const lines = content.split('\n');
-  const result: Record<string, string> = {};
+  const result: Array<[string, string]> = [];
   const mask = buildCodeFenceMask(lines);
   const indices: Array<{ title: string; index: number; level: number }> = [];
   for (let i = 0; i < lines.length; i++) {
@@ -157,14 +167,14 @@ function splitTopLevelSections(content: string): Record<string, string> {
     const current = indices[i];
     const next = indices[i + 1];
     const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
-    result[current.title] = body;
+    result.push([current.title, body]);
   }
   return result;
 }
 
-function getSectionCaseInsensitive(sections: Record<string, string>, desired: string): { body: string; found: boolean } {
+function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {
   const target = desired.toLowerCase();
-  for (const [title, body] of Object.entries(sections)) {
+  for (const [title, body] of sections) {
     if (title.toLowerCase() === target) return { body, found: true };
   }
   return { body: '', found: false };

@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { describeError, diagnostic, setJsonOutput } from '../utils/output.js';
@@ -187,7 +187,7 @@ program
   .command('archive [change-name]')
   .description('Apply and archive a change, or archive an abandoned change')
   .option('-y, --yes', 'Skip confirmation prompts')
-  .option('--quick', 'Apply and archive without checking the Quality Seal')
+  .addOption(new Option('--quick', 'Apply and archive without checking the Quality Seal').conflicts('abandon'))
   .option('--abandon', 'Archive without applying the Semantic Delta')
   .action(async (changeName?: string, options?: ArchiveOptions) => {
     try {

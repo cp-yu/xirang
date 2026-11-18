@@ -41,7 +41,7 @@ export function formatQualityGateFailure(
   if (state.changedFiles.length) lines.push('', 'Changed files:', ...state.changedFiles.map(file => `  - ${file}`));
   if (archiveCompatibility && !archiveCompatibility.compatible) lines.push('', `Seal diagnostic: ${archiveCompatibility.blockReason}`);
   if (state.details.length) lines.push('', 'Diagnostics:', ...state.details.map(detail => `  - ${detail}`));
-  lines.push('', 'Next steps:', `  xirang quality status "${changeName}" --json`, '  Record the missing commit-bound Review, Opt disposition or Seal.', `  Retry xirang archive "${changeName}" after the Seal commit exists.`);
+  lines.push('', 'Next steps:', `  xirang quality status "${changeName}" --json`, '  Return to Apply to resolve the missing or invalid commit-bound Quality evidence.', `  Retry xirang archive "${changeName}" after the Seal commit exists.`);
   return lines.join('\n');
 }
 

@@ -101,6 +101,9 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
 
   if (normalizeProse(body) === '') return;
   const plan = parseDeltaSpec(body);
+  for (const section of plan.duplicateSections) {
+    diagnostics.push(error('DUPLICATE_OPERATION_BLOCK', file, `Repeated operation block: ## ${section}`, identity));
+  }
   for (const section of plan.unsupportedSections) {
     diagnostics.push(error('UNSUPPORTED_OPERATION', file,
       `## ${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`, identity));
