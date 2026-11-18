@@ -102,7 +102,7 @@ The system SHALL expire sessions after 30 minutes of inactivity.
 ### Section: Remember Me
 ```
 
-A REMOVED entry names the Section only; it does not carry a description or a reason for removal.
+A REMOVED entry names the Section only; it does not carry a description or a reason for removal. In Delta headings, use `### Section: <name>` without Markdown closing hashes, so the heading identifies the exact Section.
 
 ### What Happens on Archive
 

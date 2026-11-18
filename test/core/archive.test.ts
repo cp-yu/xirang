@@ -344,6 +344,22 @@ git:
       await expect(fs.access(source)).resolves.toBeUndefined();
     });
 
+    it.each(['### Section: Legacy behavior ###', '- `### Section: Legacy behavior ###`'])('rejects an ambiguous removal instead of silently leaving the Section (%s)', async header => {
+      const name = 'ambiguous-removal';
+      const unit = 'elements/existing.id.md';
+      const formal = path.join(tempDir, '.xirang', 'model', unit);
+      const before = elementUnit({ identity: 'existing.id', title: 'Existing', definition: 'Existing summary',
+        sections: '## Specification\n\n### Section: Legacy behavior\nThe system SHALL offer the legacy behavior.' });
+      await fs.writeFile(formal, before);
+      const delta = MODIFY_EXISTING + `## REMOVED Sections\n${header}\n`;
+      const source = await writeChangeDelta(tempDir, name, { [unit]: delta });
+
+      await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/Malformed Section header/);
+      await expect(fs.readFile(formal, 'utf8')).resolves.toBe(before);
+      await expect(fs.readFile(path.join(source, unit), 'utf8')).resolves.toBe(delta);
+      await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
+    });
+
     it('rejects a compiled target that loses an untouched Section when read as Formal', async () => {
       const name = 'unreadable-section-target';
       const unit = 'elements/existing.id.md';

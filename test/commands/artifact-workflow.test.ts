@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -159,6 +159,37 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
       expect(JSON.parse(result.stdout).state).toBe('blocked');
     });
+    it('skips Quality with --no-quality even when all goals are complete', async () => {
+      const name = 'artifact-only';
+      const change = await createTestChange(name, ['proposal', 'design', 'semantic-delta', 'tasks']);
+      const tasks = path.join(change, 'tasks.md');
+      await fs.writeFile(tasks, (await fs.readFile(tasks, 'utf8')).replace('[ ]', '[x]'));
+      const record = path.join(change, '.quality.json');
+      await fs.writeFile(record, '{ invalid JSON');
+      const recordPath = await fs.realpath(record);
+      const args = ['status', '--change', name, '--json'];
+      const reads = vi.spyOn(fs, 'readFile');
+      try {
+        const normal = await runCLI(args, { cwd: tempDir });
+        expect(normal.exitCode).toBe(0);
+        expect(JSON.parse(normal.stdout)).toMatchObject({ state: 'needs_review', gaps: [
+          expect.objectContaining({ path: '.quality.json', message: 'QUALITY_RECORD_MISSING_OR_INVALID' }),
+          expect.objectContaining({ path: '.quality.json', message: expect.stringContaining('MALFORMED_QUALITY_RECORD') }),
+        ] });
+        expect(reads.mock.calls.some(([file]) => file === recordPath)).toBe(true);
+        reads.mockClear();
+
+        const skipped = await runCLI([...args, '--no-quality'], { cwd: tempDir });
+        expect(skipped).toMatchObject({ exitCode: 0, stderr: '' });
+        const result = JSON.parse(skipped.stdout);
+        expect(result).toMatchObject({ schemaName: 'semantic-model', state: 'ready', gaps: [], goals: { completed: 1 } });
+        expect(result.artifacts).toEqual(JSON.parse(normal.stdout).artifacts);
+        expect(reads.mock.calls.some(([file]) => file === recordPath)).toBe(false);
+      } finally {
+        reads.mockRestore();
+      }
+    });
+
     it('shows status for scaffolded change without proposal.md', async () => {
       // Create empty change directory (no proposal.md)
       const changeDir = path.join(changesDir, 'scaffolded-change');

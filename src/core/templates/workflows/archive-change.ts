@@ -117,7 +117,7 @@ function buildAgentGitFlowStep(): string {
    Apply the retained isolation metadata after archive commits are complete. Map the projected strategy to \`git merge --no-ff\`, \`git merge --ff-only\`, or \`git merge --squash\`. For \`method: "branch"\`, switch to \`originalBranch\`, then merge \`branchName\` with the projected strategy. For \`method: "worktree"\`, keep commits in \`worktreePath\`; before merging, verify that \`sourceRoot\` is on \`originalBranch\`, then run the projected merge from \`sourceRoot\` using \`git -C <sourceRoot>\`. The agent MUST NOT reset, clean, stash, or commit unrelated source-workspace changes. After a successful merge, require the Apply worktree to be clean, run \`git worktree remove <worktreePath>\` from \`sourceRoot\`, and only then delete \`branchName\` when \`git.branch.deleteAfterArchive\` is true and \`git branch --merged\` confirms it is merged. For \`method: "none"\`, do not switch, merge, remove a worktree, or delete the current branch. Stop and report the retained metadata/current state mismatch instead of guessing. Build paths with \`path.join()\`, \`path.resolve()\`, and \`path.normalize()\`.`;
 }
 
-function buildArchiveInstructions(inputLine: string): string {
+function buildArchiveInstructions(): string {
   return `Deliver or abandon a Change in the Xirang change workflow.
 
 ${COMMON_PREREQUISITE}
@@ -126,7 +126,7 @@ Read this stage's additional guidance with \`xirang config project --select stag
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
-**Input**: ${inputLine}
+**Input**: Change name (optional). Follow the selection rules for the requested mode below.
 
 **Steps**
 
@@ -137,7 +137,7 @@ For workflow-managed writes, read the resolved file definition before its instru
    Run \`xirang archive "<change-name>" --abandon --json\` for a user-authorized abandonment. When the name is unknown, use \`xirang archive --abandon --json\` for interactive selection, or ask for the exact name if there is no interactive terminal; do not run \`xirang list --json\` as it reads Quality. Present any checked-goal progress without inferring implementation state. Let the CLI ask for confirmation, or pass \`--yes\` only when the user already confirmed proceeding without a prompt. Do not require completed artifacts, a valid Delta, or a Seal. Report the actual result and stop. MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits, merge or cleanup.
 
 3. **Prepare delivery**
-   In a Git repository, read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values. Use only \`schemaName\` and \`artifacts\` from \`xirang status --change "<name>" --json\`; ignore its Quality state and diagnostics. List incomplete artifacts and confirm before proceeding if any artifact is not \`done\`. The CLI handles incomplete goals; do not pass \`--yes\` to bypass that confirmation without user authorization.
+   In a Git repository, read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values. Use \`schemaName\` and \`artifacts\` from \`xirang status --change "<name>" --no-quality --json\` for this artifact check. List incomplete artifacts and confirm before proceeding if any artifact is not \`done\`. The CLI handles incomplete goals; do not pass \`--yes\` to bypass that confirmation without user authorization.
 
 4. **Run archive CLI**
    Run \`xirang archive "<change-name>" --json\` for default delivery or \`xirang archive "<change-name>" --quick --json\` for quick delivery. In default mode the CLI is the only Quality gate: the recorded Seal must be valid and its Seal commit must exist in Git. Do not preflight Quality, recheck Review or Opt eligibility, or compare the Seal to HEAD or the working tree. If the CLI rejects the Seal, relay its diagnostic and return to Apply; do not repair Quality in Archive. Quick skips the Seal check; do not create a Seal or report Quality as passed.
@@ -181,9 +181,7 @@ export function createArchiveChangeSkillTemplateForExecutionModel(
     name: 'xirang-archive-change',
     description:
       'Deliver or abandon a Change in the Xirang change workflow. Use when the user wants to deliver a change or explicitly abandon it without applying its Delta.',
-    instructions: buildArchiveInstructions(
-      'Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST ask for the exact name.'
-    ),
+    instructions: buildArchiveInstructions(),
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },

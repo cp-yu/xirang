@@ -375,6 +375,7 @@ xirang status [options]
 |--------|-------------|
 | `--change <id>` | Change name (prompts if omitted) |
 | `--schema <name>` | Schema override (auto-detected from change's config) |
+| `--no-quality` | Report artifacts and goal counts without reading or evaluating Quality; `ready` is not a Quality result |
 | `--json` | Output as JSON |
 
 **Examples:**

@@ -12,7 +12,7 @@ definition: Archive 是 Agent 按用户决定编排 Change 交付或放弃留档
 
 ### Section: 通过 CLI 编排 Closure
 
-Archive Role SHALL 在用户选择的模式下调用一次 archive，由 CLI 完成对应状态转换。默认要求 Seal；明确选择 quick 时不先补做 Quality，也不声称已通过；放弃时不因质量、制品或实现进度阻塞，提示实际文件进度并遵守确认。不得手动写模型。
+Archive Role SHALL 在用户选择的模式下调用一次 archive，由 CLI 完成对应状态转换。交付前通过 `xirang status --no-quality` 查询制品，不提前读取或评估 Quality；默认 Seal 只由 Archive CLI 校验，quick 不声称 Quality 已通过。放弃时不因质量、制品或实现进度阻塞，提示实际文件进度并遵守确认；未指定目标时若有交互终端，由 Archive CLI 选择，否则向用户询问确切名称。不得手动写模型。
 
 ### Section: 限定 Closure 制品处理范围
 

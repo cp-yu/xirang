@@ -22,7 +22,7 @@ definition: Change Sync 是交付归档内部将四分区 Semantic Delta 应用�
 
 ### Section: Edge Cases and Exception Handling
 
-同步 SHALL 在正式基线变化、目标路径冲突、存在悬空引用、实际 Delta 无正式模型、空 operation block、非法记法或联合校验失败时阻止交付，指出语义单元与路径，不部分写入。不同平台均基于原路径组件准备与恢复模型单元。在同一次调用内，写入及其后的封存若失败，撤销已写部分；成功时可由目标重建索引。仅输出真实警告和错误，JSON 模式输出结构化诊断。
+同步 SHALL 在正式基线变化、目标路径冲突、存在悬空引用、实际 Delta 无正式模型、空 operation block、非法记法或联合校验失败时阻止交付，指出语义单元与路径，不部分写入。Delta 的 Section 标题必须非空，不得附加与标题以空格分隔的 Markdown 闭合井号，以免将排版误作 identity。不同平台均基于原路径组件准备与恢复模型单元。在同一次调用内，写入及其后的封存若失败，撤销已写部分；成功时可由目标重建索引。仅输出真实警告和错误，JSON 模式输出结构化诊断。
 
 ### Section: Key Acceptance Cases
 

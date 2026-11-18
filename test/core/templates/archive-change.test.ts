@@ -33,15 +33,18 @@ describe('archive change workflow template', () => {
 
   it('uses Quality-independent CLI selection for unnamed abandonment', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
-    const abandon = instructions.slice(instructions.indexOf('1. **Select change and mode**'), instructions.indexOf('3. **Prepare delivery**'));
-    expect(abandon).toContain('`xirang archive --abandon --json`');
+    const input = instructions.slice(instructions.indexOf('**Input**:'), instructions.indexOf('**Steps**'));
+    expect(input).toContain('Change name (optional)');
+    expect(input).not.toMatch(/ask|require/i);
+    const abandon = instructions.slice(instructions.indexOf('2. **Abandon without delivery**'), instructions.indexOf('3. **Prepare delivery**'));
+    expect(abandon).toMatch(/use `xirang archive --abandon --json` for interactive selection, or ask for the exact name if there is no interactive terminal/);
     expect(abandon).toMatch(/do not run `xirang list --json`.*Quality/i);
   });
 
   it('uses the CLI as the single Seal gate without rechecking Review or Opt', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     expect(instructions).toMatch(/delivery name cannot be inferred.*do not run `xirang list --json`/i);
-    expect(instructions).toMatch(/only `schemaName` and `artifacts` from `xirang status[^`]+`; ignore its Quality state and diagnostics/i);
+    expect(instructions.match(/`xirang status[^`]*`/g)).toEqual(['`xirang status --change "<name>" --no-quality --json`']);
     expect(instructions).toMatch(/not a Git repository.*report the result and stop before Git handoff/i);
     expect(instructions).toMatch(/CLI is the only Quality gate.*Seal commit must exist in Git/);
     expect(instructions).toMatch(/If the CLI rejects the Seal.*return to Apply/);

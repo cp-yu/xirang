@@ -8,7 +8,7 @@ import { validateTaskStructure } from '../../core/parsers/task-structure.js';
 import { readQualityCompletion } from '../../core/quality/state.js';
 import { validateChangeExists, validateSchemaExists, getAvailableChanges, getStatusIndicator } from './shared.js';
 
-export interface StatusOptions { change?: string; schema?: string; json?: boolean }
+export interface StatusOptions { change?: string; schema?: string; json?: boolean; quality?: boolean }
 export interface WorkflowStatus extends ChangeStatus {
   artifacts: Array<ChangeStatus['artifacts'][number] & {
     outputs?: string[];
@@ -19,7 +19,7 @@ export interface WorkflowStatus extends ChangeStatus {
   gaps: Array<{ path: string; message: string }>;
 }
 
-export async function loadWorkflowStatus(projectRoot: string, changeName: string, schemaName?: string): Promise<WorkflowStatus> {
+export async function loadWorkflowStatus(projectRoot: string, changeName: string, schemaName?: string, includeQuality = true): Promise<WorkflowStatus> {
   const context = loadChangeContext(projectRoot, changeName, schemaName);
   const schema = resolveSchema(context.schemaName, projectRoot);
   const status = formatChangeStatus(context);
@@ -52,7 +52,7 @@ export async function loadWorkflowStatus(projectRoot: string, changeName: string
     }
   }
   if (result.gaps.length) result.state = 'blocked';
-  else if (tracks && result.goals.total > 0 && result.goals.remaining === 0) {
+  else if (includeQuality && tracks && result.goals.total > 0 && result.goals.remaining === 0) {
     const quality = await readQualityCompletion(context.changeDir, projectRoot);
     result.state = quality.status;
     result.gaps.push(...quality.gaps.map(message => ({ path: '.quality.json', message })));
@@ -69,7 +69,7 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
   }
   const name = await validateChangeExists(options.change, projectRoot);
   if (options.schema) validateSchemaExists(options.schema, projectRoot);
-  const status = await loadWorkflowStatus(projectRoot, name, options.schema);
+  const status = await loadWorkflowStatus(projectRoot, name, options.schema, options.quality);
   if (options.json) console.log(JSON.stringify(status));
   else printStatusText(status);
 }

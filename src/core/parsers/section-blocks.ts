@@ -24,7 +24,7 @@ const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
 
 function deltaSectionName(raw: string | undefined): string | undefined {
   const name = raw?.trim();
-  return name && !/^#+$/.test(name) ? name : undefined;
+  return name && !/(?:^|[ \t])#+$/.test(name) ? name : undefined;
 }
 
 function normalizeLineEndings(content: string): string {

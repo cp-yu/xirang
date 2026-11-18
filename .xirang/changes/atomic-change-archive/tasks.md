@@ -67,3 +67,6 @@
 - [x] [code_fix] 提交阶段复核确认前的 Delta 快照与默认交付所需的有效 Seal。
 - [x] [code_fix] 目标预留失败时释放本次标记，允许同日重试。
 - [x] [code_fix] 原活动目录可在提交前原样恢复；提交后清理失败保留已完成的归档和 Formal。
+- [x] [code_fix] 交付前的制品状态查询不读取 Quality 记录，默认状态查询保留原行为。
+- [x] [artifact_fix] 未指定放弃目标且有交互终端时，统一交给 Archive CLI 选择。
+- [x] [code_fix] 拒绝 Section 名称后的 Markdown 闭合井号，避免误把删除项当成已应用。

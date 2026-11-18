@@ -17,7 +17,7 @@ Read this stage's additional guidance with `xirang config project --select stage
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
-**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST ask for the exact name.
+**Input**: Change name (optional). Follow the selection rules for the requested mode below.
 
 **Steps**
 
@@ -28,7 +28,7 @@ For workflow-managed writes, read the resolved file definition before its instru
    Run `xirang archive "<change-name>" --abandon --json` for a user-authorized abandonment. When the name is unknown, use `xirang archive --abandon --json` for interactive selection, or ask for the exact name if there is no interactive terminal; do not run `xirang list --json` as it reads Quality. Present any checked-goal progress without inferring implementation state. Let the CLI ask for confirmation, or pass `--yes` only when the user already confirmed proceeding without a prompt. Do not require completed artifacts, a valid Delta, or a Seal. Report the actual result and stop. MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits, merge or cleanup.
 
 3. **Prepare delivery**
-   In a Git repository, read `.apply-isolation.json` before running the archive CLI and retain its validated `method`, `branchName`, `originalBranch`, `worktreePath`, and `sourceRoot` values. Use only `schemaName` and `artifacts` from `xirang status --change "<name>" --json`; ignore its Quality state and diagnostics. List incomplete artifacts and confirm before proceeding if any artifact is not `done`. The CLI handles incomplete goals; do not pass `--yes` to bypass that confirmation without user authorization.
+   In a Git repository, read `.apply-isolation.json` before running the archive CLI and retain its validated `method`, `branchName`, `originalBranch`, `worktreePath`, and `sourceRoot` values. Use `schemaName` and `artifacts` from `xirang status --change "<name>" --no-quality --json` for this artifact check. List incomplete artifacts and confirm before proceeding if any artifact is not `done`. The CLI handles incomplete goals; do not pass `--yes` to bypass that confirmation without user authorization.
 
 4. **Run archive CLI**
    Run `xirang archive "<change-name>" --json` for default delivery or `xirang archive "<change-name>" --quick --json` for quick delivery. In default mode the CLI is the only Quality gate: the recorded Seal must be valid and its Seal commit must exist in Git. Do not preflight Quality, recheck Review or Opt eligibility, or compare the Seal to HEAD or the working tree. If the CLI rejects the Seal, relay its diagnostic and return to Apply; do not repair Quality in Archive. Quick skips the Seal check; do not create a Seal or report Quality as passed.

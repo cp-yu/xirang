@@ -329,6 +329,7 @@ program
   .description('Display artifact completion status for a change')
   .option('--change <id>', 'Change name to show status for')
   .option('--schema <name>', 'Schema override (auto-detected from config.yaml)')
+  .option('--no-quality', 'Report artifacts and goals without evaluating Quality')
   .option('--json', 'Output as JSON')
   .action(async (options: StatusOptions) => {
     try {
