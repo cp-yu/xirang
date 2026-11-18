@@ -295,7 +295,6 @@ export class ArchiveCommand {
     if (!name.valid || changeName === 'archive') throw new Error(name.error ?? 'Invalid archive Change name.');
     const changeDir = path.join(changesDir, changeName);
     const active = await statIfPresent(changeDir);
-    await requireNoCompetingArchive(changesDir);
     const report = (location: string, alreadyArchived = false) => {
       const archive = path.relative(projectRoot, location);
       if (alreadyArchived && !options.json) diagnostic('Already archived.', 'ARCHIVE_ALREADY_ARCHIVED', false);
@@ -308,6 +307,7 @@ export class ArchiveCommand {
       return;
     }
 
+    await requireNoCompetingArchive(changesDir);
     const parent = options.abandon ? path.join(archiveDir, 'abandoned') : archiveDir;
     const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
     const archivePath = path.join(parent, archiveName);

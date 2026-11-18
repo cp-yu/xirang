@@ -95,6 +95,39 @@ describe('architecture archive workflow', () => {
     await expect(fs.readFile(path.join(archive, entry, unit), 'utf8')).resolves.toBe(change('Winner'));
   });
 
+  it('can read completed history during another CLI commit without reporting pending history as completed', async () => {
+    const unit = 'elements/existing.id.md';
+    await writeProjectModel(root, minimalModel({ elements: [{ identity: 'existing.id' }] }));
+    const delta = '---\noperation: MODIFIED\n' + elementUnit({ identity: 'existing.id', definition: 'In flight' }).slice(4);
+    await writeChangeDelta(root, 'in-flight', { [unit]: delta });
+    const history = path.join(root, '.xirang', 'changes', 'archive');
+    const delivered = path.join(history, '2026-01-01-finished');
+    const abandoned = path.join(history, 'abandoned', '2026-01-02-finished');
+    const pending = path.join(history, '2026-01-03-partial');
+    for (const destination of [delivered, abandoned, pending]) await fs.mkdir(destination, { recursive: true });
+    await fs.mkdir(pendingArchivePath(pending));
+    const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+    const lookup = (name: string, ...flags: string[]) => promisify(execFile)(process.execPath,
+      [cli, 'archive', name, '--json', ...flags], { cwd: root, env: { ...process.env, XIRANG_TELEMETRY: '0' } });
+
+    const running = archiveProcess(root, 'in-flight', 'write');
+    try {
+      expect(await running.paused).toBe('write');
+      for (const [destination, flags] of [[delivered, []], [abandoned, ['--abandon']]] as const) {
+        const { stdout } = await lookup('finished', ...flags);
+        expect(JSON.parse(stdout)).toEqual({ archive: path.relative(root, destination), alreadyArchived: true });
+      }
+      await expect(lookup('partial')).rejects.toMatchObject({
+        code: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete'),
+      });
+      running.child.send('continue');
+      expect((await running.done).code).toBe(0);
+    } finally {
+      if (running.child.exitCode === null && running.child.signalCode === null) running.child.kill();
+      await Promise.allSettled([running.done]);
+    }
+  });
+
   it('does not install into an existing empty destination', async () => {
     const archived = path.join(root, 'occupied');
     await fs.mkdir(archived);

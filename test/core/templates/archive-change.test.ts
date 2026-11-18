@@ -21,14 +21,35 @@ describe('archive change workflow template', () => {
     expect(instructions).toContain('MUST NOT copy definitions');
   });
 
-  it('routes archive modes without recommending a retired command or Git handoff after abandon', () => {
+  it('shows only the current mutually exclusive archive commands', () => {
     const instructions = getArchiveChangeSkillTemplate().instructions;
     for (const command of ['`xirang archive "<change-name>" --json`', '`xirang archive "<change-name>" --quick --json`', '`xirang archive "<change-name>" --abandon --json`']) {
       expect(instructions).toContain(command);
     }
     for (const retired of ['`xirang sync', '--no-sync', '--no-validate', '--no-verify']) expect(instructions).not.toContain(retired);
-    expect(instructions).toContain('MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits');
-    expect(instructions).toContain('`alreadyArchived`');
+  });
+
+  function archiveStages() {
+    const instructions = getArchiveChangeSkillTemplate().instructions;
+    return [...instructions.matchAll(/^(\d+)\. \*\*([^\n]+)\*\*\n([\s\S]*?)(?=^\d+\. \*\*|^\*\*Output|(?![\s\S]))/gm)]
+      .map(([, step, label, body]) => ({ step, label, body }));
+  }
+
+  it('dispatches abandonment before delivery preparation and ends that branch without Git', () => {
+    const [select, abandon, prepare] = archiveStages();
+    expect(abandon.label).toBe('Abandon without delivery');
+    expect(prepare.label).toBe('Prepare delivery');
+    expect(select.body).toContain(`Dispatch abandon to step ${abandon.step} before any delivery checks.`);
+    expect(abandon.body).toMatch(/Report the actual result and stop\..*MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits, merge or cleanup\./);
+    expect(abandon.body).not.toMatch(/\.apply-isolation\.json|`xirang status\b|`xirang config project --select git\b/);
+  });
+
+  it('stops Git handoff for an inactive name or a historical receipt, including after active preflight', () => {
+    const [select, , , run, git] = archiveStages();
+    expect(select.body).toMatch(/If the explicitly named Change is no longer active, .*existing archive location and stop; do not resume Git handoff\./);
+    expect(run.label).toBe('Run archive CLI');
+    expect(run.body).toMatch(/If the CLI did not complete a new delivery, including cancellation, failure, or `alreadyArchived`, report the result and stop before Git handoff\./);
+    expect(git.label).toBe('Git handoff');
   });
 
   it('uses Quality-independent CLI selection for unnamed abandonment', () => {
