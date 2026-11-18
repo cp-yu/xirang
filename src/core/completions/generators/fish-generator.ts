@@ -157,6 +157,9 @@ ${commandCompletions}`;
       case 'change-id':
         lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_changes)' -f`);
         break;
+      case 'archive-change-id':
+        lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_archive_changes)' -f`);
+        break;
       case 'contract-id':
         lines.push(`complete -c xirang -n '${condition}' -a '(__fish_xirang_contracts)' -f`);
         break;

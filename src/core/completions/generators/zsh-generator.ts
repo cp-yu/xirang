@@ -237,6 +237,8 @@ compdef _xirang xirang
     switch (positionalType) {
       case 'change-id':
         return "'*: :_xirang_complete_changes'";
+      case 'archive-change-id':
+        return "'*: :_xirang_complete_archive_changes'";
       case 'contract-id':
         return "'*: :_xirang_complete_contracts'";
       case 'change-or-contract-id':

@@ -193,6 +193,12 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
         typeof identity === 'string' ? identity : undefined, entity));
       return;
     }
+    const parent = split.data.parent;
+    if (typeof parent === 'string' && !IDENTITY_PATTERN.test(parent)) {
+      diagnostics.push(error('INVALID_ELEMENT_PARENT', file, 'Element parent must be one Element identity or null',
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
     parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);
     return;
   }

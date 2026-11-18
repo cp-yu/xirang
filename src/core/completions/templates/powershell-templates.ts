@@ -14,6 +14,12 @@ function Get-OPSXChanges {
     }
 }
 
+function Get-OPSXArchiveChanges {
+    xirang __complete archive-changes 2>$null | ForEach-Object {
+        ($_ -split "\\t")[0]
+    }
+}
+
 function Get-OPSXContracts {
     $output = xirang __complete contracts 2>$null
     if ($output) {

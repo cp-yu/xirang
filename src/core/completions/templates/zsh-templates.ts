@@ -14,6 +14,14 @@ _xirang_complete_changes() {
   _describe "change" changes
 }
 
+_xirang_complete_archive_changes() {
+  local -a changes
+  while IFS=$'\\t' read -r id desc; do
+    changes+=("$id:$desc")
+  done < <(xirang __complete archive-changes 2>/dev/null)
+  _describe "change" changes
+}
+
 # Use xirang __complete to get available Element Contracts
 _xirang_complete_contracts() {
   local -a contracts

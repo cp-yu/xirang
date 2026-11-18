@@ -28,6 +28,12 @@ function __fish_xirang_changes
     end
 end
 
+function __fish_xirang_archive_changes
+    xirang __complete archive-changes 2>/dev/null | while read -l id desc
+        printf '%s\\t%s\\n' "$id" "$desc"
+    end
+end
+
 function __fish_xirang_contracts
     xirang __complete contracts 2>/dev/null | while read -l id desc
         printf '%s\\t%s\\n' "$id" "$desc"

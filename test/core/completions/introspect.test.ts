@@ -119,7 +119,7 @@ describe('introspect', () => {
     const result = introspectCommands(program);
 
     expect(result[0].acceptsPositional).toBe(true);
-    expect(result[0].positionalType).toBe('change-id');
+    expect(result[0].positionalType).toBe('archive-change-id');
   });
 
   it('嵌套子命令的 positionalType 注入', () => {

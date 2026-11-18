@@ -1,7 +1,9 @@
+import { execFileSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { readModelTree } from '../../src/core/model/parser.js';
@@ -459,6 +461,12 @@ it.each(['[project]', 'null', 'false', '"project/root"'])('rejects an invalid El
   await expectInvalidDelivery('elements/root.md', delta, 'INVALID_ELEMENT_KIND');
 });
 
+it.each(['invalid/parent', '"invalid\\\\parent"', '""'])('rejects an invalid parent identity (%s) in a Section-only Delta', async parent => {
+  const delta = elementUnit({ identity: 'root', kind: 'project', parent, title: 'Root', definition: 'Project root definition.',
+    sections: '## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.' });
+  await expectInvalidDelivery('elements/root.md', delta, 'INVALID_ELEMENT_PARENT');
+});
+
 it.each(['##', '   ##', '##\t'])('rejects an empty level-two heading (%j) that ends an operation block', async heading => {
   const file = 'elements/root.md';
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\nStray text.`;
@@ -671,6 +679,38 @@ it('completes both finished archive modes and omits marked incomplete history', 
   expect(completion).toMatchObject({
     exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n2026-01-01-dropped\tarchived change\n', stderr: '',
   });
+  await writeChangeDelta(root, 'active', { 'proposal.md': '# Active\n' });
+  await fs.mkdir(path.join(archive, '2026-02-01-active'));
+  await fs.mkdir(path.join(archive, '2026-02-01-dropped'));
+  const archiveNames = await runCLI(['__complete', 'archive-changes'], { cwd: root });
+  expect.soft(archiveNames).toMatchObject({ exitCode: 0,
+    stdout: 'active\tactive change\ndelivered\tarchived change\ndropped\tarchived change\n', stderr: '' });
+  for (const [shell, binding] of [
+    ['bash', /archive\)[\s\S]*?_xirang_complete_archive_changes[ \t]*\n[ \t]*;;/],
+    ['zsh', /_xirang_archive\(\)[\s\S]*?'\*: :_xirang_complete_archive_changes'/],
+    ['fish', /__fish_xirang_using_subcommand archive' -a '\(__fish_xirang_archive_changes\)'/],
+    ['powershell', /"archive" \{[\s\S]*?Get-OPSXArchiveChanges \| Where-Object/],
+  ] as const) {
+    const generated = await runCLI(['completion', 'generate', shell, '--json'], { cwd: root });
+    expect(generated.exitCode, generated.stderr).toBe(0);
+    const { script } = JSON.parse(generated.stdout) as { script: string };
+    expect.soft(script).toContain('xirang __complete archive-changes');
+    expect.soft(script).toMatch(binding);
+    if (shell === 'bash' && process.platform !== 'win32') {
+      const completionPath = path.join(root, 'completion.bash');
+      await fs.writeFile(completionPath, script);
+      const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+      const names = execFileSync('bash', ['--noprofile', '--norc', '-c',
+        'source "$1"; xirang() { command "$XIRANG_TEST_NODE" "$XIRANG_TEST_CLI" "$@"; }; COMP_WORDS=(xirang archive ""); COMP_CWORD=2; _xirang_completion; printf "%s\\n" "${COMPREPLY[@]}"',
+        'bash', completionPath], { cwd: root, encoding: 'utf8', env: { ...process.env, XIRANG_TEST_NODE: process.execPath, XIRANG_TEST_CLI: cli } });
+      expect.soft(names.trim().split('\n').sort()).toEqual(['active', 'delivered', 'dropped']);
+    }
+  }
+  for (const name of ['delivered', 'dropped']) {
+    const result = await runCLI(['archive', name, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ alreadyArchived: true });
+  }
   for (const [name, mode] of [['interrupted', '--quick'], ['interrupted-abandon', '--abandon']]) {
     const retry = await runCLI(['archive', name, mode], { cwd: root });
     expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
@@ -720,6 +760,8 @@ it.skipIf(process.platform === 'win32').for([false, true])('retries and complete
 
   const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
   expect(completion.stdout).toBe(`${entry}\tarchived change\n`);
+  const archiveNames = await runCLI(['__complete', 'archive-changes'], { cwd: root });
+  expect(archiveNames.stdout).toBe(`${name}\tarchived change\n`);
   const retry = await runCLI(['archive', name, '--json'], { cwd: root });
   expect(retry).toMatchObject({ exitCode: 0, stderr: '' });
   expect(JSON.parse(retry.stdout)).toEqual({ archive: path.relative(root, location), alreadyArchived: true });

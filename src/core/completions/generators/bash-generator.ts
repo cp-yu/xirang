@@ -162,6 +162,9 @@ complete -F _xirang_completion xirang
       case 'change-id':
         lines.push(`${indent}_xirang_complete_changes`);
         break;
+      case 'archive-change-id':
+        lines.push(`${indent}_xirang_complete_archive_changes`);
+        break;
       case 'contract-id':
         lines.push(`${indent}_xirang_complete_contracts`);
         break;

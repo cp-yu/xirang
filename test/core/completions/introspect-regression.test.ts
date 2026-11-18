@@ -129,10 +129,9 @@ describe('introspect-regression', () => {
     const program = await buildRealProgram();
     const commands = introspectCommands(program);
 
-    // 找到 archive 命令（应该有 positionalType: 'change-id'）
     const archiveCmd = commands.find(c => c.name === 'archive');
     expect(archiveCmd?.acceptsPositional).toBe(true);
-    expect(archiveCmd?.positionalType).toBe('change-id');
+    expect(archiveCmd?.positionalType).toBe('archive-change-id');
 
     // 找到 validate 命令（应该补全 Change 与 Contract-bearing Element identities）
     const validateCmd = commands.find(c => c.name === 'validate');
