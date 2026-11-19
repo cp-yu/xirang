@@ -116,7 +116,8 @@ describe('compileChange', () => {
       elements: [{ identity: 'implementation', kind: 'implementation', parent: 'root', title: 'Implementation', definition: 'Implementation axis' }],
     }));
     await writeChangeDelta(root, 'axis', {
-      'elements/implementation.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: null\ntitle: Implementation\ndefinition: Implementation axis\n---\n',
+      'metamodel/00-kind.md': '---\noperation: MODIFIED\nentity: element-kind\nidentity: implementation\ncontract: optional\n---\n',
+      'elements/nested/axis.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: null\ntitle: Implementation\ndefinition: Implementation axis\n---\n',
     });
 
     const result = await compileChange(root, 'axis');
@@ -124,7 +125,7 @@ describe('compileChange', () => {
     expect(result.valid).toBe(false);
     const missingParent = result.diagnostics.find(item => item.code === 'MISSING_PARENT');
     expect(missingParent?.identity).toBe('implementation');
-    expect(missingParent?.path).toBe('elements/implementation.md');
+    expect(missingParent?.path).toBe('elements/nested/axis.md');
   });
 
   it('validates the Expected Semantic Model, not just the delta', async () => {

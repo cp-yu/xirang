@@ -332,7 +332,7 @@ git:
       await expect(fs.readFile(modelFile)).resolves.toEqual(model);
     });
 
-    it('can abandon after an interrupted local delivery without rolling Formal back', async () => {
+    it('blocks an interrupted delivery until inspected, then abandons without rolling Formal back', async () => {
       const name = 'interrupted-delivery';
       const source = await writeSemanticArchiveFixture(name);
       const changes = path.dirname(source);
@@ -340,11 +340,24 @@ git:
       const stopped = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
       expect(stopped.status).toBe(0);
       await fs.mkdir(path.join(changes, `.archive-lock-${host}-${stopped.pid}-fixture`));
-      await fs.mkdir(path.join(changes, 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`));
+      const reservation = path.join(changes, 'archive', `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const pending = pendingArchivePath(reservation);
+      await fs.mkdir(pending);
+      await fs.mkdir(reservation);
       const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
       await fs.writeFile(model, (await fs.readFile(model, 'utf8')).replace('Existing summary', 'Changed summary'));
       const afterInterruptedWrite = await fs.readFile(model);
 
+      for (const mode of [{}, { quick: true }, { abandon: true }]) {
+        await expect(archiveCommand.execute(name, { ...mode, yes: true })).rejects.toThrow(/Archive is incomplete/);
+      }
+      await expect(fs.readFile(model)).resolves.toEqual(afterInterruptedWrite);
+      await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.readdir(path.dirname(reservation))).resolves.toEqual([path.basename(pending), path.basename(reservation)].sort());
+
+      // After inspection, discard the uncommitted reservation while retaining the model and source.
+      await fs.rmdir(reservation);
+      await fs.rmdir(pending);
       await archiveCommand.execute(name, { abandon: true, yes: true });
       await expect(fs.readFile(model)).resolves.toEqual(afterInterruptedWrite);
       await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });

@@ -6,7 +6,6 @@ import type { ModelIndex } from './model/index-map.js';
 import { changeRoot, modelRoot } from './model/paths.js';
 import { parseSemanticModel, readDeltaFiles, type ParsedModel } from './model/parser.js';
 import {
-  DEFAULT_PARTITION,
   relationshipIdentity,
   type ModelDiagnostic,
   type SemanticModel,
@@ -53,42 +52,27 @@ export async function readFormalSemanticModel(projectRoot: string): Promise<Pars
   return parseSemanticModel(modelRoot(projectRoot));
 }
 
-/** Entity identities are storage-addressable; section entries resolve to their host Element. */
-function hostIdentity(entry: DeltaEntry): string {
-  return entry.entity === 'section' ? entry.identity.split('#')[0] : entry.identity;
-}
-
-function unitPath(entry: DeltaEntry): string {
-  if (entry.entity === 'relationship') return 'relationships';
-  const partition = entry.entity === 'section' ? 'elements' : DEFAULT_PARTITION[entry.entity];
-  return `${partition}/${hostIdentity(entry)}.md`;
-}
-
-/** Diagnostics carry entity-qualified identities; their storage location comes from the index, never a fixed prefix. */
-function locate(index: ModelIndex, diagnostic: ModelDiagnostic, entries: DeltaEntry[]): string {
-  if (diagnostic.path !== '') return diagnostic.path;
-  if (!diagnostic.identity) return '';
-  const identity = diagnostic.identity.includes('#') ? diagnostic.identity.split('#')[0] : diagnostic.identity;
-  const entity = diagnostic.entity;
+/** Locate actual source units without attributing operations to navigation placeholders. */
+function locate(index: ModelIndex, sources: ParsedDelta['sources'], diagnostic: ModelDiagnostic): string {
+  if (diagnostic.path) return diagnostic.path;
+  const { identity, entity } = diagnostic;
+  if (!identity || !entity) return '';
+  const owner = sources.find(unit => !unit.navigationOnly
+    && unit.entities.some(entry => entry.entity === entity && entry.identity === identity));
+  if (owner) return owner.path;
   if (entity === 'relationship') {
-    const entry = entries.find(item => item.entity === 'relationship' && item.identity === diagnostic.identity);
-    return entry ? unitPath(entry) : '';
+    const [source, kind, target] = identity.split('\0');
+    return index.moduleOfRelationship({ source, kind, target })?.path ?? '';
   }
-  if (entity === 'section') {
-    return index.moduleOf('element-declaration', identity)?.path ?? `elements/${identity}.md`;
-  }
-  if (entity) {
-    return index.moduleOf(entity, identity)?.path ?? `${DEFAULT_PARTITION[entity]}/${identity}.md`;
-  }
-  const entry = entries.find(item => hostIdentity(item) === identity);
-  return entry ? unitPath(entry) : '';
+  if (entity === 'section') return index.moduleOf('element-declaration', identity.split('#', 1)[0])?.path ?? '';
+  return index.moduleOf(entity, identity)?.path ?? '';
 }
 
-function toChangeDiagnostic(index: ModelIndex, entries: DeltaEntry[], diagnostic: ModelDiagnostic): ChangeDiagnostic {
+function toChangeDiagnostic(index: ModelIndex, sources: ParsedDelta['sources'], diagnostic: ModelDiagnostic): ChangeDiagnostic {
   return {
     level: diagnostic.level,
     code: diagnostic.code,
-    path: locate(index, diagnostic, entries),
+    path: locate(index, sources, diagnostic),
     message: diagnostic.message,
     ...(diagnostic.identity ? { identity: diagnostic.identity } : {}),
   };
@@ -160,14 +144,10 @@ export async function compileChangeDelta(
   const raw = [
     ...base.diagnostics,
     ...parsed.diagnostics,
-    ...applicationIssues.map(item => {
-      const source = parsed.sources.find(unit => !unit.navigationOnly
-        && unit.entities.some(entry => entry.entity === item.entity && entry.identity === item.identity));
-      return source && !item.path ? { ...item, path: source.path } : item;
-    }),
+    ...applicationIssues,
     ...validateSemanticModel(applied.expected),
   ];
-  const diagnostics = raw.map(item => toChangeDiagnostic(base.index, parsed.delta.entries, item));
+  const diagnostics = raw.map(item => toChangeDiagnostic(base.index, parsed.sources, item));
   const valid = diagnostics.every(item => item.level !== 'ERROR');
   const formalFingerprint = semanticModelFingerprint(base.model);
   const changeFingerprint = fingerprint(parsed.delta.entries);

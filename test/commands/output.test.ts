@@ -430,6 +430,30 @@ it.each([
   await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}${malformed}\n---\n`, code);
 });
 
+it('names the actual noncanonical Delta source on target validation failure', async () => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'metamodel/nested/display.md';
+  const delta = '---\noperation: ADDED\nentity: authored-view\nidentity: overview\ninclude: "*"\nof: missing-item\n---\n';
+  const source = await writeChangeDelta(root, 'dangling-view', { 'proposal.md': '# Dangling view\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [
+    ['validate', '--change', 'dangling-view', '--preview'],
+    ['archive', 'dangling-view', '--yes'],
+    ['archive', 'dangling-view', '--yes', '--quick'],
+  ]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    const issue = result.stderr.split('\n').find(line => line.includes('UNRESOLVED_VIEW_REFERENCE'));
+    expect.soft(issue).toContain(file);
+    expect.soft(issue).not.toContain('views/overview.md');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it.each(['---not a delimiter', '----', '--- # hidden prose'])('rejects a Delta with a malformed closing delimiter (%s)', async delimiter => {
   const unit = `---\noperation: ADDED\nentity: element-kind\nidentity: new-kind\ncontract: optional\n${delimiter}\nKind semantics.\n`;
   await expectInvalidDelivery('metamodel/new-kind.md', unit, 'MALFORMED_FRONTMATTER');
