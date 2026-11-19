@@ -510,16 +510,146 @@ it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unsc
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
 });
 
-it('does not count fenced code as Delta Section prose', async () => {
-  const sections = '## ADDED Sections\n\n### Section: Missing rule\n\n```md\nRoot SHALL show an example.\n```';
+it.each([
+  ['list fence', '- Example:\n\n  ```md\n  ## RENAMED Sections\n  ### Section: Literal in a list\n  ```', false],
+  ['list heading', '- A list item\n\n  ### Section: Nested example\n\n  Root SHALL NOT install this as a Section.\n\n  #### Acceptance Case: Nested case\n\n  This is not a case.', false],
+  ['HTML comment', '<!--\n### Section: Commented intent\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Commented case\nThis is not a case.\n-->', false],
+  ['inline HTML comment', 'Prose before <!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
+  ['leading HTML comment', '<!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
+  ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.', true],
+  ['comment closing on a Section-like line', '<!-- Note\n### Section: Example --> Root SHALL preserve visible text.', true],
+  ['comment closing on a case-like line', '<!-- Note\n#### Acceptance Case: Example --> Root MUST preserve visible text.', true],
+  ['heading in a second HTML comment', '<!-- First note. --> Root SHALL preserve visible text. <!-- Second note\n### Section: Not an operation\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Not a case\n-->', true],
+  ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
+  ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
+  ['real comment after inline code', '<!-- Note --> `<!--` Root SHALL preserve visible text. <!-- Another note\n### Section: Not an operation\n-->', true],
+  ['multiline HTML attribute containing a comment opener', '<div title="attribute\n<!--">Root SHALL preserve the text.</div>', true],
+  ['script text containing a comment opener after a flow comment', '<!-- Note --> <script>const example = "<!--";</script> Root SHALL preserve the prose.', true],
+  ['raw HTML code', '<pre><code>Example MUST NOT be a rule.</code></pre> Root SHALL preserve the example.', true],
+  ['inline HTML code', 'Root SHALL preserve <code>Example MUST NOT be a rule.</code> unchanged.', true],
+  ['multiline inline code', 'Root SHALL show `inline\n    ## RENAMED Sections\nexample` unchanged.', true],
+])('preserves literal %s content without creating operations from it', async (_label, example, containsProse) => {
+  const sectionBody = (rule: string) => containsProse ? example : `${rule}\n\n${example}`;
+  const formal = '## Specification\n\n### Section: Existing rule\n\n' + sectionBody('Root SHALL follow the existing rule.');
+  await writeProjectModel(root, minimalModel());
+  const modelFile = path.join(root, '.xirang', 'model', 'elements', 'root.md');
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  await fs.writeFile(modelFile, elementUnit({ ...declaration, sections: formal }));
+  const added = '### Section: New rule\n\n' + sectionBody('Root SHALL follow the new rule.');
+  const delta = elementUnit({ ...declaration, sections: '## ADDED Sections\n\n' + added });
+  const source = await writeChangeDelta(root, 'opaque-example', { 'proposal.md': '# Preserve examples\n', 'elements/root.md': delta });
+  await createCompleteQualityFixture(root, source);
+
+  const preview = await runCLI(['validate', '--change', 'opaque-example', '--preview', '--json'], { cwd: root });
+  expect.soft(preview).toMatchObject({ exitCode: 0, stderr: '' });
+  expect.soft(JSON.parse(preview.stdout).summary).toEqual({ total: 1, ADDED: 1, MODIFIED: 0, REMOVED: 0 });
+  const delivery = await runCLI(['archive', 'opaque-example', '--yes', '--json'], { cwd: root });
+  expect(delivery).toMatchObject({ exitCode: 0, stderr: '' });
+  const installed = await fs.readFile(modelFile, 'utf8');
+  expect(installed.slice(installed.indexOf('## Specification'))).toBe(`${formal}\n\n${added}\n`);
+  await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.readFile(path.join(root, JSON.parse(delivery.stdout).archive, 'elements', 'root.md'), 'utf8')).resolves.toBe(delta);
+});
+
+it.each([
+  ['<!--\nRoot SHALL follow the rule.\n-->', 'missing Section text'],
+  ['Visible non-normative prose. <!-- Root SHALL follow the rule. -->', 'must contain SHALL or MUST'],
+  ['Visible prose <!-- Root MUST follow the rule.\nComment continues. --> and ends here.', 'must contain SHALL or MUST'],
+  ['Visible prose <!-- Comment starts here.\nRoot SHALL follow the rule. --> and ends here.', 'must contain SHALL or MUST'],
+  ['Visible prose <!-- SHALL --> and <!-- MUST --> a second note.', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- SHALL follow the rule. -->', 'must contain SHALL or MUST'],
+  ['<!-- First note --> [Visible <!-- SHALL stay hidden. -->](/actual)', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- Second note\nRoot SHALL follow the rule.\n-->', 'must contain SHALL or MUST'],
+  ['<!-- First note --> Visible prose <!-- Second note\nContinues. --> <!-- Third note\n\nRoot MUST follow the rule.\n-->', 'must contain SHALL or MUST'],
+  ['<div>\n<!-- Root SHALL follow the rule. -->\nVisible prose.\n</div>', 'must contain SHALL or MUST'],
+])('does not count a normative keyword inside an HTML comment as Section prose (%j)', async (prose, diagnostic) => {
+  const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
-    definition: 'Project root definition.', sections }), 'missing Section text');
+    definition: 'Project root definition.', sections }), diagnostic);
+});
+
+it.each([
+  ['```md\nRoot SHALL show an example.\n```', 'missing Section text'],
+  ['    Root SHALL show an example.', 'missing Section text'],
+  ['`Root SHALL show an example.`', 'missing Section text'],
+  ['<pre><code>Root SHALL show an example.</code></pre>', 'missing Section text'],
+  ['<script>const example = "SHALL";</script>', 'missing Section text'],
+  ['<style>.SHALL { color: inherit; }</style>', 'missing Section text'],
+  ['<template><p>Root SHALL show an example.</p></template>', 'missing Section text'],
+  ['<div title="attribute\n<!-- MUST">Visible prose.</div>', 'must contain SHALL or MUST'],
+  ['<div>Visible prose. </MUST></div>', 'must contain SHALL or MUST'],
+  ['Visible prose. <script>const example = "SHALL";</script>', 'must contain SHALL or MUST'],
+  ['<div><code title="a > b">Root SHALL show an example.</code></div>', 'missing Section text'],
+  ['Visible prose. <CODE>Root MUST show an example.</CODE>', 'must contain SHALL or MUST'],
+  ['<!-- Note --> `Root SHALL show an example.`', 'missing Section text'],
+  ['<!-- Note --> <code>Root SHALL show an example.</code>', 'missing Section text'],
+])('does not count literal code as normative Section prose (%j)', async (example, diagnostic) => {
+  const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${example}`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), diagnostic);
+});
+
+it.each(['<div>\n```\n</div>', '<!--\n```\n-->'])('does not let fence-like text in an HTML block hide a retired operation (%j)', async html => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${html}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
+});
+
+it.each([
+  '<!-- Note --> `<!--`',
+  '<!-- Note --> ``example `<!--``',
+  '<!-- Note --> `<!--\ncontinued inline code`',
+  '<!-- Note --> \\<!--',
+  '<!-- Note --> <span title="<!--">example</span>',
+  '<!-- Note --> [example](/path "<!--")',
+  '<!-- Note --> [literal <!--](/actual)',
+  '<!-- Note --> [literal <!--][ref]\n\n[ref]: /actual',
+  '<!-- Note --> ![example](/path "<!--")',
+  '<!-- Note --> [notice][tag<!--]\n\n[tag<!--]: /actual',
+  '<!-- Note --> ![notice][tag<!--]\n\n[tag<!--]: /actual\n  "title"',
+])('does not let a literal comment opener hide a retired operation (%j)', async example => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${example}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
+});
+
+it.each([{ flags: [] }, { flags: ['--quick'] }])('preserves visible prose and acceptance cases with cross-Section references ($flags)', async ({ flags }) => {
+  await writeProjectModel(root, minimalModel());
+  const file = 'elements/root.md';
+  const referenced = '### Section: Referenced rule\n\n<!-- Note --> [notice][tag<!--]\n\nRoot SHALL follow the rule.\n\n#### Acceptance Case: Visible case\n\nRoot returns the expected result.';
+  const definition = '### Section: Reference definition\n\nRoot SHALL keep the reference.\n\n[tag<!--]: /actual';
+  const delta = elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.',
+    sections: `## ADDED Sections\n\n${referenced}\n\n${definition}` });
+  const name = 'cross-section-reference';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve cross-Section references\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  const preview = await runCLI(['validate', '--change', name, '--preview', '--json'], { cwd: root });
+  expect(preview).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(preview.stdout).summary).toEqual({ total: 2, ADDED: 2, MODIFIED: 0, REMOVED: 0 });
+  const delivery = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+  expect(delivery).toMatchObject({ exitCode: 0, stderr: flags.length ? expect.stringContaining('QUALITY_SKIPPED') : '' });
+  const query = await runCLI(['arch', 'query', 'root', '--contract', '--json'], { cwd: root });
+  expect(query).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(query.stdout).elements.root.sections).toContainEqual({ name: 'Referenced rule',
+    body: '<!-- Note --> [notice][tag<!--]\n\nRoot SHALL follow the rule.',
+    acceptanceCases: [{ name: 'Visible case', body: 'Root returns the expected result.' }],
+  });
+  await expect(fs.readFile(path.join(root, JSON.parse(delivery.stdout).archive, file), 'utf8')).resolves.toBe(delta);
 });
 
 it.each(['    ', '\t'])('rejects an unfenced retired Section operation indented by %j', async indent => {
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${indent}## RENAMED Sections\n\n${indent}### Section: Old rule\n${indent}Root SHALL NOT treat this as ADDED.`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+it.each([
+  ['[ref]: /SHALL', 'missing Section text'],
+  ['Visible prose.\n\n[ref]: /actual\n  "Only metadata MUST be hidden"', 'must contain SHALL or MUST'],
+])('does not count reference definitions as normative prose (%j)', async (prose, diagnostic) => {
+  const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), diagnostic);
 });
 
 it.each([

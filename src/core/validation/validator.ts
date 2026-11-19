@@ -9,7 +9,7 @@ import {
 import {
   parseDeltaSpec,
   normalizeSectionName,
-  type DeltaSectionBlock,
+  type SectionBlock,
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
 import { normalizeProse, readEntity, readDeltaFiles } from '../model/parser.js';
@@ -183,7 +183,7 @@ export class Validator {
   }
 
   private validateDeltaSectionBlocks(
-    blocks: DeltaSectionBlock[],
+    blocks: SectionBlock[],
     section: 'ADDED' | 'MODIFIED',
     seenNames: Set<string>,
     entryPath: string,

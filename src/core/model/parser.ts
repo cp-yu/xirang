@@ -3,8 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { extractSpecificationSection, type DeltaSectionBlock } from '../parsers/section-blocks.js';
-import { buildCodeFenceMask } from '../parsers/section-text.js';
+import { extractSpecificationSection, type SectionBlock } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
 import { isIgnoredDeltaFile } from './paths.js';
@@ -113,31 +112,19 @@ function kindConstraint(value: unknown, field: string, file: string, identity: s
   return kinds;
 }
 
-export function parseSectionBlock({ name, body: { lines, acceptanceCases } }: DeltaSectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
-  for (const [index, title] of acceptanceCases) {
-    if (title === '') {
-      diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,
-        `Section "${name}" has an untitled Acceptance Case at Section line ${index + 2}; use #### Acceptance Case: <name>`));
-    }
-  }
-  return assembleSection(name, lines, index => acceptanceCases.get(index));
-}
-
-function readFormalSectionBlock(name: string, raw: string): Section {
-  const lines = normalizeLineEndings(raw).split('\n').slice(1);
-  const mask = buildCodeFenceMask(lines);
-  const header = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
-  return assembleSection(name, lines, index => mask[index] ? undefined : lines[index].match(header)?.[1]);
-}
-
-function assembleSection(name: string, lines: string[], acceptanceCaseAt: (index: number) => string | undefined): Section {
+/** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
+export function parseSectionBlock({ name, body: { lines, acceptanceCases: caseHeadings } }: SectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
   const bodyLines: string[] = [];
   const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const title = acceptanceCaseAt(index);
+    const title = caseHeadings.get(index);
     if (title !== undefined) {
+      if (title === '') {
+        diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,
+          `Section "${name}" has an untitled Acceptance Case at Section line ${index + 2}; use #### Acceptance Case: <name>`));
+      }
       if (current) acceptanceCases.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
       current = { name: title, lines: [] };
       continue;
@@ -154,19 +141,12 @@ export interface ParsedContract {
   leftover: string;
 }
 
-function hasSpecificationHeader(normalized: string): boolean {
-  const lines = normalized.split('\n');
-  const mask = buildCodeFenceMask(lines);
-  return lines.some((line, index) => !mask[index] && /^##\s+Specification\s*$/i.test(line));
-}
-
-export function parseContract(body: string): ParsedContract {
+export function parseContract(body: string, file: string, diagnostics: ModelDiagnostic[]): ParsedContract {
   const normalized = normalizeProse(body);
   if (normalized === '') return { sections: [], leftover: '' };
-  if (!hasSpecificationHeader(normalized)) return { sections: [], leftover: normalized };
   const section = extractSpecificationSection(normalized);
   return {
-    sections: section.bodyBlocks.map(block => readFormalSectionBlock(block.name, block.raw)),
+    sections: section.bodyBlocks.map(block => parseSectionBlock(block, file, diagnostics)),
     leftover: normalizeProse(`${section.before}\n${section.preamble}\n${section.after}`),
   };
 }
@@ -199,7 +179,7 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   const diagnostics: ModelDiagnostic[] = [];
 
   if (entity === 'element-declaration') {
-    const contract = parseContract(body);
+    const contract = parseContract(body, file, diagnostics);
     const definition = text(data.definition);
     const parent = text(data.parent);
     const title = text(data.title);
