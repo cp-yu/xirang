@@ -4,24 +4,10 @@ identity: change-closure
 kind: element
 parent: change-realization
 title: Change Closure
-definition: Change Closure 是 Change Realization 中将已验证的 Change 收束为项目新稳定状态的阶段。它以有效 Quality Seal 与独立的 Sync、validation、task 门禁为入口，先通过 Sync 将 Semantic Delta 应用于 Semantic Model，使 Expected Semantic Model 成为新的 Semantic Model；再由 Archive 按门禁保存已完成的 Change 并结束活动状态。
+definition: Change Closure 是结束活动 Change 的阶段：默认验证或显式免 Seal 的交付将 Delta 应用到正式模型并封存，放弃则保留未交付方案而不应用 Delta。它协调同一次调用的失败回滚，不替代质量评估或提供历史撤销。
 ---
 
 ## Specification
-
-### Section: 仅接受有效验证结果
-
-Change Closure SHALL 要求 Change 已具有通过的独立基线 Review、Seal 前的明确 Opt 处置，以及绑定 Git commit 的主 Agent Seal 声明。Seal 声明只表示主 Agent 判断该 commit 可运行且预期通过适用测试，不是 CLI 执行测试的证明。Sync 与 Archive 分别执行既有 Semantic Delta、validation 和 task 门禁；Quality 不比较 Seal commit 与 HEAD 或工作区内容，也不要求工作区 clean。Archive 的 Quality 门禁只确认 Seal commit 对象仍存在。质量意见或 Seal 的缺失、格式错误或 commit 对象不存在时，不得通过 Quality 门禁。
-
-### Section: 先同步后归档
-
-Closure SHALL 先通过 CLI Sync 将 Semantic Delta 原子应用于 Semantic Model，使 Expected Semantic Model 成为新正式模型；再由 Archive 保存已完成 Change 并结束活动状态。Sync 与 Archive 的 Semantic Delta、validation 和 task 门禁独立于 Quality Seal。
-
-- **完成 Change Closure**
-
-  - Quality Seal 有效且所绑定 commit 对象仍存在
-  - Sync 与 Archive 各自门禁均成功
-  - 项目实现和 Semantic Model 进入一致的新稳定状态
 
 ### Section: 原样归档 Change 制品
 
@@ -36,3 +22,11 @@ Archive SHALL 在适用门禁通过后原样移动 active Change directory，SHA
 
   - 一个通过归档门禁的 active Change 含已有 legacy presentation file
   - Archive 随目录移动该文件并保持其内容字节不变
+
+### Section: 收束模式与授权
+
+Change Closure SHALL 通过同一个 archive 入口结束活动 Change。默认交付要求有效 Seal；显式 quick 仅豁免 Seal，不被报告为 Quality 通过。两种交付均完整校验 Delta、目标模型与写入基线，保留未完成任务的继续确认；放弃则在任何进度下均可确认留档，只提示文件证明的已勾选进度，默认确认一次；回车或拒绝保持活动，--yes 代替交互而不隐藏提示。放弃不应用 Delta，也不触发实现回退、合并或清理。交付位于 archive 日期目录，放弃位于 archive/abandoned 日期目录，均原样保存，无需改写制品标记结果。
+
+### Section: 交付与失败边界
+
+普通和 quick 交付 SHALL 在同一次调用内应用 Delta 并原样归档，模型写入后移动失败则撤回本次写入，使 Change 保持活动。不维护跨进程恢复日志；强杀后的重试不保证修复此前遗留的改动。已成功交付后，后续修改从当前正式模型发起新的 Change；即使恢复旧行为，也以新差量保留期间其他 Change 的修改及归档历史。用户侧不提供撤销归档命令。

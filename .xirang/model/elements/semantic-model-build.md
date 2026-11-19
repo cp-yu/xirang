@@ -308,7 +308,7 @@ Semantic Model Build 从 legacy 文档或正式模型恢复仍适用的行为时
 
 - **退役行为不复活**
 
-  - legacy 文档包含已明确排除的退役行为（如 architecture-delta.c4 持久化、Spec store/registry/frontmatter、`xirang change/spec/diff` 命令组、archive-time sync 或 `--no-sync`、impact-sweeper、operation label 接受）
+  - legacy 文档包含已明确排除的退役行为（如 architecture-delta.c4 持久化、Spec store/registry/frontmatter、`xirang change/spec/diff` 命令组、独立 `xirang sync` 或 `--no-sync`、impact-sweeper、operation label 接受）
   - Agent SHALL NOT 将该行为写入 Candidate
   - SHALL 在 `build.md` 中记录 covered、added 与 retired 的 sources
 

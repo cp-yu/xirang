@@ -167,7 +167,7 @@ Snack SHALL 运行 full change validation，并通过 validate --change <name> -
   - self-check 与 diff review 完成
   - summary SHALL 披露 validation pass 或 remaining issues
   - SHALL 汇总 effective Contract 与 Architecture operations
-  - SHALL 提供 quick sync、sync-and-archive（Sync 完成后 Archive）与 continue-development paths
+  - SHALL 提供一条快速收束指引 `xirang archive <change> --quick`，以及继续开发选项；不把指引当作执行授权
 
 - **Unexpected effective operation**
 

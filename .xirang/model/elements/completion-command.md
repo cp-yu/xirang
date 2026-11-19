@@ -119,12 +119,16 @@ Completion command SHALL 为所有 supported shells 生成来自当前 Commander
 
 ### Section: Dynamic Completions
 
-Dynamic completion SHALL 继续为 change IDs 与 Element identity 提供 project-aware suggestions，并 SHALL NOT 从 Candidate 或 history 推断 formal identifiers。
+动态补全 SHALL 根据参数类型区分普通 Change ID、Formal Element identity 与归档名称。
 
-- **Formal ID completion**
-  - command 需要 change 或 Element identifier
-  - provider SHALL 从 formal 源读取 suggestions
-  - SHALL 排除 archive、Candidate 与 history entries
+- **普通 Change ID 与 Formal Element identity**
+  - 普通 Change ID SHALL 仅建议具有 `proposal.md` 的活动 Change，不包含归档目录或历史项
+  - Element identity SHALL 来自 Formal Semantic Model，不从 Candidate 或历史推断
+
+- **归档参数补全**
+  - `archive` 的位置参数 SHALL 建议合法的活动 Change（包括未编写 `proposal.md` 的活动目录）及交付与放弃历史中的稳定完成项，不建议保留名称 `archive`
+  - 建议 SHALL 使用无日期的原 Change 名，去重；同名活动 Change 优先于已完成历史
+  - 任一历史位置存在同名未完成标记时，归档参数补全 SHALL 不建议该名称，带日期的历史补全 SHALL 不建议其回执；其他名称不受影响。读取期间发现归档已撤回时，两个补全入口均不回退到同名旧回执
 
 - **Project 外 completion**
   - 当前目录不是 Xirang project
