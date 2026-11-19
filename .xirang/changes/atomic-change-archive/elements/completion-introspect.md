@@ -26,7 +26,7 @@ definition: Completion Introspect 定义从 Commander.js 命令树运行时反�
 - **quality 命令通过反射可发现**
 
   - 对包含 `quality` 命令的 `program` 实例调用 `introspectCommands()`
-  - 返回结果 SHALL 包含 `quality` 条目及其 `review`/`optimize`/`seal`/`status` 子命令
+  - 返回结果 SHALL 包含 `quality` 条目及其 `review`/`opt`/`seal`/`status` 子命令
   - 各子命令 SHALL 携带对应 flags 与 `positionalType`
 
 - **嵌套子命令的 positionalType 注入**

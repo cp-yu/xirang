@@ -6,6 +6,7 @@ import type { ModelIndex } from './model/index-map.js';
 import { changeRoot, modelRoot } from './model/paths.js';
 import { parseSemanticModel, readDeltaFiles, type ParsedModel } from './model/parser.js';
 import {
+  DIAGNOSTIC_UNIT,
   relationshipIdentity,
   type ModelDiagnostic,
   type SemanticModel,
@@ -55,16 +56,20 @@ export async function readFormalSemanticModel(projectRoot: string): Promise<Pars
 /** Locate actual source units without attributing operations to navigation placeholders. */
 function locate(index: ModelIndex, sources: ParsedDelta['sources'], diagnostic: ModelDiagnostic): string {
   if (diagnostic.path) return diagnostic.path;
-  const { identity, entity } = diagnostic;
+  const { identity, entity } = diagnostic[DIAGNOSTIC_UNIT] ?? diagnostic;
   if (!identity || !entity) return '';
-  const owner = sources.find(unit => !unit.navigationOnly
-    && unit.entities.some(entry => entry.entity === entity && entry.identity === identity));
-  if (owner) return owner.path;
+  const ownerOf = (kind: NonNullable<ModelDiagnostic['entity']>, id: string) => sources.find(unit => !unit.navigationOnly
+    && unit.entities.some(entry => entry.entity === kind && entry.identity === id))?.path;
+  const owner = ownerOf(entity, identity);
+  if (owner) return owner;
   if (entity === 'relationship') {
     const [source, kind, target] = identity.split('\0');
     return index.moduleOfRelationship({ source, kind, target })?.path ?? '';
   }
-  if (entity === 'section') return index.moduleOf('element-declaration', identity.split('#', 1)[0])?.path ?? '';
+  if (entity === 'section') {
+    const host = identity.split('#', 1)[0];
+    return index.moduleOf('element-declaration', host)?.path ?? ownerOf('element-declaration', host) ?? '';
+  }
   return index.moduleOf(entity, identity)?.path ?? '';
 }
 

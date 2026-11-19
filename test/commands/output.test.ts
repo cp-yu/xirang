@@ -454,6 +454,37 @@ it('names the actual noncanonical Delta source on target validation failure', as
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+it.each(['Delta', 'Formal'])('locates a target Relationship diagnostic in its actual %s container', async origin => {
+  const formalFile = 'relationships/nested/actual-formal.yaml';
+  const deltaFile = 'relationships/nested/actual-delta.yaml';
+  const relationship = 'relationships:\n  - source: item\n    kind: links\n    target: root\n';
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  if (origin === 'Formal') {
+    const container = path.join(model, formalFile);
+    await fs.mkdir(path.dirname(container), { recursive: true });
+    await fs.writeFile(container, relationship);
+  }
+  const before = await readModelTree(model);
+  const units: Record<string, string> = origin === 'Delta' ? {
+    [deltaFile]: 'relationships:\n  - operation: ADDED\n    source: item\n    kind: missing-kind\n    target: root\n',
+  } : { 'metamodel/links.md': '---\noperation: REMOVED\nentity: relationship-kind\nidentity: links\n---\n' };
+  const name = 'invalid-relationship';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Invalid relationship\n', ...units });
+  await createCompleteQualityFixture(root, source);
+  const expectedPath = origin === 'Delta' ? deltaFile : formalFile;
+  for (const command of [['validate', '--change', name, '--preview'], ['archive', name, '--yes'], ['archive', name, '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    const issue = result.stderr.split('\n').find(line => line.includes('UNDECLARED_RELATIONSHIP_KIND'));
+    expect.soft(issue).toContain(expectedPath);
+    expect.soft(issue).not.toContain('elements/item.md');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  for (const [file, unit] of Object.entries(units)) await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(unit);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it.each(['---not a delimiter', '----', '--- # hidden prose'])('rejects a Delta with a malformed closing delimiter (%s)', async delimiter => {
   const unit = `---\noperation: ADDED\nentity: element-kind\nidentity: new-kind\ncontract: optional\n${delimiter}\nKind semantics.\n`;
   await expectInvalidDelivery('metamodel/new-kind.md', unit, 'MALFORMED_FRONTMATTER');
@@ -875,13 +906,14 @@ it.each([false, true])('reports the initiating failure and failed compensation (
 });
 
 
-it('completes both finished archive modes and omits marked incomplete history', async () => {
+it('completes both finished archive modes and omits incomplete or reserved history', async () => {
   const archive = path.join(root, '.xirang', 'changes', 'archive');
   const abandoned = path.join(archive, 'abandoned');
   const interrupted = path.join(archive, '2026-01-01-interrupted');
   const interruptedAbandon = path.join(abandoned, '2026-01-01-interrupted-abandon');
   for (const directory of [path.join(archive, '2026-01-01-delivered'), interrupted,
-    path.join(abandoned, '2026-01-01-dropped'), interruptedAbandon, path.join(archive, 'not-a-dated-archive')]) {
+    path.join(abandoned, '2026-01-01-dropped'), interruptedAbandon, path.join(archive, 'not-a-dated-archive'),
+    path.join(archive, '2026-01-01-archive'), path.join(abandoned, '2026-01-02-archive')]) {
     await fs.mkdir(directory, { recursive: true });
     if (directory !== path.join(abandoned, '2026-01-01-dropped')) {
       await fs.writeFile(path.join(directory, 'proposal.md'), 'Proposal already copied');

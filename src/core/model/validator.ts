@@ -1,5 +1,6 @@
 import { validateBusinessSpecification } from './business-specification.js';
 import {
+  DIAGNOSTIC_UNIT,
   IDENTITY_PATTERN,
   RESERVED_AUTHORED_VIEW_IDENTITY,
   relationshipIdentity,
@@ -9,7 +10,7 @@ import {
   type SemanticModel,
 } from './types.js';
 
-function error(code: string, message: string, identity?: string, entity?: DiagnosticEntity): ModelDiagnostic {
+function error(code: string, message: string, identity?: string, entity?: DiagnosticEntity, unit?: ModelDiagnostic[typeof DIAGNOSTIC_UNIT]): ModelDiagnostic {
   return {
     level: 'ERROR',
     code,
@@ -17,6 +18,7 @@ function error(code: string, message: string, identity?: string, entity?: Diagno
     message,
     ...(identity ? { identity } : {}),
     ...(entity ? { entity } : {}),
+    ...(unit ? { [DIAGNOSTIC_UNIT]: unit } : {}),
   };
 }
 
@@ -175,7 +177,8 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
   for (const relationship of model.relationships) {
     const label = `${relationship.source} -[${relationship.kind}]-> ${relationship.target}`;
     const key = relationshipIdentity(relationship);
-    if (seen.has(key)) diagnostics.push(error('DUPLICATE_RELATION', `Duplicate relation: ${label}`, relationship.source, 'element-declaration'));
+    const unit = { entity: 'relationship', identity: key } as const;
+    if (seen.has(key)) diagnostics.push(error('DUPLICATE_RELATION', `Duplicate relation: ${label}`, relationship.source, 'element-declaration', unit));
     seen.add(key);
 
     const source = kindOf.get(relationship.source);
@@ -187,15 +190,16 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
         `Relationship ${label} references undeclared Relationship Kind ${relationship.kind}`,
         relationship.source,
         'element-declaration',
+        unit,
       ));
     }
     if (source === undefined || target === undefined) {
-      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Relation ${label} has an unresolved endpoint`, relationship.source, 'element-declaration'));
+      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Relation ${label} has an unresolved endpoint`, relationship.source, 'element-declaration', unit));
       continue;
     }
     if (definition?.sourceKinds && !definition.sourceKinds.includes(source)
       || definition?.targetKinds && !definition.targetKinds.includes(target)) {
-      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Invalid ${relationship.kind} endpoints: ${relationship.source} (${source}) → ${relationship.target} (${target})`, relationship.source, 'element-declaration'));
+      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Invalid ${relationship.kind} endpoints: ${relationship.source} (${source}) → ${relationship.target} (${target})`, relationship.source, 'element-declaration', unit));
     }
   }
 }
@@ -205,12 +209,14 @@ function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): v
     const elementIdentity = element.declaration.identity;
     const sectionNames = new Set<string>();
     for (const section of element.sections) {
+      const unit = { entity: 'section', identity: `${elementIdentity}#${section.name}` } as const;
       if (sectionNames.has(section.name)) {
         diagnostics.push(error(
           'DUPLICATE_SECTION_NAME',
           `Element ${elementIdentity} has duplicate Section name ${section.name}`,
           elementIdentity,
           'element-declaration',
+          unit,
         ));
       }
       sectionNames.add(section.name);
@@ -223,6 +229,7 @@ function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): v
             `Section ${elementIdentity}#${section.name} has duplicate Acceptance Case name ${acceptanceCase.name}`,
             elementIdentity,
             'element-declaration',
+            unit,
           ));
         }
         acceptanceCaseNames.add(acceptanceCase.name);

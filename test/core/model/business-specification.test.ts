@@ -115,7 +115,7 @@ describe('business specification 4+N', () => {
 
   it('validates the complete expected model rather than requiring all four Sections in each delta', async () => {
     const project = await createProject();
-    const changeDir = path.join(project, '.xirang/changes/test/elements');
+    const changeDir = path.join(project, '.xirang', 'changes', 'test', 'elements', 'cases');
     await fs.mkdir(changeDir, { recursive: true });
     const unit = '---\nentity: element-declaration\nidentity: inventory\ndefinition: 库存管理。\n---\n\n';
     await fs.writeFile(path.join(changeDir, 'inventory.md'), unit + '## MODIFIED Sections\n\n### Section: Business Logic\n库存 SHALL 原子扣减，30 分钟未支付时返还。\n');
@@ -125,7 +125,9 @@ describe('business specification 4+N', () => {
     await fs.writeFile(path.join(changeDir, 'inventory.md'), unit + '## REMOVED Sections\n\n### Section: Key Acceptance Cases\n');
     const invalid = await compileChange(project, 'test');
     expect(invalid.valid).toBe(false);
-    expect(invalid.diagnostics).toContainEqual(expect.objectContaining({ code: 'MISSING_BUSINESS_SECTION' }));
+    expect(invalid.diagnostics).toContainEqual(expect.objectContaining({
+      code: 'MISSING_BUSINESS_SECTION', identity: 'inventory', path: 'elements/cases/inventory.md',
+    }));
   });
 
   it('applies a Kind format change to existing instances even without Element deltas', async () => {

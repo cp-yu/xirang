@@ -4,6 +4,7 @@ import { introspectCommands } from '../../../src/core/completions/introspect.js'
 import { ZshGenerator } from '../../../src/core/completions/generators/zsh-generator.js';
 import { BashGenerator } from '../../../src/core/completions/generators/bash-generator.js';
 import { runCLI } from '../../helpers/run-cli.js';
+import { registerQualityCommand } from '../../../src/commands/quality.js';
 
 // Import the actual CLI program builder to test against real structure
 async function buildRealProgram(): Promise<Command> {
@@ -35,6 +36,8 @@ async function buildRealProgram(): Promise<Command> {
   configCmd.command('list').description('List settings').option('--json', 'Output as JSON');
   configCmd.command('get [key]').description('Get a value');
   configCmd.command('set [key]').description('Set a value').option('--string', 'Force string type');
+
+  registerQualityCommand(program);
 
   const verifyCmd = program.command('verify').description('Verification gates');
   verifyCmd.command('phase1 [change-id]').description('Run phase 1').option('--json', 'Output as JSON');
@@ -132,6 +135,8 @@ describe('introspect-regression', () => {
     const archiveCmd = commands.find(c => c.name === 'archive');
     expect(archiveCmd?.acceptsPositional).toBe(true);
     expect(archiveCmd?.positionalType).toBe('archive-change-id');
+    const quality = commands.find(c => c.name === 'quality');
+    expect(quality?.subcommands?.map(command => command.name).sort()).toEqual(['opt', 'review', 'seal', 'status']);
 
     // 找到 validate 命令（应该补全 Change 与 Contract-bearing Element identities）
     const validateCmd = commands.find(c => c.name === 'validate');
