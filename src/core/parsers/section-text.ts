@@ -20,7 +20,7 @@ export function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
-function nextCommentOpening(source: string, from: number, end: number): number {
+function nextCommentOpening(source: string, from: number, end: number, definitions: string): number {
   let opening = source.indexOf('<!--', from);
   if (opening < 0 || opening + 4 > end) return -1;
   if (!/[`\\<\[]/.test(source.slice(from, opening))) return opening;
@@ -34,7 +34,8 @@ function nextCommentOpening(source: string, from: number, end: number): number {
     const start = node.position?.start.offset;
     const stop = node.position?.end.offset;
     if (start === undefined || stop === undefined) return;
-    if (node.type === 'inlineCode' || (node.type === 'html' && !node.value.startsWith('<!--')) || node.type === 'image') {
+    if (node.type === 'inlineCode' || (node.type === 'html' && !node.value.startsWith('<!--'))
+      || node.type === 'image' || node.type === 'imageReference') {
       ranges.push([start, stop]);
       return;
     }
@@ -43,7 +44,7 @@ function nextCommentOpening(source: string, from: number, end: number): number {
       ranges.push([node.children.at(-1)?.position?.end.offset ?? start, stop]);
     }
   };
-  const head = markdown.parse(prefix + paragraph).children[0];
+  const head = markdown.parse(prefix + paragraph + definitions).children[0];
   if (head) visit(head);
   for (; opening >= 0 && opening + 4 <= end; opening = source.indexOf('<!--', opening + 4)) {
     const relative = opening - from + prefix.length;
@@ -55,10 +56,18 @@ function nextCommentOpening(source: string, from: number, end: number): number {
   return -1;
 }
 
-function parseMarkdownBlocks(source: string): MarkdownNode[] {
+function parseMarkdownBlocks(source: string): { children: MarkdownNode[]; definitions: string } {
   for (;;) {
     const { children } = markdown.parse(source);
-    if (!/-->[^\n]*<!--/.test(source)) return children;
+    const ids = new Set<string>();
+    const collectDefinitions = (node: MarkdownNode): void => {
+      if (node.type === 'definition') ids.add(node.identifier);
+      if ('children' in node) node.children.forEach(collectDefinitions);
+    };
+    children.forEach(collectDefinitions);
+    // A suffix needs document-wide reference resolution, not the original destinations.
+    const definitions = ids.size ? '\n\n' + [...ids].map(id => `[${id}]: /`).join('\n') : '';
+    if (!/-->[^\n]*<!--/.test(source)) return { children, definitions };
     const parts: string[] = [];
     let copied = 0;
     let consumed = 0;
@@ -75,7 +84,7 @@ function parseMarkdownBlocks(source: string): MarkdownNode[] {
       while (closing >= 0) {
         const newline = source.indexOf('\n', closing + 3);
         const lineEnd = newline < 0 ? source.length : newline;
-        const opening = nextCommentOpening(source, closing + 3, topLevel ? lineEnd : Math.min(lineEnd, end));
+        const opening = nextCommentOpening(source, closing + 3, topLevel ? lineEnd : Math.min(lineEnd, end), definitions);
         if (opening < 0) break;
         // Markdown ends a comment block at the first closing line. Join adjacent spans in
         // this parse only, so a continuation cannot appear to start a heading or fence.
@@ -86,7 +95,7 @@ function parseMarkdownBlocks(source: string): MarkdownNode[] {
       }
     };
     children.forEach(node => visit(node, true));
-    if (!parts.length) return children;
+    if (!parts.length) return { children, definitions };
     source = parts.join('') + source.slice(copied);
   }
 }
@@ -106,6 +115,7 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
     || (includeSetext && SETEXT_UNDERLINE.test(line))
     || (includeListItems && /^ {0,3}-[ \t]+/.test(line)))) {
     const source = lines.join('\n');
+    const { children, definitions } = parseMarkdownBlocks(source);
     const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number): void => {
       let inComment = false;
       for (let i = first; i <= last; i++) {
@@ -113,7 +123,7 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
         const limit = i === last ? end : line.length;
         let cursor = i === first ? start : 0;
         while (cursor < limit) {
-          const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit) - offset;
+          const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit, definitions) - offset;
           if (opening < 0) break;
           const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
           inComment = closing === -1 || closing + 3 > limit;
@@ -152,7 +162,7 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
         node.children.forEach(child => visit(child, false, childInline));
       }
     };
-    parseMarkdownBlocks(source).forEach(node => visit(node, true, false));
+    children.forEach(node => visit(node, true, false));
   }
   return { literal, hidden, setext, visible, listItems };
 }

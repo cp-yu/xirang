@@ -1307,6 +1307,7 @@ git:
       const change2 = 'feature-b';
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', change1), { recursive: true });
       await fs.mkdir(path.join(tempDir, '.xirang', 'changes', change2), { recursive: true });
+      await fs.mkdir(path.join(tempDir, '.xirang', 'changes', 'Bad_Name'), { recursive: true });
       
       // Mock select to return first change
       mockSelect.mockResolvedValueOnce(change1);
@@ -1317,10 +1318,10 @@ git:
       // Verify select was called with correct options (values matter, names may include progress)
       expect(mockSelect).toHaveBeenCalledWith(expect.objectContaining({
         message: 'Select a change to archive',
-        choices: expect.arrayContaining([
+        choices: [
           expect.objectContaining({ value: change1 }),
           expect.objectContaining({ value: change2 })
-        ])
+        ]
       }));
       
       // Verify the selected change was archived

@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs';
+import { validateChangeName } from '../utils/change-utils.js';
 import { formatTaskStatus, getTaskProgressForChange } from '../utils/task-progress.js';
 
 interface SelectActiveChangeOptions {
@@ -12,7 +13,7 @@ export async function listActiveChangeDirectories(changesDir: string): Promise<s
     throw error;
   });
   return entries
-    .filter((entry) => entry.isDirectory() && entry.name !== 'archive' && !entry.name.startsWith('.'))
+    .filter((entry) => entry.isDirectory() && entry.name !== 'archive' && validateChangeName(entry.name).valid)
     .map((entry) => entry.name)
     .sort();
 }

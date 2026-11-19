@@ -567,6 +567,8 @@ it.each([
   '<!-- Note --> <span title="<!--">example</span>',
   '<!-- Note --> [example](/path "<!--")',
   '<!-- Note --> ![example](/path "<!--")',
+  '<!-- Note --> [notice][tag<!--]\n\n[tag<!--]: /actual',
+  '<!-- Note --> ![notice][tag<!--]\n\n[tag<!--]: /actual\n  "title"',
 ])('does not let a literal comment opener hide a retired operation (%j)', async example => {
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${example}\n\n## RENAMED Sections\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',

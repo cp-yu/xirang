@@ -134,6 +134,41 @@ definition: Delivered root.
     expect(status).toContain('M .xirang/model/elements/root.md');
   });
 
+  it('abandons a committed Change without touching Git state or unrelated working files', async () => {
+    projectRoot = await setupRepo();
+    await writeChange(projectRoot);
+    await writeFile(projectRoot, '.xirang/config.yaml', 'schema: semantic-model\ngit:\n  branch:\n    deleteAfterArchive: true\n');
+    const active = path.join(projectRoot, '.xirang', 'changes', 'feature-archive');
+    const artifacts = (await fs.readdir(active)).sort();
+    const contents = await Promise.all(artifacts.map(file => fs.readFile(path.join(active, file))));
+    await writeFile(projectRoot, 'README.md', 'staged documentation\n');
+    await git(projectRoot, ['add', 'README.md']);
+    await writeFile(projectRoot, 'README.md', 'unstaged documentation\n');
+    await writeFile(projectRoot, 'scratch.txt', 'untracked work\n');
+    const snapshot = () => Promise.all([
+      git(projectRoot, ['symbolic-ref', 'HEAD']),
+      git(projectRoot, ['rev-parse', 'HEAD']),
+      git(projectRoot, ['show-ref']),
+      git(projectRoot, ['ls-files', '--stage']),
+      git(projectRoot, ['status', '--porcelain', '--', 'README.md', 'scratch.txt', 'src', '.xirang/model']),
+      ...['README.md', 'scratch.txt', 'src/feature.ts', '.xirang/model/elements/root.md']
+        .map(file => fs.readFile(path.join(projectRoot, file))),
+    ]);
+    const before = await snapshot();
+    process.chdir(projectRoot);
+
+    await new ArchiveCommand().execute('feature-archive', { yes: true, abandon: true });
+
+    expect(await snapshot()).toEqual(before);
+    const history = path.join(projectRoot, '.xirang', 'changes', 'archive', 'abandoned');
+    const entries = await fs.readdir(history);
+    expect(entries).toEqual([expect.stringMatching(/^\d{4}-\d{2}-\d{2}-feature-archive$/)]);
+    const archived = path.join(history, entries[0]);
+    expect((await fs.readdir(archived)).sort()).toEqual(artifacts);
+    await expect(Promise.all(artifacts.map(file => fs.readFile(path.join(archived, file))))).resolves.toEqual(contents);
+    await expect(fs.access(active)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('leaves unrelated dirty files unstaged during handoff', async () => {
     projectRoot = await setupRepo();
     await writeChange(projectRoot);
