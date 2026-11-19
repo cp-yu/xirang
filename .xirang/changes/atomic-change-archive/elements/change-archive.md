@@ -16,7 +16,7 @@ definition: Change Archive 是 CLI 结束活动 Change 的统一能力。它按�
 
 ### Section: Business Logic
 
-可直接指定 Change，也可交互选择活动目录（排除归档）。CLI SHALL 区分三种模式：
+可直接指定 Change，也可在交互终端选择活动目录（排除归档）。非交互调用 SHALL 显式指定 Change 名；需要确认时还须提供 `--yes`。缺少所需输入时返回诊断，不写入模型或归档。CLI SHALL 区分三种模式：
 
 - 默认检查有效的 Quality Seal；`--quick` 仅豁免 Seal，明确报告跳过，绝不声称 Quality 已通过。两者均校验 Delta、完整目标模型和写入前基线，在同一次调用内应用待写模型单元并将 Change 原样移至 `.xirang/changes/archive/YYYY-MM-DD-<change>/`。没有模型写入时仅封存。正常交付工作流对未完成制品列出警告并要求确认；任务有未勾选目标时提示继续，默认不继续，`--yes` 可显式继续。没有任务文件或全部完成时不触发未完成任务询问。
 - `--abandon` 不检查 Seal、制品完成度或 Delta 合法性，不应用 Delta，不回退或合并实现。对任意实现进度均可封存，包括有提交、任务已勾选或制品不完整。有目标已勾选时先提示 `tasks.md` 的 `## Goals` 中可核实的已勾选目标数/目标总数，不据此推断 Apply 阶段或代码完成度；没有可用进度仍须确认。放弃默认询问一次，拒绝或回车不作改动；`--yes` 跳过询问，不隐藏进度。将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`；不补写状态文件，不进入交付后的 Git 流程。

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ArchiveCommand } from '../../src/core/archive.js';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { readSyncModelTree } from '../../src/core/model/transaction.js';
+import * as interactive from '../../src/utils/interactive.js';
 import { execFile, spawnSync } from 'child_process';
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'fs';
@@ -314,7 +315,8 @@ git:
       const model = await fs.readFile(modelFile);
       const { confirm } = await import('@inquirer/prompts');
       vi.mocked(confirm).mockResolvedValueOnce(false);
-      await archiveCommand.execute(name, { abandon: true });
+      const terminal = vi.spyOn(interactive, 'isInteractive').mockReturnValue(true);
+      await archiveCommand.execute(name, { abandon: true }).finally(() => terminal.mockRestore());
       expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ default: false }));
       expect(console.error).toHaveBeenCalledWith(expect.stringContaining('2/5'));
       expect(vi.mocked(console.error).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(confirm).mock.invocationCallOrder[0]);
@@ -1358,6 +1360,9 @@ git:
   });
 
   describe('interactive mode', () => {
+    beforeEach(() => { vi.spyOn(interactive, 'isInteractive').mockReturnValue(true); });
+    afterEach(() => { vi.mocked(interactive.isInteractive).mockRestore(); });
+
     it('should use select prompt for change selection', async () => {
       const { select } = await import('@inquirer/prompts');
       const mockSelect = select as unknown as ReturnType<typeof vi.fn>;

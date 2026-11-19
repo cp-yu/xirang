@@ -19,11 +19,11 @@ export function resolveNoInteractive(value?: boolean | InteractiveOptions): bool
   return value?.noInteractive === true || value?.interactive === false;
 }
 
-export function isInteractive(value?: boolean | InteractiveOptions): boolean {
+export function isInteractive(value?: boolean | InteractiveOptions, output?: Pick<NodeJS.WriteStream, 'isTTY'>): boolean {
   if (resolveNoInteractive(value)) return false;
   if (process.env.XIRANG_INTERACTIVE === '0') return false;
   // Respect the standard CI environment variable (set by GitHub Actions, GitLab CI, Travis, etc.)
   if ('CI' in process.env) return false;
-  return !!process.stdin.isTTY;
+  return !!process.stdin.isTTY && (output === undefined || !!output.isTTY);
 }
 

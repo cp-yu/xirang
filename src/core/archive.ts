@@ -13,6 +13,7 @@ import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
 import { validateChangeName } from '../utils/change-utils.js';
+import { isInteractive } from '../utils/interactive.js';
 
 export interface ArchiveMoveFileSystem {
   rename: typeof fs.rename;
@@ -256,8 +257,10 @@ export class ArchiveCommand {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
       throw new Error("No Xirang changes directory found. Run 'xirang setup' first.");
     }
-    const promptContext = options.json ? { output: process.stderr } : undefined;
+    const promptOutput = options.json ? process.stderr : process.stdout;
+    const promptContext = options.json ? { output: promptOutput } : undefined;
     if (!changeName) {
+      if (!isInteractive(undefined, promptOutput)) throw new Error('A Change name is required for non-interactive archive.');
       changeName = await selectActiveChange(changesDir, { message: 'Select a change to archive', ...promptContext }) ?? undefined;
       if (!changeName) {
         diagnostic('No change selected. Aborting.', 'ARCHIVE_CANCELLED', options.json);
@@ -330,6 +333,7 @@ export class ArchiveCommand {
       }, options.json);
     };
     const ask = async (message: string) => {
+      if (!isInteractive(undefined, promptOutput)) throw new Error(`${message} Use --yes to confirm in non-interactive mode.`);
       const { confirm } = await import('@inquirer/prompts');
       const config = { message, default: false };
       if (await (promptContext ? confirm(config, promptContext) : confirm(config))) return true;

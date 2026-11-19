@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { pendingArchivePath } from '../../src/core/archive-paths.js';
 import { readModelTree } from '../../src/core/model/parser.js';
+import * as interactive from '../../src/utils/interactive.js';
 import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
@@ -783,6 +784,40 @@ it('writes a complete archive argument error to piped JSON stderr in the built C
   expect(JSON.parse(result.stderr)).toEqual({ code: 'INVALID_ARGUMENT', message: `error: unknown option '${flag}'` });
 }, 15_000);
 
+it('reports missing non-interactive archive inputs as JSON without prompting or writing', async () => {
+  await writeProjectModel(root, minimalModel());
+  const tasks = '## Goals\n- [ ] G1: Pending goal\n';
+  const source = await writeChangeDelta(root, 'needs-confirmation', { '.delta-noop': '', 'tasks.md': tasks });
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const cases = [
+    { args: ['--abandon'], message: /Change name.*non-interactive/i },
+    { args: ['--abandon', '--yes'], message: /Change name.*non-interactive/i },
+    { args: ['needs-confirmation', '--abandon'], message: /Abandon.*--yes/i },
+    { args: ['needs-confirmation'], message: /1 incomplete goal.*--yes/i },
+    { args: ['needs-confirmation', '--quick'], message: /1 incomplete goal.*--yes/i },
+  ];
+  await createCompleteQualityFixture(root, source);
+  for (const { args, message } of cases) {
+    const result = spawnSync(process.execPath, [cli, 'archive', ...args, '--json'], {
+      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 10_000,
+    });
+    expect.soft(result.error, args.join(' ')).toBeUndefined();
+    expect.soft(result.status, args.join(' ')).toBe(1);
+    expect.soft(result.stdout, args.join(' ')).toBe('');
+    try {
+      const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+      expect.soft(diagnostics.at(-1), args.join(' ')).toMatchObject({ code: 'COMMAND_ERROR', message: expect.stringMatching(message) });
+    } catch (error) {
+      expect.soft(error, `${args.join(' ')}: ${result.stderr}`).toBeUndefined();
+    }
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'tasks.md'), 'utf8')).resolves.toBe(tasks);
+  await expect(fs.readdir(path.dirname(source))).resolves.toEqual([path.basename(source)]);
+}, 20_000);
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });
@@ -879,7 +914,8 @@ it('returns the abandoned location by exact Change name and leaves implementatio
 
 it('keeps both real prompts off stdout when interactively selecting and abandoning with --json', async () => {
   const change = await writeChangeDelta(root, 'demo', { '.quality.json': 'unreadable quality' });
-  const result = await runCLI(['archive', '--abandon', '--json'], { cwd: root });
+  const terminal = vi.spyOn(interactive, 'isInteractive').mockReturnValue(true);
+  const result = await runCLI(['archive', '--abandon', '--json'], { cwd: root }).finally(() => terminal.mockRestore());
   expect(result.exitCode).toBe(0);
   const { archive } = JSON.parse(result.stdout);
   expect(result.stderr).toContain('Select a change to archive');

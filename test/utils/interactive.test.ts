@@ -117,6 +117,12 @@ describe('interactive utilities', () => {
       expect(isInteractive({})).toBe(true);
     });
 
+    it('also requires the prompt output to be a TTY when supplied', () => {
+      Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
+      expect(isInteractive(undefined, { isTTY: false })).toBe(false);
+      expect(isInteractive(undefined, { isTTY: true })).toBe(true);
+    });
+
     it('should return true when stdin is TTY and options are undefined', () => {
       Object.defineProperty(process.stdin, 'isTTY', { value: true, writable: true, configurable: true });
       expect(isInteractive(undefined)).toBe(true);
