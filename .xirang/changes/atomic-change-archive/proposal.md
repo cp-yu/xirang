@@ -6,6 +6,7 @@
 
 - 以一次 `archive` 完成模型更新与封存；`--quick` 只豁免 Seal，`--abandon` 只留档。成功后的修改通过新 Change 表达，不做撤销归档或跨进程恢复。
 - **BREAKING**：删除 `xirang sync` 以及 archive 的 `--no-sync`、`--no-validate`、`--no-verify`。工作流、命令发现面和现行文档改用新协议。
+- 归档保留现有 Delta 校验。Markdown / HTML 的结构和规范正文解析问题单独处理，不纳入本次交付范围。
 
 ## Source Impact
 

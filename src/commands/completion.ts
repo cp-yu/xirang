@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { listActiveChangeDirectories } from '../core/change-utils.js';
 import { XIRANG_DIR_NAME } from '../core/config.js';
 import { diagnostic } from '../utils/output.js';
 import type { Command } from 'commander';
@@ -290,8 +289,7 @@ export class CompletionCommand {
         }
         case 'archive-changes': {
           const changesDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes');
-          const active = await listActiveChangeDirectories(changesDir);
-          for (const [id, state] of await listArchiveChoices(path.join(changesDir, 'archive'), active)) {
+          for (const [id, state] of await listArchiveChoices(changesDir)) {
             if (id !== 'archive') console.log(`${id}\t${state} change`);
           }
           break;

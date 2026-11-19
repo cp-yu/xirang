@@ -1,12 +1,17 @@
 import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { listActiveChangeDirectories } from './change-utils.js';
 
-export async function hasArchiveHistoryDirectory(directory: string): Promise<boolean> {
-  const stat = await fs.lstat(directory).catch((error: NodeJS.ErrnoException) => {
+export async function statIfPresent(location: string) {
+  return fs.lstat(location).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return undefined;
     throw error;
   });
+}
+
+export async function hasArchiveHistoryDirectory(directory: string): Promise<boolean> {
+  const stat = await statIfPresent(directory);
   if (stat && !stat.isDirectory()) {
     throw new Error(`INVALID_ARCHIVE_HISTORY_DIRECTORY: ${directory} must be a directory, not a file or symbolic link.`);
   }
@@ -70,29 +75,35 @@ export async function readArchiveHistory(archiveDir: string, abandon = false): P
   return history;
 }
 
-/** Both lookup and argument completion apply pending-before-receipt for the exact Change name. */
-export async function resolveArchiveHistory(history: ArchiveHistory, changeName: string): Promise<{ pending?: string; receipt?: string }> {
+/** Do not fall back to a receipt when a listed attempt disappeared during inspection. */
+export async function resolveArchiveHistory(history: ArchiveHistory, changeName: string): Promise<{ pending?: string; receipt?: string; changed?: true }> {
   let receipt: string | undefined;
+  let changed = false;
   for (const { directory, date } of history.get(archiveKey(changeName))?.candidates ?? []) {
     const location = path.join(directory, `${date}-${changeName}`);
     const state = await archivedDirectoryState(location);
     if (state === 'pending') return { pending: location };
     if (state === 'complete') receipt ??= location;
+    else changed = true;
   }
-  return { receipt };
+  return changed ? { changed: true } : { receipt };
 }
 
-export async function listArchiveChoices(archiveDir: string, activeNames: string[]): Promise<Map<string, 'active' | 'archived'>> {
-  const history = await readArchiveHistory(archiveDir);
-  const active = new Set(activeNames);
-  const names = new Set(active);
+export async function listArchiveChoices(changesDir: string): Promise<Map<string, 'active' | 'archived'>> {
+  const names = new Set(await listActiveChangeDirectories(changesDir));
+  const history = await readArchiveHistory(path.join(changesDir, 'archive'));
   for (const { name } of history.values()) if (name) names.add(name);
   const choices = new Map<string, 'active' | 'archived'>();
   for (const name of [...names].sort()) {
-    const result = await resolveArchiveHistory(history, name).catch(() => undefined);
-    if (!result || result.pending) continue;
-    if (active.has(name)) choices.set(name, 'active');
-    else if (result.receipt) choices.set(name, 'archived');
+    try {
+      const result = await resolveArchiveHistory(history, name);
+      if (result.pending) continue;
+      const active = await statIfPresent(path.join(changesDir, name));
+      if (active?.isDirectory()) choices.set(name, 'active');
+      else if (result.receipt) choices.set(name, 'archived');
+    } catch {
+      // An unreadable entry cannot be offered as a completion.
+    }
   }
   return choices;
 }

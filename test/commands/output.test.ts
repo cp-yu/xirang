@@ -1088,8 +1088,51 @@ it.each([false, true])('ignores a history entry rolled back between listing and 
     const result = await runCLI(completion ? ['__complete', 'archived-changes'] : ['archive', 'failed', '--json'], { cwd: root });
     expect(rolledBack).toBe(true);
     expect(result).toMatchObject({ exitCode: completion ? 0 : 1, stdout: '' });
-    if (!completion) expect(result.stderr).toContain("Change 'failed' not found");
+    if (!completion) expect(result.stderr).toMatch(/changed during lookup.*retry/i);
     await expect(fs.access(active)).resolves.toBeUndefined();
+  } finally {
+    marker.mockRestore();
+  }
+});
+
+it.each([
+  { lookup: 'archive', rollbackBefore: 'listing' },
+  { lookup: 'archive', rollbackBefore: 'marker' },
+  { lookup: 'completion', rollbackBefore: 'listing' },
+  { lookup: 'completion', rollbackBefore: 'marker' },
+] as const)('prefers a restored source over an older archive during $lookup (before $rollbackBefore)', async ({ lookup, rollbackBefore }) => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive');
+  const older = path.join(history, '2026-01-01-demo');
+  const newer = path.join(history, '2026-01-02-demo');
+  const pending = pendingArchivePath(newer);
+  const active = path.join(changes, 'demo');
+  await fs.mkdir(older, { recursive: true });
+  await fs.mkdir(newer);
+  await fs.mkdir(pending);
+  const lstat = fs.lstat;
+  let restored = false;
+  const marker = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === (rollbackBefore === 'listing' ? history : pending) && !restored) {
+      restored = true;
+      await fs.mkdir(active);
+      await fs.writeFile(path.join(active, 'proposal.md'), '# Restored\n');
+      await fs.rmdir(newer);
+      await fs.rmdir(pending);
+    }
+    return lstat(location, options);
+  });
+  try {
+    const result = await runCLI(lookup === 'archive' ? ['archive', 'demo', '--json'] : ['__complete', 'archive-changes'], { cwd: root });
+    expect(restored).toBe(true);
+    if (lookup === 'archive') {
+      expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+      expect(JSON.parse(result.stderr).message).toMatch(/changed during lookup.*retry/i);
+    } else {
+      expect(result).toMatchObject({ exitCode: 0, stdout: 'demo\tactive change\n' });
+    }
+    await expect(fs.readFile(path.join(active, 'proposal.md'), 'utf8')).resolves.toBe('# Restored\n');
+    await expect(fs.readdir(history)).resolves.toEqual([path.basename(older)]);
   } finally {
     marker.mockRestore();
   }

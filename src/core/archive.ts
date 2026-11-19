@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { hasArchiveHistoryDirectory, pendingArchivePath, readArchiveHistory, resolveArchiveHistory } from './archive-paths.js';
+import { hasArchiveHistoryDirectory, pendingArchivePath, readArchiveHistory, resolveArchiveHistory, statIfPresent } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -23,13 +23,6 @@ export interface ArchiveMoveFileSystem {
   rmdir: typeof fs.rmdir;
   mkdir: typeof fs.mkdir;
   mkdtemp: typeof fs.mkdtemp;
-}
-
-async function statIfPresent(location: string) {
-  return fs.lstat(location).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === 'ENOENT') return undefined;
-    throw error;
-  });
 }
 
 function incompleteArchive(location: string): Error {
@@ -280,14 +273,17 @@ export class ArchiveCommand {
       if (alreadyArchived && !options.json) diagnostic('Already archived.', 'ARCHIVE_ALREADY_ARCHIVED', false);
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
+    const historyChanged = () => new Error(`Archive state for '${changeName}' changed during lookup; verify and retry.`);
     const requireCompleteHistory = async (name: string) => {
       const history = await readArchiveHistory(archiveDir, options.abandon);
-      const { pending, receipt } = await resolveArchiveHistory(history, name);
+      const { pending, receipt, changed } = await resolveArchiveHistory(history, name);
       if (pending) throw incompleteArchive(pending);
+      if (changed) throw historyChanged();
       return receipt;
     };
     if (!active?.isDirectory()) {
       const receipt = await requireCompleteHistory(changeName);
+      if ((await statIfPresent(changeDir))?.isDirectory()) throw historyChanged();
       if (!receipt) throw new Error(`Change '${changeName}' not found.`);
       report(receipt, true);
       return;
