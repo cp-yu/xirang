@@ -514,6 +514,7 @@ it.each([
   ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
   ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
   ['real comment after inline code', '<!-- Note --> `<!--` Root SHALL preserve visible text. <!-- Another note\n### Section: Not an operation\n-->', true],
+  ['multiline inline code', 'Root SHALL show `inline\n    ## RENAMED Sections\nexample` unchanged.', true],
 ])('preserves literal %s content without creating operations from it', async (_label, example, containsProse) => {
   const sectionBody = (rule: string) => containsProse ? example : `${rule}\n\n${example}`;
   const formal = '## Specification\n\n### Section: Existing rule\n\n' + sectionBody('Root SHALL follow the existing rule.');
@@ -544,6 +545,7 @@ it.each([
   ['Visible prose <!-- Comment starts here.\nRoot SHALL follow the rule. --> and ends here.', 'must contain SHALL or MUST'],
   ['Visible prose <!-- SHALL --> and <!-- MUST --> a second note.', 'must contain SHALL or MUST'],
   ['<!-- First note --> Visible prose <!-- SHALL follow the rule. -->', 'must contain SHALL or MUST'],
+  ['<!-- First note --> [Visible <!-- SHALL stay hidden. -->](/actual)', 'must contain SHALL or MUST'],
   ['<!-- First note --> Visible prose <!-- Second note\nRoot SHALL follow the rule.\n-->', 'must contain SHALL or MUST'],
   ['<!-- First note --> Visible prose <!-- Second note\nContinues. --> <!-- Third note\n\nRoot MUST follow the rule.\n-->', 'must contain SHALL or MUST'],
   ['<div>\n<!-- Root SHALL follow the rule. -->\nVisible prose.\n</div>', 'must contain SHALL or MUST'],
@@ -566,6 +568,8 @@ it.each([
   '<!-- Note --> \\<!--',
   '<!-- Note --> <span title="<!--">example</span>',
   '<!-- Note --> [example](/path "<!--")',
+  '<!-- Note --> [literal <!--](/actual)',
+  '<!-- Note --> [literal <!--][ref]\n\n[ref]: /actual',
   '<!-- Note --> ![example](/path "<!--")',
   '<!-- Note --> [notice][tag<!--]\n\n[tag<!--]: /actual',
   '<!-- Note --> ![notice][tag<!--]\n\n[tag<!--]: /actual\n  "title"',
@@ -603,6 +607,15 @@ it.each(['    ', '\t'])('rejects an unfenced retired Section operation indented 
   const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${indent}## RENAMED Sections\n\n${indent}### Section: Old rule\n${indent}Root SHALL NOT treat this as ADDED.`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
     definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+it.each([
+  ['[ref]: /SHALL', 'missing Section text'],
+  ['Visible prose.\n\n[ref]: /actual\n  "Only metadata MUST be hidden"', 'must contain SHALL or MUST'],
+])('does not count reference definitions as normative prose (%j)', async (prose, diagnostic) => {
+  const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), diagnostic);
 });
 
 async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {

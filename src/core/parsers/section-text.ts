@@ -7,7 +7,7 @@ const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
 const FENCE_START = /^(?:`{3,}|~{3,})/;
-const BLOCK_CANDIDATE = /`{3,}|~{3,}|<|^[ \t]+#{1,6}(?:[ \t]|$)/;
+const BLOCK_CANDIDATE = /`|~{3,}|<|\]:|^[ \t]+#{1,6}(?:[ \t]|$)/;
 const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
 const markdown = unified().use(remarkParse);
 type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
@@ -30,24 +30,21 @@ function nextCommentOpening(source: string, from: number, end: number, definitio
   const prefix = 'x ';
   const paragraph = source.slice(from).split(/\n[ \t]*\n/, 1)[0];
   const ranges: Array<[number, number]> = [];
+  const comments = new Set<number>();
   const visit = (node: MarkdownNode): void => {
     const start = node.position?.start.offset;
     const stop = node.position?.end.offset;
     if (start === undefined || stop === undefined) return;
-    if (node.type === 'inlineCode' || (node.type === 'html' && !node.value.startsWith('<!--'))
-      || node.type === 'image' || node.type === 'imageReference') {
-      ranges.push([start, stop]);
-      return;
-    }
+    if (node.type === 'html' && node.value.startsWith('<!--')) comments.add(start);
+    else if (node.type === 'inlineCode' || node.type === 'html' || node.type === 'image' || node.type === 'imageReference'
+      || node.type === 'link' || node.type === 'linkReference') ranges.push([start, stop]);
     if ('children' in node) node.children.forEach(visit);
-    if (node.type === 'link' || node.type === 'linkReference') {
-      ranges.push([node.children.at(-1)?.position?.end.offset ?? start, stop]);
-    }
   };
   const head = markdown.parse(prefix + paragraph + definitions).children[0];
   if (head) visit(head);
   for (; opening >= 0 && opening + 4 <= end; opening = source.indexOf('<!--', opening + 4)) {
     const relative = opening - from + prefix.length;
+    if (comments.has(relative)) return opening;
     if (ranges.some(([start, stop]) => start <= relative && relative < stop)) continue;
     let backslash = opening;
     while (backslash > from && source[backslash - 1] === '\\') backslash--;
@@ -138,9 +135,11 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
       const { start, end } = node.position;
       const first = start.line - 1;
       const last = end.line - 1;
-      if (node.type === 'code' && FENCE_START.test(lines[first].slice(start.column - 1))) {
+      if (node.type === 'definition' || (node.type === 'code' && FENCE_START.test(lines[first].slice(start.column - 1)))) {
         literal.fill(true, first, last + 1);
         hidden.fill(true, first, last + 1);
+      } else if (node.type === 'inlineCode') {
+        literal.fill(true, first + 1, last + 1);
       } else if (node.type === 'html') {
         // Inline markup does not hide other Markdown on its opening and closing lines.
         const from = inline ? first + 1 : first;

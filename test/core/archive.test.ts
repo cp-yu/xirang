@@ -1417,6 +1417,41 @@ git:
       await expect(fs.readdir(path.join(path.dirname(source), 'archive'))).resolves.toEqual([]);
     });
 
+    it.each([false, true])('restores the history parent on stale first delivery (already existed=%s)', async existingHistory => {
+      const name = 'stale-first-delivery';
+      const source = await writeSemanticArchiveFixture(name);
+      const changes = path.dirname(source);
+      const history = path.join(changes, 'archive');
+      if (!existingHistory) await fs.rmdir(history);
+      await fs.writeFile(path.join(source, 'tasks.md'), '## Goals\n- [ ] G1: Pending\n');
+      await writeFreshQualityRecord(source);
+      const model = path.join(tempDir, '.xirang', 'model', 'elements', 'existing.id.md');
+      const external = (await fs.readFile(model, 'utf8')).replace('Existing summary', 'Fresh Formal summary');
+      const { confirm } = await import('@inquirer/prompts');
+      vi.mocked(confirm).mockImplementationOnce(() => Object.assign(fs.writeFile(model, external).then(() => true), { cancel: () => {} }));
+
+      await expect(archiveCommand.execute(name)).rejects.toThrow(/stale: Semantic Model changed/);
+      await expect(fs.readFile(model, 'utf8')).resolves.toBe(external);
+      await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      expect((await fs.readdir(changes)).sort()).toEqual(existingHistory ? ['archive', name] : [name]);
+      if (existingHistory) await expect(fs.readdir(history)).resolves.toEqual([]);
+    });
+
+    it.each([false, true])('removes only new history parents after a failed abandonment (archive existed=%s)', async existingHistory => {
+      const name = 'failed-first-abandonment';
+      const source = await writeSemanticArchiveFixture(name);
+      const history = path.join(path.dirname(source), 'archive');
+      const abandoned = path.join(history, 'abandoned');
+      if (!existingHistory) await fs.rmdir(history);
+      const commands = new ArchiveCommand({ copyFile: async () => { throw new Error('cannot copy archive artifact'); } });
+
+      await expect(commands.execute(name, { abandon: true, yes: true })).rejects.toThrow('cannot copy archive artifact');
+      await expect(fs.readFile(path.join(source, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.access(abandoned)).rejects.toMatchObject({ code: 'ENOENT' });
+      if (existingHistory) await expect(fs.readdir(history)).resolves.toEqual([]);
+      else await expect(fs.access(history)).rejects.toMatchObject({ code: 'ENOENT' });
+    });
+
     it('rejects a rewritten Delta whose bytes would hide the loss of a file boundary', async () => {
       const name = 'delta-file-boundary';
       const first = 'elements/first.md';

@@ -317,12 +317,9 @@ export class ArchiveCommand {
     const parent = options.abandon ? path.join(archiveDir, 'abandoned') : archiveDir;
     const archiveName = `${new Date().toISOString().split('T')[0]}-${changeName}`;
     const archivePath = path.join(parent, archiveName);
-    const checkHistoryParents = async () => {
-      await hasArchiveHistoryDirectory(archiveDir);
-      if (parent !== archiveDir) await hasArchiveHistoryDirectory(parent);
-    };
+    const historyParents = parent === archiveDir ? [archiveDir] : [archiveDir, parent];
     const ensureUnoccupied = async () => {
-      await checkHistoryParents();
+      for (const directory of historyParents) await hasArchiveHistoryDirectory(directory);
       await assertNoPendingArchive(archivePath);
       const existing = await statIfPresent(archivePath);
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
@@ -336,9 +333,24 @@ export class ArchiveCommand {
         if (!current?.isDirectory() || current.dev !== active.dev || current.ino !== active.ino) {
           throw new Error(`Active Change '${changeName}' changed before archiving; verify and retry.`);
         }
-        await checkHistoryParents();
-        await fs.mkdir(parent, { recursive: true });
-        await moveDirectory(changeDir, archivePath, this.filesystem, { ...installOptions, json: options.json });
+        const created: string[] = [];
+        try {
+          for (const directory of historyParents) {
+            if (await hasArchiveHistoryDirectory(directory)) continue;
+            await fs.mkdir(directory);
+            created.push(directory);
+          }
+          await moveDirectory(changeDir, archivePath, this.filesystem, { ...installOptions, json: options.json });
+        } catch (error) {
+          const failures: unknown[] = [];
+          for (const directory of created.reverse()) {
+            await fs.rmdir(directory).catch((cause: NodeJS.ErrnoException) => {
+              if (cause.code !== 'ENOENT') failures.push(cause);
+            });
+          }
+          if (failures.length) throw new AggregateError([error, ...failures], 'Could not restore archive history directories');
+          throw error;
+        }
       }, options.json);
     };
     const ask = async (message: string) => {
