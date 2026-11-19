@@ -167,7 +167,7 @@ describe('ArtifactSyncEngine subagent artifacts', () => {
     expect(metadata.model).toBe('custom-optimizer');
     expect(metadata.tools.split(', ')).toEqual(['read', 'grep', 'find', 'bash', 'write', 'edit']);
     for (const name of ['quality-cli', 'quality-recovery', 'optimization-failure-diagnosis']) {
-      expect((await fs.readFile(path.join(referencesDir, `xirang-${name}.md`), 'utf8')).length).toBeGreaterThan(0);
+      expect(await exists(path.join(referencesDir, `xirang-${name}.md`))).toBe(workflow === 'apply');
     }
   });
 

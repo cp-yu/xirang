@@ -8,7 +8,6 @@ import {
   parseSectionBlock,
   parseUnit,
   readEntity,
-  readDeltaFiles,
   readRelationship,
 } from './parser.js';
 import {
@@ -294,10 +293,6 @@ function detectConflicts(units: DeltaUnit[], diagnostics: ModelDiagnostic[]): vo
   }
 }
 
-export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelta> {
-  return parseSemanticDeltaFiles(await readDeltaFiles(changeRoot));
-}
-
 export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {
   const units: DeltaUnit[] = [];
   const sources: ParsedDelta['sources'] = [];
@@ -368,8 +363,12 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
       diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Section host element does not exist: ${host}`, entry.identity, 'section'));
       return;
     }
+    const index = element.sections.findIndex(item => item.name === name);
+    if (index >= 0 && element.sections.some((item, position) => position > index && item.name === name)) {
+      diagnostics.push(error('AMBIGUOUS_SECTION_IDENTITY', '', `Duplicate Formal Sections for ${entry.identity}`, entry.identity, 'section'));
+      return;
+    }
     const owned = ensureOwnedElement(state, host)!;
-    const index = owned.sections.findIndex(item => item.name === name);
     if (entry.operation === 'ADDED') {
       if (index >= 0) {
         diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED Section already exists: ${entry.identity}`, entry.identity, 'section'));

@@ -51,26 +51,6 @@ export function createWorkflowArtifactPlan(
   };
 }
 
-export function createToolWorkflowArtifactPlan(
-  toolId: string,
-  workflows: readonly string[],
-  projectPath?: string
-): WorkflowArtifactPlan {
-  const normalizedWorkflows = projectPath
-    ? resolveEffectiveWorkflows(projectPath, workflows)
-    : normalizeWorkflowIds(workflows);
-  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows, toolId);
-
-  return {
-    workflows: normalizedWorkflows,
-    managedWorkflows: ALL_WORKFLOWS,
-    shouldGenerateSkills: true,
-    skillTemplates,
-    expectedSkillDirNames: skillTemplates.map((entry) => entry.dirName),
-    managedSkillDirNames: getManagedSkillDirNames(),
-  };
-}
-
 export interface PlannedToolArtifacts {
   skillFiles: string[];
   agentFiles: string[];

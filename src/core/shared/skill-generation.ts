@@ -6,19 +6,11 @@ import { COMMON_SKILL_NAME } from '../templates/fragments/guidance-loading.js';
  * Shared utilities for generating skill files. Skills-only workflow surface.
  */
 
-import {
-  type SkillTemplate,
-} from '../templates/skill-templates.js';
-import {
-  createArchiveChangeSkillTemplateForExecutionModel,
-} from '../templates/workflows/archive-change.js';
-import { resolveQualityExecutionModel } from '../templates/workflows/quality-execution-model.js';
-import { getApplyChangeSkillTemplate } from '../templates/workflows/apply-change.js';
+import type { SkillTemplate } from '../templates/skill-templates.js';
 import {
   ALL_WORKFLOWS,
   WORKFLOW_TO_SKILL_DIR,
   getWorkflowSurfaces,
-  type WorkflowId,
 } from '../workflow-surface.js';
 
 export const MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES = [
@@ -39,12 +31,6 @@ export function getManagedSkillDirNames(): string[] {
   ];
 }
 
-const EXECUTION_MODEL_SKILL_TEMPLATES: Partial<
-  Record<WorkflowId, (executionModel: ReturnType<typeof resolveQualityExecutionModel>) => SkillTemplate>
-> = {
-  archive: createArchiveChangeSkillTemplateForExecutionModel,
-};
-
 /**
  * Skill template with directory name and workflow ID mapping.
  */
@@ -54,52 +40,22 @@ export interface SkillTemplateEntry {
   workflowId: string;
 }
 
-function resolveSkillTemplate(
-  workflowId: WorkflowId,
-  toolId: string | undefined,
-  fallback: () => SkillTemplate
-): SkillTemplate {
-  const createTemplate = EXECUTION_MODEL_SKILL_TEMPLATES[workflowId];
-  if (createTemplate) {
-    return createTemplate(resolveQualityExecutionModel(toolId));
-  }
-
-  return fallback();
-}
-
 /**
  * Gets skill templates with their directory names, optionally filtered by workflow IDs.
  *
  * @param workflowFilter - If provided, only return templates whose workflowId is in this array
  */
-export function getSkillTemplates(
-  workflowFilter?: readonly string[],
-  toolId?: string
-): SkillTemplateEntry[] {
-  const workflowSurfaces = getWorkflowSurfaces(workflowFilter).map((entry) => ({
-    template: resolveSkillTemplate(entry.workflowId, toolId, entry.getSkillTemplate),
+export function getSkillTemplates(workflowFilter?: readonly string[]): SkillTemplateEntry[] {
+  return getWorkflowSurfaces(workflowFilter).map((entry) => ({
+    template: entry.getSkillTemplate(),
     dirName: entry.skillDirName,
     workflowId: entry.workflowId,
   }));
-
-  const archive = workflowSurfaces.find((entry) => entry.workflowId === 'archive');
-  if (archive && !workflowSurfaces.some((entry) => entry.workflowId === 'apply')) {
-    archive.template.referenceFiles = [
-      ...(archive.template.referenceFiles ?? []),
-      ...(getApplyChangeSkillTemplate().referenceFiles ?? []),
-    ];
-  }
-
-
-  return workflowSurfaces;
 }
 
 /** Installed skills include the explicitly registered shared prerequisite. */
-export function getInstallableSkillTemplates(
-  workflowFilter?: readonly string[],
-  toolId?: string
-): SkillTemplateEntry[] {
-  const workflows = getSkillTemplates(workflowFilter, toolId);
+export function getInstallableSkillTemplates(workflowFilter?: readonly string[]): SkillTemplateEntry[] {
+  const workflows = getSkillTemplates(workflowFilter);
   if (!workflows.length) return [];
   return [
     { template: getCommonSkillTemplate(), dirName: COMMON_SKILL_NAME, workflowId: COMMON_SKILL_NAME },

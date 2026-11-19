@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applySemanticDelta, parseSemanticDelta } from '../../../src/core/model/delta.js';
+import { applySemanticDelta, parseSemanticDeltaFiles } from '../../../src/core/model/delta.js';
 import { relationshipIdentity, type ModelElement, type SemanticModel } from '../../../src/core/model/types.js';
-import { createModelRoot } from './fixtures.js';
 
 function element(identity: string, kind: string, parent: string | null, sections: string[] = []): ModelElement {
   return {
@@ -23,17 +22,17 @@ function base(): SemanticModel {
   };
 }
 
-describe('parseSemanticDelta', () => {
-  it('tracks source files for multiple entity entries without changing entry identities', async () => {
-    const root = await createModelRoot({
+describe('parseSemanticDeltaFiles', () => {
+  it('tracks source files for multiple entity entries without changing entry identities', () => {
+    const files = new Map(Object.entries({
       'elements/cap.a.md': [
         '---', 'operation: ADDED', 'entity: element-declaration', 'identity: a',
         'kind: capability', 'parent: root', 'title: A', 'definition: A.', '---',
         '## ADDED Sections', '', '### Section: One', '', 'SHALL hold.',
       ].join('\n'),
-    });
+    }));
 
-    const parsed = await parseSemanticDelta(root);
+    const parsed = parseSemanticDeltaFiles(files);
     expect(parsed.sources).toEqual([
       { path: 'elements/cap.a.md', entities: [
         { entity: 'element-declaration', identity: 'a' },
@@ -44,8 +43,8 @@ describe('parseSemanticDelta', () => {
     expect(parsed.diagnostics).toEqual([]);
   });
 
-  it('produces a declaration entry and section entries from one element unit', async () => {
-    const root = await createModelRoot({
+  it('produces a declaration entry and section entries from one element unit', () => {
+    const files = new Map(Object.entries({
       'elements/cap.a.md': [
         '---',
         'operation: MODIFIED',
@@ -78,9 +77,9 @@ describe('parseSemanticDelta', () => {
         '### Section: Obsolete',
         '',
       ].join('\n'),
-    });
+    }));
 
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics).toEqual([]);
     expect(delta.entries).toEqual([
       {
@@ -109,26 +108,26 @@ describe('parseSemanticDelta', () => {
     ]);
   });
 
-  it('uses frontmatter without operation only to locate the host', async () => {
-    const root = await createModelRoot({
+  it('uses frontmatter without operation only to locate the host', () => {
+    const files = new Map(Object.entries({
       'elements/cap.a.md': [
         '---', 'entity: element-declaration', 'identity: cap.a', 'definition: Host definition.', '---', '',
         '## ADDED Sections', '', '### Section: Only contract', '', 'SHALL hold.', '',
       ].join('\n'),
-    });
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    }));
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics).toEqual([]);
     expect(delta.entries.map(entry => entry.entity)).toEqual(['section']);
   });
 
-  it('accepts an identity-only REMOVED Element Declaration', async () => {
-    const root = await createModelRoot({
+  it('accepts an identity-only REMOVED Element Declaration', () => {
+    const files = new Map(Object.entries({
       'elements/cap.a.md': [
         '---', 'operation: REMOVED', 'entity: element-declaration', 'identity: cap.a', '---', '',
       ].join('\n'),
-    });
+    }));
 
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics).toEqual([]);
     expect(delta.entries).toEqual([{
       operation: 'REMOVED',
@@ -137,8 +136,8 @@ describe('parseSemanticDelta', () => {
     }]);
   });
 
-  it('adds element kind with nodePresentation', async () => {
-    const root = await createModelRoot({
+  it('adds element kind with nodePresentation', () => {
+    const files = new Map(Object.entries({
       'metamodel/perspective.md': [
         '---',
         'operation: ADDED',
@@ -154,9 +153,9 @@ describe('parseSemanticDelta', () => {
         'Perspective kind.',
         '',
       ].join('\n'),
-    });
+    }));
 
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics).toEqual([]);
     expect(delta.entries).toEqual([{
       operation: 'ADDED',
@@ -192,8 +191,8 @@ describe('parseSemanticDelta', () => {
     expect([...result.touched]).toEqual(['capability']);
   });
 
-  it('supports all three operations on metamodel, views and relationships', async () => {
-    const root = await createModelRoot({
+  it('supports all three operations on metamodel, views and relationships', () => {
+    const files = new Map(Object.entries({
       'metamodel/added.md': '---\noperation: ADDED\nentity: element-kind\nidentity: added\ncontract: optional\n---\n',
       'metamodel/invokes.md': '---\noperation: MODIFIED\nentity: relationship-kind\nidentity: invokes\nsourceKinds:\n  - capability\n---\n',
       'metamodel/gone.md': '---\noperation: REMOVED\nentity: element-kind\nidentity: gone\n---\n',
@@ -210,9 +209,9 @@ describe('parseSemanticDelta', () => {
         '    target: root',
         '',
       ].join('\n'),
-    });
+    }));
 
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics).toEqual([]);
     expect(delta.entries).toHaveLength(6);
     expect(delta.entries.map(entry => [entry.entity, entry.operation])).toEqual(expect.arrayContaining([
@@ -226,30 +225,30 @@ describe('parseSemanticDelta', () => {
     expect(delta.entries.find(entry => entry.operation === 'REMOVED')).not.toHaveProperty('target');
   });
 
-  it('rejects MODIFIED on a relationship', async () => {
-    const root = await createModelRoot({
+  it('rejects MODIFIED on a relationship', () => {
+    const files = new Map(Object.entries({
       'relationships/invokes.yaml': 'relationships:\n  - operation: MODIFIED\n    source: a\n    kind: invokes\n    target: b\n',
-    });
-    const { delta, diagnostics } = await parseSemanticDelta(root);
+    }));
+    const { delta, diagnostics } = parseSemanticDeltaFiles(files);
     expect(diagnostics.map(item => item.code)).toEqual(['RELATIONSHIP_MODIFIED_UNSUPPORTED']);
     expect(delta.entries).toEqual([]);
   });
 
-  it('requires an operation outside element units', async () => {
-    const root = await createModelRoot({
+  it('requires an operation outside element units', () => {
+    const files = new Map(Object.entries({
       'metamodel/k.md': '---\nentity: element-kind\nidentity: k\ncontract: optional\n---\n',
       'relationships/r.yaml': 'relationships:\n  - source: a\n    kind: invokes\n    target: b\n',
-    });
-    expect((await parseSemanticDelta(root)).diagnostics.map(item => item.code))
+    }));
+    expect(parseSemanticDeltaFiles(files).diagnostics.map(item => item.code))
       .toEqual(['MISSING_OPERATION', 'MISSING_OPERATION']);
   });
 
-  it('rejects conflicting operations on one identity', async () => {
-    const root = await createModelRoot({
+  it('rejects conflicting operations on one identity', () => {
+    const files = new Map(Object.entries({
       'relationships/a.yaml': 'relationships:\n  - operation: ADDED\n    source: a\n    kind: invokes\n    target: b\n',
       'relationships/b.yaml': 'relationships:\n  - operation: REMOVED\n    source: a\n    kind: invokes\n    target: b\n',
-    });
-    expect((await parseSemanticDelta(root)).diagnostics.map(item => item.code)).toEqual(['CONFLICTING_OPERATIONS']);
+    }));
+    expect(parseSemanticDeltaFiles(files).diagnostics.map(item => item.code)).toEqual(['CONFLICTING_OPERATIONS']);
   });
 });
 

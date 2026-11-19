@@ -144,4 +144,7 @@
 - [x] [code_fix] 无日期的归档参数补全、带日期的历史补全与重试使用同一历史判定；只抑制存在未完成标记的同名归档，不影响其他完成项。
 - [x] [artifact_fix] 在 `completion-command` 和 `completion-introspect` 契约中区分归档参数与普通 Change ID 补全。
 - [x] [code_fix] `show --review --json` 保留导航占位的前后内容，不把其他源文件的 Declaration 操作归给占位。
+- [x] [code_fix] 正式模型中同名 Section 无法唯一定位时，预览和交付均拒绝其操作，不删除任意一份，也不封存活动 Change。
+- [x] [code_fix] 仅投影 Archive 时交付归档 Git 指引，不附带 Apply 专属的执行或恢复 references；保留正常 Apply 和内部 Agent 投影。
+- [x] [code_fix] 移除独立 Sync 退役后无运行时调用的 Delta 解析包装，保留生产解析入口及现有行为验证。
 - [x] [code_fix] 即使活动源已恢复，任一日期、任一历史位置的同名未完成归档仍阻止写入；获得归档锁后再次校验，同名完成回执不阻止合法再用。

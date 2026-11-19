@@ -1,9 +1,7 @@
 import path from 'path';
 import * as fs from 'fs';
 import { AI_TOOLS } from './config.js';
-import {
-  createToolWorkflowArtifactPlan,
-} from './workflow-installation.js';
+import { createWorkflowArtifactPlan } from './workflow-installation.js';
 import { getConfiguredTools } from './shared/index.js';
 import {
   ALL_WORKFLOWS,
@@ -38,7 +36,7 @@ export function hasToolProfileOrDeliveryDrift(
   const tool = AI_TOOLS.find((t) => t.value === toolId);
   if (!tool?.skillsDir) return false;
 
-  const plan = createToolWorkflowArtifactPlan(toolId, toKnownWorkflows(desiredWorkflows), projectPath);
+  const plan = createWorkflowArtifactPlan(toKnownWorkflows(desiredWorkflows), projectPath);
   const skillsDir = path.join(projectPath, tool.skillsDir, 'skills');
 
   for (const dirName of plan.expectedSkillDirNames) {

@@ -6,10 +6,6 @@ import { COMMON_PREREQUISITE } from '../fragments/guidance-loading.js';
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import {
-  SUBAGENT_QUALITY_EXECUTION_MODEL,
-  type QualityExecutionModel,
-} from './quality-execution-model.js';
 
 const ARCHIVE_COMMIT_MESSAGE_REFERENCE_PATH = 'references/archive-commit-message.md';
 const BOUNDARY_COMMIT_MESSAGE_REFERENCE_PATH = 'references/boundary-commit-message.md';
@@ -174,9 +170,7 @@ ${buildAgentGitFlowStep()}
 - Do not attempt cross-process recovery. If an interrupted execution left local changes, inspect Git diff and the actual model and Change paths before any corrective action; protect unrelated edits.`;
 }
 
-export function createArchiveChangeSkillTemplateForExecutionModel(
-  _executionModel: QualityExecutionModel = SUBAGENT_QUALITY_EXECUTION_MODEL
-): SkillTemplate {
+export function getArchiveChangeSkillTemplate(): SkillTemplate {
   return {
     name: 'xirang-archive-change',
     description:
@@ -200,8 +194,4 @@ export function createArchiveChangeSkillTemplateForExecutionModel(
       },
     ],
   };
-}
-
-export function getArchiveChangeSkillTemplate(): SkillTemplate {
-  return createArchiveChangeSkillTemplateForExecutionModel();
 }

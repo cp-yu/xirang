@@ -594,6 +594,32 @@ it.each([
   expect(delivered.slice(delivered.indexOf('## Specification'))).toBe(`## Specification\n\n${kept}\n\n${added}\n`);
 });
 
+it('rejects a Section removal with an ambiguous Formal identity before preview or delivery', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{
+    identity: 'item',
+    sections: '## Specification\n\n### Section: Duplicated rule\n\nFirst rule.\n\n### Section: Duplicated rule\n\nSecond rule.',
+  }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'elements/item.md';
+  const delta = elementUnit({ identity: 'item', sections: '## REMOVED Sections\n\n### Section: Duplicated rule' });
+  const source = await writeChangeDelta(root, 'ambiguous-section', { 'proposal.md': '# Remove rule\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [
+    ['validate', '--change', 'ambiguous-section', '--preview'],
+    ['archive', 'ambiguous-section', '--yes'],
+    ['archive', 'ambiguous-section', '--yes', '--quick'],
+  ]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result).toMatchObject({ exitCode: 1, stderr: expect.stringContaining('AMBIGUOUS_SECTION_IDENTITY') });
+    expect.soft(result.stderr).toContain('item#Duplicated rule');
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 it('names both Delta source units when relationship operations conflict', async () => {
   await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
   const model = path.join(root, '.xirang', 'model');

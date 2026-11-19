@@ -85,15 +85,9 @@ describe('skill-generation', () => {
     });
 
     it('keeps the archive Quality gate commit-bound and avoids a current-agent reread fallback', () => {
-      const defaultArchive = getSkillTemplates(['archive'])[0];
-      const claudeArchive = getSkillTemplates(['archive'], 'claude')[0];
-      const codexArchive = getSkillTemplates(['archive'], 'codex')[0];
-
-      expect(defaultArchive.template.instructions).toContain('Seal commit must exist in Git');
-      expect(claudeArchive.template.instructions).toContain('Seal commit must exist in Git');
-      expect(codexArchive.template.instructions).toContain('Seal commit must exist in Git');
-      // Skills-only surface: no tool falls back to current-agent-reread
-      expect(defaultArchive.template.instructions).not.toContain('current-agent-reread');
+      const { template } = getSkillTemplates(['archive'])[0];
+      expect(template.instructions).toContain('Seal commit must exist in Git');
+      expect(template.instructions).not.toContain('current-agent-reread');
     });
   });
 
