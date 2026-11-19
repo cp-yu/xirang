@@ -6,6 +6,7 @@ import { unified } from 'unified';
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
 const FENCE_START = /^(?:`{3,}|~{3,})/;
+const INLINE_SUFFIX_PREFIX = 'x ';
 const markdown = unified().use(remarkParse);
 type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
 
@@ -17,6 +18,11 @@ function readAcceptanceCaseHeader(line: string): string | undefined {
   return /^#+$/.test(title) ? '' : title;
 }
 
+function readInlineSuffix(source: string, from: number, definitions: string): MarkdownNode | undefined {
+  const paragraph = source.slice(from).split(/\n[ \t]*\n/, 1)[0];
+  return markdown.parse(INLINE_SUFFIX_PREFIX + paragraph + definitions).children[0];
+}
+
 function nextCommentOpening(source: string, from: number, end: number, definitions: string): number {
   let opening = source.indexOf('<!--', from);
   if (opening < 0 || opening + 4 > end) return -1;
@@ -24,8 +30,6 @@ function nextCommentOpening(source: string, from: number, end: number, definitio
 
   // A flow HTML node includes the rest of its closing line as raw text. Read that
   // suffix as inline Markdown before interpreting any more comment delimiters.
-  const prefix = 'x ';
-  const paragraph = source.slice(from).split(/\n[ \t]*\n/, 1)[0];
   const ranges: Array<[number, number]> = [];
   const comments = new Set<number>();
   const visit = (node: MarkdownNode): void => {
@@ -37,10 +41,10 @@ function nextCommentOpening(source: string, from: number, end: number, definitio
       || node.type === 'link' || node.type === 'linkReference') ranges.push([start, stop]);
     if ('children' in node) node.children.forEach(visit);
   };
-  const head = markdown.parse(prefix + paragraph + definitions).children[0];
+  const head = readInlineSuffix(source, from, definitions);
   if (head) visit(head);
   for (; opening >= 0 && opening + 4 <= end; opening = source.indexOf('<!--', opening + 4)) {
-    const relative = opening - from + prefix.length;
+    const relative = opening - from + INLINE_SUFFIX_PREFIX.length;
     if (comments.has(relative)) return opening;
     if (ranges.some(([start, stop]) => start <= relative && relative < stop)) continue;
     let backslash = opening;
@@ -108,7 +112,22 @@ export function readSectionMarkdown(lines: string[]) {
   };
   const source = lines.join('\n');
   const { children, definitions } = parseMarkdownBlocks(source);
-  const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number): void => {
+  const proseExclusions: Array<[number, number]> = [];
+  const htmlCodeTags: Array<{ name: string; closing: boolean; offset: number; end: number; blockEnd: number }> = [];
+  const suffixes = new Map<number, number>();
+  const collectHtmlMarkup = (text: string, offset: number, blockEnd: number) => {
+    // Inspect only Remark's HTML spans, never escaped text or Markdown code.
+    const tags = /<!--[\s\S]*?(?:-->|$)|<(\/?)([a-z][a-z0-9-]*)(?=[\s/>])(?:"[^"]*"|'[^']*'|[^'"<>])*>/gi;
+    for (const tag of text.matchAll(tags)) {
+      if (!tag[2]) continue;
+      const start = offset + tag.index;
+      const end = start + tag[0].length;
+      proseExclusions.push([start, end]);
+      const name = tag[2].toLowerCase();
+      if (name === 'pre' || name === 'code') htmlCodeTags.push({ name, closing: !!tag[1], offset: start, end, blockEnd });
+    }
+  };
+  const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number, flowComment: boolean): void => {
     let inComment = false;
     for (let i = first; i <= last; i++) {
       const line = lines[i];
@@ -121,11 +140,14 @@ export function readSectionMarkdown(lines: string[]) {
         inComment = closing === -1 || closing + 3 > limit;
         cursor = inComment ? limit : closing + 3;
         maskColumns(i, opening, cursor);
+        if (flowComment && !inComment && cursor < limit && !suffixes.has(offset + limit)) {
+          suffixes.set(offset + limit, offset + cursor);
+        }
       }
       offset += line.length + 1;
     }
   };
-  const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
+  const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean, blockEnd?: number): void => {
     if (!node.position) return;
     const { start, end } = node.position;
     const first = start.line - 1;
@@ -137,13 +159,18 @@ export function readSectionMarkdown(lines: string[]) {
       }
     } else if (node.type === 'inlineCode') {
       literal.fill(true, first + 1, last + 1);
+      if (start.offset !== undefined && end.offset !== undefined) proseExclusions.push([start.offset, end.offset]);
     } else if (node.type === 'html') {
       // Inline markup does not hide other Markdown on its opening and closing lines.
       const from = inline ? first + 1 : first;
       const to = inline ? last : last + 1;
       literal.fill(true, from, to);
-      if (node.value.includes('<!--') && start.offset !== undefined) {
-        maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1);
+      if (start.offset !== undefined && end.offset !== undefined) {
+        const flowComment = !inline && node.value.startsWith('<!--');
+        if (node.value.includes('<!--')) {
+          maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1, flowComment);
+        }
+        if (!flowComment) collectHtmlMarkup(source.slice(start.offset, end.offset), start.offset, blockEnd ?? end.offset);
       }
     } else if (node.type === 'heading') {
       hidden.fill(true, first, last + 1);
@@ -168,10 +195,55 @@ export function readSectionMarkdown(lines: string[]) {
     }
     if ('children' in node) {
       const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
-      node.children.forEach(child => visit(child, false, childInline));
+      node.children.forEach(child => visit(child, false, childInline, inline ? blockEnd : end.offset));
     }
   };
   children.forEach(node => visit(node, true, false));
+  if (suffixes.size) {
+    const uncommented = visible.join('\n');
+    for (const [limit, from] of suffixes) {
+      const head = readInlineSuffix(uncommented, from, definitions);
+      const origin = from - INLINE_SUFFIX_PREFIX.length;
+      const visitSuffix = (node: MarkdownNode): void => {
+        const start = node.position?.start.offset;
+        const stop = node.position?.end.offset;
+        if (start === undefined || stop === undefined) return;
+        const left = origin + start;
+        const right = origin + stop;
+        if (left >= limit) return;
+        if (node.type === 'inlineCode') proseExclusions.push([left, right]);
+        else if (node.type === 'html') collectHtmlMarkup(uncommented.slice(left, right), left, limit);
+        if ('children' in node) node.children.forEach(visitSuffix);
+      };
+      if (head) visitSuffix(head);
+    }
+  }
+  const open = new Map<string, typeof htmlCodeTags>();
+  for (const tag of htmlCodeTags.sort((a, b) => a.offset - b.offset)) {
+    let starts = open.get(tag.name);
+    if (!starts) open.set(tag.name, starts = []);
+    if (!tag.closing) starts.push(tag);
+    else {
+      const start = starts.pop();
+      if (start) proseExclusions.push([start.offset, tag.end]);
+    }
+  }
+  for (const tags of open.values()) for (const tag of tags) proseExclusions.push([tag.offset, tag.blockEnd]);
+  const ranges: typeof proseExclusions = [];
+  for (const [from, to] of proseExclusions.sort(([a], [b]) => a - b)) {
+    const last = ranges.at(-1);
+    if (last && last[1] >= from) last[1] = Math.max(last[1], to);
+    else ranges.push([from, to]);
+  }
+  for (let i = 0, offset = 0, range = 0; i < lines.length && range < ranges.length; i++) {
+    const end = offset + lines[i].length;
+    while (range < ranges.length && ranges[range][1] <= offset) range++;
+    for (let j = range; j < ranges.length && ranges[j][0] < end; j++) {
+      const [from, to] = ranges[j];
+      maskColumns(i, Math.max(0, from - offset), Math.min(end, to) - offset);
+    }
+    offset = end + 1;
+  }
   return { literal, hidden, headings, acceptanceCases, visible, removalItems };
 }
 
@@ -187,7 +259,7 @@ export interface SectionBodyMarkdown {
   visible: string[];
 }
 
-/** Skips fenced examples, comments, headings and Acceptance Cases using the unit's Markdown boundaries. */
+/** Extracts normative prose, excluding literal code, comments, headings and Acceptance Cases. */
 export function extractSectionBody({ lines, acceptanceCases, hidden, visible }: SectionBodyMarkdown): string {
   const captured: string[] = [];
   const metadata: string[] = [];

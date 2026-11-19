@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { archivedDirectoryState, hasArchiveHistoryDirectory, isDatedArchiveName, pendingArchiveName, pendingArchivePath } from './archive-paths.js';
+import { hasArchiveHistoryDirectory, pendingArchivePath, readArchiveHistory, resolveArchiveHistory } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -231,37 +231,6 @@ async function withArchiveLock(changesDir: string, commit: () => Promise<void>, 
   }
 }
 
-async function findArchivedChange(archiveDir: string, changeName: string, abandon: boolean): Promise<string | undefined> {
-  if (!await hasArchiveHistoryDirectory(archiveDir)) return undefined;
-  const abandonedDir = path.join(archiveDir, 'abandoned');
-  const directories = abandon ? [abandonedDir, archiveDir] : [archiveDir, abandonedDir];
-  let receipt: string | undefined;
-  for (const directory of directories) {
-    if (directory === abandonedDir && !await hasArchiveHistoryDirectory(directory)) continue;
-    const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return [];
-      throw error;
-    });
-    const names = new Set<string>();
-    for (const entry of entries) {
-      if (entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName) {
-        names.add(entry.name);
-      } else {
-        const pending = pendingArchiveName(entry.name, changeName);
-        if (pending) names.add(pending);
-      }
-    }
-    for (const name of [...names].sort().reverse()) {
-      const location = path.join(directory, name);
-      const state = await archivedDirectoryState(location);
-      if (state === 'pending') throw incompleteArchive(location);
-      if (state === 'complete') receipt ??= location;
-    }
-  }
-  // Mode and date rank completed receipts only after pending history has been ruled out.
-  return receipt;
-}
-
 function sealGateError(changeName: string, problem: string): Error {
   return new Error(formatQualityGateFailure({ changedFiles: [], details: [problem] }, undefined, { changeName }));
 }
@@ -316,9 +285,11 @@ export class ArchiveCommand {
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
     if (!active?.isDirectory()) {
-      const existing = await findArchivedChange(archiveDir, changeName, options.abandon === true);
-      if (!existing) throw new Error(`Change '${changeName}' not found.`);
-      report(existing, true);
+      const history = await readArchiveHistory(archiveDir, options.abandon);
+      const { pending, receipt } = await resolveArchiveHistory(history, changeName);
+      if (pending) throw incompleteArchive(pending);
+      if (!receipt) throw new Error(`Change '${changeName}' not found.`);
+      report(receipt, true);
       return;
     }
 

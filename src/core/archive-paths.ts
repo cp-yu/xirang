@@ -29,9 +29,68 @@ export function pendingArchivePath(destination: string): string {
   return path.join(path.dirname(destination), `.archive-${key}.pending`);
 }
 
-export function pendingArchiveName(marker: string, changeName: string): string | undefined {
-  const match = /^\.archive-(\d{4}-\d{2}-\d{2})-([0-9a-f]{64})\.pending$/.exec(marker);
-  return match && match[2] === archiveKey(changeName) ? `${match[1]}-${changeName}` : undefined;
+interface ArchiveCandidate {
+  directory: string;
+  date: string;
+}
+
+type ArchiveHistory = Map<string, { name?: string; candidates: ArchiveCandidate[] }>;
+
+/** Index both history locations by the same key used for completed and orphaned attempts. */
+export async function readArchiveHistory(archiveDir: string, abandon = false): Promise<ArchiveHistory> {
+  const history: ArchiveHistory = new Map();
+  if (!await hasArchiveHistoryDirectory(archiveDir)) return history;
+  const abandonedDir = path.join(archiveDir, 'abandoned');
+  for (const directory of abandon ? [abandonedDir, archiveDir] : [archiveDir, abandonedDir]) {
+    if (directory === abandonedDir && !await hasArchiveHistoryDirectory(directory)) continue;
+    const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return [];
+      throw error;
+    });
+    const names = new Map<string, string>();
+    for (const entry of entries) {
+      const marker = /^\.archive-(\d{4}-\d{2}-\d{2})-([0-9a-f]{64})\.pending$/.exec(entry.name);
+      if (marker) {
+        const id = `${marker[1]}-${marker[2]}`;
+        if (!names.has(id)) names.set(id, '');
+      } else if (entry.isDirectory() && isDatedArchiveName(entry.name)) {
+        const name = entry.name.slice(11);
+        names.set(`${entry.name.slice(0, 10)}-${archiveKey(name)}`, name);
+      }
+    }
+    for (const id of [...names.keys()].sort().reverse()) {
+      const key = id.slice(11);
+      const name = names.get(id);
+      const item = history.get(key) ?? { candidates: [] };
+      if (name) item.name = name;
+      item.candidates.push({ directory, date: id.slice(0, 10) });
+      history.set(key, item);
+    }
+  }
+  return history;
+}
+
+/** Both lookup and argument completion apply pending-before-receipt for the exact Change name. */
+export async function resolveArchiveHistory(history: ArchiveHistory, changeName: string): Promise<{ pending?: string; receipt?: string }> {
+  let receipt: string | undefined;
+  for (const { directory, date } of history.get(archiveKey(changeName))?.candidates ?? []) {
+    const location = path.join(directory, `${date}-${changeName}`);
+    const state = await archivedDirectoryState(location);
+    if (state === 'pending') return { pending: location };
+    if (state === 'complete') receipt ??= location;
+  }
+  return { receipt };
+}
+
+export async function listRetryableArchiveNames(archiveDir: string): Promise<string[]> {
+  const history = await readArchiveHistory(archiveDir);
+  const names: string[] = [];
+  for (const { name } of history.values()) {
+    if (!name) continue;
+    const result = await resolveArchiveHistory(history, name).catch(() => undefined);
+    if (result?.receipt) names.push(name);
+  }
+  return names;
 }
 
 /** Confirm the same directory survived the marker check; rollback removes it before the marker. */

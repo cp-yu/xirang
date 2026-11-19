@@ -522,6 +522,8 @@ it.each([
   ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
   ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
   ['real comment after inline code', '<!-- Note --> `<!--` Root SHALL preserve visible text. <!-- Another note\n### Section: Not an operation\n-->', true],
+  ['raw HTML code', '<pre><code>Example MUST NOT be a rule.</code></pre> Root SHALL preserve the example.', true],
+  ['inline HTML code', 'Root SHALL preserve <code>Example MUST NOT be a rule.</code> unchanged.', true],
   ['multiline inline code', 'Root SHALL show `inline\n    ## RENAMED Sections\nexample` unchanged.', true],
 ])('preserves literal %s content without creating operations from it', async (_label, example, containsProse) => {
   const sectionBody = (rule: string) => containsProse ? example : `${rule}\n\n${example}`;
@@ -559,6 +561,21 @@ it.each([
   ['<div>\n<!-- Root SHALL follow the rule. -->\nVisible prose.\n</div>', 'must contain SHALL or MUST'],
 ])('does not count a normative keyword inside an HTML comment as Section prose (%j)', async (prose, diagnostic) => {
   const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${prose}`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), diagnostic);
+});
+
+it.each([
+  ['```md\nRoot SHALL show an example.\n```', 'missing Section text'],
+  ['    Root SHALL show an example.', 'missing Section text'],
+  ['`Root SHALL show an example.`', 'missing Section text'],
+  ['<pre><code>Root SHALL show an example.</code></pre>', 'missing Section text'],
+  ['<div><code title="a > b">Root SHALL show an example.</code></div>', 'missing Section text'],
+  ['Visible prose. <CODE>Root MUST show an example.</CODE>', 'must contain SHALL or MUST'],
+  ['<!-- Note --> `Root SHALL show an example.`', 'missing Section text'],
+  ['<!-- Note --> <code>Root SHALL show an example.</code>', 'missing Section text'],
+])('does not count literal code as normative Section prose (%j)', async (example, diagnostic) => {
+  const sections = `## ADDED Sections\n\n### Section: Missing rule\n\n${example}`;
   await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
     definition: 'Project root definition.', sections }), diagnostic);
 });
@@ -971,9 +988,20 @@ it.each([false, true])('reports pending history ahead of every completed receipt
       code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
     });
   }
+  const archived = await runCLI(['__complete', 'archive-changes'], { cwd: root });
+  expect(archived).toMatchObject({ exitCode: 0, stdout: '', stderr: '' });
+  const unrelated = path.join(history, '2020-01-01-unrelated');
+  await fs.mkdir(unrelated);
+  expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: 'unrelated\tarchived change\n', stderr: '',
+  });
   await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(fs.access(pendingArchivePath(destination))).resolves.toBeUndefined();
   for (const receipt of completed) await expect(fs.readdir(receipt)).resolves.toEqual([]);
+  await fs.rmdir(pendingArchivePath(destination));
+  expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: 'orphaned\tarchived change\nunrelated\tarchived change\n', stderr: '',
+  });
 });
 
 it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {

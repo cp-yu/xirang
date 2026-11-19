@@ -8,6 +8,7 @@ import { introspectCommands } from '../core/completions/introspect.js';
 import { detectShell, SupportedShell } from '../utils/shell-detection.js';
 import { CompletionProvider } from '../core/completions/completion-provider.js';
 import { getArchivedChangeIds } from '../utils/item-discovery.js';
+import { listRetryableArchiveNames } from '../core/archive-paths.js';
 import { validateChangeName } from '../utils/change-utils.js';
 
 interface GenerateOptions {
@@ -290,8 +291,11 @@ export class CompletionCommand {
         }
         case 'archive-changes': {
           const changesDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes');
-          const [active, archived] = await Promise.all([listActiveChangeDirectories(changesDir), getArchivedChangeIds()]);
-          const descriptions = new Map(archived.map(id => [id.slice(11), 'archived change']));
+          const [active, archived] = await Promise.all([
+            listActiveChangeDirectories(changesDir),
+            listRetryableArchiveNames(path.join(changesDir, 'archive')).catch(() => []),
+          ]);
+          const descriptions = new Map(archived.map(id => [id, 'archived change']));
           for (const id of active) descriptions.set(id, 'active change');
           for (const id of [...descriptions.keys()].sort()) {
             if (id !== 'archive' && validateChangeName(id).valid) console.log(`${id}\t${descriptions.get(id)}`);
