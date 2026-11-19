@@ -187,7 +187,7 @@ export function extractSectionBody({ lines, literal, hidden, visible }: SectionB
     if (hidden[i]) continue;
     const line = lines[i];
     if (!literal[i] && readAcceptanceCaseHeader(line) !== undefined) break;
-    if (HEADER_LINE.test(line)) continue;
+    if (HEADER_LINE.test(visible[i])) continue;
     const trimmed = visible[i].trim();
     if (trimmed.length === 0) continue;
     if (METADATA_LINE.test(trimmed)) {

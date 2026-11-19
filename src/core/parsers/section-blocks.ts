@@ -21,8 +21,8 @@ export function normalizeSectionName(name: string): string {
 
 const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
 const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
-const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
-const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
+const REMOVED_BULLET_PREFIX = /^ {0,3}-[ \t]+`?###[ \t]+Section:/;
+const DELTA_SECTION_HEADER = /^ {0,3}###[ \t]+Section:\s*(.+)$/;
 const OVER_INDENTED_OPERATION = /^(?: {4}|[ \t]*\t)[ \t]*##[ \t]+\S.*[ \t]+Sections[ \t]*#*[ \t]*$/i;
 
 function deltaSectionName(raw: string | undefined): string | undefined {

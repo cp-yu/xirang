@@ -510,6 +510,8 @@ it.each([
   ['inline HTML comment', 'Prose before <!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
   ['leading HTML comment', '<!-- Keep this note as written. --> Root SHALL preserve visible text.', true],
   ['multiline leading HTML comment', '<!-- First line\nKeep this note as written. --> Root SHALL preserve visible text.', true],
+  ['comment closing on a Section-like line', '<!-- Note\n### Section: Example --> Root SHALL preserve visible text.', true],
+  ['comment closing on a case-like line', '<!-- Note\n#### Acceptance Case: Example --> Root MUST preserve visible text.', true],
   ['heading in a second HTML comment', '<!-- First note. --> Root SHALL preserve visible text. <!-- Second note\n### Section: Not an operation\nRoot SHALL NOT install this as a Section.\n#### Acceptance Case: Not a case\n-->', true],
   ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
   ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
@@ -618,9 +620,23 @@ it.each([
     definition: 'Project root definition.', sections }), diagnostic);
 });
 
-async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {
+it.each([
+  ['###\u00a0Section: Existing', 'MALFORMED_SECTION_HEADER'],
+  ['###\u000bSection: Existing', 'MALFORMED_SECTION_HEADER'],
+  ['- ###\u00a0Section: Existing', 'UNEXPECTED_REMOVED_CONTENT'],
+  ['- `###\u00a0Section: Existing`', 'UNEXPECTED_REMOVED_CONTENT'],
+])('rejects malformed removal syntax before deleting an existing Formal Section (%j)', async (removal, code) => {
+  const file = 'elements/root.md';
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  const formal = elementUnit({ ...declaration, sections: '## Specification\n\n### Section: Existing\n\nRoot SHALL retain this rule.' });
+  const delta = elementUnit({ ...declaration, sections: `## REMOVED Sections\n\n${removal}` });
+  await expectInvalidDelivery(file, delta, code, 'Delta', formal);
+});
+
+async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta', formal?: string): Promise<void> {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
+  if (formal !== undefined) await fs.writeFile(path.join(model, file), formal);
   const source = await writeChangeDelta(root, 'invalid-delta', { 'proposal.md': '# Invalid Delta\n',
     ...(target === 'Formal' ? { '.delta-noop': '' } : { [file]: '' }) });
   const location = path.join(target === 'Delta' ? source : model, file);
