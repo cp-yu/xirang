@@ -575,6 +575,36 @@ it.each([
     definition: 'Project root definition.', sections }), 'UNSUPPORTED_OPERATION');
 });
 
+it.each([{ flags: [] }, { flags: ['--quick'] }])('preserves visible prose and acceptance cases with cross-Section references ($flags)', async ({ flags }) => {
+  await writeProjectModel(root, minimalModel());
+  const file = 'elements/root.md';
+  const referenced = '### Section: Referenced rule\n\n<!-- Note --> [notice][tag<!--]\n\nRoot SHALL follow the rule.\n\n#### Acceptance Case: Visible case\n\nRoot returns the expected result.';
+  const definition = '### Section: Reference definition\n\nRoot SHALL keep the reference.\n\n[tag<!--]: /actual';
+  const delta = elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.',
+    sections: `## ADDED Sections\n\n${referenced}\n\n${definition}` });
+  const name = 'cross-section-reference';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve cross-Section references\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  const preview = await runCLI(['validate', '--change', name, '--preview', '--json'], { cwd: root });
+  expect(preview).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(preview.stdout).summary).toEqual({ total: 2, ADDED: 2, MODIFIED: 0, REMOVED: 0 });
+  const delivery = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+  expect(delivery).toMatchObject({ exitCode: 0, stderr: flags.length ? expect.stringContaining('QUALITY_SKIPPED') : '' });
+  const query = await runCLI(['arch', 'query', 'root', '--contract', '--json'], { cwd: root });
+  expect(query).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(query.stdout).elements.root.sections).toContainEqual({ name: 'Referenced rule',
+    body: '<!-- Note --> [notice][tag<!--]\n\nRoot SHALL follow the rule.',
+    acceptanceCases: [{ name: 'Visible case', body: 'Root returns the expected result.' }],
+  });
+  await expect(fs.readFile(path.join(root, JSON.parse(delivery.stdout).archive, file), 'utf8')).resolves.toBe(delta);
+});
+
+it.each(['    ', '\t'])('rejects an unfenced retired Section operation indented by %j', async indent => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${indent}## RENAMED Sections\n\n${indent}### Section: Old rule\n${indent}Root SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
 async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta'): Promise<void> {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');

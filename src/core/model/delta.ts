@@ -154,8 +154,8 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
       'Section entries must appear under ## ADDED/MODIFIED/REMOVED Sections', identity));
     return;
   }
-  for (const block of plan.added) entries.push(sectionEntry('ADDED', identity, parseSectionBlock(block.name, block.raw, file, diagnostics)));
-  for (const block of plan.modified) entries.push(sectionEntry('MODIFIED', identity, parseSectionBlock(block.name, block.raw, file, diagnostics)));
+  for (const block of plan.added) entries.push(sectionEntry('ADDED', identity, parseSectionBlock(block, file, diagnostics)));
+  for (const block of plan.modified) entries.push(sectionEntry('MODIFIED', identity, parseSectionBlock(block, file, diagnostics)));
   for (const name of plan.removed) entries.push({ operation: 'REMOVED', entity: 'section', identity: `${identity}#${name}` });
 }
 

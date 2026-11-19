@@ -1,9 +1,10 @@
-import { buildLiteralBlockMask, readSectionMarkdown } from './section-text.js';
+import { readSectionMarkdown, type SectionBodyMarkdown } from './section-text.js';
 
 export interface SectionBlock {
   headerLine: string; // e.g., '### Section: Something'
   name: string; // e.g., 'Something'
   raw: string; // full block including headerLine and following content
+  body: SectionBodyMarkdown;
 }
 
 export interface SpecificationSectionParts {
@@ -22,6 +23,7 @@ const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
 const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-\s+`?###\s+Section:/;
 const DELTA_SECTION_HEADER = /^ {0,3}###\s+Section:\s*(.+)$/;
+const OVER_INDENTED_OPERATION = /^(?: {4}|[ \t]*\t)[ \t]*##[ \t]+\S.*[ \t]+Sections[ \t]*#*[ \t]*$/i;
 
 function deltaSectionName(raw: string | undefined): string | undefined {
   const name = raw?.trim();
@@ -32,13 +34,29 @@ function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
 }
 
+function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSectionMarkdown>, start: number, end: number, name: string): SectionBlock {
+  const headerLine = lines[start];
+  return {
+    headerLine,
+    name,
+    raw: lines.slice(start, end).join('\n').trim(),
+    body: {
+      lines: lines.slice(start + 1, end),
+      literal: markdown.literal.slice(start + 1, end),
+      hidden: markdown.hidden.slice(start + 1, end),
+      visible: markdown.visible.slice(start + 1, end),
+    },
+  };
+}
+
 /**
  * Extracts the Specification section from an Element unit and parses Section blocks.
  */
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const { literal: literalMask, setext: underlined } = readSectionMarkdown(lines, { includeSetext: true });
+  const markdown = readSectionMarkdown(lines, { includeSetext: true });
+  const { literal: literalMask, setext: underlined } = markdown;
   const specHeaderIndex = lines.findIndex((line, index) => !literalMask[index]
     && /^##\s+Specification\s*$/i.test(line));
 
@@ -66,43 +84,20 @@ export function extractSpecificationSection(content: string): SpecificationSecti
 
   const before = lines.slice(0, specHeaderIndex).join('\n');
   const headerLine = lines[specHeaderIndex];
-  const sectionBodyLines = lines.slice(specHeaderIndex + 1, endIndex);
-  const sectionBodyLiteralMask = literalMask.slice(specHeaderIndex + 1, endIndex);
-  const isSectionHeader = (index: number) => !sectionBodyLiteralMask[index]
-    && SECTION_HEADER_REGEX.test(sectionBodyLines[index]);
-
+  const isSectionHeader = (index: number) => !literalMask[index] && SECTION_HEADER_REGEX.test(lines[index]);
   const blocks: SectionBlock[] = [];
-  let cursor = 0;
-  const preambleLines: string[] = [];
-
-  // Collect preamble lines until the first Section header
-  while (cursor < sectionBodyLines.length && !isSectionHeader(cursor)) {
-    preambleLines.push(sectionBodyLines[cursor]);
-    cursor++;
-  }
-
-  while (cursor < sectionBodyLines.length) {
-    const headerLineCandidate = sectionBodyLines[cursor];
-    const headerMatch = headerLineCandidate.match(SECTION_HEADER_REGEX);
-    if (!headerMatch) {
-      // Not a Section header; skip line defensively
-      cursor++;
-      continue;
-    }
-    const name = normalizeSectionName(headerMatch[1]);
-    cursor++;
-    // Gather lines until the next Section header or end of the Specification section
-    const bodyLines: string[] = [headerLineCandidate];
-    while (cursor < sectionBodyLines.length && !isSectionHeader(cursor)) {
-      bodyLines.push(sectionBodyLines[cursor]);
-      cursor++;
-    }
-    const raw = bodyLines.join('\n').trimEnd();
-    blocks.push({ headerLine: headerLineCandidate, name, raw });
+  const first = specHeaderIndex + 1;
+  let cursor = first;
+  while (cursor < endIndex && !isSectionHeader(cursor)) cursor++;
+  const preamble = lines.slice(first, cursor).join('\n').trimEnd();
+  while (cursor < endIndex) {
+    const start = cursor++;
+    const name = normalizeSectionName(lines[start].match(SECTION_HEADER_REGEX)![1]);
+    while (cursor < endIndex && !isSectionHeader(cursor)) cursor++;
+    blocks.push(makeSectionBlock(lines, markdown, start, cursor, name));
   }
 
   const after = lines.slice(endIndex).join('\n');
-  const preamble = preambleLines.join('\n').trimEnd();
 
   return {
     before: before.trimEnd() ? before + '\n' : before,
@@ -137,11 +132,8 @@ export interface DeltaPlan {
 export function parseDeltaSpec(content: string): DeltaPlan {
   const normalized = normalizeLineEndings(content);
   const { sections, removed, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines } = splitTopLevelSections(normalized);
-  const addedLookup = getSectionCaseInsensitive(sections, 'ADDED Sections');
-  const modifiedLookup = getSectionCaseInsensitive(sections, 'MODIFIED Sections');
-  const removedLookup = getSectionCaseInsensitive(sections, 'REMOVED Sections');
-  const added = parseSectionBlocksFromSection(addedLookup.body);
-  const modified = parseSectionBlocksFromSection(modifiedLookup.body);
+  const added = sections.find(([title]) => title.toLowerCase() === 'added sections');
+  const modified = sections.find(([title]) => title.toLowerCase() === 'modified sections');
   const seen = new Set<string>();
   const duplicateSections: string[] = [];
   const unsupportedSections: string[] = [];
@@ -155,8 +147,8 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     seen.add(key);
   }
   return {
-    added,
-    modified,
+    added: added?.[1] ?? [],
+    modified: modified?.[1] ?? [],
     removed,
     unsupportedSections,
     duplicateSections,
@@ -166,15 +158,15 @@ export function parseDeltaSpec(content: string): DeltaPlan {
     unscopedContentLines,
     removedContentLines,
     sectionPresence: {
-      added: addedLookup.found,
-      modified: modifiedLookup.found,
-      removed: removedLookup.found,
+      added: added !== undefined,
+      modified: modified !== undefined,
+      removed: seen.has('removed sections'),
     },
   };
 }
 
 function splitTopLevelSections(content: string): {
-  sections: Array<[string, string]>;
+  sections: Array<[string, SectionBlock[]]>;
   removed: string[];
   unscopedSections: string[];
   malformedOperationLines: number[];
@@ -183,14 +175,15 @@ function splitTopLevelSections(content: string): {
   removedContentLines: number[];
 } {
   const lines = content.split('\n');
-  const sections: Array<[string, string]> = [];
+  const sections: Array<[string, SectionBlock[]]> = [];
   const removed: string[] = [];
   const unscopedSections: string[] = [];
   const malformedOperationLines: number[] = [];
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const { literal: mask, setext: underlined, listItems } = readSectionMarkdown(lines, { includeSetext: true, includeListItems: true });
+  const markdown = readSectionMarkdown(lines, { includeSetext: true, includeListItems: true });
+  const { literal: mask, setext: underlined, listItems } = markdown;
   const indices: Array<{ title: string; index: number }> = [];
   let block = '';
   let hasSection = false;
@@ -204,6 +197,13 @@ function splitTopLevelSections(content: string): {
       block = '';
       hasSection = false;
       i = setextEnd;
+      continue;
+    }
+    if (!mask[i] && OVER_INDENTED_OPERATION.test(line)) {
+      malformedOperationLines.push(i + 1);
+      indices.push({ title: '', index: i });
+      block = '';
+      hasSection = false;
       continue;
     }
     const heading = !mask[i] && line.match(ENCLOSING_HEADING);
@@ -238,41 +238,26 @@ function splitTopLevelSections(content: string): {
     const current = indices[i];
     if (!current.title) continue;
     const next = indices[i + 1];
-    const body = lines.slice(current.index + 1, next ? next.index : lines.length).join('\n');
-    sections.push([current.title, body]);
+    const blocks = /^(added|modified) sections$/i.test(current.title)
+      ? parseSectionBlocks(lines, markdown, current.index + 1, next?.index ?? lines.length)
+      : [];
+    sections.push([current.title, blocks]);
   }
   return { sections, removed, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines };
 }
 
-function getSectionCaseInsensitive(sections: Array<[string, string]>, desired: string): { body: string; found: boolean } {
-  const target = desired.toLowerCase();
-  for (const [title, body] of sections) {
-    if (title.toLowerCase() === target) return { body, found: true };
-  }
-  return { body: '', found: false };
-}
-
-function parseSectionBlocksFromSection(sectionBody: string): SectionBlock[] {
-  if (!sectionBody) return [];
-  const lines = normalizeLineEndings(sectionBody).split('\n');
+function parseSectionBlocks(lines: string[], markdown: ReturnType<typeof readSectionMarkdown>, start: number, end: number): SectionBlock[] {
   const blocks: SectionBlock[] = [];
-  const mask = buildLiteralBlockMask(lines);
-  const isHeader = (index: number) => !mask[index] && /^ {0,3}###\s*Section:/.test(lines[index]);
-  let i = 0;
-  while (i < lines.length) {
-    // Seek the next Section header
-    while (i < lines.length && !isHeader(i)) i++;
-    if (i >= lines.length) break;
-    const headerLine = lines[i];
-    const name = deltaSectionName(headerLine.match(DELTA_SECTION_HEADER)?.[1]);
-    if (!name) { i++; continue; }
-    const buf: string[] = [headerLine.trimStart()];
-    i++;
-    while (i < lines.length && !isHeader(i) && (mask[i] || !ENCLOSING_HEADING.test(lines[i]))) {
-      buf.push(lines[i]);
-      i++;
-    }
-    blocks.push({ headerLine, name, raw: buf.join('\n').trimEnd() });
+  const isHeader = (index: number) => !markdown.literal[index] && /^ {0,3}###\s*Section:/.test(lines[index]);
+  let i = start;
+  while (i < end) {
+    while (i < end && !isHeader(i)) i++;
+    if (i >= end) break;
+    const first = i++;
+    const name = deltaSectionName(lines[first].match(DELTA_SECTION_HEADER)?.[1]);
+    if (!name) continue;
+    while (i < end && !isHeader(i)) i++;
+    blocks.push(makeSectionBlock(lines, markdown, first, i, name));
   }
   return blocks;
 }

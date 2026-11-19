@@ -3,8 +3,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { buildLiteralBlockMask, readAcceptanceCaseHeader } from '../parsers/section-text.js';
-import { extractSpecificationSection } from '../parsers/section-blocks.js';
+import { readAcceptanceCaseHeader } from '../parsers/section-text.js';
+import { extractSpecificationSection, type SectionBlock } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
 import { isIgnoredDeltaFile } from './paths.js';
@@ -114,15 +114,13 @@ function kindConstraint(value: unknown, field: string, file: string, identity: s
 }
 
 /** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
-export function parseSectionBlock(name: string, raw: string, file: string, diagnostics: ModelDiagnostic[]): Section {
-  const lines = normalizeLineEndings(raw).split('\n').slice(1);
-  const mask = buildLiteralBlockMask(lines);
+export function parseSectionBlock({ name, body: { lines, literal } }: SectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
   const bodyLines: string[] = [];
   const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const title = mask[index] ? undefined : readAcceptanceCaseHeader(lines[index]);
+    const title = literal[index] ? undefined : readAcceptanceCaseHeader(lines[index]);
     if (title !== undefined) {
       if (title === '') {
         diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,
@@ -144,19 +142,12 @@ export interface ParsedContract {
   leftover: string;
 }
 
-function hasSpecificationHeader(normalized: string): boolean {
-  const lines = normalized.split('\n');
-  const mask = buildLiteralBlockMask(lines);
-  return lines.some((line, index) => !mask[index] && /^##\s+Specification\s*$/i.test(line));
-}
-
 export function parseContract(body: string, file: string, diagnostics: ModelDiagnostic[]): ParsedContract {
   const normalized = normalizeProse(body);
   if (normalized === '') return { sections: [], leftover: '' };
-  if (!hasSpecificationHeader(normalized)) return { sections: [], leftover: normalized };
   const section = extractSpecificationSection(normalized);
   return {
-    sections: section.bodyBlocks.map(block => parseSectionBlock(block.name, block.raw, file, diagnostics)),
+    sections: section.bodyBlocks.map(block => parseSectionBlock(block, file, diagnostics)),
     leftover: normalizeProse(`${section.before}\n${section.preamble}\n${section.after}`),
   };
 }

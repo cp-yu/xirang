@@ -143,3 +143,5 @@
 - [x] [artifact_fix] 将保留的 Apply 恢复契约与归档门禁对齐：Archive 报告 Seal 诊断并交回 Apply，不执行恢复或重验协议。
 - [x] [code_fix] 在已有分支提交及未提交改动的真实 Git 仓库验证放弃留档后 HEAD、refs、暂存区及无关文件均保持不变。
 - [x] [code_fix] 交互选择器与补全共用有效活动 Change 名称过滤，不提供无法归档的目录。
+- [x] [code_fix] Section 切分、验收案例提取及规范正文校验复用语义单元的 Markdown 边界；其他 Section 中的引用定义仍可解析，交付后 Formal 保留可见正文和案例。
+- [x] [code_fix] 拒绝未处于实际围栏或其他 Markdown 字面容器中的过度缩进 Section 操作标题。

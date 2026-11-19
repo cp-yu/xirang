@@ -7,7 +7,7 @@ const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
 const FENCE_START = /^(?:`{3,}|~{3,})/;
-const BLOCK_CANDIDATE = /`{3,}|~{3,}|<|^ {1,3}#{1,6}(?:[ \t]|$)/;
+const BLOCK_CANDIDATE = /`{3,}|~{3,}|<|^[ \t]+#{1,6}(?:[ \t]|$)/;
 const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
 const markdown = unified().use(remarkParse);
 type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
@@ -167,28 +167,26 @@ export function readSectionMarkdown(lines: string[], { includeSetext = false, in
   return { literal, hidden, setext, visible, listItems };
 }
 
-export function buildLiteralBlockMask(lines: string[]): boolean[] {
-  return readSectionMarkdown(lines).literal;
-}
-
 /** Whole-word SHALL/MUST detection shared by Contract and Delta validation. */
 export function containsShallOrMust(text: string): boolean {
   return /\b(SHALL|MUST)\b/.test(text);
 }
 
-/**
- * Extract the full Section body after a Section header.
- * Skips fenced examples, comments and headings; stops at the first Acceptance Case.
- * Metadata lines skipped when other prose exists; otherwise kept as body.
- */
-export function extractSectionBody(bodyLines: string[]): string {
-  const { literal, hidden, visible } = readSectionMarkdown(bodyLines);
+export interface SectionBodyMarkdown {
+  lines: string[];
+  literal: boolean[];
+  hidden: boolean[];
+  visible: string[];
+}
+
+/** Skips fenced examples, comments, headings and Acceptance Cases using the unit's Markdown boundaries. */
+export function extractSectionBody({ lines, literal, hidden, visible }: SectionBodyMarkdown): string {
   const captured: string[] = [];
   const metadata: string[] = [];
 
-  for (let i = 0; i < bodyLines.length; i++) {
+  for (let i = 0; i < lines.length; i++) {
     if (hidden[i]) continue;
-    const line = bodyLines[i];
+    const line = lines[i];
     if (!literal[i] && readAcceptanceCaseHeader(line) !== undefined) break;
     if (HEADER_LINE.test(line)) continue;
     const trimmed = visible[i].trim();

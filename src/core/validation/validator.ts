@@ -9,7 +9,7 @@ import {
 import {
   parseDeltaSpec,
   normalizeSectionName,
-  extractSpecificationSection,
+  type SectionBlock,
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
 import { normalizeProse, readEntity, readDeltaFiles } from '../model/parser.js';
@@ -183,7 +183,7 @@ export class Validator {
   }
 
   private validateDeltaSectionBlocks(
-    blocks: Array<{ name: string; raw: string }>,
+    blocks: SectionBlock[],
     section: 'ADDED' | 'MODIFIED',
     seenNames: Set<string>,
     entryPath: string,
@@ -198,19 +198,13 @@ export class Validator {
         seenNames.add(key);
       }
 
-      const sectionText = this.extractSectionText(block.raw);
+      const sectionText = extractSectionBody(block.body);
       if (!sectionText) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" is missing Section text` });
       } else if (!this.containsShallOrMust(sectionText)) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must contain SHALL or MUST` });
       }
     }
-  }
-
-  private extractSectionText(blockRaw: string): string | undefined {
-    // Line 0 is the Section header; body is fence/metadata/multi-line aware.
-    const bodyLines = blockRaw.replace(/\r\n?/g, '\n').split('\n').slice(1);
-    return extractSectionBody(bodyLines) || undefined;
   }
 
   private containsShallOrMust(text: string): boolean {
