@@ -82,15 +82,19 @@ export async function resolveArchiveHistory(history: ArchiveHistory, changeName:
   return { receipt };
 }
 
-export async function listRetryableArchiveNames(archiveDir: string): Promise<string[]> {
+export async function listArchiveChoices(archiveDir: string, activeNames: string[]): Promise<Map<string, 'active' | 'archived'>> {
   const history = await readArchiveHistory(archiveDir);
-  const names: string[] = [];
-  for (const { name } of history.values()) {
-    if (!name) continue;
+  const active = new Set(activeNames);
+  const names = new Set(active);
+  for (const { name } of history.values()) if (name) names.add(name);
+  const choices = new Map<string, 'active' | 'archived'>();
+  for (const name of [...names].sort()) {
     const result = await resolveArchiveHistory(history, name).catch(() => undefined);
-    if (result?.receipt) names.push(name);
+    if (!result || result.pending) continue;
+    if (active.has(name)) choices.set(name, 'active');
+    else if (result.receipt) choices.set(name, 'archived');
   }
-  return names;
+  return choices;
 }
 
 /** Confirm the same directory survived the marker check; rollback removes it before the marker. */

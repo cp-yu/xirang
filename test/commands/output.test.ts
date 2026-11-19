@@ -522,6 +522,8 @@ it.each([
   ['fence in a second HTML comment', '<!-- First line\nKeep this note. --> Root SHALL preserve visible text. <!-- Second note\n```md\n-->', true],
   ['inline code after a comment', '<!-- Note --> `<!--` Root SHALL preserve visible text.', true],
   ['real comment after inline code', '<!-- Note --> `<!--` Root SHALL preserve visible text. <!-- Another note\n### Section: Not an operation\n-->', true],
+  ['multiline HTML attribute containing a comment opener', '<div title="attribute\n<!--">Root SHALL preserve the text.</div>', true],
+  ['script text containing a comment opener after a flow comment', '<!-- Note --> <script>const example = "<!--";</script> Root SHALL preserve the prose.', true],
   ['raw HTML code', '<pre><code>Example MUST NOT be a rule.</code></pre> Root SHALL preserve the example.', true],
   ['inline HTML code', 'Root SHALL preserve <code>Example MUST NOT be a rule.</code> unchanged.', true],
   ['multiline inline code', 'Root SHALL show `inline\n    ## RENAMED Sections\nexample` unchanged.', true],
@@ -570,6 +572,12 @@ it.each([
   ['    Root SHALL show an example.', 'missing Section text'],
   ['`Root SHALL show an example.`', 'missing Section text'],
   ['<pre><code>Root SHALL show an example.</code></pre>', 'missing Section text'],
+  ['<script>const example = "SHALL";</script>', 'missing Section text'],
+  ['<style>.SHALL { color: inherit; }</style>', 'missing Section text'],
+  ['<template><p>Root SHALL show an example.</p></template>', 'missing Section text'],
+  ['<div title="attribute\n<!-- MUST">Visible prose.</div>', 'must contain SHALL or MUST'],
+  ['<div>Visible prose. </MUST></div>', 'must contain SHALL or MUST'],
+  ['Visible prose. <script>const example = "SHALL";</script>', 'must contain SHALL or MUST'],
   ['<div><code title="a > b">Root SHALL show an example.</code></div>', 'missing Section text'],
   ['Visible prose. <CODE>Root MUST show an example.</CODE>', 'must contain SHALL or MUST'],
   ['<!-- Note --> `Root SHALL show an example.`', 'missing Section text'],
@@ -1002,6 +1010,60 @@ it.each([false, true])('reports pending history ahead of every completed receipt
   expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
     exitCode: 0, stdout: 'orphaned\tarchived change\nunrelated\tarchived change\n', stderr: '',
   });
+});
+
+it.each([false, true])('blocks active retries across archive modes and dates (pending abandonment=%s)', async pendingAbandonment => {
+  await writeProjectModel(root, minimalModel());
+  const name = 'restored-change';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Restored Change\n', '.delta-noop': '' });
+  await createCompleteQualityFixture(root, source);
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const history = path.join(path.dirname(source), 'archive');
+  const parent = pendingAbandonment ? path.join(history, 'abandoned') : history;
+  const destination = path.join(parent, `2000-01-01-${name}`);
+  await fs.mkdir(pendingArchivePath(destination), { recursive: true });
+
+  for (const flags of [[], ['--quick'], ['--abandon']]) {
+    const retry = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(retry.stderr).message).toContain(`Archive is incomplete at ${destination}`);
+  }
+  expect((await runCLI(['__complete', 'archive-changes'], { cwd: root })).stdout).toBe('');
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Restored Change\n');
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readdir(parent)).resolves.toEqual([path.basename(pendingArchivePath(destination))]);
+
+  await fs.rmdir(pendingArchivePath(destination));
+  expect((await runCLI(['__complete', 'archive-changes'], { cwd: root })).stdout).toBe(`${name}\tactive change\n`);
+  const delivery = await runCLI(['archive', name, '--yes', '--json'], { cwd: root });
+  expect(delivery.exitCode).toBe(0);
+  expect(JSON.parse(delivery.stdout).archive).not.toContain('2000-01-01');
+});
+
+it('rechecks pending history after claiming the archive lock', async () => {
+  await writeProjectModel(root, minimalModel());
+  const name = 'claim-race';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve me\n', '.delta-noop': '' });
+  const changes = path.dirname(source);
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const destination = path.join(changes, 'archive', 'abandoned', `2000-01-01-${name}`);
+  const mkdtemp = fs.mkdtemp;
+  const hook = vi.spyOn(fs, 'mkdtemp').mockImplementation(async (...args) => {
+    if (String(args[0]).startsWith(path.join(changes, '.archive-lock-'))) {
+      await fs.mkdir(pendingArchivePath(destination), { recursive: true });
+    }
+    return mkdtemp(...args);
+  });
+  try {
+    const retry = await runCLI(['archive', name, '--quick', '--yes', '--json'], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(retry.stderr).toContain('Archive is incomplete at');
+  } finally { hook.mockRestore(); }
+  await expect(fs.readdir(changes)).resolves.toEqual(['archive', name]);
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Preserve me\n');
+  await expect(readModelTree(model)).resolves.toEqual(before);
 });
 
 it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {

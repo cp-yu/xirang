@@ -36,10 +36,6 @@ function incompleteArchive(location: string): Error {
   return new Error(`Archive is incomplete at ${location}; inspect the workspace before retrying.`);
 }
 
-async function assertNoPendingArchive(location: string): Promise<void> {
-  if (await statIfPresent(pendingArchivePath(location))) throw incompleteArchive(location);
-}
-
 const execFileAsync = promisify(execFile);
 
 function runWindowsPowerShell(script: string, env: NodeJS.ProcessEnv = process.env) {
@@ -284,10 +280,14 @@ export class ArchiveCommand {
       if (alreadyArchived && !options.json) diagnostic('Already archived.', 'ARCHIVE_ALREADY_ARCHIVED', false);
       console.log(options.json ? JSON.stringify({ archive, ...(alreadyArchived ? { alreadyArchived } : {}) }) : archive);
     };
-    if (!active?.isDirectory()) {
+    const requireCompleteHistory = async (name: string) => {
       const history = await readArchiveHistory(archiveDir, options.abandon);
-      const { pending, receipt } = await resolveArchiveHistory(history, changeName);
+      const { pending, receipt } = await resolveArchiveHistory(history, name);
       if (pending) throw incompleteArchive(pending);
+      return receipt;
+    };
+    if (!active?.isDirectory()) {
+      const receipt = await requireCompleteHistory(changeName);
       if (!receipt) throw new Error(`Change '${changeName}' not found.`);
       report(receipt, true);
       return;
@@ -299,8 +299,7 @@ export class ArchiveCommand {
     const archivePath = path.join(parent, archiveName);
     const historyParents = parent === archiveDir ? [archiveDir] : [archiveDir, parent];
     const ensureUnoccupied = async () => {
-      for (const directory of historyParents) await hasArchiveHistoryDirectory(directory);
-      await assertNoPendingArchive(archivePath);
+      await requireCompleteHistory(changeName);
       const existing = await statIfPresent(archivePath);
       if (existing) throw new Error(`Archive '${archiveName}' already exists.`);
     };
@@ -313,6 +312,7 @@ export class ArchiveCommand {
         if (!current?.isDirectory() || current.dev !== active.dev || current.ino !== active.ino) {
           throw new Error(`Active Change '${changeName}' changed before archiving; verify and retry.`);
         }
+        await ensureUnoccupied();
         const created: string[] = [];
         try {
           for (const directory of historyParents) {

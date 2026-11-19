@@ -2,6 +2,7 @@
 
 import remarkParse from 'remark-parse';
 import { unified } from 'unified';
+import { excludeHtmlProse, firstHtmlComment, projectHtml, type SourceRange } from './section-html.js';
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
@@ -30,28 +31,37 @@ function nextCommentOpening(source: string, from: number, end: number, definitio
 
   // A flow HTML node includes the rest of its closing line as raw text. Read that
   // suffix as inline Markdown before interpreting any more comment delimiters.
-  const ranges: Array<[number, number]> = [];
+  const literals: SourceRange[] = [];
+  const html: SourceRange[] = [];
   const comments = new Set<number>();
   const visit = (node: MarkdownNode): void => {
     const start = node.position?.start.offset;
     const stop = node.position?.end.offset;
     if (start === undefined || stop === undefined) return;
-    if (node.type === 'html' && node.value.startsWith('<!--')) comments.add(start);
-    else if (node.type === 'inlineCode' || node.type === 'html' || node.type === 'image' || node.type === 'imageReference'
-      || node.type === 'link' || node.type === 'linkReference') ranges.push([start, stop]);
+    if (node.type === 'html') {
+      html.push([from + start - INLINE_SUFFIX_PREFIX.length, from + stop - INLINE_SUFFIX_PREFIX.length]);
+      if (node.value.startsWith('<!--')) comments.add(start);
+      else literals.push([start, stop]);
+    } else if (node.type === 'inlineCode' || node.type === 'image' || node.type === 'imageReference'
+      || node.type === 'link' || node.type === 'linkReference') literals.push([start, stop]);
     if ('children' in node) node.children.forEach(visit);
   };
   const head = readInlineSuffix(source, from, definitions);
   if (head) visit(head);
+  const candidates = new Set<number>();
   for (; opening >= 0 && opening + 4 <= end; opening = source.indexOf('<!--', opening + 4)) {
     const relative = opening - from + INLINE_SUFFIX_PREFIX.length;
-    if (comments.has(relative)) return opening;
-    if (ranges.some(([start, stop]) => start <= relative && relative < stop)) continue;
+    if (!comments.has(relative) && literals.some(([start, stop]) => start <= relative && relative < stop)) continue;
     let backslash = opening;
     while (backslash > from && source[backslash - 1] === '\\') backslash--;
-    if ((opening - backslash) % 2 === 0) return opening;
+    if ((opening - backslash) % 2 === 0) {
+      candidates.add(opening - from);
+      html.push([opening, opening + 4]);
+    }
   }
-  return -1;
+  if (!candidates.size) return -1;
+  const comment = firstHtmlComment(projectHtml(source, from, end, html), candidates);
+  return comment < 0 ? -1 : from + comment;
 }
 
 function parseMarkdownBlocks(source: string): { children: MarkdownNode[]; definitions: string } {
@@ -98,6 +108,24 @@ function parseMarkdownBlocks(source: string): { children: MarkdownNode[]; defini
   }
 }
 
+function collectInlineProse(node: MarkdownNode, source: string, origin: number, limit: number, exclusions: SourceRange[]): void {
+  const html: SourceRange[] = [];
+  const visit = (child: MarkdownNode): void => {
+    const start = child.position?.start.offset;
+    const end = child.position?.end.offset;
+    if (start === undefined || end === undefined || origin + start >= limit) return;
+    if (child.type === 'html') html.push([origin + start, origin + end]);
+    else if (child.type === 'inlineCode') exclusions.push([origin + start, origin + end]);
+    if ('children' in child) child.children.forEach(visit);
+  };
+  visit(node);
+  if (html.length) {
+    const start = html[0][0];
+    const end = html.reduce((last, [, stop]) => Math.max(last, stop), limit);
+    excludeHtmlProse(projectHtml(source, start, end, html), start, exclusions);
+  }
+}
+
 export function readSectionMarkdown(lines: string[]) {
   const literal = new Array<boolean>(lines.length).fill(false);
   const hidden = new Array<boolean>(lines.length).fill(false);
@@ -112,42 +140,26 @@ export function readSectionMarkdown(lines: string[]) {
   };
   const source = lines.join('\n');
   const { children, definitions } = parseMarkdownBlocks(source);
-  const proseExclusions: Array<[number, number]> = [];
-  const htmlCodeTags: Array<{ name: string; closing: boolean; offset: number; end: number; blockEnd: number }> = [];
+  const proseExclusions: SourceRange[] = [];
+  const comments: SourceRange[] = [];
   const suffixes = new Map<number, number>();
-  const collectHtmlMarkup = (text: string, offset: number, blockEnd: number) => {
-    // Inspect only Remark's HTML spans, never escaped text or Markdown code.
-    const tags = /<!--[\s\S]*?(?:-->|$)|<(\/?)([a-z][a-z0-9-]*)(?=[\s/>])(?:"[^"]*"|'[^']*'|[^'"<>])*>/gi;
-    for (const tag of text.matchAll(tags)) {
-      if (!tag[2]) continue;
-      const start = offset + tag.index;
-      const end = start + tag[0].length;
-      proseExclusions.push([start, end]);
-      const name = tag[2].toLowerCase();
-      if (name === 'pre' || name === 'code') htmlCodeTags.push({ name, closing: !!tag[1], offset: start, end, blockEnd });
-    }
-  };
-  const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number, flowComment: boolean): void => {
-    let inComment = false;
-    for (let i = first; i <= last; i++) {
-      const line = lines[i];
-      const limit = i === last ? end : line.length;
-      let cursor = i === first ? start : 0;
-      while (cursor < limit) {
-        const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit, definitions) - offset;
-        if (opening < 0) break;
-        const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
-        inComment = closing === -1 || closing + 3 > limit;
-        cursor = inComment ? limit : closing + 3;
-        maskColumns(i, opening, cursor);
-        if (flowComment && !inComment && cursor < limit && !suffixes.has(offset + limit)) {
-          suffixes.set(offset + limit, offset + cursor);
-        }
+  const collectFlowComment = (start: number, end: number): void => {
+    // A flow comment's closing line can also contain Markdown prose and subsequent comments.
+    for (let opening = start; opening >= 0;) {
+      const closing = source.indexOf('-->', opening + 4);
+      if (closing < 0 || closing + 3 > end) {
+        comments.push([opening, end]);
+        break;
       }
-      offset += line.length + 1;
+      const after = closing + 3;
+      comments.push([opening, after]);
+      const newline = source.indexOf('\n', after);
+      const limit = newline < 0 ? end : Math.min(end, newline);
+      if (after < limit && !suffixes.has(limit)) suffixes.set(limit, after);
+      opening = nextCommentOpening(source, after, limit, definitions);
     }
   };
-  const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean, blockEnd?: number): void => {
+  const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
     if (!node.position) return;
     const { start, end } = node.position;
     const first = start.line - 1;
@@ -159,18 +171,14 @@ export function readSectionMarkdown(lines: string[]) {
       }
     } else if (node.type === 'inlineCode') {
       literal.fill(true, first + 1, last + 1);
-      if (start.offset !== undefined && end.offset !== undefined) proseExclusions.push([start.offset, end.offset]);
     } else if (node.type === 'html') {
       // Inline markup does not hide other Markdown on its opening and closing lines.
       const from = inline ? first + 1 : first;
       const to = inline ? last : last + 1;
       literal.fill(true, from, to);
-      if (start.offset !== undefined && end.offset !== undefined) {
-        const flowComment = !inline && node.value.startsWith('<!--');
-        if (node.value.includes('<!--')) {
-          maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1, flowComment);
-        }
-        if (!flowComment) collectHtmlMarkup(source.slice(start.offset, end.offset), start.offset, blockEnd ?? end.offset);
+      if (!inline && start.offset !== undefined && end.offset !== undefined) {
+        if (node.value.startsWith('<!--')) collectFlowComment(start.offset, end.offset);
+        else excludeHtmlProse(source.slice(start.offset, end.offset), start.offset, proseExclusions);
       }
     } else if (node.type === 'heading') {
       hidden.fill(true, first, last + 1);
@@ -194,41 +202,27 @@ export function readSectionMarkdown(lines: string[]) {
       }
     }
     if ('children' in node) {
-      const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
-      node.children.forEach(child => visit(child, false, childInline, inline ? blockEnd : end.offset));
+      const phrasing = node.type === 'paragraph' || node.type === 'heading';
+      if (phrasing && end.offset !== undefined) collectInlineProse(node, source, 0, end.offset, proseExclusions);
+      node.children.forEach(child => visit(child, false, inline || phrasing));
     }
   };
   children.forEach(node => visit(node, true, false));
   if (suffixes.size) {
-    const uncommented = visible.join('\n');
+    const uncommented: string[] = [];
+    let offset = 0;
+    for (const [start, end] of comments) {
+      uncommented.push(source.slice(offset, start), source.slice(start, end).replace(/[^\n]/g, ' '));
+      offset = end;
+    }
+    uncommented.push(source.slice(offset));
+    const projected = uncommented.join('');
     for (const [limit, from] of suffixes) {
-      const head = readInlineSuffix(uncommented, from, definitions);
-      const origin = from - INLINE_SUFFIX_PREFIX.length;
-      const visitSuffix = (node: MarkdownNode): void => {
-        const start = node.position?.start.offset;
-        const stop = node.position?.end.offset;
-        if (start === undefined || stop === undefined) return;
-        const left = origin + start;
-        const right = origin + stop;
-        if (left >= limit) return;
-        if (node.type === 'inlineCode') proseExclusions.push([left, right]);
-        else if (node.type === 'html') collectHtmlMarkup(uncommented.slice(left, right), left, limit);
-        if ('children' in node) node.children.forEach(visitSuffix);
-      };
-      if (head) visitSuffix(head);
+      const head = readInlineSuffix(projected, from, definitions);
+      if (head) collectInlineProse(head, projected, from - INLINE_SUFFIX_PREFIX.length, limit, proseExclusions);
     }
   }
-  const open = new Map<string, typeof htmlCodeTags>();
-  for (const tag of htmlCodeTags.sort((a, b) => a.offset - b.offset)) {
-    let starts = open.get(tag.name);
-    if (!starts) open.set(tag.name, starts = []);
-    if (!tag.closing) starts.push(tag);
-    else {
-      const start = starts.pop();
-      if (start) proseExclusions.push([start.offset, tag.end]);
-    }
-  }
-  for (const tags of open.values()) for (const tag of tags) proseExclusions.push([tag.offset, tag.blockEnd]);
+  proseExclusions.push(...comments);
   const ranges: typeof proseExclusions = [];
   for (const [from, to] of proseExclusions.sort(([a], [b]) => a - b)) {
     const last = ranges.at(-1);
