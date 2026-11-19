@@ -19,6 +19,7 @@ None
 #### Modified Specs
 
 - `change-archive`、`change-sync`、`archive-quality-gate`：统一入口、模型写入、三种模式及结果、归档证据门禁。
+- `quality-cli-gate`：执行与恢复指引由 Apply 投影，Archive 仅消费 Seal 并在被拒绝时转达诊断。
 - `change-closure`、`change-realization`、`project.root`：区分正常交付、免 Seal 的交付及未交付的放弃留档。
 - `change-implementation`、`quality`：区分正常完成 Quality 与获授权豁免，不将放弃算作完成实现。
 - `deterministic-operations`：进程内失败时模型与活动目录的一致性边界。

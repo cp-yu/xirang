@@ -146,5 +146,6 @@
 - [x] [code_fix] `show --review --json` 保留导航占位的前后内容，不把其他源文件的 Declaration 操作归给占位。
 - [x] [code_fix] 正式模型中同名 Section 无法唯一定位时，预览和交付均拒绝其操作，不删除任意一份，也不封存活动 Change。
 - [x] [code_fix] 仅投影 Archive 时交付归档 Git 指引，不附带 Apply 专属的执行或恢复 references；保留正常 Apply 和内部 Agent 投影。
+- [x] [artifact_fix] 在 `quality-cli-gate` 契约中将 Quality 执行 references 限于 Apply，Archive 仅消费 Seal、转达诊断并交回 Apply。
 - [x] [code_fix] 移除独立 Sync 退役后无运行时调用的 Delta 解析包装，保留生产解析入口及现有行为验证。
 - [x] [code_fix] 即使活动源已恢复，任一日期、任一历史位置的同名未完成归档仍阻止写入；获得归档锁后再次校验，同名完成回执不阻止合法再用。
