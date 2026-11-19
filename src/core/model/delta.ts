@@ -47,7 +47,7 @@ export interface SemanticDelta {
 
 export interface ParsedDelta {
   delta: SemanticDelta;
-  sources: Array<{ path: string; entities: Array<{ entity: DeltaEntityType; identity: string }> }>;
+  sources: Array<{ path: string; entities: Array<{ entity: DeltaEntityType; identity: string }>; navigationOnly?: true }>;
   diagnostics: ModelDiagnostic[];
 }
 
@@ -309,13 +309,14 @@ export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navi
     const first = entries[0];
     if (first) units.push({ key: `${first.entity}\u0000${first.identity}`, path: file, entries });
     const entities = entries.map(({ entity, identity }) => ({ entity, identity }));
-    if (entities.length === 0) {
+    const navigationOnly = entities.length === 0;
+    if (navigationOnly) {
       const unit = splitFrontmatter(content);
       if (unit.ok && unit.data.entity === 'element-declaration' && typeof unit.data.identity === 'string') {
         entities.push({ entity: 'element-declaration', identity: unit.data.identity });
       }
     }
-    if (entities.length > 0) sources.push({ path: file, entities });
+    if (entities.length > 0) sources.push({ path: file, entities, ...(navigationOnly ? { navigationOnly: true } : {}) });
   }
   // Preserve the author's order within each unit, but derive cross-unit order from identity, not path.
   units.sort((left, right) => compareUtf8Bytes(left.key, right.key));

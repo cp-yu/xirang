@@ -169,7 +169,7 @@ describe('Expected Model text writeback', () => {
     expect(await fs.readFile(source, 'utf8')).not.toMatch(/^operation:/m);
   });
 
-  it('reverts the last local Section while preserving a sibling-owned Declaration and its source', async () => {
+  it('keeps a sibling-owned Declaration editable after reverting the last local Section', async () => {
     const formalPath = path.join(root, '.xirang', 'model', 'elements', 'item.md');
     const formal = await fs.readFile(formalPath, 'utf8');
     const external = elementUnit({ identity: 'item', title: 'Planned title' }).replace('entity: element-declaration', 'operation: MODIFIED\nentity: element-declaration');
@@ -183,8 +183,18 @@ describe('Expected Model text writeback', () => {
     const declaration = splitFrontmatter(formal);
     expect(declaration.ok).toBe(true);
     if (!declaration.ok) throw new Error(declaration.message);
-    expect(splitFrontmatter(await fs.readFile(source, 'utf8'))).toEqual({ ok: true, data: declaration.data, body: '' });
+    const placeholder = await fs.readFile(source, 'utf8');
+    expect(splitFrontmatter(placeholder)).toEqual({ ok: true, data: declaration.data, body: '' });
     expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+
+    target.sections[0].body = 'Item SHALL save from the Declaration source.';
+    expect(await writebackExpectedModel(root, 'demo', path.join('elements', 'second.md'), serializeElementUnit(target)))
+      .toEqual({ changed: true, ignoredChanges: [] });
+    expect(await expected()).toEqual(target);
+    expect((await compileChangeDelta(root, 'demo')).delta.entries.filter(entry => entry.identity === 'item'))
+      .toEqual([expect.objectContaining({ entity: 'element-declaration', operation: 'MODIFIED', target: target.declaration })]);
+    expect(await fs.readFile(externalPath, 'utf8')).toMatch(/^operation: MODIFIED$/m);
+    expect(await fs.readFile(source, 'utf8')).toBe(placeholder);
     expect(await fs.readFile(formalPath, 'utf8')).toBe(formal);
   });
 

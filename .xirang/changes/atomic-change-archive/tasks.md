@@ -108,7 +108,7 @@
 - [x] [code_fix] 拒绝新 Kind 的关系占用其他 Kind 的既有容器路径，即使原关系也在同次移除；同 Kind 的关系替换保持合法。
 - [x] [code_fix] 向进程发送探测信号返回 EPERM 时，仍尝试核对可读取的启动标识；无法核对则继续阻止。
 - [x] [code_fix] 制品状态报告隐藏 Delta 单元，沿用读取器对暂存和占位的排除规则。
-- [x] [code_fix] 写回撤销最后一个本地 Section 操作时使用 Formal 声明作导航占位，保留其他源文件的 Declaration 操作。
+- [x] [code_fix] 写回撤销最后一个本地 Section 操作时使用 Formal 声明作导航占位。后续从原操作源编辑仍保留其 Declaration 操作；占位不取得操作归属，也不成为操作失败的诊断位置。
 - [x] [code_fix] Formal 根和语义分区根必须是真实目录，不读取链接指向的树外语义制品；制品状态不报告链接目标。
 - [x] [code_fix] Kind 的显式上下游约束必须是 identity 列表，畸形值不得被当作省略字段交付。
 - [x] [code_fix] 拒绝无标题的 Acceptance Case，其内容不计入 Section 正文；围栏内示例不受影响。

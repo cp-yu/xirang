@@ -161,7 +161,8 @@ export async function compileChangeDelta(
     ...base.diagnostics,
     ...parsed.diagnostics,
     ...applicationIssues.map(item => {
-      const source = parsed.sources.find(unit => unit.entities.some(entry => entry.entity === item.entity && entry.identity === item.identity));
+      const source = parsed.sources.find(unit => !unit.navigationOnly
+        && unit.entities.some(entry => entry.entity === item.entity && entry.identity === item.identity));
       return source && !item.path ? { ...item, path: source.path } : item;
     }),
     ...validateSemanticModel(applied.expected),

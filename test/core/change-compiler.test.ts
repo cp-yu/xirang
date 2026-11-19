@@ -64,6 +64,7 @@ describe('compileChange', () => {
 
   it('reports identity precondition failures against the Formal model', async () => {
     await writeChangeDelta(root, 'broken', {
+      'elements/00-navigation.md': '---\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Old summary\n---\n',
       'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old duplicate\ndefinition: Duplicate\n---\n',
       'elements/ghost.id.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
     });
@@ -71,9 +72,9 @@ describe('compileChange', () => {
     const result = await compileChange(root, 'broken');
 
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.map(item => item.code)).toEqual(expect.arrayContaining([
-      'ADDED_IDENTITY_EXISTS',
-      'REMOVED_IDENTITY_MISSING',
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'ADDED_IDENTITY_EXISTS', path: 'elements/old.id.md' }),
+      expect.objectContaining({ code: 'REMOVED_IDENTITY_MISSING' }),
     ]));
   });
 

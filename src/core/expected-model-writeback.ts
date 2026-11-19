@@ -126,7 +126,7 @@ export async function writebackExpectedModel(
   });
   entries.push(...sectionEntries(base?.sections ?? [], edited.sections, identity));
   const entryKey = (entry: Pick<DeltaEntry, 'entity' | 'identity'>) => JSON.stringify([entry.entity, entry.identity]);
-  const otherEntries = new Set(current.sources.filter(item => item.path !== sourcePath)
+  const otherEntries = new Set(current.sources.filter(item => !item.navigationOnly && item.path !== sourcePath)
     .flatMap(item => item.entities.map(entryKey)));
   const existingEntries = new Map(current.delta.entries.map(entry => [entryKey(entry), entry]));
   const localEntries = entries.filter(entry => {
