@@ -279,10 +279,10 @@ export class ArchiveCommand {
     const historyChanged = () => new Error(`Archive state for '${changeName}' changed during lookup; verify and retry.`);
     const requireCompleteHistory = async (name: string) => {
       const history = await readArchiveHistory(archiveDir, options.abandon);
-      const { pending, receipt, changed } = await resolveArchiveHistory(history, name);
+      const { pending, receipts, changed } = await resolveArchiveHistory(history, name);
       if (pending) throw incompleteArchive(pending);
       if (changed) throw historyChanged();
-      return receipt;
+      return receipts?.[0];
     };
     if (!active?.isDirectory()) {
       const receipt = await requireCompleteHistory(changeName);

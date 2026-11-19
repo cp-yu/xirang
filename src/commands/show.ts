@@ -66,7 +66,7 @@ export class ShowCommand {
         }));
         return {
           path: source.path,
-          entries: source.entities.map(({ entity, identity }) => ({
+          entries: source.navigationOnly ? [] : source.entities.map(({ entity, identity }) => ({
             entity, identity,
             operation: result.delta.entries.find(entry => entry.entity === entity && entry.identity === identity)?.operation,
           })),

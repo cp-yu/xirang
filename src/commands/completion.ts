@@ -6,8 +6,7 @@ import { CompletionFactory } from '../core/completions/factory.js';
 import { introspectCommands } from '../core/completions/introspect.js';
 import { detectShell, SupportedShell } from '../utils/shell-detection.js';
 import { CompletionProvider } from '../core/completions/completion-provider.js';
-import { getArchivedChangeIds } from '../utils/item-discovery.js';
-import { listArchiveChoices } from '../core/archive-paths.js';
+import { listArchiveChoices, listDatedArchiveChoices } from '../core/archive-paths.js';
 
 interface GenerateOptions {
   shell?: string;
@@ -295,7 +294,7 @@ export class CompletionCommand {
           break;
         }
         case 'archived-changes': {
-          const archivedIds = await getArchivedChangeIds();
+          const archivedIds = await listDatedArchiveChoices(path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', 'archive'));
           for (const id of archivedIds) {
             console.log(`${id}\tarchived change`);
           }

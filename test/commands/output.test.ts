@@ -902,12 +902,16 @@ it.each([false, true])('reports pending history ahead of every completed receipt
       code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
     });
   }
-  const archived = await runCLI(['__complete', 'archive-changes'], { cwd: root });
-  expect(archived).toMatchObject({ exitCode: 0, stdout: '', stderr: '' });
+  for (const type of ['archive-changes', 'archived-changes']) {
+    expect(await runCLI(['__complete', type], { cwd: root })).toMatchObject({ exitCode: 0, stdout: '', stderr: '' });
+  }
   const unrelated = path.join(history, '2020-01-01-unrelated');
   await fs.mkdir(unrelated);
   expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
     exitCode: 0, stdout: 'unrelated\tarchived change\n', stderr: '',
+  });
+  expect(await runCLI(['__complete', 'archived-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: '2020-01-01-unrelated\tarchived change\n', stderr: '',
   });
   await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(fs.access(pendingArchivePath(destination))).resolves.toBeUndefined();
@@ -915,6 +919,9 @@ it.each([false, true])('reports pending history ahead of every completed receipt
   await fs.rmdir(pendingArchivePath(destination));
   expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
     exitCode: 0, stdout: 'orphaned\tarchived change\nunrelated\tarchived change\n', stderr: '',
+  });
+  expect(await runCLI(['__complete', 'archived-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: '2020-01-01-orphaned\tarchived change\n2020-01-01-unrelated\tarchived change\n2020-01-03-orphaned\tarchived change\n', stderr: '',
   });
 });
 
@@ -978,6 +985,7 @@ it.each([false, true])('ignores a history entry rolled back between listing and 
   const pending = pendingArchivePath(history);
   const active = path.join(changes, 'failed');
   await fs.mkdir(history, { recursive: true });
+  await fs.mkdir(path.join(path.dirname(history), '2025-12-31-failed'));
   await fs.mkdir(pending);
   const lstat = fs.lstat;
   let rolledBack = false;
@@ -1150,8 +1158,9 @@ it.each(['archive-root', 'abandoned-to-archive', 'abandoned-to-external'] as con
   await fs.mkdir(path.join(target, entry));
   const retry = await runCLI(['archive', 'other-change', '--json', ...flags], { cwd: root });
   expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
-  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
-  expect(completion.stdout).toBe(kind === 'abandoned-to-archive' ? `${entry}\tarchived change\n` : '');
+  for (const type of ['archive-changes', 'archived-changes']) {
+    expect(await runCLI(['__complete', type], { cwd: root })).toMatchObject({ exitCode: 1, stdout: '', stderr: '' });
+  }
   if (kind === 'abandoned-to-archive') {
     const delivered = await runCLI(['archive', 'other-change', '--json'], { cwd: root });
     expect(delivered).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });

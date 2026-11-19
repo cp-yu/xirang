@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { XIRANG_DIR_NAME } from '../core/config.js';
-import { archivedDirectoryState, hasArchiveHistoryDirectory, isDatedArchiveName } from '../core/archive-paths.js';
 import { modelRoot } from '../core/model/paths.js';
 import { parseSemanticModel } from '../core/model/parser.js';
 
@@ -35,21 +34,5 @@ export async function getContractElementIds(root: string = process.cwd()): Promi
     .filter(element => element.sections.length > 0 || businessKinds.has(element.declaration.kind))
     .map(element => element.declaration.identity)
     .sort();
-}
-
-export async function getArchivedChangeIds(root: string = process.cwd()): Promise<string[]> {
-  const archivePath = path.join(root, XIRANG_DIR_NAME, 'changes', 'archive');
-  if (!await hasArchiveHistoryDirectory(archivePath).catch(() => false)) return [];
-  const result = new Set<string>();
-  for (const directory of [archivePath, path.join(archivePath, 'abandoned')]) {
-    if (directory !== archivePath && !await hasArchiveHistoryDirectory(directory).catch(() => false)) continue;
-    const entries = await fs.readdir(directory, { withFileTypes: true }).catch(() => []);
-    for (const entry of entries) {
-      if (!entry.isDirectory() || !isDatedArchiveName(entry.name)) continue;
-      const state = await archivedDirectoryState(path.join(directory, entry.name)).catch(() => 'missing');
-      if (state === 'complete') result.add(entry.name);
-    }
-  }
-  return [...result].sort();
 }
 

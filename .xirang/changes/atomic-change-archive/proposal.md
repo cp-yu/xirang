@@ -24,6 +24,7 @@ None
 - `deterministic-operations`：进程内失败时模型与活动目录的一致性边界。
 - `archive-role`、`agent-prompt-guidance`、`snack-workflow`、`post-propose-validation`：Agent 的分支选择、结果报告与只读阶段边界。
 - `semantic-model-build`：避免用历史上的独立命令边界误判现行归档能力。
+- `completion-command`、`completion-introspect`：区分普通 Change ID 与归档位置参数补全，归档历史补全与重试共享完成判定。
 
 ### Architecture Source
 
