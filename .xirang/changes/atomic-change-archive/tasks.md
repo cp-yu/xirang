@@ -117,7 +117,7 @@
 - [x] [code_fix] 空的二级 Markdown 标题终止 Section 操作块，不能把其后的游离正文并入 Contract；围栏内示例保持不变。
 - [x] [code_fix] 以真实浅克隆验证默认交付只消费有效 Seal；缺少旧 Opt 提交时重新计算 Apply 状态会失败，但不阻塞归档。
 - [x] [code_fix] 以实体类型的规范字段白名单拒绝 Delta 中无法表示的 frontmatter 字段；REMOVED 继续只接受 identity。
-- [x] [code_fix] 围栏外的一级 ATX 标题结束 Section 操作或 Specification，后续游离内容不得并入此前 Section。
+- [x] [code_fix] 围栏外的一级 ATX 标题结束 Delta 的 Section 操作块，后续游离内容不得并入此前 Section。
 - [x] [code_fix] 预览和交付共用严格 UTF-8 解码；Formal 或 Delta 的无效字节在写入前报告单元路径。
 - [x] [code_fix] Setext 一级或二级标题不能隐藏 Section 操作；围栏内示例及段落分隔线保持原样。
 - [x] [code_fix] 归档写入、历史查询和补全不跟随 `archive` 或 `archive/abandoned` 链接，避免放弃与交付共用历史位置。

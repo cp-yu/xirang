@@ -1,9 +1,12 @@
-import { readSectionMarkdown, type SectionBodyMarkdown } from './section-text.js';
+import { buildCodeFenceMask, readDeltaSectionMarkdown, type SectionBodyMarkdown } from './section-text.js';
 
 export interface SectionBlock {
   headerLine: string; // e.g., '### Section: Something'
   name: string; // e.g., 'Something'
   raw: string; // full block including headerLine and following content
+}
+
+export interface DeltaSectionBlock extends SectionBlock {
   body: SectionBodyMarkdown;
 }
 
@@ -19,6 +22,7 @@ export function normalizeSectionName(name: string): string {
   return name.trim();
 }
 
+const FORMAL_SECTION_HEADER = /^###\s*Section:\s*(.+)\s*$/;
 const SECTION_HEADER = /^ {0,3}###[ \t]+Section:(.*)$/;
 const SECTION_LIKE = /^ {0,3}###\s*Section:/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-[ \t]+`?###[ \t]+Section:/;
@@ -33,7 +37,7 @@ function normalizeLineEndings(content: string): string {
   return content.replace(/\r\n?/g, '\n');
 }
 
-function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSectionMarkdown>, start: number, end: number, name: string): SectionBlock {
+function makeDeltaSectionBlock(lines: string[], markdown: ReturnType<typeof readDeltaSectionMarkdown>, start: number, end: number, name: string): DeltaSectionBlock {
   const headerLine = lines[start];
   const acceptanceCases = new Map<number, string>();
   for (let i = start + 1; i < end; i++) {
@@ -48,7 +52,6 @@ function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSecti
       lines: lines.slice(start + 1, end),
       acceptanceCases,
       hidden: markdown.hidden.slice(start + 1, end),
-      visible: markdown.visible.slice(start + 1, end),
     },
   };
 }
@@ -59,10 +62,9 @@ function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSecti
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const markdown = readSectionMarkdown(lines);
-  const { headings } = markdown;
-  const specHeaderIndex = lines.findIndex((line, index) => headings.get(index)?.depth === 2
-    && /^##[ \t]+Specification[ \t]*$/i.test(line));
+  const codeFenceMask = buildCodeFenceMask(lines);
+  const specHeaderIndex = lines.findIndex((line, index) => !codeFenceMask[index]
+    && /^##\s+Specification\s*$/i.test(line));
 
   if (specHeaderIndex === -1) {
     // No Specification section; create an empty one at the end
@@ -77,11 +79,10 @@ export function extractSpecificationSection(content: string): SpecificationSecti
     };
   }
 
-  // A heading at level one or two ends the Specification, even without a title.
+  // Find end of this section: next line that starts with '## ' at same or higher level
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    const heading = headings.get(i);
-    if (heading && heading.depth <= 2) {
+    if (!codeFenceMask[i] && /^##\s+/.test(lines[i])) {
       endIndex = i;
       break;
     }
@@ -89,20 +90,43 @@ export function extractSpecificationSection(content: string): SpecificationSecti
 
   const before = lines.slice(0, specHeaderIndex).join('\n');
   const headerLine = lines[specHeaderIndex];
-  const isSectionHeader = (index: number) => headings.get(index)?.depth === 3 && SECTION_HEADER.test(lines[index]);
+  const sectionBodyLines = lines.slice(specHeaderIndex + 1, endIndex);
+  const sectionBodyFenceMask = codeFenceMask.slice(specHeaderIndex + 1, endIndex);
+  const isSectionHeader = (index: number) => !sectionBodyFenceMask[index]
+    && FORMAL_SECTION_HEADER.test(sectionBodyLines[index]);
+
   const blocks: SectionBlock[] = [];
-  const first = specHeaderIndex + 1;
-  let cursor = first;
-  while (cursor < endIndex && !isSectionHeader(cursor)) cursor++;
-  const preamble = lines.slice(first, cursor).join('\n').trimEnd();
-  while (cursor < endIndex) {
-    const start = cursor++;
-    const name = normalizeSectionName(lines[start].match(SECTION_HEADER)![1]);
-    while (cursor < endIndex && !isSectionHeader(cursor)) cursor++;
-    blocks.push(makeSectionBlock(lines, markdown, start, cursor, name));
+  let cursor = 0;
+  const preambleLines: string[] = [];
+
+  // Collect preamble lines until the first Section header
+  while (cursor < sectionBodyLines.length && !isSectionHeader(cursor)) {
+    preambleLines.push(sectionBodyLines[cursor]);
+    cursor++;
+  }
+
+  while (cursor < sectionBodyLines.length) {
+    const headerLineCandidate = sectionBodyLines[cursor];
+    const headerMatch = headerLineCandidate.match(FORMAL_SECTION_HEADER);
+    if (!headerMatch) {
+      // Not a Section header; skip line defensively
+      cursor++;
+      continue;
+    }
+    const name = normalizeSectionName(headerMatch[1]);
+    cursor++;
+    // Gather lines until the next Section header or end of the Specification section
+    const bodyLines: string[] = [headerLineCandidate];
+    while (cursor < sectionBodyLines.length && !isSectionHeader(cursor)) {
+      bodyLines.push(sectionBodyLines[cursor]);
+      cursor++;
+    }
+    const raw = bodyLines.join('\n').trimEnd();
+    blocks.push({ headerLine: headerLineCandidate, name, raw });
   }
 
   const after = lines.slice(endIndex).join('\n');
+  const preamble = preambleLines.join('\n').trimEnd();
 
   return {
     before: before.trimEnd() ? before + '\n' : before,
@@ -114,8 +138,8 @@ export function extractSpecificationSection(content: string): SpecificationSecti
 }
 
 export interface DeltaPlan {
-  added: SectionBlock[];
-  modified: SectionBlock[];
+  added: DeltaSectionBlock[];
+  modified: DeltaSectionBlock[];
   removed: string[]; // Section titles
   unsupportedSections: string[];
   duplicateSections: string[];
@@ -171,7 +195,7 @@ export function parseDeltaSpec(content: string): DeltaPlan {
 }
 
 function splitTopLevelSections(content: string): {
-  sections: Array<[string, SectionBlock[]]>;
+  sections: Array<[string, DeltaSectionBlock[]]>;
   removed: string[];
   unscopedSections: string[];
   malformedOperationLines: number[];
@@ -180,19 +204,19 @@ function splitTopLevelSections(content: string): {
   removedContentLines: number[];
 } {
   const lines = content.split('\n');
-  const sections: Array<[string, SectionBlock[]]> = [];
+  const sections: Array<[string, DeltaSectionBlock[]]> = [];
   const removed: string[] = [];
   const unscopedSections: string[] = [];
   const malformedOperationLines: number[] = [];
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const markdown = readSectionMarkdown(lines);
+  const markdown = readDeltaSectionMarkdown(lines);
   const { headings, literal, removalItems } = markdown;
-  let block: [string, SectionBlock[]] | undefined;
+  let block: [string, DeltaSectionBlock[]] | undefined;
   let section: { start: number; name: string } | undefined;
   const finishSection = (end: number) => {
-    if (section && block) block[1].push(makeSectionBlock(lines, markdown, section.start, end, section.name));
+    if (section && block) block[1].push(makeDeltaSectionBlock(lines, markdown, section.start, end, section.name));
     section = undefined;
   };
   for (let i = 0; i < lines.length; i++) {
