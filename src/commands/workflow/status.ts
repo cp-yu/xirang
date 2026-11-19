@@ -4,6 +4,7 @@ import {
   loadChangeContext, formatChangeStatus, resolveSchema, resolveArtifactOutputs,
   type ChangeStatus,
 } from '../../core/artifact-graph/index.js';
+import { FileSystemUtils } from '../../utils/file-system.js';
 import { validateTaskStructure } from '../../core/parsers/task-structure.js';
 import { readQualityCompletion } from '../../core/quality/state.js';
 import { validateChangeExists, validateSchemaExists, getAvailableChanges, getStatusIndicator } from './shared.js';
@@ -24,13 +25,14 @@ export async function loadWorkflowStatus(projectRoot: string, changeName: string
   const schema = resolveSchema(context.schemaName, projectRoot);
   const status = formatChangeStatus(context);
   const result: WorkflowStatus = { ...status, state: 'ready', goals: { total: 0, completed: 0, remaining: 0 }, gaps: [] };
+  const outputRoot = FileSystemUtils.canonicalizeExistingPath(projectRoot);
   for (const artifact of result.artifacts) {
     const definition = schema.artifacts.find(a => a.id === artifact.id)!;
-    Object.assign(artifact, { outputs: resolveArtifactOutputs(context.changeDir, definition.generates).map(p => path.relative(projectRoot, p).split(path.sep).join('/')) });
+    Object.assign(artifact, { outputs: resolveArtifactOutputs(context.changeDir, definition.generates).map(p => path.relative(outputRoot, p).split(path.sep).join('/')) });
     if (definition.completionMarker) {
       const marker = path.join(context.changeDir, definition.completionMarker);
       const stat = await lstat(marker).catch((error: NodeJS.ErrnoException) => { if (error.code === 'ENOENT') return undefined; throw error; });
-      Object.assign(artifact, { completionMarker: { path: path.relative(projectRoot, marker).split(path.sep).join('/'), present: !!stat?.isFile() } });
+      Object.assign(artifact, { completionMarker: { path: path.relative(outputRoot, marker).split(path.sep).join('/'), present: !!stat?.isFile() } });
     }
     if (result.applyRequires.includes(artifact.id) && artifact.status !== 'done') {
       result.gaps.push({ path: artifact.outputPath, message: `Missing required artifact: ${artifact.id}` });

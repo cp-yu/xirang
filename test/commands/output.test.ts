@@ -86,14 +86,20 @@ it.each([
   await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-it.skipIf(process.platform === 'win32')('rejects a Delta snapshot that cannot represent two distinct POSIX unit paths', async () => {
+it.skipIf(process.platform === 'win32')('rejects a Delta snapshot that cannot represent two distinct POSIX unit paths', async context => {
   await writeProjectModel(root, minimalModel());
   const model = path.join(root, '.xirang', 'model');
   const before = await readModelTree(model);
   const add = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
   const source = await writeChangeDelta(root, 'bad-path', { 'elements/unit-�.md': add('utf8-unit') });
-  const opaque = Buffer.concat([Buffer.from(`${source}/elements/unit-`), Buffer.from([0x80]), Buffer.from('.md')]);
-  await fs.writeFile(opaque, add('raw-unit'));
+  const opaque = Buffer.concat([Buffer.from(path.join(source, 'elements', 'unit-')), Buffer.from([0x80]), Buffer.from('.md')]);
+  try { await fs.writeFile(opaque, add('raw-unit')); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EILSEQ') {
+      return context.skip('Temporary filesystem cannot represent non-UTF-8 filenames');
+    }
+    throw error;
+  }
 
   const result = await runCLI(['archive', 'bad-path', '--quick', '--yes', '--json'], { cwd: root });
   expect(result).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('NON_UTF8_UNIT_PATH') });
@@ -625,6 +631,7 @@ it.each([
   ['###\u000bSection: Existing', 'MALFORMED_SECTION_HEADER'],
   ['- ###\u00a0Section: Existing', 'UNEXPECTED_REMOVED_CONTENT'],
   ['- `###\u00a0Section: Existing`', 'UNEXPECTED_REMOVED_CONTENT'],
+  ['-     ### Section: Existing', 'UNEXPECTED_REMOVED_CONTENT'],
 ])('rejects malformed removal syntax before deleting an existing Formal Section (%j)', async (removal, code) => {
   const file = 'elements/root.md';
   const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
@@ -948,21 +955,25 @@ it('completes both finished archive modes and omits marked incomplete history', 
   }
 });
 
-it('diagnoses an older orphaned marker in the requested mode without returning an opposite-mode receipt', async () => {
+it.each([false, true])('reports pending history ahead of every completed receipt (pending abandonment=%s)', async pendingAbandonment => {
   const history = path.join(root, '.xirang', 'changes', 'archive');
   const abandoned = path.join(history, 'abandoned');
-  const destination = path.join(abandoned, '2020-01-02-orphaned');
-  const olderDelivery = path.join(history, '2020-01-01-orphaned');
-  await fs.mkdir(abandoned, { recursive: true });
-  await fs.mkdir(olderDelivery);
+  const pendingParent = pendingAbandonment ? abandoned : history;
+  const destination = path.join(pendingParent, '2020-01-02-orphaned');
+  const completed = [path.join(history, '2020-01-01-orphaned'), path.join(abandoned, '2020-01-01-orphaned'), path.join(pendingParent, '2020-01-03-orphaned')];
+  for (const receipt of completed) await fs.mkdir(receipt, { recursive: true });
   await fs.mkdir(pendingArchivePath(destination));
-  const retry = await runCLI(['archive', 'orphaned', '--abandon', '--json'], { cwd: root });
-  expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
-  expect(JSON.parse(retry.stderr)).toMatchObject({
-    code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
-  });
+
+  for (const flags of [[], ['--quick'], ['--abandon']]) {
+    const retry = await runCLI(['archive', 'orphaned', '--json', ...flags], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(retry.stderr)).toMatchObject({
+      code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
+    });
+  }
   await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
-  await expect(fs.readdir(olderDelivery)).resolves.toEqual([]);
+  await expect(fs.access(pendingArchivePath(destination))).resolves.toBeUndefined();
+  for (const receipt of completed) await expect(fs.readdir(receipt)).resolves.toEqual([]);
 });
 
 it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {
@@ -1104,7 +1115,7 @@ it.each(['archive-root', 'abandoned-to-archive', 'abandoned-to-external'] as con
   expect(completion.stdout).toBe(kind === 'abandoned-to-archive' ? `${entry}\tarchived change\n` : '');
   if (kind === 'abandoned-to-archive') {
     const delivered = await runCLI(['archive', 'other-change', '--json'], { cwd: root });
-    expect(JSON.parse(delivered.stdout)).toEqual({ archive: path.relative(root, path.join(archive, entry)), alreadyArchived: true });
+    expect(delivered).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
   }
 });
 

@@ -19,10 +19,9 @@ export function normalizeSectionName(name: string): string {
   return name.trim();
 }
 
-const SECTION_HEADER_REGEX = /^###\s*Section:\s*(.+)\s*$/;
-const ENCLOSING_HEADING = /^ {0,3}(#{1,2})(?:[ \t]+(.*))?$/;
+const SECTION_HEADER = /^ {0,3}###[ \t]+Section:(.*)$/;
+const SECTION_LIKE = /^ {0,3}###\s*Section:/;
 const REMOVED_BULLET_PREFIX = /^ {0,3}-[ \t]+`?###[ \t]+Section:/;
-const DELTA_SECTION_HEADER = /^ {0,3}###[ \t]+Section:\s*(.+)$/;
 const OVER_INDENTED_OPERATION = /^(?: {4}|[ \t]*\t)[ \t]*##[ \t]+\S.*[ \t]+Sections[ \t]*#*[ \t]*$/i;
 
 function deltaSectionName(raw: string | undefined): string | undefined {
@@ -36,13 +35,18 @@ function normalizeLineEndings(content: string): string {
 
 function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSectionMarkdown>, start: number, end: number, name: string): SectionBlock {
   const headerLine = lines[start];
+  const acceptanceCases = new Map<number, string>();
+  for (let i = start + 1; i < end; i++) {
+    const title = markdown.acceptanceCases.get(i);
+    if (title !== undefined) acceptanceCases.set(i - start - 1, title);
+  }
   return {
     headerLine,
     name,
     raw: lines.slice(start, end).join('\n').trim(),
     body: {
       lines: lines.slice(start + 1, end),
-      literal: markdown.literal.slice(start + 1, end),
+      acceptanceCases,
       hidden: markdown.hidden.slice(start + 1, end),
       visible: markdown.visible.slice(start + 1, end),
     },
@@ -55,10 +59,10 @@ function makeSectionBlock(lines: string[], markdown: ReturnType<typeof readSecti
 export function extractSpecificationSection(content: string): SpecificationSectionParts {
   const normalized = normalizeLineEndings(content);
   const lines = normalized.split('\n');
-  const markdown = readSectionMarkdown(lines, { includeSetext: true });
-  const { literal: literalMask, setext: underlined } = markdown;
-  const specHeaderIndex = lines.findIndex((line, index) => !literalMask[index]
-    && /^##\s+Specification\s*$/i.test(line));
+  const markdown = readSectionMarkdown(lines);
+  const { headings } = markdown;
+  const specHeaderIndex = lines.findIndex((line, index) => headings.get(index)?.depth === 2
+    && /^##[ \t]+Specification[ \t]*$/i.test(line));
 
   if (specHeaderIndex === -1) {
     // No Specification section; create an empty one at the end
@@ -76,7 +80,8 @@ export function extractSpecificationSection(content: string): SpecificationSecti
   // A heading at level one or two ends the Specification, even without a title.
   let endIndex = lines.length;
   for (let i = specHeaderIndex + 1; i < lines.length; i++) {
-    if (!literalMask[i] && (ENCLOSING_HEADING.test(lines[i]) || underlined.has(i))) {
+    const heading = headings.get(i);
+    if (heading && heading.depth <= 2) {
       endIndex = i;
       break;
     }
@@ -84,7 +89,7 @@ export function extractSpecificationSection(content: string): SpecificationSecti
 
   const before = lines.slice(0, specHeaderIndex).join('\n');
   const headerLine = lines[specHeaderIndex];
-  const isSectionHeader = (index: number) => !literalMask[index] && SECTION_HEADER_REGEX.test(lines[index]);
+  const isSectionHeader = (index: number) => headings.get(index)?.depth === 3 && SECTION_HEADER.test(lines[index]);
   const blocks: SectionBlock[] = [];
   const first = specHeaderIndex + 1;
   let cursor = first;
@@ -92,7 +97,7 @@ export function extractSpecificationSection(content: string): SpecificationSecti
   const preamble = lines.slice(first, cursor).join('\n').trimEnd();
   while (cursor < endIndex) {
     const start = cursor++;
-    const name = normalizeSectionName(lines[start].match(SECTION_HEADER_REGEX)![1]);
+    const name = normalizeSectionName(lines[start].match(SECTION_HEADER)![1]);
     while (cursor < endIndex && !isSectionHeader(cursor)) cursor++;
     blocks.push(makeSectionBlock(lines, markdown, start, cursor, name));
   }
@@ -182,84 +187,57 @@ function splitTopLevelSections(content: string): {
   const malformedSectionLines: number[] = [];
   const unscopedContentLines: number[] = [];
   const removedContentLines: number[] = [];
-  const markdown = readSectionMarkdown(lines, { includeSetext: true, includeListItems: true });
-  const { literal: mask, setext: underlined, listItems } = markdown;
-  const indices: Array<{ title: string; index: number }> = [];
-  let block = '';
-  let hasSection = false;
+  const markdown = readSectionMarkdown(lines);
+  const { headings, literal, removalItems } = markdown;
+  let block: [string, SectionBlock[]] | undefined;
+  let section: { start: number; name: string } | undefined;
+  const finishSection = (end: number) => {
+    if (section && block) block[1].push(makeSectionBlock(lines, markdown, section.start, end, section.name));
+    section = undefined;
+  };
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
-    const setextEnd = mask[i] ? undefined : underlined.get(i);
-    if (setextEnd !== undefined) {
+    const heading = headings.get(i);
+    if ((heading && heading.end > i) || (!literal[i] && OVER_INDENTED_OPERATION.test(line))) {
+      finishSection(i);
       malformedOperationLines.push(i + 1);
-      indices.push({ title: '', index: i });
-      block = '';
-      hasSection = false;
-      i = setextEnd;
+      block = undefined;
+      i = heading?.end ?? i;
       continue;
     }
-    if (!mask[i] && OVER_INDENTED_OPERATION.test(line)) {
-      malformedOperationLines.push(i + 1);
-      indices.push({ title: '', index: i });
-      block = '';
-      hasSection = false;
+    if (heading && heading.depth <= 2) {
+      finishSection(i);
+      const title = heading.depth === 2 ? line.trim().slice(2).trim() : '';
+      block = title ? [title, []] : undefined;
+      if (block) sections.push(block);
+      else if (heading.depth === 1) unscopedContentLines.push(i + 1);
+      else malformedOperationLines.push(i + 1);
       continue;
     }
-    const heading = !mask[i] && line.match(ENCLOSING_HEADING);
-    if (heading) {
-      const topLevel = heading[1] === '#';
-      const title = topLevel ? '' : heading[2]?.trim() ?? '';
-      if (topLevel) unscopedContentLines.push(i + 1);
-      else if (!title) malformedOperationLines.push(i + 1);
-      indices.push({ title, index: i });
-      block = title.toLowerCase();
-      hasSection = false;
-    } else if (!mask[i] && /^ {0,3}###\s*Section:/.test(line)) {
-      const name = deltaSectionName(line.match(DELTA_SECTION_HEADER)?.[1]);
+    const operation = block?.[0].toLowerCase();
+    const sectionHeader = heading?.depth === 3 ? line.match(SECTION_HEADER) : null;
+    if (sectionHeader || (!literal[i] && SECTION_LIKE.test(line))) {
+      finishSection(i);
+      const name = deltaSectionName(sectionHeader?.[1]);
       if (!name) malformedSectionLines.push(i + 1);
       else if (!block) unscopedSections.push(name);
-      else if (block === 'removed sections') removed.push(name);
-      else hasSection = true;
-    } else if (block === 'removed sections') {
-      // A plain removal bullet contains a nested heading; the list item itself must be top-level.
-      const prefix = listItems.has(i) ? line.match(REMOVED_BULLET_PREFIX)?.[0] : undefined;
-      if (!prefix) removedContentLines.push(i + 1);
+      else if (operation === 'removed sections') removed.push(name);
+      else if (operation === 'added sections' || operation === 'modified sections') section = { start: i, name };
+    } else if (operation === 'removed sections') {
+      const prefix = line.match(REMOVED_BULLET_PREFIX)?.[0];
+      if (!prefix || !removalItems.has(i)) removedContentLines.push(i + 1);
       else {
         const name = removedBulletName(line, prefix);
         if (name) removed.push(name);
         else malformedSectionLines.push(i + 1);
       }
-    } else if (!block || (!hasSection && /^(added|modified) sections$/.test(block))) {
+    } else if (!block || (!section && (operation === 'added sections' || operation === 'modified sections'))) {
       unscopedContentLines.push(i + 1);
     }
   }
-  for (let i = 0; i < indices.length; i++) {
-    const current = indices[i];
-    if (!current.title) continue;
-    const next = indices[i + 1];
-    const blocks = /^(added|modified) sections$/i.test(current.title)
-      ? parseSectionBlocks(lines, markdown, current.index + 1, next?.index ?? lines.length)
-      : [];
-    sections.push([current.title, blocks]);
-  }
+  finishSection(lines.length);
   return { sections, removed, unscopedSections, malformedOperationLines, malformedSectionLines, unscopedContentLines, removedContentLines };
-}
-
-function parseSectionBlocks(lines: string[], markdown: ReturnType<typeof readSectionMarkdown>, start: number, end: number): SectionBlock[] {
-  const blocks: SectionBlock[] = [];
-  const isHeader = (index: number) => !markdown.literal[index] && /^ {0,3}###\s*Section:/.test(lines[index]);
-  let i = start;
-  while (i < end) {
-    while (i < end && !isHeader(i)) i++;
-    if (i >= end) break;
-    const first = i++;
-    const name = deltaSectionName(lines[first].match(DELTA_SECTION_HEADER)?.[1]);
-    if (!name) continue;
-    while (i < end && !isHeader(i)) i++;
-    blocks.push(makeSectionBlock(lines, markdown, first, i, name));
-  }
-  return blocks;
 }
 
 function removedBulletName(line: string, prefix: string): string | undefined {

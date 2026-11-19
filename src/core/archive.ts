@@ -235,29 +235,31 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
   if (!await hasArchiveHistoryDirectory(archiveDir)) return undefined;
   const abandonedDir = path.join(archiveDir, 'abandoned');
   const directories = abandon ? [abandonedDir, archiveDir] : [archiveDir, abandonedDir];
+  let receipt: string | undefined;
   for (const directory of directories) {
     if (directory === abandonedDir && !await hasArchiveHistoryDirectory(directory)) continue;
     const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
       if (error.code === 'ENOENT') return [];
       throw error;
     });
-    const candidates = new Set<string>();
+    const names = new Set<string>();
     for (const entry of entries) {
       if (entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName) {
-        candidates.add(entry.name);
+        names.add(entry.name);
       } else {
         const pending = pendingArchiveName(entry.name, changeName);
-        if (pending) candidates.add(pending);
+        if (pending) names.add(pending);
       }
     }
-    for (const candidate of [...candidates].sort().reverse()) {
-      const location = path.join(directory, candidate);
+    for (const name of [...names].sort().reverse()) {
+      const location = path.join(directory, name);
       const state = await archivedDirectoryState(location);
       if (state === 'pending') throw incompleteArchive(location);
-      if (state === 'complete') return location;
+      if (state === 'complete') receipt ??= location;
     }
   }
-  return undefined;
+  // Mode and date rank completed receipts only after pending history has been ruled out.
+  return receipt;
 }
 
 function sealGateError(changeName: string, problem: string): Error {

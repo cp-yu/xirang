@@ -3,7 +3,6 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
-import { readAcceptanceCaseHeader } from '../parsers/section-text.js';
 import { extractSpecificationSection, type SectionBlock } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
@@ -114,13 +113,13 @@ function kindConstraint(value: unknown, field: string, file: string, identity: s
 }
 
 /** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
-export function parseSectionBlock({ name, body: { lines, literal } }: SectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
+export function parseSectionBlock({ name, body: { lines, acceptanceCases: caseHeadings } }: SectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
   const bodyLines: string[] = [];
   const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const title = literal[index] ? undefined : readAcceptanceCaseHeader(lines[index]);
+    const title = caseHeadings.get(index);
     if (title !== undefined) {
       if (title === '') {
         diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,

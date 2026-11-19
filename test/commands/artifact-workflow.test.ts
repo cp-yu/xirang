@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { loadWorkflowStatus } from '../../src/commands/workflow/status.js';
 import { createBaselineOnlyQualityFixture, createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 
 describe('artifact-workflow CLI commands', () => {
@@ -208,6 +209,25 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       expect(await status()).toMatchObject({ status: 'done', outputs: [`.xirang/changes/${name}/elements/.drafts/.author-unit`] });
       await fs.unlink(unit);
       expect(await status()).toMatchObject({ status: 'ready', outputs: [] });
+    });
+
+    it('reports the same project-relative artifact paths through a project directory alias', async () => {
+      const project = path.join(tempDir, 'project');
+      const alias = path.join(tempDir, 'alias');
+      const name = 'aliased-project';
+      const change = path.join(project, '.xirang', 'changes', name);
+      await fs.mkdir(change, { recursive: true });
+      await fs.writeFile(path.join(change, 'proposal.md'), '# Proposal\n');
+      await fs.writeFile(path.join(change, '.delta-noop'), '');
+      await fs.symlink(project, alias, process.platform === 'win32' ? 'junction' : 'dir');
+
+      const expectedPath = (file: string) => path.relative(project, path.join(change, file)).split(path.sep).join('/');
+      const direct = await loadWorkflowStatus(project, name, undefined, false);
+      expect(direct.artifacts).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: 'proposal', outputs: [expectedPath('proposal.md')] }),
+        expect.objectContaining({ id: 'semantic-delta', completionMarker: { path: expectedPath('.delta-noop'), present: true } }),
+      ]));
+      await expect(loadWorkflowStatus(alias, name, undefined, false)).resolves.toEqual(direct);
     });
 
     it('shows status for scaffolded change without proposal.md', async () => {

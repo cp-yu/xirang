@@ -4,16 +4,13 @@ import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 
 const METADATA_LINE = /^\*\*[^*]+\*\*:/;
-const HEADER_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
 const ACCEPTANCE_CASE_HEADER = /^ {0,3}####[ \t]+Acceptance Case:(.*)$/;
 const FENCE_START = /^(?:`{3,}|~{3,})/;
-const BLOCK_CANDIDATE = /`|~{3,}|<|\]:|^[ \t]+#{1,6}(?:[ \t]|$)/;
-const SETEXT_UNDERLINE = /^ {0,3}(?:-+|=+)[ \t]*$/;
 const markdown = unified().use(remarkParse);
 type MarkdownNode = ReturnType<typeof markdown.parse>['children'][number];
 
 /** Undefined means no case heading; an empty name means the heading has no title. */
-export function readAcceptanceCaseHeader(line: string): string | undefined {
+function readAcceptanceCaseHeader(line: string): string | undefined {
   const match = line.match(ACCEPTANCE_CASE_HEADER);
   if (!match) return undefined;
   const title = match[1].trim();
@@ -97,73 +94,85 @@ function parseMarkdownBlocks(source: string): { children: MarkdownNode[]; defini
   }
 }
 
-export function readSectionMarkdown(lines: string[], { includeSetext = false, includeListItems = false } = {}) {
+export function readSectionMarkdown(lines: string[]) {
   const literal = new Array<boolean>(lines.length).fill(false);
   const hidden = new Array<boolean>(lines.length).fill(false);
-  const setext = new Map<number, number>();
-  const listItems = new Set<number>();
+  const headings = new Map<number, { depth: number; end: number }>();
+  const acceptanceCases = new Map<number, string>();
+  const removalItems = new Set<number>();
   let visible = lines;
   const maskColumns = (line: number, from: number, to: number): void => {
     if (visible === lines) visible = [...lines];
     const text = visible[line];
     visible[line] = text.slice(0, from) + ' '.repeat(to - from) + text.slice(to);
   };
-  if (lines.some(line => BLOCK_CANDIDATE.test(line)
-    || (includeSetext && SETEXT_UNDERLINE.test(line))
-    || (includeListItems && /^ {0,3}-[ \t]+/.test(line)))) {
-    const source = lines.join('\n');
-    const { children, definitions } = parseMarkdownBlocks(source);
-    const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number): void => {
-      let inComment = false;
-      for (let i = first; i <= last; i++) {
-        const line = lines[i];
-        const limit = i === last ? end : line.length;
-        let cursor = i === first ? start : 0;
-        while (cursor < limit) {
-          const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit, definitions) - offset;
-          if (opening < 0) break;
-          const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
-          inComment = closing === -1 || closing + 3 > limit;
-          cursor = inComment ? limit : closing + 3;
-          maskColumns(i, opening, cursor);
-        }
-        offset += line.length + 1;
+  const source = lines.join('\n');
+  const { children, definitions } = parseMarkdownBlocks(source);
+  const maskHtmlComments = (first: number, last: number, start: number, end: number, offset: number): void => {
+    let inComment = false;
+    for (let i = first; i <= last; i++) {
+      const line = lines[i];
+      const limit = i === last ? end : line.length;
+      let cursor = i === first ? start : 0;
+      while (cursor < limit) {
+        const opening = inComment ? cursor : nextCommentOpening(source, offset + cursor, offset + limit, definitions) - offset;
+        if (opening < 0) break;
+        const closing = line.indexOf('-->', opening + (inComment ? 0 : 4));
+        inComment = closing === -1 || closing + 3 > limit;
+        cursor = inComment ? limit : closing + 3;
+        maskColumns(i, opening, cursor);
       }
-    };
-    const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
-      if (!node.position) return;
-      const { start, end } = node.position;
-      const first = start.line - 1;
-      const last = end.line - 1;
-      if (node.type === 'definition' || (node.type === 'code' && FENCE_START.test(lines[first].slice(start.column - 1)))) {
+      offset += line.length + 1;
+    }
+  };
+  const visit = (node: MarkdownNode, topLevel: boolean, inline: boolean): void => {
+    if (!node.position) return;
+    const { start, end } = node.position;
+    const first = start.line - 1;
+    const last = end.line - 1;
+    if (node.type === 'definition' || node.type === 'code') {
+      hidden.fill(true, first, last + 1);
+      if (node.type === 'definition' || !topLevel || FENCE_START.test(lines[first].slice(start.column - 1))) {
         literal.fill(true, first, last + 1);
-        hidden.fill(true, first, last + 1);
-      } else if (node.type === 'inlineCode') {
-        literal.fill(true, first + 1, last + 1);
-      } else if (node.type === 'html') {
-        // Inline markup does not hide other Markdown on its opening and closing lines.
-        const from = inline ? first + 1 : first;
-        const to = inline ? last : last + 1;
-        literal.fill(true, from, to);
-        if (node.value.includes('<!--') && start.offset !== undefined) {
-          maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1);
-        }
-      } else if (node.type === 'heading') {
-        if (!topLevel) literal.fill(true, first, last + 1);
-        else if (includeSetext && first !== last) setext.set(first, last);
-      } else if (includeListItems && topLevel && node.type === 'list') {
-        for (const item of node.children) {
-          if (item.position) listItems.add(item.position.start.line - 1);
+      }
+    } else if (node.type === 'inlineCode') {
+      literal.fill(true, first + 1, last + 1);
+    } else if (node.type === 'html') {
+      // Inline markup does not hide other Markdown on its opening and closing lines.
+      const from = inline ? first + 1 : first;
+      const to = inline ? last : last + 1;
+      literal.fill(true, from, to);
+      if (node.value.includes('<!--') && start.offset !== undefined) {
+        maskHtmlComments(first, last, start.column - 1, end.column - 1, start.offset - start.column + 1);
+      }
+    } else if (node.type === 'heading') {
+      hidden.fill(true, first, last + 1);
+      if (!topLevel) literal.fill(true, first, last + 1);
+      else {
+        headings.set(first, { depth: node.depth, end: last });
+        if (node.depth === 4 && first === last) {
+          const title = readAcceptanceCaseHeader(lines[first]);
+          if (title !== undefined) acceptanceCases.set(first, title);
         }
       }
-      if ('children' in node) {
-        const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
-        node.children.forEach(child => visit(child, false, childInline));
+    } else if (topLevel && node.type === 'list') {
+      for (const item of node.children) {
+        const firstBlock = item.children[0];
+        const line = item.position?.start.line;
+        if (line === undefined || firstBlock?.position?.end.line !== line) continue;
+        if ((firstBlock.type === 'heading' && firstBlock.depth === 3)
+          || (firstBlock.type === 'paragraph' && firstBlock.children.length === 1 && firstBlock.children[0].type === 'inlineCode')) {
+          removalItems.add(line - 1);
+        }
       }
-    };
-    children.forEach(node => visit(node, true, false));
-  }
-  return { literal, hidden, setext, visible, listItems };
+    }
+    if ('children' in node) {
+      const childInline = inline || node.type === 'paragraph' || node.type === 'heading';
+      node.children.forEach(child => visit(child, false, childInline));
+    }
+  };
+  children.forEach(node => visit(node, true, false));
+  return { literal, hidden, headings, acceptanceCases, visible, removalItems };
 }
 
 /** Whole-word SHALL/MUST detection shared by Contract and Delta validation. */
@@ -173,21 +182,19 @@ export function containsShallOrMust(text: string): boolean {
 
 export interface SectionBodyMarkdown {
   lines: string[];
-  literal: boolean[];
+  acceptanceCases: ReadonlyMap<number, string>;
   hidden: boolean[];
   visible: string[];
 }
 
 /** Skips fenced examples, comments, headings and Acceptance Cases using the unit's Markdown boundaries. */
-export function extractSectionBody({ lines, literal, hidden, visible }: SectionBodyMarkdown): string {
+export function extractSectionBody({ lines, acceptanceCases, hidden, visible }: SectionBodyMarkdown): string {
   const captured: string[] = [];
   const metadata: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
+    if (acceptanceCases.has(i)) break;
     if (hidden[i]) continue;
-    const line = lines[i];
-    if (!literal[i] && readAcceptanceCaseHeader(line) !== undefined) break;
-    if (HEADER_LINE.test(visible[i])) continue;
     const trimmed = visible[i].trim();
     if (trimmed.length === 0) continue;
     if (METADATA_LINE.test(trimmed)) {
