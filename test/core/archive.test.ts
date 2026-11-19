@@ -698,6 +698,28 @@ git:
       } finally { folded?.mockRestore(); }
     });
 
+    it('delivers an explicit no-op without probing unchanged case-distinct Formal paths', async ({ skip }) => {
+      const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
+      if (await fs.access(path.join(modelDir, 'ROOT.md')).then(() => true, () => false)) return skip('Formal directory is case-insensitive');
+      await fs.writeFile(path.join(modelDir, 'Foo.md'), elementUnit({ identity: 'Foo' }));
+      await fs.writeFile(path.join(modelDir, 'foo.md'), elementUnit({ identity: 'foo' }));
+      const before = await readSyncModelTree(tempDir);
+      const source = await writeChangeDelta(tempDir, 'readonly-noop', { '.delta-noop': '' });
+      const mkdtemp = fs.mkdtemp;
+      const denyWrite = vi.spyOn(fs, 'mkdtemp').mockImplementation(async (prefix, options) => {
+        if (path.dirname(String(prefix)) === modelDir) throw Object.assign(new Error('read-only Formal directory'), { code: 'EACCES' });
+        return mkdtemp(prefix, options);
+      });
+      try {
+        await archiveCommand.execute('readonly-noop', { quick: true, yes: true });
+      } finally { denyWrite.mockRestore(); }
+      await expect(readSyncModelTree(tempDir)).resolves.toEqual(before);
+      const history = path.join(path.dirname(source), 'archive');
+      const archived = (await fs.readdir(history)).find(entry => entry.endsWith('-readonly-noop'))!;
+      await expect(fs.readFile(path.join(history, archived, '.delta-noop'), 'utf8')).resolves.toBe('');
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+    });
+
     it.each([false, true])('names both owners of an alias to an existing Formal unit (remove existing=%s)', async removeExisting => {
       const modelDir = path.join(tempDir, '.xirang', 'model', 'elements');
       const formal = path.join(modelDir, 'existing.id.md');
@@ -1047,6 +1069,44 @@ git:
       await expect(fs.readFile(path.join(dest, 'tasks.md'), 'utf8')).resolves.toBe('- [x] complete\n');
       await expect(archiveCommand.execute(name, { quick: true, yes: true })).rejects.toThrow(/Archive is incomplete/);
       expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])('reports an orphaned pending archive instead of returning history (older delivery=%s)', async olderDelivery => {
+      const name = 'orphaned-pending';
+      const source = await writeSemanticArchiveFixture(name);
+      const history = path.join(path.dirname(source), 'archive');
+      const abandoned = path.join(history, 'abandoned');
+      const dest = path.join(abandoned, `${new Date().toISOString().slice(0, 10)}-${name}`);
+      const older = path.join(history, `2020-01-01-${name}`);
+      await fs.mkdir(abandoned);
+      if (olderDelivery) await fs.mkdir(older);
+      let captured: string | undefined;
+      let attemptedMarkerRemoval = false;
+      const command = new ArchiveCommand({
+        copyFile: async () => { throw new Error('copy interrupted'); },
+        rename: async (from, to) => {
+          if (to === source) { captured = String(from); throw new Error('restore interrupted'); }
+          await fs.rename(from, to);
+        },
+        rmdir: async (target, options) => {
+          if (target === pendingArchivePath(dest)) {
+            attemptedMarkerRemoval = true;
+            throw new Error('marker cleanup interrupted');
+          }
+          await fs.rmdir(target, options);
+        },
+      });
+      await expect(command.execute(name, { abandon: true, yes: true })).rejects.toThrow(/rollback was incomplete/);
+      expect(attemptedMarkerRemoval).toBe(false);
+      expect(captured).toBeDefined();
+      await expect(fs.readFile(path.join(captured!, 'elements', 'existing.id.md'), 'utf8')).resolves.toBe(MODIFY_EXISTING);
+      await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.access(dest)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(fs.access(pendingArchivePath(dest))).resolves.toBeUndefined();
+
+      await expect(archiveCommand.execute(name, { abandon: true, yes: true, json: true })).rejects.toThrow(/Archive is incomplete.*inspect the workspace/);
+      expect(console.log).not.toHaveBeenCalled();
+      if (olderDelivery) await expect(fs.readdir(older)).resolves.toEqual([]);
     });
 
     it.each([false, true])('keeps the committed result if private source cleanup fails (abandon=%s)', async abandon => {

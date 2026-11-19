@@ -932,6 +932,23 @@ it('completes both finished archive modes and omits marked incomplete history', 
   }
 });
 
+it('diagnoses an older orphaned marker in the requested mode without returning an opposite-mode receipt', async () => {
+  const history = path.join(root, '.xirang', 'changes', 'archive');
+  const abandoned = path.join(history, 'abandoned');
+  const destination = path.join(abandoned, '2020-01-02-orphaned');
+  const olderDelivery = path.join(history, '2020-01-01-orphaned');
+  await fs.mkdir(abandoned, { recursive: true });
+  await fs.mkdir(olderDelivery);
+  await fs.mkdir(pendingArchivePath(destination));
+  const retry = await runCLI(['archive', 'orphaned', '--abandon', '--json'], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(JSON.parse(retry.stderr)).toMatchObject({
+    code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
+  });
+  await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.readdir(olderDelivery)).resolves.toEqual([]);
+});
+
 it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {
   const changes = path.join(root, '.xirang', 'changes');
   const history = path.join(changes, 'archive', '2026-01-01-failed');

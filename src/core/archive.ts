@@ -8,7 +8,7 @@ import { hostname } from 'node:os';
 import path from 'path';
 import { getTaskProgressForChange } from '../utils/task-progress.js';
 import { applyPreparedChangeSync, assertPreparedDelta, prepareChangeSync } from './change-sync.js';
-import { archivedDirectoryState, hasArchiveHistoryDirectory, isDatedArchiveName, pendingArchivePath } from './archive-paths.js';
+import { archivedDirectoryState, hasArchiveHistoryDirectory, isDatedArchiveName, pendingArchiveName, pendingArchivePath } from './archive-paths.js';
 import { QualityEngineError, readQualitySeal } from './quality/engine.js';
 import { formatQualityGateFailure } from './quality/state.js';
 import { selectActiveChange } from './change-utils.js';
@@ -143,13 +143,13 @@ export async function moveDirectory(
       }
     }
     try {
-      // Keep the marker when a partial destination cannot be removed.
+      // Keep the marker if any part of the move has not been rolled back.
       if (reserved) {
         // Reset only our private destination directories, parent first, so read-only modes cannot block rollback.
         for (const directory of finalizedDirectories.reverse()) await filesystem.chmod(directory, 0o700);
         await remove(dest);
       }
-      await filesystem.rmdir(pending);
+      if (!captured) await filesystem.rmdir(pending);
     } catch (rollbackError) { failures.push(rollbackError); }
     if (sourceRoot && !captured) await filesystem.rmdir(sourceRoot).catch(rollbackError => failures.push(rollbackError));
     if (failures.length) throw new AggregateError([error, ...failures], 'Archive installation failed and rollback was incomplete');
@@ -241,9 +241,16 @@ async function findArchivedChange(archiveDir: string, changeName: string, abando
       if (error.code === 'ENOENT') return [];
       throw error;
     });
-    const candidates = entries.filter(entry => entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName)
-      .map(entry => entry.name).sort().reverse();
-    for (const candidate of candidates) {
+    const candidates = new Set<string>();
+    for (const entry of entries) {
+      if (entry.isDirectory() && isDatedArchiveName(entry.name) && entry.name.slice(11) === changeName) {
+        candidates.add(entry.name);
+      } else {
+        const pending = pendingArchiveName(entry.name, changeName);
+        if (pending) candidates.add(pending);
+      }
+    }
+    for (const candidate of [...candidates].sort().reverse()) {
       const location = path.join(directory, candidate);
       const state = await archivedDirectoryState(location);
       if (state === 'pending') throw incompleteArchive(location);

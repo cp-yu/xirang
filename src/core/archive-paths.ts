@@ -17,9 +17,21 @@ export function isDatedArchiveName(name: string): boolean {
   return /^\d{4}-\d{2}-\d{2}-[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(name);
 }
 
+function archiveKey(name: string): string {
+  return createHash('sha256').update(name).digest('hex');
+}
+
 export function pendingArchivePath(destination: string): string {
-  const key = createHash('sha256').update(path.basename(destination)).digest('hex');
+  const basename = path.basename(destination);
+  const key = isDatedArchiveName(basename)
+    ? `${basename.slice(0, 10)}-${archiveKey(basename.slice(11))}`
+    : archiveKey(basename);
   return path.join(path.dirname(destination), `.archive-${key}.pending`);
+}
+
+export function pendingArchiveName(marker: string, changeName: string): string | undefined {
+  const match = /^\.archive-(\d{4}-\d{2}-\d{2})-([0-9a-f]{64})\.pending$/.exec(marker);
+  return match && match[2] === archiveKey(changeName) ? `${match[1]}-${changeName}` : undefined;
 }
 
 /** Confirm the same directory survived the marker check; rollback removes it before the marker. */
@@ -29,8 +41,8 @@ export async function archivedDirectoryState(destination: string): Promise<'comp
     return undefined;
   });
   const before = await stat(destination);
-  if (!before?.isDirectory()) return 'missing';
   if (await stat(pendingArchivePath(destination))) return 'pending';
+  if (!before?.isDirectory()) return 'missing';
   const after = await stat(destination);
   return after?.isDirectory() && after.dev === before.dev && after.ino === before.ino && after.birthtimeNs === before.birthtimeNs
     ? 'complete' : 'missing';

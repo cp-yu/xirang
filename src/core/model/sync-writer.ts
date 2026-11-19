@@ -154,6 +154,9 @@ export async function writeMinimal(
       const key = target.toLowerCase();
       const aliases = caseGroups.get(key) ?? [];
       for (const other of aliases) {
+        // Paths present in the same snapshot are already distinct. With no new install,
+        // there is no unresolved alias and no reason to probe a Formal directory.
+        if (!(files.has(target) && !current.has(target)) && !(files.has(other) && !current.has(other))) continue;
         if (await pathsAlias(root, other, target)) {
           throw new Error(`Sync target path collision: ${owners.get(other)} at ${other} and ${owner} at ${target}`);
         }
