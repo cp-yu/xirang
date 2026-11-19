@@ -33,7 +33,7 @@ Quality SHALL 在唯一质量 JSON 中保留 Review opinion 历史及 Opt opinio
 
 ### Section: 收口后确认可进入 Change Closure
 
-Quality SHALL 仅在基线 Review 与累计保留改动的独立 Review 均已通过、Seal 前已有真实 Opt 处置、且主 Agent 已记录有效 Seal 声明时允许 Change 进入 Change Closure。已执行 Opt 的处置 SHALL 包含 opinion 及 `baseCommit`、`resultCommit`；未执行 Opt 的处置 SHALL 包含简短理由。Seal 声明 SHALL 绑定一个 Git commit，并由主 Agent 声明该版本可运行且预期通过适用测试。CLI 不执行测试、不保存测试输出、不要求工作区 clean、不要求 Seal commit 等于 HEAD 或工作区内容，也不要求在 Seal 或 Archive 前单独提交 Quality JSON。Archive 的 Quality 门禁只确认 Seal commit 对象仍存在。
+Quality SHALL 仅在基线 Review 与累计保留改动的独立 Review 均已通过、Seal 前已有真实 Opt 处置、且主 Agent 已记录有效 Seal 声明时认定 Quality 完成并取得默认交付归档的质量资格；quick 的豁免与放弃留档不表示 Quality 完成。已执行 Opt 的处置 SHALL 包含 opinion 及 `baseCommit`、`resultCommit`；未执行 Opt 的处置 SHALL 包含简短理由。Seal 声明 SHALL 绑定一个 Git commit，并由主 Agent 声明该版本可运行且预期通过适用测试。CLI 不执行测试、不保存测试输出、不要求工作区 clean、不要求 Seal commit 等于 HEAD 或工作区内容，也不要求在 Seal 或 Archive 前单独提交 Quality JSON。Archive 的 Quality 门禁只确认 Seal commit 对象仍存在。
 
 存在变更 Opt 时，CLI SHALL 要求其后的 full-change 或 incremental PASS，受审 commit 等于最后一次变更 Opt 的结果或为其 Git 后继，Seal 绑定该受审 commit。只读交付不能抹去此前义务，其他类别 PASS 不能掩盖未解决 FAIL；supplemental 不自动代表累计优化审查。
 
@@ -53,7 +53,7 @@ Quality SHALL 仅在基线 Review 与累计保留改动的独立 Review 均已�
 
 Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。
 
-Review findings、WARNING 和 Required Corrections SHALL 由协调者处理，Quality 不自动修改 tasks.md。已确认的基线缺陷修复必须 supplemental Review；没有有效 Seal 不得进入 Closure。
+Review findings、WARNING 和 Required Corrections SHALL 由协调者处理，Quality 不自动修改 tasks.md。已确认的基线缺陷修复必须 supplemental Review；没有有效 Seal 不得执行默认交付归档；quick 与放弃不代表 Quality 完成。
 
 ### Section: 单一 Quality Record 承载意见与 Seal
 

@@ -30,7 +30,6 @@ import {
   type WorkflowId,
 } from '../workflow-surface.js';
 import { ToolProfileRegistry } from './tool-profile/index.js';
-import { getApplyChangeSkillTemplate } from './workflows/apply-change.js';
 import { getCommonSkillTemplate } from './workflows/common.js';
 
 // ---------------------------------------------------------------------------
@@ -120,7 +119,7 @@ function buildPlan(request: ArtifactSyncRequest): ToolSyncPlan | null {
 
   const normalizedWorkflows = resolveEffectiveWorkflows(request.projectPath, request.workflows);
 
-  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows, request.toolId);
+  const skillTemplates = getInstallableSkillTemplates(normalizedWorkflows);
 
   const skillEntries: SkillWriteEntry[] = skillTemplates.map((entry) => ({
     template: entry.template,
@@ -441,10 +440,9 @@ async function writeSubagents(
   const extension = agentFormat === 'toml' ? 'toml' : 'md';
   const baseDir = path.join(projectPath, agentsDir, 'agents');
   await removeRetiredSweeperAgents(baseDir, extension);
-  const sharedReferenceFiles = collectSharedReferenceFiles([
-    ...entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name })),
-    { template: getApplyChangeSkillTemplate(), workflowId: 'apply-quality' },
-  ]);
+  const sharedReferenceFiles = collectSharedReferenceFiles(
+    entries.map((entry) => ({ template: entry.template, workflowId: entry.template.name }))
+  );
   await writeSharedReferences(projectPath, sharedReferenceFiles);
 
   let written = 0;

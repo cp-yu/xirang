@@ -62,6 +62,7 @@ export interface CommandDefinition {
   /**
    * Type of positional argument for dynamic completion
    * - 'change-id': Complete with active change IDs
+   * - 'archive-change-id': Complete with active and finished Change IDs
    * - 'contract-id': Complete with Contract-bearing Element IDs
    * - 'change-or-contract-id': Complete with both Changes and Contract-bearing Elements
    * - 'path': Complete with file paths
@@ -71,7 +72,7 @@ export interface CommandDefinition {
    * - 'element-id': Accept stable Semantic Model element IDs
    * - undefined: No specific completion
    */
-  positionalType?: 'change-id' | 'contract-id' | 'change-or-contract-id' | 'path' | 'shell' | 'schema-name' | 'text' | 'element-id';
+  positionalType?: 'change-id' | 'archive-change-id' | 'contract-id' | 'change-or-contract-id' | 'path' | 'shell' | 'schema-name' | 'text' | 'element-id';
 }
 
 /**

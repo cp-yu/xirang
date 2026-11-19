@@ -11,7 +11,7 @@ Xirang's managed workflow surface is skills-only.
 - `/xirang:build`
 - `/xirang:snack`
 
-`/xirang:archive` runs the full quality gate before archive and performs archive-time sync inline.
+`/xirang:archive` checks the Quality Seal and applies the Delta in the same call that archives the Change. It also supports explicit quick delivery or abandonment without applying the Delta.
 
 ## Notes
 

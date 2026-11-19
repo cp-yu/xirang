@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   applySemanticDirectoryTransaction,
   applySemanticTreeManifest,
+  archiveSnapshotFingerprint,
   buildManifest,
   readSemanticTree,
   recoverSemanticDirectoryTransaction,
@@ -13,6 +14,7 @@ import {
   SEMANTIC_PARTITIONS,
   type PreparedSyncManifestEntry,
 } from '../../src/core/model/transaction.js';
+import { modelRoot } from '../../src/core/model/paths.js';
 import { PARTITIONS } from '../../src/core/model/types.js';
 
 const roots: string[] = [];
@@ -62,7 +64,7 @@ describe('semantic partitions', () => {
 
   it('rejects manifest paths that escape the Semantic Model', async () => {
     const root = await createProject(MODEL_FILES);
-    const fingerprint = semanticTreeFingerprint(await readSemanticTree(root));
+    const fingerprint = archiveSnapshotFingerprint(await readSemanticTree(root));
     for (const bad of ['../outside.md', '/etc/passwd', '.xirang/model/elements/../../escape.md', '.xirang/changes/x/a.md', 'elements/a.md']) {
       const manifest: PreparedSyncManifestEntry[] = [
         { path: bad, action: 'write', preimage: null, postimage: Buffer.from('x') },
@@ -75,11 +77,10 @@ describe('semantic partitions', () => {
   it('rolls back completely when a write fails midway', async () => {
     const root = await createProject(MODEL_FILES);
     const before = await readSemanticTree(root);
-    const fingerprint = semanticTreeFingerprint(before);
+    const fingerprint = archiveSnapshotFingerprint(before);
     const manifest: PreparedSyncManifestEntry[] = [
       {
         path: '.xirang/model/elements/root.md',
-        scope: 'spec',
         action: 'write',
         preimage: before.get('.xirang/model/elements/root.md')!,
         postimage: Buffer.from('---\nentity: element-declaration\nidentity: root\nkind: project\ntitle: New\n---\n'),
@@ -90,13 +91,13 @@ describe('semantic partitions', () => {
     await expect(applySemanticTreeManifest(root, fingerprint, manifest, {
       filesystem: {
         writeFile: async (file, data) => {
-          if (String(file).includes('boom')) throw new Error('disk full');
+          if (String(file).startsWith(path.join(modelRoot(root), 'views') + path.sep)) throw new Error('disk full');
           await fs.writeFile(file as string, data as Buffer);
         },
       },
     })).rejects.toThrow('disk full');
 
-    expect(semanticTreeFingerprint(await readSemanticTree(root))).toBe(fingerprint);
+    expect(await readSemanticTree(root)).toEqual(before);
   });
 
   it('recovers a prepared directory transaction across all partitions', async () => {

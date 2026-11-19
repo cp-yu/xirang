@@ -2,7 +2,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { XIRANG_DIR_NAME } from '../config.js';
+import { describeError } from '../../utils/output.js';
 import { MODEL_DIR_NAME, modelRoot } from './paths.js';
+import { readModelTree } from './parser.js';
 import { PARTITIONS } from './types.js';
 
 export const SEMANTIC_PARTITIONS: readonly string[] = PARTITIONS;
@@ -19,11 +21,19 @@ export interface PreparedSyncManifestEntry {
 
 export type SyncTransactionFileSystem = Pick<
   typeof fs,
-  'mkdir' | 'readFile' | 'rename' | 'rm' | 'writeFile'
+  'mkdir' | 'mkdtemp' | 'lstat' | 'readFile' | 'rename' | 'rm' | 'rmdir' | 'writeFile' | 'chmod'
 >;
+
+interface StagedModelUnit {
+  entry: PreparedSyncManifestEntry;
+  directory: string;
+  backup?: string;
+  written?: Buffer | null;
+}
 
 export interface SemanticTreeTransactionOptions {
   filesystem?: Partial<SyncTransactionFileSystem>;
+  preWrite?: () => Promise<void>;
   postWrite?: () => Promise<void>;
 }
 
@@ -266,32 +276,42 @@ export async function applySemanticTreeManifest(
   formalFingerprint: string,
   manifest: PreparedSyncManifestEntry[],
   options: SemanticTreeTransactionOptions = {},
-): Promise<void> {
+): Promise<string[]> {
   const filesystem = transactionFileSystem(options.filesystem);
-  const currentFingerprint = semanticTreeFingerprint(await readSemanticTree(projectRoot));
+  const currentFingerprint = archiveSnapshotFingerprint(await readSyncModelTree(projectRoot));
   if (currentFingerprint !== formalFingerprint) {
     throw new Error('Prepared sync is stale: Semantic Model changed after validation');
   }
+  await options.preWrite?.();
   await assertManifestPreimages(projectRoot, manifest, filesystem);
 
-  const applied: PreparedSyncManifestEntry[] = [];
+  const staged: StagedModelUnit[] = [];
+  const createdDirectories: string[] = [];
   try {
-    for (let index = 0; index < manifest.length; index += 1) {
-      const entry = manifest[index];
-      applied.push(entry);
-      await applyManifestEntry(projectRoot, entry, index, filesystem);
-    }
+    for (const entry of manifest) await applyManifestEntry(projectRoot, entry, filesystem, createdDirectories, staged);
     await options.postWrite?.();
   } catch (error) {
-    const rollbackErrors = await rollbackManifest(projectRoot, applied, filesystem);
+    const rollbackErrors = await rollbackManifest(projectRoot, staged, filesystem);
+    for (const directory of createdDirectories.reverse()) {
+      try {
+        await filesystem.rmdir(directory);
+      } catch (cause) {
+        if ((cause as NodeJS.ErrnoException).code !== 'ENOENT') rollbackErrors.push(cause as Error);
+      }
+    }
     if (rollbackErrors.length > 0) {
-      throw new AggregateError(
-        [error as Error, ...rollbackErrors],
-        `Semantic sync failed and rollback was incomplete: ${(error as Error).message}`,
-      );
+      throw new AggregateError([error, ...rollbackErrors], 'Semantic sync failed and rollback was incomplete');
     }
     throw error;
   }
+
+  const warnings: string[] = [];
+  for (const unit of staged) {
+    await removeModelStaging(unit, filesystem).catch(error => {
+      warnings.push(`Could not clean Formal staging ${unit.directory}: ${describeError(error)}`);
+    });
+  }
+  return warnings;
 }
 
 export async function readSemanticDirectoryTree(semanticRoot: string): Promise<Map<string, Buffer>> {
@@ -319,6 +339,12 @@ export async function readSemanticTree(projectRoot: string): Promise<Map<string,
   return readSemanticDirectoryTree(modelRoot(projectRoot));
 }
 
+/** The patch transaction uses exactly the units visible to a Formal model reader. */
+export async function readSyncModelTree(projectRoot: string): Promise<Map<string, Buffer>> {
+  const units = await readModelTree(modelRoot(projectRoot));
+  return new Map([...units].map(([file, bytes]) => [`${MODEL_PATH_PREFIX}/${file}`, bytes]));
+}
+
 export function semanticTreeFingerprint(files: Map<string, Buffer>): string {
   const hash = createHash('sha256');
   for (const [file, content] of [...files].sort(([left], [right]) => Buffer.compare(Buffer.from(left), Buffer.from(right)))) {
@@ -326,6 +352,16 @@ export function semanticTreeFingerprint(files: Map<string, Buffer>): string {
     hash.update('\0');
     hash.update(content);
     hash.update('\0');
+  }
+  return hash.digest('hex');
+}
+
+// Archive snapshots are transient. Keep the legacy digest above for persisted Candidate and Record history.
+export function archiveSnapshotFingerprint(files: ReadonlyMap<string, Buffer>): string {
+  const hash = createHash('sha256');
+  const entries = [...files].map(([file, bytes]) => [Buffer.from(file), bytes] as const);
+  for (const [file, content] of entries.sort(([left], [right]) => Buffer.compare(left, right))) {
+    hash.update(`${file.length}:${content.length}:`).update(file).update(content);
   }
   return hash.digest('hex');
 }
@@ -352,10 +388,14 @@ export function buildManifest(
 function transactionFileSystem(overrides?: Partial<SyncTransactionFileSystem>): SyncTransactionFileSystem {
   return {
     mkdir: overrides?.mkdir ?? fs.mkdir.bind(fs),
+    mkdtemp: overrides?.mkdtemp ?? fs.mkdtemp.bind(fs),
+    lstat: overrides?.lstat ?? fs.lstat.bind(fs),
     readFile: overrides?.readFile ?? fs.readFile.bind(fs),
     rename: overrides?.rename ?? fs.rename.bind(fs),
     rm: overrides?.rm ?? fs.rm.bind(fs),
+    rmdir: overrides?.rmdir ?? fs.rmdir.bind(fs),
     writeFile: overrides?.writeFile ?? fs.writeFile.bind(fs),
+    chmod: overrides?.chmod ?? fs.chmod.bind(fs),
   };
 }
 
@@ -364,60 +404,84 @@ async function assertManifestPreimages(
   manifest: PreparedSyncManifestEntry[],
   filesystem: SyncTransactionFileSystem,
 ): Promise<void> {
-  for (const entry of manifest) {
-    const current = await readOptionalBuffer(resolveManifestPath(projectRoot, entry.path), filesystem);
-    if (current === null && entry.preimage === null) continue;
-    if (current !== null && entry.preimage !== null && current.equals(entry.preimage)) continue;
-    throw new Error(`Prepared sync is stale: ${entry.path} changed after validation`);
-  }
+  for (const entry of manifest) await assertManifestPreimage(projectRoot, entry, filesystem);
+}
+
+function sameBytes(left: Buffer | null, right: Buffer | null): boolean {
+  return left === null || right === null ? left === right : left.equals(right);
+}
+
+async function assertManifestPreimage(projectRoot: string, entry: PreparedSyncManifestEntry, filesystem: SyncTransactionFileSystem) {
+  const current = await readOptionalBuffer(resolveManifestPath(projectRoot, entry.path), filesystem);
+  if (!sameBytes(current, entry.preimage)) throw new Error(`Prepared sync is stale: ${entry.path} changed after validation`);
 }
 
 async function applyManifestEntry(
   projectRoot: string,
   entry: PreparedSyncManifestEntry,
-  index: number,
   filesystem: SyncTransactionFileSystem,
+  createdDirectories: string[],
+  staged: StagedModelUnit[],
 ): Promise<void> {
   const target = resolveManifestPath(projectRoot, entry.path);
-  if (entry.action === 'delete') {
-    await filesystem.rm(target, { force: true });
-    return;
+  const parent = path.dirname(target);
+  const missing: string[] = [];
+  for (let directory = parent; ; directory = path.dirname(directory)) {
+    try { await filesystem.lstat(directory); break; }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+    missing.push(directory);
+    if (directory === path.dirname(directory)) throw new Error(`Cannot find an existing parent of ${target}`);
   }
+  for (const directory of missing.reverse()) {
+    await filesystem.mkdir(directory);
+    createdDirectories.push(directory);
+  }
+  const directory = await filesystem.mkdtemp(path.join(parent, '.xirang-sync-'));
+  const unit: StagedModelUnit = { entry, directory };
+  staged.push(unit);
+  const replacement = path.join(directory, 'unit');
+  if (entry.postimage !== null) {
+    await filesystem.writeFile(replacement, entry.postimage, { flag: 'wx' });
+    if (entry.preimage !== null) await filesystem.chmod(replacement, (await filesystem.lstat(target)).mode & 0o777);
+  }
+  await assertManifestPreimage(projectRoot, entry, filesystem);
+  if (entry.preimage !== null) {
+    // Keep the original inode so rollback restores metadata as well as bytes.
+    const backup = path.join(directory, 'original');
+    await filesystem.rename(target, backup);
+    unit.backup = backup;
+    unit.written = null;
+  }
+  if (entry.postimage !== null) {
+    await filesystem.rename(replacement, target);
+    unit.written = entry.postimage;
+  }
+}
 
-  await filesystem.mkdir(path.dirname(target), { recursive: true });
-  const temporary = path.join(path.dirname(target), `.${path.basename(target)}.xirang-sync-${index}.tmp`);
-  try {
-    await filesystem.writeFile(temporary, entry.postimage!);
-    try {
-      await filesystem.rename(temporary, target);
-    } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code;
-      if (entry.preimage === null || code !== 'EPERM' && code !== 'EEXIST') throw error;
-      await filesystem.rm(target, { force: true });
-      await filesystem.rename(temporary, target);
-    }
-  } finally {
-    await filesystem.rm(temporary, { force: true }).catch(() => undefined);
-  }
+function removeModelStaging(unit: StagedModelUnit, filesystem: SyncTransactionFileSystem): Promise<void> {
+  return filesystem.rm(unit.directory, { force: true, recursive: true });
 }
 
 async function rollbackManifest(
   projectRoot: string,
-  applied: PreparedSyncManifestEntry[],
+  staged: StagedModelUnit[],
   filesystem: SyncTransactionFileSystem,
 ): Promise<Error[]> {
   const errors: Error[] = [];
-  for (const entry of [...applied].reverse()) {
+  for (const unit of [...staged].reverse()) {
+    const { entry, backup, written } = unit;
     const target = resolveManifestPath(projectRoot, entry.path);
     try {
-      if (entry.preimage === null) {
-        await filesystem.rm(target, { force: true });
-      } else {
-        await filesystem.mkdir(path.dirname(target), { recursive: true });
-        await filesystem.writeFile(target, entry.preimage);
+      if (written !== undefined) {
+        if (!sameBytes(await readOptionalBuffer(target, filesystem), written)) {
+          throw new Error(`Cannot roll back ${entry.path}: the installed model unit changed outside this transaction`);
+        }
+        if (written !== null) await filesystem.rm(target, { force: true });
+        if (backup) await filesystem.rename(backup, target);
       }
+      await removeModelStaging(unit, filesystem);
     } catch (error) {
-      errors.push(error as Error);
+      errors.push(new AggregateError([error], `Could not restore or clean up ${entry.path}; inspect ${unit.directory}`));
     }
   }
   return errors;
@@ -434,9 +498,10 @@ function resolveManifestPath(projectRoot: string, relativePath: string): string 
 
 async function readOptionalBuffer(
   filePath: string,
-  filesystem: Pick<SyncTransactionFileSystem, 'readFile'>,
+  filesystem: Pick<SyncTransactionFileSystem, 'lstat' | 'readFile'>,
 ): Promise<Buffer | null> {
   try {
+    if (!(await filesystem.lstat(filePath)).isFile()) throw new Error(`Sync target path collision: ${filePath} is not a regular model file`);
     return await filesystem.readFile(filePath);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;

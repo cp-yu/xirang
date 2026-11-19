@@ -3,9 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  assessChangeSyncState,
   applyPreparedChangeSync,
-  getPendingChangeSync,
   prepareChangeSync,
 } from '../../src/core/change-sync.js';
 import { readModelTree } from '../../src/core/model/parser.js';
@@ -34,15 +32,14 @@ describe('Semantic Model sync workflow', () => {
   afterEach(async () => fs.rm(root, { recursive: true, force: true }));
 
   it('treats an absent Semantic Delta as no sync', async () => {
-    const state = await assessChangeSyncState(root, 'add');
-    expect(state.entries).toEqual([]);
-    expect(state.requiresSync).toBe(false);
+    const prepared = await prepareChangeSync(root, 'add');
+    expect(prepared.manifest).toEqual([]);
   });
 
   it('prepares a sorted manifest with preimage bytes across partitions', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT, 'views/detail.md': ADD_VIEW });
 
-    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
+    const prepared = await prepareChangeSync(root, 'add');
 
     expect(prepared.manifest.map(entry => entry.path)).toEqual([
       '.xirang/model/elements/cap.added.md',
@@ -56,7 +53,7 @@ describe('Semantic Model sync workflow', () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
     const before = await readModelTree(modelRoot(root));
 
-    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
+    const prepared = await prepareChangeSync(root, 'add');
     await applyPreparedChangeSync(root, prepared);
 
     const after = await readModelTree(modelRoot(root));
@@ -67,7 +64,7 @@ describe('Semantic Model sync workflow', () => {
   it('rolls back every partition when a prepared write fails', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT, 'views/detail.md': ADD_VIEW });
     const before = await readModelTree(modelRoot(root));
-    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
+    const prepared = await prepareChangeSync(root, 'add');
 
     await expect(applyPreparedChangeSync(root, prepared, {
       filesystem: {
@@ -81,12 +78,41 @@ describe('Semantic Model sync workflow', () => {
     expect(await readModelTree(modelRoot(root))).toEqual(before);
   });
 
+  it('does not undo an independent Formal write when staging failed before installation', async () => {
+    const model = path.join(modelRoot(root), 'elements', 'cap.existing.md');
+    const original = await fs.readFile(model, 'utf8');
+    const modified = original.replace('---\n', '---\noperation: MODIFIED\n').replace('Existing summary', 'Planned summary').split('## Specification')[0];
+    const external = original.replace('Existing summary', 'Independent summary');
+    await writeChangeDelta(root, 'add', { 'elements/cap.existing.md': modified });
+    const prepared = await prepareChangeSync(root, 'add');
+    await expect(applyPreparedChangeSync(root, prepared, {
+      filesystem: {
+        writeFile: async () => {
+          await fs.writeFile(model, external);
+          throw new Error('staging failed before target write');
+        },
+      },
+    })).rejects.toThrow('staging failed before target write');
+    await expect(fs.readFile(model, 'utf8')).resolves.toBe(external);
+  });
+
+  it('does not start the archive move if the ordinary reader sees different Formal bytes', async () => {
+    await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
+    const prepared = await prepareChangeSync(root, 'add');
+    const before = await readModelTree(modelRoot(root));
+    const postWrite = async () => { throw new Error('archive move started'); };
+    await expect(applyPreparedChangeSync(root, { ...prepared, targetFingerprint: 'different target' }, {
+      postWrite,
+    })).rejects.toThrow('Installed Formal model does not match the prepared target');
+    expect(await readModelTree(modelRoot(root))).toEqual(before);
+  });
+
   it('removes a unit when its Element is removed', async () => {
     await writeChangeDelta(root, 'add', {
       'elements/cap.existing.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: cap.existing\n---\n',
     });
 
-    await applyPreparedChangeSync(root, await prepareChangeSync(root, await assessChangeSyncState(root, 'add')));
+    await applyPreparedChangeSync(root, await prepareChangeSync(root, 'add'));
 
     await expect(fs.access(path.join(modelRoot(root), 'elements', 'cap.existing.md'))).rejects.toThrow();
     await expect(fs.access(path.join(modelRoot(root), 'elements', 'root.md'))).resolves.toBeUndefined();
@@ -98,13 +124,13 @@ describe('Semantic Model sync workflow', () => {
     });
     const before = await readModelTree(modelRoot(root));
 
-    await expect(prepareChangeSync(root, await assessChangeSyncState(root, 'add'))).rejects.toThrow(/MISSING_PARENT/);
+    await expect(prepareChangeSync(root, 'add')).rejects.toThrow(/MISSING_PARENT/);
     expect(await readModelTree(modelRoot(root))).toEqual(before);
   });
 
   it('rejects a stale Formal snapshot before any write', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
-    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
+    const prepared = await prepareChangeSync(root, 'add');
     await fs.writeFile(path.join(modelRoot(root), 'views', 'concurrent.md'),
       '---\nentity: authored-view\nidentity: concurrent\ninclude: []\n---\n');
 
@@ -114,18 +140,18 @@ describe('Semantic Model sync workflow', () => {
 
   it('reports no pending work after a successful sync', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
-    const state = await assessChangeSyncState(root, 'add');
-    expect((await getPendingChangeSync(root, state)).pending).toBeGreaterThan(0);
-
-    await applyPreparedChangeSync(root, await prepareChangeSync(root, state));
-
-    expect((await getPendingChangeSync(root, state)).pending).toBe(0);
+    const initial = await prepareChangeSync(root, 'add');
+    expect(initial.manifest).toHaveLength(1);
+    await applyPreparedChangeSync(root, initial);
+    expect((await prepareChangeSync(root, 'add')).manifest).toEqual([]);
   });
 
-  it('does not perform a Quality writeback after semantic sync', async () => {
+  it('rejects conflicting content for a previously added identity', async () => {
     await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT });
-    const prepared = await prepareChangeSync(root, await assessChangeSyncState(root, 'add'));
-    await expect(applyPreparedChangeSync(root, prepared)).resolves.toMatchObject({ files: ['.xirang/model/elements/cap.added.md'] });
-    await expect(fs.access(path.join(modelRoot(root), 'elements', 'cap.added.md'))).resolves.toBeUndefined();
+    await applyPreparedChangeSync(root, await prepareChangeSync(root, 'add'));
+    const before = await readModelTree(modelRoot(root));
+    await writeChangeDelta(root, 'add', { 'elements/cap.added.md': ADD_ELEMENT.replace('Added summary', 'Conflicting summary') });
+    await expect(prepareChangeSync(root, 'add')).rejects.toThrow(/ADDED_IDENTITY_EXISTS/);
+    expect(await readModelTree(modelRoot(root))).toEqual(before);
   });
 });

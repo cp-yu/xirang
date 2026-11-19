@@ -36,24 +36,3 @@ export async function getContractElementIds(root: string = process.cwd()): Promi
     .sort();
 }
 
-export async function getArchivedChangeIds(root: string = process.cwd()): Promise<string[]> {
-  const archivePath = path.join(root, XIRANG_DIR_NAME, 'changes', 'archive');
-  try {
-    const entries = await fs.readdir(archivePath, { withFileTypes: true });
-    const result: string[] = [];
-    for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
-      const proposalPath = path.join(archivePath, entry.name, 'proposal.md');
-      try {
-        await fs.access(proposalPath);
-        result.push(entry.name);
-      } catch {
-        // skip directories without proposal.md
-      }
-    }
-    return result.sort();
-  } catch {
-    return [];
-  }
-}
-

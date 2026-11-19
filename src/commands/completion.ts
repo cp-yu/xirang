@@ -1,10 +1,12 @@
+import path from 'node:path';
+import { XIRANG_DIR_NAME } from '../core/config.js';
 import { diagnostic } from '../utils/output.js';
 import type { Command } from 'commander';
 import { CompletionFactory } from '../core/completions/factory.js';
 import { introspectCommands } from '../core/completions/introspect.js';
 import { detectShell, SupportedShell } from '../utils/shell-detection.js';
 import { CompletionProvider } from '../core/completions/completion-provider.js';
-import { getArchivedChangeIds } from '../utils/item-discovery.js';
+import { listArchiveChoices, listDatedArchiveChoices } from '../core/archive-paths.js';
 
 interface GenerateOptions {
   shell?: string;
@@ -284,8 +286,15 @@ export class CompletionCommand {
           }
           break;
         }
+        case 'archive-changes': {
+          const changesDir = path.join(process.cwd(), XIRANG_DIR_NAME, 'changes');
+          for (const [id, state] of await listArchiveChoices(changesDir)) {
+            if (id !== 'archive') console.log(`${id}\t${state} change`);
+          }
+          break;
+        }
         case 'archived-changes': {
-          const archivedIds = await getArchivedChangeIds();
+          const archivedIds = await listDatedArchiveChoices(path.join(process.cwd(), XIRANG_DIR_NAME, 'changes', 'archive'));
           for (const id of archivedIds) {
             console.log(`${id}\tarchived change`);
           }

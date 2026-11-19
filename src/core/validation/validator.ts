@@ -9,11 +9,11 @@ import {
 import {
   parseDeltaSpec,
   normalizeSectionName,
-  extractSpecificationSection,
+  type DeltaSectionBlock,
 } from '../parsers/section-blocks.js';
 import { splitFrontmatter } from '../model/frontmatter.js';
-import { normalizeProse, readEntity } from '../model/parser.js';
-import { PARTITIONS, type ModelElement } from '../model/types.js';
+import { normalizeProse, readEntity, readDeltaFiles } from '../model/parser.js';
+import type { ModelElement } from '../model/types.js';
 import {
   containsShallOrMust as containsShallOrMustShared,
   extractSectionBody,
@@ -40,8 +40,9 @@ export class Validator {
     const issues: ValidationIssue[] = [];
     const missingHeaderSpecs: string[] = [];
     const emptySectionSpecs: Array<{ path: string; sections: string[] }> = [];
+    const files = context?.files ?? await readDeltaFiles(changeDir);
 
-    for (const [entryPath, unit] of await readElementDeltaUnits(changeDir, context?.files)) {
+    for (const [entryPath, unit] of elementDeltaUnits(files)) {
       const plan = parseDeltaSpec(unit);
       const sectionNames: string[] = [];
       if (plan.sectionPresence.added) sectionNames.push('## ADDED Sections');
@@ -49,9 +50,28 @@ export class Validator {
       if (plan.sectionPresence.removed) sectionNames.push('## REMOVED Sections');
       const hasSections = sectionNames.length > 0;
       const hasEntries = plan.added.length + plan.modified.length + plan.removed.length > 0;
+      for (const line of plan.malformedOperationLines) issues.push({
+        level: 'ERROR', path: entryPath, message: `Expected a named ## Section operation header at body line ${line}`,
+      });
+      for (const line of plan.malformedSectionLines) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Malformed Section header at body line ${line}; use ### Section: <name>`,
+      });
+      for (const line of plan.unscopedContentLines) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Content at body line ${line} is outside a Section operation`,
+      });
+      for (const line of plan.removedContentLines) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `REMOVED Sections may only name a Section (body line ${line})`,
+      });
+      for (const section of plan.unscopedSections) issues.push({
+        level: 'ERROR', path: entryPath,
+        message: `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`,
+      });
       for (const section of plan.unsupportedSections) issues.push({
         level: 'ERROR', path: entryPath,
-        message: `${section} is unsupported. Use REMOVED old Section plus ADDED new Section.`,
+        message: `${section} is unsupported. Use ADDED, MODIFIED or REMOVED Sections. For a rename, use REMOVED old Section plus ADDED new Section.`,
       });
       if (!hasEntries) {
         if (hasSections) emptySectionSpecs.push({ path: entryPath, sections: sectionNames });
@@ -106,7 +126,7 @@ export class Validator {
       });
     }
 
-    if (!context?.allowAlreadyApplied && !(context?.files ? context.files.size > 0 : await carriesSemanticDelta(changeDir)) && !await declaresExplicitNoDelta(changeDir)) {
+    if (!context?.allowAlreadyApplied && files.size === 0 && !await declaresExplicitNoDelta(changeDir)) {
       issues.push({ level: 'ERROR', path: 'file', message: this.enrichTopLevelError('change', VALIDATION_MESSAGES.CHANGE_NO_DELTAS) });
     }
 
@@ -163,7 +183,7 @@ export class Validator {
   }
 
   private validateDeltaSectionBlocks(
-    blocks: Array<{ name: string; raw: string }>,
+    blocks: DeltaSectionBlock[],
     section: 'ADDED' | 'MODIFIED',
     seenNames: Set<string>,
     entryPath: string,
@@ -178,19 +198,13 @@ export class Validator {
         seenNames.add(key);
       }
 
-      const sectionText = this.extractSectionText(block.raw);
+      const sectionText = extractSectionBody(block.body);
       if (!sectionText) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" is missing Section text` });
       } else if (!this.containsShallOrMust(sectionText)) {
         issues.push({ level: 'ERROR', path: entryPath, message: `${section} "${block.name}" must contain SHALL or MUST` });
       }
     }
-  }
-
-  private extractSectionText(blockRaw: string): string | undefined {
-    // Line 0 is the Section header; body is fence/metadata/multi-line aware.
-    const bodyLines = blockRaw.replace(/\r\n?/g, '\n').split('\n').slice(1);
-    return extractSectionBody(bodyLines) || undefined;
   }
 
   private containsShallOrMust(text: string): boolean {
@@ -206,52 +220,16 @@ export class Validator {
   }
 }
 
-/** A change carries a Semantic Delta when any of its four partitions holds a unit. */
-async function carriesSemanticDelta(changeDir: string): Promise<boolean> {
-  for (const partition of PARTITIONS) {
-    const entries = await fs.readdir(path.join(changeDir, partition), { withFileTypes: true }).catch(() => []);
-    if (entries.some(entry => entry.isFile() || entry.isDirectory())) return true;
-  }
-  return false;
-}
-
 /** `.delta-noop` is the explicit declaration that a Change intentionally carries no Semantic Delta. */
 async function declaresExplicitNoDelta(changeDir: string): Promise<boolean> {
-  return fs.stat(path.join(changeDir, '.delta-noop')).then(() => true).catch(() => false);
+  return fs.lstat(path.join(changeDir, '.delta-noop')).then(stat => stat.isFile()).catch(() => false);
 }
 
-/** Section deltas live in the `elements/` partition of the change; paths locate the unit itself. */
-async function readElementDeltaUnits(changeDir: string, files?: ReadonlyMap<string, string>): Promise<Array<[string, string]>> {
-  if (files) {
-    return [...files].flatMap(([file, content]): Array<[string, string]> => {
-      const split = splitFrontmatter(content);
-      return file.startsWith('elements/') && split.ok && readEntity(split.data) === 'element-declaration'
-        && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];
-    });
-  }
-  const partition = path.join(changeDir, 'elements');
-  const units: Array<[string, string]> = [];
-  const visit = async (directory: string, relative: string): Promise<void> => {
-    let entries;
-    try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
-      const child = relative ? `${relative}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) {
-        await visit(path.join(directory, entry.name), child);
-        continue;
-      }
-      const content = await fs.readFile(path.join(directory, entry.name), 'utf-8');
-      const split = splitFrontmatter(content);
-      if (!split.ok || readEntity(split.data) !== 'element-declaration') continue;
-      // A Declaration-only delta carries no Contract body; there is no Section notation to check.
-      if (normalizeProse(split.body) === '') continue;
-      units.push([`elements/${child}`, split.body]);
-    }
-  };
-  await visit(partition, '');
-  return units;
+/** Section notation applies by declared entity, independent of which partition holds the unit. */
+function elementDeltaUnits(files: ReadonlyMap<string, string>): Array<[string, string]> {
+  return [...files].flatMap(([file, content]): Array<[string, string]> => {
+    const split = splitFrontmatter(content);
+    return split.ok && readEntity(split.data) === 'element-declaration'
+      && normalizeProse(split.body) !== '' ? [[file, split.body]] : [];
+  });
 }

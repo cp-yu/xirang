@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import path from 'node:path';
 import type { CompletedSet } from './types.js';
 import type { ArtifactGraph } from './graph.js';
 import { artifactOutputExists } from './outputs.js';
@@ -38,5 +39,5 @@ function isArtifactComplete(
   changeDir: string
 ): boolean {
   return artifactOutputExists(changeDir, generates)
-    || (completionMarker !== undefined && artifactOutputExists(changeDir, completionMarker));
+    || (completionMarker !== undefined && fs.lstatSync(path.join(changeDir, completionMarker), { throwIfNoEntry: false })?.isFile() === true);
 }

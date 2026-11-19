@@ -36,7 +36,7 @@ definition: 面向 Agent、以结构化用户意图驱动项目构建与持续�
 
 ### Section: 保持稳定成功标准
 
-息壤 SHALL 提供确定的 CLI 入口与生成的 Agent 工作流表面，保留 Explore → Propose → Apply → Verify → Sync → Archive 生命周期，校验 Semantic Delta，并仅在证据支撑的审查后提升 source。CLI 的旧版本用法不保证在新版本中继续可用，允许用户与 Agent 协作完成升级适配。
+息壤 SHALL 提供确定的 CLI 入口与生成的 Agent 工作流表面，在正常交付路径上经形成、实现与 Quality 后，以一次归档应用通过校验的 Delta 并封存 Change。显式 quick 只免 Seal；放弃留档不应用 Delta，也不表示完成验证。CLI 的旧版本用法不保证在新版本中继续可用，允许用户与 Agent 协作完成升级适配。
 
 - **Change 达到稳态**
   - 一个 Change 完成

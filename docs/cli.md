@@ -11,7 +11,7 @@ Successful writes without a necessary result produce no stdout, including with `
 | **Setup** | `setup`, `update` | Set up and update Xirang in your project |
 | **Browsing** | `list`, `view`, `show` | Explore Changes and the Semantic Model |
 | **Validation** | `validate` | Check Changes and Element Contracts for issues |
-| **Lifecycle** | `archive` | Finalize completed changes |
+| **Lifecycle** | `archive` | Deliver or abandon Changes |
 | **Workflow** | `status`, `templates`, `schemas` | Artifact-driven workflow support |
 | **Schemas** | `schema validate`, `schema which` | Inspect and validate built-in workflows |
 | **Config** | `config` | View and modify settings |
@@ -50,7 +50,7 @@ These commands support `--json` output for programmatic use by AI agents and scr
 | `xirang schemas` | List available schemas | `--json` for schema discovery |
 | `xirang quality` | Record review and optimization conclusions | `--json` for current commit associations, revision receipts, and diagnostics |
 
-Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Archive requires a valid Seal and a synchronized Semantic Delta.
+Xirang's quality gate records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal. Use `xirang quality review`, `xirang quality opt` and `xirang quality seal` to persist those decisions with CAS revisions. Agents run tests, judge whether evidence still applies and manage recovery through Git; the CLI validates record structure, revisions and referenced commits. Default Archive requires a valid Seal and applies the Semantic Delta as part of delivery. See [`xirang archive`](#xirang-archive) for quick delivery and abandonment.
 
 ---
 
@@ -327,18 +327,23 @@ Validation always executes all applicable checks. With no issues, success is sil
 
 ### `xirang archive`
 
-Archive a completed Change after Quality, Sync, validation and task gates pass. Apply its Semantic Delta to the formal model with `xirang sync <change-name>` first when synchronization is pending; Archive checks synchronization and moves the Change without applying the Delta itself.
+End an active Change. Default delivery checks the Quality Seal, validates and applies the Semantic Delta to the formal model, then archives the Change in the same call. If moving the Change fails, the command rolls back model writes from that call. It does not recover automatically after a process kill or power loss.
 
 ```bash
-xirang sync add-dark-mode
-xirang archive add-dark-mode --yes --json
+xirang archive add-dark-mode --json
+xirang archive add-dark-mode --quick --yes
+xirang archive alternative-design --abandon
 ```
 
-The Change name is optional in an interactive terminal. `--yes` skips confirmation prompts. Success returns the archive location as text or `{ "archive": ".xirang/changes/archive/<date>-<change-name>" }` with `--json`; a retry after archiving returns the existing location. Gate failures exit nonzero and preserve the active Change. Warnings and errors go to stderr, structurally encoded with `--json`.
+- Default and `--quick` write to `.xirang/changes/archive/YYYY-MM-DD-<change>/`. `--quick` skips only the Seal check; Delta and model validation still run. Incomplete goals require confirmation unless `--yes` is supplied.
+- `--abandon` moves the active Change unchanged to `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/` without validating or applying its Delta or touching implementation. It reports checked goals when present and asks for confirmation unless `--yes` is supplied. It cannot be combined with `--quick`.
+- Non-interactive calls require a Change name and, if confirmation is needed, `--yes`. Otherwise the command exits without writing. Success returns the archive path as text or `{ "archive": "<path>" }` in JSON mode; retries against an existing archive also include `"alreadyArchived": true` in JSON mode or an “Already archived” notice on stderr in text mode. With `--json`, interactive prompts go to stderr as terminal text and diagnostics go to stderr as structured data. Apply later edits through a new Change.
+- Only one Xirang archive can commit at a time in a workspace. Retry a competing call after the first one finishes. Archive does not overwrite an existing destination. Run Archive with exclusive access to the selected Change, the archive destination, and the Formal files it writes. Do not edit, move, or replace those paths from another program or command until Archive returns; Archive does not detect or coordinate external writers. If Archive reports an incomplete destination, inspect the workspace before retrying; it does not report partial output as a successful archive.
+- **Breaking:** standalone `xirang sync` and archive's `--no-sync`, `--no-validate`, and `--no-verify` are no longer accepted.
 
 ### `xirang quality`
 
-Quality records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal in `.quality.json` (schemaVersion 4). It validates payloads, integer CAS revisions and referenced Git commits; it does not run tests or compare workspace freshness.
+Quality records commit-bound Review opinions, an explicit Opt disposition and the main Agent's Seal in `.quality.json` (`schemaVersion: 5`). It validates payloads, integer CAS revisions and referenced Git commits; it does not run tests or compare workspace freshness. Version 4 and older records are not accepted or migrated automatically.
 
 ```bash
 xirang quality status add-dark-mode --json
@@ -370,6 +375,7 @@ xirang status [options]
 |--------|-------------|
 | `--change <id>` | Change name (prompts if omitted) |
 | `--schema <name>` | Schema override (auto-detected from change's config) |
+| `--no-quality` | Report artifacts and goal counts without reading or evaluating Quality; `ready` is not a Quality result |
 | `--json` | Output as JSON |
 
 **Examples:**

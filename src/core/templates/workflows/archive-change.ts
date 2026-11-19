@@ -6,10 +6,6 @@ import { COMMON_PREREQUISITE } from '../fragments/guidance-loading.js';
  * templates file into workflow-focused modules.
  */
 import type { SkillTemplate } from '../types.js';
-import {
-  SUBAGENT_QUALITY_EXECUTION_MODEL,
-  type QualityExecutionModel,
-} from './quality-execution-model.js';
 
 const ARCHIVE_COMMIT_MESSAGE_REFERENCE_PATH = 'references/archive-commit-message.md';
 const BOUNDARY_COMMIT_MESSAGE_REFERENCE_PATH = 'references/boundary-commit-message.md';
@@ -111,21 +107,14 @@ Rules:
 - Do not generate this message for \`ff-only\` merges.
 `.trim();
 
-function buildArchiveFullQualityContract(_executionModel: QualityExecutionModel): string {
-  return `   Review the shared Apply/Quality references only when status identifies an outstanding obligation. A passing full-change Review must be recorded in .quality.json and bind an existing Git commit. Apply records actual delivered Opt opinions, including no-change inspections, or a reason only when Opt did not run. Retained unreviewed changes require full-change or incremental Review before Seal; risk determines scope, not whether Review occurs. Baseline-defect repairs still require supplemental Review. The CLI checks recordedRevision order and Git result/descendant association to the reviewed Seal commit. Only the coordinating Apply Agent writes Seal, declaring canRun and testsExpectedToPass for an existing commit. The CLI does not run tests, compare HEAD/workspace freshness or make these judgments. Preserve legacy Quality files unchanged. Do not run a completion review or modify the record during Archive; its Quality gate only checks that the Seal commit object exists.`;
-}
-
 function buildAgentGitFlowStep(): string {
   return `   The agent continues the post-archive git flow. First handle the implementation boundary before Xirang/docs archive artifacts. If uncommitted real project implementation changes remain, create a normal implementation commit that contains only those changes. Then always create a semantic boundary commit with \`git commit --allow-empty\`; this boundary commit may be intentionally empty when the effective implementation diff is already carried by retained \`wip: opt-*\` checkpoint commits. If \`git.commitMessage.boundary\` is set, read that project-relative path; otherwise read the project-root file \`${BOUNDARY_COMMIT_MESSAGE_SHARED_PATH}\`. Use that template to build the boundary commit message and run \`git commit -F -\` for the boundary commit. If \`git.commitMessage.archive\` is set, read that project-relative path; otherwise read the project-root file \`${ARCHIVE_COMMIT_MESSAGE_SHARED_PATH}\`. Use that template before creating the Xirang/docs archive commit, add only archive/synced paths, and run \`git commit -F -\`. If a merge or squash commit message is needed, prepare it from the configured or built-in merge template. If \`git.commitMessage.merge\` is set, read that project-relative path; otherwise read the project-root file \`${MERGE_SUMMARY_MESSAGE_SHARED_PATH}\`.
 
    Apply the retained isolation metadata after archive commits are complete. Map the projected strategy to \`git merge --no-ff\`, \`git merge --ff-only\`, or \`git merge --squash\`. For \`method: "branch"\`, switch to \`originalBranch\`, then merge \`branchName\` with the projected strategy. For \`method: "worktree"\`, keep commits in \`worktreePath\`; before merging, verify that \`sourceRoot\` is on \`originalBranch\`, then run the projected merge from \`sourceRoot\` using \`git -C <sourceRoot>\`. The agent MUST NOT reset, clean, stash, or commit unrelated source-workspace changes. After a successful merge, require the Apply worktree to be clean, run \`git worktree remove <worktreePath>\` from \`sourceRoot\`, and only then delete \`branchName\` when \`git.branch.deleteAfterArchive\` is true and \`git branch --merged\` confirms it is merged. For \`method: "none"\`, do not switch, merge, remove a worktree, or delete the current branch. Stop and report the retained metadata/current state mismatch instead of guessing. Build paths with \`path.join()\`, \`path.resolve()\`, and \`path.normalize()\`.`;
 }
 
-function buildArchiveInstructions(
-  inputLine: string,
-  executionModel: QualityExecutionModel
-): string {
-  return `Archive a completed change in the Xirang change workflow.
+function buildArchiveInstructions(): string {
+  return `Deliver or abandon a Change in the Xirang change workflow.
 
 ${COMMON_PREREQUISITE}
 
@@ -133,42 +122,32 @@ Read this stage's additional guidance with \`xirang config project --select stag
 
 For workflow-managed writes, read the resolved file definition before its instruction and template, and MUST NOT copy definitions, config projections, or reasoning into artifacts.
 
-**Input**: ${inputLine}
-
-Before archiving, follow common’s configuration-use rules, then run \`xirang config project --select git --json\` and consume git policy from its normalized project config: \`git.commitMessage.archive\`, \`git.commitMessage.merge\`, \`git.merge.strategy\`, and \`git.branch.deleteAfterArchive\`; do not parse raw YAML inside the skill.
+**Input**: Change name (optional). Follow the selection rules for the requested mode below.
 
 **Steps**
 
-1. **Select change**
-   If no clear change name is provided, run \`xirang list --json\`, show active changes with schema, and ask. Do not guess. Read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values because the CLI moves the active change directory.
+1. **Select change and mode**
+   Default to delivery with Quality. Select quick or abandon only on explicit user instruction; the modes are mutually exclusive. Dispatch abandon to step 2 before any delivery checks. If the delivery name cannot be inferred, ask for the exact Change name; do not run \`xirang list --json\` because it reads Quality. Do not guess. If the explicitly named Change is no longer active, ask the CLI for its existing archive location and stop; do not resume Git handoff.
 
-2. **Unified Quality Gate**
-   Require a recorded passing full-change Review, explicit Opt disposition and a successful Seal. No latest incremental or supplemental Review may remain failed. For Archive's Quality sub-gate, the Seal commit must exist in Git; HEAD/workspace differences and Quality JSON commit status are irrelevant. Keep the current Quality status projection for the final summary. Preserve unsupported legacy records unchanged.
+2. **Abandon without delivery**
+   Run \`xirang archive "<change-name>" --abandon --json\` for a user-authorized abandonment. When the name is unknown, use \`xirang archive --abandon --json\` for interactive selection, or ask for the exact name if there is no interactive terminal; do not run \`xirang list --json\` as it reads Quality. Present any checked-goal progress without inferring implementation state. Let the CLI ask for confirmation, or pass \`--yes\` only when the user already confirmed proceeding without a prompt. Do not require completed artifacts, a valid Delta, or a Seal. Report the actual result and stop. MUST NOT apply the Delta, modify implementation, or run post-delivery Git commits, merge or cleanup.
 
-2.5. **Complete Required Quality Evidence**
+3. **Prepare delivery**
+   In a Git repository, read \`.apply-isolation.json\` before running the archive CLI and retain its validated \`method\`, \`branchName\`, \`originalBranch\`, \`worktreePath\`, and \`sourceRoot\` values. Use \`schemaName\` and \`artifacts\` from \`xirang status --change "<name>" --no-quality --json\` for this artifact check. List incomplete artifacts and confirm before proceeding if any artifact is not \`done\`. The CLI handles incomplete goals; do not pass \`--yes\` to bypass that confirmation without user authorization.
 
-${buildArchiveFullQualityContract(executionModel)}
+4. **Run archive CLI**
+   Run \`xirang archive "<change-name>" --json\` for default delivery or \`xirang archive "<change-name>" --quick --json\` for quick delivery. In default mode the CLI is the only Quality gate: the recorded Seal must be valid and its Seal commit must exist in Git. Do not preflight Quality, recheck Review or Opt eligibility, or compare the Seal to HEAD or the working tree. If the CLI rejects the Seal, relay its diagnostic and return to Apply; do not repair Quality in Archive. Quick skips the Seal check; do not create a Seal or report Quality as passed.
 
-3. **Check artifact completion status**
-   Run \`xirang status --change "<name>" --json\`. Warn and confirm before proceeding if any artifact is not \`done\`.
+   A single call validates and applies the Delta before moving the Change. MUST NOT write Formal manually. If the CLI did not complete a new delivery, including cancellation, failure, or \`alreadyArchived\`, report the result and stop before Git handoff. Do not treat the presence of an old archive as a new delivery.
 
-4. **Check task completion status**
-   Read \`tasks.md\`; warn and confirm before proceeding if incomplete goal checkboxes remain. Missing goals are not a task-related blocker.
+5. **Git handoff**
+   If this is not a Git repository, report the result and stop before Git handoff. Otherwise read the archive CLI output and consume normalized Git policy (not raw YAML) from \`xirang config project --select git --json\`.
 
-5. **Assess delta sync state**
-   If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, assess whether sync is required. When Delta operations are present, run \`xirang sync "<change-name>"\` before archive; the command reconciles pending operations or confirms an already-synchronized target. Stop on Sync failure. Do not write Formal manually. With no Delta operations, report "No deltas". Archive only checks completed Sync; it does not apply the Delta.
-
-6. **Run archive CLI**
-   Run \`xirang archive "<change-name>"\` after the Seal commit exists. CLI checks the Seal commit object, performs the independent Sync/validation/task gates, moves the Change and returns its archive location; it does not create commits, compare HEAD/workspace, alter Quality JSON, merge/switch/delete branches, or remove worktrees.
-
-7. **Git handoff**
-   Read the archive CLI output and projected Git policy from \`xirang config project --select git --json\`. Use the retained Quality status for Review, Opt disposition and Seal evidence; do not infer that CLI ran tests or made a Git commit.
-
-8. **Agent git flow**
+6. **Agent git flow**
 ${buildAgentGitFlowStep()}
 
-9. **Display summary**
-   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. Distinguish full-change Review, additional incremental or supplemental Reviews actually performed, no-change deliveries that added no Review obligation without clearing earlier cumulative obligations, actual test evidence and Seal commit assessment. Disclose abandoned optimization attempts/reasons/treatment and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
+7. **Display summary**
+   Include change, schema, archive location, quality gate result, Semantic Model sync result, agent-owned git follow-up status, Merge Strategy and cleanup responsibility. If reporting Review, Opt or Seal evidence, use the preserved archive record and previously observed evidence; never run a new Quality gate. Disclose known abandoned optimization attempts and remaining warnings. Do not report that CLI created an archive commit, performed a merge or deleted a feature branch.
 
 **Output On Success**
 
@@ -178,34 +157,25 @@ ${buildAgentGitFlowStep()}
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** .xirang/changes/archive/YYYY-MM-DD-<name>/
-**Quality Gate:** valid Seal commit exists; Archive independently checked completed Sync, validation and task gates
-**Semantic Model:** <Sync completed before Archive / already synchronized / No deltas / explicitly bypassed>; when Sync wrote: Synced into \`.xirang/model/\`, rewriting only the units the Semantic Delta affects, all-or-nothing (or "No deltas" or "Sync gate bypassed with --no-sync")
+**Quality Gate:** <valid Seal commit / skipped by explicit quick request>
+**Semantic Model:** <Delta applied or no model writes needed>
 **Agent Git Follow-up:** <completed / pending with reason>
 **Merge Strategy:** <git.merge.strategy>
 **Cleanup Responsibility:** <agent>
-
-Archive completed after satisfying the unified quality gate.
 \`\`\`
 
 **Guardrails**
-- Always prompt for change selection if not provided
-- Prioritize the standard quality gate; only pass \`--no-verify\` to the archive CLI when the user explicitly requests it (the CLI provides its own confirmation prompt)
-- Show which baseline and scoped Review evidence was reused or newly obtained, and distinguish main-agent applicability/risk decisions from actual independent Review
-- In \`core\`, use \`xirang sync "<change-name>"\` rather than manual inline sync
-- If any of \`.xirang/changes/<name>/{metamodel,elements,relationships,views}/\` is non-empty, always run the shared sync assessment before moving the change directory`;
+- Keep the selected Change, archive destination, and Formal files it writes exclusive to Archive until the command returns; do not edit or move those paths concurrently.
+- Show Review and test evidence only when observed; CLI does not run tests or make Git commits.
+- Do not attempt cross-process recovery. If an interrupted execution left local changes, inspect Git diff and the actual model and Change paths before any corrective action; protect unrelated edits.`;
 }
 
-export function createArchiveChangeSkillTemplateForExecutionModel(
-  executionModel: QualityExecutionModel = SUBAGENT_QUALITY_EXECUTION_MODEL
-): SkillTemplate {
+export function getArchiveChangeSkillTemplate(): SkillTemplate {
   return {
     name: 'xirang-archive-change',
     description:
-      'Archive a completed change in the Xirang change workflow. Use when the user wants to finalize and archive a completed change after implementation is complete.',
-    instructions: buildArchiveInstructions(
-      'Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.',
-      executionModel
-    ),
+      'Deliver or abandon a Change in the Xirang change workflow. Use when the user wants to deliver a change or explicitly abandon it without applying its Delta.',
+    instructions: buildArchiveInstructions(),
     license: 'MIT',
     compatibility: 'Requires xirang CLI.',
     metadata: { author: 'xirang', version: '1.0' },
@@ -224,8 +194,4 @@ export function createArchiveChangeSkillTemplateForExecutionModel(
       },
     ],
   };
-}
-
-export function getArchiveChangeSkillTemplate(): SkillTemplate {
-  return createArchiveChangeSkillTemplateForExecutionModel();
 }

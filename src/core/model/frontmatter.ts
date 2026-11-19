@@ -36,6 +36,9 @@ export function splitFrontmatter(content: string): FrontmatterResult {
   if (!normalized.startsWith('---\n')) return malformed('Unit is missing its frontmatter opening delimiter');
   const end = normalized.indexOf('\n---', 3);
   if (end === -1) return malformed('Frontmatter is missing its closing delimiter');
+  const closingLineEnd = normalized.indexOf('\n', end + 1);
+  const closingLine = normalized.slice(end + 1, closingLineEnd === -1 ? undefined : closingLineEnd);
+  if (!/^---[ \t]*$/.test(closingLine)) return malformed('Frontmatter closing delimiter must be --- on its own line');
 
   let data: unknown;
   try {
@@ -46,8 +49,8 @@ export function splitFrontmatter(content: string): FrontmatterResult {
   if (data === null || data === undefined) data = {};
   if (typeof data !== 'object' || Array.isArray(data)) return malformed('Frontmatter must be a YAML mapping');
 
-  const rest = normalized.slice(end + 4);
-  return { ok: true, data: data as Record<string, unknown>, body: rest.startsWith('\n') ? rest.slice(1) : rest };
+  const body = closingLineEnd === -1 ? '' : normalized.slice(closingLineEnd + 1);
+  return { ok: true, data: data as Record<string, unknown>, body };
 }
 
 function isPlainSafe(value: string): boolean {

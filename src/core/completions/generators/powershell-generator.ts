@@ -182,10 +182,13 @@ Register-ArgumentCompleter -CommandName xirang -ScriptBlock $xirangCompleter
 
     switch (positionalType) {
       case 'change-id':
-        lines.push(`${indent}Get-OPSXChanges | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
+      case 'archive-change-id': {
+        const getter = positionalType === 'archive-change-id' ? 'Get-OPSXArchiveChanges' : 'Get-OPSXChanges';
+        lines.push(`${indent}${getter} | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Change: $_")`);
         lines.push(`${indent}}`);
         break;
+      }
       case 'contract-id':
         lines.push(`${indent}Get-OPSXContracts | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {`);
         lines.push(`${indent}    [System.Management.Automation.CompletionResult]::new($_, $_, "ParameterValue", "Contract: $_")`);

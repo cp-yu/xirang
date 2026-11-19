@@ -9,7 +9,7 @@ Xirang exposes managed workflows as skills. It does not generate a parallel slas
 | `/xirang:explore` | Investigate requirements without modifying code or artifacts |
 | `/xirang:propose` | Create proposal, design, tasks, and the four-partition Semantic Delta when required |
 | `/xirang:apply` | Implement an approved change with TDD and evidence-backed checks |
-| `/xirang:archive` | Verify, sync, and archive a completed change |
+| `/xirang:archive` | Deliver a Change, or abandon it without applying its Delta |
 | `/xirang:build` | Build a versioned Semantic Model candidate from repository evidence |
 | `/xirang:snack` | Reconcile existing code into one Semantic Delta |
 

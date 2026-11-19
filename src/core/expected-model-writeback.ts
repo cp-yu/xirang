@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { compileChangeDelta } from './change-compiler.js';
-import { parseSemanticDeltaFiles, type DeltaEntry, type Operation } from './model/delta.js';
+import type { DeltaEntry, Operation } from './model/delta.js';
 import { renderFrontmatter, splitFrontmatter } from './model/frontmatter.js';
-import { parseUnit, readModelFiles } from './model/parser.js';
+import { parseUnit, readDeltaFiles } from './model/parser.js';
 import { serializeContract, serializeSemanticModel } from './model/serializer.js';
 import type { ModelElement, Section } from './model/types.js';
 import { validateTaskStructure } from './parsers/task-structure.js';
@@ -90,7 +90,7 @@ export async function writebackExpectedModel(
   const sourcePath = relative.split(path.sep).join('/');
   const current = await compileChangeDelta(root, change);
   if (!current.compiled.valid || !current.compiled.target) fail('INVALID_CHANGE', '当前 Change 无效。', current.compiled.diagnostics);
-  const files = await readModelFiles(directory);
+  const files = await readDeltaFiles(directory);
   const original = files.get(sourcePath);
   if (original === undefined) fail('INVALID_SOURCE', '请选择审阅投影中的 Delta 源文件。');
   const unit = splitFrontmatter(original);
@@ -126,7 +126,7 @@ export async function writebackExpectedModel(
   });
   entries.push(...sectionEntries(base?.sections ?? [], edited.sections, identity));
   const entryKey = (entry: Pick<DeltaEntry, 'entity' | 'identity'>) => JSON.stringify([entry.entity, entry.identity]);
-  const otherEntries = new Set(current.sources.filter(item => item.path !== sourcePath)
+  const otherEntries = new Set(current.sources.filter(item => !item.navigationOnly && item.path !== sourcePath)
     .flatMap(item => item.entities.map(entryKey)));
   const existingEntries = new Map(current.delta.entries.map(entry => [entryKey(entry), entry]));
   const localEntries = entries.filter(entry => {
@@ -134,10 +134,10 @@ export async function writebackExpectedModel(
     const existing = existingEntries.get(key);
     return !otherEntries.has(key) || !existing || !same(existing, entry);
   });
-  const content = serializeDelta(edited, localEntries);
   if (same(edited, expected)) return { changed: false, ignoredChanges };
+  const content = serializeDelta(localEntries.length === 0 && base ? base : edited, localEntries);
   files.set(sourcePath, content);
-  const candidate = await compileChangeDelta(root, change, { base: current.base, parsedDelta: parseSemanticDeltaFiles(files) });
+  const candidate = await compileChangeDelta(root, change, { base: current.base, deltaFiles: files });
   const notation = await new Validator().validateChangeDeltaSpecs(directory, { files });
   const tasks = await fs.readFile(path.join(directory, 'tasks.md'), 'utf8').catch(() => '');
   const taskErrors = tasks ? validateTaskStructure(tasks).issues.filter(issue => issue.severity === 'error') : [];

@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { runCLI } from '../helpers/run-cli.js';
+import { loadWorkflowStatus } from '../../src/commands/workflow/status.js';
 import { createBaselineOnlyQualityFixture, createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 
 describe('artifact-workflow CLI commands', () => {
@@ -159,6 +160,76 @@ it('outputs all_done state in JSON when the quality record is clean and archive-
       result = await runCLI(['status', '--change', 'goal-state', '--json'], { cwd: tempDir });
       expect(JSON.parse(result.stdout).state).toBe('blocked');
     });
+    it('skips Quality with --no-quality even when all goals are complete', async () => {
+      const name = 'artifact-only';
+      const change = await createTestChange(name, ['proposal', 'design', 'semantic-delta', 'tasks']);
+      const tasks = path.join(change, 'tasks.md');
+      await fs.writeFile(tasks, (await fs.readFile(tasks, 'utf8')).replace('[ ]', '[x]'));
+      const record = path.join(change, '.quality.json');
+      await fs.writeFile(record, '{ invalid JSON');
+      const recordPath = await fs.realpath(record);
+      const args = ['status', '--change', name, '--json'];
+      const reads = vi.spyOn(fs, 'readFile');
+      try {
+        const normal = await runCLI(args, { cwd: tempDir });
+        expect(normal.exitCode).toBe(0);
+        expect(JSON.parse(normal.stdout)).toMatchObject({ state: 'needs_review', gaps: [
+          expect.objectContaining({ path: '.quality.json', message: 'QUALITY_RECORD_MISSING_OR_INVALID' }),
+          expect.objectContaining({ path: '.quality.json', message: expect.stringContaining('MALFORMED_QUALITY_RECORD') }),
+        ] });
+        expect(reads.mock.calls.some(([file]) => file === recordPath)).toBe(true);
+        reads.mockClear();
+
+        const skipped = await runCLI([...args, '--no-quality'], { cwd: tempDir });
+        expect(skipped).toMatchObject({ exitCode: 0, stderr: '' });
+        const result = JSON.parse(skipped.stdout);
+        expect(result).toMatchObject({ schemaName: 'semantic-model', state: 'ready', gaps: [], goals: { completed: 1 } });
+        expect(result.artifacts).toEqual(JSON.parse(normal.stdout).artifacts);
+        expect(reads.mock.calls.some(([file]) => file === recordPath)).toBe(false);
+      } finally {
+        reads.mockRestore();
+      }
+    });
+
+    it('reports hidden Delta units in artifact-only status but excludes writeback staging and placeholders', async () => {
+      const name = 'hidden-delta';
+      const directory = await createTestChange(name, ['proposal', 'design', 'tasks']);
+      const delta = '---\nentity: element-declaration\noperation: ADDED\nidentity: example\nkind: capability\nparent: root\ntitle: Example\ndefinition: Example definition.\n---\n';
+      const folder = path.join(directory, 'elements', '.drafts');
+      await fs.mkdir(folder, { recursive: true });
+      const unit = path.join(folder, '.author-unit');
+      await fs.writeFile(unit, delta);
+      await fs.writeFile(path.join(folder, '.author-unit.12345678-1234-4321-8765-0123456789ab.tmp'), delta);
+      await fs.writeFile(path.join(folder, '.gitkeep'), '');
+      const status = async () => {
+        const result = await runCLI(['status', '--change', name, '--no-quality', '--json'], { cwd: tempDir });
+        expect(result.exitCode, result.stderr).toBe(0);
+        return JSON.parse(result.stdout).artifacts.find((artifact: { id: string }) => artifact.id === 'semantic-delta');
+      };
+      expect(await status()).toMatchObject({ status: 'done', outputs: [`.xirang/changes/${name}/elements/.drafts/.author-unit`] });
+      await fs.unlink(unit);
+      expect(await status()).toMatchObject({ status: 'ready', outputs: [] });
+    });
+
+    it('reports the same project-relative artifact paths through a project directory alias', async () => {
+      const project = path.join(tempDir, 'project');
+      const alias = path.join(tempDir, 'alias');
+      const name = 'aliased-project';
+      const change = path.join(project, '.xirang', 'changes', name);
+      await fs.mkdir(change, { recursive: true });
+      await fs.writeFile(path.join(change, 'proposal.md'), '# Proposal\n');
+      await fs.writeFile(path.join(change, '.delta-noop'), '');
+      await fs.symlink(project, alias, process.platform === 'win32' ? 'junction' : 'dir');
+
+      const expectedPath = (file: string) => path.relative(project, path.join(change, file)).split(path.sep).join('/');
+      const direct = await loadWorkflowStatus(project, name, undefined, false);
+      expect(direct.artifacts).toEqual(expect.arrayContaining([
+        expect.objectContaining({ id: 'proposal', outputs: [expectedPath('proposal.md')] }),
+        expect.objectContaining({ id: 'semantic-delta', completionMarker: { path: expectedPath('.delta-noop'), present: true } }),
+      ]));
+      await expect(loadWorkflowStatus(alias, name, undefined, false)).resolves.toEqual(direct);
+    });
+
     it('shows status for scaffolded change without proposal.md', async () => {
       // Create empty change directory (no proposal.md)
       const changeDir = path.join(changesDir, 'scaffolded-change');

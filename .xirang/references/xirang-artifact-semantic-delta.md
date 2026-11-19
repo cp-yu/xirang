@@ -23,7 +23,7 @@ validation:
 
 Create or reconcile the Change's Semantic Delta across `elements/`, `metamodel/`, `relationships/`, and `views/`.
 
-Treat the returned template as a per-unit shape reference, not one file to copy. If no Semantic Delta is required, create only `.delta-noop`; otherwise remove a stale marker. The marker carries no semantics and MUST NOT be synced or archived.
+Treat the returned template as a per-unit shape reference, not one file to copy. If no Semantic Delta is required, create only `.delta-noop`; otherwise remove a stale marker. The marker carries no semantics and MUST NOT be applied to the Formal model. Archive retains it unchanged with the Change.
 
 Author units by self-declared entity type:
 - Frontmatter declares `entity`; the partition does not determine entity type.

@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { applySemanticDelta, parseSemanticDelta } from '../../../src/core/model/delta.js';
+import { applySemanticDelta, parseSemanticDeltaFiles } from '../../../src/core/model/delta.js';
 import { parseSemanticModel, parseSemanticModelFiles, readModelTree } from '../../../src/core/model/parser.js';
 import { serializeSemanticModel } from '../../../src/core/model/serializer.js';
 import { writeMinimal } from '../../../src/core/model/sync-writer.js';
@@ -147,13 +147,12 @@ function normalizeForComparison(model: SemanticModel): SemanticModel {
 describe('kernel pipeline end to end', () => {
   it('parses, applies, validates, rewrites minimally and reparses consistently', async () => {
     const root = await createModelRoot(MODEL);
-    const changeRoot = await createModelRoot(DELTA);
 
     const previous = await parseSemanticModel(root);
     expect(previous.diagnostics).toEqual([]);
     expect(validateSemanticModel(previous.model)).toEqual([]);
 
-    const change = await parseSemanticDelta(changeRoot);
+    const change = parseSemanticDeltaFiles(new Map(Object.entries(DELTA)));
     expect(change.diagnostics).toEqual([]);
 
     const applied = applySemanticDelta(previous.model, change.delta);

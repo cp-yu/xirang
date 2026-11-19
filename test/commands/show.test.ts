@@ -91,6 +91,24 @@ describe('top-level show command', () => {
     expect(sources[0].after).toContain('Item SHALL keep context.');
   });
 
+  it('keeps navigation placeholders editable without reporting a sibling Declaration operation', async () => {
+    const navigation = await fs.readFile(path.join(testDir, '.xirang', 'model', 'elements', 'root.md'), 'utf8');
+    const owner = navigation.replace('---\n', '---\noperation: MODIFIED\n').replace(/^definition: .*$/m, 'definition: Updated Root.');
+    await writeChangeDelta(testDir, 'source-ownership', {
+      'proposal.md': '# Change: Source ownership\n',
+      'elements/navigation.md': navigation,
+      'elements/owner.md': owner,
+    });
+
+    const result = await runCLI(['show', 'source-ownership', '--review', '--json'], { cwd: testDir });
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(result.stdout).sources).toEqual([
+      { path: 'elements/navigation.md', entries: [], before: expect.stringContaining('identity: root'), after: expect.stringContaining('Updated Root.') },
+      { path: 'elements/owner.md', entries: [{ entity: 'element-declaration', identity: 'root', operation: 'MODIFIED' }],
+        before: expect.stringContaining('identity: root'), after: expect.stringContaining('Updated Root.') },
+    ]);
+  });
+
   it('does not expose partial model content for invalid review projections', async () => {
     const changeDir = await writeChangeDelta(testDir, 'invalid-review', {
       'elements/ghost.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost\n---\n',

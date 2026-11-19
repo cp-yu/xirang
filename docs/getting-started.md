@@ -12,7 +12,7 @@ Xirang helps you and your AI coding assistant agree on what to build before any 
 /xirang:propose ──► /xirang:apply ──► /xirang:archive
 ```
 
-Xirang installs a fixed managed workflow surface. `/xirang:archive` syncs one Semantic Delta into the formal Xirang Semantic Model before archiving, and it runs the full quality gate before archive.
+Xirang installs a fixed managed workflow surface. `/xirang:archive` checks the Quality Seal and applies the validated Semantic Delta in the same call that archives a Change. An explicitly abandoned Change can be archived without applying its Delta.
 
 ## What Xirang Creates
 
@@ -43,7 +43,7 @@ After running `xirang setup`, your project has a minimal formal skeleton. Projec
 
 - **`model/`** - The four-partition Semantic Model: `metamodel/` (Element and Relationship Kinds), `elements/` (Element Declarations and their Contracts), `relationships/`, and `views/`. Each Markdown unit declares its `entity` and stable `identity` in frontmatter; file positions are organizational only.
 
-- **`changes/`** - Proposed Semantic Deltas. Each change mirrors the four partitions under `.xirang/changes/<name>/` with `ADDED`/`MODIFIED`/`REMOVED` operations. Combined validation constructs the Expected Semantic Model before sync/archive.
+- **`changes/`** - Proposed Semantic Deltas. Each change mirrors the four partitions under `.xirang/changes/<name>/` with `ADDED`/`MODIFIED`/`REMOVED` operations. Combined validation constructs the Expected Semantic Model before delivery.
 
 - **`candidate/`** - Optional active Project Build Candidate that can be promoted atomically into the Semantic Model.
 
@@ -75,47 +75,48 @@ Semantic Delta units are the key concept in Xirang. They show what's changing re
 
 ### The Format
 
-Delta units use `## ADDED/MODIFIED/REMOVED Sections` headers to indicate the type of change:
+Delta units use `## ADDED/MODIFIED/REMOVED Sections` headings for Section changes. This example changes only Sections of the existing `auth` Element; its Declaration is not modified.
 
 ```markdown
-# Delta for Auth
+---
+entity: element-declaration
+identity: auth
+kind: capability
+parent: root
+title: Authentication
+definition: Authenticates users and manages their sessions.
+---
 
 ## ADDED Sections
 
 ### Section: Two-Factor Authentication
-The system MUST require a second factor during login.
-
-- GIVEN a user with 2FA enabled
-- WHEN the user submits valid credentials
-- THEN an OTP challenge is presented
+When a user with two-factor authentication enabled submits valid credentials, the system MUST present a one-time password challenge.
 
 ## MODIFIED Sections
 
 ### Section: Session Timeout
 The system SHALL expire sessions after 30 minutes of inactivity.
-(Previously: 60 minutes)
-
-- After 30 minutes without activity the session is invalidated.
 
 ## REMOVED Sections
 
 ### Section: Remember Me
-(Deprecated in favor of 2FA)
 ```
+
+A REMOVED entry names the Section only; it does not carry a description or a reason for removal. In Delta headings, use `### Section: <name>` without Markdown closing hashes, so the heading identifies the exact Section.
 
 ### What Happens on Archive
 
-When you archive a change:
+When you deliver a Change with `xirang archive <change>` (default or `--quick`), the Semantic Delta is applied to the Formal model:
 
 1. **ADDED** Sections are appended to the Element Contract
 2. **MODIFIED** Sections replace the existing version
 3. **REMOVED** Sections are deleted from the Contract
 
-The change folder moves to `.xirang/changes/archive/` for audit history.
+Delivered Changes move to `.xirang/changes/archive/` for audit history. To keep a Change without applying its Delta, use `xirang archive <change> --abandon`; it moves to `.xirang/changes/archive/abandoned/` and leaves the Formal model unchanged.
 
 ## Example: Your First Change
 
-Let's walk through adding dark mode to an application.
+Let's walk through adding dark mode to an application. This example assumes the Formal model already has a `ui` Element of kind `capability`, under the Project Root `root`.
 
 ### 1. Start the Change (Default)
 
@@ -124,7 +125,7 @@ You: /xirang:propose add-dark-mode
 
 AI:  Created .xirang/changes/add-dark-mode/
      ✓ proposal.md — why we're doing this, what's changing
-     ✓ specs/       — Semantic Delta sections
+     ✓ elements/ui.md — Semantic Delta for the existing ui Element
      ✓ design.md    — technical approach
      ✓ tasks.md     — implementation checklist
      Post-propose check:
@@ -154,10 +155,17 @@ Use CSS custom properties for theming with a React context
 for state management.
 ```
 
-**specs/ui/spec.md** - Delta showing new Sections:
+**`elements/ui.md`** - Delta showing a new Section on `ui`:
 
 ```markdown
-# Delta for UI
+---
+entity: element-declaration
+identity: ui
+kind: capability
+parent: root
+title: User Interface
+definition: Presents settings and application controls.
+---
 
 ## ADDED Sections
 
@@ -171,21 +179,11 @@ The system SHALL allow users to choose between light and dark themes.
 **tasks.md** - Implementation checklist:
 
 ```markdown
-# Tasks
+## Goals
 
-## 1. Theme Infrastructure
-- [ ] 1.1 Create ThemeContext with light/dark state
-- [ ] 1.2 Add CSS custom properties for colors
-- [ ] 1.3 Implement localStorage persistence
-
-## 2. UI Components
-- [ ] 2.1 Create ThemeToggle component
-- [ ] 2.2 Add toggle to settings page
-- [ ] 2.3 Update Header to include quick toggle
-
-## 3. Styling
-- [ ] 3.1 Define dark theme color palette
-- [ ] 3.2 Update components to use CSS variables
+- [ ] G1: Implement theme selection in settings
+  - Contract: `ui` / Section "Theme Selection"
+  - Verify: The toggle switches themes immediately, survives reload, and uses the system preference when no choice is saved.
 ```
 
 ### 3. Implement
@@ -193,13 +191,8 @@ The system SHALL allow users to choose between light and dark themes.
 ```
 You: /xirang:apply
 
-AI:  Working through tasks...
-     ✓ 1.1 Created ThemeContext with light/dark state
-     ✓ 1.2 Added CSS custom properties to globals.css
-     ✓ 1.3 Implemented localStorage persistence
-     ✓ 2.1 Created ThemeToggle component
-     ...
-     All tasks complete!
+AI:  Implemented the theme toggle, persistence, and the system default.
+     ✓ G1: Theme Selection verification passed.
 ```
 
 During implementation, if you discover the design needs adjustment, update the artifact and continue. The persisted Semantic Model remains the authority for element identity, refinement, relationships, and contracts.
@@ -207,17 +200,23 @@ During implementation, if you discover the design needs adjustment, update the a
 ### 4. Archive
 
 ```
-You: /xirang:archive
+You: /xirang:archive add-dark-mode
 
-AI:  Archiving add-dark-mode...
-     ✓ No matching review record found, running the quality flow
-     ✓ Review passed and optimization finalized
-     ✓ Synced Semantic Delta into .xirang/model/
-     ✓ Moved to .xirang/changes/archive/2025-01-24-add-dark-mode/
-     Done! Ready for the next feature.
+AI:  Archive stopped: a valid Quality Seal is required. Return to Apply.
+
+You: /xirang:apply add-dark-mode
+
+AI:  Independent Review passed and a Quality Seal was recorded.
+
+You: /xirang:archive add-dark-mode
+
+AI:  Applied the Semantic Delta and archived the Change at
+     .xirang/changes/archive/2025-01-24-add-dark-mode/.
 ```
 
 Your Semantic Delta is now part of the Semantic Model, documenting how your system works.
+
+Only one archive can commit at a time in a workspace. Let Archive finish before editing or moving the selected Change, its destination, or any Formal files it writes. Archive does not recover interrupted work automatically. Before retrying, inspect `.xirang/model/` and the active and archived Change directories, including any `.archive-source-*` holding directory or `.xirang-sync-*` Formal staging directory named in a warning. An `.archive-lock-*` marker does not block retry when the local PID no longer exists or can be identified as a different process. If a marker still blocks Archive, inspect the workspace and remove it only after confirming its owner is no longer running.
 
 ## Verifying and Reviewing
 

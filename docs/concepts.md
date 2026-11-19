@@ -457,9 +457,9 @@ Xirang resolves only the package-owned `semantic-model` schema. Project-local an
 
 ## Archive
 
-Archiving completes a change by verifying and atomically syncing its Semantic Delta into the formal Xirang Semantic Model, then preserving the change for history.
+Archive closes a Change and preserves its artifacts in history. Delivery also validates and applies its Semantic Delta to the Formal Semantic Model; abandonment leaves the model unchanged.
 
-### What Happens When You Archive
+### What Happens When You Deliver a Change
 
 ```
 Before archive:
@@ -495,19 +495,17 @@ After archive:
 
 ### The Archive Process
 
-1. **Sync the Semantic Delta.** The four-partition Delta under `.xirang/changes/<name>/` is validated against one Expected Semantic Model, then `xirang sync` applies it to `.xirang/model/` atomically.
+**Deliver.** `xirang archive <name>` checks the Quality Seal, validates and applies the Semantic Delta, then moves the Change directory to dated archive history. `--quick` skips only the Seal check. A recoverable move failure rolls back the current call's model writes; forced process termination has no automatic recovery.
 
-2. **Move to archive.** The change folder moves to `changes/archive/` with a date prefix for chronological ordering.
-
-3. **Preserve context.** All artifacts remain intact in the archive. You can always look back to understand why a change was made.
+**Abandon.** `xirang archive <name> --abandon` preserves the active Change in `changes/archive/abandoned/` without applying the Delta or changing the implementation. The archive keeps original artifacts in either case. Use a new Change for later revisions, including to restore earlier behavior.
 
 ### Why Archive Matters
 
-**Clean state.** Active changes (`changes/`) shows only work in progress. Completed work moves out of the way.
+**Clean state.** Active changes (`changes/`) shows only work in progress. Delivered and abandoned Changes move to separate archive locations.
 
 **Audit trail.** The archive preserves the full context of every change — not just what changed, but the proposal explaining why, the design explaining how, and the tasks showing the work done.
 
-**Model evolution.** All four partitions evolve together. Each archive preserves the approved Semantic Delta and the decisions that authorized it.
+**Model evolution.** Delivery applies validated changes across the four partitions and keeps the Semantic Delta that was applied. Abandonment preserves the proposed Delta, if present, without applying it.
 
 ## How It All Fits Together
 
@@ -536,8 +534,8 @@ After archive:
 │           │                                                                  │
 │           ▼                                                                  │
 │   ┌────────────────┐                                                         │
-│   │  4. VERIFY     │  embedded in /xirang:archive                              │
-│   │     WORK       │  Check implementation matches requirements                │
+│   │  4. VERIFY     │  embedded in /xirang:apply                                │
+│   │     WORK       │  Review implementation and record the Quality Seal        │
 │   └───────┬────────┘                                                         │
 │           │                                                                  │
 │           ▼                                                                  │
@@ -564,7 +562,7 @@ After archive:
 | Term | Definition |
 |------|------------|
 | **Artifact** | A document within a change (proposal, design, tasks, or Semantic Delta units) |
-| **Archive** | The process of completing a change and atomically syncing its Semantic Delta into the formal Semantic Model |
+| **Archive** | Closes a Change: default delivery or `--quick` applies its Delta and preserves the Change in history; `--abandon` preserves it without changing the Formal Semantic Model. |
 | **Change** | A proposed modification to the system, packaged as a folder with artifacts |
 | **Delta unit** | A Semantic Delta entry carrying ADDED/MODIFIED/REMOVED relative to the current Semantic Model |
 | **Element** | A stable Semantic Model node with an `identity`, `kind`, `definition`, and refinement `parent` |

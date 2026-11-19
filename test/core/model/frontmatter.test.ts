@@ -17,6 +17,13 @@ describe('splitFrontmatter', () => {
     expect(result).toEqual({ ok: true, data: { entity: 'element-kind', identity: 'domain' }, body: 'Body\n' });
   });
 
+  it('accepts a closing delimiter at EOF or with horizontal whitespace on its own line', () => {
+    const unit = '---\nentity: element-kind\nidentity: domain\n---';
+    const data = { entity: 'element-kind', identity: 'domain' };
+    expect(splitFrontmatter(unit)).toEqual({ ok: true, data, body: '' });
+    expect(splitFrontmatter(`${unit}\t \nBody\n---\n`)).toEqual({ ok: true, data, body: 'Body\n---\n' });
+  });
+
   it('reports MALFORMED_FRONTMATTER when the closing delimiter is missing', () => {
     const result = splitFrontmatter('---\nentity: element-kind\nidentity: domain\n');
     expect(result).toMatchObject({ ok: false, code: 'MALFORMED_FRONTMATTER' });

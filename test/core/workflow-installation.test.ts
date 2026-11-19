@@ -5,7 +5,6 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { getSkillTemplates } from '../../src/core/shared/skill-generation.js';
 import {
-  createToolWorkflowArtifactPlan,
   createWorkflowArtifactPlan,
   getPlannedToolArtifacts,
   MANAGED_STALE_INTERNAL_SKILL_DIR_NAMES,
@@ -59,7 +58,7 @@ describe('workflow installation planning', () => {
   });
 
   it('treats codex as skills-only for workflow skills and plans subagent artifacts separately', () => {
-    const plan = createToolWorkflowArtifactPlan('codex', ['propose', 'explore'], testDir);
+    const plan = createWorkflowArtifactPlan(['propose', 'explore'], testDir);
 
     expect(plan.shouldGenerateSkills).toBe(true);
     expect(plan.expectedSkillDirNames).toEqual([
@@ -70,7 +69,7 @@ describe('workflow installation planning', () => {
   });
 
   it.each(['claude', 'pi', 'opencode', 'codex'])('delivers common for a direct %s stage entry and preserves user skills on update', async toolId => {
-    const plan = createToolWorkflowArtifactPlan(toolId, ['explore'], testDir);
+    const plan = createWorkflowArtifactPlan(['explore'], testDir);
     const artifacts = getPlannedToolArtifacts(testDir, toolId, plan);
     const skillsDir = path.join(testDir, `.${toolId}`, 'skills');
     const commonPath = path.join(skillsDir, 'xirang-common', 'SKILL.md');
@@ -110,7 +109,7 @@ describe('workflow installation planning', () => {
       'xirang-bootstrap-arch',
     ]);
 
-    const plan = createToolWorkflowArtifactPlan('claude', ['propose', 'explore'], testDir);
+    const plan = createWorkflowArtifactPlan(['propose', 'explore'], testDir);
     expect(plan.managedSkillDirNames).toEqual(expect.arrayContaining([
       'opsx-implementer',
       'xirang-reviewer',
@@ -125,7 +124,7 @@ describe('workflow installation planning', () => {
   });
 
   it('includes shared reference files in planned artifacts', () => {
-    const plan = createToolWorkflowArtifactPlan('claude', ['archive', 'apply'], testDir);
+    const plan = createWorkflowArtifactPlan(['archive', 'apply'], testDir);
     const artifacts = getPlannedToolArtifacts(testDir, 'claude', plan);
 
     expect(artifacts.skillFiles).toContain(
@@ -157,7 +156,7 @@ describe('workflow installation planning', () => {
   });
 
   it.each(['claude', 'pi', 'opencode', 'codex'])('安装并更新 %s 的三角色且保留实验者model', async toolId => {
-    const plan = createToolWorkflowArtifactPlan(toolId, ['explore'], testDir);
+    const plan = createWorkflowArtifactPlan(['explore'], testDir);
     const artifacts = getPlannedToolArtifacts(testDir, toolId, plan);
     const extension = toolId === 'codex' ? 'toml' : 'md';
     const agentDir = path.join(testDir, `.${toolId}`, 'agents');
@@ -220,7 +219,7 @@ describe('workflow installation planning', () => {
     await expect(fs.stat(path.join(testDir, '.claude', 'agents', 'xirang-reviewer.md'))).resolves.toBeDefined();
   });
 
-  it('writes shared reference files during sync', async () => {
+  it('projects Archive references without installing Apply or its references', async () => {
     const result = await ArtifactSyncEngine.syncOne({
       toolId: 'claude',
       projectPath: testDir,
@@ -237,16 +236,21 @@ describe('workflow installation planning', () => {
       path.join(testDir, '.xirang', 'references', 'xirang-merge-summary-message.md'),
       'utf-8'
     );
+    const boundaryReference = await fs.readFile(
+      path.join(testDir, '.xirang', 'references', 'xirang-boundary-commit-message.md'),
+      'utf-8'
+    );
     expect(archiveReference).toContain('git.commitMessage.archive');
     expect(mergeReference).toContain('git.commitMessage.merge');
+    expect(boundaryReference).toContain('git.commitMessage.boundary');
     const applyReferences = getSkillTemplates(['apply'])[0].template.referenceFiles ?? [];
     const planned = getPlannedToolArtifacts(
-      testDir, 'claude', createToolWorkflowArtifactPlan('claude', ['archive'], testDir)
+      testDir, 'claude', createWorkflowArtifactPlan(['archive'], testDir)
     );
     for (const reference of applyReferences) {
       const referencePath = path.join(testDir, '.xirang', 'references', `xirang-${path.basename(reference.path)}`);
-      expect(planned.skillFiles).toContain(referencePath);
-      await expect(fs.readFile(referencePath, 'utf-8')).resolves.toContain(reference.content);
+      expect.soft(planned.skillFiles).not.toContain(referencePath);
+      await expect.soft(fs.stat(referencePath)).rejects.toMatchObject({ code: 'ENOENT' });
     }
     await expect(fs.stat(path.join(testDir, '.claude', 'skills', 'xirang-apply-change'))).rejects.toThrow();
   });

@@ -130,14 +130,14 @@ async function validateChangeDir(changeDir: string): Promise<void> {
 export async function readQualityRecord(changeDir: string): Promise<QualityRecord> {
   await validateChangeDir(changeDir);
   const file = path.join(changeDir, QUALITY_FILE);
-  let text: string;
-  try { text = await fs.readFile(file, 'utf8'); }
+  let bytes: Buffer;
+  try { bytes = await fs.readFile(file); }
   catch (cause) {
     if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return emptyRecord(changeDir);
     throw cause;
   }
   let parsedJson: unknown;
-  try { parsedJson = JSON.parse(text); }
+  try { parsedJson = JSON.parse(bytes.toString('utf8')); }
   catch { return fail('MALFORMED_QUALITY_RECORD', `Malformed JSON in ${QUALITY_FILE}.`, file); }
   if (parsedJson && typeof parsedJson === 'object' && 'schemaVersion' in parsedJson && parsedJson.schemaVersion !== 5) {
     fail('UNSUPPORTED_QUALITY_VERSION', `Unsupported Quality record schemaVersion ${String(parsedJson.schemaVersion)}; expected version 5. The file was left unchanged.`, file);
@@ -338,9 +338,9 @@ export async function readQualityRecordStatus(changeDir: string, projectRoot: st
   return { status, qualityStatus: 'valid', revision: record.revision, record, gaps };
 }
 
-export async function readQualitySeal(changeDir: string, projectRoot: string): Promise<{ valid: boolean; commit?: string }> {
-  const record = await readQualityRecord(changeDir);
-  if (!record.seal) return { valid: false };
-  const commit = await requireExistingCommit(projectRoot, record.seal.commit);
-  return { valid: true, commit };
+export async function readQualitySeal(changeDir: string, projectRoot: string): Promise<{ valid: boolean }> {
+  const { seal } = await readQualityRecord(changeDir);
+  if (!seal) return { valid: false };
+  await requireExistingCommit(projectRoot, seal.commit);
+  return { valid: true };
 }

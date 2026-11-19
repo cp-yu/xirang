@@ -227,13 +227,11 @@ describe('snack template output hints', () => {
   const template = withCommonGuidance(getSnackSkillTemplate());
   const instructions = template.instructions;
 
-  it('offers quick-sync, quick-archive, sync-and-archive, and continue-development paths after snack', () => {
-    expect(instructions).toContain('1. **Quick sync**: `xirang sync "<change-name>" --no-verify`');
-    expect(instructions).toContain('2. **Quick archive**: `xirang archive "<change-name>" --no-verify`');
-    expect(instructions).toContain(
-      '3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`'
-    );
-    expect(instructions).toContain('4. **Continue development**');
+  it('offers one quick-archive path after Snack', () => {
+    expect(instructions).toContain('`xirang archive "<change-name>" --quick`');
+    expect(instructions).not.toContain('`xirang sync');
+    expect(instructions).not.toContain('--no-verify');
+    expect(instructions).toContain('2. **Continue development**');
   });
 });
 

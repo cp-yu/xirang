@@ -11,6 +11,12 @@ _xirang_complete_changes() {
   COMPREPLY=($(compgen -W "$changes" -- "$cur"))
 }
 
+_xirang_complete_archive_changes() {
+  local changes
+  changes=$(xirang __complete archive-changes 2>/dev/null | cut -f1)
+  COMPREPLY=($(compgen -W "$changes" -- "$cur"))
+}
+
 _xirang_complete_contracts() {
   local contracts
   contracts=$(xirang __complete contracts 2>/dev/null | cut -f1)

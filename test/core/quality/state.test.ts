@@ -6,13 +6,13 @@ describe('quality gate diagnostics', () => {
     const message = formatQualityGateFailure(
       { changedFiles: ['src/app.ts'], details: ['CODE_CHANGED_AFTER_PLAN'] },
       undefined,
-      { changeName: 'c1', command: 'sync' }
+      { changeName: 'c1' }
     );
 
     expect(message).toContain('Quality gate failed: CODE_CHANGED_AFTER_PLAN');
     expect(message).toContain('  - src/app.ts');
     expect(message).toContain('xirang quality status "c1" --json');
-    expect(message).toContain('Retry xirang sync "c1" after the Seal commit exists.');
+    expect(message).toContain('Retry xirang archive "c1" after the Seal commit exists.');
     expect(message).not.toContain('--no-verify');
   });
 
@@ -20,7 +20,7 @@ describe('quality gate diagnostics', () => {
     const message = formatQualityGateFailure(
       { changedFiles: [], details: ['QUALITY_RECORD_UNSUPPORTED_OR_INVALID'] },
       { compatible: false, blockReason: 'QUALITY_RECORD_UNSUPPORTED_OR_INVALID' },
-      { changeName: 'c1', command: 'archive' }
+      { changeName: 'c1' }
     );
 
     expect(message).toContain('Seal diagnostic: QUALITY_RECORD_UNSUPPORTED_OR_INVALID');

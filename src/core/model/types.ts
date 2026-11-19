@@ -7,6 +7,8 @@ export type EntityType =
 export type Partition = 'metamodel' | 'elements' | 'relationships' | 'views';
 
 export const PARTITIONS: readonly Partition[] = ['elements', 'metamodel', 'relationships', 'views'];
+export const IDENTITY_PATTERN = /^[A-Za-z0-9._-]+$/;
+export const RESERVED_AUTHORED_VIEW_IDENTITY = 'full-model';
 
 export const ENTITY_TYPES: readonly EntityType[] = [
   'element-declaration',
@@ -130,6 +132,8 @@ export interface SemanticModel {
   views: AuthoredView[];
 }
 
+export const DIAGNOSTIC_UNIT = Symbol('diagnostic-unit');
+
 export interface ModelDiagnostic {
   level: 'ERROR' | 'WARNING';
   code: string;
@@ -138,6 +142,8 @@ export interface ModelDiagnostic {
   identity?: string;
   /** Entity scope of `identity`; set where the generating context knows it, so storage lookups are entity-qualified. */
   entity?: DiagnosticEntity;
+  /** More precise unit for storage lookup when the diagnostic is grouped under an Element. */
+  [DIAGNOSTIC_UNIT]?: { entity: 'section' | 'relationship'; identity: string };
 }
 
 /** Diagnostic identities resolve within their entity type; section entries resolve to their host Element. */

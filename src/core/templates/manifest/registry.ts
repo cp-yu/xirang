@@ -65,7 +65,7 @@ const MANIFEST_ENTRIES: readonly WorkflowManifestEntry[] = [
     commandSlug: 'archive',
     promptMeta: {
       name: 'Archive change',
-      description: 'Finalize and archive a completed change',
+      description: 'Deliver or abandon a Change',
     },
     getSkillTemplate: getArchiveChangeSkillTemplate,
   },

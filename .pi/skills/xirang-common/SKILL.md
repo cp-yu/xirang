@@ -6,7 +6,7 @@ compatibility: "Requires Xirang CLI and the installed Xirang stage skills."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.10"
+  generatedBy: "0.2.11"
 ---
 
 Use this shared foundation before Xirang work. If a stage is already selected, return to that stage after filling missing guidance; do not dispatch it again. If you are a delegated internal Agent, retain your assigned role, permissions and scope and skip user-stage routing.
@@ -32,7 +32,7 @@ A user may load only this skill and then state a stage or working intent in natu
 | propose | xirang-propose | Create proposal, design, and tasks from a request |
 | explore | xirang-explore | Investigate a problem before implementation |
 | apply | xirang-apply-change | Implement tasks from the current change |
-| archive | xirang-archive-change | Finalize and archive a completed change |
+| archive | xirang-archive-change | Deliver or abandon a Change |
 | build | xirang-build | Build or rebuild one reviewed Architecture and Specs Candidate |
 | snack | xirang-snack | Reconcile implemented code with the complete Semantic Delta |
 

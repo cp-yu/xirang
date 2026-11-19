@@ -29,6 +29,7 @@ const scalarText = fc.oneof(
 const prose = fc.oneof(
   fc.constant(''),
   fc.array(fc.stringMatching(/^[A-Za-z0-9 ."'\\*_-]{0,24}$/), { minLength: 1, maxLength: 4 })
+    .filter(lines => !lines.some((line, i) => i > 0 && lines[i - 1].trim() && /^ {0,3}-+ *$/.test(line)))
     .map(lines => lines.join('\n').replace(/^\n+/, '').trimEnd()),
 );
 

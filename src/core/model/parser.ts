@@ -1,11 +1,13 @@
+import { isUtf8 } from 'node:buffer';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
+import { extractSpecificationSection, type DeltaSectionBlock } from '../parsers/section-blocks.js';
 import { buildCodeFenceMask } from '../parsers/section-text.js';
-import { extractSpecificationSection } from '../parsers/section-blocks.js';
 import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import { createModelIndex, type IndexedEntity, type IndexedRelationship, type ModelIndex, type SourceModule } from './index-map.js';
+import { isIgnoredDeltaFile } from './paths.js';
 import { validateNodePresentation } from './node-presentation.js';
 import { validateRelationshipPresentation } from './relationship-presentation.js';
 import {
@@ -13,6 +15,7 @@ import {
   ENTITY_TYPES,
   PARTITIONS,
   emptySemanticModel,
+  relationshipIdentity,
   type AuthoredView,
   type ElementKind,
   type EntityType,
@@ -39,8 +42,6 @@ export interface ParsedUnit {
   data: Record<string, unknown>;
   body: string;
 }
-
-const ACCEPTANCE_CASE_HEADER = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
 
 export function normalizeProse(body: string): string {
   return normalizeLineEndings(body).replace(/^\n+/, '').trimEnd();
@@ -104,19 +105,41 @@ function list(value: unknown): string[] | undefined {
   return Array.isArray(value) && value.every(item => typeof item === 'string') ? (value as string[]) : undefined;
 }
 
-/** Splits a `### Section:` block into its free body and ordered Acceptance Cases. */
-export function parseSectionBlock(name: string, raw: string): Section {
+function kindConstraint(value: unknown, field: string, file: string, identity: string, diagnostics: ModelDiagnostic[]): string[] | undefined {
+  const kinds = list(value);
+  if (value !== undefined && kinds === undefined) {
+    diagnostics.push(error('INVALID_KIND_CONSTRAINT', file, `Kind ${identity} ${field} must be a list of identities`, identity));
+  }
+  return kinds;
+}
+
+export function parseSectionBlock({ name, body: { lines, acceptanceCases } }: DeltaSectionBlock, file: string, diagnostics: ModelDiagnostic[]): Section {
+  for (const [index, title] of acceptanceCases) {
+    if (title === '') {
+      diagnostics.push(error('MALFORMED_ACCEPTANCE_CASE_HEADER', file,
+        `Section "${name}" has an untitled Acceptance Case at Section line ${index + 2}; use #### Acceptance Case: <name>`));
+    }
+  }
+  return assembleSection(name, lines, index => acceptanceCases.get(index));
+}
+
+function readFormalSectionBlock(name: string, raw: string): Section {
   const lines = normalizeLineEndings(raw).split('\n').slice(1);
   const mask = buildCodeFenceMask(lines);
+  const header = /^####\s+Acceptance Case:\s*(.+?)\s*$/;
+  return assembleSection(name, lines, index => mask[index] ? undefined : lines[index].match(header)?.[1]);
+}
+
+function assembleSection(name: string, lines: string[], acceptanceCaseAt: (index: number) => string | undefined): Section {
   const bodyLines: string[] = [];
   const acceptanceCases: AcceptanceCase[] = [];
   let current: { name: string; lines: string[] } | null = null;
 
   for (let index = 0; index < lines.length; index += 1) {
-    const header = mask[index] ? null : lines[index].match(ACCEPTANCE_CASE_HEADER);
-    if (header) {
+    const title = acceptanceCaseAt(index);
+    if (title !== undefined) {
       if (current) acceptanceCases.push({ name: current.name, body: normalizeProse(current.lines.join('\n')) });
-      current = { name: header[1], lines: [] };
+      current = { name: title, lines: [] };
       continue;
     }
     (current ? current.lines : bodyLines).push(lines[index]);
@@ -143,7 +166,7 @@ export function parseContract(body: string): ParsedContract {
   if (!hasSpecificationHeader(normalized)) return { sections: [], leftover: normalized };
   const section = extractSpecificationSection(normalized);
   return {
-    sections: section.bodyBlocks.map(block => parseSectionBlock(block.name, block.raw)),
+    sections: section.bodyBlocks.map(block => readFormalSectionBlock(block.name, block.raw)),
     leftover: normalizeProse(`${section.before}\n${section.preamble}\n${section.after}`),
   };
 }
@@ -178,6 +201,14 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   if (entity === 'element-declaration') {
     const contract = parseContract(body);
     const definition = text(data.definition);
+    const parent = text(data.parent);
+    const title = text(data.title);
+    if (data.parent !== undefined && data.parent !== null && parent === undefined) {
+      diagnostics.push(error('INVALID_ELEMENT_PARENT', file, `Element ${identity} parent must be an identity or null`, identity));
+    }
+    if (data.title !== undefined && title === undefined) {
+      diagnostics.push(error('INVALID_ELEMENT_TITLE', file, `Element ${identity} title must be a string`, identity));
+    }
     if (Object.hasOwn(data, 'summary')) {
       diagnostics.push(error(
         'LEGACY_ELEMENT_SUMMARY',
@@ -205,8 +236,8 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         declaration: {
           identity,
           kind: text(data.kind) ?? '',
-          parent: text(data.parent) ?? null,
-          title: text(data.title) ?? '',
+          parent: parent ?? null,
+          title: title ?? '',
           definition: definition ?? '',
         },
         sections: contract.sections,
@@ -224,6 +255,11 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
       diagnostics.push(error('INVALID_CONTRACT_FORMAT', file,
         `Element kind ${identity} contractFormat must be business-specification when present`, identity));
     }
+    if (data.root !== undefined && typeof data.root !== 'boolean') {
+      diagnostics.push(error('INVALID_KIND_ROOT', file, `Element kind ${identity} root must be a boolean`, identity));
+    }
+    const parents = kindConstraint(data.parents, 'parents', file, identity, diagnostics);
+    const children = kindConstraint(data.children, 'children', file, identity, diagnostics);
     const nodePresentation = parseNodePresentation(data.nodePresentation, file, identity, diagnostics);
     return {
       entity,
@@ -233,8 +269,8 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
         contract: contract === 'optional' ? 'optional' : 'required',
         ...(data.contractFormat === 'business-specification' ? { contractFormat: data.contractFormat } : {}),
         ...(typeof data.root === 'boolean' ? { root: data.root } : {}),
-        ...(list(data.parents) ? { parents: list(data.parents)! } : {}),
-        ...(list(data.children) ? { children: list(data.children)! } : {}),
+        ...(parents ? { parents } : {}),
+        ...(children ? { children } : {}),
         ...(nodePresentation === undefined ? {} : { nodePresentation }),
         body: normalizeProse(body),
       },
@@ -243,14 +279,16 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   }
 
   if (entity === 'relationship-kind') {
+    const sourceKinds = kindConstraint(data.sourceKinds, 'sourceKinds', file, identity, diagnostics);
+    const targetKinds = kindConstraint(data.targetKinds, 'targetKinds', file, identity, diagnostics);
     const presentation = parseRelationshipPresentation(data.presentation, file, identity, diagnostics);
     return {
       entity,
       identity,
       relationshipKind: {
         identity,
-        ...(list(data.sourceKinds) ? { sourceKinds: list(data.sourceKinds)! } : {}),
-        ...(list(data.targetKinds) ? { targetKinds: list(data.targetKinds)! } : {}),
+        ...(sourceKinds ? { sourceKinds } : {}),
+        ...(targetKinds ? { targetKinds } : {}),
         ...(presentation === undefined ? {} : { presentation }),
         body: normalizeProse(body),
       },
@@ -269,6 +307,18 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
   if (data.exclude !== undefined && exclude === undefined) {
     diagnostics.push(error('INVALID_VIEW_EXCLUDE', file, `Authored view ${identity} exclude must be a list of identities`, identity));
   }
+  const of = text(data.of);
+  const title = text(data.title);
+  const autoLayout = text(data.autoLayout);
+  if (data.of !== undefined && of === undefined) {
+    diagnostics.push(error('INVALID_VIEW_OF', file, `Authored view ${identity} of must be one Element identity`, identity));
+  }
+  if (data.title !== undefined && title === undefined) {
+    diagnostics.push(error('INVALID_VIEW_TITLE', file, `Authored view ${identity} title must be a string`, identity));
+  }
+  if (data.autoLayout !== undefined && autoLayout === undefined) {
+    diagnostics.push(error('INVALID_VIEW_AUTO_LAYOUT', file, `Authored view ${identity} autoLayout must be a string`, identity));
+  }
   return {
     entity,
     identity,
@@ -276,9 +326,9 @@ export function parseUnit(file: string, data: Record<string, unknown>, body: str
       identity,
       include: include ?? [],
       ...(exclude !== undefined && exclude.length > 0 ? { exclude } : {}),
-      ...(text(data.of) !== undefined ? { of: text(data.of)! } : {}),
-      ...(text(data.title) !== undefined ? { title: text(data.title)! } : {}),
-      ...(text(data.autoLayout) !== undefined ? { autoLayout: text(data.autoLayout)! } : {}),
+      ...(of !== undefined ? { of } : {}),
+      ...(title !== undefined ? { title } : {}),
+      ...(autoLayout !== undefined ? { autoLayout } : {}),
     },
     diagnostics,
   };
@@ -297,12 +347,19 @@ export function parseRelationshipContainer(file: string, content: string): Parse
   } catch (cause) {
     return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, (cause as Error).message)] };
   }
-  const items = (document as { relationships?: unknown } | null)?.relationships;
+  if (document === null || typeof document !== 'object' || Array.isArray(document)) {
+    return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, 'Relationship container must be a mapping')] };
+  }
+  const items = (document as Record<string, unknown>).relationships;
   if (!Array.isArray(items)) {
     return { entries: [], diagnostics: [error('MALFORMED_UNIT', file, 'Container has no relationships list')] };
   }
   const entries: Array<Record<string, unknown>> = [];
   const diagnostics: ModelDiagnostic[] = [];
+  for (const field of Object.keys(document)) {
+    if (field !== 'relationships') diagnostics.push(error('UNSUPPORTED_RELATIONSHIP_CONTAINER_FIELD', file,
+      `Relationship container does not support top-level field ${JSON.stringify(field)}`));
+  }
   for (const item of items) {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
       diagnostics.push(error('MALFORMED_UNIT', file, 'Relationship entry must be a mapping'));
@@ -342,6 +399,13 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   const entities: IndexedEntity[] = [];
   const relationships: IndexedRelationship[] = [];
   const ordered = [...files].sort(([left], [right]) => compareUtf8Bytes(left, right));
+  const identityPaths = new Map<string, string>();
+  const trackIdentity = (entity: EntityType | 'relationship', identity: string, label: string, file: string) => {
+    const key = `${entity}\u0000${identity}`;
+    const first = identityPaths.get(key);
+    if (first === undefined) identityPaths.set(key, file);
+    else diagnostics.push(error('DUPLICATE_FORMAL_IDENTITY', file, `Duplicate ${entity} ${label}, already declared in ${first}`));
+  };
 
   for (const [relativePath, content] of ordered) {
     const partition = partitionOf(relativePath);
@@ -360,6 +424,7 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
         continue;
       }
       diagnostics.push(...outcome.diagnostics);
+      trackIdentity(outcome.entity, outcome.identity, outcome.identity, relativePath);
       entities.push({ identity: outcome.identity, declared: outcome.entity, module });
       if (outcome.element) model.elements.push(outcome.element);
       if (outcome.elementKind) model.elementKinds.push(outcome.elementKind);
@@ -376,6 +441,8 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
         diagnostics.push(relationship);
         continue;
       }
+      const { source, kind, target } = relationship;
+      trackIdentity('relationship', relationshipIdentity(relationship), `${source} -[${kind}]-> ${target}`, relativePath);
       model.relationships.push(relationship);
       relationships.push({ relationship, module });
     }
@@ -391,30 +458,72 @@ export function parseSemanticModelFiles(files: Iterable<readonly [string, string
   return { model, index, diagnostics };
 }
 
+async function hasSemanticDirectory(directory: string): Promise<boolean> {
+  const stat = await fs.lstat(directory).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === 'ENOENT') return undefined;
+    throw error;
+  });
+  if (stat && !stat.isDirectory()) {
+    throw new Error(`INVALID_SEMANTIC_DIRECTORY: ${directory} must be a directory, not a file or symbolic link.`);
+  }
+  return stat !== undefined;
+}
+
 /** Reads the four partitions below `root` into a path → bytes map. */
-export async function readModelTree(root: string): Promise<Map<string, Buffer>> {
+export async function readModelTree(root: string, includeHiddenDeltaUnits = false): Promise<Map<string, Buffer>> {
   const files = new Map<string, Buffer>();
   const visit = async (directory: string, relative: string): Promise<void> => {
     let entries;
     try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
+      entries = process.platform === 'win32'
+        ? await fs.readdir(directory, { withFileTypes: true })
+        : await fs.readdir(directory, { withFileTypes: true, encoding: 'buffer' });
     } catch (cause) {
       if ((cause as NodeJS.ErrnoException).code === 'ENOENT') return;
       throw cause;
     }
     for (const entry of entries) {
-      if (entry.name.startsWith('.')) continue;
-      const child = `${relative}/${entry.name}`;
-      if (entry.isDirectory()) await visit(path.join(directory, entry.name), child);
-      else if (entry.isFile()) files.set(child, await fs.readFile(path.join(directory, entry.name)));
+      const name = entry.name.toString();
+      if (name.startsWith('.') && (!includeHiddenDeltaUnits || (entry.isFile() && isIgnoredDeltaFile(name)))) continue;
+      if (!entry.isDirectory() && !entry.isFile()) continue;
+      if (Buffer.isBuffer(entry.name) && !entry.name.equals(Buffer.from(name))) {
+        throw new Error(`NON_UTF8_UNIT_PATH: ${directory} contains an invalid UTF-8 name (bytes: ${entry.name.toString('hex')}); rename the entry before retrying.`);
+      }
+      const child = `${relative}/${name}`;
+      const location = path.join(directory, name);
+      if (entry.isDirectory()) await visit(location, child);
+      else files.set(child, await fs.readFile(location));
     }
   };
-  for (const partition of PARTITIONS) await visit(path.join(root, partition), partition);
+  if (!await hasSemanticDirectory(root)) return files;
+  for (const partition of PARTITIONS) {
+    const directory = path.join(root, partition);
+    if (await hasSemanticDirectory(directory)) await visit(directory, partition);
+  }
   return files;
 }
 
+export function decodeSemanticFiles(files: ReadonlyMap<string, Buffer>): Map<string, string> {
+  const decoded = new Map<string, string>();
+  for (const [file, bytes] of files) {
+    if (!isUtf8(bytes)) {
+      throw new Error(`${file}: NON_UTF8_UNIT_CONTENT: semantic unit is not valid UTF-8; save it as UTF-8 before retrying.`);
+    }
+    decoded.set(file, bytes.toString('utf8'));
+  }
+  return decoded;
+}
+
 export async function readModelFiles(root: string): Promise<Map<string, string>> {
-  return new Map([...await readModelTree(root)].map(([file, bytes]) => [file, bytes.toString('utf8')]));
+  return decodeSemanticFiles(await readModelTree(root));
+}
+
+export function readDeltaTree(root: string): Promise<Map<string, Buffer>> {
+  return readModelTree(root, true);
+}
+
+export async function readDeltaFiles(root: string): Promise<Map<string, string>> {
+  return decodeSemanticFiles(await readDeltaTree(root));
 }
 
 /** A unit carries frontmatter; anything else in a partition is a structured list container. */

@@ -1,5 +1,8 @@
 import { validateBusinessSpecification } from './business-specification.js';
 import {
+  DIAGNOSTIC_UNIT,
+  IDENTITY_PATTERN,
+  RESERVED_AUTHORED_VIEW_IDENTITY,
   relationshipIdentity,
   type DiagnosticEntity,
   type ElementKind,
@@ -7,9 +10,7 @@ import {
   type SemanticModel,
 } from './types.js';
 
-const IDENTITY = /^[A-Za-z0-9._-]+$/;
-
-function error(code: string, message: string, identity?: string, entity?: DiagnosticEntity): ModelDiagnostic {
+function error(code: string, message: string, identity?: string, entity?: DiagnosticEntity, unit?: ModelDiagnostic[typeof DIAGNOSTIC_UNIT]): ModelDiagnostic {
   return {
     level: 'ERROR',
     code,
@@ -17,6 +18,7 @@ function error(code: string, message: string, identity?: string, entity?: Diagno
     message,
     ...(identity ? { identity } : {}),
     ...(entity ? { entity } : {}),
+    ...(unit ? { [DIAGNOSTIC_UNIT]: unit } : {}),
   };
 }
 
@@ -28,13 +30,13 @@ function checkIdentities(model: SemanticModel, diagnostics: ModelDiagnostic[]): 
     ...model.views.map(item => ['authored view', 'authored-view', item.identity] as [string, DiagnosticEntity, string]),
   ];
   for (const [label, entity, identity] of identities) {
-    if (!IDENTITY.test(identity)) {
+    if (!IDENTITY_PATTERN.test(identity)) {
       diagnostics.push(error('INVALID_IDENTITY', `Invalid ${label} identity: ${identity}`, identity, entity));
     }
   }
 
   for (const view of model.views) {
-    if (view.identity === 'full-model') {
+    if (view.identity === RESERVED_AUTHORED_VIEW_IDENTITY) {
       diagnostics.push(error(
         'RESERVED_VIEW_IDENTITY',
         'Authored View identity full-model is reserved for the default Full Model',
@@ -175,7 +177,8 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
   for (const relationship of model.relationships) {
     const label = `${relationship.source} -[${relationship.kind}]-> ${relationship.target}`;
     const key = relationshipIdentity(relationship);
-    if (seen.has(key)) diagnostics.push(error('DUPLICATE_RELATION', `Duplicate relation: ${label}`, relationship.source, 'element-declaration'));
+    const unit = { entity: 'relationship', identity: key } as const;
+    if (seen.has(key)) diagnostics.push(error('DUPLICATE_RELATION', `Duplicate relation: ${label}`, relationship.source, 'element-declaration', unit));
     seen.add(key);
 
     const source = kindOf.get(relationship.source);
@@ -187,15 +190,16 @@ function checkRelationships(model: SemanticModel, diagnostics: ModelDiagnostic[]
         `Relationship ${label} references undeclared Relationship Kind ${relationship.kind}`,
         relationship.source,
         'element-declaration',
+        unit,
       ));
     }
     if (source === undefined || target === undefined) {
-      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Relation ${label} has an unresolved endpoint`, relationship.source, 'element-declaration'));
+      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Relation ${label} has an unresolved endpoint`, relationship.source, 'element-declaration', unit));
       continue;
     }
     if (definition?.sourceKinds && !definition.sourceKinds.includes(source)
       || definition?.targetKinds && !definition.targetKinds.includes(target)) {
-      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Invalid ${relationship.kind} endpoints: ${relationship.source} (${source}) → ${relationship.target} (${target})`, relationship.source, 'element-declaration'));
+      diagnostics.push(error('INVALID_RELATION_ENDPOINT', `Invalid ${relationship.kind} endpoints: ${relationship.source} (${source}) → ${relationship.target} (${target})`, relationship.source, 'element-declaration', unit));
     }
   }
 }
@@ -205,12 +209,14 @@ function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): v
     const elementIdentity = element.declaration.identity;
     const sectionNames = new Set<string>();
     for (const section of element.sections) {
+      const unit = { entity: 'section', identity: `${elementIdentity}#${section.name}` } as const;
       if (sectionNames.has(section.name)) {
         diagnostics.push(error(
           'DUPLICATE_SECTION_NAME',
           `Element ${elementIdentity} has duplicate Section name ${section.name}`,
           elementIdentity,
           'element-declaration',
+          unit,
         ));
       }
       sectionNames.add(section.name);
@@ -223,6 +229,7 @@ function checkContracts(model: SemanticModel, diagnostics: ModelDiagnostic[]): v
             `Section ${elementIdentity}#${section.name} has duplicate Acceptance Case name ${acceptanceCase.name}`,
             elementIdentity,
             'element-declaration',
+            unit,
           ));
         }
         acceptanceCaseNames.add(acceptanceCase.name);

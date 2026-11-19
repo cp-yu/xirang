@@ -68,3 +68,5 @@ Post-propose Validation SHALL 在计划一致性复核与用户裁决后的最�
   - 确定性校验仅有警告且语义就绪已满足
   - 警告本身 SHALL 不阻塞 Apply 就绪声明
   - SHALL 在汇总中披露警告
+
+Propose 的工作流提示 SHALL 只引导只读预览，不调用归档或写入正式模型。

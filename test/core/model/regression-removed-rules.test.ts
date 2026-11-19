@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applySemanticDelta, parseSemanticDelta } from '../../../src/core/model/delta.js';
+import { applySemanticDelta, parseSemanticDeltaFiles } from '../../../src/core/model/delta.js';
 import { parseSemanticModel } from '../../../src/core/model/parser.js';
 import { serializeElementUnit } from '../../../src/core/model/serializer.js';
 import { validateSemanticModel } from '../../../src/core/model/validator.js';
@@ -17,9 +17,9 @@ const MODEL: Record<string, string> = {
 describe('rules removed by the kernel rebuild', () => {
   it('allows MODIFIED to change an Element Kind while the identity stays', async () => {
     const model = (await parseSemanticModel(await createModelRoot(MODEL))).model;
-    const change = await parseSemanticDelta(await createModelRoot({
+    const change = parseSemanticDeltaFiles(new Map(Object.entries({
       'elements/cap.a.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: cap.a\nkind: project\nparent: null\ntitle: A\ndefinition: A\n---\n',
-    }));
+    })));
 
     expect(change.diagnostics).toEqual([]);
     const applied = applySemanticDelta(model, change.delta);
@@ -66,10 +66,10 @@ describe('rules removed by the kernel rebuild', () => {
     expect(parsed.model.relationships).toEqual([]);
   });
 
-  it('rejects MODIFIED on a relationship', async () => {
-    const change = await parseSemanticDelta(await createModelRoot({
+  it('rejects MODIFIED on a relationship', () => {
+    const change = parseSemanticDeltaFiles(new Map(Object.entries({
       'relationships/invokes.yaml': 'relationships:\n  - operation: MODIFIED\n    source: cap.a\n    kind: invokes\n    target: root\n',
-    }));
+    })));
     expect(change.diagnostics.map(item => item.code)).toEqual(['RELATIONSHIP_MODIFIED_UNSUPPORTED']);
   });
 

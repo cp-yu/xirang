@@ -1,13 +1,35 @@
+import { execFileSync, spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, expect, it } from 'vitest';
+import { PassThrough } from 'node:stream';
+import { fileURLToPath } from 'node:url';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { pendingArchivePath } from '../../src/core/archive-paths.js';
+import { readModelTree } from '../../src/core/model/parser.js';
+import * as interactive from '../../src/utils/interactive.js';
 import { createCompleteQualityFixture } from '../helpers/quality-fixture.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import { runCLI } from '../helpers/run-cli.js';
 
+vi.mock('@inquirer/prompts', async importOriginal => {
+  const real = await importOriginal<typeof import('@inquirer/prompts')>();
+  type Context = Parameters<typeof real.confirm>[1];
+  const enter = (text: string, run: (input: PassThrough) => Promise<unknown>) => {
+    const input = new PassThrough();
+    const result = run(input);
+    queueMicrotask(() => input.write(text));
+    return result.finally(() => input.end());
+  };
+  return {
+    ...real,
+    select: (config: Parameters<typeof real.select>[0], context?: Context) => enter('\r', input => real.select(config, { ...context, input })),
+    confirm: (config: Parameters<typeof real.confirm>[0], context?: Context) => enter('y\r', input => real.confirm(config, { ...context, input })),
+  };
+});
+
 let root: string;
-beforeEach(async () => { root = await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-output-')); });
+beforeEach(async () => { root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'xirang-output-'))); });
 afterEach(async () => { await fs.rm(root, { recursive: true, force: true }); });
 it('creates changes and validates built-in schemas without success receipts in either mode', async () => {
   for (const json of [[], ['--json']]) {
@@ -25,16 +47,734 @@ it('returns the existing archive location on retries in either mode', async () =
   await fs.mkdir(path.join(root, archive), { recursive: true });
   for (const json of [[], ['--json']]) {
     const result = await runCLI(['archive', 'demo', ...json], { cwd: root });
-    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
-    expect(json.length ? JSON.parse(result.stdout) : result.stdout.trim()).toEqual(json.length ? { archive } : archive);
+    expect(result).toMatchObject({ exitCode: 0, stderr: json.length ? '' : expect.stringContaining('Already archived') });
+    expect(json.length ? JSON.parse(result.stdout) : result.stdout.trim()).toEqual(json.length ? { archive, alreadyArchived: true } : archive);
   }
 });
+it('archives the no-op marker unchanged rather than treating it as a model unit', async () => {
+  await writeProjectModel(root, minimalModel());
+  await writeChangeDelta(root, 'no-delta', { '.delta-noop': '' });
+  const result = await runCLI(['archive', 'no-delta', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result.exitCode).toBe(0);
+  const { archive } = JSON.parse(result.stdout);
+  await expect(fs.readFile(path.join(root, archive, '.delta-noop'), 'utf8')).resolves.toBe('');
+  await expect(fs.access(path.join(root, '.xirang', 'model', '.delta-noop'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([
+  ['elements/root.md', 'elements/duplicate.md'],
+  ['metamodel/project.md', 'metamodel/duplicate.md'],
+  ['metamodel/links.md', 'metamodel/duplicate.md'],
+  ['relationships/links.yaml', 'relationships/duplicate.yaml'],
+  ['views/overview.md', 'views/duplicate.md'],
+])('rejects a duplicate Formal identity at %s even for a no-Delta delivery', async (original, duplicate) => {
+  await writeProjectModel(root, minimalModel({
+    relationshipKinds: [{ identity: 'links' }],
+    relationships: [{ source: 'root', kind: 'links', target: 'root' }],
+    views: [{ identity: 'overview' }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  await fs.copyFile(path.join(model, original), path.join(model, duplicate));
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'no-delta', { '.delta-noop': '' });
+
+  const result = await runCLI(['archive', 'no-delta', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('DUPLICATE_FORMAL_IDENTITY') });
+  expect(result.stderr).toContain(original);
+  expect(result.stderr).toContain(duplicate);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, '.delta-noop'), 'utf8')).resolves.toBe('');
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.skipIf(process.platform === 'win32')('rejects a Delta snapshot that cannot represent two distinct POSIX unit paths', async context => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const add = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
+  const source = await writeChangeDelta(root, 'bad-path', { 'elements/unit-�.md': add('utf8-unit') });
+  const opaque = Buffer.concat([Buffer.from(path.join(source, 'elements', 'unit-')), Buffer.from([0x80]), Buffer.from('.md')]);
+  try { await fs.writeFile(opaque, add('raw-unit')); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EILSEQ') {
+      return context.skip('Temporary filesystem cannot represent non-UTF-8 filenames');
+    }
+    throw error;
+  }
+
+  const result = await runCLI(['archive', 'bad-path', '--quick', '--yes', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('NON_UTF8_UNIT_PATH') });
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(opaque, 'utf8')).resolves.toBe(add('raw-unit'));
+  await expect(fs.readFile(path.join(source, 'elements', 'unit-�.md'), 'utf8')).resolves.toBe(add('utf8-unit'));
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+
+  await fs.rename(opaque, path.join(source, 'elements', 'unit-raw.md'));
+  expect(await runCLI(['archive', 'bad-path', '--quick', '--yes', '--json'], { cwd: root })).toMatchObject({ exitCode: 0 });
+  await expect(fs.readFile(path.join(model, 'elements', 'raw-unit.md'), 'utf8')).resolves.toContain('identity: raw-unit');
+  await expect(fs.readFile(path.join(model, 'elements', 'utf8-unit.md'), 'utf8')).resolves.toContain('identity: utf8-unit');
+});
+
+it('previews and delivers extensionless hidden Delta units without applying CLI staging files', async () => {
+  await writeProjectModel(root, minimalModel({ relationshipKinds: [{ identity: 'links' }] }));
+  const add = (identity: string) => '---\noperation: ADDED\n' + elementUnit({ identity }).slice(4);
+  const source = await writeChangeDelta(root, 'hidden-units', {
+    'proposal.md': '# Hidden Delta units\n',
+    'elements/.author-unit': add('hidden-unit'),
+    'elements/.drafts/another-unit': add('nested-unit'),
+    'relationships/.edges': '{"relationships":[{"operation":"ADDED","source":"hidden-unit","kind":"links","target":"nested-unit"}]}\n',
+    'elements/.author-unit.12345678-1234-4321-8765-0123456789ab.tmp': add('staged-unit'),
+    'elements/.gitkeep': '',
+  });
+
+  const preview = await runCLI(['validate', '--change', 'hidden-units', '--preview', '--json'], { cwd: root });
+  expect(preview.exitCode, preview.stderr).toBe(0);
+  expect(JSON.parse(preview.stdout).summary).toMatchObject({ ADDED: 3, total: 3 });
+  const result = await runCLI(['archive', 'hidden-units', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result.exitCode).toBe(0);
+  const model = path.join(root, '.xirang', 'model');
+  await expect(fs.readFile(path.join(model, 'elements', 'hidden-unit.md'), 'utf8')).resolves.toContain('identity: hidden-unit');
+  await expect(fs.readFile(path.join(model, 'elements', 'nested-unit.md'), 'utf8')).resolves.toContain('identity: nested-unit');
+  await expect(fs.readFile(path.join(model, 'relationships', 'links.yaml'), 'utf8')).resolves.toContain('target: nested-unit');
+  await expect(fs.access(path.join(model, 'elements', 'staged-unit.md'))).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each(['relationships: [\n', '{"relationships": [\n', 'relationships\n  - operation: ADDED\n'])('rejects a malformed extensionless hidden Relationship unit (%j)', async delta => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'broken-hidden-relation', {
+    'proposal.md': '# Hidden relationship\n',
+    'relationships/.edges': delta,
+  });
+  for (const commands of [['validate', '--change', 'broken-hidden-relation', '--preview'], ['archive', 'broken-hidden-relation', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('relationships/.edges');
+    expect(result.stderr).toContain('MALFORMED_UNIT');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'relationships/.edges'), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('compiles a split Element and its Sections with the same order after renaming all source files', async () => {
+  const host = elementUnit({ identity: 'split-host' });
+  const sections = (headings: string[]) => host + '## ADDED Sections\n\n' + headings.map(heading =>
+    `### Section: ${heading}\nThe system SHALL provide this behavior.\n`).join('\n');
+  let expected: string | undefined;
+  for (const [declaration, one, two] of [['01', '02', '03'], ['30', '20', '10']]) {
+    const project = path.join(root, declaration);
+    await writeProjectModel(project, minimalModel());
+    await writeChangeDelta(project, 'split-element', {
+      'proposal.md': '# Split Element\n',
+      [`elements/${declaration}.md`]: '---\noperation: ADDED\n' + host.slice(4),
+      [`elements/${one}.md`]: sections(['B first', 'A second']),
+      [`elements/${two}.md`]: sections(['C third']),
+    });
+    const preview = await runCLI(['validate', '--change', 'split-element', '--preview', '--json'], { cwd: project });
+    expect(preview.exitCode, preview.stderr).toBe(0);
+    expect(JSON.parse(preview.stdout).summary).toMatchObject({ ADDED: 4, total: 4 });
+    const archived = await runCLI(['archive', 'split-element', '--yes', '--quick', '--json'], { cwd: project });
+    expect(archived.exitCode, archived.stderr).toBe(0);
+    const installed = await fs.readFile(path.join(project, '.xirang/model/elements/split-host.md'), 'utf8');
+    expect([...installed.matchAll(/^### Section: (.*)$/gm)].map(match => match[1])).toEqual(['B first', 'A second', 'C third']);
+    if (expected === undefined) expected = installed;
+    else expect(installed).toBe(expected);
+  }
+});
+
+it.each([
+  ['ADDED', '01', '02'], ['ADDED', '02', '01'], ['MODIFIED', '01', '02'], ['MODIFIED', '02', '01'],
+])('rejects a %s Section whose host is removed, regardless of filenames (%s, %s)', async (operation, declaration, section) => {
+  const oldSection = '### Section: Still needed\nThe system SHALL provide previous behavior.';
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'removed-host', sections: '## Specification\n\n' + oldSection }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const sectionFile = `elements/${section}.md`;
+  const delta = elementUnit({ identity: 'removed-host' }) + `## ${operation} Sections\n\n`
+    + `### Section: ${operation === 'ADDED' ? 'New' : 'Still needed'}\nThe system SHALL provide new behavior.\n`;
+  const source = await writeChangeDelta(root, 'remove-host', {
+    'proposal.md': '# Remove a host\n',
+    [`elements/${declaration}.md`]: '---\nentity: element-declaration\noperation: REMOVED\nidentity: removed-host\n---\n',
+    [sectionFile]: delta,
+  });
+  for (const commands of [['validate', '--change', 'remove-host', '--preview'], ['archive', 'remove-host', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('SECTION_HOST_REMOVED');
+    expect(result.stderr).toContain(sectionFile);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, sectionFile), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('requires .delta-noop for a preview that contains only writeback staging and placeholders', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'staging-only', {
+    'proposal.md': '# Staging-only change\n',
+    'elements/.draft.12345678-1234-4321-8765-0123456789ab.tmp': '---\noperation: ADDED\n' + elementUnit({ identity: 'staged' }).slice(4),
+    'views/.gitkeep': '',
+  });
+  const preview = () => runCLI(['validate', '--change', 'staging-only', '--preview', '--json'], { cwd: root });
+  const rejected = await preview();
+  expect(rejected.exitCode).toBe(1);
+  expect(rejected.stderr).toContain('at least one delta');
+  expect(JSON.parse(rejected.stdout).summary.total).toBe(0);
+
+  await fs.writeFile(path.join(source, '.delta-noop'), '');
+  const marked = await preview();
+  expect(marked).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(marked.stdout).summary.total).toBe(0);
+});
+
+it('rejects a new owner of the exact path of a removed Formal unit', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'old-id', fileName: 'new-id' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const source = await writeChangeDelta(root, 'path-reuse', {
+    'elements/add.md': '---\noperation: ADDED\n' + elementUnit({ identity: 'new-id' }).slice(4),
+    'elements/remove.md': '---\nentity: element-declaration\noperation: REMOVED\nidentity: old-id\n---\n',
+  });
+  const result = await runCLI(['archive', 'path-reuse', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(result.stderr).toMatch(/collision:.*element-declaration old-id.*element-declaration new-id.*elements\/new-id\.md/);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  expect((await fs.readdir(path.join(source, 'elements'))).sort()).toEqual(['add.md', 'remove.md']);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([true, false])('rejects reusing a Relationship container for a foreign Kind (remove original=%s)', async remove => {
+  await writeProjectModel(root, minimalModel({
+    elements: [{ identity: 'child' }],
+    relationshipKinds: [{ identity: 'old' }, { identity: 'new' }],
+    relationships: [{ source: 'root', kind: 'old', target: 'child' }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  const location = 'relationships/new.yaml';
+  await fs.rename(path.join(model, 'relationships/old.yaml'), path.join(model, location));
+  const before = await readModelTree(model);
+  const delta = 'relationships:\n  - operation: ADDED\n    source: child\n    kind: new\n    target: root\n'
+    + (remove ? '  - operation: REMOVED\n    source: root\n    kind: old\n    target: child\n' : '');
+  const source = await writeChangeDelta(root, 'relationship-reuse', { [location]: delta });
+  const result = await runCLI(['archive', 'relationship-reuse', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(result.stderr).toContain('collision');
+  expect(result.stderr).toContain('root -[old]-> child');
+  expect(result.stderr).toContain('child -[new]-> root');
+  expect(result.stderr).toContain(location);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, location), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('allows a replacement tuple to use the existing container for the same Relationship Kind', async () => {
+  await writeProjectModel(root, minimalModel({
+    elements: [{ identity: 'child' }],
+    relationshipKinds: [{ identity: 'links' }],
+    relationships: [{ source: 'root', kind: 'links', target: 'child' }],
+  }));
+  const location = 'relationships/links.yaml';
+  await writeChangeDelta(root, 'replace-relationship', {
+    [location]: 'relationships:\n  - operation: REMOVED\n    source: root\n    kind: links\n    target: child\n'
+      + '  - operation: ADDED\n    source: child\n    kind: links\n    target: root\n',
+  });
+  const result = await runCLI(['archive', 'replace-relationship', '--yes', '--quick', '--json'], { cwd: root });
+  expect(result.exitCode, result.stderr).toBe(0);
+  await expect(fs.readFile(path.join(root, '.xirang/model', location), 'utf8'))
+    .resolves.toBe('relationships:\n  - source: child\n    kind: links\n    target: root\n');
+});
+
+it.each(['delta-partition', 'formal-partition', 'formal-root'])('rejects linked semantic roots before reading or writing their target (%s)', async linked => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'linked-item' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const formalUnit = 'elements/linked-item.md';
+  const initial = await readModelTree(model);
+  const delta = '---\noperation: MODIFIED\n' + elementUnit({ identity: 'linked-item', definition: 'Planned definition.' }).slice(4);
+  const source = await writeChangeDelta(root, 'linked-root', {
+    'proposal.md': '# Linked root\n', [formalUnit]: delta,
+  });
+  const symbolic = linked === 'delta-partition' ? path.join(source, 'elements') : linked === 'formal-root' ? model : path.join(model, 'elements');
+  const external = path.join(root, 'outside-semantic-tree');
+  await fs.rename(symbolic, external);
+  await fs.symlink(process.platform === 'win32' ? external : path.relative(path.dirname(symbolic), external), symbolic,
+    process.platform === 'win32' ? 'junction' : 'dir');
+  const externalFile = path.join(external, linked === 'formal-root' ? formalUnit : 'linked-item.md');
+  const outsideBefore = await fs.readFile(externalFile);
+  if (linked === 'delta-partition') {
+    const status = await runCLI(['status', '--change', 'linked-root', '--no-quality', '--json'], { cwd: root });
+    expect(status.exitCode, status.stderr).toBe(0);
+    expect(JSON.parse(status.stdout).artifacts.find((item: { id: string }) => item.id === 'semantic-delta'))
+      .toMatchObject({ status: 'ready', outputs: [] });
+  }
+  for (const commands of [['validate', '--change', 'linked-root', '--preview'], ['archive', 'linked-root', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('INVALID_SEMANTIC_DIRECTORY');
+    expect(JSON.parse(result.stderr.trim().split('\n').at(-1)!).message).toContain(symbolic);
+  }
+  await expect(fs.readFile(externalFile)).resolves.toEqual(outsideBefore);
+  expect((await fs.lstat(symbolic)).isSymbolicLink()).toBe(true);
+  await expect(fs.readFile(path.join(source, formalUnit), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+  if (linked === 'delta-partition') await expect(readModelTree(model)).resolves.toEqual(initial);
+});
+
+it('rejects a linked active Change before resolving status artifacts or goals', async () => {
+  await writeProjectModel(root, minimalModel());
+  const file = 'elements/root.md';
+  const source = await writeChangeDelta(root, 'linked-change', {
+    'proposal.md': '# Linked Change\n', 'design.md': '# Design\n',
+    'tasks.md': '## Goals\n\n- [x] G1: Example\n  - Contract: Example contract\n  - Verification: Example check\n',
+    [file]: elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+      definition: 'Project root definition.', sections: '## ADDED Sections\n\n### Section: Sample\n\nRoot SHALL do this.' }),
+  });
+  const external = path.join(root, 'external-active-change');
+  await fs.rename(source, external);
+  await fs.symlink(external, source, process.platform === 'win32' ? 'junction' : 'dir');
+  const status = await runCLI(['status', '--change', 'linked-change', '--no-quality', '--json'], { cwd: root });
+  expect(status).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_CHANGE_DIRECTORY') });
+  expect(JSON.parse(status.stderr).message).toContain(source);
+  expect(status.stderr).not.toContain('external-active-change');
+  const archive = await runCLI(['archive', 'linked-change', '--quick', '--yes', '--json'], { cwd: root });
+  expect(archive).toMatchObject({ exitCode: 1, stdout: '' });
+  expect((await fs.lstat(source)).isSymbolicLink()).toBe(true);
+  await expect(fs.access(path.join(external, file))).resolves.toBeUndefined();
+});
+
+it.each([
+  ['element-kind', 'group', 'parents', 'capability'],
+  ['element-kind', 'group', 'children', 'null'],
+  ['relationship-kind', 'links', 'sourceKinds', '[capability, 7]'],
+  ['relationship-kind', 'links', 'targetKinds', '{capability: true}'],
+])('rejects a malformed %s constraint on %s (%s)', async (entity, identity, field, malformed) => {
+  await writeProjectModel(root, minimalModel({
+    elementKinds: [{ identity: 'group', parents: ['capability'], children: ['capability'] }],
+    relationshipKinds: [{ identity: 'links', sourceKinds: ['capability'], targetKinds: ['capability'] }],
+  }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = `metamodel/${identity}.md`;
+  const delta = `---\noperation: MODIFIED\nentity: ${entity}\nidentity: ${identity}\n`
+    + (entity === 'element-kind' ? 'contract: optional\n' : '') + `${field}: ${malformed}\n---\n`;
+  const source = await writeChangeDelta(root, 'bad-constraint', { 'proposal.md': '# Kind constraint\n', [file]: delta });
+  for (const commands of [['validate', '--change', 'bad-constraint', '--preview'], ['archive', 'bad-constraint', '--yes', '--quick']]) {
+    const result = await runCLI([...commands, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(1);
+    expect(result.stderr).toContain('INVALID_KIND_CONSTRAINT');
+    expect(result.stderr).toContain(file);
+    expect(result.stderr).toContain(field);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([
+  ['ADDED', '', '#### Acceptance Case:'],
+  ['MODIFIED', 'Item SHALL follow the updated rule.\n\n', '   #### Acceptance Case:   '],
+  ['MODIFIED', 'Item MUST follow the updated rule.\n\n', '#### Acceptance Case: ###'],
+])('rejects an untitled Acceptance Case in %s Sections (%j, %j)', async (operation, prose, header) => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item', sections:
+    '## Specification\n\n### Section: Existing rule\n\nItem SHALL follow the existing rule.' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'elements/item.md';
+  const section = operation === 'ADDED' ? 'New rule' : 'Existing rule';
+  const delta = elementUnit({ identity: 'item', sections:
+    `## ${operation} Sections\n\n### Section: ${section}\n\n${prose}${header}\n\nItem SHALL pass the case.` });
+  const source = await writeChangeDelta(root, 'untitled-case', { 'proposal.md': '# Untitled case\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'untitled-case', '--preview'], ['archive', 'untitled-case', '--yes'], ['archive', 'untitled-case', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain('MALFORMED_ACCEPTANCE_CASE_HEADER');
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('rejects unsupported Relationship container fields even with valid entries', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'relationships/links.yaml';
+  const delta = 'operation: RENAMED\nrelationships:\n  - operation: ADDED\n    source: root\n    kind: links\n    target: item\n';
+  const source = await writeChangeDelta(root, 'bad-container', { 'proposal.md': '# Invalid container\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'bad-container', '--preview'], ['archive', 'bad-container', '--yes'], ['archive', 'bad-container', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain('UNSUPPORTED_RELATIONSHIP_CONTAINER_FIELD');
+    expect.soft(result.stderr).toContain(file);
+    expect.soft(result.stderr).toContain('operation');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each([
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'of: [not-present]', 'INVALID_VIEW_OF'],
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'title: false', 'INVALID_VIEW_TITLE'],
+  ['views/overview.md', 'authored-view', 'identity: overview\ninclude: "*"\n', 'autoLayout: {direction: LR}', 'INVALID_VIEW_AUTO_LAYOUT'],
+  ['metamodel/capability.md', 'element-kind', 'identity: capability\ncontract: optional\n', 'root: "true"', 'INVALID_KIND_ROOT'],
+  ['elements/root.md', 'element-declaration', 'identity: root\nkind: project\ntitle: Root\ndefinition: Updated definition.\n', 'parent: [not-present]', 'INVALID_ELEMENT_PARENT'],
+  ['elements/root.md', 'element-declaration', 'identity: root\nkind: project\nparent: null\ndefinition: Updated definition.\n', 'title: 100', 'INVALID_ELEMENT_TITLE'],
+])('rejects malformed %s frontmatter (%s, %s, %s)', async (file, entity, fields, malformed, code) => {
+  const operation = entity === 'authored-view' ? 'ADDED' : 'MODIFIED';
+  await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}${malformed}\n---\n`, code);
+});
+
+it('names the actual noncanonical Delta source on target validation failure', async () => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'metamodel/nested/display.md';
+  const delta = '---\noperation: ADDED\nentity: authored-view\nidentity: overview\ninclude: "*"\nof: missing-item\n---\n';
+  const source = await writeChangeDelta(root, 'dangling-view', { 'proposal.md': '# Dangling view\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [
+    ['validate', '--change', 'dangling-view', '--preview'],
+    ['archive', 'dangling-view', '--yes'],
+    ['archive', 'dangling-view', '--yes', '--quick'],
+  ]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    const issue = result.stderr.split('\n').find(line => line.includes('UNRESOLVED_VIEW_REFERENCE'));
+    expect.soft(issue).toContain(file);
+    expect.soft(issue).not.toContain('views/overview.md');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each(['Delta', 'Formal'])('locates a target Relationship diagnostic in its actual %s container', async origin => {
+  const formalFile = 'relationships/nested/actual-formal.yaml';
+  const deltaFile = 'relationships/nested/actual-delta.yaml';
+  const relationship = 'relationships:\n  - source: item\n    kind: links\n    target: root\n';
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  if (origin === 'Formal') {
+    const container = path.join(model, formalFile);
+    await fs.mkdir(path.dirname(container), { recursive: true });
+    await fs.writeFile(container, relationship);
+  }
+  const before = await readModelTree(model);
+  const units: Record<string, string> = origin === 'Delta' ? {
+    [deltaFile]: 'relationships:\n  - operation: ADDED\n    source: item\n    kind: missing-kind\n    target: root\n',
+  } : { 'metamodel/links.md': '---\noperation: REMOVED\nentity: relationship-kind\nidentity: links\n---\n' };
+  const name = 'invalid-relationship';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Invalid relationship\n', ...units });
+  await createCompleteQualityFixture(root, source);
+  const expectedPath = origin === 'Delta' ? deltaFile : formalFile;
+  for (const command of [['validate', '--change', name, '--preview'], ['archive', name, '--yes'], ['archive', name, '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    const issue = result.stderr.split('\n').find(line => line.includes('UNDECLARED_RELATIONSHIP_KIND'));
+    expect.soft(issue).toContain(expectedPath);
+    expect.soft(issue).not.toContain('elements/item.md');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  for (const [file, unit] of Object.entries(units)) await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(unit);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it.each(['---not a delimiter', '----', '--- # hidden prose'])('rejects a Delta with a malformed closing delimiter (%s)', async delimiter => {
+  const unit = `---\noperation: ADDED\nentity: element-kind\nidentity: new-kind\ncontract: optional\n${delimiter}\nKind semantics.\n`;
+  await expectInvalidDelivery('metamodel/new-kind.md', unit, 'MALFORMED_FRONTMATTER');
+});
+
+it.each([
+  ...(process.platform === 'win32' ? [] : ['symbolic-link'] as const), 'directory',
+] as const)('does not use a .delta-noop %s as proof of an empty Delta', async markerType => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'invalid-marker', { 'proposal.md': '# No semantic entries\n' });
+  const marker = path.join(source, '.delta-noop');
+  if (markerType === 'symbolic-link') {
+    const external = path.join(root, 'external-marker');
+    await fs.writeFile(external, 'not a local marker');
+    await fs.symlink(external, marker);
+  } else await fs.mkdir(marker);
+  const check = async (present: boolean) => {
+    const status = await runCLI(['status', '--change', 'invalid-marker', '--no-quality', '--json'], { cwd: root });
+    expect(status.exitCode, status.stderr).toBe(0);
+    expect.soft(JSON.parse(status.stdout).artifacts.find((item: { id: string }) => item.id === 'semantic-delta'))
+      .toMatchObject({ status: present ? 'done' : 'ready', outputs: [], completionMarker: { present } });
+    const preview = await runCLI(['validate', '--change', 'invalid-marker', '--preview', '--json'], { cwd: root });
+    expect.soft(preview.exitCode, preview.stderr).toBe(present ? 0 : 1);
+    if (!present) expect.soft(preview.stderr).toContain('at least one delta');
+    expect(JSON.parse(preview.stdout).summary.total).toBe(0);
+  };
+  await check(false);
+  await fs.rm(marker, { recursive: true });
+  await fs.writeFile(marker, '');
+  await check(true);
+});
+
+it.each(['[project]', 'null', 'false', '"project/root"'])('rejects an invalid Element kind (%s) in a Section-only Delta', async kind => {
+  const sections = '## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.';
+  const delta = elementUnit({ identity: 'root', kind, parent: null, title: 'Root', definition: 'Project root definition.', sections });
+  await expectInvalidDelivery('elements/root.md', delta, 'INVALID_ELEMENT_KIND');
+});
+
+it.each(['invalid/parent', '"invalid\\\\parent"', '""'])('rejects an invalid parent identity (%s) in a Section-only Delta', async parent => {
+  const delta = elementUnit({ identity: 'root', kind: 'project', parent, title: 'Root', definition: 'Project root definition.',
+    sections: '## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.' });
+  await expectInvalidDelivery('elements/root.md', delta, 'INVALID_ELEMENT_PARENT');
+});
+
+it.each(['##', '   ##', '##\t'])('rejects an empty level-two heading (%j) that ends an operation block', async heading => {
+  const file = 'elements/root.md';
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\nStray text.`;
+  await expectInvalidDelivery(file, elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+it.each([
+  ['views/overview.md', 'authored-view', 'ADDED', 'identity: overview\ninclude: "*"\nautoLayot: TB\n'],
+  ['metamodel/capability.md', 'element-kind', 'MODIFIED', 'identity: capability\ncontract: optional\nparentKinds: [project]\n'],
+  ['metamodel/links.md', 'relationship-kind', 'ADDED', 'identity: links\ntargetKind: capability\n'],
+  ['elements/root.md', 'element-declaration', 'MODIFIED', 'identity: root\nkind: project\nparent: null\ntitle: Root\ndefinition: Updated definition.\nparentId: not-present\n'],
+])('rejects unknown frontmatter fields in %s (%s, %s)', async (file, entity, operation, fields) => {
+  await expectInvalidDelivery(file, `---\noperation: ${operation}\nentity: ${entity}\n${fields}---\n`, 'UNSUPPORTED_DELTA_FIELD');
+});
+
+it.each(['# Not an operation', '   #'])('rejects a level-one heading (%j) that ends an operation block', async heading => {
+  const sections = `## ADDED Sections\n\n### Section: First rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\nStray text.\n\n### Section: Unscoped rule\n\nRoot SHALL NOT accept this rule.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'UNSCOPED_SECTION_CONTENT');
+});
+
+it.each(['Delta', 'Formal'] as const)('rejects invalid UTF-8 in a %s semantic unit', async target => {
+  const section = '### Section: Rule\n\nRoot SHALL follow';
+  const unit = elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.',
+    sections: `${target === 'Delta' ? '## ADDED Sections' : '## Specification'}\n\n${section}` });
+  const bytes = Buffer.concat([Buffer.from(unit.trimEnd() + ' '), Buffer.from([0x80]), Buffer.from('.\n')]);
+  await expectInvalidDelivery('elements/root.md', bytes, 'NON_UTF8_UNIT_CONTENT', target);
+});
+
+it.each(['RENAMED Sections\n-----------', 'RENAMED Sections\n===========', 'Unscoped first line\nRENAMED Sections\n-----------'])('rejects a Setext heading (%j) that could hide a Section operation', async heading => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${heading}\n\n### Section: Old rule\nRoot SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+it('does not count fenced code as Delta Section prose', async () => {
+  const sections = '## ADDED Sections\n\n### Section: Missing rule\n\n```md\nRoot SHALL show an example.\n```';
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'missing Section text');
+});
+
+it.each(['    ', '\t'])('rejects an unfenced retired Section operation indented by %j', async indent => {
+  const sections = `## ADDED Sections\n\n### Section: Valid rule\n\nRoot SHALL follow the rule.\n\n${indent}## RENAMED Sections\n\n${indent}### Section: Old rule\n${indent}Root SHALL NOT treat this as ADDED.`;
+  await expectInvalidDelivery('elements/root.md', elementUnit({ identity: 'root', kind: 'project', parent: null, title: 'Root',
+    definition: 'Project root definition.', sections }), 'MALFORMED_SECTION_OPERATION_HEADER');
+});
+
+it.each([
+  ['###\u00a0Section: Existing', 'MALFORMED_SECTION_HEADER'],
+  ['###\u000bSection: Existing', 'MALFORMED_SECTION_HEADER'],
+  ['- ###\u00a0Section: Existing', 'UNEXPECTED_REMOVED_CONTENT'],
+  ['- `###\u00a0Section: Existing`', 'UNEXPECTED_REMOVED_CONTENT'],
+  ['-     ### Section: Existing', 'UNEXPECTED_REMOVED_CONTENT'],
+])('rejects malformed removal syntax before deleting an existing Formal Section (%j)', async (removal, code) => {
+  const file = 'elements/root.md';
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  const formal = elementUnit({ ...declaration, sections: '## Specification\n\n### Section: Existing\n\nRoot SHALL retain this rule.' });
+  const delta = elementUnit({ ...declaration, sections: `## REMOVED Sections\n\n${removal}` });
+  await expectInvalidDelivery(file, delta, code, 'Delta', formal);
+});
+
+async function expectInvalidDelivery(file: string, delta: string | Buffer, code: string, target: 'Delta' | 'Formal' = 'Delta', formal?: string): Promise<void> {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  if (formal !== undefined) await fs.writeFile(path.join(model, file), formal);
+  const source = await writeChangeDelta(root, 'invalid-delta', { 'proposal.md': '# Invalid Delta\n',
+    ...(target === 'Formal' ? { '.delta-noop': '' } : { [file]: '' }) });
+  const location = path.join(target === 'Delta' ? source : model, file);
+  await fs.writeFile(location, delta);
+  const before = await readModelTree(model);
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'invalid-delta', '--preview'], ['archive', 'invalid-delta', '--yes'], ['archive', 'invalid-delta', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode, result.stderr).toBe(1);
+    expect.soft(result.stderr).toContain(code);
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(location)).resolves.toEqual(Buffer.from(delta));
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Invalid Delta\n');
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+}
+
+it.each([
+  ['plain top-level', '## REMOVED Sections\n\n- ### Section: Retired'],
+  ['backticked top-level', '## REMOVED Sections\n\n- `### Section: Retired`'],
+  ['nested', '## REMOVED Sections\n\n- `### Section: Retired`\n  - `### Section: Keep`'],
+])('handles %s Section removal bullets alongside added Markdown', async (placement, removals) => {
+  const retired = '### Section: Retired\n\nRoot SHALL follow the old rule.';
+  const kept = '### Section: Keep\n\nRoot SHALL follow the surviving rule.';
+  const added = '### Section: New\n\n<!-- Preserve this note. -->\nRoot SHALL follow the new rule.';
+  const declaration = { identity: 'root', kind: 'project', parent: null, title: 'Root', definition: 'Project root definition.' };
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const file = 'elements/root.md';
+  await fs.writeFile(path.join(model, file), elementUnit({ ...declaration, sections: `## Specification\n\n${kept}\n\n${retired}` }));
+  const before = await readModelTree(model);
+  const delta = elementUnit({ ...declaration, sections: `## ADDED Sections\n\n${added}\n\n${removals}` });
+  const source = await writeChangeDelta(root, 'remove-section', { 'proposal.md': '# Retire a rule\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  const planned = await runCLI(['validate', '--change', 'remove-section', '--preview', '--json'], { cwd: root });
+  const deliver = (flags: string[] = []) => runCLI(['archive', 'remove-section', '--yes', '--json', ...flags], { cwd: root });
+  if (placement === 'nested') {
+    for (const result of [planned, await deliver(), await deliver(['--quick'])]) {
+      expect.soft(result).toMatchObject({ exitCode: 1, stderr: expect.stringContaining('UNEXPECTED_REMOVED_CONTENT') });
+      expect.soft(result.stderr).toContain(file);
+    }
+    await expect(readModelTree(model)).resolves.toEqual(before);
+    await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+    await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+    return;
+  }
+  expect(planned).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(planned.stdout).summary).toEqual({ total: 2, ADDED: 1, MODIFIED: 0, REMOVED: 1 });
+  expect(await deliver()).toMatchObject({ exitCode: 0, stderr: '' });
+  const delivered = await fs.readFile(path.join(model, file), 'utf8');
+  expect(delivered.slice(delivered.indexOf('## Specification'))).toBe(`## Specification\n\n${kept}\n\n${added}\n`);
+});
+
+it('rejects a Section removal with an ambiguous Formal identity before preview or delivery', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{
+    identity: 'item',
+    sections: '## Specification\n\n### Section: Duplicated rule\n\nFirst rule.\n\n### Section: Duplicated rule\n\nSecond rule.',
+  }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'elements/item.md';
+  const delta = elementUnit({ identity: 'item', sections: '## REMOVED Sections\n\n### Section: Duplicated rule' });
+  const source = await writeChangeDelta(root, 'ambiguous-section', { 'proposal.md': '# Remove rule\n', [file]: delta });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [
+    ['validate', '--change', 'ambiguous-section', '--preview'],
+    ['archive', 'ambiguous-section', '--yes'],
+    ['archive', 'ambiguous-section', '--yes', '--quick'],
+  ]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result).toMatchObject({ exitCode: 1, stderr: expect.stringContaining('AMBIGUOUS_SECTION_IDENTITY') });
+    expect.soft(result.stderr).toContain('item#Duplicated rule');
+    expect.soft(result.stderr).toContain(file);
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(delta);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('names both Delta source units when relationship operations conflict', async () => {
+  await writeProjectModel(root, minimalModel({ elements: [{ identity: 'item' }], relationshipKinds: [{ identity: 'links' }] }));
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const unit = (operation: string) => `relationships:\n  - operation: ${operation}\n    source: root\n    kind: links\n    target: item\n`;
+  const files = { 'views/edge-a': unit('ADDED'), 'relationships/edge-b': unit('REMOVED') };
+  const source = await writeChangeDelta(root, 'conflicting-operations', { 'proposal.md': '# Conflicting operations\n', ...files });
+  await createCompleteQualityFixture(root, source);
+  for (const command of [['validate', '--change', 'conflicting-operations', '--preview'], ['archive', 'conflicting-operations', '--yes'], ['archive', 'conflicting-operations', '--yes', '--quick']]) {
+    const result = await runCLI([...command, '--json'], { cwd: root });
+    expect.soft(result.exitCode).toBe(1);
+    const conflict = result.stderr.split('\n').find(line => line.includes('CONFLICTING_OPERATIONS'));
+    expect.soft(conflict).toContain('views/edge-a');
+    expect.soft(conflict).toContain('relationships/edge-b');
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  for (const [file, content] of Object.entries(files)) await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(content);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('writes a complete large archive error to piped JSON stderr in the built CLI', async () => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const file = 'views/invalid.md';
+  const fields = Array.from({ length: 1400 }, (_, i) => `unknown-${'x'.repeat(400)}-${String(i).padStart(4, '0')}`);
+  const unit = `---\noperation: ADDED\nentity: authored-view\nidentity: invalid\ninclude: "*"\n${fields.map(field => `${field}: true`).join('\n')}\n---\n`;
+  const source = await writeChangeDelta(root, 'long-diagnostic', { [file]: unit });
+  await createCompleteQualityFixture(root, source);
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const result = spawnSync(process.execPath, [cli, 'archive', 'long-diagnostic', '--yes', '--json'], {
+    cwd: root, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 10_000,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr.endsWith('\n')).toBe(true);
+  const report = JSON.parse(result.stderr);
+  expect(report.code).toBe('COMMAND_ERROR');
+  expect(report.message).toContain(`${file}: UNSUPPORTED_DELTA_FIELD:`);
+  expect(report.message.match(/unknown-x/g)).toHaveLength(fields.length);
+  expect(report.message.endsWith(JSON.stringify(fields.at(-1)))).toBe(true);
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, file), 'utf8')).resolves.toBe(unit);
+  await expect(fs.access(path.join(path.dirname(source), 'archive'))).rejects.toMatchObject({ code: 'ENOENT' });
+}, 15_000);
+
+it('writes a complete archive argument error to piped JSON stderr in the built CLI', () => {
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const flag = `--unknown-${'\u0001'.repeat(process.platform === 'win32' ? 8000 : 100_000)}-end`;
+  const result = spawnSync(process.execPath, [cli, 'archive', '--json', flag], {
+    cwd: root, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024, timeout: 10_000,
+  });
+  expect(result.error).toBeUndefined();
+  expect(result.status).toBe(1);
+  expect(result.stdout).toBe('');
+  expect(result.stderr.endsWith('\n')).toBe(true);
+  expect(JSON.parse(result.stderr)).toEqual({ code: 'INVALID_ARGUMENT', message: `error: unknown option '${flag}'` });
+}, 15_000);
+
+it('reports missing non-interactive archive inputs as JSON without prompting or writing', async () => {
+  await writeProjectModel(root, minimalModel());
+  const tasks = '## Goals\n- [ ] G1: Pending goal\n';
+  const source = await writeChangeDelta(root, 'needs-confirmation', { '.delta-noop': '', 'tasks.md': tasks });
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+  const cases = [
+    { args: ['--abandon'], message: /Change name.*non-interactive/i },
+    { args: ['--abandon', '--yes'], message: /Change name.*non-interactive/i },
+    { args: ['needs-confirmation', '--abandon'], message: /Abandon.*--yes/i },
+    { args: ['needs-confirmation'], message: /1 incomplete goal.*--yes/i },
+    { args: ['needs-confirmation', '--quick'], message: /1 incomplete goal.*--yes/i },
+  ];
+  await createCompleteQualityFixture(root, source);
+  for (const { args, message } of cases) {
+    const result = spawnSync(process.execPath, [cli, 'archive', ...args, '--json'], {
+      cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 10_000,
+    });
+    expect.soft(result.error, args.join(' ')).toBeUndefined();
+    expect.soft(result.status, args.join(' ')).toBe(1);
+    expect.soft(result.stdout, args.join(' ')).toBe('');
+    try {
+      const diagnostics = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+      expect.soft(diagnostics.at(-1), args.join(' ')).toMatchObject({ code: 'COMMAND_ERROR', message: expect.stringMatching(message) });
+    } catch (error) {
+      expect.soft(error, `${args.join(' ')}: ${result.stderr}`).toBeUndefined();
+    }
+  }
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'tasks.md'), 'utf8')).resolves.toBe(tasks);
+  await expect(fs.readdir(path.dirname(source))).resolves.toEqual([path.basename(source)]);
+}, 20_000);
+
 it('rejects invalid final archive validation without moving the active Change', async () => {
   const active = path.join(root, '.xirang', 'changes', 'invalid');
   await fs.mkdir(active, { recursive: true });
   await fs.writeFile(path.join(active, '.delta-noop'), '');
   for (const json of [[], ['--json']]) {
-    const result = await runCLI(['archive', 'invalid', '--yes', '--no-verify', '--no-sync', ...json], { cwd: root });
+    const result = await runCLI(['archive', 'invalid', '--yes', '--quick', ...json], { cwd: root });
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toBe('');
     const messages = json.length ? result.stderr.trim().split('\n').map(line => JSON.parse(line).message).join('\n') : result.stderr;
@@ -43,7 +783,7 @@ it('rejects invalid final archive validation without moving the active Change', 
     await expect(fs.access(path.join(root, '.xirang', 'changes', 'archive'))).rejects.toThrow();
   }
 });
-it.each([false, true])('preserves successful Sync/Archive warnings and problem-free silence (json=%s)', async json => {
+it.each([false, true])('preserves successful archive warnings and problem-free silence (json=%s)', async json => {
   for (const warning of [false, true]) {
     const project = path.join(root, warning ? 'warning' : 'clean');
     await writeProjectModel(project, minimalModel());
@@ -62,12 +802,6 @@ it.each([false, true])('preserves successful Sync/Archive warnings and problem-f
         expect(stderr).toContain('views/project.md');
       }
     };
-    for (let repeat = 0; repeat < 2; repeat++) {
-      const synced = await runCLI(['sync', 'sample', ...flags], { cwd: project });
-      expect(synced).toMatchObject({ exitCode: 0, stdout: '' });
-      diagnostics(synced.stderr);
-      expect(await fs.readFile(path.join(project, '.xirang/model/elements/root.md'), 'utf8')).toContain('Updated project definition.');
-    }
     const archived = await runCLI(['archive', 'sample', '--yes', ...flags], { cwd: project });
     expect(archived.exitCode).toBe(0);
     const location = json ? JSON.parse(archived.stdout).archive : archived.stdout.trim();
@@ -75,6 +809,7 @@ it.each([false, true])('preserves successful Sync/Archive warnings and problem-f
     expect((await fs.stat(path.join(project, location))).isDirectory()).toBe(true);
     await expect(fs.access(change)).rejects.toMatchObject({ code: 'ENOENT' });
     diagnostics(archived.stderr);
+    await expect(fs.readFile(path.join(project, '.xirang', 'model', 'elements', 'root.md'), 'utf8')).resolves.toContain('Updated project definition.');
   }
 });
 it('encodes format-json model and argument failures as diagnostics', async () => {
@@ -92,4 +827,485 @@ it('reports operation and argument failures as JSON diagnostics without result d
     expect(result.stdout).toBe('');
     expect(JSON.parse(result.stderr).message).toBeTruthy();
   }
+});
+
+it('rejects retired closure syntax and conflicting modes before writing', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'demo', {});
+  await fs.mkdir(source, { recursive: true });
+  for (const [args, message] of [
+    [['sync', 'demo'], /unknown command/i],
+    ...['--no-sync', '--no-validate', '--no-verify'].map(flag => [['archive', 'demo', flag], /unknown option/i] as const),
+    [['archive', 'demo', '--quick', '--abandon', '--yes'], /--quick[\s\S]*--abandon/i],
+  ] as const) {
+    const result = await runCLI([...args, '--json'], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(result.stderr).message).toMatch(message);
+    await expect(fs.stat(source)).resolves.toBeDefined();
+  }
+});
+
+it('returns the abandoned location by exact Change name and leaves implementation untouched', async () => {
+  const source = await writeChangeDelta(root, 'demo', { 'elements/broken.md': 'unparseable delta' });
+  const unrelated = path.join(root, '.xirang', 'changes', 'archive', '2099-01-01-other-demo');
+  await fs.mkdir(unrelated, { recursive: true });
+  const impl = path.join(root, 'in-progress.ts');
+  await fs.writeFile(impl, 'in-progress implementation');
+  const result = await runCLI(['archive', 'demo', '--abandon', '--yes', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+  const { archive } = JSON.parse(result.stdout);
+  expect(archive).toBe(path.join('.xirang', 'changes', 'archive', 'abandoned', `${new Date().toISOString().slice(0, 10)}-demo`));
+  await expect(fs.readFile(path.join(root, archive, 'elements', 'broken.md'), 'utf8')).resolves.toBe('unparseable delta');
+  await expect(fs.readFile(impl, 'utf8')).resolves.toBe('in-progress implementation');
+  await expect(fs.stat(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  const retry = await runCLI(['archive', 'demo', '--json'], { cwd: root });
+  expect(JSON.parse(retry.stdout)).toEqual({ archive, alreadyArchived: true });
+});
+
+
+it('keeps both real prompts off stdout when interactively selecting and abandoning with --json', async () => {
+  const change = await writeChangeDelta(root, 'demo', { '.quality.json': 'unreadable quality' });
+  const terminal = vi.spyOn(interactive, 'isInteractive').mockReturnValue(true);
+  const result = await runCLI(['archive', '--abandon', '--json'], { cwd: root }).finally(() => terminal.mockRestore());
+  expect(result.exitCode).toBe(0);
+  const { archive } = JSON.parse(result.stdout);
+  expect(result.stderr).toContain('Select a change to archive');
+  expect(result.stderr).toContain("Abandon 'demo'");
+  await expect(fs.access(change)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.readFile(path.join(root, archive, '.quality.json'), 'utf8')).resolves.toBe('unreadable quality');
+});
+
+it.each([false, true])('reports the initiating failure and failed compensation (json=%s)', async json => {
+  const source = await writeChangeDelta(root, 'move-failure', { 'proposal.md': 'Preserve me' });
+  const rm = fs.rm;
+  const copyFile = fs.copyFile;
+  const archive = path.join(root, '.xirang', 'changes', 'archive', 'abandoned');
+  const mocks = [
+    vi.spyOn(fs, 'copyFile').mockImplementation(async (from, to, mode) => {
+      if (path.basename(String(to)) === 'proposal.md' && String(to).startsWith(archive + path.sep)) {
+        throw new Error('install injected failure');
+      }
+      return copyFile(from, to, mode);
+    }),
+    vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
+      const location = String(target);
+      if (path.dirname(location) === archive && path.basename(location).endsWith('-move-failure')) {
+        throw new Error('cleanup injected failure');
+      }
+      return rm(target, options);
+    }),
+  ];
+  try {
+    const result = await runCLI(['archive', 'move-failure', '--abandon', '--yes', ...(json ? ['--json'] : [])], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    const message = json ? JSON.parse(result.stderr).message : result.stderr;
+    expect(message).toContain('install injected failure');
+    expect(message).toContain('cleanup injected failure');
+    await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('Preserve me');
+  } finally { for (const mock of mocks) mock.mockRestore(); }
+});
+
+
+it('completes both finished archive modes and omits incomplete or reserved history', async () => {
+  const archive = path.join(root, '.xirang', 'changes', 'archive');
+  const abandoned = path.join(archive, 'abandoned');
+  const interrupted = path.join(archive, '2026-01-01-interrupted');
+  const interruptedAbandon = path.join(abandoned, '2026-01-01-interrupted-abandon');
+  for (const directory of [path.join(archive, '2026-01-01-delivered'), interrupted,
+    path.join(abandoned, '2026-01-01-dropped'), interruptedAbandon, path.join(archive, 'not-a-dated-archive'),
+    path.join(archive, '2026-01-01-archive'), path.join(abandoned, '2026-01-02-archive')]) {
+    await fs.mkdir(directory, { recursive: true });
+    if (directory !== path.join(abandoned, '2026-01-01-dropped')) {
+      await fs.writeFile(path.join(directory, 'proposal.md'), 'Proposal already copied');
+    }
+  }
+  await fs.mkdir(pendingArchivePath(interrupted));
+  await fs.mkdir(pendingArchivePath(interruptedAbandon));
+
+  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
+  expect(completion).toMatchObject({
+    exitCode: 0, stdout: '2026-01-01-delivered\tarchived change\n2026-01-01-dropped\tarchived change\n', stderr: '',
+  });
+  await writeChangeDelta(root, 'active', { 'proposal.md': '# Active\n' });
+  await fs.mkdir(path.join(path.dirname(archive), 'scaffolded'));
+  await fs.mkdir(path.join(path.dirname(archive), '.temporary'));
+  await fs.mkdir(path.join(archive, '2026-02-01-active'));
+  await fs.mkdir(path.join(archive, '2026-02-01-dropped'));
+  const archiveNames = await runCLI(['__complete', 'archive-changes'], { cwd: root });
+  expect.soft(archiveNames).toMatchObject({ exitCode: 0,
+    stdout: 'active\tactive change\ndelivered\tarchived change\ndropped\tarchived change\nscaffolded\tactive change\n', stderr: '' });
+  const activeOnly = await runCLI(['__complete', 'changes'], { cwd: root });
+  expect(activeOnly.stdout).toBe('active\tactive change\n');
+  for (const [shell, binding] of [
+    ['bash', /archive\)[\s\S]*?_xirang_complete_archive_changes[ \t]*\n[ \t]*;;/],
+    ['zsh', /_xirang_archive\(\)[\s\S]*?'\*: :_xirang_complete_archive_changes'/],
+    ['fish', /__fish_xirang_using_subcommand archive' -a '\(__fish_xirang_archive_changes\)'/],
+    ['powershell', /"archive" \{[\s\S]*?Get-OPSXArchiveChanges \| Where-Object/],
+  ] as const) {
+    const generated = await runCLI(['completion', 'generate', shell, '--json'], { cwd: root });
+    expect(generated.exitCode, generated.stderr).toBe(0);
+    const { script } = JSON.parse(generated.stdout) as { script: string };
+    expect.soft(script).toContain('xirang __complete archive-changes');
+    expect.soft(script).toMatch(binding);
+    if (shell === 'bash' && process.platform !== 'win32') {
+      const completionPath = path.join(root, 'completion.bash');
+      await fs.writeFile(completionPath, script);
+      const cli = fileURLToPath(new URL('../../bin/xirang.js', import.meta.url));
+      const names = execFileSync('bash', ['--noprofile', '--norc', '-c',
+        'source "$1"; xirang() { command "$XIRANG_TEST_NODE" "$XIRANG_TEST_CLI" "$@"; }; COMP_WORDS=(xirang archive ""); COMP_CWORD=2; _xirang_completion; printf "%s\\n" "${COMPREPLY[@]}"',
+        'bash', completionPath], { cwd: root, encoding: 'utf8', env: { ...process.env, XIRANG_TEST_NODE: process.execPath, XIRANG_TEST_CLI: cli } });
+      expect.soft(names.trim().split('\n').sort()).toEqual(['active', 'delivered', 'dropped', 'scaffolded']);
+    }
+  }
+  for (const name of ['delivered', 'dropped']) {
+    const result = await runCLI(['archive', name, '--json'], { cwd: root });
+    expect(result.exitCode, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ alreadyArchived: true });
+  }
+  for (const [name, mode] of [['interrupted', '--quick'], ['interrupted-abandon', '--abandon']]) {
+    const retry = await runCLI(['archive', name, mode], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('Archive is incomplete') });
+  }
+});
+
+it.each([false, true])('reports pending history ahead of every completed receipt (pending abandonment=%s)', async pendingAbandonment => {
+  const history = path.join(root, '.xirang', 'changes', 'archive');
+  const abandoned = path.join(history, 'abandoned');
+  const pendingParent = pendingAbandonment ? abandoned : history;
+  const destination = path.join(pendingParent, '2020-01-02-orphaned');
+  const completed = [path.join(history, '2020-01-01-orphaned'), path.join(abandoned, '2020-01-01-orphaned'), path.join(pendingParent, '2020-01-03-orphaned')];
+  for (const receipt of completed) await fs.mkdir(receipt, { recursive: true });
+  await fs.mkdir(pendingArchivePath(destination));
+
+  for (const flags of [[], ['--quick'], ['--abandon']]) {
+    const retry = await runCLI(['archive', 'orphaned', '--json', ...flags], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(retry.stderr)).toMatchObject({
+      code: 'COMMAND_ERROR', message: expect.stringContaining(`Archive is incomplete at ${destination}`),
+    });
+  }
+  for (const type of ['archive-changes', 'archived-changes']) {
+    expect(await runCLI(['__complete', type], { cwd: root })).toMatchObject({ exitCode: 0, stdout: '', stderr: '' });
+  }
+  const unrelated = path.join(history, '2020-01-01-unrelated');
+  await fs.mkdir(unrelated);
+  expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: 'unrelated\tarchived change\n', stderr: '',
+  });
+  expect(await runCLI(['__complete', 'archived-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: '2020-01-01-unrelated\tarchived change\n', stderr: '',
+  });
+  await expect(fs.access(destination)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(fs.access(pendingArchivePath(destination))).resolves.toBeUndefined();
+  for (const receipt of completed) await expect(fs.readdir(receipt)).resolves.toEqual([]);
+  await fs.rmdir(pendingArchivePath(destination));
+  expect(await runCLI(['__complete', 'archive-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: 'orphaned\tarchived change\nunrelated\tarchived change\n', stderr: '',
+  });
+  expect(await runCLI(['__complete', 'archived-changes'], { cwd: root })).toMatchObject({
+    exitCode: 0, stdout: '2020-01-01-orphaned\tarchived change\n2020-01-01-unrelated\tarchived change\n2020-01-03-orphaned\tarchived change\n', stderr: '',
+  });
+});
+
+it.each([false, true])('blocks active retries across archive modes and dates (pending abandonment=%s)', async pendingAbandonment => {
+  await writeProjectModel(root, minimalModel());
+  const name = 'restored-change';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Restored Change\n', '.delta-noop': '' });
+  await createCompleteQualityFixture(root, source);
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const history = path.join(path.dirname(source), 'archive');
+  const parent = pendingAbandonment ? path.join(history, 'abandoned') : history;
+  const destination = path.join(parent, `2000-01-01-${name}`);
+  await fs.mkdir(pendingArchivePath(destination), { recursive: true });
+
+  for (const flags of [[], ['--quick'], ['--abandon']]) {
+    const retry = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(retry.stderr).message).toContain(`Archive is incomplete at ${destination}`);
+  }
+  expect((await runCLI(['__complete', 'archive-changes'], { cwd: root })).stdout).toBe('');
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Restored Change\n');
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readdir(parent)).resolves.toEqual([path.basename(pendingArchivePath(destination))]);
+
+  await fs.rmdir(pendingArchivePath(destination));
+  expect((await runCLI(['__complete', 'archive-changes'], { cwd: root })).stdout).toBe(`${name}\tactive change\n`);
+  const delivery = await runCLI(['archive', name, '--yes', '--json'], { cwd: root });
+  expect(delivery.exitCode).toBe(0);
+  expect(JSON.parse(delivery.stdout).archive).not.toContain('2000-01-01');
+});
+
+it('rechecks pending history after claiming the archive lock', async () => {
+  await writeProjectModel(root, minimalModel());
+  const name = 'claim-race';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve me\n', '.delta-noop': '' });
+  const changes = path.dirname(source);
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const destination = path.join(changes, 'archive', 'abandoned', `2000-01-01-${name}`);
+  const mkdtemp = fs.mkdtemp;
+  const hook = vi.spyOn(fs, 'mkdtemp').mockImplementation(async (...args) => {
+    if (String(args[0]).startsWith(path.join(changes, '.archive-lock-'))) {
+      await fs.mkdir(pendingArchivePath(destination), { recursive: true });
+    }
+    return mkdtemp(...args);
+  });
+  try {
+    const retry = await runCLI(['archive', name, '--quick', '--yes', '--json'], { cwd: root });
+    expect(retry).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(retry.stderr).toContain('Archive is incomplete at');
+  } finally { hook.mockRestore(); }
+  await expect(fs.readdir(changes)).resolves.toEqual(['archive', name]);
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Preserve me\n');
+  await expect(readModelTree(model)).resolves.toEqual(before);
+});
+
+it.each([false, true])('ignores a history entry rolled back between listing and inspecting its marker (completion=%s)', async completion => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive', '2026-01-01-failed');
+  const pending = pendingArchivePath(history);
+  const active = path.join(changes, 'failed');
+  await fs.mkdir(history, { recursive: true });
+  await fs.mkdir(path.join(path.dirname(history), '2025-12-31-failed'));
+  await fs.mkdir(pending);
+  const lstat = fs.lstat;
+  let rolledBack = false;
+  const marker = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === pending && !rolledBack) {
+      rolledBack = true;
+      await fs.mkdir(active);
+      await fs.rmdir(history);
+      await fs.rmdir(pending);
+    }
+    return lstat(location, options);
+  });
+  try {
+    const result = await runCLI(completion ? ['__complete', 'archived-changes'] : ['archive', 'failed', '--json'], { cwd: root });
+    expect(rolledBack).toBe(true);
+    expect(result).toMatchObject({ exitCode: completion ? 0 : 1, stdout: '' });
+    if (!completion) expect(result.stderr).toMatch(/changed during lookup.*retry/i);
+    await expect(fs.access(active)).resolves.toBeUndefined();
+  } finally {
+    marker.mockRestore();
+  }
+});
+
+it.each([
+  ['archive-changes', 'archive'],
+  ['archive-changes', 'abandoned'],
+  ['archived-changes', 'archive'],
+  ['archived-changes', 'abandoned'],
+])('omits same-name history from %s when a new %s attempt starts after listing', async (type, mode) => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive');
+  const completed = path.join(history, '2026-01-01-demo');
+  const unrelated = path.join(history, '2026-01-01-unrelated');
+  const pendingParent = mode === 'abandoned' ? path.join(history, 'abandoned') : history;
+  const destination = path.join(pendingParent, '2026-01-02-demo');
+  const active = path.join(changes, 'demo');
+  const captured = path.join(changes, '.archive-source-demo');
+  for (const location of [completed, unrelated, active]) await fs.mkdir(location, { recursive: true });
+  const lstat = fs.lstat;
+  let started = false;
+  const hook = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === pendingArchivePath(completed) && !started) {
+      started = true;
+      await fs.mkdir(pendingParent, { recursive: true });
+      await fs.mkdir(pendingArchivePath(destination));
+      await fs.mkdir(destination);
+      await fs.rename(active, captured);
+    }
+    return lstat(location, options);
+  });
+  const expectedDuring = type === 'archive-changes' ? 'unrelated' : path.basename(unrelated);
+  const completion = () => runCLI(['__complete', type], { cwd: root });
+  try {
+    const result = await completion();
+    expect(started).toBe(true);
+    expect(result).toMatchObject({ exitCode: 0, stdout: `${expectedDuring}\tarchived change\n`, stderr: '' });
+  } finally {
+    hook.mockRestore();
+  }
+  await expect(fs.access(captured)).resolves.toBeUndefined();
+  await fs.rmdir(pendingArchivePath(destination));
+  const expectedAfter = type === 'archive-changes' ? ['demo', 'unrelated']
+    : [completed, unrelated, destination].map(location => path.basename(location)).sort();
+  expect(await completion()).toMatchObject({
+    exitCode: 0, stdout: expectedAfter.map(name => `${name}\tarchived change\n`).join(''), stderr: '',
+  });
+});
+
+it.each([
+  { lookup: 'archive', rollbackBefore: 'listing' },
+  { lookup: 'archive', rollbackBefore: 'marker' },
+  { lookup: 'completion', rollbackBefore: 'listing' },
+  { lookup: 'completion', rollbackBefore: 'marker' },
+] as const)('prefers a restored source over an older archive during $lookup (before $rollbackBefore)', async ({ lookup, rollbackBefore }) => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive');
+  const older = path.join(history, '2026-01-01-demo');
+  const newer = path.join(history, '2026-01-02-demo');
+  const pending = pendingArchivePath(newer);
+  const active = path.join(changes, 'demo');
+  await fs.mkdir(older, { recursive: true });
+  await fs.mkdir(newer);
+  await fs.mkdir(pending);
+  const lstat = fs.lstat;
+  let restored = false;
+  const marker = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === (rollbackBefore === 'listing' ? history : pending) && !restored) {
+      restored = true;
+      await fs.mkdir(active);
+      await fs.writeFile(path.join(active, 'proposal.md'), '# Restored\n');
+      await fs.rmdir(newer);
+      await fs.rmdir(pending);
+    }
+    return lstat(location, options);
+  });
+  try {
+    const result = await runCLI(lookup === 'archive' ? ['archive', 'demo', '--json'] : ['__complete', 'archive-changes'], { cwd: root });
+    expect(restored).toBe(true);
+    if (lookup === 'archive') {
+      expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+      expect(JSON.parse(result.stderr).message).toMatch(/changed during lookup.*retry/i);
+    } else {
+      expect(result).toMatchObject({ exitCode: 0, stdout: 'demo\tactive change\n' });
+    }
+    await expect(fs.readFile(path.join(active, 'proposal.md'), 'utf8')).resolves.toBe('# Restored\n');
+    await expect(fs.readdir(history)).resolves.toEqual([path.basename(older)]);
+  } finally {
+    marker.mockRestore();
+  }
+});
+
+it.skipIf(process.platform === 'win32').for([false, true])('retries and completes archive names at the component limit (abandon=%s)', async (abandon, context) => {
+  const archive = path.join(root, '.xirang', 'changes', 'archive', ...(abandon ? ['abandoned'] : []));
+  const name = 'l'.repeat(244);
+  const entry = `2026-01-01-${name}`;
+  const location = path.join(archive, entry);
+  try { await fs.mkdir(location, { recursive: true }); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENAMETOOLONG') return context.skip('Filesystem component limit is below 255');
+    throw error;
+  }
+  await fs.writeFile(path.join(location, 'proposal.md'), 'Legacy archive');
+
+  const completion = await runCLI(['__complete', 'archived-changes'], { cwd: root });
+  expect(completion.stdout).toBe(`${entry}\tarchived change\n`);
+  const archiveNames = await runCLI(['__complete', 'archive-changes'], { cwd: root });
+  expect(archiveNames.stdout).toBe(`${name}\tarchived change\n`);
+  const retry = await runCLI(['archive', name, '--json'], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 0, stderr: '' });
+  expect(JSON.parse(retry.stdout)).toEqual({ archive: path.relative(root, location), alreadyArchived: true });
+});
+
+it('reports an archive error and incomplete model rollback in structured diagnostics', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'rollback-failure', {
+    'elements/root.md': '---\noperation: MODIFIED\n' + elementUnit({ identity: 'root', kind: 'project', parent: null, definition: 'New root.' }).slice(4),
+  });
+  const target = path.join(root, '.xirang', 'model', 'elements', 'root.md');
+  const rename = fs.rename;
+  let original: string | undefined;
+  const hook = vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+    if (from === source) throw new Error('archive move injected failure');
+    if (to === target && path.basename(String(from)) === 'original') {
+      original = String(from);
+      throw new Error('model restore injected failure');
+    }
+    return rename(from, to);
+  });
+  try {
+    const result = await runCLI(['archive', 'rollback-failure', '--quick', '--yes', '--json'], { cwd: root });
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    const records = result.stderr.trim().split('\n').map(line => JSON.parse(line));
+    expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toMatch(/archive move injected failure[\s\S]*model restore injected failure/);
+    expect(records.find(record => record.code === 'COMMAND_ERROR')?.message).toContain(path.dirname(original!));
+    await expect(fs.readFile(original!, 'utf8')).resolves.toContain('Project root definition.');
+    await expect(fs.access(source)).resolves.toBeUndefined();
+  } finally { hook.mockRestore(); }
+});
+
+
+it('warns without undoing delivery if post-commit Formal staging cleanup fails', async () => {
+  await writeProjectModel(root, minimalModel());
+  const source = await writeChangeDelta(root, 'formal-cleanup-failure', {
+    'elements/root.md': '---\noperation: MODIFIED\n' + elementUnit({ identity: 'root', kind: 'project', parent: null, definition: 'New root.' }).slice(4),
+  });
+  const elements = path.join(root, '.xirang', 'model', 'elements');
+  const rm = fs.rm;
+  const hook = vi.spyOn(fs, 'rm').mockImplementation(async (location, options) => {
+    if (path.dirname(String(location)) === elements && path.basename(String(location)).startsWith('.xirang-sync-')) {
+      throw new Error('Formal cleanup injected failure');
+    }
+    return rm(location, options);
+  });
+  try {
+    const result = await runCLI(['archive', 'formal-cleanup-failure', '--quick', '--yes', '--json'], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    const { archive } = JSON.parse(result.stdout);
+    expect(result.stderr.trim().split('\n').map(line => JSON.parse(line))).toContainEqual({
+      code: 'FORMAL_STAGING_CLEANUP', message: expect.stringContaining('Formal cleanup injected failure'),
+    });
+    await expect(fs.readFile(path.join(root, archive, 'elements', 'root.md'), 'utf8')).resolves.toContain('New root.');
+    await expect(fs.readFile(path.join(elements, 'root.md'), 'utf8')).resolves.toContain('New root.');
+    await expect(fs.access(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  } finally { hook.mockRestore(); }
+});
+
+it('rejects mutually exclusive archive options as an invalid CLI argument', async () => {
+  const result = await runCLI(['archive', '--quick', '--abandon', '--json'], { cwd: root });
+  expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+  expect(JSON.parse(result.stderr)).toMatchObject({ code: 'INVALID_ARGUMENT', message: expect.stringMatching(/--quick[\s\S]*--abandon/) });
+});
+
+
+it.each(['archive-root', 'abandoned-to-archive', 'abandoned-to-external'] as const)('rejects a linked %s history parent for writes and lookups', async kind => {
+  await writeProjectModel(root, minimalModel());
+  const model = path.join(root, '.xirang', 'model');
+  const before = await readModelTree(model);
+  const name = 'linked-history';
+  const source = await writeChangeDelta(root, name, { 'proposal.md': '# Preserve me\n' });
+  const archive = path.join(path.dirname(source), 'archive');
+  const external = path.join(root, 'external-history');
+  const linked = kind === 'archive-root' ? archive : path.join(archive, 'abandoned');
+  const target = kind === 'abandoned-to-archive' ? archive : external;
+  if (kind !== 'archive-root') await fs.mkdir(archive);
+  await fs.mkdir(target, { recursive: true });
+  await fs.symlink(target, linked, process.platform === 'win32' ? 'junction' : 'dir');
+  const flags = kind === 'archive-root' ? ['--quick'] : ['--abandon'];
+  const rejected = await runCLI(['archive', name, '--yes', '--json', ...flags], { cwd: root });
+  expect.soft(rejected).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
+  await expect(readModelTree(model)).resolves.toEqual(before);
+  await expect(fs.readFile(path.join(source, 'proposal.md'), 'utf8')).resolves.toBe('# Preserve me\n');
+  expect(await fs.readdir(target)).toEqual(kind === 'abandoned-to-archive' ? ['abandoned'] : []);
+
+  const entry = '2026-01-01-other-change';
+  await fs.mkdir(path.join(target, entry));
+  const retry = await runCLI(['archive', 'other-change', '--json', ...flags], { cwd: root });
+  expect(retry).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
+  for (const type of ['archive-changes', 'archived-changes']) {
+    expect(await runCLI(['__complete', type], { cwd: root })).toMatchObject({ exitCode: 1, stdout: '', stderr: '' });
+  }
+  if (kind === 'abandoned-to-archive') {
+    const delivered = await runCLI(['archive', 'other-change', '--json'], { cwd: root });
+    expect(delivered).toMatchObject({ exitCode: 1, stdout: '', stderr: expect.stringContaining('INVALID_ARCHIVE_HISTORY_DIRECTORY') });
+  }
+});
+
+it('returns the matching history after a same-day reuse of the exact Change name', async () => {
+  await writeProjectModel(root, minimalModel());
+  const flags = ['--yes', '--json'];
+  const archive = async (...options: string[]) => {
+    const result = await runCLI(['archive', 'demo', ...options, ...flags], { cwd: root });
+    expect(result.exitCode).toBe(0);
+    return JSON.parse(result.stdout);
+  };
+  await writeChangeDelta(root, 'demo', { 'proposal.md': 'First delivered version.' });
+  const delivery = await archive('--quick');
+  await writeChangeDelta(root, 'demo', { 'proposal.md': 'Second abandoned version.' });
+  const abandonment = await archive('--abandon');
+  expect(await archive('--abandon')).toEqual({ archive: abandonment.archive, alreadyArchived: true });
+  expect(await archive('--quick')).toEqual({ archive: delivery.archive, alreadyArchived: true });
 });

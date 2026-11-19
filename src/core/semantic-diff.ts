@@ -91,8 +91,25 @@ export function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function sortStrings(values: string[] | undefined): string[] | undefined {
-  return values && [...new Set(values)].sort();
+const setFields: Partial<Record<DiffKind, readonly string[]>> = {
+  'element-kind': ['parents', 'children'],
+  'relationship-kind': ['sourceKinds', 'targetKinds'],
+  'authored-view': ['include', 'exclude'],
+};
+
+function normalizeEntity<T>(kind: DiffKind, entity: T): T {
+  const fields = setFields[kind];
+  if (!fields || !entity || typeof entity !== 'object') return entity;
+  const normalized = { ...entity } as Record<string, unknown>;
+  for (const field of fields) {
+    const values = normalized[field];
+    if (Array.isArray(values)) normalized[field] = [...new Set(values)].sort();
+  }
+  return normalized as T;
+}
+
+export function equalSemanticEntity(kind: DiffKind, left: unknown, right: unknown): boolean {
+  return equal(normalizeEntity(kind, left), normalizeEntity(kind, right));
 }
 
 function sortByIdentity<T extends { identity: string }>(items: readonly T[]): T[] {
@@ -104,23 +121,11 @@ export function normalizeSemanticModel(model: SemanticModel): SemanticModel {
   return {
     elements: [...model.elements].sort((left, right) =>
       left.declaration.identity.localeCompare(right.declaration.identity)),
-    elementKinds: sortByIdentity(model.elementKinds).map(kind => ({
-      ...kind,
-      ...(kind.parents ? { parents: sortStrings(kind.parents)! } : {}),
-      ...(kind.children ? { children: sortStrings(kind.children)! } : {}),
-    })),
-    relationshipKinds: sortByIdentity(model.relationshipKinds).map(kind => ({
-      ...kind,
-      ...(kind.sourceKinds ? { sourceKinds: sortStrings(kind.sourceKinds)! } : {}),
-      ...(kind.targetKinds ? { targetKinds: sortStrings(kind.targetKinds)! } : {}),
-    })),
+    elementKinds: sortByIdentity(model.elementKinds).map(kind => normalizeEntity('element-kind', kind)),
+    relationshipKinds: sortByIdentity(model.relationshipKinds).map(kind => normalizeEntity('relationship-kind', kind)),
     relationships: [...model.relationships].sort((left, right) =>
       relationshipLabel(left).localeCompare(relationshipLabel(right))),
-    views: sortByIdentity(model.views).map(view => ({
-      ...view,
-      ...(Array.isArray(view.include) ? { include: sortStrings(view.include)! } : {}),
-      ...(view.exclude ? { exclude: sortStrings(view.exclude)! } : {}),
-    })),
+    views: sortByIdentity(model.views).map(view => normalizeEntity('authored-view', view)),
   };
 }
 

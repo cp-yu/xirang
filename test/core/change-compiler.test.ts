@@ -64,6 +64,7 @@ describe('compileChange', () => {
 
   it('reports identity precondition failures against the Formal model', async () => {
     await writeChangeDelta(root, 'broken', {
+      'elements/00-navigation.md': '---\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old\ndefinition: Old summary\n---\n',
       'elements/old.id.md': '---\noperation: ADDED\nentity: element-declaration\nidentity: old.id\nkind: capability\nparent: project.root\ntitle: Old duplicate\ndefinition: Duplicate\n---\n',
       'elements/ghost.id.md': '---\noperation: REMOVED\nentity: element-declaration\nidentity: ghost.id\n---\n',
     });
@@ -71,9 +72,9 @@ describe('compileChange', () => {
     const result = await compileChange(root, 'broken');
 
     expect(result.valid).toBe(false);
-    expect(result.diagnostics.map(item => item.code)).toEqual(expect.arrayContaining([
-      'ADDED_IDENTITY_EXISTS',
-      'REMOVED_IDENTITY_MISSING',
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'ADDED_IDENTITY_EXISTS', path: 'elements/old.id.md' }),
+      expect.objectContaining({ code: 'REMOVED_IDENTITY_MISSING' }),
     ]));
   });
 
@@ -115,7 +116,8 @@ describe('compileChange', () => {
       elements: [{ identity: 'implementation', kind: 'implementation', parent: 'root', title: 'Implementation', definition: 'Implementation axis' }],
     }));
     await writeChangeDelta(root, 'axis', {
-      'elements/implementation.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: null\ntitle: Implementation\ndefinition: Implementation axis\n---\n',
+      'metamodel/00-kind.md': '---\noperation: MODIFIED\nentity: element-kind\nidentity: implementation\ncontract: optional\n---\n',
+      'elements/nested/axis.md': '---\noperation: MODIFIED\nentity: element-declaration\nidentity: implementation\nkind: implementation\nparent: null\ntitle: Implementation\ndefinition: Implementation axis\n---\n',
     });
 
     const result = await compileChange(root, 'axis');
@@ -123,7 +125,7 @@ describe('compileChange', () => {
     expect(result.valid).toBe(false);
     const missingParent = result.diagnostics.find(item => item.code === 'MISSING_PARENT');
     expect(missingParent?.identity).toBe('implementation');
-    expect(missingParent?.path).toBe('elements/implementation.md');
+    expect(missingParent?.path).toBe('elements/nested/axis.md');
   });
 
   it('validates the Expected Semantic Model, not just the delta', async () => {

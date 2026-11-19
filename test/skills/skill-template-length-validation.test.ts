@@ -5,6 +5,7 @@ import {
   generateSkillContent,
   getInstallableSkillTemplates,
 } from '../../src/core/shared/skill-generation.js';
+import { runTransforms } from '../../src/core/templates/transforms/index.js';
 
 const MAX_SKILL_LINES = 200;
 const MAX_REFERENCE_LINES = 500;
@@ -25,12 +26,13 @@ interface SkillFileLength {
 
 function collectSkillFileLengths(): SkillFileLength[] {
   return VARIANTS.flatMap(({ label, toolId }) =>
-    getInstallableSkillTemplates(undefined, toolId).flatMap(({ dirName, template }: SkillTemplateEntry) => [
+    getInstallableSkillTemplates().flatMap(({ dirName, template, workflowId }: SkillTemplateEntry) => [
       {
         dirName,
         variant: label,
         filePath: 'SKILL.md',
-        lines: generateSkillContent(template, 'TEST').split('\n').length,
+        lines: generateSkillContent(template, 'TEST', toolId ? (instructions) =>
+          runTransforms(instructions, { toolId, workflowId, artifactType: 'skill' }) : undefined).split('\n').length,
         limit: MAX_SKILL_LINES,
       },
       ...(template.referenceFiles ?? []).map((referenceFile) => ({

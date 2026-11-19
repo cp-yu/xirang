@@ -17,15 +17,15 @@ definition: 质量协作指导是 Apply、Quality 与 Archive 共用的工作协
 
 Seal 前，所有保留且尚未独立审查的累计优化改动 SHALL 通过 full-change 或 incremental Review；协调者按累计影响选择范围，风险决定审查范围而非是否审查。允许多批后累计审查或提前审查；通过后继续修改，新增改动及其影响须再次独立审查。无变更交付不新增义务，也不取消先前未完成的审查或已确认缺陷修复义务。
 
-Reviewer、Optimizer 的完整角色与判断标准由内部 Agent 制品承担。Apply/Archive SHALL 委派独立角色、提供真实依据并等待完整结果，不以内联或主 Agent 自评代替独立委派。工具 API 语法由适配承担；示例与实际 schema 一致。
+Reviewer、Optimizer 的完整角色与判断标准由内部 Agent 制品承担。Apply 进行质量委派时 SHALL 委派独立角色、提供真实依据并等待完整结果，不以内联或主 Agent 自评代替独立委派。工具 API 语法由适配承担；示例与实际 schema 一致。
 
 - 用户不执行 Opt：如实记录未运行理由，仍满足基线、适用后续 Review、验证与 Seal 门禁；默认流程不得以实现者自评省略独立发现。
 - 交付仍有未解决问题：协调者处理修正或恢复，不推断已完成。
-- Archive 只确认有效 Quality 记录中 Seal commit 对象存在；其他归档门禁独立。
+- 默认交付的 Archive 只确认有效 Quality 记录中 Seal commit 对象存在；其他归档门禁独立。明确 quick 时不伪造证据，放弃时不进入此质量流程。
 
 ### Section: Archive 模板未收口恢复路径
 
-Archive SHALL 对缺失或不可解析的 Seal commit 提供具体诊断，并指引主 Agent 返回 Apply 补齐 Quality 意见/Seal。Opt 的进度与代码恢复从 Git 判断；Archive 不将中断推断为已完成 opinion 或明确 skip。Semantic Delta、Sync、validation 和 task gate 独立处理。
+普通归档缺少 Seal 或其 commit 不可解析时，Archive SHALL 给出具体诊断并指引主 Agent 返回 Apply，不能代做质量审查或推断中断的 Opt 已完成。显式 quick 或放弃不以缺少 Seal 阻塞，结果不得声称 Quality 通过。
 
 ### Section: Quality 模板 CLI 错误恢复指南
 

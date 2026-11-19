@@ -1,13 +1,13 @@
-import { Command } from 'commander';
+import { Command, CommanderError, Option } from 'commander';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { diagnostic, setJsonOutput } from '../utils/output.js';
+import { describeError, diagnostic, setJsonOutput } from '../utils/output.js';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { AI_TOOLS } from '../core/config.js';
 import { UpdateCommand } from '../core/update.js';
 import { ListCommand } from '../core/list.js';
-import { ArchiveCommand } from '../core/archive.js';
+import { ArchiveCommand, type ArchiveOptions } from '../core/archive.js';
 import { ViewCommand } from '../core/view.js';
 import { registerHelpCommand } from '../commands/help.js';
 import { ValidateCommand } from '../commands/validate.js';
@@ -16,7 +16,6 @@ import { CompletionCommand } from '../commands/completion.js';
 import { FeedbackCommand } from '../commands/feedback.js';
 import { registerConfigCommand } from '../commands/config.js';
 import { registerSchemaCommand } from '../commands/schema.js';
-import { registerSyncCommand } from '../commands/sync.js';
 import { registerQualityCommand } from '../commands/quality.js';
 import { registerArchCommand } from '../commands/arch/index.js';
 import { registerCandidateCommand } from '../commands/candidate.js';
@@ -145,7 +144,6 @@ program
     }
   });
 
-registerSyncCommand(program);
 registerQualityCommand(program);
 registerArchCommand(program);
 registerCandidateCommand(program);
@@ -187,18 +185,18 @@ program
 
 program
   .command('archive [change-name]')
-  .description('Archive a completed change')
+  .exitOverride()
+  .description('Apply and archive a change, or archive an abandoned change')
   .option('-y, --yes', 'Skip confirmation prompts')
-  .option('--no-sync', 'Skip sync gate（pending delta 检查，需要显式授权）')
-  .option('--no-validate', 'Skip validation (not recommended, requires confirmation)')
-  .option('--no-verify', 'Skip the quality gate (requires explicit user authorization, not recommended)')
-  .action(async (changeName?: string, options?: { yes?: boolean; noSync?: boolean; sync?: boolean; noValidate?: boolean; validate?: boolean; noVerify?: boolean; verify?: boolean }) => {
+  .addOption(new Option('--quick', 'Apply and archive without checking the Quality Seal').conflicts('abandon'))
+  .option('--abandon', 'Archive without applying the Semantic Delta')
+  .action(async (changeName?: string, options?: ArchiveOptions) => {
     try {
       const archiveCommand = new ArchiveCommand();
       await archiveCommand.execute(changeName, options);
     } catch (error) {
-      diagnostic((error as Error).message);
-      process.exit(1);
+      diagnostic(describeError(error));
+      process.exitCode = 1;
     }
   });
 
@@ -332,6 +330,7 @@ program
   .description('Display artifact completion status for a change')
   .option('--change <id>', 'Change name to show status for')
   .option('--schema <name>', 'Schema override (auto-detected from config.yaml)')
+  .option('--no-quality', 'Report artifacts and goals without evaluating Quality')
   .option('--json', 'Output as JSON')
   .action(async (options: StatusOptions) => {
     try {
@@ -404,6 +403,10 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
   try {
     await program.parseAsync(argv);
   } catch (error) {
+    if (error instanceof CommanderError) {
+      process.exitCode = error.exitCode;
+      return;
+    }
     if (!(error instanceof Error)) throw error;
     diagnostic(error.message);
     process.exitCode = 1;

@@ -6,7 +6,7 @@ compatibility: "Requires xirang CLI."
 metadata:
   author: "xirang"
   version: "1.0"
-  generatedBy: "0.2.10"
+  generatedBy: "0.2.11"
 ---
 
 Reconcile Xirang artifacts from already-written code (code-first artifact reconciliation, reverse of propose/apply).
@@ -81,10 +81,8 @@ Before navigating or interpreting the Semantic Model, read project-root file `.x
 
 ⚠️ Generated specs are based on code inference. Review items marked [REVIEW NEEDED]
 
-1. **Quick sync**: `xirang sync "<change-name>" --no-verify`
-2. **Quick archive**: `xirang archive "<change-name>" --no-verify`
-3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`
-4. **Continue development**: review change → modify code → run `/skill:xirang-snack` again → continue iterating
+1. **Quick archive**: `xirang archive "<change-name>" --quick` applies the validated Delta and archives the Change while skipping the Quality Seal gate. Offer it as an option, not authorization to run it.
+2. **Continue development**: review change → modify code → run `/skill:xirang-snack` again → continue iterating
 
 ## Artifact Contract
 

@@ -1,16 +1,18 @@
+import { isDeepStrictEqual } from 'node:util';
 import { compareUtf8Bytes } from '../candidate/canonical.js';
 import { parseDeltaSpec } from '../parsers/section-blocks.js';
-import { normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
+import { frontmatterKeys, normalizeLineEndings, splitFrontmatter } from './frontmatter.js';
 import {
   normalizeProse,
   parseRelationshipContainer,
   parseSectionBlock,
   parseUnit,
   readEntity,
-  readModelFiles,
   readRelationship,
 } from './parser.js';
 import {
+  IDENTITY_PATTERN,
+  RESERVED_AUTHORED_VIEW_IDENTITY,
   relationshipIdentity,
   type AuthoredView,
   type DiagnosticEntity,
@@ -44,7 +46,7 @@ export interface SemanticDelta {
 
 export interface ParsedDelta {
   delta: SemanticDelta;
-  sources: Array<{ path: string; entities: Array<{ entity: DeltaEntityType; identity: string }> }>;
+  sources: Array<{ path: string; entities: Array<{ entity: DeltaEntityType; identity: string }>; navigationOnly?: true }>;
   diagnostics: ModelDiagnostic[];
 }
 
@@ -76,7 +78,17 @@ function sectionEntry(operation: Operation, element: string, section: Section): 
   return { operation, entity: 'section', identity: `${element}#${section.name}`, target: section };
 }
 
-function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
+type NavigationBaseline = ReadonlyMap<string, ElementDeclaration>;
+
+const REMOVED_FIELDS = new Set(['operation', 'entity', 'identity']);
+
+function checkRemovedContent(file: string, identity: string, data: Record<string, unknown>, body: string, diagnostics: ModelDiagnostic[]): void {
+  if (Object.keys(data).some(key => !REMOVED_FIELDS.has(key)) || normalizeProse(body) !== '') {
+    diagnostics.push(error('UNEXPECTED_REMOVED_CONTENT', file, 'A REMOVED entry may only declare its identity', identity));
+  }
+}
+
+function parseElementUnit(file: string, data: Record<string, unknown>, body: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[], navigationBaseline?: NavigationBaseline): void {
   const outcome = parseUnit(file, data, '');
   if (Array.isArray(outcome)) {
     diagnostics.push(...outcome);
@@ -91,6 +103,8 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     diagnostics.push(error('INVALID_OPERATION', file, `Unknown operation: ${String(data.operation)}`, identity));
   }
   if (operation) {
+    // An Element unit may also hold independent Section operations in its body.
+    if (operation === 'REMOVED') checkRemovedContent(file, identity, data, '', diagnostics);
     entries.push({
       operation,
       entity: 'element-declaration',
@@ -99,26 +113,92 @@ function parseElementUnit(file: string, data: Record<string, unknown>, body: str
     });
   }
 
-  if (normalizeProse(body) === '') return;
+  if (normalizeProse(body) === '') {
+    if (data.operation === undefined && navigationBaseline
+      && !isDeepStrictEqual(outcome.element?.declaration, navigationBaseline.get(identity))) {
+      diagnostics.push(error('MISSING_OPERATION', file, 'An Element Delta without Section operations must declare an operation unless its declaration matches Formal', identity));
+    }
+    return;
+  }
   const plan = parseDeltaSpec(body);
+  for (const line of plan.malformedOperationLines) {
+    diagnostics.push(error('MALFORMED_SECTION_OPERATION_HEADER', file, `Expected a named ## Section operation header at body line ${line}`, identity));
+  }
+  for (const line of plan.malformedSectionLines) {
+    diagnostics.push(error('MALFORMED_SECTION_HEADER', file, `Malformed Section header at body line ${line}; use ### Section: <name>`, identity));
+  }
+  for (const line of plan.unscopedContentLines) {
+    diagnostics.push(error('UNSCOPED_SECTION_CONTENT', file, `Content at body line ${line} is outside a Section operation`, identity));
+  }
+  for (const line of plan.removedContentLines) {
+    diagnostics.push(error('UNEXPECTED_REMOVED_CONTENT', file, `REMOVED Sections may only name a Section (body line ${line})`, identity));
+  }
+  for (const section of plan.unscopedSections) {
+    diagnostics.push(error('MISSING_OPERATION', file, `Section "${section}" is outside an ADDED, MODIFIED or REMOVED Sections block`, identity));
+  }
+  for (const section of plan.duplicateSections) {
+    diagnostics.push(error('DUPLICATE_OPERATION_BLOCK', file, `Repeated operation block: ## ${section}`, identity));
+  }
+  for (const section of plan.unsupportedSections) {
+    diagnostics.push(error('UNSUPPORTED_OPERATION', file,
+      `## ${section} is unsupported. Use ADDED, MODIFIED or REMOVED Sections. For a rename, use REMOVED old Section plus ADDED new Section.`, identity));
+  }
+  for (const operation of ['added', 'modified', 'removed'] as const) {
+    if (plan.sectionPresence[operation] && plan[operation].length === 0) {
+      diagnostics.push(error('EMPTY_OPERATION_BLOCK', file, `## ${operation.toUpperCase()} Sections contains no Section entries`, identity));
+    }
+  }
   if (!Object.values(plan.sectionPresence).some(Boolean)) {
     diagnostics.push(error('MISSING_OPERATION', file,
       'Section entries must appear under ## ADDED/MODIFIED/REMOVED Sections', identity));
     return;
   }
-  for (const block of plan.added) entries.push(sectionEntry('ADDED', identity, parseSectionBlock(block.name, block.raw)));
-  for (const block of plan.modified) entries.push(sectionEntry('MODIFIED', identity, parseSectionBlock(block.name, block.raw)));
+  for (const block of plan.added) entries.push(sectionEntry('ADDED', identity, parseSectionBlock(block, file, diagnostics)));
+  for (const block of plan.modified) entries.push(sectionEntry('MODIFIED', identity, parseSectionBlock(block, file, diagnostics)));
   for (const name of plan.removed) entries.push({ operation: 'REMOVED', entity: 'section', identity: `${identity}#${name}` });
 }
 
-function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
+function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[], navigationBaseline?: NavigationBaseline): void {
   const split = splitFrontmatter(content);
   if (!split.ok) {
     diagnostics.push(error(split.code, file, split.message));
     return;
   }
-  if (readEntity(split.data) === 'element-declaration') {
-    parseElementUnit(file, split.data, split.body, entries, diagnostics);
+  const entity = readEntity(split.data);
+  const identity = split.data.identity;
+  // A removal may not have an entity in the target model to validate.
+  if (entity && typeof identity === 'string' && identity !== '' && !IDENTITY_PATTERN.test(identity)) {
+    diagnostics.push(error('INVALID_IDENTITY', file, `Invalid ${entity} identity: ${JSON.stringify(identity)}`, identity, entity));
+    return;
+  }
+  if (entity === 'authored-view' && identity === RESERVED_AUTHORED_VIEW_IDENTITY) {
+    diagnostics.push(error('RESERVED_VIEW_IDENTITY', file, 'Authored View identity full-model is reserved for the default Full Model', identity, entity));
+    return;
+  }
+  if (entity && split.data.operation !== 'REMOVED') {
+    const fields = frontmatterKeys(entity);
+    const unknown = Object.keys(split.data).filter(key => key !== 'entity' && key !== 'operation' && !fields.includes(key));
+    if (unknown.length) {
+      diagnostics.push(error('UNSUPPORTED_DELTA_FIELD', file,
+        `${entity} Delta has unsupported frontmatter fields: ${unknown.sort(compareUtf8Bytes).map(key => JSON.stringify(key)).join(', ')}`,
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
+  }
+  if (entity === 'element-declaration') {
+    const kind = split.data.kind;
+    if (kind !== undefined && (typeof kind !== 'string' || !IDENTITY_PATTERN.test(kind))) {
+      diagnostics.push(error('INVALID_ELEMENT_KIND', file, 'Element kind must be one Element Kind identity',
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
+    const parent = split.data.parent;
+    if (typeof parent === 'string' && !IDENTITY_PATTERN.test(parent)) {
+      diagnostics.push(error('INVALID_ELEMENT_PARENT', file, 'Element parent must be one Element identity or null',
+        typeof identity === 'string' ? identity : undefined, entity));
+      return;
+    }
+    parseElementUnit(file, split.data, split.body, entries, diagnostics, navigationBaseline);
     return;
   }
 
@@ -137,7 +217,8 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
     ));
     return;
   }
-  if (operation !== 'REMOVED') diagnostics.push(...outcome.diagnostics);
+  if (operation === 'REMOVED') checkRemovedContent(file, outcome.identity, split.data, split.body, diagnostics);
+  else diagnostics.push(...outcome.diagnostics);
   const target = outcome.elementKind ?? outcome.relationshipKind ?? outcome.view;
   entries.push({
     operation,
@@ -150,10 +231,19 @@ function parseDeltaUnit(file: string, content: string, entries: DeltaEntry[], di
 function parseDeltaContainer(file: string, content: string, entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
   const container = parseRelationshipContainer(file, content);
   diagnostics.push(...container.diagnostics);
+  if (!container.entries.length && !container.diagnostics.length) {
+    diagnostics.push(error('EMPTY_OPERATION_BLOCK', file, 'Relationship Delta contains no relationship entries'));
+  }
   for (const entry of container.entries) {
     const relationship = readRelationship(file, entry);
     if ('level' in relationship) {
       diagnostics.push(relationship);
+      continue;
+    }
+    const invalid = Object.entries(relationship).find(([, identity]) => !IDENTITY_PATTERN.test(identity));
+    if (invalid) {
+      const [field, identity] = invalid;
+      diagnostics.push(error('INVALID_IDENTITY', file, `Invalid relationship ${field} identity: ${JSON.stringify(identity)}`, identity, 'relationship'));
       continue;
     }
     const label = `${relationship.source} -[${relationship.kind}]-> ${relationship.target}`;
@@ -180,43 +270,53 @@ function parseDeltaContainer(file: string, content: string, entries: DeltaEntry[
   }
 }
 
-function detectConflicts(entries: DeltaEntry[], diagnostics: ModelDiagnostic[]): void {
-  const seen = new Map<string, Operation>();
-  for (const entry of entries) {
-    const key = `${entry.entity}\u0000${entry.identity}`;
-    const previous = seen.get(key);
-    if (previous !== undefined) {
-      diagnostics.push(error('CONFLICTING_OPERATIONS', '',
-        `Conflicting ${previous}/${entry.operation} operations on ${entry.entity} ${entry.identity}`, entry.identity, entry.entity));
-      continue;
+interface DeltaUnit {
+  key: string;
+  path: string;
+  entries: DeltaEntry[];
+}
+
+function detectConflicts(units: DeltaUnit[], diagnostics: ModelDiagnostic[]): void {
+  const seen = new Map<string, { operation: Operation; path: string }>();
+  for (const { path, entries } of units) {
+    for (const entry of entries) {
+      const key = `${entry.entity}\u0000${entry.identity}`;
+      const previous = seen.get(key);
+      if (previous) {
+        const firstSource = previous.path === path ? '' : `; first declared in ${JSON.stringify(previous.path)}`;
+        diagnostics.push(error('CONFLICTING_OPERATIONS', path,
+          `Conflicting ${previous.operation}/${entry.operation} operations on ${entry.entity} ${entry.identity}${firstSource}`, entry.identity, entry.entity));
+      } else {
+        seen.set(key, { operation: entry.operation, path });
+      }
     }
-    seen.set(key, entry.operation);
   }
 }
 
-export async function parseSemanticDelta(changeRoot: string): Promise<ParsedDelta> {
-  return parseSemanticDeltaFiles(await readModelFiles(changeRoot));
-}
-
-export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>): ParsedDelta {
-  const entries: DeltaEntry[] = [];
+export function parseSemanticDeltaFiles(files: ReadonlyMap<string, string>, navigationBaseline?: NavigationBaseline): ParsedDelta {
+  const units: DeltaUnit[] = [];
   const sources: ParsedDelta['sources'] = [];
   const diagnostics: ModelDiagnostic[] = [];
   for (const [file, content] of [...files].sort(([left], [right]) => compareUtf8Bytes(left, right))) {
-    const start = entries.length;
-    if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics);
+    const entries: DeltaEntry[] = [];
+    if (normalizeLineEndings(content).startsWith('---\n')) parseDeltaUnit(file, content, entries, diagnostics, navigationBaseline);
     else parseDeltaContainer(file, content, entries, diagnostics);
-    const entities = entries.slice(start).map(({ entity, identity }) => ({ entity, identity }));
-    if (entities.length === 0) {
+    const first = entries[0];
+    if (first) units.push({ key: `${first.entity}\u0000${first.identity}`, path: file, entries });
+    const entities = entries.map(({ entity, identity }) => ({ entity, identity }));
+    const navigationOnly = entities.length === 0;
+    if (navigationOnly) {
       const unit = splitFrontmatter(content);
       if (unit.ok && unit.data.entity === 'element-declaration' && typeof unit.data.identity === 'string') {
         entities.push({ entity: 'element-declaration', identity: unit.data.identity });
       }
     }
-    if (entities.length > 0) sources.push({ path: file, entities });
+    if (entities.length > 0) sources.push({ path: file, entities, ...(navigationOnly ? { navigationOnly: true } : {}) });
   }
-  detectConflicts(entries, diagnostics);
-  return { delta: { entries }, sources, diagnostics };
+  // Preserve the author's order within each unit, but derive cross-unit order from identity, not path.
+  units.sort((left, right) => compareUtf8Bytes(left.key, right.key));
+  detectConflicts(units, diagnostics);
+  return { delta: { entries: units.flatMap(unit => unit.entries) }, sources, diagnostics };
 }
 
 interface ApplyState {
@@ -263,8 +363,12 @@ function applyEntry(state: ApplyState, entry: DeltaEntry, touched: Set<string>, 
       diagnostics.push(error(`${entry.operation}_IDENTITY_MISSING`, '', `Section host element does not exist: ${host}`, entry.identity, 'section'));
       return;
     }
+    const index = element.sections.findIndex(item => item.name === name);
+    if (index >= 0 && element.sections.some((item, position) => position > index && item.name === name)) {
+      diagnostics.push(error('AMBIGUOUS_SECTION_IDENTITY', '', `Duplicate Formal Sections for ${entry.identity}`, entry.identity, 'section'));
+      return;
+    }
     const owned = ensureOwnedElement(state, host)!;
-    const index = owned.sections.findIndex(item => item.name === name);
     if (entry.operation === 'ADDED') {
       if (index >= 0) {
         diagnostics.push(error('ADDED_IDENTITY_EXISTS', '', `ADDED Section already exists: ${entry.identity}`, entry.identity, 'section'));
@@ -314,7 +418,23 @@ export function applySemanticDelta(base: SemanticModel, delta: SemanticDelta): D
   const state = cloneState(base);
   const touched = new Set<string>();
   const diagnostics: ModelDiagnostic[] = [];
-  for (const entry of delta.entries) applyEntry(state, entry, touched, diagnostics);
+  const sections: DeltaEntry[] = [];
+  const removals: DeltaEntry[] = [];
+  for (const entry of delta.entries) {
+    if (entry.entity === 'section') sections.push(entry);
+    else if (entry.entity === 'element-declaration' && entry.operation === 'REMOVED') removals.push(entry);
+    else applyEntry(state, entry, touched, diagnostics);
+  }
+  // Add hosts before applying their Sections; retire hosts only after validating Section removals.
+  const removedElements = new Set(removals.map(entry => entry.identity));
+  for (const entry of sections) {
+    const [host] = entry.identity.split('#', 1);
+    if (entry.operation !== 'REMOVED' && removedElements.has(host)) {
+      diagnostics.push(error('SECTION_HOST_REMOVED', '',
+        `${entry.operation} Section ${entry.identity} cannot target removed Element ${host}`, entry.identity, 'section'));
+    } else applyEntry(state, entry, touched, diagnostics);
+  }
+  for (const entry of removals) applyEntry(state, entry, touched, diagnostics);
   return {
     expected: {
       elementKinds: [...state.elementKinds.values()],

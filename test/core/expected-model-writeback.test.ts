@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { writebackExpectedModel } from '../../src/core/expected-model-writeback.js';
 import { compileChangeDelta } from '../../src/core/change-compiler.js';
+import { splitFrontmatter } from '../../src/core/model/frontmatter.js';
 import { serializeSemanticModel, serializeElementUnit } from '../../src/core/model/serializer.js';
 import { elementUnit, minimalModel, writeChangeDelta, writeProjectModel } from '../helpers/model-fixture.js';
 import type { ModelElement } from '../../src/core/model/types.js';
@@ -131,7 +132,7 @@ describe('Expected Model text writeback', () => {
 
   it.each(['```', '~~~~'])('preserves complete fenced Markdown examples through %s writeback and recompilation', async fence => {
     const target = await expected();
-    target.sections[0].body = `Item SHALL preserve Markdown examples.\n\n${fence}markdown\n## Example heading\n### Section: Example section\n#### Acceptance Case: Example case\nExample content\n${fence}\n\nText after the fence.`;
+    target.sections[0].body = `Item SHALL preserve Markdown examples.\n\n${fence}markdown\n## Example heading\n### Section: Example section\n#### Acceptance Case: Example case\nExample content\n#### Acceptance Case:\nUntitled example content\n${fence}\n\nText after the fence.`;
     target.sections[0].acceptanceCases = [{ name: 'actual-case', body: `**WHEN** saved **THEN** complete.\n\n${fence}markdown\n## ADDED Sections\n### Section: Example\n${fence}` }];
     const result = await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target));
     expect(result).toEqual({ changed: true, ignoredChanges: [] });
@@ -166,6 +167,35 @@ describe('Expected Model text writeback', () => {
     expect((await expected()).sections).toEqual(target.sections);
     expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
     expect(await fs.readFile(source, 'utf8')).not.toMatch(/^operation:/m);
+  });
+
+  it('keeps a sibling-owned Declaration editable after reverting the last local Section', async () => {
+    const formalPath = path.join(root, '.xirang', 'model', 'elements', 'item.md');
+    const formal = await fs.readFile(formalPath, 'utf8');
+    const external = elementUnit({ identity: 'item', title: 'Planned title' }).replace('entity: element-declaration', 'operation: MODIFIED\nentity: element-declaration');
+    const externalPath = path.join(path.dirname(source), 'second.md');
+    await fs.writeFile(externalPath, external);
+    const target = await expected();
+    target.sections[0].body = 'Item SHALL keep old text.';
+
+    expect(await writebackExpectedModel(root, 'demo', relative, serializeElementUnit(target))).toMatchObject({ changed: true });
+    expect(await expected()).toEqual(target);
+    const declaration = splitFrontmatter(formal);
+    expect(declaration.ok).toBe(true);
+    if (!declaration.ok) throw new Error(declaration.message);
+    const placeholder = await fs.readFile(source, 'utf8');
+    expect(splitFrontmatter(placeholder)).toEqual({ ok: true, data: declaration.data, body: '' });
+    expect(await fs.readFile(externalPath, 'utf8')).toBe(external);
+
+    target.sections[0].body = 'Item SHALL save from the Declaration source.';
+    expect(await writebackExpectedModel(root, 'demo', path.join('elements', 'second.md'), serializeElementUnit(target)))
+      .toEqual({ changed: true, ignoredChanges: [] });
+    expect(await expected()).toEqual(target);
+    expect((await compileChangeDelta(root, 'demo')).delta.entries.filter(entry => entry.identity === 'item'))
+      .toEqual([expect.objectContaining({ entity: 'element-declaration', operation: 'MODIFIED', target: target.declaration })]);
+    expect(await fs.readFile(externalPath, 'utf8')).toMatch(/^operation: MODIFIED$/m);
+    expect(await fs.readFile(source, 'utf8')).toBe(placeholder);
+    expect(await fs.readFile(formalPath, 'utf8')).toBe(formal);
   });
 
   it('retains existing rejection and original bytes when an externally owned entry changes', async () => {

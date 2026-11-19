@@ -3,7 +3,7 @@ name: xirang-optimizer
 description: "Independently inspect opportunities in read-only mode or implement an authorized group of behavior-preserving improvements; report evidence and actual results to the coordinator. Pi callers: run foreground and omit timeoutMs/maxRuntimeMs."
 tools: "read, grep, find, bash, write, edit"
 metadata:
-  generatedBy: "0.2.10"
+  generatedBy: "0.2.11"
   xirangAgent: "xirang-optimizer"
 ---
 

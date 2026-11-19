@@ -1,189 +1,19 @@
 ---
 entity: element-declaration
 identity: change-archive
-kind: element
+kind: capability-specification
 parent: change-closure
 title: Change Archive
-definition: Change Archive 是在 Quality Seal、Sync、任务和最终验证门禁通过后封存活动 Change 的能力。它将活动目录原样移动到带日期的归档位置，保留最终来源及证据；后续 Git 流程由 Agent 按 Archive 工作指导推进。它不创建或重算展示制品，不修改正式模型，也不执行 Git 写操作。
+definition: Change Archive 是 CLI 结束活动 Change 的统一能力。它按用户选择在一次调用中交付模型更新并留档，或只封存放弃的方案；它保留原始制品，不判断实现质量、不执行 Git 写操作。
 ---
 
 ## Specification
 
-### Section: Change Selection
-
-archive 命令 SHALL 支持交互式和直接指定两种 change 选择方式。
-
-- **Interactive selection**
-
-  - 未提供 change-name
-  - 显示可用 changes 的交互列表（排除 `archive/`）并允许选择一个
-
-- **Direct selection**
-
-  - 提供 change-name
-  - 直接使用该 change 并校验其存在
-
-- **Change selection prompt**
-
-  - agent executes `xirang archive` without specifying a change
-  - the agent prompts user to select from available changes
-  - shows only active changes (excludes archive/)
-
-### Section: Artifact Completion Check
-
-Archive 流程 SHALL 在归档前检查 artifact 完成状态：任一 artifact 状态非 `done` 时列出未完成 artifacts 并要求用户确认后才可继续；全部完成时无 warning 继续。该检查独立于 task completion 与 quality/sync gates。
-
-- **Incomplete artifacts warning**
-
-  - agent 通过 `xirang status --change "<change-name>" --json` 检查 artifact 状态
-  - 一个或多个 artifact 的状态非 `done`
-  - 显示列出未完成 artifacts 的 warning
-  - 提示用户确认是否继续
-  - 用户确认后继续
-
-- **All artifacts complete**
-
-  - agent 检查 artifact 状态
-  - 全部 artifacts 的状态为 `done`
-  - 无 warning 继续
-
-- **Archive a change with all artifacts complete**
-
-  - agent executes `xirang archive` with a change name
-  - all artifacts in the schema are complete
-  - all tasks are complete
-  - the agent moves the change to `.xirang/changes/archive/YYYY-MM-DD-<name>/`
-  - 返回必要的归档位置，不附成功装饰或通用状态摘要
-
-### Section: Task Completion Check
-
-archive 命令 SHALL 在归档前验证任务完成状态，防止过早归档。
-
-- **Incomplete tasks found**
-
-  - 发现未完成任务（标记为 `- [ ]`）
-  - 显示全部未完成任务并要求用户确认继续
-  - 出于安全默认回答 "No"
-
-- **All tasks complete**
-
-  - 所有任务完成或不存在 tasks.md
-  - 不提示直接继续归档
-
-### Section: Archive Process
-
-Archive SHALL 在 quality、sync、task 与 final change validation gates 通过后，将 active change directory 原样移动到 date-prefixed archive path。Archive MUST NOT 再次修改 Formal Semantic Model，也不得创建、重算或覆盖任何 View presentation artifact。effective diff 仅由只读 `xirang validate --change <name> --preview` 以 ephemeral text/JSON 输出提供，不持久化。
-
-- **直接归档**
-
-  - 所有 gates 通过且 change directory 存在
-  - SHALL 运行只读完整校验并以退出码确认结果及 fingerprints 当前，不要求解析成功文字
-  - SHALL 将 change directory 原样移动到 `YYYY-MM-DD-<change-name>`
-  - SHALL 返回必要的归档位置，后续 Git 指导由 Archive workflow 承载
-  - SHALL NOT 创建、重算或覆盖任何 presentation artifact
-  - SHALL NOT 执行 git 写操作
-
-- **已归档 change 检测**
-
-  - target archive path 已存在且 active change 不存在
-  - SHALL 返回已有归档位置后退出，不重复 Git handoff 指导
-
-- **Final validation 失败**
-
-  - final change validation 失败
-  - SHALL 终止 archive
-  - active change directory SHALL 保持原样
-
-- **归档失败不回写**
-
-  - 任一 archive gate 失败
-  - SHALL 不移动 change directory
-  - SHALL NOT 修改 Formal Semantic Model
-
-- **封存已同步的 change 与证据**
-
-  - archive gates 确认 graph 与 contract operations 已 sync
-  - SHALL 将 active change directory（source delta 与既有证据）原样移动到 archive
-  - MUST NOT 重写 Formal content
-  - MUST NOT 生成 review report 或 presentation 文件
-
-### Section: Error Conditions
-
-archive 命令 SHALL 优雅处理各种错误条件。
-
-- **Handling errors**
-
-  - errors 发生
-  - 处理缺失 `.xirang/changes/` 目录、change 未找到、archive target 已存在与文件系统权限问题
-
-- **Archive already exists**
-
-  - target archive directory already exists
-  - fail with error message
-  - suggest renaming existing archive or using different date
-
-### Section: Display Output
-
-Archive SHALL 保留实际 gate 诊断与必要归档位置，不在默认成功输出中重复 Quality/Sync/task/validation 摘要或 Git handoff 提醒。Quality、同步或任务门禁失败时 SHALL 给出具体原因；--no-validate 的 unsafe warning SHALL 保留，未验证不得声称 Passed。
-
-CLI SHALL 不声称执行过测试、Seal commit 匹配当前 HEAD/工作区或存在 successful checkpoint，不重新判断意见文本充分性，不创建 Git commit。Archive 完成后 SHALL 由 Agent 按既有工作流继续提交 Change 与 Quality JSON，Seal 或 Archive 前不要求单独提交质量记录。
-
-### Section: Archive Validation
-
-Archive SHALL 在移动 change 前执行完整 change compiler validation。`--no-validate` MAY 跳过一般 validation gate，但 MUST NOT 将未验证结果标记为 Passed。
-
-- **Pre-archive validation**
-
-  - 执行 `xirang archive change-name`
-  - SHALL materialize Target Semantic Model 并验证完整 Semantic Delta
-  - validation 通过后 SHALL 将 change directory 原样移动到 archive
-
-- **Force archive without validation**
-
-  - 执行 `xirang archive change-name --no-validate`
-  - SHALL 显示 unsafe warning
-  - 输出 SHALL 明确反映实际 validation 状态
-  - MUST NOT 将未验证结果标记为 Passed
-
-- **跨平台 archive path**
-
-  - archive 在 Windows、macOS 或 Linux 移动 change directory
-  - SHALL 使用 Node.js path API 构造 active 与 archive paths
-  - SHALL 保持移动内容的字节不变
-
-### Section: Sync Gate
-
-archive 命令 SHALL 要求 Sync 作为已完成前置条件：存在未合并 delta 时阻止归档并指引先完成 Sync；不存在 `--no-sync` 跳过通道。pending Semantic Delta SHALL 阻塞 archive。
-
-- **存在未合并 delta 时阻止归档**
-
-  - change 包含尚未通过 sync 合并到 formal 模型的 delta
-  - archive 命令 SHALL 输出错误消息指明 pending delta
-  - SHALL 提示用户执行 `xirang sync` 后重试
-  - SHALL 终止归档操作
-
-- **delta 已全部合并时通过检查**
-
-  - change 的所有 delta 已通过 sync 合并到 formal 模型
-  - sync gate SHALL 通过
-  - archive 命令 SHALL 继续后续步骤
-
-- **仅含 removal delta 且目标已不存在**
-
-  - change delta 仅包含 REMOVED 操作
-  - 对应 formal 模型中所有被移除的 header 已不存在
-  - sync gate SHALL 将该项 delta 视为已同步
-  - SHALL NOT 阻止归档
-
-- **未同步 delta 阻塞 archive**
-
-  - graph 或 contract operation 仍 pending
-  - SHALL 阻塞 archive
-  - SHALL 指引先运行 sync
-
 ### Section: Agent 在归档后继续 git 流程
 
-Archive CLI 完成 quality、sync 与 move-to-archive 后，Agent SHALL 无条件继续归档后的 git 流程：先提交残余实现 diff（如有），再无条件创建 semantic boundary commit，然后提交归档制品。
+本节仅适用于本次成功交付的默认或 quick 归档。
+
+Archive CLI 完成交付并返回新归档位置后，Agent SHALL 无条件继续归档后的 git 流程：先提交残余实现 diff（如有），再无条件创建 semantic boundary commit，然后提交归档制品。
 
 - **无条件创建 semantic boundary commit**
 
@@ -240,6 +70,8 @@ Boundary commit message 的 `## Changes` 章节 SHALL 如实列出 diff 清单�
 
 ### Section: Archive 消费 Apply isolation metadata
 
+本节仅适用于本次成功交付的默认或 quick 归档。
+
 Archive skill SHALL 在调用 archive CLI 前读取并保留 active change 的 `.apply-isolation.json`；归档 commits 完成后，Archive SHALL 按 `method` 执行后续导航、merge 与 cleanup；CLI 本身 SHALL NOT 执行这些 Git 操作。
 
 - **Branch isolation 返回原分支合并**
@@ -271,6 +103,8 @@ Archive skill SHALL 在调用 archive CLI 前读取并保留 active change 的 `
 
 ### Section: Archive 通过 projection 消费 git 配置
 
+本节仅适用于本次成功交付的默认或 quick 归档。
+
 archive 流程 SHALL 通过统一 prompt/runtime projection 消费 `git` 配置节点，而非直接读取 raw YAML 键。
 
 - **配置经投影后被 archive 消费**
@@ -287,31 +121,58 @@ archive 流程 SHALL 通过统一 prompt/runtime projection 消费 `git` 配置�
 
 - **Archive guidance inherits projected authoring constraints**
 
-  - the skill explains the Sync prerequisite or Required Corrections handling
+  - the skill explains model application during delivery or Required Corrections handling
   - it SHALL use the shared prompt projection contract for prose guidance
   - SHALL preserve canonical structure and normative tokens unchanged
 
-### Section: Archive 在用户显式要求时允许绕过 quality gate
+### Section: Scope and Non-goals
 
-archive 流程 SHALL 在用户显式要求时允许向 archive CLI 传递 `--no-verify` 标志；未显式要求时优先引导标准 quality gate 流程。
+`xirang archive <change>` SHALL 将活动 Change 原样封存并结束其活动状态；默认或 `--quick` 同时应用 Semantic Delta，`--abandon` 只封存。CLI 不提交、合并或清理 Git，不生成展示制品或测试证据。
 
-- **用户显式要求绕过 gate**
+### Section: Business Logic
 
-  - 用户明确指示跳过质量门禁（例如"直接 --no-verify"、"跳过验证"）
-  - agent SHALL 向 `xirang archive <change-name>` 命令传递 `--no-verify` 标志
-  - agent SHALL NOT 阻拦或要求用户先完成 quality Review
+可直接指定 Change，也可在交互终端选择活动目录（排除归档）。非交互调用 SHALL 显式指定 Change 名；需要确认时还须提供 `--yes`。缺少所需输入时返回诊断，不写入模型或归档。CLI SHALL 区分三种模式：
 
-- **用户未要求绕过时优先标准流程**
+- 默认检查有效的 Quality Seal；`--quick` 仅豁免 Seal，明确报告跳过，绝不声称 Quality 已通过。两者均校验 Delta、完整目标模型和写入前基线，在同一次调用内应用待写模型单元并将 Change 原样移至 `.xirang/changes/archive/YYYY-MM-DD-<change>/`。没有模型写入时仅封存。正常交付工作流对未完成制品列出警告并要求确认；任务有未勾选目标时提示继续，默认不继续，`--yes` 可显式继续。没有任务文件或全部完成时不触发未完成任务询问。
+- `--abandon` 不检查 Seal、制品完成度或 Delta 合法性，不应用 Delta，不回退或合并实现。对任意实现进度均可封存，包括有提交、任务已勾选或制品不完整。有目标已勾选时先提示 `tasks.md` 的 `## Goals` 中可核实的已勾选目标数/目标总数，不据此推断 Apply 阶段或代码完成度；没有可用进度仍须确认。放弃默认询问一次，拒绝或回车不作改动；`--yes` 跳过询问，不隐藏进度。将活动目录原样移至 `.xirang/changes/archive/abandoned/YYYY-MM-DD-<change>/`；不补写状态文件，不进入交付后的 Git 流程。
+- 返回实际归档位置和必要诊断，不输出虚构的验证结果。活动目录不存在且已有归档可定位时只返回该路径，不再次应用、不再次触发 Git 交接。Windows、macOS、Linux 上按路径组件构造两个目的目录，保留文件字节和链接类型；在 POSIX 上还保留目录项和链接目标的原始字节以及目录权限。
 
-  - 用户未显式要求跳过质量门禁
-  - Review 记录缺失或与当前代码不一致
-  - agent SHALL 优先执行标准 quality 流程
-  - agent SHALL NOT 自行决定使用 `--no-verify`
+### Section: Edge Cases and Exception Handling
 
-### Section: Archive quality freshness routing
+CLI SHALL 在任何写入前拒绝同时指定 `--quick` 和 `--abandon`。独立 `xirang sync` 为未知命令；`--no-sync`、`--no-validate`、`--no-verify` 为未知选项，不提供兼容别名。缺少工作区、找不到 Change、目标目录冲突或权限错误时给出具体诊断，不覆盖其他归档。
 
-Archive SHALL 根据 quality status 的实际证据关联和缺口路由：缺基线则委托独立 Review；已有基线而委托未完或中断则按共享恢复协议继续原委托；最终验证缺失或过期则由主 Agent 重判并补足。优化后的代码变化不自动意味着整 Change Review 重跑。内容及证据关联不变时，HEAD informational 差异不触发重审。明确不支持旧格式时保留历史并报告，不自动迁移或删除。
+同一工作区的 Xirang 归档调用（含默认、quick 和 abandon）SHALL 互斥进入写入与补偿阶段；发现其他调用正在提交时拒绝写入并提示重试。归档运行期间，调用方 SHALL 让当前归档命令独占使用相关 Change、归档路径及交付要写入的 Formal 文件；其他归档调用遵守同一互斥约束。CLI 不检测或协调不遵守这一约束的外部文件操作。CLI 仍 SHALL 拒绝已有目标冲突，且不将可识别的半成品视为成功归档。
 
-### Section: Archive Quality Seal routing
+同一进程内，模型已写入而目录移动失败时撤回本次写入，恢复到调用前状态，原 Change 仍活动，可重试。出现 I/O 回滚错误时报告实际失败，不声称恢复成功。进程被强杀或断电后不维护恢复日志，不承诺下次调用自动恢复、续跑或回滚；需要时由用户或 Agent 对照 Git diff、模型及 Change 目录处理，不整体覆盖无关未提交修改。
 
-Archive SHALL 在 Quality gate 失败时报告缺少或不可解析的 Seal commit，并指引主 Agent 返回 Apply 补齐正确的 Review、Opt disposition 或 Seal。Archive Quality gate SHALL 只检查新 JSON 中存在 Seal 且其 commit 对象仍存在；不比较 HEAD、工作区 clean 状态或当前实现与 Seal commit 内容，不因工作区变化重跑 Quality。Sync、Semantic Delta validation 与 task gates 仍独立执行。
+### Section: Key Acceptance Cases
+
+以下用例 SHALL 区分交付、放弃以及可捕获失败的结果。
+
+#### Acceptance Case: 免 Seal 不是免校验
+
+缺少 Seal、Delta 合法且有未完成目标时，quick 提示是否继续；拒绝不写模型、不移动目录。即使指定 --yes，Delta 非法也不交付。
+
+#### Acceptance Case: 放弃 change-a
+
+tasks.md 中已有 2/5 个目标勾选完成时，先提示 2/5，再询问一次「放弃 change-a 并将其归档？[y/N]」。选择 N 或直接回车，Change 继续活动；--abandon --yes 仍提示 2/5，然后直接封存，不再询问。
+
+#### Acceptance Case: 没有任务文件也可放弃
+
+无 tasks.md、无 Seal 且 Delta 无法解析，仍可在确认后放弃。不声称实现尚未开始，不修改模型、分支或工作树。
+
+#### Acceptance Case: 移动失败与中断不同
+
+默认或 quick 在模型写入后移动失败：本次调用撤回模型写入，活动目录保持原样。若写入后进程被杀且留下同名未完成标记，即使活动目录仍在，默认、quick 和 abandon 均 SHALL 拒绝继续，提示检查工作区，不自动恢复或更改模型。确认原进程已结束并检查 Git diff、Formal、活动目录与未完成归档后，可人工处理残留。若决定保留遗留模型写入及完整活动 Change，并人工清除未完成归档及其标记，再执行 `--abandon` 只封存活动 Change，不回退保留的模型写入。
+
+#### Acceptance Case: 提交后的清理或回执失败
+
+成功封存后，私有源副本清理失败只报告警告，不撤回已封存的 Change 或已写入的模型。若未收到成功回执，而活动目录不存在且可定位已完成的归档，重试只返回已有位置，不再次应用 Delta。若目的目录仍被标记为未完成，不返回成功回执，提示核对工作区。
+
+#### Acceptance Case: 同一工作区竞争交付
+
+一个交付调用正在写入正式模型时，另一个归档调用（即使针对另一 Change，或对同一 Change 执行放弃）不得进入写入阶段；后者失败并可在前者完成后重试，不撤销前者的写入，也不创建第二个归档结果。
+
+#### Acceptance Case: Windows 上按结果留档
+
+从 Windows 项目路径归档同一份制品时，默认和 quick 使用 archive 下的日期目录，abandon 使用 archive 下的 abandoned 子目录；两者均保留文件的原始字节。

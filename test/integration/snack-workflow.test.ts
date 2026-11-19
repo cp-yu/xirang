@@ -115,12 +115,10 @@ describe('snack workflow integration', () => {
     expect(snackSkill).not.toContain('xirang diff --change "<name>" --write');
     expect(snackSkill).not.toContain('.xirang/changes/<name>/effective-change.md');
     expect(snackSkill).not.toContain('xirang acceptanceCase-labels');
-    expect(snackSkill).toContain('1. **Quick sync**: `xirang sync "<change-name>" --no-verify`');
-    expect(snackSkill).toContain('2. **Quick archive**: `xirang archive "<change-name>" --no-verify`');
-    expect(snackSkill).toContain(
-      '3. **Sync and archive**: `xirang sync "<change-name>" --no-verify && xirang archive "<change-name>" --no-verify`'
-    );
-    expect(snackSkill).toContain('4. **Continue development**');
+    expect(snackSkill).toContain('`xirang archive "<change-name>" --quick`');
+    expect(snackSkill).not.toContain('`xirang sync');
+    expect(snackSkill).not.toContain('--no-verify');
+    expect(snackSkill).toContain('2. **Continue development**');
     expect(snackSkill).toContain('Default to creating a new change');
     expect(snackSkill).toContain('explicitly asks to update the current or an existing change');
     expect(snackSkill).toContain('Supplying an existing change ID does not by itself select update mode');

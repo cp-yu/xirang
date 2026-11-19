@@ -60,12 +60,7 @@ Delta sync SHALL 只重写 Semantic Delta 实际影响的存储单元。
 
 ### Section: Sync 失败完整回滚
 
-Delta sync 任一环节失败时 SHALL 完整回滚到应用前状态。
-
-- **Sync 中途失败**
-
-  - 任一目标单元无法写入
-  - 正式模型恢复到应用前状态
+CLI SHALL 在默认或 quick 交付的同次调用中对模型写入与归档移动共同处理失败。移动失败时撤回本次模型写入并保留活动 Change。此保证不包括进程终止后的恢复；放弃只移动 Change，不应用或回退模型。
 
 ### Section: 持久化验证证据
 
