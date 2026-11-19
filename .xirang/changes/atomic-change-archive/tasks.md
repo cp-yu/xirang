@@ -148,4 +148,5 @@
 - [x] [code_fix] 仅投影 Archive 时交付归档 Git 指引，不附带 Apply 专属的执行或恢复 references；保留正常 Apply 和内部 Agent 投影。
 - [x] [artifact_fix] 在 `quality-cli-gate` 契约中将 Quality 执行 references 限于 Apply，Archive 仅消费 Seal、转达诊断并交回 Apply。
 - [x] [code_fix] 移除独立 Sync 退役后无运行时调用的 Delta 解析包装，保留生产解析入口及现有行为验证。
+- [x] [code_fix] 两种补全在读取历史和活动目录期间发现同名的新归档尝试时，不用旧回执建议该名称；无关回执和提交完成后的补全保持可用。
 - [x] [code_fix] 即使活动源已恢复，任一日期、任一历史位置的同名未完成归档仍阻止写入；获得归档锁后再次校验，同名完成回执不阻止合法再用。

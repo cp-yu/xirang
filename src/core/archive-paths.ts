@@ -89,9 +89,25 @@ export async function resolveArchiveHistory(history: ArchiveHistory, changeName:
   return changed ? { changed: true } : { receipts };
 }
 
+async function omitNewArchiveAttempts<T>(archiveDir: string, history: ArchiveHistory, choices: Map<string, T>): Promise<Map<string, T>> {
+  if (!choices.size) return choices;
+  // A reservation can appear after the first listing but before an active source disappears.
+  const latest = await readArchiveHistory(archiveDir);
+  for (const name of choices.keys()) {
+    const key = archiveKey(name);
+    const previous = history.get(key)?.candidates ?? [];
+    const known = new Set(previous.map(({ directory, date }) => `${directory}\0${date}`));
+    if (latest.get(key)?.candidates.some(({ directory, date }) => !known.has(`${directory}\0${date}`))) {
+      choices.delete(name);
+    }
+  }
+  return choices;
+}
+
 export async function listArchiveChoices(changesDir: string): Promise<Map<string, 'active' | 'archived'>> {
   const names = new Set(await listActiveChangeDirectories(changesDir));
-  const history = await readArchiveHistory(path.join(changesDir, 'archive'));
+  const archiveDir = path.join(changesDir, 'archive');
+  const history = await readArchiveHistory(archiveDir);
   for (const { name } of history.values()) if (name) names.add(name);
   const choices = new Map<string, 'active' | 'archived'>();
   for (const name of [...names].sort()) {
@@ -105,18 +121,19 @@ export async function listArchiveChoices(changesDir: string): Promise<Map<string
       // An unreadable entry cannot be offered as a completion.
     }
   }
-  return choices;
+  return omitNewArchiveAttempts(archiveDir, history, choices);
 }
 
 export async function listDatedArchiveChoices(archiveDir: string): Promise<string[]> {
   const history = await readArchiveHistory(archiveDir);
-  const choices = new Set<string>();
+  const choices = new Map<string, string[]>();
   for (const { name } of history.values()) {
     if (!name || name === 'archive') continue;
     const result = await resolveArchiveHistory(history, name).catch(() => undefined);
-    for (const receipt of result?.receipts ?? []) choices.add(path.basename(receipt));
+    if (result?.receipts?.length) choices.set(name, result.receipts);
   }
-  return [...choices].sort();
+  const stable = await omitNewArchiveAttempts(archiveDir, history, choices);
+  return [...new Set([...stable.values()].flat().map(receipt => path.basename(receipt)))].sort();
 }
 
 /** Confirm the same directory survived the marker check; rollback removes it before the marker. */

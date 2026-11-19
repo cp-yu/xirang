@@ -1036,6 +1036,51 @@ it.each([false, true])('ignores a history entry rolled back between listing and 
 });
 
 it.each([
+  ['archive-changes', 'archive'],
+  ['archive-changes', 'abandoned'],
+  ['archived-changes', 'archive'],
+  ['archived-changes', 'abandoned'],
+])('omits same-name history from %s when a new %s attempt starts after listing', async (type, mode) => {
+  const changes = path.join(root, '.xirang', 'changes');
+  const history = path.join(changes, 'archive');
+  const completed = path.join(history, '2026-01-01-demo');
+  const unrelated = path.join(history, '2026-01-01-unrelated');
+  const pendingParent = mode === 'abandoned' ? path.join(history, 'abandoned') : history;
+  const destination = path.join(pendingParent, '2026-01-02-demo');
+  const active = path.join(changes, 'demo');
+  const captured = path.join(changes, '.archive-source-demo');
+  for (const location of [completed, unrelated, active]) await fs.mkdir(location, { recursive: true });
+  const lstat = fs.lstat;
+  let started = false;
+  const hook = vi.spyOn(fs, 'lstat').mockImplementation(async (location, options) => {
+    if (location === pendingArchivePath(completed) && !started) {
+      started = true;
+      await fs.mkdir(pendingParent, { recursive: true });
+      await fs.mkdir(pendingArchivePath(destination));
+      await fs.mkdir(destination);
+      await fs.rename(active, captured);
+    }
+    return lstat(location, options);
+  });
+  const expectedDuring = type === 'archive-changes' ? 'unrelated' : path.basename(unrelated);
+  const completion = () => runCLI(['__complete', type], { cwd: root });
+  try {
+    const result = await completion();
+    expect(started).toBe(true);
+    expect(result).toMatchObject({ exitCode: 0, stdout: `${expectedDuring}\tarchived change\n`, stderr: '' });
+  } finally {
+    hook.mockRestore();
+  }
+  await expect(fs.access(captured)).resolves.toBeUndefined();
+  await fs.rmdir(pendingArchivePath(destination));
+  const expectedAfter = type === 'archive-changes' ? ['demo', 'unrelated']
+    : [completed, unrelated, destination].map(location => path.basename(location)).sort();
+  expect(await completion()).toMatchObject({
+    exitCode: 0, stdout: expectedAfter.map(name => `${name}\tarchived change\n`).join(''), stderr: '',
+  });
+});
+
+it.each([
   { lookup: 'archive', rollbackBefore: 'listing' },
   { lookup: 'archive', rollbackBefore: 'marker' },
   { lookup: 'completion', rollbackBefore: 'listing' },
